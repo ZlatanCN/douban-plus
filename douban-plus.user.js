@@ -584,6 +584,39 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 }
 .atv-comment-votes { display: inline-flex; align-items: center; gap: 5px; }
 
+/* ---------- Poster Modal ---------- */
+.atv-poster-card { cursor: pointer; }
+.atv-modal-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 300ms ease;
+}
+.atv-modal-overlay.is-open { opacity: 1; pointer-events: auto; }
+.atv-modal-img {
+  max-width: 90vw; max-height: 90vh;
+  border-radius: var(--atv-radius-lg);
+  box-shadow: 0 40px 80px rgba(0,0,0,0.75);
+  transform: scale(0.92);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  object-fit: contain;
+}
+.atv-modal-overlay.is-open .atv-modal-img { transform: scale(1); }
+.atv-modal-close {
+  position: fixed; top: 24px; right: 24px; z-index: 10001;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+.atv-modal-close:hover { background: rgba(255,255,255,0.16); border-color: rgba(255,255,255,0.3); }
+.atv-modal-close svg { display: block; }
+
 /* ---------- Footer spacer ---------- */
 .atv-footer-spacer { height: 64px; }
 
@@ -973,6 +1006,38 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     return wrap;
   }
 
+  function openPosterModal(src, alt) {
+    const old = document.getElementById('atv-poster-modal');
+    if (old) old.remove();
+
+    const overlay = el('div', { className: 'atv-modal-overlay', id: 'atv-poster-modal' });
+    const img = el('img', { className: 'atv-modal-img', src: src, alt: alt || '' });
+    img.referrerPolicy = 'no-referrer';
+
+    const close = el('button', {
+      className: 'atv-modal-close',
+      attrs: { type: 'button' },
+      html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
+    });
+
+    const dismiss = () => {
+      overlay.classList.remove('is-open');
+      document.body.style.overflow = '';
+      setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 350);
+    };
+    close.addEventListener('click', dismiss);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
+    document.addEventListener('keydown', function handler(e) {
+      if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', handler); }
+    });
+
+    overlay.appendChild(img);
+    overlay.appendChild(close);
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+  }
+
   function buildHero(data) {
     const hero = el('section', { className: 'atv-hero' });
 
@@ -1002,6 +1067,7 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     } else {
       card.appendChild(el('div', { className: 'atv-poster-placeholder', html: ICON_FILM_PLACEHOLDER }));
     }
+    card.addEventListener('click', () => { if (data.poster) openPosterModal(data.poster, data.title.primary || ''); });
     inner.appendChild(card);
 
     const info = el('div', { className: 'atv-hero-info' });

@@ -239,6 +239,23 @@ for (const sc of SCENARIOS) {
       record(sc.name, `awards in info grid (${awardCount} rows)`, awardCount > 0);
     }
 
+    // === Poster modal (conditional — placeholder posters have no data.poster) ===
+    const posterCard = await page.$('#atv-douban-root .atv-poster-card');
+    if (posterCard) {
+      posterCard.click();
+      await page.waitForTimeout(450);
+      const modal = await page.$('#atv-poster-modal.is-open');
+      const modalImg = modal ? await page.$('#atv-poster-modal.is-open .atv-modal-img') : null;
+      record(sc.name, 'poster click opens modal with image', !!modalImg);
+      if (modal) {
+        const bb = await modal.boundingBox();
+        await page.mouse.click(bb.x + 10, bb.y + 10);
+        await page.waitForTimeout(450);
+        const closed = await page.$('#atv-poster-modal.is-open');
+        record(sc.name, 'modal closes on backdrop click', !closed);
+      }
+    }
+
     // Visual: screenshots
     await page.screenshot({ path: join(SCREENSHOT_DIR, `${sc.name}-hero.png`), fullPage: false });
     await page.screenshot({ path: join(SCREENSHOT_DIR, `${sc.name}-full.png`), fullPage: true });
