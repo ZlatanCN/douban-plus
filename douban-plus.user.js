@@ -398,6 +398,15 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 .atv-carousel::-webkit-scrollbar { display: none; }
 .atv-carousel { scrollbar-width: none; }
 
+/* ---------- Page scrollbar ---------- */
+:root { color-scheme: dark; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: #1c1c1e; }
+::-webkit-scrollbar-thumb { background: #3a3a3c; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #48484a; }
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: #3a3a3c #1c1c1e; }
+
 /* ---------- Cast ---------- */
 .atv-cast-card {
   flex: 0 0 132px;
