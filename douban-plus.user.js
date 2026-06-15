@@ -115,10 +115,8 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 
 #atv-douban-root *, #atv-douban-root *::before, #atv-douban-root *::after { box-sizing: border-box; }
 #atv-douban-root a { color: inherit; text-decoration: none; }
+#atv-douban-root a:hover { background: transparent; }
 #atv-douban-root img { display: block; max-width: 100%; }
-.atv-cast-card:hover, .atv-cast-card:hover .atv-cast-name, .atv-cast-card:hover .atv-cast-role { color: inherit; }
-.atv-rec-card:hover, .atv-rec-card:hover .atv-rec-title { color: inherit; }
-.atv-photo-tile:hover { color: inherit; }
 
 /* ---------- Sticky nav ---------- */
 .atv-stickynav {
