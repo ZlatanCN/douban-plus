@@ -8,7 +8,7 @@
   },
   "name": "douban-plus",
   "scripts": {
-    "test": "node tests/qa.mjs",
+    "test": "ultracite check && node tests/qa.mjs",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
@@ -23,6 +23,6 @@
     "scriptcat",
     "apple-tv"
   ],
-  "author": "zhujiayou",
+  "author": "Gabriel Zhu",
   "license": "MIT"
 }
