@@ -1,0 +1,5 @@
+node_modules/
+.sisyphus/
+session-*.md
+*.Zone.Identifier
+.idea

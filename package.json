@@ -1,0 +1,21 @@
+{
+  "name": "douban-plus",
+  "version": "1.0.0",
+  "description": "Transform Douban movie/TV detail pages into Apple TV+ style",
+  "main": "douban-plus.user.js",
+  "scripts": {
+    "test": "node tests/qa.mjs"
+  },
+  "keywords": [
+    "douban",
+    "userscript",
+    "tampermonkey",
+    "scriptcat",
+    "apple-tv"
+  ],
+  "author": "zhujiayou",
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": "^1.60.0"
+  }
+}
