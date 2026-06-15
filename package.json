@@ -1,11 +1,21 @@
 {
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.16",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "playwright": "^1.60.0",
+    "ultracite": "^7.8.3"
+  },
   "name": "douban-plus",
+  "scripts": {
+    "test": "node tests/qa.mjs",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
+  },
   "version": "1.0.0",
   "description": "Transform Douban movie/TV detail pages into Apple TV+ style",
   "main": "douban-plus.user.js",
-  "scripts": {
-    "test": "node tests/qa.mjs"
-  },
   "keywords": [
     "douban",
     "userscript",
@@ -14,8 +24,5 @@
     "apple-tv"
   ],
   "author": "zhujiayou",
-  "license": "MIT",
-  "devDependencies": {
-    "playwright": "^1.60.0"
-  }
+  "license": "MIT"
 }

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/zhujiayou/douban-appletv-beautify
-// @version      1.0.0
+// @version      1.0.1
 // @description  将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色
 // @author       Sisyphus
 // @match        *://movie.douban.com/subject/*
@@ -10,12 +10,36 @@
 // @license      MIT
 // ==/UserScript==
 
-(function () {
-  'use strict';
+const RE_SLASH_SEP = /\s*\/\s*/g;
+const RE_WS_GLOBAL = /\s+/g;
+const RE_COLON_WS = /[:：\s]/g;
+const RE_YEAR_TRAIL = /\(\d{4}\)\s*$/;
+const RE_WS = /\s+/;
+const RE_YEAR = /(\d{4})/;
+const RE_NON_DIGIT = /\D/g;
+const RE_WS_NL = /\s+\n/g;
+const RE_HSPACE = /[ \t]+/g;
+const RE_NL_MULTI = /\n{3,}/g;
+const RE_IMDB_ID = /(tt\d+)/;
+const RE_BG_URL = /url\(["']?([^"')]+)["']?\)/;
+const RE_SUBJECT_ID = /subject\/(\d+)/;
+const RE_ALLSTAR = /allstar(\d{2})/;
+const RE_HTTP = /^https?:\/\//;
+const RE_ONLINE_VIDEO = /online-video/;
+const RE_WISH = /想看/;
+const RE_COLLECT = /看过/;
+const RE_WISH_EXACT = /^想看$/;
+const RE_COLLECT_EXACT = /^看过$/;
+const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/;
+const RE_IMDB_LINK = /^tt\d+$/;
+const RE_SEASON_SUFFIX = /\d$/;
 
+(() => {
   const addStyle = (css) => {
-    if (typeof GM_addStyle === 'function') return GM_addStyle(css);
-    const s = document.createElement('style');
+    if (typeof GM_addStyle === "function") {
+      return GM_addStyle(css);
+    }
+    const s = document.createElement("style");
     s.textContent = css;
     (document.head || document.documentElement).appendChild(s);
     return s;
@@ -24,41 +48,41 @@
   const ICON_STAR_FULL =
     '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
     '<path fill="currentColor" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_STAR_HALF =
     '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
     '<defs><linearGradient id="atvHalfStar"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="currentColor" stop-opacity="0.22"/></linearGradient></defs>' +
     '<path fill="url(#atvHalfStar)" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_STAR_EMPTY =
     '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
     '<path fill="currentColor" fill-opacity="0.22" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_PLAY =
     '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
     '<path fill="currentColor" d="M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_CHECK =
     '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
     '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.5 7.5l3 3 6-7"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_CHEVRON =
     '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">' +
     '<path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M2.5 4l3.5 4 3.5-4"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_ARROW =
     '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">' +
     '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 8h9m0 0l-3.5-3.5M12 8l-3.5 3.5"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_THUMB =
     '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">' +
     '<path fill="currentColor" d="M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"/>' +
-    '</svg>';
+    "</svg>";
   const ICON_FILM_PLACEHOLDER =
     '<svg viewBox="0 0 64 96" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
     '<defs><linearGradient id="atvFilmGrad" x1="0" y1="0" x2="1" y2="1">' +
     '<stop offset="0%" stop-color="#2c2c2e"/><stop offset="100%" stop-color="#1c1c1e"/>' +
-    '</linearGradient></defs>' +
+    "</linearGradient></defs>" +
     '<rect width="64" height="96" fill="url(#atvFilmGrad)"/>' +
     '<g fill="rgba(255,255,255,0.12)">' +
     '<rect x="4" y="6" width="6" height="6" rx="1"/><rect x="4" y="18" width="6" height="6" rx="1"/>' +
@@ -69,18 +93,12 @@
     '<rect x="54" y="30" width="6" height="6" rx="1"/><rect x="54" y="42" width="6" height="6" rx="1"/>' +
     '<rect x="54" y="54" width="6" height="6" rx="1"/><rect x="54" y="66" width="6" height="6" rx="1"/>' +
     '<rect x="54" y="78" width="6" height="6" rx="1"/>' +
-    '</g>' +
+    "</g>" +
     '<path d="M26 38l14 10-14 10z" fill="rgba(255,255,255,0.28)"/>' +
-    '</svg>';
+    "</svg>";
 
   const CSS = `
-:root {}
-body > #wrapper { display: none !important; }
-body { background: #000 !important; margin: 0 !important; padding: 0 !important; }
-#db-global-nav, #db-nav-movie { display: none !important; }
-[id^="dale_"], [class*="dale_"] { display: none !important; }
-
-#atv-douban-root {
+:root {
   --atv-bg-primary: #000000;
   --atv-bg-secondary: #1c1c1e;
   --atv-bg-tertiary: #2c2c2e;
@@ -98,7 +116,14 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   --atv-radius-md: 12px;
   --atv-radius-lg: 16px;
   --atv-radius-xl: 24px;
+}
 
+body > #wrapper { display: none !important; }
+body { background: #000 !important; margin: 0 !important; padding: 0 !important; }
+#db-global-nav, #db-nav-movie { display: none !important; }
+[id^="dale_"], [class*="dale_"] { display: none !important; }
+
+#atv-douban-root {
   position: relative;
   background: var(--atv-bg-primary);
   color: var(--atv-text-primary);
@@ -155,7 +180,7 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   transition: color 200ms ease;
   cursor: pointer;
 }
-.atv-stickynav-jumps a:hover { color: var(--atv-accent-bright); }
+.atv-stickynav-jumps a:hover { color: var(--atv-accent-bright); background: transparent }
 @media (max-width: 768px) {
   .atv-stickynav-title { font-size: 14px; }
   .atv-stickynav-jumps { gap: 14px; }
@@ -653,58 +678,84 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 `;
 
   const $ = (sel, root) => (root || document).querySelector(sel);
-  const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
+  const $$ = (sel, root) =>
+    Array.from((root || document).querySelectorAll(sel));
 
-  const safeText = (el) => (el ? (el.textContent || '').trim() : '');
+  const safeText = (el) => (el ? (el.textContent || "").trim() : "");
 
   const upgradePoster = (url) => {
-    if (!url) return null;
+    if (!url) {
+      return null;
+    }
     return url
-      .replace('/s_ratio_poster/', '/l_ratio_poster/')
-      .replace('s_ratio_poster', 'l_ratio_poster');
+      .replace("/s_ratio_poster/", "/l_ratio_poster/")
+      .replace("s_ratio_poster", "l_ratio_poster");
   };
 
   const upgradePhoto = (url) => {
-    if (!url) return null;
-    return url.replace('/sqxs/', '/large/').replace('/m/', '/l/');
+    if (!url) {
+      return null;
+    }
+    return url.replace("/sqxs/", "/large/").replace("/m/", "/l/");
   };
 
   const collectInfoTextAfter = (labelEl) => {
-    if (!labelEl) return '';
-    let out = '';
+    if (!labelEl) {
+      return "";
+    }
+    let out = "";
     let n = labelEl.nextSibling;
     while (n) {
-      if (n.nodeType === 1 && n.classList && n.classList.contains('pl')) break;
-      if (n.nodeType === 1 && n.tagName === 'BR') break;
-      if (n.nodeType === 3) out += n.nodeValue;
-      else if (n.nodeType === 1) out += (n.textContent || '');
+      if (n.nodeType === 1 && n.classList && n.classList.contains("pl")) {
+        break;
+      }
+      if (n.nodeType === 1 && n.tagName === "BR") {
+        break;
+      }
+      if (n.nodeType === 3) {
+        out += n.nodeValue;
+      } else if (n.nodeType === 1) {
+        out += n.textContent || "";
+      }
       n = n.nextSibling;
     }
-    return out.replace(/\s*\/\s*/g, ' / ').replace(/\s+/g, ' ').trim();
+    return out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ").trim();
   };
 
   const findLabel = (infoRoot, label) => {
-    if (!infoRoot) return null;
-    const spans = $$('span.pl', infoRoot);
+    if (!infoRoot) {
+      return null;
+    }
+    const spans = $$("span.pl", infoRoot);
     for (const s of spans) {
-      const t = (s.textContent || '').replace(/[:：\s]/g, '');
-      if (t === label) return s;
+      const t = (s.textContent || "").replace(RE_COLON_WS, "");
+      if (t === label) {
+        return s;
+      }
     }
     return null;
   };
 
   const collectLinksAfter = (labelEl) => {
-    if (!labelEl) return [];
+    if (!labelEl) {
+      return [];
+    }
     const out = [];
     let n = labelEl.nextSibling;
     while (n) {
-      if (n.nodeType === 1 && n.classList && n.classList.contains('pl')) break;
-      if (n.nodeType === 1 && n.tagName === 'BR') break;
+      if (n.nodeType === 1 && n.classList && n.classList.contains("pl")) {
+        break;
+      }
+      if (n.nodeType === 1 && n.tagName === "BR") {
+        break;
+      }
       if (n.nodeType === 1) {
-        const anchors = n.tagName === 'A' ? [n] : $$('a', n);
+        const anchors = n.tagName === "A" ? [n] : $$("a", n);
         for (const a of anchors) {
-          const t = (a.textContent || '').trim();
-          if (t) out.push({ text: t, href: a.href || '' });
+          const t = (a.textContent || "").trim();
+          if (t) {
+            out.push({ text: t, href: a.href || "" });
+          }
         }
       }
       n = n.nextSibling;
@@ -713,12 +764,13 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   };
 
   function extractTitle() {
-    const h1 = $('#content h1');
+    const h1 = $("#content h1");
     const reviewed = $('span[property="v:itemreviewed"]', h1);
-    const full = safeText(reviewed) || safeText(h1).replace(/\(\d{4}\)\s*$/, '').trim();
+    const full =
+      safeText(reviewed) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
     let primary = full;
-    let original = '';
-    const idx = full.search(/\s+/);
+    let original = "";
+    const idx = full.search(RE_WS);
     if (idx > 0) {
       primary = full.slice(0, idx).trim();
       original = full.slice(idx).trim();
@@ -727,103 +779,150 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function extractYear() {
-    const yEl = $('#content h1 .year');
+    const yEl = $("#content h1 .year");
     const raw = safeText(yEl);
-    const m = raw.match(/(\d{4})/);
-    return m ? m[1] : '';
+    const m = raw.match(RE_YEAR);
+    return m ? m[1] : "";
   }
 
   function extractPoster() {
-    const img = $('#mainpic img') || $('a.nbgnbg img');
-    if (!img) return null;
-    const src = img.src || img.getAttribute('data-src') || '';
+    const img = $("#mainpic img") || $("a.nbgnbg img");
+    if (!img) {
+      return null;
+    }
+    const src = img.src || img.getAttribute("data-src") || "";
     return upgradePoster(src);
   }
 
   function extractRating() {
-    const scoreEl = $('strong.rating_num') || $('strong[property="v:average"]');
+    const scoreEl = $("strong.rating_num") || $('strong[property="v:average"]');
     const raw = safeText(scoreEl);
-    const score = raw ? parseFloat(raw) : NaN;
-    if (!score || isNaN(score) || score <= 0) return null;
-    const votesEl = $('span[property="v:votes"]') || $('.rating_people span');
-    const count = votesEl ? parseInt(safeText(votesEl).replace(/\D/g, ''), 10) || 0 : 0;
+    const score = raw ? Number.parseFloat(raw) : Number.NaN;
+    if (!score || Number.isNaN(score) || score <= 0) {
+      return null;
+    }
+    const votesEl = $('span[property="v:votes"]') || $(".rating_people span");
+    const count = votesEl
+      ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+      : 0;
     return { score, count };
   }
 
   function extractSummary() {
     const summary = $('span[property="v:summary"]');
-    if (!summary) return null;
-    let txt = (summary.textContent || '').trim();
-    txt = txt.replace(/\s+\n/g, '\n').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+    if (!summary) {
+      return null;
+    }
+    let txt = (summary.textContent || "").trim();
+    txt = txt
+      .replace(RE_WS_NL, "\n")
+      .replace(RE_HSPACE, " ")
+      .replace(RE_NL_MULTI, "\n\n")
+      .trim();
     return txt || null;
   }
 
   function extractInfo() {
-    const info = $('#info');
+    const info = $("#info");
     const out = {
-      director: [], writers: [], cast: [], genres: [],
-      country: '', language: '', releaseDate: '', firstAired: '',
-      runtime: '', episodes: '', seasons: '', episodeRuntime: '',
-      aliases: '', imdb: '',
+      director: [],
+      writers: [],
+      cast: [],
+      genres: [],
+      country: "",
+      language: "",
+      releaseDate: "",
+      firstAired: "",
+      runtime: "",
+      episodes: "",
+      seasons: "",
+      episodeRuntime: "",
+      aliases: "",
+      imdb: "",
     };
-    if (!info) return out;
+    if (!info) {
+      return out;
+    }
 
-    const directorL = findLabel(info, '导演');
+    const directorL = findLabel(info, "导演");
     out.director = collectLinksAfter(directorL);
 
-    const writersL = findLabel(info, '编剧');
+    const writersL = findLabel(info, "编剧");
     out.writers = collectLinksAfter(writersL);
 
     const starringEls = $$('a[rel="v:starring"]', info);
     if (starringEls.length) {
-      out.cast = starringEls.map((a) => ({ text: (a.textContent || '').trim(), href: a.href || '' })).filter((x) => x.text);
+      out.cast = starringEls
+        .map((a) => ({
+          text: (a.textContent || "").trim(),
+          href: a.href || "",
+        }))
+        .filter((x) => x.text);
     } else {
-      const castL = findLabel(info, '主演');
+      const castL = findLabel(info, "主演");
       out.cast = collectLinksAfter(castL);
     }
 
     const genreEls = $$('span[property="v:genre"]', info);
-    out.genres = genreEls.map((e) => (e.textContent || '').trim()).filter(Boolean);
+    out.genres = genreEls
+      .map((e) => (e.textContent || "").trim())
+      .filter(Boolean);
 
-    const countryL = findLabel(info, '制片国家/地区');
+    const countryL = findLabel(info, "制片国家/地区");
     out.country = collectInfoTextAfter(countryL);
 
-    const langL = findLabel(info, '语言');
+    const langL = findLabel(info, "语言");
     out.language = collectInfoTextAfter(langL);
 
     const relEls = $$('span[property="v:initialReleaseDate"]', info);
     if (relEls.length) {
-      out.releaseDate = relEls.map((e) => (e.textContent || '').trim()).filter(Boolean).join(' / ');
+      out.releaseDate = relEls
+        .map((e) => (e.textContent || "").trim())
+        .filter(Boolean)
+        .join(" / ");
     }
 
-    const firstL = findLabel(info, '首播');
-    if (firstL) out.firstAired = collectInfoTextAfter(firstL);
+    const firstL = findLabel(info, "首播");
+    if (firstL) {
+      out.firstAired = collectInfoTextAfter(firstL);
+    }
 
     const runEls = $$('span[property="v:runtime"]', info);
-    if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || '').trim()).filter(Boolean).join(' / ');
+    if (runEls.length) {
+      out.runtime = runEls
+        .map((e) => (e.textContent || "").trim())
+        .filter(Boolean)
+        .join(" / ");
+    }
 
-    const epL = findLabel(info, '集数');
-    if (epL) out.episodes = collectInfoTextAfter(epL);
-    const seasonL = findLabel(info, '季数');
+    const epL = findLabel(info, "集数");
+    if (epL) {
+      out.episodes = collectInfoTextAfter(epL);
+    }
+    const seasonL = findLabel(info, "季数");
     if (seasonL) {
-      const sel = $('#season', info);
+      const sel = $("#season", info);
       if (sel) {
         const opt = sel.options[sel.selectedIndex];
-        out.seasons = opt ? (opt.textContent || '').trim() : collectInfoTextAfter(seasonL);
+        out.seasons = opt
+          ? (opt.textContent || "").trim()
+          : collectInfoTextAfter(seasonL);
       } else {
         out.seasons = collectInfoTextAfter(seasonL);
       }
     }
-    const epRunL = findLabel(info, '单集片长');
-    if (epRunL) out.episodeRuntime = collectInfoTextAfter(epRunL);
+    const epRunL = findLabel(info, "单集片长");
+    if (epRunL) {
+      out.episodeRuntime = collectInfoTextAfter(epRunL);
+    }
 
-    const aliasL = findLabel(info, '又名');
+    const aliasL = findLabel(info, "又名");
     out.aliases = collectInfoTextAfter(aliasL);
 
-    const imdbL = findLabel(info, 'IMDb');
+    const imdbL = findLabel(info, "IMDb");
     if (imdbL) {
       const raw = collectInfoTextAfter(imdbL);
-      const m = raw.match(/(tt\d+)/);
+      const m = raw.match(RE_IMDB_ID);
       out.imdb = m ? m[1] : raw;
     }
 
@@ -831,83 +930,109 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function extractCelebrities() {
-    return $$('#celebrities li.celebrity').map((li) => {
-      const nameEl = $('.info .name a', li) || $('.info .name', li);
-      const roleEl = $('.info .role', li);
-      const avatarEl = $('.avatar', li);
-      let avatar = '';
-      if (avatarEl) {
-        const bg = avatarEl.getAttribute('style') || '';
-        const m = bg.match(/url\(["']?([^"')]+)["']?\)/);
-        if (m) avatar = m[1];
-      }
-      return {
-        name: safeText(nameEl),
-        role: safeText(roleEl),
-        avatar,
-        link: nameEl && nameEl.tagName === 'A' ? nameEl.href : '',
-      };
-    }).filter((c) => c.name);
+    return $$("#celebrities li.celebrity")
+      .map((li) => {
+        const nameEl = $(".info .name a", li) || $(".info .name", li);
+        const roleEl = $(".info .role", li);
+        const avatarEl = $(".avatar", li);
+        let avatar = "";
+        if (avatarEl) {
+          const bg = avatarEl.getAttribute("style") || "";
+          const m = bg.match(RE_BG_URL);
+          if (m) {
+            avatar = m[1];
+          }
+        }
+        return {
+          name: safeText(nameEl),
+          role: safeText(roleEl),
+          avatar,
+          link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
+        };
+      })
+      .filter((c) => c.name);
   }
 
   function extractPhotos() {
-    return $$('#related-pic .related-pic-bd img').map((img) => {
-      const thumb = img.src || img.getAttribute('data-src') || '';
-      const a = img.closest('a');
-      return {
-        thumbUrl: thumb,
-        hdUrl: upgradePhoto(thumb),
-        link: a ? a.href : '',
-      };
-    }).filter((p) => p.thumbUrl);
+    return $$("#related-pic .related-pic-bd img")
+      .map((img) => {
+        const thumb = img.src || img.getAttribute("data-src") || "";
+        const a = img.closest("a");
+        return {
+          thumbUrl: thumb,
+          hdUrl: upgradePhoto(thumb),
+          link: a ? a.href : "",
+        };
+      })
+      .filter((p) => p.thumbUrl);
   }
 
   function extractRecommendations() {
-    return $$('.recommendations-bd dl').map((dl) => {
-      const linkEl = $('dt a', dl);
-      const imgEl = $('dt a img', dl);
-      const titleEl = $('dd a', dl);
-      return {
-        title: safeText(titleEl),
-        poster: imgEl ? (imgEl.src || imgEl.getAttribute('data-src') || '') : '',
-        link: linkEl ? linkEl.href : '',
-      };
-    }).filter((r) => r.title);
+    return $$(".recommendations-bd dl")
+      .map((dl) => {
+        const linkEl = $("dt a", dl);
+        const imgEl = $("dt a img", dl);
+        const titleEl = $("dd a", dl);
+        return {
+          title: safeText(titleEl),
+          poster: imgEl
+            ? imgEl.src || imgEl.getAttribute("data-src") || ""
+            : "",
+          link: linkEl ? linkEl.href : "",
+        };
+      })
+      .filter((r) => r.title);
   }
 
   function extractSubjectId() {
-    const m = location.pathname.match(/subject\/(\d+)/);
-    return m ? m[1] : '';
+    const m = location.pathname.match(RE_SUBJECT_ID);
+    return m ? m[1] : "";
   }
 
   function extractComments() {
-    const items = $$('#hot-comments .comment-item');
+    const items = $$("#hot-comments .comment-item");
     const out = [];
     for (const item of items) {
-      const authorEl = $('.comment-info a', item);
+      const authorEl = $(".comment-info a", item);
       const name = safeText(authorEl);
-      if (!name) continue;
-      const shortEl = $('.short', item) || $('.comment-content', item);
+      if (!name) {
+        continue;
+      }
+      const shortEl = $(".short", item) || $(".comment-content", item);
       const content = safeText(shortEl);
-      if (!content) continue;
+      if (!content) {
+        continue;
+      }
       const ratingEl = $('[class*="allstar"]', item);
       let stars = 0;
-      let ratingWord = '';
+      let ratingWord = "";
       if (ratingEl) {
-        const rm = (ratingEl.className || '').match(/allstar(\d{2})/);
-        if (rm) stars = parseInt(rm[1], 10) / 10;
-        ratingWord = ratingEl.getAttribute('title') || '';
+        const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+        if (rm) {
+          stars = Number.parseInt(rm[1], 10) / 10;
+        }
+        ratingWord = ratingEl.getAttribute("title") || "";
       }
-      const timeEl = $('.comment-time', item);
-      const time = timeEl ? (timeEl.getAttribute('title') || safeText(timeEl)) : '';
-      const votesEl = $('.vote-count', item) || $('.votes', item);
-      const votes = votesEl ? parseInt(safeText(votesEl).replace(/\D/g, ''), 10) || 0 : 0;
-      const avatarImg = $('.avatar img', item);
-      let avatar = '';
-      if (avatarImg) avatar = avatarImg.src || avatarImg.getAttribute('data-original') || avatarImg.getAttribute('data-src') || '';
+      const timeEl = $(".comment-time", item);
+      const time = timeEl
+        ? timeEl.getAttribute("title") || safeText(timeEl)
+        : "";
+      const votesEl = $(".vote-count", item) || $(".votes", item);
+      const votes = votesEl
+        ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+        : 0;
+      const avatarImg = $(".avatar img", item);
+      let avatar = "";
+      if (avatarImg) {
+        avatar =
+          avatarImg.src ||
+          avatarImg.getAttribute("data-original") ||
+          avatarImg.getAttribute("data-src") ||
+          "";
+      }
       out.push({
         name,
-        link: authorEl && authorEl.tagName === 'A' ? authorEl.href : '',
+        link: authorEl && authorEl.tagName === "A" ? authorEl.href : "",
         content,
         stars,
         ratingWord,
@@ -920,250 +1045,392 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function extractAwards() {
-    return $$('ul.award').map((ul) => {
-      const lis = $$('li', ul);
-      const orgEl = lis[0] ? $('a', lis[0]) : null;
-      const org = lis[0] ? safeText(lis[0]) : '';
-      const name = lis[1] ? safeText(lis[1]) : '';
-      const personEl = lis[2] ? $('a', lis[2]) : null;
-      const person = lis[2] ? safeText(lis[2]) : '';
-      return {
-        org,
-        orgLink: orgEl ? orgEl.href : '',
-        name,
-        person,
-        personLink: personEl ? personEl.href : '',
-      };
-    }).filter((a) => a.org);
+    return $$("ul.award")
+      .map((ul) => {
+        const lis = $$("li", ul);
+        const orgEl = lis[0] ? $("a", lis[0]) : null;
+        const org = lis[0] ? safeText(lis[0]) : "";
+        const name = lis[1] ? safeText(lis[1]) : "";
+        const personEl = lis[2] ? $("a", lis[2]) : null;
+        const person = lis[2] ? safeText(lis[2]) : "";
+        return {
+          org,
+          orgLink: orgEl ? orgEl.href : "",
+          name,
+          person,
+          personLink: personEl ? personEl.href : "",
+        };
+      })
+      .filter((a) => a.org);
   }
 
   function extractStreaming() {
     const seen = new Set();
     const out = [];
-    const isRealUrl = (h) => /^https?:\/\//.test(h || '');
-    const playBtns = $$('a.playBtn');
+    const isRealUrl = (h) => RE_HTTP.test(h || "");
+    const playBtns = $$("a.playBtn");
     for (const a of playBtns) {
-      const name = (a.getAttribute('data-cn') || a.textContent || '').trim();
-      if (!name || seen.has(name)) continue;
+      const name = (a.getAttribute("data-cn") || a.textContent || "").trim();
+      if (!name || seen.has(name)) {
+        continue;
+      }
       seen.add(name);
-      out.push({ name, href: isRealUrl(a.href) ? a.href : '', proxyEl: a });
+      out.push({ name, href: isRealUrl(a.href) ? a.href : "", proxyEl: a });
     }
-    for (const a of $$('a')) {
-      if (!/online-video/.test(a.href || '')) continue;
-      const name = (a.getAttribute('data-cn') || a.textContent || '').trim();
-      if (!name || seen.has(name)) continue;
+    for (const a of $$("a")) {
+      if (!RE_ONLINE_VIDEO.test(a.href || "")) {
+        continue;
+      }
+      const name = (a.getAttribute("data-cn") || a.textContent || "").trim();
+      if (!name || seen.has(name)) {
+        continue;
+      }
       seen.add(name);
-      out.push({ name, href: isRealUrl(a.href) ? a.href : '', proxyEl: a });
+      out.push({ name, href: isRealUrl(a.href) ? a.href : "", proxyEl: a });
     }
     return out;
   }
 
   function findInterestButtons() {
     const result = { wish: null, collect: null };
-    const root = $('#interest_sect_level') || $('#interest_sectl');
-    const anchors = root ? $$('a', root) : [];
+    const root = $("#interest_sect_level") || $("#interest_sectl");
+    const anchors = root ? $$("a", root) : [];
     for (const a of anchors) {
-      const t = (a.textContent || '').trim();
-      if (!result.wish && /想看/.test(t)) result.wish = a;
-      if (!result.collect && /看过/.test(t)) result.collect = a;
+      const t = (a.textContent || "").trim();
+      if (!result.wish && RE_WISH.test(t)) {
+        result.wish = a;
+      }
+      if (!result.collect && RE_COLLECT.test(t)) {
+        result.collect = a;
+      }
     }
-    if (!result.wish || !result.collect) {
-      const all = $$('#interest_sectl a');
+    if (!(result.wish && result.collect)) {
+      const all = $$("#interest_sectl a");
       for (const a of all) {
-        const t = (a.textContent || '').trim();
-        if (!result.wish && /^想看$/.test(t)) result.wish = a;
-        if (!result.collect && /^看过$/.test(t)) result.collect = a;
+        const t = (a.textContent || "").trim();
+        if (!result.wish && RE_WISH_EXACT.test(t)) {
+          result.wish = a;
+        }
+        if (!result.collect && RE_COLLECT_EXACT.test(t)) {
+          result.collect = a;
+        }
       }
     }
     return result;
   }
 
   function isInterestActive(anchor) {
-    if (!anchor) return false;
-    const cls = (anchor.className || '') + ' ' + ((anchor.parentElement && anchor.parentElement.className) || '');
-    return /done|active|on\b|j_a\b/.test(cls);
+    if (!anchor) {
+      return false;
+    }
+    const cls = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+    return RE_INTEREST_ACTIVE.test(cls);
   }
 
   const el = (tag, opts) => {
     const node = document.createElement(tag);
-    if (!opts) return node;
-    if (opts.className) node.className = opts.className;
-    if (opts.id) node.id = opts.id;
-    if (opts.text != null) node.textContent = opts.text;
-    if (opts.html != null) node.innerHTML = opts.html;
-    if (opts.href != null) node.href = opts.href;
-    if (opts.src != null) node.src = opts.src;
-    if (opts.alt != null) node.alt = opts.alt;
-    if (opts.attrs) for (const k in opts.attrs) node.setAttribute(k, opts.attrs[k]);
-    if (opts.style) for (const k in opts.style) node.style[k] = opts.style[k];
-    if (opts.target != null) node.target = opts.target;
-    if (opts.rel != null) node.rel = opts.rel;
+    if (!opts) {
+      return node;
+    }
+    if (opts.className) {
+      node.className = opts.className;
+    }
+    if (opts.id) {
+      node.id = opts.id;
+    }
+    if (opts.text != null) {
+      node.textContent = opts.text;
+    }
+    if (opts.html != null) {
+      node.innerHTML = opts.html;
+    }
+    if (opts.href != null) {
+      node.href = opts.href;
+    }
+    if (opts.src != null) {
+      node.src = opts.src;
+    }
+    if (opts.alt != null) {
+      node.alt = opts.alt;
+    }
+    if (opts.attrs) {
+      for (const k of Object.keys(opts.attrs)) {
+        node.setAttribute(k, opts.attrs[k]);
+      }
+    }
+    if (opts.style) {
+      for (const k of Object.keys(opts.style)) {
+        node.style[k] = opts.style[k];
+      }
+    }
+    if (opts.target != null) {
+      node.target = opts.target;
+    }
+    if (opts.rel != null) {
+      node.rel = opts.rel;
+    }
     return node;
   };
 
   function renderStars(score, opts) {
     const o = opts || {};
-    const wrap = el('span', { className: o.className || 'atv-rating-stars' });
+    const wrap = el("span", { className: o.className || "atv-rating-stars" });
     const out = o.outOfFive ? score : score / 2;
     for (let i = 1; i <= 5; i++) {
       let svg;
-      if (out >= i - 0.25) svg = ICON_STAR_FULL;
-      else if (out >= i - 0.75) svg = ICON_STAR_HALF;
-      else svg = ICON_STAR_EMPTY;
-      wrap.appendChild(el('span', { html: svg }));
+      if (out >= i - 0.25) {
+        svg = ICON_STAR_FULL;
+      } else if (out >= i - 0.75) {
+        svg = ICON_STAR_HALF;
+      } else {
+        svg = ICON_STAR_EMPTY;
+      }
+      wrap.appendChild(el("span", { html: svg }));
     }
     return wrap;
   }
 
   function openPosterModal(src, alt) {
-    const old = document.getElementById('atv-poster-modal');
-    if (old) old.remove();
+    const old = document.getElementById("atv-poster-modal");
+    if (old) {
+      old.remove();
+    }
 
-    const overlay = el('div', { className: 'atv-modal-overlay', id: 'atv-poster-modal' });
-    const img = el('img', { className: 'atv-modal-img', src: src, alt: alt || '' });
-    img.referrerPolicy = 'no-referrer';
+    const overlay = el("div", {
+      className: "atv-modal-overlay",
+      id: "atv-poster-modal",
+    });
+    const img = el("img", { className: "atv-modal-img", src, alt: alt || "" });
+    img.referrerPolicy = "no-referrer";
 
-    const close = el('button', {
-      className: 'atv-modal-close',
-      attrs: { type: 'button' },
+    const close = el("button", {
+      className: "atv-modal-close",
+      attrs: { type: "button" },
       html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
     });
 
     const dismiss = () => {
-      overlay.classList.remove('is-open');
-      document.body.style.overflow = '';
-      setTimeout(() => { if (overlay.parentNode) overlay.parentNode.removeChild(overlay); }, 350);
+      overlay.classList.remove("is-open");
+      document.body.style.overflow = "";
+      setTimeout(() => {
+        if (overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+      }, 350);
     };
-    close.addEventListener('click', dismiss);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) dismiss(); });
-    document.addEventListener('keydown', function handler(e) {
-      if (e.key === 'Escape') { dismiss(); document.removeEventListener('keydown', handler); }
+    close.addEventListener("click", dismiss);
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) {
+        dismiss();
+      }
+    });
+    document.addEventListener("keydown", function handler(e) {
+      if (e.key === "Escape") {
+        dismiss();
+        document.removeEventListener("keydown", handler);
+      }
     });
 
     overlay.appendChild(img);
     overlay.appendChild(close);
     document.body.appendChild(overlay);
-    document.body.style.overflow = 'hidden';
-    requestAnimationFrame(() => overlay.classList.add('is-open'));
+    document.body.style.overflow = "hidden";
+    requestAnimationFrame(() => overlay.classList.add("is-open"));
   }
 
   function buildHero(data) {
-    const hero = el('section', { className: 'atv-hero' });
+    const hero = el("section", { className: "atv-hero" });
 
     if (data.poster) {
-      const bg = el('div', { className: 'atv-hero-bg' });
-      bg.style.backgroundImage = 'url("' + encodeURI(data.poster) + '")';
+      const bg = el("div", { className: "atv-hero-bg" });
+      bg.style.backgroundImage = `url("${encodeURI(data.poster)}")`;
       hero.appendChild(bg);
     } else {
-      hero.appendChild(el('div', { className: 'atv-hero-bg', style: { background: 'radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)' } }));
+      hero.appendChild(
+        el("div", {
+          className: "atv-hero-bg",
+          style: {
+            background:
+              "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)",
+          },
+        })
+      );
     }
-    hero.appendChild(el('div', { className: 'atv-hero-vignette' }));
-    hero.appendChild(el('div', { className: 'atv-hero-overlay-x' }));
-    hero.appendChild(el('div', { className: 'atv-hero-overlay-y' }));
+    hero.appendChild(el("div", { className: "atv-hero-vignette" }));
+    hero.appendChild(el("div", { className: "atv-hero-overlay-x" }));
+    hero.appendChild(el("div", { className: "atv-hero-overlay-y" }));
 
-    const inner = el('div', { className: 'atv-hero-inner' });
+    const inner = el("div", { className: "atv-hero-inner" });
 
-    const card = el('div', { className: 'atv-poster-card' });
+    const card = el("div", { className: "atv-poster-card" });
     if (data.poster) {
-      const img = el('img', { src: data.poster, alt: data.title.primary || '' });
-      img.referrerPolicy = 'no-referrer';
-      img.onerror = function () {
-        card.innerHTML = '';
-        const ph = el('div', { className: 'atv-poster-placeholder', html: ICON_FILM_PLACEHOLDER });
+      const img = el("img", {
+        src: data.poster,
+        alt: data.title.primary || "",
+      });
+      img.referrerPolicy = "no-referrer";
+      img.onerror = () => {
+        card.innerHTML = "";
+        const ph = el("div", {
+          className: "atv-poster-placeholder",
+          html: ICON_FILM_PLACEHOLDER,
+        });
         card.appendChild(ph);
       };
       card.appendChild(img);
     } else {
-      card.appendChild(el('div', { className: 'atv-poster-placeholder', html: ICON_FILM_PLACEHOLDER }));
+      card.appendChild(
+        el("div", {
+          className: "atv-poster-placeholder",
+          html: ICON_FILM_PLACEHOLDER,
+        })
+      );
     }
-    card.addEventListener('click', () => { if (data.poster) openPosterModal(data.poster, data.title.primary || ''); });
+    card.addEventListener("click", () => {
+      if (data.poster) {
+        openPosterModal(data.poster, data.title.primary || "");
+      }
+    });
     inner.appendChild(card);
 
-    const info = el('div', { className: 'atv-hero-info' });
+    const info = el("div", { className: "atv-hero-info" });
 
-    const title = el('h1', { className: 'atv-hero-title', text: data.title.primary || data.title.full });
+    const title = el("h1", {
+      className: "atv-hero-title",
+      text: data.title.primary || data.title.full,
+    });
     info.appendChild(title);
     if (data.title.original) {
-      info.appendChild(el('div', { className: 'atv-hero-orig', text: data.title.original }));
+      info.appendChild(
+        el("div", { className: "atv-hero-orig", text: data.title.original })
+      );
     }
 
-    const meta = el('div', { className: 'atv-hero-meta' });
+    const meta = el("div", { className: "atv-hero-meta" });
     const metaParts = [];
-    if (data.year) metaParts.push(data.year);
+    if (data.year) {
+      metaParts.push(data.year);
+    }
     if (data.isTV) {
       const seg = [];
-      if (data.info.seasons) seg.push(data.info.seasons + (/\d$/.test(data.info.seasons) ? '季' : ''));
-      if (data.info.episodes) seg.push(data.info.episodes + (/\d$/.test(data.info.episodes) ? '集' : ''));
-      if (seg.length) metaParts.push(seg.join(' · '));
-      else if (data.info.episodeRuntime) metaParts.push(data.info.episodeRuntime);
+      if (data.info.seasons) {
+        seg.push(
+          data.info.seasons +
+            (RE_SEASON_SUFFIX.test(data.info.seasons) ? "季" : "")
+        );
+      }
+      if (data.info.episodes) {
+        seg.push(
+          data.info.episodes +
+            (RE_SEASON_SUFFIX.test(data.info.episodes) ? "集" : "")
+        );
+      }
+      if (seg.length) {
+        metaParts.push(seg.join(" · "));
+      } else if (data.info.episodeRuntime) {
+        metaParts.push(data.info.episodeRuntime);
+      }
     } else if (data.info.runtime) {
       metaParts.push(data.info.runtime);
     }
-    if (data.info.country) metaParts.push(data.info.country);
-    for (const part of metaParts) {
-      meta.appendChild(el('span', { className: 'atv-meta-dot', text: part }));
+    if (data.info.country) {
+      metaParts.push(data.info.country);
     }
-    if (data.info.genres && data.info.genres.length) {
-      const chips = el('span', { className: 'atv-meta-chips' });
+    for (const part of metaParts) {
+      meta.appendChild(el("span", { className: "atv-meta-dot", text: part }));
+    }
+    if (data.info.genres?.length) {
+      const chips = el("span", { className: "atv-meta-chips" });
       for (const g of data.info.genres) {
-        chips.appendChild(el('span', { className: 'atv-chip', text: g }));
+        chips.appendChild(el("span", { className: "atv-chip", text: g }));
       }
       meta.appendChild(chips);
     }
     info.appendChild(meta);
 
-    const ratingRow = el('div', { className: 'atv-rating-row' });
+    const ratingRow = el("div", { className: "atv-rating-row" });
     if (data.rating) {
-      ratingRow.appendChild(el('div', { className: 'atv-rating-score', text: data.rating.score.toFixed(1) }));
-      const ratingMeta = el('div', { className: 'atv-rating-meta' });
+      ratingRow.appendChild(
+        el("div", {
+          className: "atv-rating-score",
+          text: data.rating.score.toFixed(1),
+        })
+      );
+      const ratingMeta = el("div", { className: "atv-rating-meta" });
       ratingMeta.appendChild(renderStars(data.rating.score));
       const countTxt = data.rating.count
-        ? '评价 ' + data.rating.count.toLocaleString('en-US')
-        : '已评分';
-      ratingMeta.appendChild(el('div', { className: 'atv-rating-count', text: countTxt }));
+        ? `评价 ${data.rating.count.toLocaleString("en-US")}`
+        : "已评分";
+      ratingMeta.appendChild(
+        el("div", { className: "atv-rating-count", text: countTxt })
+      );
       ratingRow.appendChild(ratingMeta);
     } else {
-      ratingRow.appendChild(el('div', { className: 'atv-rating-empty', text: '暂无评分' }));
+      ratingRow.appendChild(
+        el("div", { className: "atv-rating-empty", text: "暂无评分" })
+      );
     }
     info.appendChild(ratingRow);
 
-    const actions = el('div', { className: 'atv-actions' });
+    const actions = el("div", { className: "atv-actions" });
     const interest = findInterestButtons();
-    const wishBtn = el('button', { className: 'atv-btn atv-btn-primary', attrs: { type: 'button' } });
-    wishBtn.appendChild(el('span', { html: ICON_PLAY }));
-    wishBtn.appendChild(el('span', { text: '想看' }));
-    if (isInterestActive(interest.wish)) wishBtn.classList.add('is-active');
-    wishBtn.addEventListener('click', () => {
-      if (interest.wish) interest.wish.click();
+    const wishBtn = el("button", {
+      className: "atv-btn atv-btn-primary",
+      attrs: { type: "button" },
+    });
+    wishBtn.appendChild(el("span", { html: ICON_PLAY }));
+    wishBtn.appendChild(el("span", { text: "想看" }));
+    if (isInterestActive(interest.wish)) {
+      wishBtn.classList.add("is-active");
+    }
+    wishBtn.addEventListener("click", () => {
+      if (interest.wish) {
+        interest.wish.click();
+      }
     });
     actions.appendChild(wishBtn);
 
-    const seenBtn = el('button', { className: 'atv-btn atv-btn-secondary', attrs: { type: 'button' } });
-    seenBtn.appendChild(el('span', { html: ICON_CHECK }));
-    seenBtn.appendChild(el('span', { text: '看过' }));
-    if (isInterestActive(interest.collect)) seenBtn.classList.add('is-active');
-    seenBtn.addEventListener('click', () => {
-      if (interest.collect) interest.collect.click();
+    const seenBtn = el("button", {
+      className: "atv-btn atv-btn-secondary",
+      attrs: { type: "button" },
+    });
+    seenBtn.appendChild(el("span", { html: ICON_CHECK }));
+    seenBtn.appendChild(el("span", { text: "看过" }));
+    if (isInterestActive(interest.collect)) {
+      seenBtn.classList.add("is-active");
+    }
+    seenBtn.addEventListener("click", () => {
+      if (interest.collect) {
+        interest.collect.click();
+      }
     });
     actions.appendChild(seenBtn);
 
     info.appendChild(actions);
 
     if (data.summary) {
-      const teaser = el('p', { className: 'atv-hero-teaser is-clamped', text: data.summary });
+      const teaser = el("p", {
+        className: "atv-hero-teaser is-clamped",
+        text: data.summary,
+      });
       info.appendChild(teaser);
-      const more = el('button', { className: 'atv-hero-more', attrs: { type: 'button' } });
-      const moreLabel = el('span', { text: '展开' });
+      const more = el("button", {
+        className: "atv-hero-more",
+        attrs: { type: "button" },
+      });
+      const moreLabel = el("span", { text: "展开" });
       more.appendChild(moreLabel);
-      more.appendChild(el('span', { html: ICON_CHEVRON }));
-      more.addEventListener('click', () => {
-        const open = teaser.classList.toggle('is-clamped') === false;
-        more.classList.toggle('is-open', open);
-        moreLabel.textContent = open ? '收起' : '展开';
+      more.appendChild(el("span", { html: ICON_CHEVRON }));
+      more.addEventListener("click", () => {
+        const open = teaser.classList.toggle("is-clamped") === false;
+        more.classList.toggle("is-open", open);
+        moreLabel.textContent = open ? "收起" : "展开";
       });
       requestAnimationFrame(() => {
         const overflowing = teaser.scrollHeight - teaser.clientHeight > 4;
-        if (!overflowing) more.style.display = 'none';
+        if (!overflowing) {
+          more.style.display = "none";
+        }
       });
       info.appendChild(more);
     }
@@ -1174,34 +1441,58 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildSectionHeader(text) {
-    return el('h2', { className: 'atv-section-h', text });
+    return el("h2", { className: "atv-section-h", text });
   }
 
   function buildSectionHeaderRow(text, moreText, moreHref) {
-    const row = el('div', { className: 'atv-section-h-row' });
+    const row = el("div", { className: "atv-section-h-row" });
     row.appendChild(buildSectionHeader(text));
     if (moreText && moreHref) {
-      row.appendChild(el('a', { className: 'atv-section-more', text: moreText, href: moreHref, target: '_blank', rel: 'noopener' }));
+      row.appendChild(
+        el("a", {
+          className: "atv-section-more",
+          text: moreText,
+          href: moreHref,
+          target: "_blank",
+          rel: "noopener",
+        })
+      );
     }
     return row;
   }
 
   function buildStreaming(data) {
-    if (!data.streaming || !data.streaming.length) return null;
-    const sec = el('section', { className: 'atv-section', id: 'atv-stream' });
-    sec.appendChild(buildSectionHeader('在哪儿看'));
-    const row = el('div', { className: 'atv-stream-row' });
+    if (!data.streaming?.length) {
+      return null;
+    }
+    const sec = el("section", { className: "atv-section", id: "atv-stream" });
+    sec.appendChild(buildSectionHeader("在哪儿看"));
+    const row = el("div", { className: "atv-stream-row" });
     for (const s of data.streaming) {
       let card;
       if (s.href) {
-        card = el('a', { className: 'atv-stream-card', href: s.href, target: '_blank', rel: 'noopener' });
+        card = el("a", {
+          className: "atv-stream-card",
+          href: s.href,
+          target: "_blank",
+          rel: "noopener",
+        });
       } else {
-        card = el('button', { className: 'atv-stream-card', attrs: { type: 'button' } });
+        card = el("button", {
+          className: "atv-stream-card",
+          attrs: { type: "button" },
+        });
         const proxy = s.proxyEl;
-        card.addEventListener('click', () => { if (proxy) proxy.click(); });
+        card.addEventListener("click", () => {
+          if (proxy) {
+            proxy.click();
+          }
+        });
       }
-      card.appendChild(el('span', { text: s.name }));
-      card.appendChild(el('span', { className: 'atv-stream-arrow', html: ICON_ARROW }));
+      card.appendChild(el("span", { text: s.name }));
+      card.appendChild(
+        el("span", { className: "atv-stream-arrow", html: ICON_ARROW })
+      );
       row.appendChild(card);
     }
     sec.appendChild(row);
@@ -1209,43 +1500,67 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildComments(data) {
-    if (!data.comments || !data.comments.length) return null;
-    const sec = el('section', { className: 'atv-section', id: 'atv-comments' });
+    if (!data.comments?.length) {
+      return null;
+    }
+    const sec = el("section", { className: "atv-section", id: "atv-comments" });
     const allHref = data.subjectId
-      ? 'https://movie.douban.com/subject/' + data.subjectId + '/comments?status=P'
-      : '';
-    sec.appendChild(buildSectionHeaderRow('热门短评', allHref ? '查看全部 →' : '', allHref));
-    const grid = el('div', { className: 'atv-comments' });
+      ? "https://movie.douban.com/subject/" +
+        data.subjectId +
+        "/comments?status=P"
+      : "";
+    sec.appendChild(
+      buildSectionHeaderRow("热门短评", allHref ? "查看全部 →" : "", allHref)
+    );
+    const grid = el("div", { className: "atv-comments" });
     for (const c of data.comments) {
-      const card = el('div', { className: 'atv-comment-card' });
+      const card = el("div", { className: "atv-comment-card" });
 
-      const top = el('div', { className: 'atv-comment-top' });
-      const avatar = el('div', { className: 'atv-comment-avatar' });
+      const top = el("div", { className: "atv-comment-top" });
+      const avatar = el("div", { className: "atv-comment-avatar" });
       if (c.avatar) {
-        avatar.style.backgroundImage = 'url("' + encodeURI(c.avatar) + '")';
+        avatar.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
       } else {
-        avatar.textContent = (c.name || '?').slice(0, 1).toUpperCase();
+        avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
       }
       top.appendChild(avatar);
 
-      const metaCol = el('div', { className: 'atv-comment-meta' });
-      const author = el(c.link ? 'a' : 'div', { className: 'atv-comment-author', text: c.name });
-      if (c.link) { author.href = c.link; author.target = '_blank'; author.rel = 'noopener'; }
+      const metaCol = el("div", { className: "atv-comment-meta" });
+      const author = el(c.link ? "a" : "div", {
+        className: "atv-comment-author",
+        text: c.name,
+      });
+      if (c.link) {
+        author.href = c.link;
+        author.target = "_blank";
+        author.rel = "noopener";
+      }
       metaCol.appendChild(author);
       if (c.stars > 0) {
-        metaCol.appendChild(renderStars(c.stars, { outOfFive: true, className: 'atv-comment-stars' }));
+        metaCol.appendChild(
+          renderStars(c.stars, {
+            outOfFive: true,
+            className: "atv-comment-stars",
+          })
+        );
       }
       top.appendChild(metaCol);
       card.appendChild(top);
 
-      card.appendChild(el('div', { className: 'atv-comment-body', text: c.content }));
+      card.appendChild(
+        el("div", { className: "atv-comment-body", text: c.content })
+      );
 
-      const foot = el('div', { className: 'atv-comment-foot' });
-      foot.appendChild(el('span', { text: c.time || '' }));
+      const foot = el("div", { className: "atv-comment-foot" });
+      foot.appendChild(el("span", { text: c.time || "" }));
       if (c.votes > 0) {
-        const votes = el('span', { className: 'atv-comment-votes' });
-        votes.appendChild(el('span', { className: 'atv-stream-arrow', html: ICON_THUMB }));
-        votes.appendChild(el('span', { text: c.votes.toLocaleString('en-US') }));
+        const votes = el("span", { className: "atv-comment-votes" });
+        votes.appendChild(
+          el("span", { className: "atv-stream-arrow", html: ICON_THUMB })
+        );
+        votes.appendChild(
+          el("span", { text: c.votes.toLocaleString("en-US") })
+        );
         foot.appendChild(votes);
       }
       card.appendChild(foot);
@@ -1257,18 +1572,30 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildCast(data) {
-    if (!data.celebrities || !data.celebrities.length) return null;
-    const sec = el('section', { className: 'atv-section', id: 'atv-cast' });
-    sec.appendChild(buildSectionHeader('演职员'));
-    const carousel = el('div', { className: 'atv-carousel' });
+    if (!data.celebrities?.length) {
+      return null;
+    }
+    const sec = el("section", { className: "atv-section", id: "atv-cast" });
+    sec.appendChild(buildSectionHeader("演职员"));
+    const carousel = el("div", { className: "atv-carousel" });
     for (const c of data.celebrities) {
-      const card = el(c.link ? 'a' : 'div', { className: 'atv-cast-card' });
-      if (c.link) { card.href = c.link; card.target = '_blank'; card.rel = 'noopener'; }
-      const av = el('div', { className: 'atv-cast-avatar' });
-      if (c.avatar) av.style.backgroundImage = 'url("' + encodeURI(c.avatar) + '")';
+      const card = el(c.link ? "a" : "div", { className: "atv-cast-card" });
+      if (c.link) {
+        card.href = c.link;
+        card.target = "_blank";
+        card.rel = "noopener";
+      }
+      const av = el("div", { className: "atv-cast-avatar" });
+      if (c.avatar) {
+        av.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
+      }
       card.appendChild(av);
-      card.appendChild(el('div', { className: 'atv-cast-name', text: c.name }));
-      if (c.role) card.appendChild(el('div', { className: 'atv-cast-role', text: c.role }));
+      card.appendChild(el("div", { className: "atv-cast-name", text: c.name }));
+      if (c.role) {
+        card.appendChild(
+          el("div", { className: "atv-cast-role", text: c.role })
+        );
+      }
       carousel.appendChild(card);
     }
     sec.appendChild(carousel);
@@ -1276,17 +1603,27 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildPhotos(data) {
-    if (!data.photos || !data.photos.length) return null;
-    const sec = el('section', { className: 'atv-section', id: 'atv-photos' });
-    sec.appendChild(buildSectionHeader('剧照'));
-    const carousel = el('div', { className: 'atv-carousel atv-photos' });
+    if (!data.photos?.length) {
+      return null;
+    }
+    const sec = el("section", { className: "atv-section", id: "atv-photos" });
+    sec.appendChild(buildSectionHeader("剧照"));
+    const carousel = el("div", { className: "atv-carousel atv-photos" });
     for (const p of data.photos) {
-      const tile = el(p.link ? 'a' : 'div', { className: 'atv-photo-tile' });
-      if (p.link) { tile.href = p.link; tile.target = '_blank'; tile.rel = 'noopener'; }
-      const img = el('img', { src: p.hdUrl || p.thumbUrl, alt: '剧照' });
-      img.referrerPolicy = 'no-referrer';
-      img.loading = 'lazy';
-      img.onerror = function () { if (p.thumbUrl && img.src !== p.thumbUrl) img.src = p.thumbUrl; };
+      const tile = el(p.link ? "a" : "div", { className: "atv-photo-tile" });
+      if (p.link) {
+        tile.href = p.link;
+        tile.target = "_blank";
+        tile.rel = "noopener";
+      }
+      const img = el("img", { src: p.hdUrl || p.thumbUrl, alt: "剧照" });
+      img.referrerPolicy = "no-referrer";
+      img.loading = "lazy";
+      img.onerror = () => {
+        if (p.thumbUrl && img.src !== p.thumbUrl) {
+          img.src = p.thumbUrl;
+        }
+      };
       tile.appendChild(img);
       carousel.appendChild(tile);
     }
@@ -1295,28 +1632,46 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildRecs(data) {
-    if (!data.recommendations || !data.recommendations.length) return null;
-    const sec = el('section', { className: 'atv-section', id: 'atv-recs' });
-    sec.appendChild(buildSectionHeader('相似作品'));
-    const grid = el('div', { className: 'atv-recs' });
+    if (!data.recommendations?.length) {
+      return null;
+    }
+    const sec = el("section", { className: "atv-section", id: "atv-recs" });
+    sec.appendChild(buildSectionHeader("相似作品"));
+    const grid = el("div", { className: "atv-recs" });
     for (const r of data.recommendations) {
-      const card = el(r.link ? 'a' : 'div', { className: 'atv-rec-card' });
-      if (r.link) { card.href = r.link; card.target = '_blank'; card.rel = 'noopener'; }
-      const posterWrap = el('div', { className: 'atv-rec-poster' });
+      const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
+      if (r.link) {
+        card.href = r.link;
+        card.target = "_blank";
+        card.rel = "noopener";
+      }
+      const posterWrap = el("div", { className: "atv-rec-poster" });
       if (r.poster) {
-        const img = el('img', { src: r.poster, alt: r.title });
-        img.referrerPolicy = 'no-referrer';
-        img.loading = 'lazy';
-        img.onerror = function () {
-          posterWrap.innerHTML = '';
-          posterWrap.appendChild(el('div', { className: 'atv-poster-placeholder', html: ICON_FILM_PLACEHOLDER }));
+        const img = el("img", { src: r.poster, alt: r.title });
+        img.referrerPolicy = "no-referrer";
+        img.loading = "lazy";
+        img.onerror = () => {
+          posterWrap.innerHTML = "";
+          posterWrap.appendChild(
+            el("div", {
+              className: "atv-poster-placeholder",
+              html: ICON_FILM_PLACEHOLDER,
+            })
+          );
         };
         posterWrap.appendChild(img);
       } else {
-        posterWrap.appendChild(el('div', { className: 'atv-poster-placeholder', html: ICON_FILM_PLACEHOLDER }));
+        posterWrap.appendChild(
+          el("div", {
+            className: "atv-poster-placeholder",
+            html: ICON_FILM_PLACEHOLDER,
+          })
+        );
       }
       card.appendChild(posterWrap);
-      card.appendChild(el('div', { className: 'atv-rec-title', text: r.title }));
+      card.appendChild(
+        el("div", { className: "atv-rec-title", text: r.title })
+      );
       grid.appendChild(card);
     }
     sec.appendChild(grid);
@@ -1324,16 +1679,23 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   }
 
   function buildDetails(data) {
-    const sec = el('section', { className: 'atv-section', id: 'atv-info' });
-    sec.appendChild(buildSectionHeader('详细信息'));
-    const grid = el('div', { className: 'atv-info-grid' });
+    const sec = el("section", { className: "atv-section", id: "atv-info" });
+    sec.appendChild(buildSectionHeader("详细信息"));
+    const grid = el("div", { className: "atv-info-grid" });
 
     const linksValue = (arr) => {
-      const wrap = el('div', { className: 'atv-info-value' });
+      const wrap = el("div", { className: "atv-info-value" });
       arr.forEach((it, i) => {
-        if (i > 0) wrap.appendChild(document.createTextNode(' / '));
+        if (i > 0) {
+          wrap.appendChild(document.createTextNode(" / "));
+        }
         if (it.href) {
-          const a = el('a', { href: it.href, text: it.text, target: '_blank', rel: 'noopener' });
+          const a = el("a", {
+            href: it.href,
+            text: it.text,
+            target: "_blank",
+            rel: "noopener",
+          });
           wrap.appendChild(a);
         } else {
           wrap.appendChild(document.createTextNode(it.text));
@@ -1341,65 +1703,118 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       });
       return wrap;
     };
-    const textValue = (txt) => el('div', { className: 'atv-info-value', text: txt });
+    const textValue = (txt) =>
+      el("div", { className: "atv-info-value", text: txt });
     const addRow = (label, valueNode) => {
-      grid.appendChild(el('div', { className: 'atv-info-label', text: label }));
+      grid.appendChild(el("div", { className: "atv-info-label", text: label }));
       grid.appendChild(valueNode);
     };
 
     const info = data.info;
-    if (info.director && info.director.length) addRow('导演', linksValue(info.director));
-    if (info.writers && info.writers.length) addRow('编剧', linksValue(info.writers));
-    if (info.cast && info.cast.length) addRow('主演', linksValue(info.cast));
-    if (info.genres && info.genres.length) addRow('类型', textValue(info.genres.join(' / ')));
-    if (info.country) addRow('制片国家/地区', textValue(info.country));
-    if (info.language) addRow('语言', textValue(info.language));
-
-    if (data.isTV) {
-      if (info.firstAired) addRow('首播', textValue(info.firstAired));
-      else if (info.releaseDate) addRow('首播', textValue(info.releaseDate));
-      if (info.seasons) addRow('季数', textValue(info.seasons));
-      if (info.episodes) addRow('集数', textValue(info.episodes));
-      if (info.episodeRuntime) addRow('单集片长', textValue(info.episodeRuntime));
-    } else {
-      if (info.releaseDate) addRow('上映日期', textValue(info.releaseDate));
-      if (info.runtime) addRow('片长', textValue(info.runtime));
+    if (info.director?.length) {
+      addRow("导演", linksValue(info.director));
+    }
+    if (info.writers?.length) {
+      addRow("编剧", linksValue(info.writers));
+    }
+    if (info.cast?.length) {
+      addRow("主演", linksValue(info.cast));
+    }
+    if (info.genres?.length) {
+      addRow("类型", textValue(info.genres.join(" / ")));
+    }
+    if (info.country) {
+      addRow("制片国家/地区", textValue(info.country));
+    }
+    if (info.language) {
+      addRow("语言", textValue(info.language));
     }
 
-    if (info.aliases) addRow('又名', textValue(info.aliases));
+    if (data.isTV) {
+      if (info.firstAired) {
+        addRow("首播", textValue(info.firstAired));
+      } else if (info.releaseDate) {
+        addRow("首播", textValue(info.releaseDate));
+      }
+      if (info.seasons) {
+        addRow("季数", textValue(info.seasons));
+      }
+      if (info.episodes) {
+        addRow("集数", textValue(info.episodes));
+      }
+      if (info.episodeRuntime) {
+        addRow("单集片长", textValue(info.episodeRuntime));
+      }
+    } else {
+      if (info.releaseDate) {
+        addRow("上映日期", textValue(info.releaseDate));
+      }
+      if (info.runtime) {
+        addRow("片长", textValue(info.runtime));
+      }
+    }
+
+    if (info.aliases) {
+      addRow("又名", textValue(info.aliases));
+    }
     if (info.imdb) {
-      const wrap = el('div', { className: 'atv-info-value' });
-      if (/^tt\d+$/.test(info.imdb)) {
-        wrap.appendChild(el('a', {
-          href: 'https://www.imdb.com/title/' + info.imdb + '/',
-          text: info.imdb,
-          target: '_blank',
-          rel: 'noopener',
-        }));
+      const wrap = el("div", { className: "atv-info-value" });
+      if (RE_IMDB_LINK.test(info.imdb)) {
+        wrap.appendChild(
+          el("a", {
+            href: `https://www.imdb.com/title/${info.imdb}/`,
+            text: info.imdb,
+            target: "_blank",
+            rel: "noopener",
+          })
+        );
       } else {
         wrap.textContent = info.imdb;
       }
-      addRow('IMDb', wrap);
+      addRow("IMDb", wrap);
     }
 
-    if (data.awards && data.awards.length) {
+    if (data.awards?.length) {
       for (const a of data.awards) {
-        const value = el('div', { className: 'atv-info-value' });
+        const value = el("div", { className: "atv-info-value" });
         if (a.name) {
-          value.appendChild(el('div', { text: a.name }));
+          value.appendChild(el("div", { text: a.name }));
         }
         if (a.person) {
-          const personLine = el('div', { attrs: { style: 'font-size:13px;color:var(--atv-text-tertiary);margin-top:2px' } });
+          const personLine = el("div", {
+            attrs: {
+              style:
+                "font-size:13px;color:var(--atv-text-tertiary);margin-top:2px",
+            },
+          });
           if (a.personLink) {
-            personLine.appendChild(el('a', { text: a.person, href: a.personLink, target: '_blank', rel: 'noopener' }));
+            personLine.appendChild(
+              el("a", {
+                text: a.person,
+                href: a.personLink,
+                target: "_blank",
+                rel: "noopener",
+              })
+            );
           } else {
             personLine.textContent = a.person;
           }
           value.appendChild(personLine);
         }
-        const label = el('div', { className: 'atv-info-label', attrs: { style: 'color:var(--atv-rating-gold)' } });
+        const label = el("div", {
+          className: "atv-info-label",
+          attrs: { style: "color:var(--atv-rating-gold)" },
+        });
         if (a.orgLink) {
-          label.appendChild(el('a', { text: a.org, href: a.orgLink, target: '_blank', rel: 'noopener', attrs: { style: 'color:inherit' } }));
+          label.appendChild(
+            el("a", {
+              text: a.org,
+              href: a.orgLink,
+              target: "_blank",
+              rel: "noopener",
+              attrs: { style: "color:inherit" },
+            })
+          );
         } else {
           label.textContent = a.org;
         }
@@ -1408,21 +1823,30 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       }
     }
 
-    if (!grid.children.length) return null;
+    if (!grid.children.length) {
+      return null;
+    }
     sec.appendChild(grid);
     return sec;
   }
 
   function buildStickyNav(data, jumps) {
-    const nav = el('nav', { className: 'atv-stickynav' });
-    nav.appendChild(el('div', { className: 'atv-stickynav-title', text: data.title.primary || data.title.full }));
-    const wrap = el('div', { className: 'atv-stickynav-jumps' });
+    const nav = el("nav", { className: "atv-stickynav" });
+    nav.appendChild(
+      el("div", {
+        className: "atv-stickynav-title",
+        text: data.title.primary || data.title.full,
+      })
+    );
+    const wrap = el("div", { className: "atv-stickynav-jumps" });
     for (const j of jumps) {
-      const a = el('a', { href: '#' + j.id, text: j.label });
-      a.addEventListener('click', (e) => {
+      const a = el("a", { href: `#${j.id}`, text: j.label });
+      a.addEventListener("click", (e) => {
         e.preventDefault();
         const t = document.getElementById(j.id);
-        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (t) {
+          t.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
       });
       wrap.appendChild(a);
     }
@@ -1430,12 +1854,12 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     return nav;
   }
 
-  // ============================================================
-  // ============================================================
   function render() {
-    if (document.getElementById('atv-douban-root')) return;
-    if (!$('#content h1')) {
-      console.warn('[ATV-Douban] 未找到主内容节点，跳过美化');
+    if (document.getElementById("atv-douban-root")) {
+      return;
+    }
+    if (!$("#content h1")) {
+      console.warn("[ATV-Douban] 未找到主内容节点，跳过美化");
       return;
     }
 
@@ -1444,7 +1868,12 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     let data;
     try {
       const info = extractInfo();
-      const isTV = !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
+      const isTV = !!(
+        info.episodes ||
+        info.seasons ||
+        info.episodeRuntime ||
+        info.firstAired
+      );
       data = {
         subjectId: extractSubjectId(),
         title: extractTitle(),
@@ -1462,47 +1891,76 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         isTV,
       };
     } catch (err) {
-      console.warn('[ATV-Douban] 数据提取失败：', err);
+      console.warn("[ATV-Douban] 数据提取失败：", err);
       return;
     }
 
-    const root = el('div', { id: 'atv-douban-root' });
-    document.title = (data.title.primary || data.title.full) + (data.year ? ' (' + data.year + ')' : '') + ' · 豆瓣';
+    const root = el("div", { id: "atv-douban-root" });
+    document.title =
+      (data.title.primary || data.title.full) +
+      (data.year ? ` (${data.year})` : "") +
+      " · 豆瓣";
 
     const jumps = [];
-    if (data.streaming && data.streaming.length) jumps.push({ id: 'atv-stream', label: '在哪儿看' });
-    if (data.celebrities.length) jumps.push({ id: 'atv-cast', label: '演职员' });
-    if (data.photos.length) jumps.push({ id: 'atv-photos', label: '剧照' });
-    if (data.comments && data.comments.length) jumps.push({ id: 'atv-comments', label: '短评' });
-    if (data.recommendations.length) jumps.push({ id: 'atv-recs', label: '相似作品' });
-    jumps.push({ id: 'atv-info', label: '详情' });
+    if (data.streaming?.length) {
+      jumps.push({ id: "atv-stream", label: "在哪儿看" });
+    }
+    if (data.celebrities.length) {
+      jumps.push({ id: "atv-cast", label: "演职员" });
+    }
+    if (data.photos.length) {
+      jumps.push({ id: "atv-photos", label: "剧照" });
+    }
+    if (data.comments?.length) {
+      jumps.push({ id: "atv-comments", label: "短评" });
+    }
+    if (data.recommendations.length) {
+      jumps.push({ id: "atv-recs", label: "相似作品" });
+    }
+    jumps.push({ id: "atv-info", label: "详情" });
 
     const stickyNav = buildStickyNav(data, jumps);
 
     root.appendChild(buildHero(data));
-    const stream = buildStreaming(data); if (stream) root.appendChild(stream);
-    const cast = buildCast(data); if (cast) root.appendChild(cast);
-    const photos = buildPhotos(data); if (photos) root.appendChild(photos);
-    const comments = buildComments(data); if (comments) root.appendChild(comments);
-    const recs = buildRecs(data); if (recs) root.appendChild(recs);
-    const details = buildDetails(data); if (details) root.appendChild(details);
-    root.appendChild(el('div', { className: 'atv-footer-spacer' }));
+    const stream = buildStreaming(data);
+    if (stream) {
+      root.appendChild(stream);
+    }
+    const cast = buildCast(data);
+    if (cast) {
+      root.appendChild(cast);
+    }
+    const photos = buildPhotos(data);
+    if (photos) {
+      root.appendChild(photos);
+    }
+    const comments = buildComments(data);
+    if (comments) {
+      root.appendChild(comments);
+    }
+    const recs = buildRecs(data);
+    if (recs) {
+      root.appendChild(recs);
+    }
+    const details = buildDetails(data);
+    if (details) {
+      root.appendChild(details);
+    }
+    root.appendChild(el("div", { className: "atv-footer-spacer" }));
 
     document.body.insertBefore(root, document.body.firstChild);
     document.body.appendChild(stickyNav);
 
     const reveal = () => {
       const y = window.scrollY || window.pageYOffset || 0;
-      stickyNav.classList.toggle('is-visible', y > 300);
+      stickyNav.classList.toggle("is-visible", y > 300);
     };
-    window.addEventListener('scroll', reveal, { passive: true });
+    window.addEventListener("scroll", reveal, { passive: true });
     reveal();
   }
 
-  // ============================================================
-  // ============================================================
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', render, { once: true });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", render, { once: true });
   } else {
     render();
   }
