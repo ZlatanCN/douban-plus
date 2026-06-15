@@ -228,11 +228,15 @@ for (const sc of SCENARIOS) {
       record(sc.name, `streaming cards rendered (${streamCards.length}, ${firstStream.tag} "${firstStream.name.slice(0,10)}")`, valid);
     }
 
-    // === NEW: Awards section (conditional) ===
-    const awardRows = await page.$$('#atv-douban-root .atv-award-row');
-    if (awardRows.length > 0) {
-      const firstAward = await awardRows[0].evaluate(el => el.querySelector('.atv-award-org')?.textContent?.trim() || '');
-      record(sc.name, `award rows rendered (${awardRows.length}, first: "${firstAward.slice(0,16)}")`, firstAward.length > 0);
+    // === Awards as info grid rows (conditional) ===
+    const allLabels = await page.$$('#atv-douban-root .atv-info-label');
+    let awardCount = 0;
+    for (const label of allLabels) {
+      const color = await label.evaluate(el => getComputedStyle(el).color);
+      if (color === 'rgb(255, 184, 0)') awardCount++;
+    }
+    if (awardCount > 0) {
+      record(sc.name, `awards in info grid (${awardCount} rows)`, awardCount > 0);
     }
 
     // Visual: screenshots

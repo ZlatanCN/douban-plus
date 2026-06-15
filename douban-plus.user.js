@@ -354,7 +354,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .atv-section + .atv-section { padding-top: 0; }
-.atv-section-narrow { max-width: 920px; }
 .atv-section-h {
   display: flex; align-items: center;
   font-size: 24px; font-weight: 700;
@@ -585,30 +584,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 }
 .atv-comment-votes { display: inline-flex; align-items: center; gap: 5px; }
 
-/* ---------- Awards ---------- */
-.atv-awards { display: flex; flex-direction: column; gap: 4px; }
-.atv-award-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 280px) 1fr;
-  gap: 16px 28px;
-  align-items: baseline;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--atv-border-subtle);
-}
-.atv-award-row:last-child { border-bottom: none; }
-.atv-award-org {
-  font-size: 16px; font-weight: 600;
-  color: var(--atv-rating-gold);
-  line-height: 1.4;
-}
-.atv-award-org a:hover { text-decoration: underline; }
-.atv-award-detail {
-  display: flex; flex-direction: column; gap: 3px;
-}
-.atv-award-name { font-size: 15px; color: var(--atv-text-primary); line-height: 1.45; }
-.atv-award-person { font-size: 13px; color: var(--atv-text-tertiary); }
-.atv-award-person a:hover { color: var(--atv-accent-bright); }
-
 /* ---------- Footer spacer ---------- */
 .atv-footer-spacer { height: 64px; }
 
@@ -632,7 +607,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   .atv-photo-tile { flex-basis: 260px; }
   .atv-rating-score { font-size: 44px; }
   .atv-comments { grid-template-columns: 1fr; }
-  .atv-award-row { grid-template-columns: 1fr; gap: 6px; padding: 12px 0; }
 }
 `;
 
@@ -1207,39 +1181,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     return sec;
   }
 
-  function buildAwards(data) {
-    if (!data.awards || !data.awards.length) return null;
-    const sec = el('section', { className: 'atv-section atv-section-narrow', id: 'atv-awards' });
-    sec.appendChild(buildSectionHeader('获奖情况'));
-    const list = el('div', { className: 'atv-awards' });
-    for (const a of data.awards) {
-      const row = el('div', { className: 'atv-award-row' });
-      const org = el('div', { className: 'atv-award-org' });
-      if (a.orgLink) {
-        org.appendChild(el('a', { text: a.org, href: a.orgLink, target: '_blank', rel: 'noopener' }));
-      } else {
-        org.textContent = a.org;
-      }
-      row.appendChild(org);
-
-      const detail = el('div', { className: 'atv-award-detail' });
-      if (a.name) detail.appendChild(el('div', { className: 'atv-award-name', text: a.name }));
-      if (a.person) {
-        const person = el('div', { className: 'atv-award-person' });
-        if (a.personLink) {
-          person.appendChild(el('a', { text: a.person, href: a.personLink, target: '_blank', rel: 'noopener' }));
-        } else {
-          person.textContent = a.person;
-        }
-        detail.appendChild(person);
-      }
-      row.appendChild(detail);
-      list.appendChild(row);
-    }
-    sec.appendChild(list);
-    return sec;
-  }
-
   function buildCast(data) {
     if (!data.celebrities || !data.celebrities.length) return null;
     const sec = el('section', { className: 'atv-section', id: 'atv-cast' });
@@ -1307,8 +1248,8 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     return sec;
   }
 
-  function buildInfoGrid(data) {
-    const sec = el('section', { className: 'atv-section atv-section-narrow', id: 'atv-info' });
+  function buildDetails(data) {
+    const sec = el('section', { className: 'atv-section', id: 'atv-info' });
     sec.appendChild(buildSectionHeader('详细信息'));
     const grid = el('div', { className: 'atv-info-grid' });
 
@@ -1364,6 +1305,32 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         wrap.textContent = info.imdb;
       }
       addRow('IMDb', wrap);
+    }
+
+    if (data.awards && data.awards.length) {
+      for (const a of data.awards) {
+        const value = el('div', { className: 'atv-info-value' });
+        if (a.name) {
+          value.appendChild(el('div', { text: a.name }));
+        }
+        if (a.person) {
+          const personLine = el('div', { attrs: { style: 'font-size:13px;color:var(--atv-text-tertiary);margin-top:2px' } });
+          if (a.personLink) {
+            personLine.appendChild(el('a', { text: a.person, href: a.personLink, target: '_blank', rel: 'noopener' }));
+          } else {
+            personLine.textContent = a.person;
+          }
+          value.appendChild(personLine);
+        }
+        const label = el('div', { className: 'atv-info-label', attrs: { style: 'color:var(--atv-rating-gold)' } });
+        if (a.orgLink) {
+          label.appendChild(el('a', { text: a.org, href: a.orgLink, target: '_blank', rel: 'noopener', attrs: { style: 'color:inherit' } }));
+        } else {
+          label.textContent = a.org;
+        }
+        grid.appendChild(label);
+        grid.appendChild(value);
+      }
     }
 
     if (!grid.children.length) return null;
@@ -1433,7 +1400,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     if (data.photos.length) jumps.push({ id: 'atv-photos', label: '剧照' });
     if (data.comments && data.comments.length) jumps.push({ id: 'atv-comments', label: '短评' });
     if (data.recommendations.length) jumps.push({ id: 'atv-recs', label: '相似作品' });
-    if (data.awards && data.awards.length) jumps.push({ id: 'atv-awards', label: '获奖' });
     jumps.push({ id: 'atv-info', label: '详情' });
 
     const stickyNav = buildStickyNav(data, jumps);
@@ -1444,8 +1410,7 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     const photos = buildPhotos(data); if (photos) root.appendChild(photos);
     const comments = buildComments(data); if (comments) root.appendChild(comments);
     const recs = buildRecs(data); if (recs) root.appendChild(recs);
-    const awards = buildAwards(data); if (awards) root.appendChild(awards);
-    const infoGrid = buildInfoGrid(data); if (infoGrid) root.appendChild(infoGrid);
+    const details = buildDetails(data); if (details) root.appendChild(details);
     root.appendChild(el('div', { className: 'atv-footer-spacer' }));
 
     document.body.insertBefore(root, document.body.firstChild);
