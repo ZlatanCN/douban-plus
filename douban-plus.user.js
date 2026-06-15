@@ -34,70 +34,59 @@ const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/;
 const RE_IMDB_LINK = /^tt\d+$/;
 const RE_SEASON_SUFFIX = /\d$/;
 
-(() => {
-  const addStyle = (css) => {
-    if (typeof GM_addStyle === "function") {
-      return GM_addStyle(css);
-    }
-    const s = document.createElement("style");
-    s.textContent = css;
-    (document.head || document.documentElement).appendChild(s);
-    return s;
-  };
+const ICON_STAR_FULL =
+  '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+  '<path fill="currentColor" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
+  "</svg>";
+const ICON_STAR_HALF =
+  '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+  '<defs><linearGradient id="atvHalfStar"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="currentColor" stop-opacity="0.22"/></linearGradient></defs>' +
+  '<path fill="url(#atvHalfStar)" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
+  "</svg>";
+const ICON_STAR_EMPTY =
+  '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+  '<path fill="currentColor" fill-opacity="0.22" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
+  "</svg>";
+const ICON_PLAY =
+  '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
+  '<path fill="currentColor" d="M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"/>' +
+  "</svg>";
+const ICON_CHECK =
+  '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
+  '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.5 7.5l3 3 6-7"/>' +
+  "</svg>";
+const ICON_CHEVRON =
+  '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">' +
+  '<path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M2.5 4l3.5 4 3.5-4"/>' +
+  "</svg>";
+const ICON_ARROW =
+  '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">' +
+  '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 8h9m0 0l-3.5-3.5M12 8l-3.5 3.5"/>' +
+  "</svg>";
+const ICON_THUMB =
+  '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">' +
+  '<path fill="currentColor" d="M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"/>' +
+  "</svg>";
+const ICON_FILM_PLACEHOLDER =
+  '<svg viewBox="0 0 64 96" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
+  '<defs><linearGradient id="atvFilmGrad" x1="0" y1="0" x2="1" y2="1">' +
+  '<stop offset="0%" stop-color="#2c2c2e"/><stop offset="100%" stop-color="#1c1c1e"/>' +
+  "</linearGradient></defs>" +
+  '<rect width="64" height="96" fill="url(#atvFilmGrad)"/>' +
+  '<g fill="rgba(255,255,255,0.12)">' +
+  '<rect x="4" y="6" width="6" height="6" rx="1"/><rect x="4" y="18" width="6" height="6" rx="1"/>' +
+  '<rect x="4" y="30" width="6" height="6" rx="1"/><rect x="4" y="42" width="6" height="6" rx="1"/>' +
+  '<rect x="4" y="54" width="6" height="6" rx="1"/><rect x="4" y="66" width="6" height="6" rx="1"/>' +
+  '<rect x="4" y="78" width="6" height="6" rx="1"/>' +
+  '<rect x="54" y="6" width="6" height="6" rx="1"/><rect x="54" y="18" width="6" height="6" rx="1"/>' +
+  '<rect x="54" y="30" width="6" height="6" rx="1"/><rect x="54" y="42" width="6" height="6" rx="1"/>' +
+  '<rect x="54" y="54" width="6" height="6" rx="1"/><rect x="54" y="66" width="6" height="6" rx="1"/>' +
+  '<rect x="54" y="78" width="6" height="6" rx="1"/>' +
+  "</g>" +
+  '<path d="M26 38l14 10-14 10z" fill="rgba(255,255,255,0.28)"/>' +
+  "</svg>";
 
-  const ICON_STAR_FULL =
-    '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
-    '<path fill="currentColor" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    "</svg>";
-  const ICON_STAR_HALF =
-    '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
-    '<defs><linearGradient id="atvHalfStar"><stop offset="50%" stop-color="currentColor"/><stop offset="50%" stop-color="currentColor" stop-opacity="0.22"/></linearGradient></defs>' +
-    '<path fill="url(#atvHalfStar)" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    "</svg>";
-  const ICON_STAR_EMPTY =
-    '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
-    '<path fill="currentColor" fill-opacity="0.22" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
-    "</svg>";
-  const ICON_PLAY =
-    '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
-    '<path fill="currentColor" d="M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"/>' +
-    "</svg>";
-  const ICON_CHECK =
-    '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
-    '<path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M2.5 7.5l3 3 6-7"/>' +
-    "</svg>";
-  const ICON_CHEVRON =
-    '<svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true">' +
-    '<path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M2.5 4l3.5 4 3.5-4"/>' +
-    "</svg>";
-  const ICON_ARROW =
-    '<svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true">' +
-    '<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 8h9m0 0l-3.5-3.5M12 8l-3.5 3.5"/>' +
-    "</svg>";
-  const ICON_THUMB =
-    '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">' +
-    '<path fill="currentColor" d="M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"/>' +
-    "</svg>";
-  const ICON_FILM_PLACEHOLDER =
-    '<svg viewBox="0 0 64 96" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
-    '<defs><linearGradient id="atvFilmGrad" x1="0" y1="0" x2="1" y2="1">' +
-    '<stop offset="0%" stop-color="#2c2c2e"/><stop offset="100%" stop-color="#1c1c1e"/>' +
-    "</linearGradient></defs>" +
-    '<rect width="64" height="96" fill="url(#atvFilmGrad)"/>' +
-    '<g fill="rgba(255,255,255,0.12)">' +
-    '<rect x="4" y="6" width="6" height="6" rx="1"/><rect x="4" y="18" width="6" height="6" rx="1"/>' +
-    '<rect x="4" y="30" width="6" height="6" rx="1"/><rect x="4" y="42" width="6" height="6" rx="1"/>' +
-    '<rect x="4" y="54" width="6" height="6" rx="1"/><rect x="4" y="66" width="6" height="6" rx="1"/>' +
-    '<rect x="4" y="78" width="6" height="6" rx="1"/>' +
-    '<rect x="54" y="6" width="6" height="6" rx="1"/><rect x="54" y="18" width="6" height="6" rx="1"/>' +
-    '<rect x="54" y="30" width="6" height="6" rx="1"/><rect x="54" y="42" width="6" height="6" rx="1"/>' +
-    '<rect x="54" y="54" width="6" height="6" rx="1"/><rect x="54" y="66" width="6" height="6" rx="1"/>' +
-    '<rect x="54" y="78" width="6" height="6" rx="1"/>' +
-    "</g>" +
-    '<path d="M26 38l14 10-14 10z" fill="rgba(255,255,255,0.28)"/>' +
-    "</svg>";
-
-  const CSS = `
+const CSS = `
 :root {
   --atv-bg-primary: #000000;
   --atv-bg-secondary: #1c1c1e;
@@ -376,6 +365,7 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   padding: 52px max(28px, 5vw);
   max-width: 1280px;
   margin: 0 auto;
+  scroll-margin-top: 64px;
   animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .atv-section + .atv-section { padding-top: 0; }
@@ -676,6 +666,17 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
   .atv-comments { grid-template-columns: 1fr; }
 }
 `;
+
+(() => {
+  const addStyle = (css) => {
+    if (typeof GM_addStyle === "function") {
+      return GM_addStyle(css);
+    }
+    const s = document.createElement("style");
+    s.textContent = css;
+    (document.head || document.documentElement).appendChild(s);
+    return s;
+  };
 
   const $ = (sel, root) => (root || document).querySelector(sel);
   const $$ = (sel, root) =>
