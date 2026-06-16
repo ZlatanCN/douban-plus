@@ -2,7 +2,7 @@
 // @name         Douban Plus
 // @namespace    https://github.com/zhujiayou/douban-appletv-beautify
 // @version      1.0.1
-// @descriptionji  将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色
+// @description  将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色
 // @author       Sisyphus
 // @match        *://movie.douban.com/subject/*
 // @run-at       document-end
@@ -33,6 +33,8 @@ const RE_COLLECT_EXACT = /^看过$/;
 const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/;
 const RE_IMDB_LINK = /^tt\d+$/;
 const RE_SEASON_SUFFIX = /\d$/;
+const RE_PLAY_SOURCES = /sources\[(\d+)\]\s*=\s*\[\s*\{play_link:\s*"([^"]+)"/g;
+const RE_SOURCES_SCRIPT = /\bsources\s*\[/;
 
 const ICON_STAR_FULL =
   '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
@@ -1117,10 +1119,34 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       .filter((a) => a.org);
   }
 
+  function parsePlaySources() {
+    const scripts = $$("script:not([src])");
+    const srcScript = scripts.find((s) =>
+      RE_SOURCES_SCRIPT.test(s.textContent || "")
+    );
+    if (!srcScript) {
+      return {};
+    }
+    const txt = srcScript.textContent;
+    const map = {};
+    let m = RE_PLAY_SOURCES.exec(txt);
+    while (m) {
+      const sourceId = m[1];
+      const playLink = m[2].replace(/&amp;/g, "&");
+      if (!map[sourceId]) {
+        map[sourceId] = playLink;
+      }
+      m = RE_PLAY_SOURCES.exec(txt);
+    }
+    return map;
+  }
+
   function extractStreaming() {
     const seen = new Set();
     const out = [];
     const isRealUrl = (h) => RE_HTTP.test(h || "");
+    const sourcesMap = parsePlaySources();
+
     const playBtns = $$("a.playBtn");
     for (const a of playBtns) {
       const name = (a.getAttribute("data-cn") || a.textContent || "").trim();
@@ -1128,8 +1154,18 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         continue;
       }
       seen.add(name);
-      out.push({ name, href: isRealUrl(a.href) ? a.href : "", proxyEl: a });
+      let href = a.href;
+      if (!isRealUrl(href)) {
+        const sourceId = a.getAttribute("data-source");
+        if (sourceId && sourcesMap[sourceId]) {
+          href = sourcesMap[sourceId];
+        } else {
+          continue;
+        }
+      }
+      out.push({ name, href });
     }
+
     for (const a of $$("a")) {
       if (!RE_ONLINE_VIDEO.test(a.href || "")) {
         continue;
@@ -1139,7 +1175,9 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         continue;
       }
       seen.add(name);
-      out.push({ name, href: isRealUrl(a.href) ? a.href : "", proxyEl: a });
+      if (isRealUrl(a.href)) {
+        out.push({ name, href: a.href });
+      }
     }
     return out;
   }
@@ -1556,26 +1594,12 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     sec.appendChild(buildSectionHeader("在哪儿看"));
     const row = el("div", { className: "atv-stream-row" });
     for (const s of data.streaming) {
-      let card;
-      if (s.href) {
-        card = el("a", {
-          className: "atv-stream-card",
-          href: s.href,
-          target: "_blank",
-          rel: "noopener",
-        });
-      } else {
-        card = el("button", {
-          className: "atv-stream-card",
-          attrs: { type: "button" },
-        });
-        const proxy = s.proxyEl;
-        card.addEventListener("click", () => {
-          if (proxy) {
-            proxy.click();
-          }
-        });
-      }
+      const card = el("a", {
+        className: "atv-stream-card",
+        href: s.href,
+        target: "_blank",
+        rel: "noopener",
+      });
       card.appendChild(el("span", { text: s.name }));
       card.appendChild(
         el("span", { className: "atv-stream-arrow", html: ICON_ARROW })
