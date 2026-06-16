@@ -83,10 +83,63 @@ const SCENARIOS = [
 ];
 
 const results = [];
+
+const C = {
+  reset: "\x1b[0m",
+  bold: "\x1b[1m",
+  dim: "\x1b[2m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+  white: "\x1b[37m",
+  bgRed: "\x1b[41m",
+  bgGreen: "\x1b[42m",
+};
+
+function log(pass, label, detail) {
+  const mark = pass ? `${C.green}PASS${C.reset}` : `${C.red}FAIL${C.reset}`;
+  const detailStr = detail ? ` ${C.dim}${detail}${C.reset}` : "";
+  console.log(`  ${mark}  ${label}${detailStr}`);
+}
+
 function record(scenario, name, pass, detail = "") {
   results.push({ scenario, name, pass, detail });
-  const mark = pass ? "✅" : "❌";
-  console.log(`${mark} [${scenario}] ${name}${detail ? ` — ${detail}` : ""}`);
+  log(pass, name, detail);
+}
+
+function printSummary() {
+  const total = results.length;
+  const passed = results.filter((r) => r.pass).length;
+  const failed = results.filter((r) => !r.pass);
+  const ratio = `${passed}/${total}`;
+
+  console.log("");
+  console.log(`${C.bold}${"─".repeat(60)}${C.reset}`);
+
+  if (failed.length === 0) {
+    console.log(
+      `  ${C.bgGreen}${C.bold} ALL ${ratio} PASSED ${C.reset}  ${C.dim}douban-plus QA${C.reset}`
+    );
+  } else {
+    console.log(
+      `  ${C.bgRed}${C.bold} ${ratio} FAILED ${C.reset}  ${C.dim}douban-plus QA${C.reset}`
+    );
+    console.log("");
+    console.log(`${C.red}${C.bold}  FAILURES:${C.reset}`);
+    console.log("");
+    for (const f of failed) {
+      console.log(
+        `  ${C.red}×${C.reset} ${C.cyan}[${f.scenario}]${C.reset} ${f.name}`
+      );
+      if (f.detail) {
+        console.log(`    ${C.dim}${f.detail}${C.reset}`);
+      }
+    }
+  }
+
+  console.log(`${C.bold}${"─".repeat(60)}${C.reset}`);
+  console.log("");
 }
 
 const MAX_RETRIES = 2;
@@ -102,6 +155,10 @@ try {
 }
 
 async function runScenario(sc) {
+  console.log("");
+  console.log(
+    `${C.bold}${C.cyan}▸ ${sc.name}${C.reset}  ${C.dim}${sc.url}${C.reset}`
+  );
   const ctx = await browser.newContext({
     userAgent:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -151,7 +208,7 @@ async function runScenario(sc) {
     } catch (e) {
       if (attempt < MAX_RETRIES) {
         console.log(
-          `[RETRY] ${sc.name} (${attempt}/${MAX_RETRIES}): ${e.message.slice(0, 120)}`
+          `  ${C.yellow}RETRY${C.reset} ${sc.name} (${attempt}/${MAX_RETRIES}): ${e.message.slice(0, 120)}`
         );
         await new Promise((r) => setTimeout(r, 2000));
         continue;
@@ -174,7 +231,7 @@ async function executeBody(page, sc, ourErrors) {
       timeout: TIMEOUT_CONTENT_READY,
     });
   } catch {
-    console.log(`[WARN] ${sc.name} page load timeout`);
+    console.log(`  ${C.yellow}WARN${C.reset} ${sc.name} page load timeout`);
   }
 
   // Inject GM shim + userscript body
@@ -623,19 +680,11 @@ async function executeBody(page, sc, ourErrors) {
     fullPage: true,
   });
 
-  console.log(`📸 [${sc.name}] screenshots saved`);
+  console.log(`  ${C.dim}screenshots saved → ${sc.name}*.png${C.reset}`);
 }
 
-const total = results.length;
-const passed = results.filter((r) => r.pass).length;
-console.log(`\n=== Result: ${passed}/${total} passed ===`);
+printSummary();
 const failed = results.filter((r) => !r.pass);
 if (failed.length) {
-  console.log("\nFAILURES:");
-  for (const f of failed) {
-    console.log(
-      `  ❌ [${f.scenario}] ${f.name}${f.detail ? ` — ${f.detail}` : ""}`
-    );
-  }
   process.exit(1);
 }
