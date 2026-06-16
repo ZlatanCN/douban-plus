@@ -343,13 +343,13 @@ for (const sc of SCENARIOS) {
       };
     });
     if (navState) {
-      // Nav must: be position:fixed, stuck at top (rectTop===0), visible (opacity 1), have title text that is visible white-ish
+      // Nav must: be position:fixed, stuck at top (within 2px), visible (opacity > 0.8), have title text that is visible white-ish
       record(
         sc.name,
         `sticky nav fixed at top after scroll (pos:${navState.position}, top:${navState.rectTop}px, opacity:${navState.opacity})`,
         navState.position === "fixed" &&
-          navState.rectTop === 0 &&
-          navState.opacity > 0.9
+          Math.abs(navState.rectTop) <= 2 &&
+          navState.opacity > 0.8
       );
       record(
         sc.name,

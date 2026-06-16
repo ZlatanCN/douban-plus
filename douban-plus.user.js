@@ -179,30 +179,74 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
 /* ---------- Hero ---------- */
 .atv-hero {
   position: relative;
-  min-height: 72vh;
+  min-height: 75vh;
   display: flex;
   align-items: flex-end;
   padding: 132px max(28px, 5vw) 56px;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
 }
 .atv-hero-bg {
-  position: absolute; inset: -8%;
-  background-size: cover; background-position: center 22%;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 75vh;
+  z-index: -4;
+  overflow: hidden;
+  background: #000;
+}
+.atv-hero-still {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center 30%;
+  background-repeat: no-repeat;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  transform: scale(1.04);
+}
+.atv-hero-still.is-thumb {
+  filter: blur(12px) saturate(1.12) brightness(0.84);
+  transform: scale(1.14);
+}
+.atv-hero-still.is-hd {
+  opacity: 0;
+  filter: saturate(1.08) brightness(0.88);
+  transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.atv-hero-still.is-hd.is-loaded {
+  opacity: 1;
+  animation: atv-kenburns 22s ease-out forwards;
+}
+.atv-hero-still.is-poster {
   filter: blur(60px) saturate(1.25) brightness(0.78);
   transform: scale(1.25);
-  z-index: -4;
+  background-position: center 22%;
+}
+@keyframes atv-kenburns {
+  from { transform: scale(1.0) translate(0, 0); }
+  to   { transform: scale(1.1) translate(-1.8%, -1.2%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atv-hero-still.is-hd.is-loaded { animation: none; transform: scale(1.04); }
 }
 .atv-hero-vignette {
-  position: absolute; inset: 0; z-index: -3;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 75vh;
+  z-index: -3;
   background: radial-gradient(120% 90% at 70% 30%, transparent 0%, rgba(0,0,0,0.55) 100%);
 }
 .atv-hero-overlay-x {
-  position: absolute; inset: 0; z-index: -2;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 75vh;
+  z-index: -2;
   background: linear-gradient(to right, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.82) 32%, rgba(0,0,0,0.5) 62%, rgba(0,0,0,0.35) 100%);
 }
 .atv-hero-overlay-y {
-  position: absolute; inset: 0; z-index: -1;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 75vh;
+  z-index: -1;
   background: linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 28%, transparent 55%, #000 100%);
 }
 .atv-hero-inner {
@@ -698,6 +742,14 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       return null;
     }
     return url.replace("/sqxs/", "/large/").replace("/m/", "/l/");
+  };
+
+  const hashStr = (str) => {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = (h * 31 + str.charCodeAt(i)) % 1_000_000_007;
+    }
+    return h;
   };
 
   const collectInfoTextAfter = (labelEl) => {
@@ -1202,7 +1254,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       id: "atv-poster-modal",
     });
     const img = el("img", { className: "atv-modal-img", src, alt: alt || "" });
-    img.referrerPolicy = "no-referrer";
 
     const close = el("button", {
       className: "atv-modal-close",
@@ -1239,24 +1290,59 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
     requestAnimationFrame(() => overlay.classList.add("is-open"));
   }
 
+  function pickStill(photos, seed) {
+    if (!photos?.length) {
+      return null;
+    }
+    const idx = hashStr(String(seed || "")) % photos.length;
+    return photos[idx];
+  }
+
+  function buildHeroBg(data) {
+    const bg = el("div", { className: "atv-hero-bg" });
+    const still = pickStill(data.photos, data.subjectId);
+
+    if (still?.hdUrl) {
+      const thumb = el("div", { className: "atv-hero-still is-thumb" });
+      thumb.style.backgroundImage = `url("${encodeURI(still.thumbUrl || still.hdUrl)}")`;
+      bg.appendChild(thumb);
+
+      const hd = el("div", { className: "atv-hero-still is-hd" });
+      hd.setAttribute("aria-hidden", "true");
+      bg.appendChild(hd);
+
+      const loader = new Image();
+      loader.onload = () => {
+        hd.style.backgroundImage = `url("${encodeURI(still.hdUrl)}")`;
+        requestAnimationFrame(() => hd.classList.add("is-loaded"));
+      };
+      loader.onerror = (e) => {
+        console.error("[Hero] HD still FAILED:", still.hdUrl, e);
+        if (still.thumbUrl && still.thumbUrl !== still.hdUrl) {
+          hd.style.backgroundImage = `url("${encodeURI(still.thumbUrl)}")`;
+          requestAnimationFrame(() => hd.classList.add("is-loaded"));
+        }
+      };
+      loader.src = still.hdUrl;
+      return bg;
+    }
+
+    if (data.poster) {
+      const poster = el("div", { className: "atv-hero-still is-poster" });
+      poster.style.backgroundImage = `url("${encodeURI(data.poster)}")`;
+      bg.appendChild(poster);
+      return bg;
+    }
+
+    bg.style.background =
+      "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)";
+    return bg;
+  }
+
   function buildHero(data) {
     const hero = el("section", { className: "atv-hero" });
 
-    if (data.poster) {
-      const bg = el("div", { className: "atv-hero-bg" });
-      bg.style.backgroundImage = `url("${encodeURI(data.poster)}")`;
-      hero.appendChild(bg);
-    } else {
-      hero.appendChild(
-        el("div", {
-          className: "atv-hero-bg",
-          style: {
-            background:
-              "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)",
-          },
-        })
-      );
-    }
+    hero.appendChild(buildHeroBg(data));
     hero.appendChild(el("div", { className: "atv-hero-vignette" }));
     hero.appendChild(el("div", { className: "atv-hero-overlay-x" }));
     hero.appendChild(el("div", { className: "atv-hero-overlay-y" }));
@@ -1269,8 +1355,8 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         src: data.poster,
         alt: data.title.primary || "",
       });
-      img.referrerPolicy = "no-referrer";
-      img.onerror = () => {
+      img.onerror = (e) => {
+        console.error("[buildHero] Poster card img FAILED:", data.poster, e);
         card.innerHTML = "";
         const ph = el("div", {
           className: "atv-poster-placeholder",
@@ -1618,7 +1704,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
         tile.rel = "noopener";
       }
       const img = el("img", { src: p.hdUrl || p.thumbUrl, alt: "剧照" });
-      img.referrerPolicy = "no-referrer";
       img.loading = "lazy";
       img.onerror = () => {
         if (p.thumbUrl && img.src !== p.thumbUrl) {
@@ -1649,7 +1734,6 @@ body { background: #000 !important; margin: 0 !important; padding: 0 !important;
       const posterWrap = el("div", { className: "atv-rec-poster" });
       if (r.poster) {
         const img = el("img", { src: r.poster, alt: r.title });
-        img.referrerPolicy = "no-referrer";
         img.loading = "lazy";
         img.onerror = () => {
           posterWrap.innerHTML = "";
