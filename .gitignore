@@ -3,3 +3,7 @@ node_modules/
 session-*.md
 *.Zone.Identifier
 .omo
+.mimocode
+.idea
+.vscode
+.zed
