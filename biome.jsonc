@@ -9,8 +9,12 @@
       "complexity": {
         "noExcessiveCognitiveComplexity": "off"
       },
+      "performance": {
+        "noBarrelFile": "off"
+      },
       "style": {
-        "useConsistentTypeDefinitions": "off"
+        "useConsistentTypeDefinitions": "off",
+        "noDescendingSpecificity": "off"
       }
     }
   }
