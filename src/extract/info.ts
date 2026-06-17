@@ -11,23 +11,23 @@ import { collectInfoTextAfter, collectLinksAfter, findLabel } from "./helpers";
  * Extract all metadata fields from the #info block.
  * Handles both movie and TV detail pages.
  */
-function extractInfo(): InfoBlock {
+const extractInfo = (): InfoBlock => {
   const info = $<HTMLElement>("#info");
   const out: InfoBlock = {
-    director: [],
-    writers: [],
+    aliases: "",
     cast: [],
-    genres: [],
     country: "",
+    director: [],
+    episodeRuntime: "",
+    episodes: "",
+    firstAired: "",
+    genres: [],
+    imdb: "",
     language: "",
     releaseDate: "",
-    firstAired: "",
     runtime: "",
-    episodes: "",
     seasons: "",
-    episodeRuntime: "",
-    aliases: "",
-    imdb: "",
+    writers: [],
   };
   if (!info) {
     return out;
@@ -39,16 +39,14 @@ function extractInfo(): InfoBlock {
 
   /* ---- Cast (v:starring or label fallback) ---- */
   const starringEls = $$<HTMLAnchorElement>('a[rel="v:starring"]', info);
-  if (starringEls.length) {
-    out.cast = starringEls
-      .map((a) => ({
-        text: (a.textContent || "").trim(),
-        href: a.href || "",
-      }))
-      .filter((x) => x.text);
-  } else {
-    out.cast = collectLinksAfter(info, "主演");
-  }
+  out.cast = starringEls.length
+    ? starringEls
+        .map((a) => ({
+          href: a.href || "",
+          text: (a.textContent || "").trim(),
+        }))
+        .filter((x) => x.text)
+    : collectLinksAfter(info, "主演");
 
   /* ---- Genres ---- */
   const genreEls = $$('span[property="v:genre"]', info);
@@ -113,7 +111,7 @@ function extractInfo(): InfoBlock {
   }
 
   return out;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

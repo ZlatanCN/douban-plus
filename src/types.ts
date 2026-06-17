@@ -23,9 +23,9 @@ type RatingInfo = {
 
 /** Return type of extractInfo() — the "info" block from #info */
 type InfoBlock = {
-  director: Array<{ text: string; href: string }>;
-  writers: Array<{ text: string; href: string }>;
-  cast: Array<{ text: string; href: string }>;
+  director: { text: string; href: string }[];
+  writers: { text: string; href: string }[];
+  cast: { text: string; href: string }[];
   genres: string[];
   country: string;
   language: string;

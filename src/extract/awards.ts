@@ -11,8 +11,8 @@ import { $, $$, safeText } from "../utils/dom";
  *   1: award name (plain text)
  *   2: person name (may contain `<a>`)
  */
-function extractAwards(): Award[] {
-  return $$("ul.award")
+const extractAwards = (): Award[] =>
+  $$("ul.award")
     .map((ul) => {
       const lis = $$("li", ul);
       const orgEl = lis[0] ? $<HTMLAnchorElement>("a", lis[0]) : null;
@@ -21,15 +21,14 @@ function extractAwards(): Award[] {
       const personEl = lis[2] ? $<HTMLAnchorElement>("a", lis[2]) : null;
       const person = lis[2] ? safeText(lis[2]) : "";
       return {
+        name,
         org,
         orgLink: orgEl ? orgEl.href : "",
-        name,
         person,
         personLink: personEl ? personEl.href : "",
       };
     })
     .filter((a) => a.org);
-}
 
 /* ── Exports ──────────────────────────────────────────── */
 

@@ -1,14 +1,16 @@
 import { el } from "../components/dom-factory";
 import { ICON_FILM_PLACEHOLDER } from "../constants";
-import { buildSectionHeader } from "./sections";
 import type { Recommendation } from "../types";
+import { buildSectionHeader } from "./sections";
 
-function buildRecs(data: { recommendations: Recommendation[] }): HTMLElement | null {
+const buildRecs = (data: {
+  recommendations: Recommendation[];
+}): HTMLElement | null => {
   if (!data.recommendations?.length) {
     return null;
   }
   const sec = el("section", { className: "atv-section", id: "atv-recs" });
-  sec.appendChild(buildSectionHeader("相似作品"));
+  sec.append(buildSectionHeader("相似作品"));
   const grid = el("div", { className: "atv-recs" });
   for (const r of data.recommendations) {
     const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
@@ -19,34 +21,36 @@ function buildRecs(data: { recommendations: Recommendation[] }): HTMLElement | n
     }
     const posterWrap = el("div", { className: "atv-rec-poster" });
     if (r.poster) {
-      const img = el("img", { src: r.poster, alt: r.title });
+      const img = el("img", { alt: r.title, src: r.poster });
       img.loading = "lazy";
-      img.onerror = () => {
-        posterWrap.innerHTML = "";
-        posterWrap.appendChild(
-          el("div", {
-            className: "atv-poster-placeholder",
-            html: ICON_FILM_PLACEHOLDER,
-          })
-        );
-      };
-      posterWrap.appendChild(img);
+      img.addEventListener(
+        "error",
+        () => {
+          posterWrap.innerHTML = "";
+          posterWrap.append(
+            el("div", {
+              className: "atv-poster-placeholder",
+              html: ICON_FILM_PLACEHOLDER,
+            })
+          );
+        },
+        { once: true }
+      );
+      posterWrap.append(img);
     } else {
-      posterWrap.appendChild(
+      posterWrap.append(
         el("div", {
           className: "atv-poster-placeholder",
           html: ICON_FILM_PLACEHOLDER,
         })
       );
     }
-    card.appendChild(posterWrap);
-    card.appendChild(
-      el("div", { className: "atv-rec-title", text: r.title })
-    );
-    grid.appendChild(card);
+    card.append(posterWrap);
+    card.append(el("div", { className: "atv-rec-title", text: r.title }));
+    grid.append(card);
   }
-  sec.appendChild(grid);
+  sec.append(grid);
   return sec;
-}
+};
 
 export { buildRecs };

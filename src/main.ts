@@ -1,9 +1,20 @@
 /* ── CSS Injection ────────────────────────────────────── */
 
 import "./styles.css";
-
 /* ── Extract Imports ─────────────────────────────────── */
-
+import {
+  buildCast,
+  buildComments,
+  buildDetails,
+  buildHero,
+  buildPhotos,
+  buildRecs,
+  buildStickyNav,
+  buildStreaming,
+} from "./build";
+/* ── Build Imports ───────────────────────────────────── */
+import { el } from "./components/dom-factory";
+/* ── Component Imports ───────────────────────────────── */
 import {
   extractAwards,
   extractCelebrities,
@@ -19,32 +30,13 @@ import {
   extractTitle,
   extractYear,
 } from "./extract";
-
-/* ── Build Imports ───────────────────────────────────── */
-
-import {
-  buildCast,
-  buildComments,
-  buildDetails,
-  buildHero,
-  buildPhotos,
-  buildRecs,
-  buildStickyNav,
-  buildStreaming,
-} from "./build";
-
-/* ── Component Imports ───────────────────────────────── */
-
-import { el } from "./components/dom-factory";
-
 /* ── Type Imports ────────────────────────────────────── */
-
 import type { DoubanData } from "./types";
 
 /* ── Render ──────────────────────────────────────────── */
 
-function render(): void {
-  if (document.getElementById("atv-douban-root")) {
+const render = (): void => {
+  if (document.querySelector("#atv-douban-root")) {
     return;
   }
 
@@ -63,75 +55,75 @@ function render(): void {
       info.firstAired
     );
     data = {
-      subjectId: extractSubjectId(),
-      title: extractTitle(),
-      year: extractYear(),
+      awards: extractAwards(),
+      celebrities: extractCelebrities(),
+      comments: extractComments(),
+      info,
+      isTV,
+      photos: extractPhotos(),
       poster: extractPoster(),
       rating: extractRating(),
-      summary: extractSummary(),
-      info,
-      celebrities: extractCelebrities(),
-      photos: extractPhotos(),
       recommendations: extractRecommendations(),
-      comments: extractComments(),
-      awards: extractAwards(),
       streaming: extractStreaming(),
-      isTV,
+      subjectId: extractSubjectId(),
+      summary: extractSummary(),
+      title: extractTitle(),
+      year: extractYear(),
     };
-  } catch (err) {
-    console.warn("[ATV-Douban] 数据提取失败：", err);
+  } catch (error) {
+    console.warn("[ATV-Douban] 数据提取失败：", error);
     return;
   }
 
   const root = el("div", { id: "atv-douban-root" });
 
-  document.title =
+  document.title = `${
     (data.title.primary || data.title.full) +
-    (data.year ? ` (${data.year})` : "") +
-    " · 豆瓣";
+    (data.year ? ` (${data.year})` : "")
+  } · 豆瓣`;
 
   const stickyNav = buildStickyNav(data);
 
   /* ── Append sections in order ───────────────────────── */
 
-  root.appendChild(buildHero(data));
+  root.append(buildHero(data));
 
   const streaming = buildStreaming(data);
   if (streaming) {
-    root.appendChild(streaming);
+    root.append(streaming);
   }
 
   const cast = buildCast(data);
   if (cast) {
-    root.appendChild(cast);
+    root.append(cast);
   }
 
   const photos = buildPhotos(data);
   if (photos) {
-    root.appendChild(photos);
+    root.append(photos);
   }
 
   const comments = buildComments(data);
   if (comments) {
-    root.appendChild(comments);
+    root.append(comments);
   }
 
   const recs = buildRecs(data);
   if (recs) {
-    root.appendChild(recs);
+    root.append(recs);
   }
 
   const details = buildDetails(data);
   if (details) {
-    root.appendChild(details);
+    root.append(details);
   }
 
-  root.appendChild(el("div", { className: "atv-footer-spacer" }));
+  root.append(el("div", { className: "atv-footer-spacer" }));
 
   /* ── DOM insertion ──────────────────────────────────── */
 
   document.body.insertBefore(root, document.body.firstChild);
-  document.body.appendChild(stickyNav);
+  document.body.append(stickyNav);
 
   /* ── Scroll listener for sticky nav ─────────────────── */
 
@@ -141,7 +133,7 @@ function render(): void {
   };
   window.addEventListener("scroll", reveal, { passive: true });
   reveal();
-}
+};
 
 /* ── Startup ─────────────────────────────────────────── */
 

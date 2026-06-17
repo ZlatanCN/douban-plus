@@ -9,10 +9,10 @@ import { $$ } from "../utils/dom";
  * Used by collectInfoTextAfter() and collectLinksAfter() internally,
  * also available standalone for callers that need the label element.
  */
-function findLabel(
+const findLabel = (
   root: HTMLElement | Document,
   label: string
-): HTMLElement | null {
+): HTMLElement | null => {
   if (!root) {
     return null;
   }
@@ -24,7 +24,7 @@ function findLabel(
     }
   }
   return null;
-}
+};
 
 /**
  * Find a label and collect the adjacent text node content.
@@ -32,11 +32,11 @@ function findLabel(
  *
  * @param trim  Default true. Pass false to keep leading/trailing whitespace.
  */
-function collectInfoTextAfter(
+const collectInfoTextAfter = (
   root: HTMLElement | Document,
   label: string,
   trim?: boolean
-): string {
+): string => {
   const labelEl = findLabel(root, label);
   if (!labelEl) {
     return "";
@@ -64,22 +64,22 @@ function collectInfoTextAfter(
     result = result.trim();
   }
   return result;
-}
+};
 
 /**
  * Find a label and collect all <a> links in adjacent sibling nodes.
  * Walks nextSiblings until another .pl label or <br> is hit.
  */
-function collectLinksAfter(
+const collectLinksAfter = (
   root: HTMLElement | Document,
   label: string
-): Array<{ text: string; href: string }> {
+): { text: string; href: string }[] => {
   const labelEl = findLabel(root, label);
   if (!labelEl) {
     return [];
   }
 
-  const out: Array<{ text: string; href: string }> = [];
+  const out: { text: string; href: string }[] = [];
   let n: ChildNode | null = labelEl.nextSibling;
   while (n) {
     if (n.nodeType === 1 && (n as HTMLElement).classList?.contains("pl")) {
@@ -94,14 +94,14 @@ function collectLinksAfter(
       for (const a of anchors) {
         const t = (a.textContent || "").trim();
         if (t) {
-          out.push({ text: t, href: (a as HTMLAnchorElement).href || "" });
+          out.push({ href: (a as HTMLAnchorElement).href || "", text: t });
         }
       }
     }
     n = n.nextSibling;
   }
   return out;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

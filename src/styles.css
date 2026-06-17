@@ -369,7 +369,11 @@ body {
 }
 .atv-rating-score {
   font-family:
-    "SF Pro Display", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
   font-size: 56px;
   font-weight: 700;
   line-height: 1;

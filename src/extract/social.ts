@@ -9,31 +9,28 @@ import { $, $$, safeText } from "../utils/dom";
  * Extract related recommendations from `.recommendations-bd`.
  * Iterates `<dl>` items and pulls title, poster image, and link.
  */
-function extractRecommendations(): Recommendation[] {
-  return $$<HTMLDListElement>(".recommendations-bd dl")
+const extractRecommendations = (): Recommendation[] =>
+  $$<HTMLDListElement>(".recommendations-bd dl")
     .map((dl) => {
       const linkEl = $<HTMLAnchorElement>("dt a", dl);
       const imgEl = $<HTMLImageElement>("dt a img", dl);
       const titleEl = $<HTMLAnchorElement>("dd a", dl);
       return {
-        title: safeText(titleEl),
-        poster: imgEl
-          ? (imgEl as HTMLImageElement).src ||
-            imgEl.getAttribute("data-src") ||
-            ""
-          : "",
         link: linkEl ? linkEl.href : "",
+        poster: imgEl
+          ? (imgEl as HTMLImageElement).src || imgEl.dataset.src || ""
+          : "",
+        title: safeText(titleEl),
       };
     })
     .filter((r) => r.title);
-}
 
 /**
  * Extract user comments from "#hot-comments" section.
  * Iterates `.comment-item` elements and pulls author, content,
  * star rating, time, votes, and avatar.
  */
-function extractComments(): Comment[] {
+const extractComments = (): Comment[] => {
   const items = $$<HTMLElement>("#hot-comments .comment-item");
   const out: Comment[] = [];
   for (const item of items) {
@@ -71,23 +68,23 @@ function extractComments(): Comment[] {
     if (avatarImg) {
       avatar =
         (avatarImg as HTMLImageElement).src ||
-        avatarImg.getAttribute("data-original") ||
-        avatarImg.getAttribute("data-src") ||
+        avatarImg.dataset.original ||
+        avatarImg.dataset.src ||
         "";
     }
     out.push({
-      name,
-      link: authorEl && authorEl.tagName === "A" ? authorEl.href : "",
+      avatar,
       content,
-      stars,
+      link: authorEl && authorEl.tagName === "A" ? authorEl.href : "",
+      name,
       ratingWord,
+      stars,
       time,
       votes,
-      avatar,
     });
   }
   return out;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

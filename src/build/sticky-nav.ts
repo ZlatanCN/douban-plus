@@ -3,17 +3,17 @@
 import { el } from "../components/dom-factory";
 import type { DoubanData } from "../types";
 
-function buildStickyNav(data: DoubanData): HTMLElement {
+const buildStickyNav = (data: DoubanData): HTMLElement => {
   const nav = el("nav", { className: "atv-stickynav" });
 
-  nav.appendChild(
+  nav.append(
     el("div", {
       className: "atv-stickynav-title",
       text: data.title.primary || data.title.full,
     })
   );
 
-  const jumps: Array<{ id: string; label: string }> = [];
+  const jumps: { id: string; label: string }[] = [];
 
   // Conditional sections — matches original render() order
   if (data.streaming.length > 0) {
@@ -39,17 +39,17 @@ function buildStickyNav(data: DoubanData): HTMLElement {
     const a = el("a", { href: `#${j.id}`, text: j.label });
     a.addEventListener("click", (e) => {
       e.preventDefault();
-      const t = document.getElementById(j.id);
+      const t = document.querySelector(`#${j.id}`);
       if (t) {
         t.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     });
-    wrap.appendChild(a);
+    wrap.append(a);
   }
-  nav.appendChild(wrap);
+  nav.append(wrap);
 
   return nav;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

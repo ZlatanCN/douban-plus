@@ -8,7 +8,7 @@ import { $, safeText } from "../utils/dom";
  * Extract rating score and vote count from the page.
  * Returns null when no valid score is found.
  */
-function extractRating(): RatingInfo | null {
+const extractRating = (): RatingInfo | null => {
   const scoreEl =
     $<HTMLElement>("strong.rating_num") ||
     $<HTMLElement>('strong[property="v:average"]');
@@ -25,14 +25,14 @@ function extractRating(): RatingInfo | null {
     ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
     : 0;
 
-  return { score, count };
-}
+  return { count, score };
+};
 
 /**
  * Extract the movie summary / description text.
  * Returns null if no summary element exists.
  */
-function extractSummary(): string | null {
+const extractSummary = (): string | null => {
   const summary = $<HTMLElement>('span[property="v:summary"]');
   if (!summary) {
     return null;
@@ -45,7 +45,7 @@ function extractSummary(): string | null {
     .replace(RE_NL_MULTI, "\n\n")
     .trim();
   return txt || null;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

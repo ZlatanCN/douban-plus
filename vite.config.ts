@@ -8,22 +8,22 @@ export default defineConfig({
   },
   plugins: [
     monkey({
-      entry: "src/main.ts",
-      userscript: {
-        name: "Douban Plus",
-        namespace: "https://github.com/ZlatanCN/douban-plus",
-        match: ["*://movie.douban.com/subject/*"],
-        "run-at": "document-end",
-        grant: ["GM_addStyle"],
+      build: {
+        autoGrant: true,
+        fileName: "douban-plus.user.js",
+        metaFileName: true,
       },
+      entry: "src/main.ts",
       server: {
         open: true,
         prefix: "dev:",
       },
-      build: {
-        fileName: "douban-plus.user.js",
-        metaFileName: true,
-        autoGrant: true,
+      userscript: {
+        grant: ["GM_addStyle"],
+        match: ["*://movie.douban.com/subject/*"],
+        name: "Douban Plus",
+        namespace: "https://github.com/ZlatanCN/douban-plus",
+        "run-at": "document-end",
       },
     }),
   ],

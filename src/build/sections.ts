@@ -2,30 +2,29 @@
 
 import { el } from "../components/dom-factory";
 
-function buildSectionHeader(text: string): HTMLHeadingElement {
-  return el("h2", { className: "atv-section-h", text });
-}
+const buildSectionHeader = (text: string): HTMLHeadingElement =>
+  el("h2", { className: "atv-section-h", text });
 
-function buildSectionHeaderRow(
+const buildSectionHeaderRow = (
   text: string,
   moreText: string,
   moreHref: string
-): HTMLDivElement {
+): HTMLDivElement => {
   const row = el("div", { className: "atv-section-h-row" });
-  row.appendChild(buildSectionHeader(text));
+  row.append(buildSectionHeader(text));
   if (moreText && moreHref) {
-    row.appendChild(
+    row.append(
       el("a", {
         className: "atv-section-more",
-        text: moreText,
         href: moreHref,
-        target: "_blank",
         rel: "noopener",
+        target: "_blank",
+        text: moreText,
       })
     );
   }
   return row;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

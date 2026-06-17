@@ -19,57 +19,46 @@ type ElementAttrs = {
   attrs?: Record<string, string>;
 };
 
-function el<K extends keyof HTMLElementTagNameMap>(
-  tag: K,
-  attrs?: ElementAttrs,
-  children?: Array<HTMLElement | string>
-): HTMLElementTagNameMap[K];
-function el(
+const strAttrs: [keyof ElementAttrs, string][] = [
+  ["id", "id"],
+  ["textContent", "textContent"],
+  ["text", "textContent"],
+  ["href", "href"],
+  ["src", "src"],
+  ["alt", "alt"],
+  ["target", "target"],
+  ["rel", "rel"],
+  ["type", "type"],
+];
+
+const el = (
   tag: string,
   attrs?: ElementAttrs,
-  children?: Array<HTMLElement | string>
-): HTMLElement {
+  children?: (HTMLElement | string)[]
+): HTMLElement => {
   const node = document.createElement(tag);
 
   if (attrs) {
-    if (attrs.className) {
-      node.className = Array.isArray(attrs.className)
-        ? attrs.className.join(" ")
-        : attrs.className;
-    } else if (attrs.class) {
-      node.className = Array.isArray(attrs.class)
-        ? attrs.class.join(" ")
-        : attrs.class;
+    const cls = attrs.className ?? attrs.class;
+    if (cls) {
+      node.className = Array.isArray(cls) ? cls.join(" ") : cls;
     }
-    if (attrs.id != null) {
-      node.id = attrs.id;
+
+    for (const [key, attr] of strAttrs) {
+      const val = attrs[key];
+      if (val) {
+        if (attr === "id") {
+          node.id = val as string;
+        } else if (attr === "textContent") {
+          node.textContent = val as string;
+        } else {
+          node.setAttribute(attr, val as string);
+        }
+      }
     }
-    if (attrs.textContent != null) {
-      node.textContent = attrs.textContent;
-    }
-    if (attrs.text != null) {
-      node.textContent = attrs.text;
-    }
-    if (attrs.html != null) {
+
+    if (attrs.html) {
       node.innerHTML = attrs.html;
-    }
-    if (attrs.href != null) {
-      node.setAttribute("href", attrs.href);
-    }
-    if (attrs.src != null) {
-      node.setAttribute("src", attrs.src);
-    }
-    if (attrs.alt != null) {
-      node.setAttribute("alt", attrs.alt);
-    }
-    if (attrs.target != null) {
-      node.setAttribute("target", attrs.target);
-    }
-    if (attrs.rel != null) {
-      node.setAttribute("rel", attrs.rel);
-    }
-    if (attrs.type != null) {
-      node.setAttribute("type", attrs.type);
     }
 
     if (attrs.attrs) {
@@ -92,24 +81,24 @@ function el(
   if (children) {
     for (const child of children) {
       if (typeof child === "string") {
-        node.appendChild(document.createTextNode(child));
+        node.append(document.createTextNode(child));
       } else {
-        node.appendChild(child);
+        node.append(child);
       }
     }
   }
 
   return node;
-}
+};
 
-function renderStars(
+const renderStars = (
   score: number,
   opts?: { className?: string; outOfFive?: boolean }
-): HTMLElement {
+): HTMLElement => {
   const o = opts || {};
   const wrap = el("span", { className: o.className || "atv-rating-stars" });
   const out = o.outOfFive ? score : score / 2;
-  for (let i = 1; i <= 5; i++) {
+  for (let i = 1; i <= 5; i += 1) {
     let svg: string;
     if (out >= i - 0.25) {
       svg = ICON_STAR_FULL;
@@ -118,9 +107,9 @@ function renderStars(
     } else {
       svg = ICON_STAR_EMPTY;
     }
-    wrap.appendChild(el("span", { html: svg }));
+    wrap.append(el("span", { html: svg }));
   }
   return wrap;
-}
+};
 
 export { el, renderStars };

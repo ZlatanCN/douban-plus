@@ -5,8 +5,8 @@
  */
 const hashStr = (str: string): number => {
   let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) % 1_000_000_007;
+  for (let i = 0; i < str.length; i += 1) {
+    h = (h * 31 + str.codePointAt(i)) % 1_000_000_007;
   }
   return h;
 };

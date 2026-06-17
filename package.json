@@ -1,37 +1,39 @@
 {
+  "name": "douban-plus",
+  "version": "1.0.0",
+  "description": "将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色",
+  "keywords": [
+    "apple-tv",
+    "douban",
+    "scriptcat",
+    "tampermonkey",
+    "userscript"
+  ],
+  "license": "MIT",
+  "author": "Gabriel Zhu",
   "type": "module",
+  "main": "douban-plus.user.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "ultracite fix && ultracite check && vite build && npx tsx tests/qa.ts",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "husky"
+  },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.16",
     "@types/node": "^25.9.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
+    "oxfmt": "^0.55.0",
+    "oxlint": "^1.70.0",
     "playwright": "^1.60.0",
+    "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "ultracite": "^7.8.3",
     "vite": "^8.0.16",
     "vite-plugin-monkey": "^8.0.6"
   },
-  "name": "douban-plus",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "test": "ultracite fix && ultracite check && vite build && node tests/qa.mjs",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "prepare": "husky"
-  },
-  "version": "1.0.0",
-  "description": "将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色",
-  "main": "douban-plus.user.js",
-  "keywords": [
-    "douban",
-    "userscript",
-    "tampermonkey",
-    "scriptcat",
-    "apple-tv"
-  ],
-  "author": "Gabriel Zhu",
-  "license": "MIT",
   "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620"
 }

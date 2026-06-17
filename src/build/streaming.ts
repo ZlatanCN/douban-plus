@@ -5,9 +5,9 @@ import { ICON_ARROW } from "../constants";
 import type { Streaming } from "../types";
 import { buildSectionHeader } from "./sections";
 
-function buildStreaming(data: {
+const buildStreaming = (data: {
   streaming: Streaming[];
-}): HTMLElement | null {
+}): HTMLElement | null => {
   if (!data.streaming?.length) {
     return null;
   }
@@ -15,24 +15,24 @@ function buildStreaming(data: {
     className: "atv-section",
     id: "atv-stream",
   });
-  sec.appendChild(buildSectionHeader("在哪儿看"));
+  sec.append(buildSectionHeader("在哪儿看"));
   const row = el("div", { className: "atv-stream-row" });
   for (const s of data.streaming) {
     const card = el("a", {
       className: "atv-stream-card",
       href: s.href,
-      target: "_blank",
       rel: "noopener",
+      target: "_blank",
     });
-    card.appendChild(el("span", { text: s.name }));
-    card.appendChild(
+    card.append(el("span", { text: s.name }));
+    card.append(
       el("span", { className: "atv-stream-arrow", html: ICON_ARROW })
     );
-    row.appendChild(card);
+    row.append(card);
   }
-  sec.appendChild(row);
+  sec.append(row);
   return sec;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 

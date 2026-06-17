@@ -8,7 +8,7 @@ const $ = <T extends Element = Element>(
 const $$ = <T extends Element = Element>(
   selector: string,
   ctx?: ParentNode
-): T[] => Array.from((ctx ?? document).querySelectorAll<T>(selector));
+): T[] => [...(ctx ?? document).querySelectorAll<T>(selector)];
 
 const safeText = (el: Node | null | undefined): string =>
   el ? (el.textContent ?? "").trim() : "";

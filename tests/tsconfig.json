@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.json", // 继承根配置
+  "compilerOptions": {
+    "types": ["node"], // 覆盖 types，增加 Node 类型
+    "noEmit": true, // 测试无需输出
+    "skipLibCheck": true // 避免某些库冲突
+  },
+  "include": ["."], // 包含 tests 目录下所有文件
+  "exclude": ["node_modules", "dist"] // 排除构建产物
+}

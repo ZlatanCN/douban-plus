@@ -5,17 +5,15 @@ import { buildSectionHeaderRow } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
 
-function buildComments(data: DoubanData): HTMLElement | null {
+const buildComments = (data: DoubanData): HTMLElement | null => {
   if (!data.comments?.length) {
     return null;
   }
   const sec = el("section", { className: "atv-section", id: "atv-comments" });
   const allHref = data.subjectId
-    ? "https://movie.douban.com/subject/" +
-      data.subjectId +
-      "/comments?status=P"
+    ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P`
     : "";
-  sec.appendChild(
+  sec.append(
     buildSectionHeaderRow("热门短评", allHref ? "查看全部 →" : "", allHref)
   );
   const grid = el("div", { className: "atv-comments" });
@@ -29,51 +27,47 @@ function buildComments(data: DoubanData): HTMLElement | null {
     } else {
       avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
     }
-    top.appendChild(avatar);
+    top.append(avatar);
 
     const metaCol = el("div", { className: "atv-comment-meta" });
     const author = el(c.link ? "a" : "div", {
       className: "atv-comment-author",
-      text: c.name,
       href: c.link || undefined,
-      target: c.link ? "_blank" : undefined,
       rel: c.link ? "noopener" : undefined,
+      target: c.link ? "_blank" : undefined,
+      text: c.name,
     });
-    metaCol.appendChild(author);
+    metaCol.append(author);
     if (c.stars > 0) {
-      metaCol.appendChild(
+      metaCol.append(
         renderStars(c.stars, {
-          outOfFive: true,
           className: "atv-comment-stars",
+          outOfFive: true,
         })
       );
     }
-    top.appendChild(metaCol);
-    card.appendChild(top);
+    top.append(metaCol);
+    card.append(top);
 
-    card.appendChild(
-      el("div", { className: "atv-comment-body", text: c.content })
-    );
+    card.append(el("div", { className: "atv-comment-body", text: c.content }));
 
     const foot = el("div", { className: "atv-comment-foot" });
-    foot.appendChild(el("span", { text: c.time || "" }));
+    foot.append(el("span", { text: c.time || "" }));
     if (c.votes > 0) {
       const votes = el("span", { className: "atv-comment-votes" });
-      votes.appendChild(
+      votes.append(
         el("span", { className: "atv-stream-arrow", html: ICON_THUMB })
       );
-      votes.appendChild(
-        el("span", { text: c.votes.toLocaleString("en-US") })
-      );
-      foot.appendChild(votes);
+      votes.append(el("span", { text: c.votes.toLocaleString("en-US") }));
+      foot.append(votes);
     }
-    card.appendChild(foot);
+    card.append(foot);
 
-    grid.appendChild(card);
+    grid.append(card);
   }
-  sec.appendChild(grid);
+  sec.append(grid);
   return sec;
-}
+};
 
 /* ── Exports ──────────────────────────────────────────── */
 
