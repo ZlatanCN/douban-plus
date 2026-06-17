@@ -31,7 +31,7 @@ const STICKY_NAV_HIDDEN_REGEX = /rgba\(\d+,\s*\d+,\s*\d+,\s*0\)/;
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = dirname(__dirname);
-const USERSCRIPT_PATH = join(ROOT, "douban-plus.user.js");
+const USERSCRIPT_PATH = join(ROOT, "dist/douban-plus.user.js");
 const SCREENSHOT_DIR = join(__dirname, "screenshots");
 
 if (!existsSync(SCREENSHOT_DIR)) {
