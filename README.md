@@ -18,17 +18,13 @@
 
 ## Installation
 
-### ScriptCat
+### ScriptCat / Tampermonkey
 
-1. Install [ScriptCat](https://scriptcat.org/)
-2. Create new script and paste the contents of `douban-plus.user.js`
+1. Install [ScriptCat](https://scriptcat.org/) or [Tampermonkey](https://www.tampermonkey.net/)
+2. Create new script and paste the contents of [`dist/douban-plus.user.js`](dist/douban-plus.user.js)
 3. Visit any Douban movie/TV detail page
 
-### Tampermonkey
-
-1. Install [Tampermonkey](https://www.tampermonkey.net/)
-2. Create new script and paste the contents of `douban-plus.user.js`
-3. Visit any Douban movie/TV detail page
+> **Note for contributors**: If you cloned the repo, run `npm run build` first to generate `dist/douban-plus.user.js`.
 
 ## Development
 
@@ -40,22 +36,49 @@ cd douban-plus
 npm install
 ```
 
+### Dev Server (HMR)
+
+```bash
+npm run dev
+```
+
+This starts a Vite dev server with hot module replacement. The userscript is auto-injected into the browser via `vite-plugin-monkey`. Any changes to `src/` files will hot-reload instantly.
+
+> **⚠️ CSP Note**: The dev server injects the userscript via inline scripts, which violates Douban's Content Security Policy. Install the **"Disable-CSP"** browser extension for development.
+
+### Production Build
+
+```bash
+npm run build
+```
+
+Builds to `dist/douban-plus.user.js` (~60KB, single-file userscript).
+
 ### Run Tests
 
 ```bash
 npm test
 ```
 
-Tests run Playwright against 4 Douban pages (3 movies + 1 TV show) with 81 assertions.
+Tests run Playwright against 4 Douban pages (3 movies + 1 TV show) with 114 assertions across visual, functional, and layout checks.
 
 ### Project Structure
 
 ```
 douban-plus/
-├── douban-plus.user.js    # Main userscript (~55KB, self-contained)
+├── src/                       # TypeScript source modules (27 files)
+│   ├── index.ts               # Entry point — bootstrap + metadata
+│   ├── components/            # UI component builders (hero, cast, etc.)
+│   ├── services/              # Data extraction from Douban DOM
+│   ├── utils/                 # Utility helpers
+│   └── types/                 # TypeScript type definitions
+├── dist/
+│   └── douban-plus.user.js    # Build output (single-file userscript)
 ├── tests/
-│   ├── qa.mjs             # QA harness (81 assertions)
-│   └── screenshots/       # Visual regression screenshots
+│   ├── qa.mjs                 # Playwright QA harness (114 assertions)
+│   └── screenshots/           # Visual regression screenshots
+├── vite.config.ts             # Vite + vite-plugin-monkey config
+├── tsconfig.json
 ├── package.json
 ├── LICENSE
 └── README.md
@@ -63,11 +86,13 @@ douban-plus/
 
 ### How It Works
 
-1. Script injects custom CSS (Apple TV+ color scheme + layout)
+1. Script injects custom CSS (Apple TV+ color scheme + layout) during module load
 2. Extracts data from existing Douban DOM (no API calls)
 3. Builds new UI structure (`#atv-douban-root`) and inserts at page top
 4. Hides original Douban page (`#wrapper` CSS-hidden, DOM preserved)
 5. Wishlist/check buttons proxy-click to original Douban buttons
+
+> **Note**: CSS is injected during module load (before content guard checks), not deferred. This is intentional — with scoping under `#atv-douban-root`, there is no visible impact even if the guard rejects the page.
 
 ## FAQ
 
@@ -79,6 +104,9 @@ A: Yes. They proxy-click to original Douban buttons. If you're not logged in, Do
 
 **Q: Will this support Douban homepage or charts?**
 A: No. This script only targets detail pages (`/subject/*`).
+
+**Q: How do I contribute code?**
+A: The source is in `src/` (TypeScript). Run `npm run dev` for HMR, `npm run build` to produce `dist/douban-plus.user.js`, and `npm test` to run the QA suite.
 
 ## License
 
