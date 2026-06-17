@@ -2,6 +2,9 @@ import { defineConfig } from "vite";
 import monkey from "vite-plugin-monkey";
 
 export default defineConfig({
+  esbuild: {
+    charset: "utf8",
+  },
   build: {
     cssMinify: false,
     minify: false,

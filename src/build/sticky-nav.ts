@@ -1,7 +1,6 @@
 /* ── Sticky Navigation Builder ────────────────────────── */
 
 import { el } from "../components/dom-factory";
-import { ICON_CHEVRON } from "../constants";
 import type { DoubanData } from "../types";
 
 function buildStickyNav(data: DoubanData): HTMLElement {
@@ -16,11 +15,7 @@ function buildStickyNav(data: DoubanData): HTMLElement {
 
   const jumps: Array<{ id: string; label: string }> = [];
 
-  // Always-present sections
-  jumps.push({ id: "atv-hero", label: "概览" });
-  jumps.push({ id: "atv-info", label: "详情" });
-
-  // Conditional sections
+  // Conditional sections — matches original render() order
   if (data.streaming.length > 0) {
     jumps.push({ id: "atv-stream", label: "在哪儿看" });
   }
@@ -36,6 +31,8 @@ function buildStickyNav(data: DoubanData): HTMLElement {
   if (data.recommendations.length > 0) {
     jumps.push({ id: "atv-recs", label: "相似作品" });
   }
+  // Details is always present
+  jumps.push({ id: "atv-info", label: "详情" });
 
   const wrap = el("div", { className: "atv-stickynav-jumps" });
   for (const j of jumps) {
@@ -49,8 +46,6 @@ function buildStickyNav(data: DoubanData): HTMLElement {
     });
     wrap.appendChild(a);
   }
-  // Chevron indicator at end of jump links
-  wrap.appendChild(el("span", { html: ICON_CHEVRON }));
   nav.appendChild(wrap);
 
   return nav;
