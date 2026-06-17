@@ -1,14 +1,23 @@
 {
+  "type": "module",
   "devDependencies": {
     "@biomejs/biome": "^2.4.16",
+    "@types/node": "^25.9.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
     "playwright": "^1.60.0",
-    "ultracite": "^7.8.3"
+    "typescript": "^5.9.3",
+    "ultracite": "^7.8.3",
+    "vite": "^8.0.16",
+    "vite-plugin-monkey": "^8.0.6"
   },
   "name": "douban-plus",
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "ultracite fix && ultracite check && node tests/qa.mjs",
+    "test:only": "node tests/qa.mjs",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
