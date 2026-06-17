@@ -1,4 +1,4 @@
-npm test
+pnpm test
 # ultracite
 #!/bin/sh
 npx lint-staged

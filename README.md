@@ -24,7 +24,7 @@
 2. Create new script and paste the contents of [`dist/douban-plus.user.js`](dist/douban-plus.user.js)
 3. Visit any Douban movie/TV detail page
 
-> **Note for contributors**: If you cloned the repo, run `npm run build` first to generate `dist/douban-plus.user.js`.
+> **Note for contributors**: If you cloned the repo, run `pnpm run build` first to generate `dist/douban-plus.user.js`.
 
 ## Development
 
@@ -33,13 +33,13 @@
 ```bash
 git clone https://github.com/zhujiayou/douban-plus.git
 cd douban-plus
-npm install
+pnpm install
 ```
 
 ### Dev Server (HMR)
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 This starts a Vite dev server with hot module replacement. The userscript is auto-injected into the browser via `vite-plugin-monkey`. Any changes to `src/` files will hot-reload instantly.
@@ -49,7 +49,7 @@ This starts a Vite dev server with hot module replacement. The userscript is aut
 ### Production Build
 
 ```bash
-npm run build
+pnpm run build
 ```
 
 Builds to `dist/douban-plus.user.js` (~60KB, single-file userscript).
@@ -57,7 +57,7 @@ Builds to `dist/douban-plus.user.js` (~60KB, single-file userscript).
 ### Run Tests
 
 ```bash
-npm test
+pnpm test
 ```
 
 Tests run Playwright against 4 Douban pages (3 movies + 1 TV show) with 114 assertions across visual, functional, and layout checks.
@@ -106,7 +106,7 @@ A: Yes. They proxy-click to original Douban buttons. If you're not logged in, Do
 A: No. This script only targets detail pages (`/subject/*`).
 
 **Q: How do I contribute code?**
-A: The source is in `src/` (TypeScript). Run `npm run dev` for HMR, `npm run build` to produce `dist/douban-plus.user.js`, and `npm test` to run the QA suite.
+A: The source is in `src/` (TypeScript). Run `pnpm run dev` for HMR, `pnpm run build` to produce `dist/douban-plus.user.js`, and `pnpm test` to run the QA suite.
 
 ## License
 

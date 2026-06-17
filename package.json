@@ -16,14 +16,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "ultracite fix && ultracite check && node tests/qa.mjs",
-    "test:only": "node tests/qa.mjs",
+    "test": "ultracite fix && ultracite check && vite build && node tests/qa.mjs",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "husky"
   },
   "version": "1.0.0",
-  "description": "Transform Douban movie/TV detail pages into Apple TV+ style",
+  "description": "将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色",
   "main": "douban-plus.user.js",
   "keywords": [
     "douban",
@@ -33,5 +32,6 @@
     "apple-tv"
   ],
   "author": "Gabriel Zhu",
-  "license": "MIT"
+  "license": "MIT",
+  "packageManager": "pnpm@11.7.0+sha512.19cc852c120c7125760f2443ee6be0ca5b40f9f50598de1a09a1f177503e010e57c23c77646e01e761de59bf874fb22a3398c33ab9691fc13eb946b6f0f4d620"
 }
