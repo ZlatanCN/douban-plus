@@ -190,3 +190,4 @@ printSummary();
 if (hasFailures()) {
   process.exit(1);
 }
+process.exit(0);

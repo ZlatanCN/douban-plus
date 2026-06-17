@@ -6,6 +6,11 @@
 // @description  将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色
 // @license      MIT
 // @match        *://movie.douban.com/subject/*
+// @exclude      *://movie.douban.com/subject/*/all_photos
+// @exclude      *://movie.douban.com/subject/*/photos*
+// @exclude      *://movie.douban.com/subject/*/photos[?]*
+// @exclude      *://movie.douban.com/subject/*/comments*
+// @exclude      *://movie.douban.com/subject/*/comments[?]*
 // @grant        GM_addStyle
 // @run-at       document-end
 // ==/UserScript==
@@ -219,7 +224,7 @@
 	};
 	var hashStr = (str) => {
 		let h = 0;
-		for (let i = 0; i < str.length; i += 1) h = (h * 31 + str.codePointAt(i)) % 1000000007;
+		for (let i = 0; i < str.length; i += 1) h = (h * 31 + (str.codePointAt(i) ?? 0)) % 1000000007;
 		return h;
 	};
 	var pickStill = (photos, seed) => {
