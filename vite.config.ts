@@ -19,6 +19,13 @@ export default defineConfig({
         prefix: "dev:",
       },
       userscript: {
+        exclude: [
+          "*://movie.douban.com/subject/*/all_photos",
+          "*://movie.douban.com/subject/*/photos*",
+          "*://movie.douban.com/subject/*/photos[?]*",
+          "*://movie.douban.com/subject/*/comments*",
+          "*://movie.douban.com/subject/*/comments[?]*",
+        ],
         grant: ["GM_addStyle"],
         match: ["*://movie.douban.com/subject/*"],
         name: "Douban Plus",
