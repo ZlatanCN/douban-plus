@@ -41,11 +41,12 @@ const extractYear = (): string => {
  * Extract poster image URL and upgrade to HD.
  */
 const extractPoster = (): string | null => {
-  const img = $("#mainpic img") || $<HTMLImageElement>("a.nbgnbg img");
+  const img =
+    $<HTMLImageElement>("#mainpic img") || $<HTMLImageElement>("a.nbgnbg img");
   if (!img) {
     return null;
   }
-  const src = (img as HTMLImageElement).src || img.dataset.src || "";
+  const src = img.src || img.dataset.src || "";
   return upgradePoster(src);
 };
 

@@ -14,7 +14,7 @@ type ElementAttrs = {
   rel?: string;
   type?: string;
   style?: Record<string, string>;
-  onclick?: (event: MouseEvent) => void;
+  onclick?: (event: Event) => void;
   /** Arbitrary attributes set via setAttribute() */
   attrs?: Record<string, string>;
 };
@@ -31,11 +31,24 @@ const strAttrs: [keyof ElementAttrs, string][] = [
   ["type", "type"],
 ];
 
-const el = (
-  tag: string,
+type ElementTagMap = {
+  a: HTMLAnchorElement;
+  button: HTMLButtonElement;
+  div: HTMLDivElement;
+  h1: HTMLHeadingElement;
+  h2: HTMLHeadingElement;
+  img: HTMLImageElement;
+  nav: HTMLElement;
+  p: HTMLParagraphElement;
+  section: HTMLElement;
+  span: HTMLSpanElement;
+};
+
+const el = <K extends keyof ElementTagMap>(
+  tag: K,
   attrs?: ElementAttrs,
   children?: (HTMLElement | string)[]
-): HTMLElement => {
+): ElementTagMap[K] => {
   const node = document.createElement(tag);
 
   if (attrs) {
@@ -88,7 +101,7 @@ const el = (
     }
   }
 
-  return node;
+  return node as ElementTagMap[K];
 };
 
 const renderStars = (
