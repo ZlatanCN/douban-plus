@@ -3,7 +3,7 @@
 // @namespace    https://github.com/ZlatanCN/douban-plus
 // @version      1.0.0
 // @author       Gabriel Zhu
-// @description  A Tampermonkey/ScriptCat userscript that transforms Douban movie & TV detail pages into an immersive Apple TV+ dark UI — featuring a hero banner with blurred backdrop, HD poster preview, streaming source cards, horizontal cast carousel, photo wall with lightbox, comments grid, recommendations, and a full interest-marking modal with rating & short review, while preserving all original Douban links and the iconic Douban green (#41be5d) accent.
+// @description  一款适配 ScriptCat / Tampermonkey 的油猴脚本，将豆瓣电影与电视剧详情页重塑为 Apple TV+ 沉浸式暗色 UI。支持模糊背景 Hero 横幅、HD 海报预览、流媒体来源卡片、演员横滑轮播、剧照墙与大图查看、短评网格、推荐作品列表，以及带评分和短评的想看/看过标记弹窗，保留所有原始豆瓣链接与经典豆瓣绿 (#41be5d) 强调色。
 // @license      MIT
 // @match        *://movie.douban.com/subject/*
 // @exclude      *://movie.douban.com/subject/*/all_photos
