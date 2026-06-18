@@ -1,7 +1,7 @@
 {
   "name": "douban-plus",
   "version": "1.0.0",
-  "description": "将豆瓣电影/电视剧详情页重塑为 Apple TV+ 风格的高级沉浸式页面，保留豆瓣绿作为强调色",
+  "description": "A Tampermonkey/ScriptCat userscript that transforms Douban movie & TV detail pages into an immersive Apple TV+ dark UI — featuring a hero banner with blurred backdrop, HD poster preview, streaming source cards, horizontal cast carousel, photo wall with lightbox, comments grid, recommendations, and a full interest-marking modal with rating & short review, while preserving all original Douban links and the iconic Douban green (#41be5d) accent.",
   "keywords": [
     "apple-tv",
     "douban",
