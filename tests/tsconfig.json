@@ -3,7 +3,8 @@
   "compilerOptions": {
     "types": ["node", "vite/client", "vite-plugin-monkey/client"],
     "noEmit": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "strictNullChecks": true
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]

@@ -3,7 +3,7 @@ import ultracite from "ultracite/oxfmt";
 
 export default defineConfig({
   ...ultracite,
-  ignorePatterns: ultracite.ignorePatterns.filter(
+  ignorePatterns: ultracite.ignorePatterns?.filter(
     (pattern) => !pattern.includes("build")
   ),
 });
