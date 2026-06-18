@@ -1,4 +1,4 @@
-import { el } from "../components/dom-factory";
+import { el } from "../components";
 import type { Photo } from "../types";
 import { buildSectionHeader } from "./sections";
 

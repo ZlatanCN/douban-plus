@@ -19,6 +19,7 @@ export default defineConfig({
         prefix: "dev:",
       },
       userscript: {
+        connect: ["douban.com", "movie.douban.com"],
         exclude: [
           "*://movie.douban.com/subject/*/all_photos",
           "*://movie.douban.com/subject/*/photos*",
@@ -26,7 +27,7 @@ export default defineConfig({
           "*://movie.douban.com/subject/*/comments*",
           "*://movie.douban.com/subject/*/comments[?]*",
         ],
-        grant: ["GM_addStyle"],
+        grant: ["GM_addStyle", "GM_xmlhttpRequest"],
         match: ["*://movie.douban.com/subject/*"],
         name: "Douban Plus",
         namespace: "https://github.com/ZlatanCN/douban-plus",

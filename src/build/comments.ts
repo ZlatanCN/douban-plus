@@ -1,4 +1,4 @@
-import { el, renderStars } from "../components/dom-factory";
+import { el, renderStars } from "../components";
 import { ICON_THUMB } from "../constants";
 import type { DoubanData } from "../types";
 import { buildSectionHeaderRow } from "./sections";

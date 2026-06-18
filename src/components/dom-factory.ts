@@ -35,13 +35,17 @@ type ElementTagMap = {
   a: HTMLAnchorElement;
   button: HTMLButtonElement;
   div: HTMLDivElement;
+  form: HTMLFormElement;
   h1: HTMLHeadingElement;
   h2: HTMLHeadingElement;
   img: HTMLImageElement;
+  input: HTMLInputElement;
+  label: HTMLLabelElement;
   nav: HTMLElement;
   p: HTMLParagraphElement;
   section: HTMLElement;
   span: HTMLSpanElement;
+  textarea: HTMLTextAreaElement;
 };
 
 const el = <K extends keyof ElementTagMap>(

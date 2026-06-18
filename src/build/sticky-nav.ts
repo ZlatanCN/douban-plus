@@ -1,6 +1,6 @@
 /* ── Sticky Navigation Builder ────────────────────────── */
 
-import { el } from "../components/dom-factory";
+import { el } from "../components";
 import type { DoubanData } from "../types";
 
 const buildStickyNav = (data: DoubanData): HTMLElement => {

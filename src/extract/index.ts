@@ -10,6 +10,7 @@ export { extractCelebrities, extractPhotos } from "./media";
 export { extractRating, extractSummary } from "./rating";
 export { extractComments, extractRecommendations } from "./social";
 export {
+  extractInterestState,
   extractStreaming,
   findInterestButtons,
   isInterestActive,

@@ -108,6 +108,31 @@ type DoubanData = {
   isTV: boolean;
 };
 
+/* ── Interest / Mark Types ────────────────────────────── */
+
+/** Parsed interest state from the real Douban page */
+type InterestState = {
+  loggedIn: boolean;
+  marked: boolean;
+  status: "none" | "wish" | "do" | "collect";
+  rating: number;
+  date: string;
+  tags: string[];
+  ck: string;
+  /** true if this page has a "在看" (watching) option — i.e. it's a TV series */
+  hasWatching: boolean;
+  /** user's short review text, e.g. "哎呀，还挺好看啊" (S3 only) */
+  comment: string;
+};
+
+/** Map from interest value to Chinese label */
+const INTEREST_LABELS: Record<InterestState["status"], string> = {
+  collect: "看过",
+  do: "在看",
+  none: "未标记",
+  wish: "想看",
+};
+
 /* ── Exports ──────────────────────────────────────────── */
 
 export type {
@@ -116,6 +141,7 @@ export type {
   Comment,
   DoubanData,
   InfoBlock,
+  InterestState,
   Link,
   Photo,
   RatingInfo,
@@ -123,3 +149,4 @@ export type {
   Streaming,
   TitleInfo,
 };
+export { INTEREST_LABELS };

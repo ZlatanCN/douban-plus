@@ -11,6 +11,9 @@
 // @exclude      *://movie.douban.com/subject/*/photos[?]*
 // @exclude      *://movie.douban.com/subject/*/comments*
 // @exclude      *://movie.douban.com/subject/*/comments[?]*
+// @connect      douban.com
+// @connect      movie.douban.com
 // @grant        GM_addStyle
+// @grant        GM_xmlhttpRequest
 // @run-at       document-end
 // ==/UserScript==

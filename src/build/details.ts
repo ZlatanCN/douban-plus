@@ -1,6 +1,6 @@
 /* ── Info Details Section Builder ────────────────────── */
 
-import { el } from "../components/dom-factory";
+import { el } from "../components";
 import { ICON_ARROW, RE_IMDB_LINK } from "../constants";
 import type { Award, DoubanData } from "../types";
 import { buildSectionHeader } from "./sections";

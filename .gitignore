@@ -7,3 +7,5 @@ session-*.md
 .mimocode
 .idea
 .vscode
+.playwright-mcp
+.playwright-cli

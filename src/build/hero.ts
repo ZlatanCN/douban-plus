@@ -1,14 +1,21 @@
-import { el, renderStars } from "../components/dom-factory";
-import { openPosterModal } from "../components/modal";
+import {
+  el,
+  renderStars,
+  openPosterModal,
+  openInterestModal,
+} from "../components";
 import {
   ICON_CHECK,
   ICON_CHEVRON,
   ICON_FILM_PLACEHOLDER,
   ICON_PLAY,
+  ICON_STAR_EMPTY,
+  ICON_STAR_FULL,
   RE_SEASON_SUFFIX,
 } from "../constants";
-import { findInterestButtons, isInterestActive } from "../extract/streaming";
+import { extractInterestState, findInterestButtons } from "../extract";
 import type { DoubanData, Photo } from "../types";
+import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
 
 /* ── Hero Banner UI Builders ─────────────────────────── */
@@ -180,6 +187,120 @@ const buildRatingRow = (data: DoubanData): HTMLElement => {
   return ratingRow;
 };
 
+/** Build a single interest action button */
+const makeInterestBtn = (
+  text: string,
+  cls: string,
+  onClick: () => void
+): HTMLButtonElement => {
+  const icon = text === "想看" ? ICON_PLAY : ICON_CHECK;
+  const btn = el("button", { attrs: { type: "button" }, className: cls }, [
+    el("span", { html: icon }),
+    el("span", { text }),
+  ]);
+  btn.addEventListener("click", onClick);
+  return btn;
+};
+
+/** Add a "在看" button before "看过" when hasWatching (TV series) */
+const addWatchingBtn = (actions: HTMLElement, onClick: () => void): void => {
+  const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
+  // Insert before the last button (看过)
+  const seenBtn = actions.lastElementChild;
+  if (seenBtn) {
+    seenBtn.before(btn);
+  } else {
+    actions.append(btn);
+  }
+};
+
+const buildActions = (data: DoubanData): HTMLElement => {
+  const state = extractInterestState();
+  const actions = el("div", { className: "atv-actions" });
+
+  if (!state.loggedIn) {
+    const interest = findInterestButtons();
+    actions.append(
+      makeInterestBtn("想看", "atv-btn atv-btn-primary", () =>
+        interest.wish?.click()
+      )
+    );
+    actions.append(
+      makeInterestBtn("看过", "atv-btn atv-btn-secondary", () =>
+        interest.collect?.click()
+      )
+    );
+    if (state.hasWatching) {
+      addWatchingBtn(actions, () => interest.do?.click());
+    }
+    return actions;
+  }
+
+  if (!state.marked) {
+    actions.append(
+      makeInterestBtn("想看", "atv-btn atv-btn-primary", () =>
+        openInterestModal(data.subjectId, state)
+      )
+    );
+    actions.append(
+      makeInterestBtn("看过", "atv-btn atv-btn-secondary", () =>
+        openInterestModal(data.subjectId, state)
+      )
+    );
+    if (state.hasWatching) {
+      addWatchingBtn(actions, () => openInterestModal(data.subjectId, state));
+    }
+    return actions;
+  }
+
+  const label = INTEREST_LABELS[state.status];
+
+  // Header: badge + stars + date + modify inline
+  const header = el("div", { className: "atv-interest-panel-header" });
+  header.append(
+    el(
+      "button",
+      {
+        attrs: { type: "button" },
+        className: [
+          "atv-btn",
+          "atv-btn-primary",
+          "is-active",
+          "atv-interest-badge",
+        ],
+        onclick: () => openInterestModal(data.subjectId, state),
+      },
+      [el("span", { html: ICON_CHECK }), el("span", { text: label })]
+    )
+  );
+  if (state.rating > 0) {
+    const starHtml = Array.from({ length: 5 }, (_, i) =>
+      i < state.rating ? ICON_STAR_FULL : ICON_STAR_EMPTY
+    ).join("");
+    header.append(
+      el("span", { className: "atv-interest-panel-stars", html: starHtml })
+    );
+  }
+  if (state.date) {
+    header.append(
+      el("span", { className: "atv-interest-panel-date", text: state.date })
+    );
+  }
+
+  const panel = el("div", { className: "atv-interest-panel" }, [header]);
+
+  if (state.comment) {
+    panel.append(
+      el("div", { className: "atv-interest-panel-comment" }, [
+        el("span", { text: `"${state.comment}"` }),
+      ])
+    );
+  }
+
+  actions.append(panel);
+  return actions;
+};
+
 /**
  * Build the entire hero banner section — poster card, title, meta chips,
  * rating row, wish/seen buttons, summary teaser, and background.
@@ -212,40 +333,7 @@ const buildHero = (data: DoubanData): HTMLElement => {
   info.append(buildMeta(data));
   info.append(buildRatingRow(data));
 
-  const actions = el("div", { className: "atv-actions" });
-  const interest = findInterestButtons();
-  const wishBtn = el("button", {
-    attrs: { type: "button" },
-    className: "atv-btn atv-btn-primary",
-  });
-  wishBtn.append(el("span", { html: ICON_PLAY }));
-  wishBtn.append(el("span", { text: "想看" }));
-  if (isInterestActive(interest.wish)) {
-    wishBtn.classList.add("is-active");
-  }
-  wishBtn.addEventListener("click", () => {
-    if (interest.wish) {
-      interest.wish.click();
-    }
-  });
-  actions.append(wishBtn);
-
-  const seenBtn = el("button", {
-    attrs: { type: "button" },
-    className: "atv-btn atv-btn-secondary",
-  });
-  seenBtn.append(el("span", { html: ICON_CHECK }));
-  seenBtn.append(el("span", { text: "看过" }));
-  if (isInterestActive(interest.collect)) {
-    seenBtn.classList.add("is-active");
-  }
-  seenBtn.addEventListener("click", () => {
-    if (interest.collect) {
-      interest.collect.click();
-    }
-  });
-  actions.append(seenBtn);
-
+  const actions = buildActions(data);
   info.append(actions);
 
   if (data.summary) {

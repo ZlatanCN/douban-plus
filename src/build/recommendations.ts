@@ -1,4 +1,4 @@
-import { el } from "../components/dom-factory";
+import { el } from "../components";
 import { ICON_FILM_PLACEHOLDER } from "../constants";
 import type { Recommendation } from "../types";
 import { buildSectionHeader } from "./sections";

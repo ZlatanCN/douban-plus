@@ -41,6 +41,12 @@ window.GM_addStyle = function(css) {
   (document.head || document.documentElement).appendChild(s);
   return s;
 };
+window.GM_xmlhttpRequest = function(details) {
+  console.log('[gmShim] GM_xmlhttpRequest ' + (details.method || 'GET') + ' ' + (details.url || ''));
+  if (typeof details.onload === 'function') {
+    details.onload({ responseText: '{}', status: 200 });
+  }
+};
 `;
 
 const injectAfterLoad = userscriptRaw.replace(

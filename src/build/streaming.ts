@@ -1,6 +1,6 @@
 /* ── Streaming Section Builder ───────────────────────── */
 
-import { el } from "../components/dom-factory";
+import { el } from "../components";
 import { ICON_ARROW } from "../constants";
 import type { Streaming } from "../types";
 import { buildSectionHeader } from "./sections";

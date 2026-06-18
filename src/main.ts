@@ -1,7 +1,4 @@
-/* ── CSS Injection ────────────────────────────────────── */
-
 import "./styles.css";
-/* ── Extract Imports ─────────────────────────────────── */
 import {
   buildCast,
   buildComments,
@@ -12,9 +9,7 @@ import {
   buildStickyNav,
   buildStreaming,
 } from "./build";
-/* ── Build Imports ───────────────────────────────────── */
-import { el } from "./components/dom-factory";
-/* ── Component Imports ───────────────────────────────── */
+import { el } from "./components";
 import {
   extractAwards,
   extractCelebrities,
@@ -30,10 +25,7 @@ import {
   extractTitle,
   extractYear,
 } from "./extract";
-/* ── Type Imports ────────────────────────────────────── */
 import type { DoubanData } from "./types";
-
-/* ── Render ──────────────────────────────────────────── */
 
 const render = (): void => {
   if (document.querySelector("#atv-douban-root")) {
