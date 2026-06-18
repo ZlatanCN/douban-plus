@@ -142,17 +142,9 @@
 			rating: typeof options?.rating === "number" ? String(options.rating) : "",
 			tags: options?.tags?.join(",") ?? ""
 		});
-		console.log("[dp] postInterest", {
-			subjectId,
-			interest,
-			options,
-			url: `${API_INTEREST}/${subjectId}/interest`,
-			body: params.toString()
-		});
 		try {
 			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
 			const data = JSON.parse(text);
-			console.log("[dp] postInterest response", data);
 			if (data.r === 0) return { ok: true };
 			return {
 				error: data.msg || "操作失败",
@@ -174,12 +166,6 @@
 			ok: false
 		};
 		const params = new URLSearchParams({ ck });
-		console.log("[dp] removeInterest", {
-			subjectId,
-			currentStatus,
-			url: `${API_REMOVE}/${subjectId}/remove`,
-			body: params.toString()
-		});
 		try {
 			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
 			return { ok: true };
@@ -286,9 +272,9 @@
 		});
 		const commentTextarea = el("textarea", {
 			attrs: {
+				maxlength: "350",
 				placeholder: "写一段短评…",
-				rows: 3,
-				maxlength: 350
+				rows: "3"
 			},
 			className: "atv-interest-modal-comment",
 			text: state.comment || ""
@@ -1170,15 +1156,14 @@
 			className: "atv-section",
 			id: "atv-photos"
 		});
-		sec.append(buildSectionHeader("剧照"));
+		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/all_photos` : "";
+		sec.append(buildSectionHeaderRow("剧照", allHref ? "查看全部 →" : "", allHref));
 		const carousel = el("div", { className: "atv-carousel atv-photos" });
 		for (const p of data.photos) {
-			const tile = el(p.link ? "a" : "div", p.link ? {
-				className: "atv-photo-tile",
-				href: p.link,
-				rel: "noopener",
-				target: "_blank"
-			} : { className: "atv-photo-tile" });
+			const tile = el("div", { className: "atv-photo-tile" });
+			tile.addEventListener("click", () => {
+				openPosterModal(p.hdUrl || p.thumbUrl, "剧照");
+			});
 			const img = el("img", {
 				alt: "剧照",
 				src: p.hdUrl || p.thumbUrl
