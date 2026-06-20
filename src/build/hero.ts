@@ -11,6 +11,7 @@ import {
   ICON_PLAY,
   ICON_STAR_EMPTY,
   ICON_STAR_FULL,
+  ICON_THUMB,
   RE_SEASON_SUFFIX,
 } from "../constants";
 import { extractInterestState, findInterestButtons } from "../extract";
@@ -290,10 +291,20 @@ const buildActions = (data: DoubanData): HTMLElement => {
   const panel = el("div", { className: "atv-interest-panel" }, [header]);
 
   if (state.comment) {
+    const commentChildren: (HTMLElement | string)[] = [
+      el("span", { text: `"${state.comment}"` }),
+    ];
+    if (state.usefulCount) {
+      const num = state.usefulCount.replaceAll(/\D/gu, "");
+      commentChildren.push(
+        el("span", { className: "atv-useful-badge" }, [
+          el("span", { html: ICON_THUMB }),
+          el("span", { text: num }),
+        ])
+      );
+    }
     panel.append(
-      el("div", { className: "atv-interest-panel-comment" }, [
-        el("span", { text: `"${state.comment}"` }),
-      ])
+      el("div", { className: "atv-interest-panel-comment" }, commentChildren)
     );
   }
 
@@ -337,10 +348,8 @@ const buildHero = (data: DoubanData): HTMLElement => {
   const actions = buildActions(data);
   info.append(actions);
 
-  inner.append(info);
-  innerSection.append(inner);
-  hero.append(innerSection);
-
+  // Summary inside info column, right below actions.
+  // Expansion grows info downward; poster stays top-aligned via flex row — zero jitter.
   if (data.summary) {
     const summary = el("div", { className: "atv-hero-summary" });
 
@@ -369,8 +378,12 @@ const buildHero = (data: DoubanData): HTMLElement => {
       }
     });
     summary.append(more);
-    hero.append(summary);
+    info.append(summary);
   }
+
+  inner.append(info);
+  innerSection.append(inner);
+  hero.append(innerSection);
 
   return hero;
 };

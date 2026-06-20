@@ -199,6 +199,7 @@ const detectS3State = (
   date: string;
   hasWatching: boolean;
   comment: string;
+  usefulCount: string;
 } => {
   let status: InterestState["status"] = "none";
   const allTextEls = root.querySelectorAll<HTMLElement>("span, div, a");
@@ -221,13 +222,28 @@ const detectS3State = (
   const dateEl = root.querySelector<HTMLElement>(".collection_date");
   const date = dateEl ? (dateEl.textContent || "").trim() : "";
 
-  // User's short review: the bare <span> inside .j a_stars after #rating
+  // User's short review: the bare <span> inside .j a_stars after #rating.
+  // textContent merges all descendant text ("评论 1有用"), so we walk
+  // childNodes to grab only direct text, then separately extract the .pl
+  // vote-count span ("1有用").
   const commentEl = root.querySelector<HTMLElement>(
     ".j.a_stars > span:not(.mr10):not(#rating)"
   );
-  const comment = commentEl ? (commentEl.textContent || "").trim() : "";
+  let comment = "";
+  let usefulCount = "";
+  if (commentEl) {
+    const voteEl = commentEl.querySelector<HTMLElement>(".pl");
+    usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+    // Direct text nodes only — skip child elements like .pl
+    for (const node of commentEl.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        comment += node.textContent || "";
+      }
+    }
+    comment = comment.trim();
+  }
 
-  return { comment, date, hasWatching, rating, status };
+  return { comment, date, hasWatching, rating, status, usefulCount };
 };
 
 const detectS2Status = (
@@ -273,6 +289,7 @@ const extractInterestState = (): InterestState => {
       rating: 0,
       status: "none",
       tags: [],
+      usefulCount: "",
     };
   }
 
@@ -289,6 +306,7 @@ const extractInterestState = (): InterestState => {
         rating: s3.rating,
         status: s3.status,
         tags: [],
+        usefulCount: s3.usefulCount,
       };
     }
   }
@@ -304,6 +322,7 @@ const extractInterestState = (): InterestState => {
     rating: 0,
     status: s2.status,
     tags: [],
+    usefulCount: "",
   };
 };
 

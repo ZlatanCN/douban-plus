@@ -123,6 +123,8 @@ type InterestState = {
   hasWatching: boolean;
   /** user's short review text, e.g. "哎呀，还挺好看啊" (S3 only) */
   comment: string;
+  /** vote count text from the .pl child span, e.g. "1有用" (S3 only) */
+  usefulCount: string;
 };
 
 /** Map from interest value to Chinese label */
