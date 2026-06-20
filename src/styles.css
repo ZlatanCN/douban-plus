@@ -162,11 +162,18 @@ body {
 .atv-hero {
   position: relative;
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   min-height: 75vh;
   padding: 132px max(28px, 5vw) 56px;
   overflow: visible;
   isolation: isolate;
+}
+.atv-hero-inner-section {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 0;
 }
 .atv-hero-bg {
   position: absolute;
@@ -457,7 +464,15 @@ body {
   box-shadow: 0 6px 20px var(--atv-accent-glow);
 }
 
+.atv-hero-summary {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: calc(360px + 56px);
+}
 .atv-hero-teaser {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
   max-width: 660px;
   margin: 0 0 12px;
   font-size: 15px;
@@ -465,11 +480,9 @@ body {
   color: var(--atv-text-secondary);
   word-break: break-word;
   white-space: pre-wrap;
+  overflow: hidden;
 }
 .atv-hero-teaser.is-clamped {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
   -webkit-line-clamp: 3;
 }
 .atv-hero-more {
@@ -1250,6 +1263,9 @@ body {
   .atv-hero {
     min-height: 64vh;
     padding: 104px 24px 48px;
+  }
+  .atv-hero-summary {
+    padding-left: 0;
   }
   .atv-hero-inner {
     flex-direction: column;

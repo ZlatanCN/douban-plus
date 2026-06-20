@@ -313,6 +313,7 @@ const buildHero = (data: DoubanData): HTMLElement => {
   hero.append(el("div", { className: "atv-hero-overlay-x" }));
   hero.append(el("div", { className: "atv-hero-overlay-y" }));
 
+  const innerSection = el("div", { className: "atv-hero-inner-section" });
   const inner = el("div", { className: "atv-hero-inner" });
 
   inner.append(buildPosterCard(data));
@@ -336,12 +337,19 @@ const buildHero = (data: DoubanData): HTMLElement => {
   const actions = buildActions(data);
   info.append(actions);
 
+  inner.append(info);
+  innerSection.append(inner);
+  hero.append(innerSection);
+
   if (data.summary) {
+    const summary = el("div", { className: "atv-hero-summary" });
+
     const teaser = el("p", {
       className: "atv-hero-teaser is-clamped",
       text: data.summary,
     });
-    info.append(teaser);
+    summary.append(teaser);
+
     const more = el("button", {
       attrs: { type: "button" },
       className: "atv-hero-more",
@@ -360,11 +368,10 @@ const buildHero = (data: DoubanData): HTMLElement => {
         more.style.display = "none";
       }
     });
-    info.append(more);
+    summary.append(more);
+    hero.append(summary);
   }
 
-  inner.append(info);
-  hero.append(inner);
   return hero;
 };
 
