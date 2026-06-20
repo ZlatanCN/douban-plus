@@ -25,6 +25,44 @@ const extractRecommendations = (): Recommendation[] =>
     })
     .filter((r) => r.title);
 
+/* ── Comment Field Extractors ──────────────────────────── */
+
+const extractRating = (
+  item: HTMLElement
+): { stars: number; ratingWord: string } => {
+  const ratingEl = $<HTMLElement>('[class*="allstar"]', item);
+  if (!ratingEl) {
+    return { ratingWord: "", stars: 0 };
+  }
+
+  const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+  return {
+    ratingWord: ratingEl.getAttribute("title") || "",
+    stars: rm ? Number.parseInt(rm[1], 10) / 10 : 0,
+  };
+};
+
+const extractTime = (item: HTMLElement): string => {
+  const timeEl = $<HTMLElement>(".comment-time", item);
+  return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
+};
+
+const extractVotes = (item: HTMLElement): number => {
+  const votesEl =
+    $<HTMLElement>(".vote-count", item) ?? $<HTMLElement>(".votes", item);
+  return votesEl
+    ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+    : 0;
+};
+
+const extractAvatar = (item: HTMLElement): string => {
+  const img = $<HTMLImageElement>(".avatar img", item);
+  if (!img) {
+    return "";
+  }
+  return img.src || img.dataset.original || img.dataset.src || "";
+};
+
 /**
  * Extract user comments from "#hot-comments" section.
  * Iterates `.comment-item` elements and pulls author, content,
@@ -39,6 +77,7 @@ const extractComments = (): Comment[] => {
     if (!name) {
       continue;
     }
+
     const shortEl =
       $<HTMLElement>(".short", item) ??
       $<HTMLElement>(".comment-content", item);
@@ -46,41 +85,22 @@ const extractComments = (): Comment[] => {
     if (!content) {
       continue;
     }
-    const ratingEl = $<HTMLElement>('[class*="allstar"]', item);
-    let stars = 0;
-    let ratingWord = "";
-    if (ratingEl) {
-      const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-      if (rm) {
-        stars = Number.parseInt(rm[1], 10) / 10;
-      }
-      ratingWord = ratingEl.getAttribute("title") || "";
-    }
-    const timeEl = $<HTMLElement>(".comment-time", item);
-    const time = timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
-    const votesEl =
-      $<HTMLElement>(".vote-count", item) ?? $<HTMLElement>(".votes", item);
-    const votes = votesEl
-      ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
-      : 0;
-    const avatarImg = $<HTMLImageElement>(".avatar img", item);
-    let avatar = "";
-    if (avatarImg) {
-      avatar =
-        (avatarImg as HTMLImageElement).src ||
-        avatarImg.dataset.original ||
-        avatarImg.dataset.src ||
-        "";
-    }
+
+    const { stars, ratingWord } = extractRating(item);
+    // After voting, Douban replaces a.j.vote-comment with a "已投票" span
+    const voted = !item.querySelector(".j.vote-comment");
+
     out.push({
-      avatar,
+      avatar: extractAvatar(item),
+      cid: item.dataset.cid ?? "",
       content,
-      link: authorEl && authorEl.tagName === "A" ? authorEl.href : "",
+      link: authorEl?.href ?? "",
       name,
       ratingWord,
       stars,
-      time,
-      votes,
+      time: extractTime(item),
+      voted,
+      votes: extractVotes(item),
     });
   }
   return out;

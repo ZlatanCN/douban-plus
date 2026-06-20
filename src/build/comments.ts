@@ -1,3 +1,4 @@
+import { postVote } from "../api/comment";
 import { el, renderStars } from "../components";
 import { ICON_THUMB } from "../constants";
 import type { DoubanData } from "../types";
@@ -53,14 +54,51 @@ const buildComments = (data: DoubanData): HTMLElement | null => {
 
     const foot = el("div", { className: "atv-comment-foot" });
     foot.append(el("span", { text: c.time || "" }));
-    if (c.votes > 0) {
-      const votes = el("span", { className: "atv-comment-votes" });
-      votes.append(
-        el("span", { className: "atv-stream-arrow", html: ICON_THUMB })
-      );
-      votes.append(el("span", { text: c.votes.toLocaleString("en-US") }));
-      foot.append(votes);
+
+    const voteBtn = el("button", {
+      attrs: { type: "button" },
+      className: "atv-comment-votes",
+    });
+    const voteIcon = el("span", { html: ICON_THUMB });
+    const voteCount = el("span", { text: String(c.votes) });
+    voteBtn.append(voteIcon, voteCount);
+
+    let count = c.votes;
+    let { voted } = c;
+    if (voted) {
+      voteBtn.classList.add("is-voted");
     }
+
+    const animateBtn = () => {
+      voteBtn.style.transform = "scale(1.2)";
+      requestAnimationFrame(() => {
+        voteBtn.style.transform = "";
+      });
+    };
+
+    voteBtn.addEventListener("click", async () => {
+      if (voted || !c.cid) {
+        return;
+      }
+
+      voted = true;
+      count += 1;
+      voteCount.textContent = String(count);
+      voteBtn.classList.add("is-voted");
+      animateBtn();
+
+      const result = await postVote(c.cid, data.subjectId);
+      if (result.ok && result.count !== undefined) {
+        ({ count } = result);
+        voteCount.textContent = String(count);
+      } else {
+        voted = false;
+        count -= 1;
+        voteCount.textContent = String(count);
+        voteBtn.classList.remove("is-voted");
+      }
+    });
+    foot.append(voteBtn);
     card.append(foot);
 
     grid.append(card);

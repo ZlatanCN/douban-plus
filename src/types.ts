@@ -71,6 +71,10 @@ type Comment = {
   time: string;
   votes: number;
   avatar: string;
+  /** data-cid from .comment-item — used to proxy-click the original "有用" link */
+  cid: string;
+  /** true if the current user already voted (a.j.vote-comment replaced by "已投票") */
+  voted: boolean;
 };
 
 /** Return type of extractAwards() */

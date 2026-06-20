@@ -1,28 +1,8 @@
-import { GM_xmlhttpRequest } from "$";
-
 import type { InterestState } from "../types";
+import { getCk, gmPost } from "../utils/request";
 
 const API_INTEREST = "https://movie.douban.com/j/subject";
 const API_REMOVE = "https://movie.douban.com/subject";
-
-const gmPost = (url: string, data: string, referer: string): Promise<string> =>
-  // eslint-disable-next-line promise/avoid-new
-  new Promise((resolve, reject) => {
-    GM_xmlhttpRequest({
-      data,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Referer: referer,
-      },
-      method: "POST",
-      onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
-      onload: (r) => resolve(r.responseText),
-      url,
-    });
-  });
-
-const getCk = (): string =>
-  (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
 
 type InterestResult = { ok: boolean; error?: string };
 
@@ -92,5 +72,5 @@ const removeInterest = async (
   }
 };
 
-export { getCk, postInterest, removeInterest };
+export { postInterest, removeInterest };
 export type { InterestResult };

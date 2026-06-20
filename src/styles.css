@@ -883,6 +883,38 @@ body {
   display: inline-flex;
   gap: 5px;
   align-items: center;
+  padding: 4px 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--atv-text-tertiary);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  transition:
+    color 200ms ease,
+    border-color 200ms ease,
+    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.atv-comment-votes:hover {
+  color: var(--atv-accent);
+  border-color: rgba(65, 190, 93, 0.18);
+  transform: scale(1.05);
+}
+.atv-comment-votes:active {
+  transform: scale(0.95);
+}
+.atv-comment-votes.is-voted {
+  color: var(--atv-accent);
+  border-color: rgba(65, 190, 93, 0.25);
+  background: rgba(65, 190, 93, 0.06);
+}
+.atv-comment-votes svg {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 /* ---------- Poster Modal ---------- */
