@@ -43,7 +43,7 @@ const buildHeroBg = (data: DoubanData): HTMLElement => {
 
   if (still?.hdUrl) {
     const thumb = el("div", { className: "atv-hero-still is-thumb" });
-    thumb.style.backgroundImage = `url("${encodeURI(still.thumbUrl || still.hdUrl)}")`;
+    thumb.style.backgroundImage = `url("${still.thumbUrl || still.hdUrl}")`;
     bg.append(thumb);
 
     const hd = el("div", { className: "atv-hero-still is-hd" });
@@ -54,7 +54,7 @@ const buildHeroBg = (data: DoubanData): HTMLElement => {
     loader.addEventListener(
       "load",
       () => {
-        hd.style.backgroundImage = `url("${encodeURI(still.hdUrl)}")`;
+        hd.style.backgroundImage = `url("${still.hdUrl}")`;
         requestAnimationFrame(() => hd.classList.add("is-loaded"));
       },
       { once: true }
@@ -64,7 +64,7 @@ const buildHeroBg = (data: DoubanData): HTMLElement => {
       (e) => {
         console.error("[Hero] HD still FAILED:", still.hdUrl, e);
         if (still.thumbUrl && still.thumbUrl !== still.hdUrl) {
-          hd.style.backgroundImage = `url("${encodeURI(still.thumbUrl)}")`;
+          hd.style.backgroundImage = `url("${still.thumbUrl}")`;
           requestAnimationFrame(() => hd.classList.add("is-loaded"));
         }
       },
@@ -76,7 +76,7 @@ const buildHeroBg = (data: DoubanData): HTMLElement => {
 
   if (data.poster) {
     const poster = el("div", { className: "atv-hero-still is-poster" });
-    poster.style.backgroundImage = `url("${encodeURI(data.poster)}")`;
+    poster.style.backgroundImage = `url("${data.poster}")`;
     bg.append(poster);
     return bg;
   }

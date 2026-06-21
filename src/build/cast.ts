@@ -1,6 +1,6 @@
 import { el } from "../components";
 import type { DoubanData } from "../types";
-import { buildSectionHeader } from "./sections";
+import { buildSection } from "./sections";
 
 /* ── buildCast ────────────────────────────────────────── */
 
@@ -8,8 +8,6 @@ const buildCast = (data: DoubanData): HTMLElement | null => {
   if (!data.celebrities?.length) {
     return null;
   }
-  const sec = el("section", { className: "atv-section", id: "atv-cast" });
-  sec.append(buildSectionHeader("演职员"));
   const carousel = el("div", { className: "atv-carousel" });
   for (const c of data.celebrities) {
     const card = el(c.link ? "a" : "div", {
@@ -20,7 +18,7 @@ const buildCast = (data: DoubanData): HTMLElement | null => {
     });
     const av = el("div", { className: "atv-cast-avatar" });
     if (c.avatar) {
-      av.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
+      av.style.backgroundImage = `url("${c.avatar}")`;
     }
     card.append(av);
     card.append(el("div", { className: "atv-cast-name", text: c.name }));
@@ -29,8 +27,7 @@ const buildCast = (data: DoubanData): HTMLElement | null => {
     }
     carousel.append(card);
   }
-  sec.append(carousel);
-  return sec;
+  return buildSection("atv-cast", "演职员", carousel);
 };
 
 /* ── Exports ──────────────────────────────────────────── */

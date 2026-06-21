@@ -8,9 +8,11 @@ const upgradePoster = (url: string | null | undefined): string | null => {
   if (!url) {
     return null;
   }
-  return url
-    .replace("/s_ratio_poster/", "/l_ratio_poster/")
-    .replace("s_ratio_poster", "l_ratio_poster");
+  return encodeURI(
+    url
+      .replace("/s_ratio_poster/", "/l_ratio_poster/")
+      .replace("s_ratio_poster", "l_ratio_poster")
+  );
 };
 
 /**
@@ -21,7 +23,7 @@ const upgradePhoto = (url: string | null | undefined): string | null => {
   if (!url) {
     return null;
   }
-  return url.replace("/sqxs/", "/large/").replace("/m/", "/l/");
+  return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
 };
 
 /* ── Exports ─────────────────────────────────────────── */

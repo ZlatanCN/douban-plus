@@ -1,14 +1,12 @@
 import { el } from "../components";
 import { ICON_FILM_PLACEHOLDER } from "../constants";
 import type { Recommendation } from "../types";
-import { buildSectionHeader } from "./sections";
+import { buildSection } from "./sections";
 
 const buildRecs = (recommendations: Recommendation[]): HTMLElement | null => {
   if (!recommendations?.length) {
     return null;
   }
-  const sec = el("section", { className: "atv-section", id: "atv-recs" });
-  sec.append(buildSectionHeader("相似作品"));
   const grid = el("div", { className: "atv-recs" });
   for (const r of recommendations) {
     const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
@@ -47,8 +45,7 @@ const buildRecs = (recommendations: Recommendation[]): HTMLElement | null => {
     card.append(el("div", { className: "atv-rec-title", text: r.title }));
     grid.append(card);
   }
-  sec.append(grid);
-  return sec;
+  return buildSection("atv-recs", "相似作品", grid);
 };
 
 export { buildRecs };

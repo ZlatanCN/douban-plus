@@ -4,6 +4,7 @@
 import { RE_ALLSTAR, RE_NON_DIGIT } from "../constants";
 import type { Comment, Recommendation } from "../types";
 import { $, $$, safeText } from "../utils/dom";
+import { upgradePoster } from "../utils/upgrade";
 
 /**
  * Extract related recommendations from `.recommendations-bd`.
@@ -15,11 +16,12 @@ const extractRecommendations = (): Recommendation[] =>
       const linkEl = $<HTMLAnchorElement>("dt a", dl);
       const imgEl = $<HTMLImageElement>("dt a img", dl);
       const titleEl = $<HTMLAnchorElement>("dd a", dl);
+      const rawPoster = imgEl
+        ? (imgEl as HTMLImageElement).src || imgEl.dataset.src || ""
+        : "";
       return {
         link: linkEl ? linkEl.href : "",
-        poster: imgEl
-          ? (imgEl as HTMLImageElement).src || imgEl.dataset.src || ""
-          : "",
+        poster: upgradePoster(rawPoster) || "",
         title: safeText(titleEl),
       };
     })
@@ -60,7 +62,7 @@ const extractAvatar = (item: HTMLElement): string => {
   if (!img) {
     return "";
   }
-  return img.src || img.dataset.original || img.dataset.src || "";
+  return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
 };
 
 /**

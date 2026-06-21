@@ -3,17 +3,12 @@
 import { el } from "../components";
 import { ICON_ARROW } from "../constants";
 import type { Streaming } from "../types";
-import { buildSectionHeader } from "./sections";
+import { buildSection } from "./sections";
 
 const buildStreaming = (streaming: Streaming[]): HTMLElement | null => {
   if (!streaming?.length) {
     return null;
   }
-  const sec = el("section", {
-    className: "atv-section",
-    id: "atv-stream",
-  });
-  sec.append(buildSectionHeader("在哪儿看"));
   const row = el("div", { className: "atv-stream-row" });
   for (const s of streaming) {
     const card = el("a", {
@@ -28,8 +23,7 @@ const buildStreaming = (streaming: Streaming[]): HTMLElement | null => {
     );
     row.append(card);
   }
-  sec.append(row);
-  return sec;
+  return buildSection("atv-stream", "在哪儿看", row);
 };
 
 /* ── Exports ──────────────────────────────────────────── */

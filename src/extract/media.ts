@@ -28,7 +28,7 @@ const extractCelebrities = (): Celebrity[] =>
         }
       }
       return {
-        avatar,
+        avatar: encodeURI(avatar),
         link:
           nameEl && nameEl.tagName === "A"
             ? (nameEl as HTMLAnchorElement).href
@@ -51,7 +51,7 @@ const extractPhotos = (): Photo[] =>
       return {
         hdUrl: upgradePhoto(thumb) || "",
         link: a ? (a as HTMLAnchorElement).href : "",
-        thumbUrl: thumb,
+        thumbUrl: encodeURI(thumb),
       };
     })
     .filter((p) => p.thumbUrl);

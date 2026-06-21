@@ -427,11 +427,11 @@
 	}).filter((a) => a.org);
 	var upgradePoster = (url) => {
 		if (!url) return null;
-		return url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster");
+		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
 	};
 	var upgradePhoto = (url) => {
 		if (!url) return null;
-		return url.replace("/sqxs/", "/large/").replace("/m/", "/l/");
+		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
 	};
 	var extractTitle = () => {
 		const h1 = $("#content h1");
@@ -568,7 +568,7 @@
 			if (m) [, avatar] = m;
 		}
 		return {
-			avatar,
+			avatar: encodeURI(avatar),
 			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
 			name: safeText(nameEl),
 			role: safeText(roleEl)
@@ -580,7 +580,7 @@
 		return {
 			hdUrl: upgradePhoto(thumb) || "",
 			link: a ? a.href : "",
-			thumbUrl: thumb
+			thumbUrl: encodeURI(thumb)
 		};
 	}).filter((p) => p.thumbUrl);
 	var extractRating$1 = () => {
@@ -604,9 +604,10 @@
 		const linkEl = $("dt a", dl);
 		const imgEl = $("dt a img", dl);
 		const titleEl = $("dd a", dl);
+		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
 		return {
 			link: linkEl ? linkEl.href : "",
-			poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
+			poster: upgradePoster(rawPoster) || "",
 			title: safeText(titleEl)
 		};
 	}).filter((r) => r.title);
@@ -633,7 +634,7 @@
 	var extractAvatar = (item) => {
 		const img = $(".avatar img", item);
 		if (!img) return "";
-		return img.src || img.dataset.original || img.dataset.src || "";
+		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
 	};
 	var extractComments = () => {
 		const items = $$("#hot-comments .comment-item");
@@ -853,20 +854,20 @@
 		const still = pickStill(data.photos, data.subjectId);
 		if (still?.hdUrl) {
 			const thumb = el("div", { className: "atv-hero-still is-thumb" });
-			thumb.style.backgroundImage = `url("${encodeURI(still.thumbUrl || still.hdUrl)}")`;
+			thumb.style.backgroundImage = `url("${still.thumbUrl || still.hdUrl}")`;
 			bg.append(thumb);
 			const hd = el("div", { className: "atv-hero-still is-hd" });
 			hd.setAttribute("aria-hidden", "true");
 			bg.append(hd);
 			const loader = new Image();
 			loader.addEventListener("load", () => {
-				hd.style.backgroundImage = `url("${encodeURI(still.hdUrl)}")`;
+				hd.style.backgroundImage = `url("${still.hdUrl}")`;
 				requestAnimationFrame(() => hd.classList.add("is-loaded"));
 			}, { once: true });
 			loader.addEventListener("error", (e) => {
 				console.error("[Hero] HD still FAILED:", still.hdUrl, e);
 				if (still.thumbUrl && still.thumbUrl !== still.hdUrl) {
-					hd.style.backgroundImage = `url("${encodeURI(still.thumbUrl)}")`;
+					hd.style.backgroundImage = `url("${still.thumbUrl}")`;
 					requestAnimationFrame(() => hd.classList.add("is-loaded"));
 				}
 			}, { once: true });
@@ -875,7 +876,7 @@
 		}
 		if (data.poster) {
 			const poster = el("div", { className: "atv-hero-still is-poster" });
-			poster.style.backgroundImage = `url("${encodeURI(data.poster)}")`;
+			poster.style.backgroundImage = `url("${data.poster}")`;
 			bg.append(poster);
 			return bg;
 		}
@@ -1104,13 +1105,18 @@
 		}));
 		return row;
 	};
-	var buildStreaming = (streaming) => {
-		if (!streaming?.length) return null;
+	var buildSection = (id, headerText, content, options) => {
 		const sec = el("section", {
 			className: "atv-section",
-			id: "atv-stream"
+			id
 		});
-		sec.append(buildSectionHeader("在哪儿看"));
+		if (options?.moreLink) sec.append(buildSectionHeaderRow(headerText, options.moreLink.text, options.moreLink.href));
+		else sec.append(buildSectionHeader(headerText));
+		sec.append(content);
+		return sec;
+	};
+	var buildStreaming = (streaming) => {
+		if (!streaming?.length) return null;
 		const row = el("div", { className: "atv-stream-row" });
 		for (const s of streaming) {
 			const card = el("a", {
@@ -1126,23 +1132,16 @@
 			}));
 			row.append(card);
 		}
-		sec.append(row);
-		return sec;
+		return buildSection("atv-stream", "在哪儿看", row);
 	};
 	var buildComments = (data, onVote) => {
 		if (!data.comments?.length) return null;
-		const sec = el("section", {
-			className: "atv-section",
-			id: "atv-comments"
-		});
-		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P` : "";
-		sec.append(buildSectionHeaderRow("热门短评", allHref ? "查看全部 →" : "", allHref));
 		const grid = el("div", { className: "atv-comments" });
 		for (const c of data.comments) {
 			const card = el("div", { className: "atv-comment-card" });
 			const top = el("div", { className: "atv-comment-top" });
 			const avatar = el("div", { className: "atv-comment-avatar" });
-			if (c.avatar) avatar.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
+			if (c.avatar) avatar.style.backgroundImage = `url("${c.avatar}")`;
 			else avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
 			top.append(avatar);
 			const metaCol = el("div", { className: "atv-comment-meta" });
@@ -1204,16 +1203,14 @@
 			card.append(foot);
 			grid.append(card);
 		}
-		sec.append(grid);
-		return sec;
+		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P` : "";
+		return buildSection("atv-comments", "热门短评", grid, { moreLink: allHref ? {
+			href: allHref,
+			text: "查看全部 →"
+		} : void 0 });
 	};
 	var buildCast = (data) => {
 		if (!data.celebrities?.length) return null;
-		const sec = el("section", {
-			className: "atv-section",
-			id: "atv-cast"
-		});
-		sec.append(buildSectionHeader("演职员"));
 		const carousel = el("div", { className: "atv-carousel" });
 		for (const c of data.celebrities) {
 			const card = el(c.link ? "a" : "div", {
@@ -1223,7 +1220,7 @@
 				target: c.link ? "_blank" : void 0
 			});
 			const av = el("div", { className: "atv-cast-avatar" });
-			if (c.avatar) av.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
+			if (c.avatar) av.style.backgroundImage = `url("${c.avatar}")`;
 			card.append(av);
 			card.append(el("div", {
 				className: "atv-cast-name",
@@ -1235,17 +1232,10 @@
 			}));
 			carousel.append(card);
 		}
-		sec.append(carousel);
-		return sec;
+		return buildSection("atv-cast", "演职员", carousel);
 	};
 	var buildPhotos = (data) => {
 		if (!data.photos?.length) return null;
-		const sec = el("section", {
-			className: "atv-section",
-			id: "atv-photos"
-		});
-		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/all_photos` : "";
-		sec.append(buildSectionHeaderRow("剧照", allHref ? "查看全部 →" : "", allHref));
 		const carousel = el("div", { className: "atv-carousel atv-photos" });
 		for (const p of data.photos) {
 			const tile = el("div", { className: "atv-photo-tile" });
@@ -1263,16 +1253,14 @@
 			tile.append(img);
 			carousel.append(tile);
 		}
-		sec.append(carousel);
-		return sec;
+		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/all_photos` : "";
+		return buildSection("atv-photos", "剧照", carousel, { moreLink: allHref ? {
+			href: allHref,
+			text: "查看全部 →"
+		} : void 0 });
 	};
 	var buildRecs = (recommendations) => {
 		if (!recommendations?.length) return null;
-		const sec = el("section", {
-			className: "atv-section",
-			id: "atv-recs"
-		});
-		sec.append(buildSectionHeader("相似作品"));
 		const grid = el("div", { className: "atv-recs" });
 		for (const r of recommendations) {
 			const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
@@ -1307,21 +1295,20 @@
 			}));
 			grid.append(card);
 		}
-		sec.append(grid);
-		return sec;
+		return buildSection("atv-recs", "相似作品", grid);
 	};
 	var linksValue = (arr) => {
 		const wrap = el("div", { className: "atv-info-value" });
 		for (let i = 0; i < arr.length; i += 1) {
 			const it = arr[i];
-			if (i > 0) wrap.append(document.createTextNode(" / "));
+			if (i > 0) wrap.append(el("span", { text: " / " }));
 			if (it.href) wrap.append(el("a", {
 				href: it.href,
 				rel: "noopener",
 				target: "_blank",
 				text: it.text
 			}));
-			else wrap.append(document.createTextNode(it.text));
+			else wrap.append(el("span", { text: it.text }));
 		}
 		return wrap;
 	};
@@ -1384,11 +1371,6 @@
 		}
 	};
 	var buildDetails = (data) => {
-		const sec = el("section", {
-			className: "atv-section",
-			id: "atv-info"
-		});
-		sec.append(buildSectionHeader("详细信息"));
 		const grid = el("div", { className: "atv-info-grid" });
 		const addRow = (label, valueNode) => {
 			grid.append(el("div", {
@@ -1409,8 +1391,7 @@
 		if (info.imdb) addRow("IMDb", buildImdbRow(info.imdb));
 		if (data.awards?.length) buildAwards(data.awards, grid);
 		if (!grid.children.length) return null;
-		sec.append(grid);
-		return sec;
+		return buildSection("atv-info", "详细信息", grid);
 	};
 	var buildStickyNav = (data) => {
 		const nav = el("nav", { className: "atv-stickynav" });

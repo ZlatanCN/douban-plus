@@ -3,14 +3,14 @@
 import { el } from "../components";
 import { ICON_ARROW, RE_IMDB_LINK } from "../constants";
 import type { Award, DoubanData } from "../types";
-import { buildSectionHeader } from "./sections";
+import { buildSection } from "./sections";
 
 const linksValue = (arr: { text: string; href?: string }[]): HTMLElement => {
   const wrap = el("div", { className: "atv-info-value" });
   for (let i = 0; i < arr.length; i += 1) {
     const it = arr[i];
     if (i > 0) {
-      wrap.append(document.createTextNode(" / "));
+      wrap.append(el("span", { text: " / " }));
     }
     if (it.href) {
       wrap.append(
@@ -22,7 +22,7 @@ const linksValue = (arr: { text: string; href?: string }[]): HTMLElement => {
         })
       );
     } else {
-      wrap.append(document.createTextNode(it.text));
+      wrap.append(el("span", { text: it.text }));
     }
   }
   return wrap;
@@ -131,8 +131,6 @@ const buildAwards = (awards: Award[], grid: HTMLElement): void => {
 };
 
 const buildDetails = (data: DoubanData): HTMLElement | null => {
-  const sec = el("section", { className: "atv-section", id: "atv-info" });
-  sec.append(buildSectionHeader("详细信息"));
   const grid = el("div", { className: "atv-info-grid" });
 
   const addRow = (label: string, valueNode: HTMLElement): void => {
@@ -177,8 +175,7 @@ const buildDetails = (data: DoubanData): HTMLElement | null => {
   if (!grid.children.length) {
     return null;
   }
-  sec.append(grid);
-  return sec;
+  return buildSection("atv-info", "详细信息", grid);
 };
 
 /* ── Exports ──────────────────────────────────────────── */

@@ -26,6 +26,33 @@ const buildSectionHeaderRow = (
   return row;
 };
 
+type BuildSectionOptions = {
+  moreLink?: { text: string; href: string };
+};
+
+const buildSection = (
+  id: string,
+  headerText: string,
+  content: HTMLElement,
+  options?: BuildSectionOptions
+): HTMLElement => {
+  const sec = el("section", { className: "atv-section", id });
+  if (options?.moreLink) {
+    sec.append(
+      buildSectionHeaderRow(
+        headerText,
+        options.moreLink.text,
+        options.moreLink.href
+      )
+    );
+  } else {
+    sec.append(buildSectionHeader(headerText));
+  }
+  sec.append(content);
+  return sec;
+};
+
 /* ── Exports ──────────────────────────────────────────── */
 
-export { buildSectionHeader, buildSectionHeaderRow };
+export { buildSection, buildSectionHeader, buildSectionHeaderRow };
+export type { BuildSectionOptions };

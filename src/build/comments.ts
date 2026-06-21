@@ -1,7 +1,7 @@
 import { el, renderStars } from "../components";
 import { ICON_THUMB } from "../constants";
 import type { DoubanData } from "../types";
-import { buildSectionHeaderRow } from "./sections";
+import { buildSection } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
 
@@ -18,13 +18,6 @@ const buildComments = (
   if (!data.comments?.length) {
     return null;
   }
-  const sec = el("section", { className: "atv-section", id: "atv-comments" });
-  const allHref = data.subjectId
-    ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P`
-    : "";
-  sec.append(
-    buildSectionHeaderRow("热门短评", allHref ? "查看全部 →" : "", allHref)
-  );
   const grid = el("div", { className: "atv-comments" });
   for (const c of data.comments) {
     const card = el("div", { className: "atv-comment-card" });
@@ -32,7 +25,7 @@ const buildComments = (
     const top = el("div", { className: "atv-comment-top" });
     const avatar = el("div", { className: "atv-comment-avatar" });
     if (c.avatar) {
-      avatar.style.backgroundImage = `url("${encodeURI(c.avatar)}")`;
+      avatar.style.backgroundImage = `url("${c.avatar}")`;
     } else {
       avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
     }
@@ -111,8 +104,12 @@ const buildComments = (
 
     grid.append(card);
   }
-  sec.append(grid);
-  return sec;
+  const allHref = data.subjectId
+    ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P`
+    : "";
+  return buildSection("atv-comments", "热门短评", grid, {
+    moreLink: allHref ? { href: allHref, text: "查看全部 →" } : undefined,
+  });
 };
 
 /* ── Exports ──────────────────────────────────────────── */
