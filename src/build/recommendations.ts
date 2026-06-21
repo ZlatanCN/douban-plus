@@ -3,16 +3,14 @@ import { ICON_FILM_PLACEHOLDER } from "../constants";
 import type { Recommendation } from "../types";
 import { buildSectionHeader } from "./sections";
 
-const buildRecs = (data: {
-  recommendations: Recommendation[];
-}): HTMLElement | null => {
-  if (!data.recommendations?.length) {
+const buildRecs = (recommendations: Recommendation[]): HTMLElement | null => {
+  if (!recommendations?.length) {
     return null;
   }
   const sec = el("section", { className: "atv-section", id: "atv-recs" });
   sec.append(buildSectionHeader("相似作品"));
   const grid = el("div", { className: "atv-recs" });
-  for (const r of data.recommendations) {
+  for (const r of recommendations) {
     const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
     if (r.link && card instanceof HTMLAnchorElement) {
       card.href = r.link;

@@ -1,3 +1,4 @@
+import { postInterest, removeInterest } from "../api/interest";
 import {
   el,
   renderStars,
@@ -15,7 +16,7 @@ import {
   RE_SEASON_SUFFIX,
 } from "../constants";
 import { findInterestButtons } from "../extract";
-import type { DoubanData, Photo } from "../types";
+import type { DoubanData, ModalCallbacks, Photo } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
 
@@ -219,6 +220,26 @@ const buildActions = (data: DoubanData): HTMLElement => {
   const state = data.interest;
   const actions = el("div", { className: "atv-actions" });
 
+  const modalCallbacks: ModalCallbacks = {
+    onRemove: async (status) => {
+      const result = await removeInterest(data.subjectId, status);
+      if (result.ok) {
+        location.reload();
+      }
+      return result;
+    },
+    onSave: async (form) => {
+      const result = await postInterest(data.subjectId, form.status, {
+        comment: form.comment,
+        rating: form.rating > 0 ? form.rating : undefined,
+      });
+      if (result.ok) {
+        location.reload();
+      }
+      return result;
+    },
+  };
+
   if (!state.loggedIn) {
     const interest = findInterestButtons();
     actions.append(
@@ -240,16 +261,16 @@ const buildActions = (data: DoubanData): HTMLElement => {
   if (!state.marked) {
     actions.append(
       makeInterestBtn("想看", "atv-btn atv-btn-primary", () =>
-        openInterestModal(data.subjectId, state)
+        openInterestModal(state, modalCallbacks)
       )
     );
     actions.append(
       makeInterestBtn("看过", "atv-btn atv-btn-secondary", () =>
-        openInterestModal(data.subjectId, state)
+        openInterestModal(state, modalCallbacks)
       )
     );
     if (state.hasWatching) {
-      addWatchingBtn(actions, () => openInterestModal(data.subjectId, state));
+      addWatchingBtn(actions, () => openInterestModal(state, modalCallbacks));
     }
     return actions;
   }
@@ -269,7 +290,7 @@ const buildActions = (data: DoubanData): HTMLElement => {
           "is-active",
           "atv-interest-badge",
         ],
-        onclick: () => openInterestModal(data.subjectId, state),
+        onclick: () => openInterestModal(state, modalCallbacks),
       },
       [el("span", { html: ICON_CHECK }), el("span", { text: label })]
     )

@@ -1,10 +1,18 @@
-import { postInterest, removeInterest } from "../api/interest";
 import { ICON_STAR_FULL, ICON_STAR_EMPTY } from "../constants";
-import type { InterestState } from "../types";
+import type { InterestState, ModalCallbacks } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { el } from "./dom-factory";
 
-const openInterestModal = (subjectId: string, state: InterestState): void => {
+type FormState = {
+  status: "wish" | "do" | "collect";
+  rating: number;
+  loading: boolean;
+};
+
+const openInterestModal = (
+  state: InterestState,
+  callbacks: ModalCallbacks
+): void => {
   const old = document.querySelector("#atv-interest-modal");
   if (old) {
     old.remove();
@@ -15,10 +23,11 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
     id: "atv-interest-modal",
   });
 
-  let selectedStatus: "wish" | "do" | "collect" =
-    state.marked && state.status !== "none" ? state.status : "wish";
-  let selectedRating = state.rating || 0;
-  let loading = false;
+  const form: FormState = {
+    loading: false,
+    rating: state.rating || 0,
+    status: state.marked && state.status !== "none" ? state.status : "wish",
+  };
 
   const errorEl = el("div", { className: "atv-interest-modal-error" });
 
@@ -57,27 +66,23 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
     className: "atv-interest-modal-statuses",
   });
 
-  const bindStatusClick =
-    (value: "wish" | "do" | "collect", btn: HTMLButtonElement): (() => void) =>
-    (): void => {
-      if (loading) {
+  for (const entry of statusEntries) {
+    const btn = el("button", {
+      attrs: { "data-value": entry.value, type: "button" },
+      className: `atv-interest-modal-status${entry.value === form.status ? " is-active" : ""}`,
+      text: entry.label,
+    });
+    btn.addEventListener("click", () => {
+      if (form.loading) {
         return;
       }
-      selectedStatus = value;
+      form.status = entry.value;
       for (const b of statusBtns) {
         b.classList.toggle("is-active", b === btn);
       }
       const prefix = state.marked ? "修改" : "标记";
-      titleSpan.textContent = `${prefix}${INTEREST_LABELS[value]}`;
-    };
-
-  for (const entry of statusEntries) {
-    const btn = el("button", {
-      attrs: { "data-value": entry.value, type: "button" },
-      className: `atv-interest-modal-status${entry.value === selectedStatus ? " is-active" : ""}`,
-      text: entry.label,
+      titleSpan.textContent = `${prefix}${INTEREST_LABELS[entry.value]}`;
     });
-    btn.addEventListener("click", bindStatusClick(entry.value, btn));
     statusBtns.push(btn);
     statusContainer.append(btn);
   }
@@ -87,7 +92,7 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
   const starContainer = el("div", { className: "atv-interest-modal-stars" });
   const starEls: HTMLSpanElement[] = [];
 
-  const renderStars = (count: number): void => {
+  const updateStars = (count: number): void => {
     for (let idx = 0; idx < 5; idx += 1) {
       const full = idx < count;
       starEls[idx].innerHTML = full ? ICON_STAR_FULL : ICON_STAR_EMPTY;
@@ -95,35 +100,26 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
     }
   };
 
-  const bindStarClick =
-    (idx: number): (() => void) =>
-    (): void => {
-      if (loading) {
-        return;
-      }
-      selectedRating = idx;
-      renderStars(idx);
-    };
-  const bindStarHover =
-    (idx: number): (() => void) =>
-    (): void => {
-      renderStars(idx);
-    };
-
   for (let idx = 1; idx <= 5; idx += 1) {
-    const full = idx <= selectedRating;
+    const full = idx <= form.rating;
     const star = el("span", {
       className: `atv-interest-modal-star${full ? " is-full" : ""}`,
       html: full ? ICON_STAR_FULL : ICON_STAR_EMPTY,
     });
-    star.addEventListener("click", bindStarClick(idx));
-    star.addEventListener("mouseenter", bindStarHover(idx));
+    star.addEventListener("click", () => {
+      if (form.loading) {
+        return;
+      }
+      form.rating = idx;
+      updateStars(idx);
+    });
+    star.addEventListener("mouseenter", () => updateStars(idx));
     starEls.push(star);
     starContainer.append(star);
   }
 
   starContainer.addEventListener("mouseleave", () => {
-    renderStars(selectedRating);
+    updateStars(form.rating);
   });
 
   /* ── Short review ── */
@@ -176,24 +172,24 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
   /* ── Submit handler ── */
 
   submitBtn.addEventListener("click", async () => {
-    if (loading) {
+    if (form.loading) {
       return;
     }
-    loading = true;
+    form.loading = true;
     submitBtn.textContent = "保存中...";
     submitBtn.disabled = true;
     errorEl.textContent = "";
 
-    const result = await postInterest(subjectId, selectedStatus, {
+    const result = await callbacks.onSave({
       comment: commentTextarea.value.trim(),
-      rating: selectedRating > 0 ? selectedRating : undefined,
+      rating: form.rating,
+      status: form.status,
     });
 
     if (result.ok) {
       dismiss();
-      location.reload();
     } else {
-      loading = false;
+      form.loading = false;
       submitBtn.textContent = "保存";
       submitBtn.disabled = false;
       errorEl.textContent = result.error || "操作失败";
@@ -203,21 +199,20 @@ const openInterestModal = (subjectId: string, state: InterestState): void => {
   /* ── Remove handler ── */
 
   removeBtn.addEventListener("click", async () => {
-    if (loading) {
+    if (form.loading) {
       return;
     }
-    loading = true;
+    form.loading = true;
     submitBtn.disabled = true;
     removeBtn.disabled = true;
     errorEl.textContent = "";
 
-    const result = await removeInterest(subjectId, state.status);
+    const result = await callbacks.onRemove(state.status);
 
     if (result.ok) {
       dismiss();
-      location.reload();
     } else {
-      loading = false;
+      form.loading = false;
       submitBtn.disabled = false;
       removeBtn.disabled = false;
       errorEl.textContent = result.error || "取消标记失败";

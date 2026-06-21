@@ -1,4 +1,3 @@
-import { postVote } from "../api/comment";
 import { el, renderStars } from "../components";
 import { ICON_THUMB } from "../constants";
 import type { DoubanData } from "../types";
@@ -6,7 +5,16 @@ import { buildSectionHeaderRow } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
 
-const buildComments = (data: DoubanData): HTMLElement | null => {
+/**
+ * Callback invoked when a user votes on a comment.
+ * Returns updated count on success, or { ok: false } on failure for rollback.
+ */
+type VoteCallback = (cid: string) => Promise<{ ok: boolean; count?: number }>;
+
+const buildComments = (
+  data: DoubanData,
+  onVote: VoteCallback
+): HTMLElement | null => {
   if (!data.comments?.length) {
     return null;
   }
@@ -87,7 +95,7 @@ const buildComments = (data: DoubanData): HTMLElement | null => {
       voteBtn.classList.add("is-voted");
       animateBtn();
 
-      const result = await postVote(c.cid, data.subjectId);
+      const result = await onVote(c.cid);
       if (result.ok && result.count !== undefined) {
         ({ count } = result);
         voteCount.textContent = String(count);

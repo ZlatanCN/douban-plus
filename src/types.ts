@@ -133,6 +133,21 @@ type InterestState = {
   usefulCount: string;
 };
 
+/** Form data the user fills in the interest modal */
+type InterestFormState = {
+  status: "wish" | "do" | "collect";
+  rating: number;
+  comment: string;
+};
+
+/** Callback seam — modal calls these instead of importing API directly */
+type ModalCallbacks = {
+  onSave: (form: InterestFormState) => Promise<{ ok: boolean; error?: string }>;
+  onRemove: (
+    status: InterestState["status"]
+  ) => Promise<{ ok: boolean; error?: string }>;
+};
+
 /** Map from interest value to Chinese label */
 const INTEREST_LABELS: Record<InterestState["status"], string> = {
   collect: "看过",
@@ -149,8 +164,10 @@ export type {
   Comment,
   DoubanData,
   InfoBlock,
+  InterestFormState,
   InterestState,
   Link,
+  ModalCallbacks,
   Photo,
   RatingInfo,
   Recommendation,

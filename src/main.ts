@@ -1,4 +1,5 @@
 import "./styles.css";
+import { postVote } from "./api/comment";
 import {
   buildCast,
   buildComments,
@@ -82,7 +83,7 @@ const render = (): void => {
 
   root.append(buildHero(data));
 
-  const streaming = buildStreaming(data);
+  const streaming = buildStreaming(data.streaming);
   if (streaming) {
     root.append(streaming);
   }
@@ -97,12 +98,12 @@ const render = (): void => {
     root.append(photos);
   }
 
-  const comments = buildComments(data);
+  const comments = buildComments(data, (cid) => postVote(cid, data.subjectId));
   if (comments) {
     root.append(comments);
   }
 
-  const recs = buildRecs(data);
+  const recs = buildRecs(data.recommendations);
   if (recs) {
     root.append(recs);
   }
