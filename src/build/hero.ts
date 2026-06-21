@@ -14,7 +14,7 @@ import {
   ICON_THUMB,
   RE_SEASON_SUFFIX,
 } from "../constants";
-import { extractInterestState, findInterestButtons } from "../extract";
+import { findInterestButtons } from "../extract";
 import type { DoubanData, Photo } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
@@ -216,7 +216,7 @@ const addWatchingBtn = (actions: HTMLElement, onClick: () => void): void => {
 };
 
 const buildActions = (data: DoubanData): HTMLElement => {
-  const state = extractInterestState();
+  const state = data.interest;
   const actions = el("div", { className: "atv-actions" });
 
   if (!state.loggedIn) {

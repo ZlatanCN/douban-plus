@@ -11,8 +11,7 @@ export { extractRating, extractSummary } from "./rating";
 export { extractComments, extractRecommendations } from "./social";
 export {
   extractInterestState,
-  extractStreaming,
   findInterestButtons,
   isInterestActive,
-  parsePlaySources,
-} from "./streaming";
+} from "./interest";
+export { extractStreaming, parsePlaySources } from "./streaming";

@@ -650,52 +650,19 @@
 		}
 		return out;
 	};
-	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = () => {
-		const srcScript = $$("script:not([src])").find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
-		if (!srcScript) return {};
-		const txt = srcScript.textContent;
-		const map = {};
-		let m = RE_PLAY_SOURCES.exec(txt);
-		while (m) {
-			const [, sourceId] = m;
-			const playLink = m[2].replaceAll("&amp;", "&");
-			if (!map[sourceId]) map[sourceId] = playLink;
-			m = RE_PLAY_SOURCES.exec(txt);
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
 		}
-		return map;
-	};
-	var extractStreaming = () => {
-		const seen = new Set();
-		const out = [];
-		const sourcesMap = parsePlaySources();
-		const playBtns = $$("a.playBtn");
-		for (const a of playBtns) {
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			let { href } = a;
-			if (!isRealUrl(href)) {
-				const sourceId = a.dataset.source;
-				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
-				else continue;
-			}
-			out.push({
-				href,
-				name
-			});
-		}
-		for (const a of $$("a")) {
-			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			if (isRealUrl(a.href)) out.push({
-				href: a.href,
-				name
-			});
-		}
-		return out;
+		return null;
 	};
 	var findInterestButtons = () => {
 		const result = {
@@ -716,20 +683,6 @@
 		scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
 		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a"), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
 		return result;
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
 	};
 	var detectS3State = (root) => {
 		let status = "none";
@@ -827,6 +780,53 @@
 			tags: [],
 			usefulCount: ""
 		};
+	};
+	var isRealUrl = (h) => RE_HTTP.test(h || "");
+	var parsePlaySources = () => {
+		const srcScript = $$("script:not([src])").find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+		if (!srcScript) return {};
+		const txt = srcScript.textContent;
+		const map = {};
+		let m = RE_PLAY_SOURCES.exec(txt);
+		while (m) {
+			const [, sourceId] = m;
+			const playLink = m[2].replaceAll("&amp;", "&");
+			if (!map[sourceId]) map[sourceId] = playLink;
+			m = RE_PLAY_SOURCES.exec(txt);
+		}
+		return map;
+	};
+	var extractStreaming = () => {
+		const seen = new Set();
+		const out = [];
+		const sourcesMap = parsePlaySources();
+		const playBtns = $$("a.playBtn");
+		for (const a of playBtns) {
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			let { href } = a;
+			if (!isRealUrl(href)) {
+				const sourceId = a.dataset.source;
+				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
+				else continue;
+			}
+			out.push({
+				href,
+				name
+			});
+		}
+		for (const a of $$("a")) {
+			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			if (isRealUrl(a.href)) out.push({
+				href: a.href,
+				name
+			});
+		}
+		return out;
 	};
 	var hashStr = (str) => {
 		let h = 0;
@@ -959,7 +959,7 @@
 		else actions.append(btn);
 	};
 	var buildActions = (data) => {
-		const state = extractInterestState();
+		const state = data.interest;
 		const actions = el("div", { className: "atv-actions" });
 		if (!state.loggedIn) {
 			const interest = findInterestButtons();
@@ -1468,6 +1468,7 @@
 				celebrities: extractCelebrities(),
 				comments: extractComments(),
 				info,
+				interest: extractInterestState(),
 				isTV,
 				photos: extractPhotos(),
 				poster: extractPoster(),

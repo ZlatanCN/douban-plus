@@ -109,6 +109,8 @@ type DoubanData = {
   comments: Comment[];
   awards: Award[];
   streaming: Streaming[];
+  /** Interest state (wish/do/collect) extracted once at render time */
+  interest: InterestState;
   isTV: boolean;
 };
 
