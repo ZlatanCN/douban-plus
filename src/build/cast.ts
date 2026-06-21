@@ -8,7 +8,7 @@ const buildCast = (data: DoubanData): HTMLElement | null => {
   if (!data.celebrities?.length) {
     return null;
   }
-  const carousel = el("div", { className: "atv-carousel" });
+  const carousel = el("div", { className: "atv-carousel atv-cast-carousel" });
   for (const c of data.celebrities) {
     const card = el(c.link ? "a" : "div", {
       className: "atv-cast-card",

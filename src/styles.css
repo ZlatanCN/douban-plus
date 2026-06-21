@@ -601,8 +601,12 @@ body {
 }
 
 /* ---------- Cast ---------- */
+.atv-cast-carousel {
+  mask-image: linear-gradient(to right, #000 90%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 90%, transparent 100%);
+}
 .atv-cast-card {
-  flex: 0 0 132px;
+  flex: 0 0 160px;
   text-align: center;
   cursor: pointer;
   scroll-snap-align: start;
@@ -612,8 +616,8 @@ body {
   transform: translateY(-3px);
 }
 .atv-cast-avatar {
-  width: 132px;
-  height: 132px;
+  width: 160px;
+  height: 160px;
   background-color: var(--atv-bg-tertiary);
   background-position: center top;
   background-size: cover;
@@ -630,10 +634,10 @@ body {
   transform: scale(1.05);
 }
 .atv-cast-name {
-  margin-top: 14px;
+  margin-top: 16px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   line-height: 1.3;
   color: var(--atv-text-primary);
@@ -648,7 +652,7 @@ body {
   font-size: 13px;
   font-weight: 400;
   line-height: 1.35;
-  color: var(--atv-text-tertiary);
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* ---------- Photos ---------- */
@@ -656,7 +660,7 @@ body {
   gap: 12px;
 }
 .atv-photo-tile {
-  flex: 0 0 320px;
+  flex: 0 0 400px;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   cursor: pointer;
@@ -666,6 +670,10 @@ body {
   transition:
     transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 300ms ease;
+}
+.atv-photo-tile.is-portrait {
+  flex: 0 0 240px;
+  aspect-ratio: 3 / 4;
 }
 .atv-photo-tile img {
   width: 100%;
@@ -680,7 +688,7 @@ body {
 /* ---------- Recommendations ---------- */
 .atv-recs {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 24px;
 }
 .atv-rec-card {
@@ -709,10 +717,12 @@ body {
   margin-top: 12px;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-size: 14px;
-  font-weight: 500;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--atv-text-primary);
-  white-space: nowrap;
 }
 
 /* ---------- Info grid ---------- */
@@ -726,14 +736,14 @@ body {
   padding-top: 2px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
 .atv-info-value {
   font-size: 15px;
   font-weight: 400;
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--atv-text-primary);
   word-break: break-word;
 }
@@ -801,7 +811,7 @@ body {
 .atv-comment-card {
   display: flex;
   flex-direction: column;
-  padding: 20px;
+  padding: 16px 18px;
   background: var(--atv-bg-secondary);
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
@@ -838,7 +848,7 @@ body {
 .atv-comment-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
 }
 .atv-comment-author {
@@ -865,8 +875,8 @@ body {
   overflow: hidden;
   -webkit-line-clamp: 4;
   font-size: 15px;
-  line-height: 1.6;
-  color: var(--atv-text-secondary);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
   word-break: break-word;
 }
 .atv-comment-foot {
@@ -1336,21 +1346,24 @@ body {
     row-gap: 4px;
   }
   .atv-info-label {
-    padding-top: 16px;
+    padding-top: 12px;
   }
   .atv-recs {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
     gap: 18px;
   }
   .atv-cast-card {
-    flex-basis: 104px;
+    flex-basis: 120px;
   }
   .atv-cast-avatar {
-    width: 104px;
-    height: 104px;
+    width: 120px;
+    height: 120px;
   }
   .atv-photo-tile {
-    flex-basis: 260px;
+    flex-basis: 280px;
+  }
+  .atv-photo-tile.is-portrait {
+    flex-basis: 170px;
   }
   .atv-rating-score {
     font-size: 44px;

@@ -23,6 +23,15 @@ const buildPhotos = (data: DoubanData): HTMLElement | null => {
       },
       { once: true }
     );
+    img.addEventListener(
+      "load",
+      () => {
+        if (img.naturalHeight > img.naturalWidth) {
+          tile.classList.add("is-portrait");
+        }
+      },
+      { once: true }
+    );
     tile.append(img);
     carousel.append(tile);
   }
