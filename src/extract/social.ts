@@ -80,10 +80,11 @@ const extractComments = (): Comment[] => {
       continue;
     }
 
-    const shortEl =
+    const contentEl =
+      $<HTMLElement>(".full", item) ??
       $<HTMLElement>(".short", item) ??
       $<HTMLElement>(".comment-content", item);
-    const content = safeText(shortEl);
+    const content = safeText(contentEl);
     if (!content) {
       continue;
     }

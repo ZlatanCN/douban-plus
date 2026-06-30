@@ -1,6 +1,6 @@
 import { el, renderStars } from "../components";
-import { ICON_THUMB } from "../constants";
-import type { DoubanData } from "../types";
+import { ICON_EXPAND, ICON_THUMB } from "../constants";
+import type { Comment, DoubanData } from "../types";
 import { buildSection } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
@@ -11,6 +11,148 @@ import { buildSection } from "./sections";
  */
 type VoteCallback = (cid: string) => Promise<{ ok: boolean; count?: number }>;
 
+/* ── openCommentOverlay ───────────────────────────────── */
+
+const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
+  const old = document.querySelector("#atv-comment-overlay");
+  if (old) {
+    old.remove();
+  }
+
+  const overlay = el("div", {
+    className: "atv-comment-overlay",
+    id: "atv-comment-overlay",
+  });
+  const inner = el("div", { className: "atv-comment-overlay-inner" });
+
+  const accent = el("div", { className: "atv-comment-overlay-accent" });
+  inner.append(accent);
+
+  const close = el("button", {
+    attrs: { type: "button" },
+    className: "atv-comment-overlay-close",
+    html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
+  });
+  inner.append(close);
+
+  const top = el("div", { className: "atv-comment-overlay-top" });
+  const avatar = el("div", { className: "atv-comment-overlay-avatar" });
+  if (comment.avatar) {
+    avatar.style.backgroundImage = `url("${comment.avatar}")`;
+  } else {
+    avatar.textContent = (comment.name || "?").slice(0, 1).toUpperCase();
+  }
+  top.append(avatar);
+
+  const meta = el("div", { className: "atv-comment-overlay-meta" });
+  const author = el(comment.link ? "a" : "div", {
+    className: "atv-comment-overlay-author",
+    href: comment.link || undefined,
+    rel: comment.link ? "noopener" : undefined,
+    target: comment.link ? "_blank" : undefined,
+    text: comment.name,
+  });
+  meta.append(author);
+  if (comment.stars > 0) {
+    meta.append(
+      renderStars(comment.stars, {
+        className: "atv-comment-overlay-stars",
+        outOfFive: true,
+      })
+    );
+  }
+  top.append(meta);
+  inner.append(top);
+
+  const body = el("div", {
+    className: "atv-comment-overlay-body",
+    text: comment.content,
+  });
+  inner.append(body);
+
+  const foot = el("div", { className: "atv-comment-overlay-foot" });
+  foot.append(
+    el("span", {
+      className: "atv-comment-overlay-time",
+      text: comment.time || "",
+    })
+  );
+
+  const voteBtn = el("button", {
+    attrs: { type: "button" },
+    className: "atv-comment-overlay-votes",
+  });
+  const voteIcon = el("span", { html: ICON_THUMB });
+  const voteCount = el("span", { text: String(comment.votes) });
+  voteBtn.append(voteIcon, voteCount);
+
+  let count = comment.votes;
+  let { voted } = comment;
+  if (voted) {
+    voteBtn.classList.add("is-voted");
+  }
+
+  const animateBtn = (): void => {
+    voteBtn.style.transform = "scale(1.2)";
+    requestAnimationFrame(() => {
+      voteBtn.style.transform = "";
+    });
+  };
+
+  voteBtn.addEventListener("click", async () => {
+    if (voted || !comment.cid) {
+      return;
+    }
+    voted = true;
+    count += 1;
+    voteCount.textContent = String(count);
+    voteBtn.classList.add("is-voted");
+    animateBtn();
+
+    const result = await onVote(comment.cid);
+    if (result.ok && result.count !== undefined) {
+      ({ count } = result);
+      voteCount.textContent = String(count);
+    } else {
+      voted = false;
+      count -= 1;
+      voteCount.textContent = String(count);
+      voteBtn.classList.remove("is-voted");
+    }
+  });
+
+  foot.append(voteBtn);
+  inner.append(foot);
+  overlay.append(inner);
+
+  const dismiss = (): void => {
+    overlay.classList.remove("is-open");
+    document.body.style.overflow = "";
+    setTimeout(() => {
+      overlay.remove();
+    }, 350);
+  };
+
+  close.addEventListener("click", dismiss);
+  overlay.addEventListener("click", (e: MouseEvent) => {
+    if (e.target === overlay) {
+      dismiss();
+    }
+  });
+  document.addEventListener("keydown", function handler(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      dismiss();
+      document.removeEventListener("keydown", handler);
+    }
+  });
+
+  document.body.append(overlay);
+  document.body.style.overflow = "hidden";
+  requestAnimationFrame(() => overlay.classList.add("is-open"));
+};
+
+/* ── buildComments ────────────────────────────────────── */
+
 const buildComments = (
   data: DoubanData,
   onVote: VoteCallback
@@ -19,6 +161,7 @@ const buildComments = (
     return null;
   }
   const grid = el("div", { className: "atv-comments" });
+  const pending: { card: HTMLElement; body: HTMLElement }[] = [];
   for (const c of data.comments) {
     const card = el("div", { className: "atv-comment-card" });
 
@@ -51,10 +194,18 @@ const buildComments = (
     top.append(metaCol);
     card.append(top);
 
-    card.append(el("div", { className: "atv-comment-body", text: c.content }));
+    const body = el("div", { className: "atv-comment-body", text: c.content });
+    card.append(body);
 
     const foot = el("div", { className: "atv-comment-foot" });
     foot.append(el("span", { text: c.time || "" }));
+
+    const footRight = el("div", { className: "atv-comment-foot-right" });
+    const expandBtn = el("button", {
+      attrs: { type: "button" },
+      className: "atv-comment-expand",
+      html: ICON_EXPAND,
+    });
 
     const voteBtn = el("button", {
       attrs: { type: "button" },
@@ -99,11 +250,38 @@ const buildComments = (
         voteBtn.classList.remove("is-voted");
       }
     });
-    foot.append(voteBtn);
+    footRight.append(expandBtn, voteBtn);
+    foot.append(footRight);
     card.append(foot);
 
+    const showOverlay = (): void => {
+      openCommentOverlay(c, onVote);
+    };
+    expandBtn.addEventListener("click", (e: Event) => {
+      e.stopPropagation();
+      showOverlay();
+    });
+    body.addEventListener("click", () => {
+      if (body.scrollHeight > body.clientHeight) {
+        showOverlay();
+      }
+    });
+
     grid.append(card);
+    pending.push({ body, card });
   }
+
+  /* Deferred overflow detection after DOM insertion */
+  setTimeout(() => {
+    requestAnimationFrame(() => {
+      for (const { card, body: b } of pending) {
+        if (b.scrollHeight > b.clientHeight) {
+          card.classList.add("has-overflow");
+        }
+      }
+    });
+  }, 0);
+
   const allHref = data.subjectId
     ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P`
     : "";

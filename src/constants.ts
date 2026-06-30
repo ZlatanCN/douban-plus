@@ -60,6 +60,10 @@ const ICON_THUMB =
   '<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">' +
   '<path fill="currentColor" d="M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"/>' +
   "</svg>";
+const ICON_EXPAND =
+  '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">' +
+  '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 5.5l4 4 4-4"/>' +
+  "</svg>";
 const ICON_FILM_PLACEHOLDER =
   '<svg viewBox="0 0 64 96" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
   '<defs><linearGradient id="atvFilmGrad" x1="0" y1="0" x2="1" y2="1">' +
@@ -89,6 +93,7 @@ export {
   ICON_STAR_FULL,
   ICON_STAR_HALF,
   ICON_THUMB,
+  ICON_EXPAND,
   RE_ALLSTAR,
   RE_BG_URL,
   RE_COLLECT,
