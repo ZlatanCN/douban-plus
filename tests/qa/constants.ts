@@ -106,6 +106,12 @@ const SCENARIOS: Scenario[] = [
     name: "movie-oppenheimer",
     url: "https://movie.douban.com/subject/35593344/",
   },
+  /* ── Trailer-specific: movie with multiple trailers ── */
+  {
+    kind: "movie",
+    name: "movie-wandering-earth",
+    url: "https://movie.douban.com/subject/26266893/",
+  },
 ];
 
 const MAX_RETRIES = 2;

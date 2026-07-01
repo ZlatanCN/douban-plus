@@ -19,6 +19,7 @@ import {
   extractInterestState,
   extractPhotos,
   extractPoster,
+  extractTrailers,
   extractRating,
   extractRecommendations,
   extractStreaming,
@@ -63,6 +64,7 @@ const render = (): void => {
       subjectId: extractSubjectId(),
       summary: extractSummary(),
       title: extractTitle(),
+      trailers: extractTrailers(),
       year: extractYear(),
     };
   } catch (error) {

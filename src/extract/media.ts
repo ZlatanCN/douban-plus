@@ -2,7 +2,7 @@
 /* Celebrities (cast/crew) and photo gallery.              */
 
 import { RE_BG_URL } from "../constants";
-import type { Celebrity, Photo } from "../types";
+import type { Celebrity, Photo, Trailer } from "../types";
 import { $, $$, safeText } from "../utils/dom";
 import { upgradePhoto } from "../utils/upgrade";
 
@@ -56,6 +56,25 @@ const extractPhotos = (): Photo[] =>
     })
     .filter((p) => p.thumbUrl);
 
+/**
+ * Extract trailers from "#related-pic" section.
+ * Finds `<a.related-pic-video>` inside `li.label-trailer`,
+ * extracts trailer page URL, thumbnail from background-image, and title.
+ */
+const extractTrailers = (): Trailer[] =>
+  $$<HTMLAnchorElement>("#related-pic li.label-trailer a.related-pic-video")
+    .map((a) => {
+      const style = a.getAttribute("style") || "";
+      const m = style.match(RE_BG_URL);
+      const thumbUrl = m ? m[1] : "";
+      return {
+        thumbUrl: encodeURI(thumbUrl),
+        title: a.getAttribute("title") || "",
+        trailerPageUrl: a.href,
+      };
+    })
+    .filter((t) => t.trailerPageUrl);
+
 /* ── Exports ──────────────────────────────────────────── */
 
-export { extractCelebrities, extractPhotos };
+export { extractCelebrities, extractPhotos, extractTrailers };

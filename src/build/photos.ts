@@ -1,12 +1,34 @@
-import { el, openPosterModal } from "../components";
+import { el, openPosterModal, openVideoModal } from "../components";
 import type { DoubanData } from "../types";
 import { buildSection } from "./sections";
 
 const buildPhotos = (data: DoubanData): HTMLElement | null => {
-  if (!data.photos?.length) {
+  if (!data.photos?.length && !data.trailers?.length) {
     return null;
   }
   const carousel = el("div", { className: "atv-carousel atv-photos" });
+  for (const t of data.trailers) {
+    const tile = el("div", { className: "atv-photo-tile atv-trailer-tile" });
+    tile.style.backgroundImage = `url("${t.thumbUrl}")`;
+    tile.style.backgroundSize = "cover";
+    tile.style.backgroundPosition = "center";
+    tile.addEventListener("click", () => openVideoModal(t));
+
+    const playOverlay = el("div", { className: "atv-trailer-play-overlay" });
+    const playBtn = el("div", { className: "atv-trailer-play-btn" });
+    playBtn.innerHTML =
+      '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 3 20 12 6 21 6 3" fill="white" stroke="none"/></svg>';
+    playOverlay.append(playBtn);
+    tile.append(playOverlay);
+
+    const label = el("span", {
+      className: "atv-trailer-label",
+      text: t.title || "预告片",
+    });
+    tile.append(label);
+
+    carousel.append(tile);
+  }
   for (const p of data.photos) {
     const tile = el("div", { className: "atv-photo-tile" });
     tile.addEventListener("click", () => {

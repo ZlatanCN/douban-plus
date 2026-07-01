@@ -6,7 +6,7 @@ export {
   extractYear,
 } from "./basic";
 export { extractInfo } from "./info";
-export { extractCelebrities, extractPhotos } from "./media";
+export { extractCelebrities, extractPhotos, extractTrailers } from "./media";
 export { extractRating, extractSummary } from "./rating";
 export { extractComments, extractRecommendations } from "./social";
 export {

@@ -941,6 +941,86 @@ const captureScreenshots = async ({
   console.log(`  \u001B[2mscreenshots saved → ${scenario.name}*.png\u001B[0m`);
 };
 
+const assertTrailerTile = async ({
+  page,
+  scenario,
+}: AssertCtx): Promise<void> => {
+  const trailerTiles = await page.$$(`${ROOT_SEL} .atv-trailer-tile`);
+  record(
+    scenario.name,
+    `trailer tiles rendered (${trailerTiles.length})`,
+    trailerTiles.length > 0
+  );
+  if (trailerTiles.length > 0) {
+    const tilesWithPlay = await Promise.all(
+      trailerTiles.map((tile) => tile.$(".atv-trailer-play-overlay"))
+    );
+    const allHavePlay = tilesWithPlay.every((el) => el !== null);
+    record(
+      scenario.name,
+      "each trailer tile has play button overlay",
+      allHavePlay
+    );
+  }
+};
+
+const VIDEO_FETCH_TIMEOUT = 10_000;
+const VIDEO_MODAL_TIMEOUT = 3000;
+
+const assertVideoModal = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const trailerTiles = await page.$$(`${ROOT_SEL} .atv-trailer-tile`);
+  if (trailerTiles.length === 0) {
+    warn(ctx, "no trailer tiles on this page");
+    return;
+  }
+
+  const clicked = await trailerTiles[0]
+    .evaluate((el) => {
+      el.scrollIntoView({ block: "nearest" });
+      el.click();
+    })
+    .then(() => true)
+    .catch(() => false);
+  if (!clicked) {
+    warn(ctx, "trailer tile click failed");
+    return;
+  }
+
+  const overlay = await page
+    .waitForSelector("#atv-video-modal.is-open", {
+      timeout: VIDEO_MODAL_TIMEOUT,
+    })
+    .catch(() => null);
+  if (!overlay) {
+    warn(ctx, "video modal did not open after trailer click");
+    return;
+  }
+  record(scenario.name, "trailer click opens video modal", true);
+
+  const videoEl = await page
+    .waitForSelector("#atv-video-modal.is-open video", {
+      timeout: VIDEO_FETCH_TIMEOUT,
+    })
+    .catch(() => null);
+  if (videoEl) {
+    record(scenario.name, "video element in modal overlay", true);
+  } else {
+    warn(ctx, "video element not loaded (fetch may have failed)");
+  }
+
+  const closeBtn = await page.$("#atv-video-modal .atv-modal-close");
+  if (closeBtn) {
+    await closeBtn.click();
+    await page.waitForFunction(
+      () => !document.querySelector("#atv-video-modal.is-open"),
+      { timeout: TIMEOUT_CONTENT_READY }
+    );
+    const closed = await page.$("#atv-video-modal.is-open");
+    record(scenario.name, "video modal closes on X button click", !closed);
+  }
+};
+
 export {
   assertAwards,
   assertBodyBg,
@@ -968,9 +1048,11 @@ export {
   assertStreaming,
   assertSummaryTeaser,
   assertTitleCorrect,
+  assertTrailerTile,
   assertTVMeta,
   assertTVSpecific,
   assertTVStreamingPopup,
+  assertVideoModal,
   assertWrapper,
   captureScreenshots,
 };

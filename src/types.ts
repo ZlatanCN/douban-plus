@@ -54,6 +54,16 @@ type Photo = {
   link: string;
 };
 
+/** Return type of extractTrailers() */
+type Trailer = {
+  /** Thumbnail image URL from background-image CSS */
+  thumbUrl: string;
+  /** URL to the trailer page on Douban (e.g. /trailer/324711/) */
+  trailerPageUrl: string;
+  /** Title text (e.g. "预告片", "预告片1") */
+  title: string;
+};
+
 /** Return type of extractRecommendations() */
 type Recommendation = {
   title: string;
@@ -105,6 +115,7 @@ type DoubanData = {
   info: InfoBlock;
   celebrities: Celebrity[];
   photos: Photo[];
+  trailers: Trailer[];
   recommendations: Recommendation[];
   comments: Comment[];
   awards: Award[];
@@ -173,5 +184,6 @@ export type {
   Recommendation,
   Streaming,
   TitleInfo,
+  Trailer,
 };
 export { INTEREST_LABELS };

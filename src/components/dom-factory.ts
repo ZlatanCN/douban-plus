@@ -45,7 +45,9 @@ type ElementTagMap = {
   p: HTMLParagraphElement;
   section: HTMLElement;
   span: HTMLSpanElement;
+  style: HTMLStyleElement;
   textarea: HTMLTextAreaElement;
+  video: HTMLVideoElement;
 };
 
 const el = <K extends keyof ElementTagMap>(

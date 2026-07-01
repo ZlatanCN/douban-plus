@@ -29,6 +29,8 @@ import {
   assertPhotos,
   assertPosterModal,
   assertRating,
+  assertTrailerTile,
+  assertVideoModal,
   assertRatingCorrect,
   assertRecommendations,
   assertRoot,
@@ -129,6 +131,8 @@ const executeBody = async (
   await assertTVStreamingPopup(ctx);
   await assertAwards(ctx);
   await assertPosterModal(ctx);
+  await assertTrailerTile(ctx);
+  await assertVideoModal(ctx);
 
   /* ── Phase 6: Screenshots ── */
   await captureScreenshots(ctx);
