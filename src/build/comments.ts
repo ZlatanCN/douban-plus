@@ -36,7 +36,10 @@ const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
   inner.append(close);
 
   const top = el("div", { className: "atv-comment-overlay-top" });
-  const avatar = el("div", { className: "atv-comment-overlay-avatar" });
+  const avatar = el("div", {
+    attrs: comment.cid ? { "data-cid": comment.cid } : undefined,
+    className: "atv-comment-overlay-avatar",
+  });
   if (comment.avatar) {
     avatar.style.backgroundImage = `url("${comment.avatar}")`;
   } else {
@@ -163,7 +166,10 @@ const buildComments = (
   const grid = el("div", { className: "atv-comments" });
   const pending: { card: HTMLElement; body: HTMLElement }[] = [];
   for (const c of data.comments) {
-    const card = el("div", { className: "atv-comment-card" });
+    const card = el("div", {
+      attrs: c.cid ? { "data-cid": c.cid } : undefined,
+      className: "atv-comment-card",
+    });
 
     const top = el("div", { className: "atv-comment-top" });
     const avatar = el("div", { className: "atv-comment-avatar" });

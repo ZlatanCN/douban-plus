@@ -1,4 +1,5 @@
 import "./styles.css";
+import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
 import {
   buildCast,
@@ -103,6 +104,7 @@ const render = (): void => {
   const comments = buildComments(data, (cid) => postVote(cid, data.subjectId));
   if (comments) {
     root.append(comments);
+    resolveCommentAvatars(data.comments);
   }
 
   const recs = buildRecs(data.recommendations);
