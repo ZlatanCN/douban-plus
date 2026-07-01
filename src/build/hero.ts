@@ -1,10 +1,4 @@
-import { postInterest, removeInterest } from "../api/interest";
-import {
-  el,
-  renderStars,
-  openPosterModal,
-  openInterestModal,
-} from "../components";
+import { el, renderStars, openPosterModal } from "../components";
 import {
   ICON_CHECK,
   ICON_CHEVRON,
@@ -15,8 +9,7 @@ import {
   ICON_THUMB,
   RE_SEASON_SUFFIX,
 } from "../constants";
-import { findInterestButtons } from "../extract";
-import type { DoubanData, ModalCallbacks, Photo } from "../types";
+import type { HeroData, HeroCallbacks, InterestState, Photo } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
 
@@ -37,7 +30,7 @@ const pickStill = (photos: Photo[], seed: string): Photo | null => {
  * Build the hero background: gradient overlay + blurred still image
  * with progressive loading (thumb → HD).
  */
-const buildHeroBg = (data: DoubanData): HTMLElement => {
+const buildHeroBg = (data: HeroData): HTMLElement => {
   const bg = el("div", { className: "atv-hero-bg" });
   const still = pickStill(data.photos, data.subjectId);
 
@@ -86,7 +79,7 @@ const buildHeroBg = (data: DoubanData): HTMLElement => {
   return bg;
 };
 
-const buildPosterCard = (data: DoubanData): HTMLElement => {
+const buildPosterCard = (data: HeroData): HTMLElement => {
   const card = el("div", { className: "atv-poster-card" });
   if (data.poster) {
     const img = el("img", {
@@ -119,7 +112,7 @@ const buildPosterCard = (data: DoubanData): HTMLElement => {
   return card;
 };
 
-const buildMeta = (data: DoubanData): HTMLElement => {
+const buildMeta = (data: HeroData): HTMLElement => {
   const meta = el("div", { className: "atv-hero-meta" });
   const metaParts: string[] = [];
   if (data.year) {
@@ -163,7 +156,7 @@ const buildMeta = (data: DoubanData): HTMLElement => {
   return meta;
 };
 
-const buildRatingRow = (data: DoubanData): HTMLElement => {
+const buildRatingRow = (data: HeroData): HTMLElement => {
   const ratingRow = el("div", { className: "atv-rating-row" });
   if (data.rating) {
     ratingRow.append(
@@ -207,7 +200,6 @@ const makeInterestBtn = (
 /** Add a "在看" button before "看过" when hasWatching (TV series) */
 const addWatchingBtn = (actions: HTMLElement, onClick: () => void): void => {
   const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
-  // Insert before the last button (看过)
   const seenBtn = actions.lastElementChild;
   if (seenBtn) {
     seenBtn.before(btn);
@@ -216,44 +208,25 @@ const addWatchingBtn = (actions: HTMLElement, onClick: () => void): void => {
   }
 };
 
-const buildActions = (data: DoubanData): HTMLElement => {
-  const state = data.interest;
+const buildActions = (
+  state: InterestState,
+  callbacks: HeroCallbacks
+): HTMLElement => {
   const actions = el("div", { className: "atv-actions" });
 
-  const modalCallbacks: ModalCallbacks = {
-    onRemove: async (status) => {
-      const result = await removeInterest(data.subjectId, status);
-      if (result.ok) {
-        location.reload();
-      }
-      return result;
-    },
-    onSave: async (form) => {
-      const result = await postInterest(data.subjectId, form.status, {
-        comment: form.comment,
-        rating: form.rating > 0 ? form.rating : undefined,
-      });
-      if (result.ok) {
-        location.reload();
-      }
-      return result;
-    },
-  };
-
   if (!state.loggedIn) {
-    const interest = findInterestButtons();
     actions.append(
-      makeInterestBtn("想看", "atv-btn atv-btn-primary", () =>
-        interest.wish?.click()
-      )
+      makeInterestBtn("想看", "atv-btn atv-btn-primary", callbacks.onWishClick)
     );
     actions.append(
-      makeInterestBtn("看过", "atv-btn atv-btn-secondary", () =>
-        interest.collect?.click()
+      makeInterestBtn(
+        "看过",
+        "atv-btn atv-btn-secondary",
+        callbacks.onCollectClick
       )
     );
     if (state.hasWatching) {
-      addWatchingBtn(actions, () => interest.do?.click());
+      addWatchingBtn(actions, callbacks.onWatchingClick);
     }
     return actions;
   }
@@ -261,23 +234,22 @@ const buildActions = (data: DoubanData): HTMLElement => {
   if (!state.marked) {
     actions.append(
       makeInterestBtn("想看", "atv-btn atv-btn-primary", () =>
-        openInterestModal(state, modalCallbacks)
+        callbacks.onOpenInterest(state)
       )
     );
     actions.append(
       makeInterestBtn("看过", "atv-btn atv-btn-secondary", () =>
-        openInterestModal(state, modalCallbacks)
+        callbacks.onOpenInterest(state)
       )
     );
     if (state.hasWatching) {
-      addWatchingBtn(actions, () => openInterestModal(state, modalCallbacks));
+      addWatchingBtn(actions, () => callbacks.onOpenInterest(state));
     }
     return actions;
   }
 
   const label = INTEREST_LABELS[state.status];
 
-  // Header: badge + stars + date + modify inline
   const header = el("div", { className: "atv-interest-panel-header" });
   header.append(
     el(
@@ -290,7 +262,7 @@ const buildActions = (data: DoubanData): HTMLElement => {
           "is-active",
           "atv-interest-badge",
         ],
-        onclick: () => openInterestModal(state, modalCallbacks),
+        onclick: () => callbacks.onOpenInterest(state),
       },
       [el("span", { html: ICON_CHECK }), el("span", { text: label })]
     )
@@ -337,7 +309,7 @@ const buildActions = (data: DoubanData): HTMLElement => {
  * Build the entire hero banner section — poster card, title, meta chips,
  * rating row, wish/seen buttons, summary teaser, and background.
  */
-const buildHero = (data: DoubanData): HTMLElement => {
+const buildHero = (data: HeroData, callbacks: HeroCallbacks): HTMLElement => {
   const hero = el("section", { className: "atv-hero" });
 
   hero.append(buildHeroBg(data));
@@ -366,11 +338,9 @@ const buildHero = (data: DoubanData): HTMLElement => {
   info.append(buildMeta(data));
   info.append(buildRatingRow(data));
 
-  const actions = buildActions(data);
+  const actions = buildActions(data.interest, callbacks);
   info.append(actions);
 
-  // Summary inside info column, right below actions.
-  // Expansion grows info downward; poster stays top-aligned via flex row — zero jitter.
   if (data.summary) {
     const summary = el("div", { className: "atv-hero-summary" });
 

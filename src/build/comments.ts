@@ -1,6 +1,6 @@
 import { el, renderStars } from "../components";
 import { ICON_EXPAND, ICON_THUMB } from "../constants";
-import type { Comment, DoubanData } from "../types";
+import type { Comment, CommentsData } from "../types";
 import { buildSection } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
@@ -157,7 +157,7 @@ const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
 /* ── buildComments ────────────────────────────────────── */
 
 const buildComments = (
-  data: DoubanData,
+  data: CommentsData,
   onVote: VoteCallback
 ): HTMLElement | null => {
   if (!data.comments?.length) {

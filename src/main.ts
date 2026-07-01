@@ -1,6 +1,7 @@
 import "./styles.css";
 import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
+import { postInterest, removeInterest } from "./api/interest";
 import {
   buildCast,
   buildComments,
@@ -11,7 +12,7 @@ import {
   buildStickyNav,
   buildStreaming,
 } from "./build";
-import { el } from "./components";
+import { el, openInterestModal } from "./components";
 import {
   extractAwards,
   extractCelebrities,
@@ -28,8 +29,64 @@ import {
   extractSummary,
   extractTitle,
   extractYear,
+  findInterestButtons,
 } from "./extract";
-import type { DoubanData } from "./types";
+import type { DoubanData, HeroCallbacks, NavSection } from "./types";
+
+/* ── Compute which nav sections have content ──────────── */
+
+const computeNavSections = (data: DoubanData): NavSection[] => {
+  const sections: NavSection[] = [];
+  if (data.streaming.length > 0) {
+    sections.push({ id: "atv-stream", label: "在哪儿看" });
+  }
+  if (data.celebrities.length > 0) {
+    sections.push({ id: "atv-cast", label: "演职员" });
+  }
+  if (data.photos.length > 0 || data.trailers.length > 0) {
+    sections.push({ id: "atv-photos", label: "剧照" });
+  }
+  if (data.comments.length > 0) {
+    sections.push({ id: "atv-comments", label: "短评" });
+  }
+  if (data.recommendations.length > 0) {
+    sections.push({ id: "atv-recs", label: "相似作品" });
+  }
+  sections.push({ id: "atv-info", label: "详情" });
+  return sections;
+};
+
+/* ── Wire hero callbacks (replaces direct api/extract imports in hero.ts) ── */
+
+const buildHeroCallbacks = (subjectId: string): HeroCallbacks => {
+  const interestBtns = findInterestButtons();
+  return {
+    onCollectClick: () => interestBtns.collect?.click(),
+    onOpenInterest: (state) => {
+      openInterestModal(state, {
+        onRemove: async (status) => {
+          const result = await removeInterest(subjectId, status);
+          if (result.ok) {
+            location.reload();
+          }
+          return result;
+        },
+        onSave: async (form) => {
+          const result = await postInterest(subjectId, form.status, {
+            comment: form.comment,
+            rating: form.rating > 0 ? form.rating : undefined,
+          });
+          if (result.ok) {
+            location.reload();
+          }
+          return result;
+        },
+      });
+    },
+    onWatchingClick: () => interestBtns.do?.click(),
+    onWishClick: () => interestBtns.wish?.click(),
+  };
+};
 
 const render = (): void => {
   if (document.querySelector("#atv-douban-root")) {
@@ -80,28 +137,58 @@ const render = (): void => {
     (data.year ? ` (${data.year})` : "")
   } · 豆瓣`;
 
-  const stickyNav = buildStickyNav(data);
+  const sections = computeNavSections(data);
+
+  const stickyNav = buildStickyNav({
+    sections,
+    title: { full: data.title.full, primary: data.title.primary },
+  });
+
+  const heroCallbacks = buildHeroCallbacks(data.subjectId);
 
   /* ── Append sections in order ───────────────────────── */
 
-  root.append(buildHero(data));
+  root.append(
+    buildHero(
+      {
+        info: data.info,
+        interest: data.interest,
+        isTV: data.isTV,
+        photos: data.photos,
+        poster: data.poster,
+        rating: data.rating,
+        subjectId: data.subjectId,
+        summary: data.summary,
+        title: data.title,
+        year: data.year,
+      },
+      heroCallbacks
+    )
+  );
 
   const streaming = buildStreaming(data.streaming);
   if (streaming) {
     root.append(streaming);
   }
 
-  const cast = buildCast(data);
+  const cast = buildCast(data.celebrities);
   if (cast) {
     root.append(cast);
   }
 
-  const photos = buildPhotos(data);
+  const photos = buildPhotos({
+    photos: data.photos,
+    subjectId: data.subjectId,
+    trailers: data.trailers,
+  });
   if (photos) {
     root.append(photos);
   }
 
-  const comments = buildComments(data, (cid) => postVote(cid, data.subjectId));
+  const comments = buildComments(
+    { comments: data.comments, subjectId: data.subjectId },
+    (cid) => postVote(cid, data.subjectId)
+  );
   if (comments) {
     root.append(comments);
     resolveCommentAvatars(data.comments);
@@ -112,7 +199,11 @@ const render = (): void => {
     root.append(recs);
   }
 
-  const details = buildDetails(data);
+  const details = buildDetails({
+    awards: data.awards,
+    info: data.info,
+    isTV: data.isTV,
+  });
   if (details) {
     root.append(details);
   }

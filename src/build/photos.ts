@@ -1,8 +1,8 @@
 import { el, openPosterModal, openVideoModal } from "../components";
-import type { DoubanData } from "../types";
+import type { PhotosData } from "../types";
 import { buildSection } from "./sections";
 
-const buildPhotos = (data: DoubanData): HTMLElement | null => {
+const buildPhotos = (data: PhotosData): HTMLElement | null => {
   if (!data.photos?.length && !data.trailers?.length) {
     return null;
   }

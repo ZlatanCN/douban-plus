@@ -631,6 +631,726 @@
 		document.body.style.overflow = "hidden";
 		requestAnimationFrame(() => overlay.classList.add("is-open"));
 	};
+	var hashStr = (str) => {
+		let h = 0;
+		for (let i = 0; i < str.length; i += 1) h = (h * 31 + (str.codePointAt(i) ?? 0)) % 1000000007;
+		return h;
+	};
+	var pickStill = (photos, seed) => {
+		if (!photos?.length) return null;
+		return photos[hashStr(String(seed || "")) % photos.length];
+	};
+	var buildHeroBg = (data) => {
+		const bg = el("div", { className: "atv-hero-bg" });
+		const still = pickStill(data.photos, data.subjectId);
+		if (still?.hdUrl) {
+			const thumb = el("div", { className: "atv-hero-still is-thumb" });
+			thumb.style.backgroundImage = `url("${still.thumbUrl || still.hdUrl}")`;
+			bg.append(thumb);
+			const hd = el("div", { className: "atv-hero-still is-hd" });
+			hd.setAttribute("aria-hidden", "true");
+			bg.append(hd);
+			const loader = new Image();
+			loader.addEventListener("load", () => {
+				hd.style.backgroundImage = `url("${still.hdUrl}")`;
+				requestAnimationFrame(() => hd.classList.add("is-loaded"));
+			}, { once: true });
+			loader.addEventListener("error", (e) => {
+				console.error("[Hero] HD still FAILED:", still.hdUrl, e);
+				if (still.thumbUrl && still.thumbUrl !== still.hdUrl) {
+					hd.style.backgroundImage = `url("${still.thumbUrl}")`;
+					requestAnimationFrame(() => hd.classList.add("is-loaded"));
+				}
+			}, { once: true });
+			loader.src = still.hdUrl;
+			return bg;
+		}
+		if (data.poster) {
+			const poster = el("div", { className: "atv-hero-still is-poster" });
+			poster.style.backgroundImage = `url("${data.poster}")`;
+			bg.append(poster);
+			return bg;
+		}
+		bg.style.background = "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)";
+		return bg;
+	};
+	var buildPosterCard = (data) => {
+		const card = el("div", { className: "atv-poster-card" });
+		if (data.poster) {
+			const img = el("img", {
+				alt: data.title.primary || "",
+				src: data.poster
+			});
+			img.addEventListener("error", (e) => {
+				console.error("[buildHero] Poster card img FAILED:", data.poster, e);
+				card.innerHTML = "";
+				const ph = el("div", {
+					className: "atv-poster-placeholder",
+					html: ICON_FILM_PLACEHOLDER
+				});
+				card.append(ph);
+			});
+			card.append(img);
+		} else card.append(el("div", {
+			className: "atv-poster-placeholder",
+			html: ICON_FILM_PLACEHOLDER
+		}));
+		card.addEventListener("click", () => {
+			if (data.poster) openPosterModal(data.poster, data.title.primary || "");
+		});
+		return card;
+	};
+	var buildMeta = (data) => {
+		const meta = el("div", { className: "atv-hero-meta" });
+		const metaParts = [];
+		if (data.year) metaParts.push(data.year);
+		if (data.isTV) {
+			const seg = [];
+			if (data.info.seasons) seg.push(data.info.seasons + (RE_SEASON_SUFFIX.test(data.info.seasons) ? "季" : ""));
+			if (data.info.episodes) seg.push(data.info.episodes + (RE_SEASON_SUFFIX.test(data.info.episodes) ? "集" : ""));
+			if (seg.length) metaParts.push(seg.join(" · "));
+			else if (data.info.episodeRuntime) metaParts.push(data.info.episodeRuntime);
+		} else if (data.info.runtime) metaParts.push(data.info.runtime);
+		if (data.info.country) metaParts.push(data.info.country);
+		for (const part of metaParts) meta.append(el("span", {
+			className: "atv-meta-dot",
+			text: part
+		}));
+		if (data.info.genres?.length) {
+			const chips = el("span", { className: "atv-meta-chips" });
+			for (const g of data.info.genres) chips.append(el("span", {
+				className: "atv-chip",
+				text: g
+			}));
+			meta.append(chips);
+		}
+		return meta;
+	};
+	var buildRatingRow = (data) => {
+		const ratingRow = el("div", { className: "atv-rating-row" });
+		if (data.rating) {
+			ratingRow.append(el("div", {
+				className: "atv-rating-score",
+				text: data.rating.score.toFixed(1)
+			}));
+			const ratingMeta = el("div", { className: "atv-rating-meta" });
+			ratingMeta.append(renderStars(data.rating.score));
+			const countTxt = data.rating.count ? `评价 ${data.rating.count.toLocaleString("en-US")}` : "已评分";
+			ratingMeta.append(el("div", {
+				className: "atv-rating-count",
+				text: countTxt
+			}));
+			ratingRow.append(ratingMeta);
+		} else ratingRow.append(el("div", {
+			className: "atv-rating-empty",
+			text: "暂无评分"
+		}));
+		return ratingRow;
+	};
+	var makeInterestBtn = (text, cls, onClick) => {
+		const btn = el("button", {
+			attrs: { type: "button" },
+			className: cls
+		}, [el("span", { html: text === "想看" ? ICON_PLAY : ICON_CHECK }), el("span", { text })]);
+		btn.addEventListener("click", onClick);
+		return btn;
+	};
+	var addWatchingBtn = (actions, onClick) => {
+		const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
+		const seenBtn = actions.lastElementChild;
+		if (seenBtn) seenBtn.before(btn);
+		else actions.append(btn);
+	};
+	var buildActions = (state, callbacks) => {
+		const actions = el("div", { className: "atv-actions" });
+		if (!state.loggedIn) {
+			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", callbacks.onWishClick));
+			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", callbacks.onCollectClick));
+			if (state.hasWatching) addWatchingBtn(actions, callbacks.onWatchingClick);
+			return actions;
+		}
+		if (!state.marked) {
+			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", () => callbacks.onOpenInterest(state)));
+			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", () => callbacks.onOpenInterest(state)));
+			if (state.hasWatching) addWatchingBtn(actions, () => callbacks.onOpenInterest(state));
+			return actions;
+		}
+		const label = INTEREST_LABELS[state.status];
+		const header = el("div", { className: "atv-interest-panel-header" });
+		header.append(el("button", {
+			attrs: { type: "button" },
+			className: [
+				"atv-btn",
+				"atv-btn-primary",
+				"is-active",
+				"atv-interest-badge"
+			],
+			onclick: () => callbacks.onOpenInterest(state)
+		}, [el("span", { html: ICON_CHECK }), el("span", { text: label })]));
+		if (state.rating > 0) {
+			const starHtml = Array.from({ length: 5 }, (_, i) => i < state.rating ? ICON_STAR_FULL : ICON_STAR_EMPTY).join("");
+			header.append(el("span", {
+				className: "atv-interest-panel-stars",
+				html: starHtml
+			}));
+		}
+		if (state.date) header.append(el("span", {
+			className: "atv-interest-panel-date",
+			text: state.date
+		}));
+		const panel = el("div", { className: "atv-interest-panel" }, [header]);
+		if (state.comment) {
+			const commentChildren = [el("span", { text: `"${state.comment}"` })];
+			if (state.usefulCount) {
+				const num = state.usefulCount.replaceAll(/\D/gu, "");
+				commentChildren.push(el("span", { className: "atv-useful-badge" }, [el("span", { html: ICON_THUMB }), el("span", { text: num })]));
+			}
+			panel.append(el("div", { className: "atv-interest-panel-comment" }, commentChildren));
+		}
+		actions.append(panel);
+		return actions;
+	};
+	var buildHero = (data, callbacks) => {
+		const hero = el("section", { className: "atv-hero" });
+		hero.append(buildHeroBg(data));
+		hero.append(el("div", { className: "atv-hero-vignette" }));
+		hero.append(el("div", { className: "atv-hero-overlay-x" }));
+		hero.append(el("div", { className: "atv-hero-overlay-y" }));
+		const innerSection = el("div", { className: "atv-hero-inner-section" });
+		const inner = el("div", { className: "atv-hero-inner" });
+		inner.append(buildPosterCard(data));
+		const info = el("div", { className: "atv-hero-info" });
+		const title = el("h1", {
+			className: "atv-hero-title",
+			text: data.title.primary || data.title.full
+		});
+		info.append(title);
+		if (data.title.original) info.append(el("div", {
+			className: "atv-hero-orig",
+			text: data.title.original
+		}));
+		info.append(buildMeta(data));
+		info.append(buildRatingRow(data));
+		const actions = buildActions(data.interest, callbacks);
+		info.append(actions);
+		if (data.summary) {
+			const summary = el("div", { className: "atv-hero-summary" });
+			const teaser = el("p", {
+				className: "atv-hero-teaser is-clamped",
+				text: data.summary
+			});
+			summary.append(teaser);
+			const more = el("button", {
+				attrs: { type: "button" },
+				className: "atv-hero-more"
+			});
+			const moreLabel = el("span", { text: "展开" });
+			more.append(moreLabel);
+			more.append(el("span", { html: ICON_CHEVRON }));
+			more.addEventListener("click", () => {
+				const open = !teaser.classList.toggle("is-clamped");
+				more.classList.toggle("is-open", open);
+				moreLabel.textContent = open ? "收起" : "展开";
+			});
+			requestAnimationFrame(() => {
+				if (!(teaser.scrollHeight - teaser.clientHeight > 4)) more.style.display = "none";
+			});
+			summary.append(more);
+			info.append(summary);
+		}
+		inner.append(info);
+		innerSection.append(inner);
+		hero.append(innerSection);
+		return hero;
+	};
+	var buildSectionHeader = (text) => el("h2", {
+		className: "atv-section-h",
+		text
+	});
+	var buildSectionHeaderRow = (text, moreText, moreHref) => {
+		const row = el("div", { className: "atv-section-h-row" });
+		row.append(buildSectionHeader(text));
+		if (moreText && moreHref) row.append(el("a", {
+			className: "atv-section-more",
+			href: moreHref,
+			rel: "noopener",
+			target: "_blank",
+			text: moreText
+		}));
+		return row;
+	};
+	var buildSection = (id, headerText, content, options) => {
+		const sec = el("section", {
+			className: "atv-section",
+			id
+		});
+		if (options?.moreLink) sec.append(buildSectionHeaderRow(headerText, options.moreLink.text, options.moreLink.href));
+		else sec.append(buildSectionHeader(headerText));
+		sec.append(content);
+		return sec;
+	};
+	var buildStreaming = (streaming) => {
+		if (!streaming?.length) return null;
+		const row = el("div", { className: "atv-stream-row" });
+		for (const s of streaming) {
+			const card = el("a", {
+				className: "atv-stream-card",
+				href: s.href,
+				rel: "noopener",
+				target: "_blank"
+			});
+			card.append(el("span", { text: s.name }));
+			card.append(el("span", {
+				className: "atv-stream-arrow",
+				html: ICON_ARROW
+			}));
+			row.append(card);
+		}
+		return buildSection("atv-stream", "在哪儿看", row);
+	};
+	var openCommentOverlay = (comment, onVote) => {
+		const old = document.querySelector("#atv-comment-overlay");
+		if (old) old.remove();
+		const overlay = el("div", {
+			className: "atv-comment-overlay",
+			id: "atv-comment-overlay"
+		});
+		const inner = el("div", { className: "atv-comment-overlay-inner" });
+		const accent = el("div", { className: "atv-comment-overlay-accent" });
+		inner.append(accent);
+		const close = el("button", {
+			attrs: { type: "button" },
+			className: "atv-comment-overlay-close",
+			html: "<svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M6 6l12 12M18 6l-12 12\"/></svg>"
+		});
+		inner.append(close);
+		const top = el("div", { className: "atv-comment-overlay-top" });
+		const avatar = el("div", {
+			attrs: comment.cid ? { "data-cid": comment.cid } : void 0,
+			className: "atv-comment-overlay-avatar"
+		});
+		if (comment.avatar) avatar.style.backgroundImage = `url("${comment.avatar}")`;
+		else avatar.textContent = (comment.name || "?").slice(0, 1).toUpperCase();
+		top.append(avatar);
+		const meta = el("div", { className: "atv-comment-overlay-meta" });
+		const author = el(comment.link ? "a" : "div", {
+			className: "atv-comment-overlay-author",
+			href: comment.link || void 0,
+			rel: comment.link ? "noopener" : void 0,
+			target: comment.link ? "_blank" : void 0,
+			text: comment.name
+		});
+		meta.append(author);
+		if (comment.stars > 0) meta.append(renderStars(comment.stars, {
+			className: "atv-comment-overlay-stars",
+			outOfFive: true
+		}));
+		top.append(meta);
+		inner.append(top);
+		const body = el("div", {
+			className: "atv-comment-overlay-body",
+			text: comment.content
+		});
+		inner.append(body);
+		const foot = el("div", { className: "atv-comment-overlay-foot" });
+		foot.append(el("span", {
+			className: "atv-comment-overlay-time",
+			text: comment.time || ""
+		}));
+		const voteBtn = el("button", {
+			attrs: { type: "button" },
+			className: "atv-comment-overlay-votes"
+		});
+		const voteIcon = el("span", { html: ICON_THUMB });
+		const voteCount = el("span", { text: String(comment.votes) });
+		voteBtn.append(voteIcon, voteCount);
+		let count = comment.votes;
+		let { voted } = comment;
+		if (voted) voteBtn.classList.add("is-voted");
+		const animateBtn = () => {
+			voteBtn.style.transform = "scale(1.2)";
+			requestAnimationFrame(() => {
+				voteBtn.style.transform = "";
+			});
+		};
+		voteBtn.addEventListener("click", async () => {
+			if (voted || !comment.cid) return;
+			voted = true;
+			count += 1;
+			voteCount.textContent = String(count);
+			voteBtn.classList.add("is-voted");
+			animateBtn();
+			const result = await onVote(comment.cid);
+			if (result.ok && result.count !== void 0) {
+				({count} = result);
+				voteCount.textContent = String(count);
+			} else {
+				voted = false;
+				count -= 1;
+				voteCount.textContent = String(count);
+				voteBtn.classList.remove("is-voted");
+			}
+		});
+		foot.append(voteBtn);
+		inner.append(foot);
+		overlay.append(inner);
+		const dismiss = () => {
+			overlay.classList.remove("is-open");
+			document.body.style.overflow = "";
+			setTimeout(() => {
+				overlay.remove();
+			}, 350);
+		};
+		close.addEventListener("click", dismiss);
+		overlay.addEventListener("click", (e) => {
+			if (e.target === overlay) dismiss();
+		});
+		document.addEventListener("keydown", function handler(e) {
+			if (e.key === "Escape") {
+				dismiss();
+				document.removeEventListener("keydown", handler);
+			}
+		});
+		document.body.append(overlay);
+		document.body.style.overflow = "hidden";
+		requestAnimationFrame(() => overlay.classList.add("is-open"));
+	};
+	var buildComments = (data, onVote) => {
+		if (!data.comments?.length) return null;
+		const grid = el("div", { className: "atv-comments" });
+		const pending = [];
+		for (const c of data.comments) {
+			const card = el("div", {
+				attrs: c.cid ? { "data-cid": c.cid } : void 0,
+				className: "atv-comment-card"
+			});
+			const top = el("div", { className: "atv-comment-top" });
+			const avatar = el("div", { className: "atv-comment-avatar" });
+			if (c.avatar) avatar.style.backgroundImage = `url("${c.avatar}")`;
+			else avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
+			top.append(avatar);
+			const metaCol = el("div", { className: "atv-comment-meta" });
+			const author = el(c.link ? "a" : "div", {
+				className: "atv-comment-author",
+				href: c.link || void 0,
+				rel: c.link ? "noopener" : void 0,
+				target: c.link ? "_blank" : void 0,
+				text: c.name
+			});
+			metaCol.append(author);
+			if (c.stars > 0) metaCol.append(renderStars(c.stars, {
+				className: "atv-comment-stars",
+				outOfFive: true
+			}));
+			top.append(metaCol);
+			card.append(top);
+			const body = el("div", {
+				className: "atv-comment-body",
+				text: c.content
+			});
+			card.append(body);
+			const foot = el("div", { className: "atv-comment-foot" });
+			foot.append(el("span", { text: c.time || "" }));
+			const footRight = el("div", { className: "atv-comment-foot-right" });
+			const expandBtn = el("button", {
+				attrs: { type: "button" },
+				className: "atv-comment-expand",
+				html: ICON_EXPAND
+			});
+			const voteBtn = el("button", {
+				attrs: { type: "button" },
+				className: "atv-comment-votes"
+			});
+			const voteIcon = el("span", { html: ICON_THUMB });
+			const voteCount = el("span", { text: String(c.votes) });
+			voteBtn.append(voteIcon, voteCount);
+			let count = c.votes;
+			let { voted } = c;
+			if (voted) voteBtn.classList.add("is-voted");
+			const animateBtn = () => {
+				voteBtn.style.transform = "scale(1.2)";
+				requestAnimationFrame(() => {
+					voteBtn.style.transform = "";
+				});
+			};
+			voteBtn.addEventListener("click", async () => {
+				if (voted || !c.cid) return;
+				voted = true;
+				count += 1;
+				voteCount.textContent = String(count);
+				voteBtn.classList.add("is-voted");
+				animateBtn();
+				const result = await onVote(c.cid);
+				if (result.ok && result.count !== void 0) {
+					({count} = result);
+					voteCount.textContent = String(count);
+				} else {
+					voted = false;
+					count -= 1;
+					voteCount.textContent = String(count);
+					voteBtn.classList.remove("is-voted");
+				}
+			});
+			footRight.append(expandBtn, voteBtn);
+			foot.append(footRight);
+			card.append(foot);
+			const showOverlay = () => {
+				openCommentOverlay(c, onVote);
+			};
+			expandBtn.addEventListener("click", (e) => {
+				e.stopPropagation();
+				showOverlay();
+			});
+			body.addEventListener("click", () => {
+				if (body.scrollHeight > body.clientHeight) showOverlay();
+			});
+			grid.append(card);
+			pending.push({
+				body,
+				card
+			});
+		}
+		setTimeout(() => {
+			requestAnimationFrame(() => {
+				for (const { card, body: b } of pending) if (b.scrollHeight > b.clientHeight) card.classList.add("has-overflow");
+			});
+		}, 0);
+		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P` : "";
+		return buildSection("atv-comments", "热门短评", grid, { moreLink: allHref ? {
+			href: allHref,
+			text: "查看全部 →"
+		} : void 0 });
+	};
+	var buildCast = (celebrities) => {
+		if (!celebrities?.length) return null;
+		const carousel = el("div", { className: "atv-carousel atv-cast-carousel" });
+		for (const c of celebrities) {
+			const card = el(c.link ? "a" : "div", {
+				className: "atv-cast-card",
+				href: c.link || void 0,
+				rel: c.link ? "noopener" : void 0,
+				target: c.link ? "_blank" : void 0
+			});
+			const av = el("div", { className: "atv-cast-avatar" });
+			if (c.avatar) av.style.backgroundImage = `url("${c.avatar}")`;
+			card.append(av);
+			card.append(el("div", {
+				className: "atv-cast-name",
+				text: c.name
+			}));
+			if (c.role) card.append(el("div", {
+				className: "atv-cast-role",
+				text: c.role
+			}));
+			carousel.append(card);
+		}
+		return buildSection("atv-cast", "演职员", carousel);
+	};
+	var buildPhotos = (data) => {
+		if (!data.photos?.length && !data.trailers?.length) return null;
+		const carousel = el("div", { className: "atv-carousel atv-photos" });
+		for (const t of data.trailers) {
+			const tile = el("div", { className: "atv-photo-tile atv-trailer-tile" });
+			tile.style.backgroundImage = `url("${t.thumbUrl}")`;
+			tile.style.backgroundSize = "cover";
+			tile.style.backgroundPosition = "center";
+			tile.addEventListener("click", () => openVideoModal(t));
+			const playOverlay = el("div", { className: "atv-trailer-play-overlay" });
+			const playBtn = el("div", { className: "atv-trailer-play-btn" });
+			playBtn.innerHTML = "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\" fill=\"white\" stroke=\"none\"/></svg>";
+			playOverlay.append(playBtn);
+			tile.append(playOverlay);
+			const label = el("span", {
+				className: "atv-trailer-label",
+				text: t.title || "预告片"
+			});
+			tile.append(label);
+			carousel.append(tile);
+		}
+		for (const p of data.photos) {
+			const tile = el("div", { className: "atv-photo-tile" });
+			tile.addEventListener("click", () => {
+				openPosterModal(p.hdUrl || p.thumbUrl, "剧照");
+			});
+			const img = el("img", {
+				alt: "剧照",
+				src: p.hdUrl || p.thumbUrl
+			});
+			img.loading = "lazy";
+			img.addEventListener("error", () => {
+				if (p.thumbUrl && img.src !== p.thumbUrl) img.src = p.thumbUrl;
+			}, { once: true });
+			img.addEventListener("load", () => {
+				if (img.naturalHeight > img.naturalWidth) tile.classList.add("is-portrait");
+			}, { once: true });
+			tile.append(img);
+			carousel.append(tile);
+		}
+		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/all_photos` : "";
+		return buildSection("atv-photos", "剧照", carousel, { moreLink: allHref ? {
+			href: allHref,
+			text: "查看全部 →"
+		} : void 0 });
+	};
+	var buildRecs = (recommendations) => {
+		if (!recommendations?.length) return null;
+		const grid = el("div", { className: "atv-recs" });
+		for (const r of recommendations) {
+			const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
+			if (r.link && card instanceof HTMLAnchorElement) {
+				card.href = r.link;
+				card.target = "_blank";
+				card.rel = "noopener";
+			}
+			const posterWrap = el("div", { className: "atv-rec-poster" });
+			if (r.poster) {
+				const img = el("img", {
+					alt: r.title,
+					src: r.poster
+				});
+				img.loading = "lazy";
+				img.addEventListener("error", () => {
+					posterWrap.innerHTML = "";
+					posterWrap.append(el("div", {
+						className: "atv-poster-placeholder",
+						html: ICON_FILM_PLACEHOLDER
+					}));
+				}, { once: true });
+				posterWrap.append(img);
+			} else posterWrap.append(el("div", {
+				className: "atv-poster-placeholder",
+				html: ICON_FILM_PLACEHOLDER
+			}));
+			card.append(posterWrap);
+			card.append(el("div", {
+				className: "atv-rec-title",
+				text: r.title
+			}));
+			grid.append(card);
+		}
+		return buildSection("atv-recs", "相似作品", grid);
+	};
+	var linksValue = (arr) => {
+		const wrap = el("div", { className: "atv-info-value" });
+		for (let i = 0; i < arr.length; i += 1) {
+			const it = arr[i];
+			if (i > 0) wrap.append(el("span", { text: " / " }));
+			if (it.href) wrap.append(el("a", {
+				href: it.href,
+				rel: "noopener",
+				target: "_blank",
+				text: it.text
+			}));
+			else wrap.append(el("span", { text: it.text }));
+		}
+		return wrap;
+	};
+	var textValue = (txt) => el("div", {
+		className: "atv-info-value",
+		text: txt
+	});
+	var buildImdbRow = (imdb) => {
+		const wrap = el("div", { className: "atv-info-value" });
+		if (RE_IMDB_LINK.test(imdb)) wrap.append(el("a", {
+			href: `https://www.imdb.com/title/${imdb}/`,
+			rel: "noopener",
+			target: "_blank",
+			text: imdb
+		}, [el("span", { html: ICON_ARROW })]));
+		else wrap.textContent = imdb;
+		return wrap;
+	};
+	var addTimeRows = (isTV, info, addRow) => {
+		if (isTV) {
+			if (info.firstAired) addRow("首播", textValue(info.firstAired));
+			else if (info.releaseDate) addRow("首播", textValue(info.releaseDate));
+			if (info.seasons) addRow("季数", textValue(info.seasons));
+			if (info.episodes) addRow("集数", textValue(info.episodes));
+			if (info.episodeRuntime) addRow("单集片长", textValue(info.episodeRuntime));
+		} else {
+			if (info.releaseDate) addRow("上映日期", textValue(info.releaseDate));
+			if (info.runtime) addRow("片长", textValue(info.runtime));
+		}
+	};
+	var buildAwards = (awards, grid) => {
+		for (const a of awards) {
+			const value = el("div", { className: "atv-info-value" });
+			if (a.name) value.append(el("div", { text: a.name }));
+			if (a.person) {
+				const personLine = el("div", { attrs: { style: "font-size:13px;color:var(--atv-text-tertiary);margin-top:2px" } });
+				if (a.personLink) personLine.append(el("a", {
+					href: a.personLink,
+					rel: "noopener",
+					target: "_blank",
+					text: a.person
+				}));
+				else personLine.textContent = a.person;
+				value.append(personLine);
+			}
+			const label = el("div", {
+				attrs: { style: "color:var(--atv-rating-gold)" },
+				className: "atv-info-label"
+			});
+			if (a.orgLink) label.append(el("a", {
+				attrs: { style: "color:inherit" },
+				href: a.orgLink,
+				rel: "noopener",
+				target: "_blank",
+				text: a.org
+			}));
+			else label.textContent = a.org;
+			grid.append(label);
+			grid.append(value);
+		}
+	};
+	var buildDetails = (data) => {
+		const grid = el("div", { className: "atv-info-grid" });
+		const addRow = (label, valueNode) => {
+			grid.append(el("div", {
+				className: "atv-info-label",
+				text: label
+			}));
+			grid.append(valueNode);
+		};
+		const { info } = data;
+		if (info.director?.length) addRow("导演", linksValue(info.director));
+		if (info.writers?.length) addRow("编剧", linksValue(info.writers));
+		if (info.cast?.length) addRow("主演", linksValue(info.cast));
+		if (info.genres?.length) addRow("类型", textValue(info.genres.join(" / ")));
+		if (info.country) addRow("制片国家/地区", textValue(info.country));
+		if (info.language) addRow("语言", textValue(info.language));
+		addTimeRows(data.isTV, info, addRow);
+		if (info.aliases) addRow("又名", textValue(info.aliases));
+		if (info.imdb) addRow("IMDb", buildImdbRow(info.imdb));
+		if (data.awards?.length) buildAwards(data.awards, grid);
+		if (!grid.children.length) return null;
+		return buildSection("atv-info", "详细信息", grid);
+	};
+	var buildStickyNav = (data) => {
+		const nav = el("nav", { className: "atv-stickynav" });
+		nav.append(el("div", {
+			className: "atv-stickynav-title",
+			text: data.title.primary || data.title.full
+		}));
+		const wrap = el("div", { className: "atv-stickynav-jumps" });
+		for (const j of data.sections) {
+			const a = el("a", {
+				href: `#${j.id}`,
+				text: j.label
+			});
+			a.addEventListener("click", (e) => {
+				e.preventDefault();
+				const t = document.querySelector(`#${j.id}`);
+				if (t) t.scrollIntoView({
+					behavior: "smooth",
+					block: "start"
+				});
+			});
+			wrap.append(a);
+		}
+		nav.append(wrap);
+		return nav;
+	};
 	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
 	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
 	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
@@ -1073,767 +1793,58 @@
 		}
 		return out;
 	};
-	var hashStr = (str) => {
-		let h = 0;
-		for (let i = 0; i < str.length; i += 1) h = (h * 31 + (str.codePointAt(i) ?? 0)) % 1000000007;
-		return h;
-	};
-	var pickStill = (photos, seed) => {
-		if (!photos?.length) return null;
-		return photos[hashStr(String(seed || "")) % photos.length];
-	};
-	var buildHeroBg = (data) => {
-		const bg = el("div", { className: "atv-hero-bg" });
-		const still = pickStill(data.photos, data.subjectId);
-		if (still?.hdUrl) {
-			const thumb = el("div", { className: "atv-hero-still is-thumb" });
-			thumb.style.backgroundImage = `url("${still.thumbUrl || still.hdUrl}")`;
-			bg.append(thumb);
-			const hd = el("div", { className: "atv-hero-still is-hd" });
-			hd.setAttribute("aria-hidden", "true");
-			bg.append(hd);
-			const loader = new Image();
-			loader.addEventListener("load", () => {
-				hd.style.backgroundImage = `url("${still.hdUrl}")`;
-				requestAnimationFrame(() => hd.classList.add("is-loaded"));
-			}, { once: true });
-			loader.addEventListener("error", (e) => {
-				console.error("[Hero] HD still FAILED:", still.hdUrl, e);
-				if (still.thumbUrl && still.thumbUrl !== still.hdUrl) {
-					hd.style.backgroundImage = `url("${still.thumbUrl}")`;
-					requestAnimationFrame(() => hd.classList.add("is-loaded"));
-				}
-			}, { once: true });
-			loader.src = still.hdUrl;
-			return bg;
-		}
-		if (data.poster) {
-			const poster = el("div", { className: "atv-hero-still is-poster" });
-			poster.style.backgroundImage = `url("${data.poster}")`;
-			bg.append(poster);
-			return bg;
-		}
-		bg.style.background = "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)";
-		return bg;
-	};
-	var buildPosterCard = (data) => {
-		const card = el("div", { className: "atv-poster-card" });
-		if (data.poster) {
-			const img = el("img", {
-				alt: data.title.primary || "",
-				src: data.poster
-			});
-			img.addEventListener("error", (e) => {
-				console.error("[buildHero] Poster card img FAILED:", data.poster, e);
-				card.innerHTML = "";
-				const ph = el("div", {
-					className: "atv-poster-placeholder",
-					html: ICON_FILM_PLACEHOLDER
-				});
-				card.append(ph);
-			});
-			card.append(img);
-		} else card.append(el("div", {
-			className: "atv-poster-placeholder",
-			html: ICON_FILM_PLACEHOLDER
-		}));
-		card.addEventListener("click", () => {
-			if (data.poster) openPosterModal(data.poster, data.title.primary || "");
-		});
-		return card;
-	};
-	var buildMeta = (data) => {
-		const meta = el("div", { className: "atv-hero-meta" });
-		const metaParts = [];
-		if (data.year) metaParts.push(data.year);
-		if (data.isTV) {
-			const seg = [];
-			if (data.info.seasons) seg.push(data.info.seasons + (RE_SEASON_SUFFIX.test(data.info.seasons) ? "季" : ""));
-			if (data.info.episodes) seg.push(data.info.episodes + (RE_SEASON_SUFFIX.test(data.info.episodes) ? "集" : ""));
-			if (seg.length) metaParts.push(seg.join(" · "));
-			else if (data.info.episodeRuntime) metaParts.push(data.info.episodeRuntime);
-		} else if (data.info.runtime) metaParts.push(data.info.runtime);
-		if (data.info.country) metaParts.push(data.info.country);
-		for (const part of metaParts) meta.append(el("span", {
-			className: "atv-meta-dot",
-			text: part
-		}));
-		if (data.info.genres?.length) {
-			const chips = el("span", { className: "atv-meta-chips" });
-			for (const g of data.info.genres) chips.append(el("span", {
-				className: "atv-chip",
-				text: g
-			}));
-			meta.append(chips);
-		}
-		return meta;
-	};
-	var buildRatingRow = (data) => {
-		const ratingRow = el("div", { className: "atv-rating-row" });
-		if (data.rating) {
-			ratingRow.append(el("div", {
-				className: "atv-rating-score",
-				text: data.rating.score.toFixed(1)
-			}));
-			const ratingMeta = el("div", { className: "atv-rating-meta" });
-			ratingMeta.append(renderStars(data.rating.score));
-			const countTxt = data.rating.count ? `评价 ${data.rating.count.toLocaleString("en-US")}` : "已评分";
-			ratingMeta.append(el("div", {
-				className: "atv-rating-count",
-				text: countTxt
-			}));
-			ratingRow.append(ratingMeta);
-		} else ratingRow.append(el("div", {
-			className: "atv-rating-empty",
-			text: "暂无评分"
-		}));
-		return ratingRow;
-	};
-	var makeInterestBtn = (text, cls, onClick) => {
-		const btn = el("button", {
-			attrs: { type: "button" },
-			className: cls
-		}, [el("span", { html: text === "想看" ? ICON_PLAY : ICON_CHECK }), el("span", { text })]);
-		btn.addEventListener("click", onClick);
-		return btn;
-	};
-	var addWatchingBtn = (actions, onClick) => {
-		const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
-		const seenBtn = actions.lastElementChild;
-		if (seenBtn) seenBtn.before(btn);
-		else actions.append(btn);
-	};
-	var buildActions = (data) => {
-		const state = data.interest;
-		const actions = el("div", { className: "atv-actions" });
-		const modalCallbacks = {
-			onRemove: async (status) => {
-				const result = await removeInterest(data.subjectId, status);
-				if (result.ok) location.reload();
-				return result;
-			},
-			onSave: async (form) => {
-				const result = await postInterest(data.subjectId, form.status, {
-					comment: form.comment,
-					rating: form.rating > 0 ? form.rating : void 0
-				});
-				if (result.ok) location.reload();
-				return result;
-			}
-		};
-		if (!state.loggedIn) {
-			const interest = findInterestButtons();
-			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", () => interest.wish?.click()));
-			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", () => interest.collect?.click()));
-			if (state.hasWatching) addWatchingBtn(actions, () => interest.do?.click());
-			return actions;
-		}
-		if (!state.marked) {
-			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", () => openInterestModal(state, modalCallbacks)));
-			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", () => openInterestModal(state, modalCallbacks)));
-			if (state.hasWatching) addWatchingBtn(actions, () => openInterestModal(state, modalCallbacks));
-			return actions;
-		}
-		const label = INTEREST_LABELS[state.status];
-		const header = el("div", { className: "atv-interest-panel-header" });
-		header.append(el("button", {
-			attrs: { type: "button" },
-			className: [
-				"atv-btn",
-				"atv-btn-primary",
-				"is-active",
-				"atv-interest-badge"
-			],
-			onclick: () => openInterestModal(state, modalCallbacks)
-		}, [el("span", { html: ICON_CHECK }), el("span", { text: label })]));
-		if (state.rating > 0) {
-			const starHtml = Array.from({ length: 5 }, (_, i) => i < state.rating ? ICON_STAR_FULL : ICON_STAR_EMPTY).join("");
-			header.append(el("span", {
-				className: "atv-interest-panel-stars",
-				html: starHtml
-			}));
-		}
-		if (state.date) header.append(el("span", {
-			className: "atv-interest-panel-date",
-			text: state.date
-		}));
-		const panel = el("div", { className: "atv-interest-panel" }, [header]);
-		if (state.comment) {
-			const commentChildren = [el("span", { text: `"${state.comment}"` })];
-			if (state.usefulCount) {
-				const num = state.usefulCount.replaceAll(/\D/gu, "");
-				commentChildren.push(el("span", { className: "atv-useful-badge" }, [el("span", { html: ICON_THUMB }), el("span", { text: num })]));
-			}
-			panel.append(el("div", { className: "atv-interest-panel-comment" }, commentChildren));
-		}
-		actions.append(panel);
-		return actions;
-	};
-	var buildHero = (data) => {
-		const hero = el("section", { className: "atv-hero" });
-		hero.append(buildHeroBg(data));
-		hero.append(el("div", { className: "atv-hero-vignette" }));
-		hero.append(el("div", { className: "atv-hero-overlay-x" }));
-		hero.append(el("div", { className: "atv-hero-overlay-y" }));
-		const innerSection = el("div", { className: "atv-hero-inner-section" });
-		const inner = el("div", { className: "atv-hero-inner" });
-		inner.append(buildPosterCard(data));
-		const info = el("div", { className: "atv-hero-info" });
-		const title = el("h1", {
-			className: "atv-hero-title",
-			text: data.title.primary || data.title.full
-		});
-		info.append(title);
-		if (data.title.original) info.append(el("div", {
-			className: "atv-hero-orig",
-			text: data.title.original
-		}));
-		info.append(buildMeta(data));
-		info.append(buildRatingRow(data));
-		const actions = buildActions(data);
-		info.append(actions);
-		if (data.summary) {
-			const summary = el("div", { className: "atv-hero-summary" });
-			const teaser = el("p", {
-				className: "atv-hero-teaser is-clamped",
-				text: data.summary
-			});
-			summary.append(teaser);
-			const more = el("button", {
-				attrs: { type: "button" },
-				className: "atv-hero-more"
-			});
-			const moreLabel = el("span", { text: "展开" });
-			more.append(moreLabel);
-			more.append(el("span", { html: ICON_CHEVRON }));
-			more.addEventListener("click", () => {
-				const open = !teaser.classList.toggle("is-clamped");
-				more.classList.toggle("is-open", open);
-				moreLabel.textContent = open ? "收起" : "展开";
-			});
-			requestAnimationFrame(() => {
-				if (!(teaser.scrollHeight - teaser.clientHeight > 4)) more.style.display = "none";
-			});
-			summary.append(more);
-			info.append(summary);
-		}
-		inner.append(info);
-		innerSection.append(inner);
-		hero.append(innerSection);
-		return hero;
-	};
-	var buildSectionHeader = (text) => el("h2", {
-		className: "atv-section-h",
-		text
-	});
-	var buildSectionHeaderRow = (text, moreText, moreHref) => {
-		const row = el("div", { className: "atv-section-h-row" });
-		row.append(buildSectionHeader(text));
-		if (moreText && moreHref) row.append(el("a", {
-			className: "atv-section-more",
-			href: moreHref,
-			rel: "noopener",
-			target: "_blank",
-			text: moreText
-		}));
-		return row;
-	};
-	var buildSection = (id, headerText, content, options) => {
-		const sec = el("section", {
-			className: "atv-section",
-			id
-		});
-		if (options?.moreLink) sec.append(buildSectionHeaderRow(headerText, options.moreLink.text, options.moreLink.href));
-		else sec.append(buildSectionHeader(headerText));
-		sec.append(content);
-		return sec;
-	};
-	var buildStreaming = (streaming) => {
-		if (!streaming?.length) return null;
-		const row = el("div", { className: "atv-stream-row" });
-		for (const s of streaming) {
-			const card = el("a", {
-				className: "atv-stream-card",
-				href: s.href,
-				rel: "noopener",
-				target: "_blank"
-			});
-			card.append(el("span", { text: s.name }));
-			card.append(el("span", {
-				className: "atv-stream-arrow",
-				html: ICON_ARROW
-			}));
-			row.append(card);
-		}
-		return buildSection("atv-stream", "在哪儿看", row);
-	};
-	var openCommentOverlay = (comment, onVote) => {
-		const old = document.querySelector("#atv-comment-overlay");
-		if (old) old.remove();
-		const overlay = el("div", {
-			className: "atv-comment-overlay",
-			id: "atv-comment-overlay"
-		});
-		const inner = el("div", { className: "atv-comment-overlay-inner" });
-		const accent = el("div", { className: "atv-comment-overlay-accent" });
-		inner.append(accent);
-		const close = el("button", {
-			attrs: { type: "button" },
-			className: "atv-comment-overlay-close",
-			html: "<svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M6 6l12 12M18 6l-12 12\"/></svg>"
-		});
-		inner.append(close);
-		const top = el("div", { className: "atv-comment-overlay-top" });
-		const avatar = el("div", {
-			attrs: comment.cid ? { "data-cid": comment.cid } : void 0,
-			className: "atv-comment-overlay-avatar"
-		});
-		if (comment.avatar) avatar.style.backgroundImage = `url("${comment.avatar}")`;
-		else avatar.textContent = (comment.name || "?").slice(0, 1).toUpperCase();
-		top.append(avatar);
-		const meta = el("div", { className: "atv-comment-overlay-meta" });
-		const author = el(comment.link ? "a" : "div", {
-			className: "atv-comment-overlay-author",
-			href: comment.link || void 0,
-			rel: comment.link ? "noopener" : void 0,
-			target: comment.link ? "_blank" : void 0,
-			text: comment.name
-		});
-		meta.append(author);
-		if (comment.stars > 0) meta.append(renderStars(comment.stars, {
-			className: "atv-comment-overlay-stars",
-			outOfFive: true
-		}));
-		top.append(meta);
-		inner.append(top);
-		const body = el("div", {
-			className: "atv-comment-overlay-body",
-			text: comment.content
-		});
-		inner.append(body);
-		const foot = el("div", { className: "atv-comment-overlay-foot" });
-		foot.append(el("span", {
-			className: "atv-comment-overlay-time",
-			text: comment.time || ""
-		}));
-		const voteBtn = el("button", {
-			attrs: { type: "button" },
-			className: "atv-comment-overlay-votes"
-		});
-		const voteIcon = el("span", { html: ICON_THUMB });
-		const voteCount = el("span", { text: String(comment.votes) });
-		voteBtn.append(voteIcon, voteCount);
-		let count = comment.votes;
-		let { voted } = comment;
-		if (voted) voteBtn.classList.add("is-voted");
-		const animateBtn = () => {
-			voteBtn.style.transform = "scale(1.2)";
-			requestAnimationFrame(() => {
-				voteBtn.style.transform = "";
-			});
-		};
-		voteBtn.addEventListener("click", async () => {
-			if (voted || !comment.cid) return;
-			voted = true;
-			count += 1;
-			voteCount.textContent = String(count);
-			voteBtn.classList.add("is-voted");
-			animateBtn();
-			const result = await onVote(comment.cid);
-			if (result.ok && result.count !== void 0) {
-				({count} = result);
-				voteCount.textContent = String(count);
-			} else {
-				voted = false;
-				count -= 1;
-				voteCount.textContent = String(count);
-				voteBtn.classList.remove("is-voted");
-			}
-		});
-		foot.append(voteBtn);
-		inner.append(foot);
-		overlay.append(inner);
-		const dismiss = () => {
-			overlay.classList.remove("is-open");
-			document.body.style.overflow = "";
-			setTimeout(() => {
-				overlay.remove();
-			}, 350);
-		};
-		close.addEventListener("click", dismiss);
-		overlay.addEventListener("click", (e) => {
-			if (e.target === overlay) dismiss();
-		});
-		document.addEventListener("keydown", function handler(e) {
-			if (e.key === "Escape") {
-				dismiss();
-				document.removeEventListener("keydown", handler);
-			}
-		});
-		document.body.append(overlay);
-		document.body.style.overflow = "hidden";
-		requestAnimationFrame(() => overlay.classList.add("is-open"));
-	};
-	var buildComments = (data, onVote) => {
-		if (!data.comments?.length) return null;
-		const grid = el("div", { className: "atv-comments" });
-		const pending = [];
-		for (const c of data.comments) {
-			const card = el("div", {
-				attrs: c.cid ? { "data-cid": c.cid } : void 0,
-				className: "atv-comment-card"
-			});
-			const top = el("div", { className: "atv-comment-top" });
-			const avatar = el("div", { className: "atv-comment-avatar" });
-			if (c.avatar) avatar.style.backgroundImage = `url("${c.avatar}")`;
-			else avatar.textContent = (c.name || "?").slice(0, 1).toUpperCase();
-			top.append(avatar);
-			const metaCol = el("div", { className: "atv-comment-meta" });
-			const author = el(c.link ? "a" : "div", {
-				className: "atv-comment-author",
-				href: c.link || void 0,
-				rel: c.link ? "noopener" : void 0,
-				target: c.link ? "_blank" : void 0,
-				text: c.name
-			});
-			metaCol.append(author);
-			if (c.stars > 0) metaCol.append(renderStars(c.stars, {
-				className: "atv-comment-stars",
-				outOfFive: true
-			}));
-			top.append(metaCol);
-			card.append(top);
-			const body = el("div", {
-				className: "atv-comment-body",
-				text: c.content
-			});
-			card.append(body);
-			const foot = el("div", { className: "atv-comment-foot" });
-			foot.append(el("span", { text: c.time || "" }));
-			const footRight = el("div", { className: "atv-comment-foot-right" });
-			const expandBtn = el("button", {
-				attrs: { type: "button" },
-				className: "atv-comment-expand",
-				html: ICON_EXPAND
-			});
-			const voteBtn = el("button", {
-				attrs: { type: "button" },
-				className: "atv-comment-votes"
-			});
-			const voteIcon = el("span", { html: ICON_THUMB });
-			const voteCount = el("span", { text: String(c.votes) });
-			voteBtn.append(voteIcon, voteCount);
-			let count = c.votes;
-			let { voted } = c;
-			if (voted) voteBtn.classList.add("is-voted");
-			const animateBtn = () => {
-				voteBtn.style.transform = "scale(1.2)";
-				requestAnimationFrame(() => {
-					voteBtn.style.transform = "";
-				});
-			};
-			voteBtn.addEventListener("click", async () => {
-				if (voted || !c.cid) return;
-				voted = true;
-				count += 1;
-				voteCount.textContent = String(count);
-				voteBtn.classList.add("is-voted");
-				animateBtn();
-				const result = await onVote(c.cid);
-				if (result.ok && result.count !== void 0) {
-					({count} = result);
-					voteCount.textContent = String(count);
-				} else {
-					voted = false;
-					count -= 1;
-					voteCount.textContent = String(count);
-					voteBtn.classList.remove("is-voted");
-				}
-			});
-			footRight.append(expandBtn, voteBtn);
-			foot.append(footRight);
-			card.append(foot);
-			const showOverlay = () => {
-				openCommentOverlay(c, onVote);
-			};
-			expandBtn.addEventListener("click", (e) => {
-				e.stopPropagation();
-				showOverlay();
-			});
-			body.addEventListener("click", () => {
-				if (body.scrollHeight > body.clientHeight) showOverlay();
-			});
-			grid.append(card);
-			pending.push({
-				body,
-				card
-			});
-		}
-		setTimeout(() => {
-			requestAnimationFrame(() => {
-				for (const { card, body: b } of pending) if (b.scrollHeight > b.clientHeight) card.classList.add("has-overflow");
-			});
-		}, 0);
-		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/comments?status=P` : "";
-		return buildSection("atv-comments", "热门短评", grid, { moreLink: allHref ? {
-			href: allHref,
-			text: "查看全部 →"
-		} : void 0 });
-	};
-	var buildCast = (data) => {
-		if (!data.celebrities?.length) return null;
-		const carousel = el("div", { className: "atv-carousel atv-cast-carousel" });
-		for (const c of data.celebrities) {
-			const card = el(c.link ? "a" : "div", {
-				className: "atv-cast-card",
-				href: c.link || void 0,
-				rel: c.link ? "noopener" : void 0,
-				target: c.link ? "_blank" : void 0
-			});
-			const av = el("div", { className: "atv-cast-avatar" });
-			if (c.avatar) av.style.backgroundImage = `url("${c.avatar}")`;
-			card.append(av);
-			card.append(el("div", {
-				className: "atv-cast-name",
-				text: c.name
-			}));
-			if (c.role) card.append(el("div", {
-				className: "atv-cast-role",
-				text: c.role
-			}));
-			carousel.append(card);
-		}
-		return buildSection("atv-cast", "演职员", carousel);
-	};
-	var buildPhotos = (data) => {
-		if (!data.photos?.length && !data.trailers?.length) return null;
-		const carousel = el("div", { className: "atv-carousel atv-photos" });
-		for (const t of data.trailers) {
-			const tile = el("div", { className: "atv-photo-tile atv-trailer-tile" });
-			tile.style.backgroundImage = `url("${t.thumbUrl}")`;
-			tile.style.backgroundSize = "cover";
-			tile.style.backgroundPosition = "center";
-			tile.addEventListener("click", () => openVideoModal(t));
-			const playOverlay = el("div", { className: "atv-trailer-play-overlay" });
-			const playBtn = el("div", { className: "atv-trailer-play-btn" });
-			playBtn.innerHTML = "<svg viewBox=\"0 0 24 24\" width=\"24\" height=\"24\" fill=\"none\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><polygon points=\"6 3 20 12 6 21 6 3\" fill=\"white\" stroke=\"none\"/></svg>";
-			playOverlay.append(playBtn);
-			tile.append(playOverlay);
-			const label = el("span", {
-				className: "atv-trailer-label",
-				text: t.title || "预告片"
-			});
-			tile.append(label);
-			carousel.append(tile);
-		}
-		for (const p of data.photos) {
-			const tile = el("div", { className: "atv-photo-tile" });
-			tile.addEventListener("click", () => {
-				openPosterModal(p.hdUrl || p.thumbUrl, "剧照");
-			});
-			const img = el("img", {
-				alt: "剧照",
-				src: p.hdUrl || p.thumbUrl
-			});
-			img.loading = "lazy";
-			img.addEventListener("error", () => {
-				if (p.thumbUrl && img.src !== p.thumbUrl) img.src = p.thumbUrl;
-			}, { once: true });
-			img.addEventListener("load", () => {
-				if (img.naturalHeight > img.naturalWidth) tile.classList.add("is-portrait");
-			}, { once: true });
-			tile.append(img);
-			carousel.append(tile);
-		}
-		const allHref = data.subjectId ? `https://movie.douban.com/subject/${data.subjectId}/all_photos` : "";
-		return buildSection("atv-photos", "剧照", carousel, { moreLink: allHref ? {
-			href: allHref,
-			text: "查看全部 →"
-		} : void 0 });
-	};
-	var buildRecs = (recommendations) => {
-		if (!recommendations?.length) return null;
-		const grid = el("div", { className: "atv-recs" });
-		for (const r of recommendations) {
-			const card = el(r.link ? "a" : "div", { className: "atv-rec-card" });
-			if (r.link && card instanceof HTMLAnchorElement) {
-				card.href = r.link;
-				card.target = "_blank";
-				card.rel = "noopener";
-			}
-			const posterWrap = el("div", { className: "atv-rec-poster" });
-			if (r.poster) {
-				const img = el("img", {
-					alt: r.title,
-					src: r.poster
-				});
-				img.loading = "lazy";
-				img.addEventListener("error", () => {
-					posterWrap.innerHTML = "";
-					posterWrap.append(el("div", {
-						className: "atv-poster-placeholder",
-						html: ICON_FILM_PLACEHOLDER
-					}));
-				}, { once: true });
-				posterWrap.append(img);
-			} else posterWrap.append(el("div", {
-				className: "atv-poster-placeholder",
-				html: ICON_FILM_PLACEHOLDER
-			}));
-			card.append(posterWrap);
-			card.append(el("div", {
-				className: "atv-rec-title",
-				text: r.title
-			}));
-			grid.append(card);
-		}
-		return buildSection("atv-recs", "相似作品", grid);
-	};
-	var linksValue = (arr) => {
-		const wrap = el("div", { className: "atv-info-value" });
-		for (let i = 0; i < arr.length; i += 1) {
-			const it = arr[i];
-			if (i > 0) wrap.append(el("span", { text: " / " }));
-			if (it.href) wrap.append(el("a", {
-				href: it.href,
-				rel: "noopener",
-				target: "_blank",
-				text: it.text
-			}));
-			else wrap.append(el("span", { text: it.text }));
-		}
-		return wrap;
-	};
-	var textValue = (txt) => el("div", {
-		className: "atv-info-value",
-		text: txt
-	});
-	var buildImdbRow = (imdb) => {
-		const wrap = el("div", { className: "atv-info-value" });
-		if (RE_IMDB_LINK.test(imdb)) wrap.append(el("a", {
-			href: `https://www.imdb.com/title/${imdb}/`,
-			rel: "noopener",
-			target: "_blank",
-			text: imdb
-		}, [el("span", { html: ICON_ARROW })]));
-		else wrap.textContent = imdb;
-		return wrap;
-	};
-	var addTimeRows = (isTV, info, addRow) => {
-		if (isTV) {
-			if (info.firstAired) addRow("首播", textValue(info.firstAired));
-			else if (info.releaseDate) addRow("首播", textValue(info.releaseDate));
-			if (info.seasons) addRow("季数", textValue(info.seasons));
-			if (info.episodes) addRow("集数", textValue(info.episodes));
-			if (info.episodeRuntime) addRow("单集片长", textValue(info.episodeRuntime));
-		} else {
-			if (info.releaseDate) addRow("上映日期", textValue(info.releaseDate));
-			if (info.runtime) addRow("片长", textValue(info.runtime));
-		}
-	};
-	var buildAwards = (awards, grid) => {
-		for (const a of awards) {
-			const value = el("div", { className: "atv-info-value" });
-			if (a.name) value.append(el("div", { text: a.name }));
-			if (a.person) {
-				const personLine = el("div", { attrs: { style: "font-size:13px;color:var(--atv-text-tertiary);margin-top:2px" } });
-				if (a.personLink) personLine.append(el("a", {
-					href: a.personLink,
-					rel: "noopener",
-					target: "_blank",
-					text: a.person
-				}));
-				else personLine.textContent = a.person;
-				value.append(personLine);
-			}
-			const label = el("div", {
-				attrs: { style: "color:var(--atv-rating-gold)" },
-				className: "atv-info-label"
-			});
-			if (a.orgLink) label.append(el("a", {
-				attrs: { style: "color:inherit" },
-				href: a.orgLink,
-				rel: "noopener",
-				target: "_blank",
-				text: a.org
-			}));
-			else label.textContent = a.org;
-			grid.append(label);
-			grid.append(value);
-		}
-	};
-	var buildDetails = (data) => {
-		const grid = el("div", { className: "atv-info-grid" });
-		const addRow = (label, valueNode) => {
-			grid.append(el("div", {
-				className: "atv-info-label",
-				text: label
-			}));
-			grid.append(valueNode);
-		};
-		const { info } = data;
-		if (info.director?.length) addRow("导演", linksValue(info.director));
-		if (info.writers?.length) addRow("编剧", linksValue(info.writers));
-		if (info.cast?.length) addRow("主演", linksValue(info.cast));
-		if (info.genres?.length) addRow("类型", textValue(info.genres.join(" / ")));
-		if (info.country) addRow("制片国家/地区", textValue(info.country));
-		if (info.language) addRow("语言", textValue(info.language));
-		addTimeRows(data.isTV, info, addRow);
-		if (info.aliases) addRow("又名", textValue(info.aliases));
-		if (info.imdb) addRow("IMDb", buildImdbRow(info.imdb));
-		if (data.awards?.length) buildAwards(data.awards, grid);
-		if (!grid.children.length) return null;
-		return buildSection("atv-info", "详细信息", grid);
-	};
-	var buildStickyNav = (data) => {
-		const nav = el("nav", { className: "atv-stickynav" });
-		nav.append(el("div", {
-			className: "atv-stickynav-title",
-			text: data.title.primary || data.title.full
-		}));
-		const jumps = [];
-		if (data.streaming.length > 0) jumps.push({
+	var computeNavSections = (data) => {
+		const sections = [];
+		if (data.streaming.length > 0) sections.push({
 			id: "atv-stream",
 			label: "在哪儿看"
 		});
-		if (data.celebrities.length > 0) jumps.push({
+		if (data.celebrities.length > 0) sections.push({
 			id: "atv-cast",
 			label: "演职员"
 		});
-		if (data.photos.length > 0) jumps.push({
+		if (data.photos.length > 0 || data.trailers.length > 0) sections.push({
 			id: "atv-photos",
 			label: "剧照"
 		});
-		if (data.comments.length > 0) jumps.push({
+		if (data.comments.length > 0) sections.push({
 			id: "atv-comments",
 			label: "短评"
 		});
-		if (data.recommendations.length > 0) jumps.push({
+		if (data.recommendations.length > 0) sections.push({
 			id: "atv-recs",
 			label: "相似作品"
 		});
-		jumps.push({
+		sections.push({
 			id: "atv-info",
 			label: "详情"
 		});
-		const wrap = el("div", { className: "atv-stickynav-jumps" });
-		for (const j of jumps) {
-			const a = el("a", {
-				href: `#${j.id}`,
-				text: j.label
-			});
-			a.addEventListener("click", (e) => {
-				e.preventDefault();
-				const t = document.querySelector(`#${j.id}`);
-				if (t) t.scrollIntoView({
-					behavior: "smooth",
-					block: "start"
+		return sections;
+	};
+	var buildHeroCallbacks = (subjectId) => {
+		const interestBtns = findInterestButtons();
+		return {
+			onCollectClick: () => interestBtns.collect?.click(),
+			onOpenInterest: (state) => {
+				openInterestModal(state, {
+					onRemove: async (status) => {
+						const result = await removeInterest(subjectId, status);
+						if (result.ok) location.reload();
+						return result;
+					},
+					onSave: async (form) => {
+						const result = await postInterest(subjectId, form.status, {
+							comment: form.comment,
+							rating: form.rating > 0 ? form.rating : void 0
+						});
+						if (result.ok) location.reload();
+						return result;
+					}
 				});
-			});
-			wrap.append(a);
-		}
-		nav.append(wrap);
-		return nav;
+			},
+			onWatchingClick: () => interestBtns.do?.click(),
+			onWishClick: () => interestBtns.wish?.click()
+		};
 	};
 	var render = () => {
 		if (document.querySelector("#atv-douban-root")) return;
@@ -1869,22 +1880,51 @@
 		}
 		const root = el("div", { id: "atv-douban-root" });
 		document.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
-		const stickyNav = buildStickyNav(data);
-		root.append(buildHero(data));
+		const stickyNav = buildStickyNav({
+			sections: computeNavSections(data),
+			title: {
+				full: data.title.full,
+				primary: data.title.primary
+			}
+		});
+		const heroCallbacks = buildHeroCallbacks(data.subjectId);
+		root.append(buildHero({
+			info: data.info,
+			interest: data.interest,
+			isTV: data.isTV,
+			photos: data.photos,
+			poster: data.poster,
+			rating: data.rating,
+			subjectId: data.subjectId,
+			summary: data.summary,
+			title: data.title,
+			year: data.year
+		}, heroCallbacks));
 		const streaming = buildStreaming(data.streaming);
 		if (streaming) root.append(streaming);
-		const cast = buildCast(data);
+		const cast = buildCast(data.celebrities);
 		if (cast) root.append(cast);
-		const photos = buildPhotos(data);
+		const photos = buildPhotos({
+			photos: data.photos,
+			subjectId: data.subjectId,
+			trailers: data.trailers
+		});
 		if (photos) root.append(photos);
-		const comments = buildComments(data, (cid) => postVote(cid, data.subjectId));
+		const comments = buildComments({
+			comments: data.comments,
+			subjectId: data.subjectId
+		}, (cid) => postVote(cid, data.subjectId));
 		if (comments) {
 			root.append(comments);
 			resolveCommentAvatars(data.comments);
 		}
 		const recs = buildRecs(data.recommendations);
 		if (recs) root.append(recs);
-		const details = buildDetails(data);
+		const details = buildDetails({
+			awards: data.awards,
+			info: data.info,
+			isTV: data.isTV
+		});
 		if (details) root.append(details);
 		root.append(el("div", { className: "atv-footer-spacer" }));
 		document.body.insertBefore(root, document.body.firstChild);

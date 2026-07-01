@@ -125,6 +125,65 @@ type DoubanData = {
   isTV: boolean;
 };
 
+/* ── Narrow Builder Interfaces ──────────────────────────── */
+
+/** A section link for the sticky navigation bar */
+type NavSection = {
+  id: string;
+  label: string;
+};
+
+/** Data slice for buildHero — exactly the fields the hero section renders */
+type HeroData = {
+  photos: Photo[];
+  subjectId: string;
+  poster: string | null;
+  title: TitleInfo;
+  year: string;
+  isTV: boolean;
+  info: Pick<
+    InfoBlock,
+    "seasons" | "episodes" | "episodeRuntime" | "country" | "genres" | "runtime"
+  >;
+  rating: RatingInfo | null;
+  interest: InterestState;
+  summary: string | null;
+};
+
+/** Callback seam for hero interest actions — replaces direct api/extract imports */
+type HeroCallbacks = {
+  onWishClick: () => void;
+  onWatchingClick: () => void;
+  onCollectClick: () => void;
+  onOpenInterest: (state: InterestState) => void;
+};
+
+/** Data slice for buildPhotos */
+type PhotosData = {
+  photos: Photo[];
+  trailers: Trailer[];
+  subjectId: string;
+};
+
+/** Data slice for buildComments */
+type CommentsData = {
+  comments: Comment[];
+  subjectId: string;
+};
+
+/** Data slice for buildDetails */
+type DetailsData = {
+  info: InfoBlock;
+  isTV: boolean;
+  awards: Award[];
+};
+
+/** Data slice for buildStickyNav */
+type StickyNavData = {
+  title: Pick<TitleInfo, "primary" | "full">;
+  sections: NavSection[];
+};
+
 /* ── Interest / Mark Types ────────────────────────────── */
 
 /** Parsed interest state from the real Douban page */
@@ -173,15 +232,22 @@ export type {
   Award,
   Celebrity,
   Comment,
+  CommentsData,
+  DetailsData,
   DoubanData,
+  HeroCallbacks,
+  HeroData,
   InfoBlock,
   InterestFormState,
   InterestState,
   Link,
   ModalCallbacks,
+  NavSection,
   Photo,
+  PhotosData,
   RatingInfo,
   Recommendation,
+  StickyNavData,
   Streaming,
   TitleInfo,
   Trailer,

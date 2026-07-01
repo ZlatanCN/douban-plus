@@ -2,7 +2,7 @@
 
 import { el } from "../components";
 import { ICON_ARROW, RE_IMDB_LINK } from "../constants";
-import type { Award, DoubanData } from "../types";
+import type { Award, DetailsData, InfoBlock } from "../types";
 import { buildSection } from "./sections";
 
 const linksValue = (arr: { text: string; href?: string }[]): HTMLElement => {
@@ -54,7 +54,7 @@ const buildImdbRow = (imdb: string): HTMLElement => {
 
 const addTimeRows = (
   isTV: boolean,
-  info: DoubanData["info"],
+  info: InfoBlock,
   addRow: (label: string, node: HTMLElement) => void
 ): void => {
   if (isTV) {
@@ -130,7 +130,7 @@ const buildAwards = (awards: Award[], grid: HTMLElement): void => {
   }
 };
 
-const buildDetails = (data: DoubanData): HTMLElement | null => {
+const buildDetails = (data: DetailsData): HTMLElement | null => {
   const grid = el("div", { className: "atv-info-grid" });
 
   const addRow = (label: string, valueNode: HTMLElement): void => {

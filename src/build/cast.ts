@@ -1,15 +1,15 @@
 import { el } from "../components";
-import type { DoubanData } from "../types";
+import type { Celebrity } from "../types";
 import { buildSection } from "./sections";
 
 /* ── buildCast ────────────────────────────────────────── */
 
-const buildCast = (data: DoubanData): HTMLElement | null => {
-  if (!data.celebrities?.length) {
+const buildCast = (celebrities: Celebrity[]): HTMLElement | null => {
+  if (!celebrities?.length) {
     return null;
   }
   const carousel = el("div", { className: "atv-carousel atv-cast-carousel" });
-  for (const c of data.celebrities) {
+  for (const c of celebrities) {
     const card = el(c.link ? "a" : "div", {
       className: "atv-cast-card",
       href: c.link || undefined,
