@@ -14,21 +14,30 @@ import {
   assertAwards,
   assertBodyBg,
   assertCast,
+  assertCommentContentFull,
+  assertCommentOverlay,
+  assertCommentOverlayExpandBtn,
+  assertCommentOverlayVote,
   assertComments,
   assertExpandInline,
   assertHero,
   assertIMDb,
-  assertInfoGrid,
+  assertInfoFields,
+  assertInterestModal,
   assertNoScriptErrors,
+  assertNoTVElements,
   assertPhotos,
   assertPosterModal,
   assertRating,
+  assertRatingCorrect,
   assertRecommendations,
   assertRoot,
   assertStickyNav,
   assertStreaming,
   assertSummaryTeaser,
+  assertTitleCorrect,
   assertTVMeta,
+  assertTVSpecific,
   assertTVStreamingPopup,
   assertWrapper,
   captureScreenshots,
@@ -47,9 +56,11 @@ import {
   TIMEOUT_PAGE_LOAD,
 } from "./qa/constants";
 import { hasFailures, printSummary, record } from "./qa/logger";
+import { Reporter } from "./qa/reporter";
 import type { AssertCtx, Scenario } from "./qa/types";
 
 const delay = promisify(setTimeout);
+
 const browser = await chromium.launch({ headless: true });
 
 const isDoubanNoise = (t: string) => DOUBAN_NOISE_REGEX.test(t);
@@ -80,34 +91,50 @@ const executeBody = async (
 
   const ctx: AssertCtx = { ourErrors, page, scenario: sc };
 
+  /* ── Phase 1: Core existence ── */
   await assertRoot(ctx);
   await assertHero(ctx);
-  await assertRating(ctx);
-  await assertTVMeta(ctx);
+  await assertTitleCorrect(ctx);
+  await assertRatingCorrect(ctx);
+  await assertNoTVElements(ctx);
+  await assertTVSpecific(ctx);
+
+  /* ── Phase 2: Content sections ── */
   await assertCast(ctx);
   await assertPhotos(ctx);
+  await assertRating(ctx);
   await assertRecommendations(ctx);
+  await assertInfoFields(ctx);
+  await assertComments(ctx);
+  await assertCommentContentFull(ctx);
+
+  /* ── Phase 3: Interactive features ── */
+  await assertSummaryTeaser(ctx);
+  await assertExpandInline(ctx);
+  await assertCommentOverlayExpandBtn(ctx);
+  await assertCommentOverlay(ctx);
+  await assertCommentOverlayVote(ctx);
+  await assertInterestModal(ctx);
+
+  /* ── Phase 4: UI chrome & navigation ── */
   await assertWrapper(ctx);
   await assertIMDb(ctx);
   assertNoScriptErrors(ctx);
   await assertBodyBg(ctx);
-  await assertComments(ctx);
-  await assertSummaryTeaser(ctx);
-  await assertExpandInline(ctx);
   await assertStickyNav(ctx);
+
+  /* ── Phase 5: Edge features ── */
+  await assertTVMeta(ctx);
   await assertStreaming(ctx);
   await assertTVStreamingPopup(ctx);
   await assertAwards(ctx);
-  await assertInfoGrid(ctx);
   await assertPosterModal(ctx);
+
+  /* ── Phase 6: Screenshots ── */
   await captureScreenshots(ctx);
 };
 
 const runScenario = async (sc: Scenario): Promise<void> => {
-  console.log("");
-  console.log(
-    `${C.bold}${C.cyan}▸ ${sc.name}${C.reset}  ${C.dim}${sc.url}${C.reset}`
-  );
   const ctx = await browser.newContext({
     locale: "zh-CN",
     userAgent:
@@ -177,14 +204,25 @@ const runScenario = async (sc: Scenario): Promise<void> => {
   await ctx.close();
 };
 
-try {
-  for (const sc of SCENARIOS) {
-    // oxlint-disable-next-line no-await-in-loop
+const reporter = new Reporter({ scenarios: SCENARIOS });
+reporter.start();
+
+process.on("SIGINT", () => {
+  reporter.onSIGINT();
+});
+
+const timedRun = async (sc: Scenario): Promise<void> => {
+  const start = Date.now();
+  try {
     await runScenario(sc);
+  } finally {
+    const elapsed = Math.round((Date.now() - start) / 1000);
+    reporter.scenarioDone(sc.name, elapsed);
   }
-} finally {
-  await browser.close();
-}
+};
+
+await Promise.allSettled(SCENARIOS.map(timedRun));
+await browser.close();
 
 printSummary();
 if (hasFailures()) {

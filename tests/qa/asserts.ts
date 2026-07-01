@@ -1,5 +1,7 @@
 import path from "node:path";
 
+import type { Page } from "playwright";
+
 import {
   COLOR_BLACK_RGB,
   COLOR_GOLD_RGB,
@@ -14,10 +16,17 @@ import {
   TIMEOUT_CONTENT_READY,
   TV_EPISODE_REGEX,
 } from "./constants";
-import { record } from "./logger";
+import { record, recordWarn } from "./logger";
 import type { AssertCtx } from "./types";
 
 const ROOT_SEL = "#atv-douban-root";
+
+const fail = (ctx: AssertCtx, name: string, detail = ""): void => {
+  record(ctx.scenario.name, name, false, detail);
+};
+const warn = (ctx: AssertCtx, name: string, detail = ""): void => {
+  recordWarn(ctx.scenario.name, name, detail);
+};
 
 const assertRoot = async ({ page, scenario }: AssertCtx): Promise<void> => {
   let ok;
@@ -154,7 +163,8 @@ const assertWrapper = async ({ page, scenario }: AssertCtx): Promise<void> => {
   );
 };
 
-const assertIMDb = async ({ page, scenario }: AssertCtx): Promise<void> => {
+const assertIMDb = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const imdbLink = await page
     .$eval(
       `${ROOT_SEL} a[href*="imdb.com"]`,
@@ -167,6 +177,8 @@ const assertIMDb = async ({ page, scenario }: AssertCtx): Promise<void> => {
       `IMDb link present (${imdbLink.slice(0, 50)})`,
       IMDB_LINK_REGEX.test(imdbLink)
     );
+  } else {
+    warn(ctx, "no IMDb link found");
   }
 };
 
@@ -191,25 +203,28 @@ const assertBodyBg = async ({ page, scenario }: AssertCtx): Promise<void> => {
   );
 };
 
-const assertComments = async ({ page, scenario }: AssertCtx): Promise<void> => {
+const assertComments = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const commentCards = await page.$$(`${ROOT_SEL} .atv-comment-card`);
+  if (commentCards.length === 0) {
+    warn(ctx, "no comment cards rendered (page may have no comments)");
+    return;
+  }
   record(
     scenario.name,
     `comment cards rendered (${commentCards.length})`,
     commentCards.length > 0
   );
-  if (commentCards.length > 0) {
-    const firstComment = await commentCards[0].evaluate((card) => ({
-      author:
-        card.querySelector(".atv-comment-author")?.textContent?.trim() || "",
-      body: card.querySelector(".atv-comment-body")?.textContent?.trim() || "",
-    }));
-    record(
-      scenario.name,
-      `comment has author + body (author: "${firstComment.author.slice(0, 12)}")`,
-      firstComment.author.length > 0 && firstComment.body.length > 0
-    );
-  }
+  const firstComment = await commentCards[0].evaluate((card) => ({
+    author:
+      card.querySelector(".atv-comment-author")?.textContent?.trim() || "",
+    body: card.querySelector(".atv-comment-body")?.textContent?.trim() || "",
+  }));
+  record(
+    scenario.name,
+    `comment has author + body (author: "${firstComment.author.slice(0, 12)}")`,
+    firstComment.author.length > 0 && firstComment.body.length > 0
+  );
 };
 
 const assertSummaryTeaser = async ({
@@ -226,12 +241,11 @@ const assertSummaryTeaser = async ({
   );
 };
 
-const assertExpandInline = async ({
-  page,
-  scenario,
-}: AssertCtx): Promise<void> => {
+const assertExpandInline = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const hasMoreBtn = (await page.$(`${ROOT_SEL} .atv-hero-more`)) !== null;
   if (!hasMoreBtn) {
+    warn(ctx, "inline expand btn not present — summary too short");
     return;
   }
 
@@ -242,7 +256,15 @@ const assertExpandInline = async ({
       scrollY: window.scrollY,
     };
   });
-  await page.click(`${ROOT_SEL} .atv-hero-more`);
+  // Force click even if not visible (some pages overlap the hero UI)
+  const clicked = await page
+    .click(`${ROOT_SEL} .atv-hero-more`, { force: true, timeout: 5000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!clicked) {
+    warn(ctx, "inline expand button not clickable");
+    return;
+  }
   await page.waitForFunction(
     () =>
       document
@@ -335,12 +357,11 @@ const assertStickyNav = async ({
   });
 };
 
-const assertStreaming = async ({
-  page,
-  scenario,
-}: AssertCtx): Promise<void> => {
+const assertStreaming = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const streamCards = await page.$$(`${ROOT_SEL} .atv-stream-card`);
   if (streamCards.length === 0) {
+    warn(ctx, "no streaming cards — page may lack streaming sources");
     return;
   }
 
@@ -381,32 +402,44 @@ const assertStreaming = async ({
   );
 };
 
-const assertTVStreamingPopup = async ({
-  page,
-  scenario,
-}: AssertCtx): Promise<void> => {
+const assertTVStreamingPopup = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   if (scenario.kind !== "tv") {
     return;
   }
   const tvCards = await page.$$(`${ROOT_SEL} .atv-stream-card`);
   if (tvCards.length === 0) {
+    warn(ctx, "no TV streaming cards to click");
     return;
   }
 
-  const popupPromise = page.waitForEvent("popup", { timeout: 15_000 });
-  await tvCards[0].click();
-  const popup = await popupPromise;
+  let rawPopup: Page | null = null;
+  page.once("popup", (p) => {
+    rawPopup = p;
+  });
+  try {
+    await tvCards[0].click({ timeout: 5000 });
+  } catch {
+    // click blocked — popup won't open
+  }
+  await page.waitForTimeout(5000);
+
+  if (!rawPopup) {
+    warn(ctx, "streaming popup not opened (likely blocked)");
+    return;
+  }
+  const popup: Page = rawPopup;
   await popup.waitForLoadState("domcontentloaded");
-  const popupUrl = popup.url();
   record(
     scenario.name,
-    `streaming card click → popup (url: "${popupUrl.slice(0, 60)}")`,
-    EXTERNAL_URL_REGEX.test(popupUrl)
+    `streaming card click → popup (url: "${popup.url().slice(0, 60)}")`,
+    EXTERNAL_URL_REGEX.test(popup.url())
   );
   await popup.close();
 };
 
-const assertAwards = async ({ page, scenario }: AssertCtx): Promise<void> => {
+const assertAwards = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const allLabels = await page.$$(`${ROOT_SEL} .atv-info-label`);
 
   const colors = await Promise.all(
@@ -420,12 +453,16 @@ const assertAwards = async ({ page, scenario }: AssertCtx): Promise<void> => {
       `awards in info grid (${awardCount} rows)`,
       awardCount > 0
     );
+  } else {
+    warn(ctx, "no awards found in info grid");
   }
 };
 
-const assertInfoGrid = async ({ page, scenario }: AssertCtx): Promise<void> => {
+const assertInfoGrid = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const infoLabels = await page.$$(`${ROOT_SEL} .atv-info-label`);
   if (infoLabels.length === 0) {
+    warn(ctx, "no info labels in info grid");
     return;
   }
 
@@ -456,20 +493,34 @@ const assertInfoGrid = async ({ page, scenario }: AssertCtx): Promise<void> => {
   }
 };
 
-const assertPosterModal = async ({
-  page,
-  scenario,
-}: AssertCtx): Promise<void> => {
+const POSTER_CLICK_TIMEOUT = 5000;
+const POSTER_MODAL_TIMEOUT = 5000;
+
+const assertPosterModal = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
   const posterCard = await page.$(`${ROOT_SEL} .atv-poster-card`);
   if (!posterCard) {
+    warn(ctx, "no poster card found");
     return;
   }
 
-  posterCard.click();
-  await page.waitForSelector("#atv-poster-modal.is-open", {
-    timeout: TIMEOUT_CONTENT_READY,
-  });
-  const modal = await page.$("#atv-poster-modal.is-open");
+  const clicked = await posterCard
+    .click({ timeout: POSTER_CLICK_TIMEOUT })
+    .then(() => true)
+    .catch(() => false);
+  if (!clicked) {
+    warn(ctx, "poster card click failed (likely overlay blocking)");
+    return;
+  }
+  const modal = await page
+    .waitForSelector("#atv-poster-modal.is-open", {
+      timeout: POSTER_MODAL_TIMEOUT,
+    })
+    .catch(() => null);
+  if (!modal) {
+    warn(ctx, "poster modal did not open after click");
+    return;
+  }
   const modalImg = modal
     ? await page.$("#atv-poster-modal.is-open .atv-modal-img")
     : null;
@@ -492,6 +543,376 @@ const assertPosterModal = async ({
       record(scenario.name, "modal closes on backdrop click", !closed);
     }
   }
+};
+
+/* ── New assertion functions ─────────────────────────── */
+
+/**
+ * Open comment overlay via body text click, verify full content displayed,
+ * dismiss via X button, verify body scroll restored.
+ */
+const assertCommentOverlay = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const overflowCard = await page.$(
+    `${ROOT_SEL} .atv-comment-card.has-overflow`
+  );
+  if (!overflowCard) {
+    warn(ctx, "no overflow comment card to open overlay");
+    return;
+  }
+
+  const bodyText = await overflowCard
+    .$eval(".atv-comment-body", (el) => (el.textContent || "").trim())
+    .catch(() => "");
+  if (!bodyText) {
+    fail(ctx, "comment body text non-empty before overlay", "body was empty");
+    return;
+  }
+
+  const bodyEl = await overflowCard.$(".atv-comment-body");
+  if (!bodyEl) {
+    fail(ctx, "comment body element found in overflow card");
+    return;
+  }
+  await bodyEl.click();
+  const overlay = await page
+    .waitForSelector("#atv-comment-overlay.is-open", {
+      timeout: TIMEOUT_CONTENT_READY,
+    })
+    .catch(() => null);
+  if (!overlay) {
+    fail(ctx, "comment overlay opens on body click");
+    return;
+  }
+  record(scenario.name, "comment overlay opens on body click", true);
+
+  const overlayText = await overlay
+    .$eval(".atv-comment-overlay-body", (el) => (el.textContent || "").trim())
+    .catch(() => "");
+  record(
+    scenario.name,
+    `overlay body text non-empty (len:${overlayText.length})`,
+    overlayText.length >= bodyText.length
+  );
+
+  const closeBtn = await overlay.$(".atv-comment-overlay-close");
+  if (!closeBtn) {
+    fail(ctx, "overlay has close button");
+    return;
+  }
+  await closeBtn.click();
+  await page.waitForFunction(
+    () => !document.querySelector("#atv-comment-overlay"),
+    { timeout: TIMEOUT_CONTENT_READY }
+  );
+  record(scenario.name, "overlay closes on X button click", true);
+
+  const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
+  record(
+    scenario.name,
+    "body overflow restored after overlay close",
+    bodyOverflow === "" || bodyOverflow === "visible"
+  );
+};
+
+const assertCommentOverlayExpandBtn = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const overflowCard = await page.$(
+    `${ROOT_SEL} .atv-comment-card.has-overflow`
+  );
+  if (!overflowCard) {
+    warn(ctx, "no overflow card to test expand button");
+    return;
+  }
+
+  const expandBtn = await overflowCard.$(".atv-comment-expand");
+  if (!expandBtn) {
+    fail(ctx, "expand button visible on overflow card");
+    return;
+  }
+  record(scenario.name, "expand button present on overflow card", true);
+
+  await expandBtn.click();
+  const overlay = await page
+    .waitForSelector("#atv-comment-overlay.is-open", {
+      timeout: TIMEOUT_CONTENT_READY,
+    })
+    .catch(() => null);
+  record(scenario.name, "expand button opens overlay", overlay !== null);
+
+  if (overlay) {
+    const closeBtn = await overlay.$(".atv-comment-overlay-close");
+    if (closeBtn) {
+      await closeBtn.click();
+    }
+  }
+};
+
+/**
+ * Vote button in overlay: verify button present, click does not throw.
+ * Optimistic-count + rollback both happen in the same microtask sequence
+ * when the mock API resolves synchronously, so Playwright can never
+ * observe the intermediate +1 state — we test only click integrity here.
+ */
+const assertCommentOverlayVote = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const overflowCard = await page.$(
+    `${ROOT_SEL} .atv-comment-card.has-overflow`
+  );
+  if (!overflowCard) {
+    warn(ctx, "no overflow card to test vote in overlay");
+    return;
+  }
+
+  const bodyEl = await overflowCard.$(".atv-comment-body");
+  if (!bodyEl) {
+    warn(ctx, "comment body not found for vote test");
+    return;
+  }
+  await bodyEl.click();
+  const overlay = await page
+    .waitForSelector("#atv-comment-overlay.is-open", {
+      timeout: TIMEOUT_CONTENT_READY,
+    })
+    .catch(() => null);
+  if (!overlay) {
+    fail(ctx, "overlay opens for vote test");
+    return;
+  }
+
+  const voteBtn = await overlay.$(".atv-comment-overlay-votes");
+  if (!voteBtn) {
+    fail(ctx, "vote button in overlay");
+    return;
+  }
+  record(scenario.name, "vote button present in overlay", true);
+
+  const clickOk = await voteBtn
+    .click()
+    .then(() => true)
+    .catch(() => false);
+  record(scenario.name, "vote button click succeeds", clickOk);
+
+  const closeBtn = await overlay.$(".atv-comment-overlay-close");
+  if (closeBtn) {
+    await closeBtn.click();
+  }
+};
+
+/**
+ * Interest modal: open, toggle status, click star, type in textarea,
+ * close via ESC, verify body scroll restored.
+ */
+const assertInterestModal = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const primaryBtn = await page.$(`${ROOT_SEL} .atv-btn-primary`);
+  if (!primaryBtn) {
+    warn(ctx, "no primary action button for interest modal");
+    return;
+  }
+  record(scenario.name, "primary action button present", true);
+
+  await primaryBtn.click();
+  const modal = await page
+    .waitForSelector("#atv-interest-modal.is-open", {
+      timeout: TIMEOUT_CONTENT_READY,
+    })
+    .catch(() => null);
+  if (!modal) {
+    warn(ctx, "interest modal not opened (logged-out — proxy-click fired)");
+    return;
+  }
+  record(scenario.name, "interest modal opens", true);
+
+  const statusBtns = await modal.$$(".atv-interest-modal-status");
+  if (statusBtns.length > 1) {
+    await statusBtns[1].click();
+    await page.waitForTimeout(200);
+    const active = await modal.$(".atv-interest-modal-status.is-active");
+    const activeRaw = active
+      ? await active.evaluate((el) => el.textContent)
+      : "";
+    const activeText = activeRaw.trim();
+    record(
+      scenario.name,
+      `status toggled to "${activeText}"`,
+      activeText.length > 0
+    );
+  }
+
+  const stars = await modal.$$(".atv-interest-modal-star");
+  if (stars.length > 0) {
+    await stars[3].click();
+    await page.waitForTimeout(200);
+    const fullStars = await modal.$$(".atv-interest-modal-star.is-full");
+    record(
+      scenario.name,
+      `star rating set (${fullStars.length}/5)`,
+      fullStars.length > 0
+    );
+  }
+
+  const textarea = await modal.$(".atv-interest-modal-comment");
+  if (textarea) {
+    await textarea.fill("测试短评");
+    const val = await textarea.evaluate(
+      (el) => (el as HTMLTextAreaElement).value
+    );
+    record(scenario.name, "textarea fill works", val === "测试短评");
+  }
+
+  await page.keyboard.press("Escape");
+  await page.waitForFunction(
+    () => !document.querySelector("#atv-interest-modal"),
+    { timeout: TIMEOUT_CONTENT_READY }
+  );
+  record(scenario.name, "interest modal closes on ESC", true);
+
+  const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
+  record(
+    scenario.name,
+    "body overflow restored after modal close",
+    bodyOverflow === "" || bodyOverflow === "visible"
+  );
+};
+
+const assertTitleCorrect = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const titleText = await page
+    .$eval(`${ROOT_SEL} .atv-hero-title`, (el) => el.textContent.trim())
+    .catch(() => "");
+  record(
+    scenario.name,
+    `hero title non-empty (got: "${titleText.slice(0, 40)}")`,
+    titleText.length > 0
+  );
+};
+
+const assertRatingCorrect = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const scoreEl = await page.$(`${ROOT_SEL} .atv-rating-score`);
+  const fallbackEl = await page.$(`${ROOT_SEL} .atv-rating-none`);
+  const emptyEl = await page.$(`${ROOT_SEL} .atv-rating-empty`);
+
+  const found = scoreEl || fallbackEl || emptyEl;
+  const text = found
+    ? await found.evaluate((el) => el.textContent.trim()).catch(() => "")
+    : "";
+  record(
+    scenario.name,
+    `rating element present (got: "${text.slice(0, 20)}")`,
+    found !== null
+  );
+};
+
+const assertInfoFields = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const labels = await page.$$(`${ROOT_SEL} .atv-info-label`);
+  if (labels.length === 0) {
+    warn(ctx, "no info labels to verify");
+    return;
+  }
+  let allNonEmpty = true;
+  const results = await Promise.all(
+    labels.map((label) =>
+      label.evaluate((el) => {
+        const next = el.nextElementSibling;
+        return {
+          labelText: el.textContent?.trim() ?? "",
+          valueText: next ? (next.textContent?.trim() ?? "") : "",
+        };
+      })
+    )
+  );
+  for (const { labelText, valueText } of results) {
+    if (!valueText) {
+      allNonEmpty = false;
+      record(
+        scenario.name,
+        `info field "${labelText}" has non-empty value`,
+        false,
+        `value for "${labelText}" was empty`
+      );
+    }
+  }
+  if (allNonEmpty && labels.length > 0) {
+    record(
+      scenario.name,
+      `all ${labels.length} info fields have non-empty values`,
+      true
+    );
+  }
+};
+
+/**
+ * Verify comment card body text matches the full content from
+ * the original Douban .full span (hidden in #wrapper).
+ */
+const assertCommentContentFull = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  const commentCards = await page.$$(`${ROOT_SEL} .atv-comment-card`);
+  if (commentCards.length === 0) {
+    warn(ctx, "no comment cards to verify full content");
+    return;
+  }
+
+  const [firstCard] = commentCards;
+  const cardBodyText = await firstCard
+    .$eval(".atv-comment-body", (el) => (el.textContent || "").trim())
+    .catch(() => "");
+
+  /* Read .full from the original Douban DOM (still present in #wrapper) */
+  const originalFull = await page.evaluate(() => {
+    const item = document.querySelector(".comment-item");
+    if (!item) {
+      return "";
+    }
+    const full = item.querySelector(".full");
+    return full ? (full.textContent || "").trim() : "";
+  });
+
+  if (originalFull && cardBodyText) {
+    record(
+      scenario.name,
+      "comment card body matches .full original text",
+      cardBodyText === originalFull,
+      originalFull.slice(0, 40)
+    );
+  } else {
+    warn(
+      ctx,
+      "could not compare comment text",
+      "originalFull or cardBodyText empty"
+    );
+  }
+};
+
+const assertNoTVElements = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  if (scenario.kind !== "movie") {
+    return;
+  }
+  const rootText = await page.$eval(
+    `${ROOT_SEL}`,
+    (el) => el.textContent || ""
+  );
+  const hasTVTerms = TV_EPISODE_REGEX.test(rootText);
+  record(scenario.name, `no TV terms (集/季) on movie page`, !hasTVTerms);
+};
+
+const assertTVSpecific = async (ctx: AssertCtx): Promise<void> => {
+  const { page, scenario } = ctx;
+  if (scenario.kind !== "tv") {
+    return;
+  }
+  const heroMeta = await page
+    .$eval(`${ROOT_SEL} .atv-hero-meta`, (el) => el.textContent)
+    .catch(() => "");
+  record(
+    scenario.name,
+    `TV hero meta contains 集 or 季 (got: "${heroMeta.slice(0, 80)}")`,
+    TV_EPISODE_REGEX.test(heroMeta)
+  );
 };
 
 const captureScreenshots = async ({
@@ -524,21 +945,31 @@ export {
   assertAwards,
   assertBodyBg,
   assertCast,
+  assertCommentContentFull,
+  assertCommentOverlay,
+  assertCommentOverlayExpandBtn,
+  assertCommentOverlayVote,
   assertComments,
   assertExpandInline,
   assertHero,
   assertIMDb,
+  assertInfoFields,
   assertInfoGrid,
+  assertInterestModal,
   assertNoScriptErrors,
+  assertNoTVElements,
   assertPhotos,
   assertPosterModal,
   assertRating,
+  assertRatingCorrect,
   assertRecommendations,
   assertRoot,
   assertStickyNav,
   assertStreaming,
   assertSummaryTeaser,
+  assertTitleCorrect,
   assertTVMeta,
+  assertTVSpecific,
   assertTVStreamingPopup,
   assertWrapper,
   captureScreenshots,

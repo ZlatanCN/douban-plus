@@ -1,13 +1,8 @@
 import { C } from "./constants";
-import type { AssertResult } from "./types";
+import type { AssertResult, AssertWarn } from "./types";
 
 const results: AssertResult[] = [];
-
-const log = (pass: boolean, label: string, detail?: string): void => {
-  const mark = pass ? `${C.green}PASS${C.reset}` : `${C.red}FAIL${C.reset}`;
-  const detailStr = detail ? ` ${C.dim}${detail}${C.reset}` : "";
-  console.log(`  ${mark}  ${label}${detailStr}`);
-};
+const warnings: AssertWarn[] = [];
 
 const record = (
   scenario: string,
@@ -16,7 +11,11 @@ const record = (
   detail = ""
 ): void => {
   results.push({ detail, name, pass, scenario });
-  log(pass, name, detail);
+};
+
+/** Records a warning — doesn't count as a suite failure, but flagged for review. */
+const recordWarn = (scenario: string, name: string, detail = ""): void => {
+  warnings.push({ detail, name, scenario });
 };
 
 const printSummary = (): void => {
@@ -49,10 +48,35 @@ const printSummary = (): void => {
     }
   }
 
+  if (warnings.length > 0) {
+    console.log("");
+    console.log(
+      `${C.yellow}${C.bold}  WARNINGS (${warnings.length}):${C.reset}`
+    );
+    console.log("");
+    for (const w of warnings) {
+      console.log(
+        `  ${C.yellow}!${C.reset} ${C.cyan}[${w.scenario}]${C.reset} ${w.name}`
+      );
+      if (w.detail) {
+        console.log(`    ${C.dim}${w.detail}${C.reset}`);
+      }
+    }
+  }
+
   console.log(`${C.bold}${"─".repeat(60)}${C.reset}`);
   console.log("");
 };
 
 const hasFailures = (): boolean => results.some((r) => !r.pass);
+const hasWarnings = (): boolean => warnings.length > 0;
 
-export { hasFailures, printSummary, record, results };
+export {
+  hasFailures,
+  hasWarnings,
+  printSummary,
+  record,
+  recordWarn,
+  results,
+  warnings,
+};
