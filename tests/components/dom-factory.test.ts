@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { el, renderStars } from "../../src/components/dom-factory";
+import { el, renderStars } from "../../src/components";
 
 /* ── el() — Tag creation ─────────────────────────────────── */
 
@@ -160,14 +160,13 @@ describe("el(tag, attrs) — attributes", () => {
   });
 
   it("attaches an onclick handler with the event argument", () => {
-    let evt: Event | null = null;
+    let capturedType: string | null = null;
     const handler = (e: Event) => {
-      evt = e;
+      capturedType = e.type;
     };
     const node = el("button", { onclick: handler });
     node.click();
-    expect(evt).not.toBeNull();
-    expect((evt as Event).type).toBe("click");
+    expect(capturedType).toBe("click");
   });
 });
 

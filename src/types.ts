@@ -15,6 +15,12 @@ type TitleInfo = {
   original: string;
 };
 
+/** Return type of fetchImdbRating() — score 0-10, count = number of votes */
+type ImdbRating = {
+  score: number;
+  count: number;
+};
+
 /** Return type of extractRating() */
 type RatingInfo = {
   score: number;
@@ -146,6 +152,7 @@ type HeroData = {
     "seasons" | "episodes" | "episodeRuntime" | "country" | "genres" | "runtime"
   >;
   rating: RatingInfo | null;
+  imdbId: string | null;
   interest: InterestState;
   summary: string | null;
 };
@@ -237,6 +244,7 @@ export type {
   DoubanData,
   HeroCallbacks,
   HeroData,
+  ImdbRating,
   InfoBlock,
   InterestFormState,
   InterestState,

@@ -6,7 +6,7 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import { buildHero, buildHeroBg, pickStill } from "../../src/build/hero";
+import { buildHero, buildHeroBg, pickStill } from "../../src/build";
 import type { HeroCallbacks, HeroData, Photo } from "../../src/types";
 
 /* ── Helpers ───────────────────────────────────────────────── */
@@ -41,6 +41,7 @@ const defaultInterest = {
 };
 
 const makeHeroData = (overrides?: Partial<HeroData>): HeroData => ({
+  imdbId: null,
   info: { ...defaultInfo },
   interest: { ...defaultInterest },
   isTV: false,
@@ -446,31 +447,45 @@ describe("buildHero", () => {
 
   /* ── Rating ──────────────────────────────────────────────── */
 
-  it("renders rating row with score and stars when rating present (t27)", () => {
+  it("renders rating panel with score and stars when rating present (t27)", () => {
     const hero = buildHero(
       makeHeroData({ rating: { count: 1_234_567, score: 8.5 } }),
       makeCallbacks()
     );
-    const row = hero.querySelector(".atv-rating-row") as HTMLElement;
-    expect(row).not.toBeNull();
+    const panel = hero.querySelector(".atv-rating-panel") as HTMLElement;
+    expect(panel).not.toBeNull();
 
-    const score = row?.querySelector(".atv-rating-score") as HTMLElement;
+    const score = panel?.querySelector(
+      ".atv-rating-panel-score"
+    ) as HTMLElement;
     expect(score).not.toBeNull();
     expect(score?.textContent).toBe("8.5");
 
-    const stars = row?.querySelector(".atv-rating-stars") as HTMLElement;
+    const stars = panel?.querySelector(".atv-rating-stars") as HTMLElement;
     expect(stars).not.toBeNull();
 
-    const count = row?.querySelector(".atv-rating-count") as HTMLElement;
+    const count = panel?.querySelector(
+      ".atv-rating-panel-count"
+    ) as HTMLElement;
     expect(count).not.toBeNull();
     expect(count?.textContent).toBe("评价 1,234,567");
   });
 
-  it("shows '暂无评分' when rating is null (t28)", () => {
-    const hero = buildHero(makeHeroData({ rating: null }), makeCallbacks());
-    const empty = hero.querySelector(".atv-rating-empty") as HTMLElement;
+  it("shows '暂无评分' when Douban rating is null but IMDb exists (t28)", () => {
+    const hero = buildHero(
+      makeHeroData({ imdbId: "tt1234567", rating: null }),
+      makeCallbacks()
+    );
+    const panel = hero.querySelector(".atv-rating-panel") as HTMLElement;
+    expect(panel).not.toBeNull();
+    const empty = panel?.querySelector(".atv-rating-empty") as HTMLElement;
     expect(empty).not.toBeNull();
     expect(empty?.textContent).toBe("暂无评分");
+  });
+
+  it("does not render rating panel when both rating and imdbId are null (t28a)", () => {
+    const hero = buildHero(makeHeroData({ rating: null }), makeCallbacks());
+    expect(hero.querySelector(".atv-rating-panel")).toBeNull();
   });
 
   /* ── Summary ─────────────────────────────────────────────── */

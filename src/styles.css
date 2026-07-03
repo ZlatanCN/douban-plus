@@ -364,47 +364,125 @@ body {
   backdrop-filter: blur(8px);
 }
 
-.atv-rating-row {
+/* ── Ratings Panel ──────────────────────────────── */
+/* Unified card presenting Douban + IMDb side by side */
+
+.atv-rating-panel {
   display: flex;
-  gap: 18px;
-  align-items: center;
+  gap: 0;
+  align-items: stretch;
+  width: fit-content;
+  min-width: 320px;
   margin-bottom: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--atv-radius-md);
+  background: rgba(255, 255, 255, 0.03);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
-.atv-rating-score {
+
+.atv-rating-panel-douban,
+.atv-rating-panel-imdb {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px 28px 16px;
+  text-align: center;
+}
+
+.atv-rating-panel-douban {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.atv-rating-panel-logo {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 10px;
+  opacity: 0.7;
+  transition: opacity 200ms ease;
+}
+.atv-rating-panel-logo svg {
+  display: block;
+}
+
+.atv-rating-panel .atv-rating-panel-score {
   font-family:
     "SF Pro Display",
     -apple-system,
     BlinkMacSystemFont,
     system-ui,
     sans-serif;
-  font-size: 56px;
+  font-size: 38px;
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.03em;
+  color: var(--atv-text-primary);
+  margin-bottom: 6px;
 }
-.atv-rating-meta {
+
+.atv-rating-panel-detail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
 }
-.atv-rating-stars {
+
+.atv-rating-panel-detail .atv-rating-stars {
   display: inline-flex;
   gap: 2px;
   color: var(--atv-rating-gold);
 }
-.atv-rating-stars svg {
+.atv-rating-panel-detail .atv-rating-stars svg {
   display: block;
 }
-.atv-rating-count {
-  font-size: 13px;
+
+.atv-rating-panel-count {
+  font-size: 12px;
   font-weight: 500;
   color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
+
 .atv-rating-empty {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--atv-text-tertiary);
   letter-spacing: 0.03em;
+  padding: 10px 0;
+}
+
+/* ── IMDb skeleton (loading) ────────────────────── */
+
+.atv-rating-panel-imdb.is-loading {
+  transition: opacity 400ms ease;
+}
+.atv-rating-panel-imdb.is-empty {
+  display: none;
+}
+
+.atv-rating-panel-skeleton {
+  width: 120px;
+  height: 22px;
+  margin-top: 14px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes atv-ratings-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .atv-actions {
@@ -1728,8 +1806,15 @@ a.atv-comment-overlay-author:hover {
   .atv-photo-tile.is-portrait {
     flex-basis: 170px;
   }
-  .atv-rating-score {
-    font-size: 44px;
+  .atv-rating-panel .atv-rating-panel-score {
+    font-size: 32px;
+  }
+  .atv-rating-panel-douban,
+  .atv-rating-panel-imdb {
+    padding: 14px 16px 12px;
+  }
+  .atv-rating-panel {
+    min-width: 0;
   }
   .atv-comments {
     grid-template-columns: 1fr;

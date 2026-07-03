@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { buildDetails } from "../../src/build/details";
+import { buildDetails } from "../../src/build";
 import type { DetailsData, InfoBlock } from "../../src/types";
 
 /* ── Helpers ───────────────────────────────────────────────── */

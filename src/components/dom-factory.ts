@@ -45,6 +45,7 @@ type ElementTagMap = {
   p: HTMLParagraphElement;
   section: HTMLElement;
   span: HTMLSpanElement;
+  strong: HTMLElement;
   style: HTMLStyleElement;
   textarea: HTMLTextAreaElement;
   video: HTMLVideoElement;

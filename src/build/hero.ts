@@ -7,11 +7,13 @@ import {
   ICON_STAR_EMPTY,
   ICON_STAR_FULL,
   ICON_THUMB,
+  LOGO_DOUBAN,
   RE_SEASON_SUFFIX,
 } from "../constants";
 import type { HeroData, HeroCallbacks, InterestState, Photo } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
+import { buildImdbRating } from "./imdb-rating";
 
 /* ── Hero Banner UI Builders ─────────────────────────── */
 
@@ -156,30 +158,51 @@ const buildMeta = (data: HeroData): HTMLElement => {
   return meta;
 };
 
-const buildRatingRow = (data: HeroData): HTMLElement => {
-  const ratingRow = el("div", { className: "atv-rating-row" });
-  if (data.rating) {
-    ratingRow.append(
+const buildRatingPanel = (
+  rating: HeroData["rating"],
+  imdbId: string | null
+): HTMLElement | null => {
+  if (!rating && !imdbId) {
+    return null;
+  }
+
+  const panel = el("div", { className: "atv-rating-panel" });
+
+  /* ── Douban section ───────────────────────────── */
+  const douban = el("div", { className: "atv-rating-panel-douban" });
+  douban.append(
+    el("div", { className: "atv-rating-panel-logo", html: LOGO_DOUBAN })
+  );
+
+  if (rating) {
+    douban.append(
       el("div", {
-        className: "atv-rating-score",
-        text: data.rating.score.toFixed(1),
+        className: "atv-rating-panel-score",
+        text: rating.score.toFixed(1),
       })
     );
-    const ratingMeta = el("div", { className: "atv-rating-meta" });
-    ratingMeta.append(renderStars(data.rating.score));
-    const countTxt = data.rating.count
-      ? `评价 ${data.rating.count.toLocaleString("en-US")}`
+    const detail = el("div", { className: "atv-rating-panel-detail" });
+    detail.append(renderStars(rating.score));
+    const countTxt = rating.count
+      ? `评价 ${rating.count.toLocaleString("en-US")}`
       : "已评分";
-    ratingMeta.append(
-      el("div", { className: "atv-rating-count", text: countTxt })
+    detail.append(
+      el("div", { className: "atv-rating-panel-count", text: countTxt })
     );
-    ratingRow.append(ratingMeta);
+    douban.append(detail);
   } else {
-    ratingRow.append(
+    douban.append(
       el("div", { className: "atv-rating-empty", text: "暂无评分" })
     );
   }
-  return ratingRow;
+  panel.append(douban);
+
+  /* ── IMDb section (skeleton placeholder) ──────── */
+  if (imdbId) {
+    panel.append(buildImdbRating(null));
+  }
+
+  return panel;
 };
 
 /** Build a single interest action button */
@@ -336,7 +359,10 @@ const buildHero = (data: HeroData, callbacks: HeroCallbacks): HTMLElement => {
   }
 
   info.append(buildMeta(data));
-  info.append(buildRatingRow(data));
+  const panel = buildRatingPanel(data.rating, data.imdbId);
+  if (panel) {
+    info.append(panel);
+  }
 
   const actions = buildActions(data.interest, callbacks);
   info.append(actions);

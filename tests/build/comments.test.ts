@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { buildComments } from "../../src/build/comments";
+import { buildComments } from "../../src/build";
 import type { Comment, CommentsData } from "../../src/types";
 
 /* ── Factory helpers ─────────────────────────────────────── */

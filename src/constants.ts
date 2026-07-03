@@ -40,6 +40,17 @@ const ICON_STAR_EMPTY =
   '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
   '<path fill="currentColor" fill-opacity="0.22" d="M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"/>' +
   "</svg>";
+const LOGO_DOUBAN =
+  '<svg viewBox="0 0 44 18" width="44" height="18" aria-label="豆瓣">' +
+  '<rect width="44" height="18" rx="3" fill="#41be5d"/>' +
+  '<text x="22" y="13" text-anchor="middle" fill="#fff" font-family="-apple-system,BlinkMacSystemFont,PingFang SC,Microsoft YaHei,sans-serif" font-weight="700" font-size="10.5">豆瓣</text>' +
+  "</svg>";
+const LOGO_IMDB =
+  '<svg viewBox="0 0 44 18" width="44" height="18" aria-label="IMDb">' +
+  '<rect width="44" height="18" rx="3" fill="#f5c518"/>' +
+  '<text x="22" y="13" text-anchor="middle" fill="#000" font-family="-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif" font-weight="800" font-size="11">IMDb</text>' +
+  "</svg>";
+
 const ICON_PLAY =
   '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
   '<path fill="currentColor" d="M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"/>' +
@@ -89,6 +100,8 @@ export {
   ICON_CHEVRON,
   ICON_FILM_PLACEHOLDER,
   ICON_PLAY,
+  LOGO_DOUBAN,
+  LOGO_IMDB,
   ICON_STAR_EMPTY,
   ICON_STAR_FULL,
   ICON_STAR_HALF,

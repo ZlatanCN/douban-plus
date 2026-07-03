@@ -35,11 +35,17 @@ const getXhr = (): typeof _gmXhr => {
   return _xhr;
 };
 
-const gmPost = (url: string, data: string, referer?: string): Promise<string> =>
+const gmPost = (
+  url: string,
+  data: string,
+  referer?: string,
+  extraHeaders?: Record<string, string>
+): Promise<string> =>
   // eslint-disable-next-line promise/avoid-new
   new Promise((resolve, reject) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/x-www-form-urlencoded",
+      ...extraHeaders,
     };
     if (referer) {
       headers.Referer = referer;

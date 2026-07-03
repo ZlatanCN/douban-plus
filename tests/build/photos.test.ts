@@ -4,7 +4,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { buildPhotos } from "../../src/build/photos";
+import { buildPhotos } from "../../src/build";
 import type { Photo, PhotosData, Trailer } from "../../src/types";
 
 /* ── Factory helpers ─────────────────────────────────── */

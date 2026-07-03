@@ -3,7 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { openPosterModal, openVideoModal } from "../../src/components/modal";
+import { openPosterModal, openVideoModal } from "../../src/components";
 import type { Trailer } from "../../src/types";
 
 const stubRaf = (): void => {

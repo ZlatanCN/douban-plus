@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { buildStickyNav } from "../../src/build/sticky-nav";
+import { buildStickyNav } from "../../src/build";
 import type { StickyNavData } from "../../src/types";
 
 /* ── Helpers ────────────────────────────────────────────────── */

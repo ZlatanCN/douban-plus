@@ -1,12 +1,14 @@
 import "./styles.css";
 import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
+import { fetchImdbRating } from "./api/imdb";
 import { postInterest, removeInterest } from "./api/interest";
 import {
   buildCast,
   buildComments,
   buildDetails,
   buildHero,
+  buildImdbRating,
   buildPhotos,
   buildRecs,
   buildStickyNav,
@@ -54,6 +56,25 @@ const computeNavSections = (data: DoubanData): NavSection[] => {
   }
   sections.push({ id: "atv-info", label: "详情" });
   return sections;
+};
+
+/* ── Async IMDb Rating Fetch ─────────────────────────── */
+
+const resolveImdbRating = async (imdbId: string): Promise<void> => {
+  const section = document.querySelector<HTMLElement>(".atv-rating-panel-imdb");
+  if (!section) {
+    console.warn("[IMDB] IMDb panel section not found in DOM");
+    return;
+  }
+
+  const rating = await fetchImdbRating(imdbId);
+  if (rating) {
+    const loaded = buildImdbRating(rating);
+    section.replaceWith(loaded);
+  } else {
+    section.classList.remove("is-loading");
+    section.classList.add("is-empty");
+  }
 };
 
 /* ── Wire hero callbacks (replaces direct api/extract imports in hero.ts) ── */
@@ -151,6 +172,7 @@ const render = (): void => {
   root.append(
     buildHero(
       {
+        imdbId: data.info.imdb || null,
         info: data.info,
         interest: data.interest,
         isTV: data.isTV,
@@ -223,6 +245,13 @@ const render = (): void => {
   };
   window.addEventListener("scroll", reveal, { passive: true });
   reveal();
+
+  /* ── Async IMDb fetch after render ────────────────── */
+
+  const imdbId = data.info.imdb || null;
+  if (imdbId) {
+    resolveImdbRating(imdbId);
+  }
 };
 
 /* ── Exports (for testability) ───────────────────────── */

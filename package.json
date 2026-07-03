@@ -24,8 +24,8 @@
     "lint": "ultracite check",
     "fix": "ultracite fix",
     "format": "ultracite fix",
-    "typecheck": "tsc --noEmit",
-    "ci": "ultracite check && tsc --noEmit && vitest run && vite build && tsx tests/qa.ts",
+    "typecheck": "tsc --noEmit && tsc -p tests/tsconfig.json --noEmit",
+    "ci": "ultracite check && tsc --noEmit && tsc -p tests/tsconfig.json --noEmit && vitest run && vite build && tsx tests/qa.ts",
     "prepare": "husky"
   },
   "devDependencies": {
