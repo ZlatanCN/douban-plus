@@ -15,6 +15,7 @@ export default defineConfig({
       },
       entry: "src/main.ts",
       server: {
+        mountGmApi: true,
         open: true,
         prefix: "dev:",
       },
