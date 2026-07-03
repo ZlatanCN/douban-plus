@@ -59,7 +59,7 @@ const computeNavSections = (data: DoubanData): NavSection[] => {
 /* ── Wire hero callbacks (replaces direct api/extract imports in hero.ts) ── */
 
 const buildHeroCallbacks = (subjectId: string): HeroCallbacks => {
-  const interestBtns = findInterestButtons();
+  const interestBtns = findInterestButtons(document);
   return {
     onCollectClick: () => interestBtns.collect?.click(),
     onOpenInterest: (state) => {
@@ -100,7 +100,7 @@ const render = (): void => {
 
   let data: DoubanData;
   try {
-    const info = extractInfo();
+    const info = extractInfo(document);
     const isTV = !!(
       info.episodes ||
       info.seasons ||
@@ -108,22 +108,22 @@ const render = (): void => {
       info.firstAired
     );
     data = {
-      awards: extractAwards(),
-      celebrities: extractCelebrities(),
-      comments: extractComments(),
+      awards: extractAwards(document),
+      celebrities: extractCelebrities(document),
+      comments: extractComments(document),
       info,
-      interest: extractInterestState(),
+      interest: extractInterestState(document),
       isTV,
-      photos: extractPhotos(),
-      poster: extractPoster(),
-      rating: extractRating(),
-      recommendations: extractRecommendations(),
-      streaming: extractStreaming(),
-      subjectId: extractSubjectId(),
-      summary: extractSummary(),
-      title: extractTitle(),
-      trailers: extractTrailers(),
-      year: extractYear(),
+      photos: extractPhotos(document),
+      poster: extractPoster(document),
+      rating: extractRating(document),
+      recommendations: extractRecommendations(document),
+      streaming: extractStreaming(document),
+      subjectId: extractSubjectId(document),
+      summary: extractSummary(document),
+      title: extractTitle(document),
+      trailers: extractTrailers(document),
+      year: extractYear(document),
     };
   } catch (error) {
     console.warn("[ATV-Douban] 数据提取失败：", error);
@@ -224,6 +224,10 @@ const render = (): void => {
   window.addEventListener("scroll", reveal, { passive: true });
   reveal();
 };
+
+/* ── Exports (for testability) ───────────────────────── */
+
+export { buildHeroCallbacks, computeNavSections };
 
 /* ── Startup ─────────────────────────────────────────── */
 

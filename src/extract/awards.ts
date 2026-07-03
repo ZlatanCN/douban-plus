@@ -11,8 +11,8 @@ import { $, $$, safeText } from "../utils/dom";
  *   1: award name (plain text)
  *   2: person name (may contain `<a>`)
  */
-const extractAwards = (): Award[] =>
-  $$("ul.award")
+const extractAwards = (doc: Document): Award[] =>
+  $$("ul.award", doc)
     .map((ul) => {
       const lis = $$("li", ul);
       const orgEl = lis[0] ? $<HTMLAnchorElement>("a", lis[0]) : null;

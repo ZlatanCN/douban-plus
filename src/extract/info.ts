@@ -11,8 +11,8 @@ import { collectInfoTextAfter, collectLinksAfter, findLabel } from "./helpers";
  * Extract all metadata fields from the #info block.
  * Handles both movie and TV detail pages.
  */
-const extractInfo = (): InfoBlock => {
-  const info = $<HTMLElement>("#info");
+const extractInfo = (doc: Document): InfoBlock => {
+  const info = $<HTMLElement>("#info", doc);
   const out: InfoBlock = {
     aliases: "",
     cast: [],

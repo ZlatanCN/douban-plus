@@ -9,9 +9,11 @@ import { upgradePoster } from "../utils/upgrade";
 /**
  * Extract related recommendations from `.recommendations-bd`.
  * Iterates `<dl>` items and pulls title, poster image, and link.
+ *
+ * @param doc - The parent document to query against.
  */
-const extractRecommendations = (): Recommendation[] =>
-  $$<HTMLDListElement>(".recommendations-bd dl")
+const extractRecommendations = (doc: Document): Recommendation[] =>
+  $$<HTMLDListElement>(".recommendations-bd dl", doc)
     .map((dl) => {
       const linkEl = $<HTMLAnchorElement>("dt a", dl);
       const imgEl = $<HTMLImageElement>("dt a img", dl);
@@ -69,9 +71,11 @@ const extractAvatar = (item: HTMLElement): string => {
  * Extract user comments from "#hot-comments" section.
  * Iterates `.comment-item` elements and pulls author, content,
  * star rating, time, votes, and avatar.
+ *
+ * @param doc - The parent document to query against.
  */
-const extractComments = (): Comment[] => {
-  const items = $$<HTMLElement>("#hot-comments .comment-item");
+const extractComments = (doc: Document): Comment[] => {
+  const items = $$<HTMLElement>("#hot-comments .comment-item", doc);
   const out: Comment[] = [];
   for (const item of items) {
     const authorEl = $<HTMLAnchorElement>(".comment-info a", item);

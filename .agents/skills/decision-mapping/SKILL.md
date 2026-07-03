@@ -91,11 +91,13 @@ End every session by clearing the context and opening one or more fresh sessions
 > Clear the context, then open fresh sessions.
 >
 > **One session** — resolves the next unblocked ticket:
+>
 > ```
 > Invoke /decision-mapping with the map at <path>.
 > ```
 >
 > **Parallel** — paste one line per window, up to all 3:
+>
 > ```
 > Invoke /decision-mapping with the map at <path>, ticket auth-strategy.
 > Invoke /decision-mapping with the map at <path>, ticket cache-layer.

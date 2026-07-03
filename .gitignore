@@ -11,3 +11,4 @@ session-*.md
 .playwright-cli
 .DS_Store
 */.DS_Store
+coverage

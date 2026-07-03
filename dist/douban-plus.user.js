@@ -1354,7 +1354,7 @@
 	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
 	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
 	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
-	var extractAwards = () => $$("ul.award").map((ul) => {
+	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
 		const lis = $$("li", ul);
 		const orgEl = lis[0] ? $("a", lis[0]) : null;
 		const org = lis[0] ? safeText(lis[0]) : "";
@@ -1377,9 +1377,9 @@
 		if (!url) return null;
 		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
 	};
-	var extractTitle = () => {
-		const h1 = $("#content h1");
-		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? void 0)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
+	var extractTitle = (doc) => {
+		const h1 = $("#content h1", doc);
+		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
 		let primary = full;
 		let original = "";
 		const idx = full.search(RE_WS);
@@ -1393,17 +1393,17 @@
 			primary
 		};
 	};
-	var extractYear = () => {
-		const m = safeText($("#content h1 .year")).match(RE_YEAR);
+	var extractYear = (doc) => {
+		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
 		return m ? m[1] : "";
 	};
-	var extractPoster = () => {
-		const img = $("#mainpic img") || $("a.nbgnbg img");
+	var extractPoster = (doc) => {
+		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
 		if (!img) return null;
 		return upgradePoster(img.src || img.dataset.src || "");
 	};
-	var extractSubjectId = () => {
-		const m = location.pathname.match(RE_SUBJECT_ID);
+	var extractSubjectId = (doc) => {
+		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
 		return m ? m[1] : "";
 	};
 	var findLabel = (root, label) => {
@@ -1451,8 +1451,8 @@
 		}
 		return out;
 	};
-	var extractInfo = () => {
-		const info = $("#info");
+	var extractInfo = (doc) => {
+		const info = $("#info", doc);
 		const out = {
 			aliases: "",
 			cast: [],
@@ -1502,7 +1502,7 @@
 		}
 		return out;
 	};
-	var extractCelebrities = () => $$("#celebrities li.celebrity").map((li) => {
+	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
 		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
 		const roleEl = $(".info .role", li);
 		const avatarEl = $(".avatar", li);
@@ -1518,7 +1518,7 @@
 			role: safeText(roleEl)
 		};
 	}).filter((c) => c.name);
-	var extractPhotos = () => $$("#related-pic .related-pic-bd img").map((img) => {
+	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
 		const thumb = img.src || img.dataset.src || "";
 		const a = img.closest("a");
 		return {
@@ -1527,7 +1527,7 @@
 			thumbUrl: encodeURI(thumb)
 		};
 	}).filter((p) => p.thumbUrl);
-	var extractTrailers = () => $$("#related-pic li.label-trailer a.related-pic-video").map((a) => {
+	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
 		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
 		const thumbUrl = m ? m[1] : "";
 		return {
@@ -1536,24 +1536,24 @@
 			trailerPageUrl: a.href
 		};
 	}).filter((t) => t.trailerPageUrl);
-	var extractRating$1 = () => {
-		const raw = safeText($("strong.rating_num") || $("strong[property=\"v:average\"]"));
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
 		const score = raw ? Number.parseFloat(raw) : NaN;
 		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]") || $(".rating_people span");
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
 		return {
 			count: votesEl ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0 : 0,
 			score
 		};
 	};
-	var extractSummary = () => {
-		const summary = $("span[property=\"v:summary\"]");
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
 		if (!summary) return null;
 		let txt = (summary.textContent || "").trim();
 		txt = txt.replace(RE_WS_NL, "\n").replace(RE_HSPACE, " ").replace(RE_NL_MULTI, "\n\n").trim();
 		return txt || null;
 	};
-	var extractRecommendations = () => $$(".recommendations-bd dl").map((dl) => {
+	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
 		const linkEl = $("dt a", dl);
 		const imgEl = $("dt a img", dl);
 		const titleEl = $("dd a", dl);
@@ -1589,8 +1589,8 @@
 		if (!img) return "";
 		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
 	};
-	var extractComments = () => {
-		const items = $$("#hot-comments .comment-item");
+	var extractComments = (doc) => {
+		const items = $$("#hot-comments .comment-item", doc);
 		const out = [];
 		for (const item of items) {
 			const authorEl = $(".comment-info a", item);
@@ -1629,13 +1629,13 @@
 		}
 		return null;
 	};
-	var findInterestButtons = () => {
+	var findInterestButtons = (doc) => {
 		const result = {
 			collect: null,
 			do: null,
 			wish: null
 		};
-		const root = $("#interest_sect_level") || $("#interest_sectl");
+		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
 		const anchors = root ? $$("a", root) : [];
 		const scan = (list, doRe, wishRe, collectRe) => {
 			for (const a of list) {
@@ -1646,7 +1646,7 @@
 			}
 		};
 		scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
-		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a"), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
+		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
 		return result;
 	};
 	var detectS3State = (root) => {
@@ -1700,10 +1700,10 @@
 			status
 		};
 	};
-	var extractInterestState = () => {
-		const ck = (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
 		const loggedIn = !!ck;
-		const root = $("#interest_sect_level") || $("#interest_sectl");
+		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
 		const anchors = root ? $$("a", root) : [];
 		if (!loggedIn) return {
 			ck,
@@ -1747,8 +1747,8 @@
 		};
 	};
 	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = () => {
-		const srcScript = $$("script:not([src])").find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+	var parsePlaySources = (doc) => {
+		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
 		if (!srcScript) return {};
 		const txt = srcScript.textContent;
 		const map = {};
@@ -1761,11 +1761,11 @@
 		}
 		return map;
 	};
-	var extractStreaming = () => {
+	var extractStreaming = (doc) => {
 		const seen = new Set();
 		const out = [];
-		const sourcesMap = parsePlaySources();
-		const playBtns = $$("a.playBtn");
+		const sourcesMap = parsePlaySources(doc);
+		const playBtns = $$("a.playBtn", doc);
 		for (const a of playBtns) {
 			const name = (a.dataset.cn || a.textContent || "").trim();
 			if (!name || seen.has(name)) continue;
@@ -1781,7 +1781,7 @@
 				name
 			});
 		}
-		for (const a of $$("a")) {
+		for (const a of $$("a", doc)) {
 			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
 			const name = (a.dataset.cn || a.textContent || "").trim();
 			if (!name || seen.has(name)) continue;
@@ -1822,7 +1822,7 @@
 		return sections;
 	};
 	var buildHeroCallbacks = (subjectId) => {
-		const interestBtns = findInterestButtons();
+		const interestBtns = findInterestButtons(document);
 		return {
 			onCollectClick: () => interestBtns.collect?.click(),
 			onOpenInterest: (state) => {
@@ -1854,25 +1854,25 @@
 		}
 		let data;
 		try {
-			const info = extractInfo();
+			const info = extractInfo(document);
 			const isTV = !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
 			data = {
-				awards: extractAwards(),
-				celebrities: extractCelebrities(),
-				comments: extractComments(),
+				awards: extractAwards(document),
+				celebrities: extractCelebrities(document),
+				comments: extractComments(document),
 				info,
-				interest: extractInterestState(),
+				interest: extractInterestState(document),
 				isTV,
-				photos: extractPhotos(),
-				poster: extractPoster(),
-				rating: extractRating$1(),
-				recommendations: extractRecommendations(),
-				streaming: extractStreaming(),
-				subjectId: extractSubjectId(),
-				summary: extractSummary(),
-				title: extractTitle(),
-				trailers: extractTrailers(),
-				year: extractYear()
+				photos: extractPhotos(document),
+				poster: extractPoster(document),
+				rating: extractRating$1(document),
+				recommendations: extractRecommendations(document),
+				streaming: extractStreaming(document),
+				subjectId: extractSubjectId(document),
+				summary: extractSummary(document),
+				title: extractTitle(document),
+				trailers: extractTrailers(document),
+				year: extractYear(document)
 			};
 		} catch (error) {
 			console.warn("[ATV-Douban] 数据提取失败：", error);

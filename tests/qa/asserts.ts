@@ -978,7 +978,7 @@ const assertVideoModal = async (ctx: AssertCtx): Promise<void> => {
   const clicked = await trailerTiles[0]
     .evaluate((el) => {
       el.scrollIntoView({ block: "nearest" });
-      el.click();
+      (el as HTMLElement).click();
     })
     .then(() => true)
     .catch(() => false);

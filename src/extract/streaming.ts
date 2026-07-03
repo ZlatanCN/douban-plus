@@ -19,8 +19,8 @@ const isRealUrl = (h: string) => RE_HTTP.test(h || "");
  * CRITICAL: Regex logic must remain character-for-character — this was
  * a hard-fixed TV streaming feature.
  */
-const parsePlaySources = (): Record<string, string> => {
-  const scripts = $$("script:not([src])");
+const parsePlaySources = (doc: Document): Record<string, string> => {
+  const scripts = $$("script:not([src])", doc);
   const srcScript = scripts.find((s) =>
     RE_SOURCES_SCRIPT.test(s.textContent || "")
   );
@@ -49,12 +49,12 @@ const parsePlaySources = (): Record<string, string> => {
  * 2. Fall back to `<a>` links matching `online-video` in href
  * 3. For TV pages, fall back to `parsePlaySources()` for inline data
  */
-const extractStreaming = (): Streaming[] => {
+const extractStreaming = (doc: Document): Streaming[] => {
   const seen = new Set<string>();
   const out: Streaming[] = [];
-  const sourcesMap = parsePlaySources();
+  const sourcesMap = parsePlaySources(doc);
 
-  const playBtns = $$<HTMLAnchorElement>("a.playBtn");
+  const playBtns = $$<HTMLAnchorElement>("a.playBtn", doc);
   for (const a of playBtns) {
     const name = (a.dataset.cn || a.textContent || "").trim();
     if (!name || seen.has(name)) {
@@ -73,7 +73,7 @@ const extractStreaming = (): Streaming[] => {
     out.push({ href, name });
   }
 
-  for (const a of $$<HTMLAnchorElement>("a")) {
+  for (const a of $$<HTMLAnchorElement>("a", doc)) {
     if (!RE_ONLINE_VIDEO.test(a.href || "")) {
       continue;
     }

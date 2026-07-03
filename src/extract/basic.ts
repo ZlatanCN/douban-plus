@@ -9,11 +9,11 @@ import { upgradePoster } from "../utils/upgrade";
 /**
  * Extract full / primary / original title from the page heading.
  */
-const extractTitle = (): TitleInfo => {
-  const h1 = $("#content h1");
+const extractTitle = (doc: Document): TitleInfo => {
+  const h1 = $("#content h1", doc);
   const reviewed = $<HTMLSpanElement>(
     'span[property="v:itemreviewed"]',
-    h1 ?? undefined
+    h1 ?? doc
   );
   const full =
     safeText(reviewed) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
@@ -30,8 +30,8 @@ const extractTitle = (): TitleInfo => {
 /**
  * Extract year string (e.g. "1994") from the .year element.
  */
-const extractYear = (): string => {
-  const yEl = $("#content h1 .year");
+const extractYear = (doc: Document): string => {
+  const yEl = $("#content h1 .year", doc);
   const raw = safeText(yEl);
   const m = raw.match(RE_YEAR);
   return m ? m[1] : "";
@@ -40,9 +40,10 @@ const extractYear = (): string => {
 /**
  * Extract poster image URL and upgrade to HD.
  */
-const extractPoster = (): string | null => {
+const extractPoster = (doc: Document): string | null => {
   const img =
-    $<HTMLImageElement>("#mainpic img") || $<HTMLImageElement>("a.nbgnbg img");
+    $<HTMLImageElement>("#mainpic img", doc) ||
+    $<HTMLImageElement>("a.nbgnbg img", doc);
   if (!img) {
     return null;
   }
@@ -53,8 +54,8 @@ const extractPoster = (): string | null => {
 /**
  * Extract subject ID from the current URL path.
  */
-const extractSubjectId = (): string => {
-  const m = location.pathname.match(RE_SUBJECT_ID);
+const extractSubjectId = (doc: Document): string => {
+  const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
   return m ? m[1] : "";
 };
 

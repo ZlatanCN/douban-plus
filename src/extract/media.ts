@@ -11,8 +11,8 @@ import { upgradePhoto } from "../utils/upgrade";
  * Iterates `.celebrity` items and pulls name, role, avatar (from background),
  * and profile link.
  */
-const extractCelebrities = (): Celebrity[] =>
-  $$<HTMLLIElement>("#celebrities li.celebrity")
+const extractCelebrities = (doc: Document): Celebrity[] =>
+  $$<HTMLLIElement>("#celebrities li.celebrity", doc)
     .map((li) => {
       const nameEl =
         $<HTMLAnchorElement>(".info .name a", li) ??
@@ -43,8 +43,8 @@ const extractCelebrities = (): Celebrity[] =>
  * Extract photo gallery from "#related-pic" section.
  * Finds `<img>` inside `.related-pic-bd`, extracts thumb/HD/link.
  */
-const extractPhotos = (): Photo[] =>
-  $$<HTMLImageElement>("#related-pic .related-pic-bd img")
+const extractPhotos = (doc: Document): Photo[] =>
+  $$<HTMLImageElement>("#related-pic .related-pic-bd img", doc)
     .map((img) => {
       const thumb = (img as HTMLImageElement).src || img.dataset.src || "";
       const a = img.closest("a");
@@ -61,8 +61,11 @@ const extractPhotos = (): Photo[] =>
  * Finds `<a.related-pic-video>` inside `li.label-trailer`,
  * extracts trailer page URL, thumbnail from background-image, and title.
  */
-const extractTrailers = (): Trailer[] =>
-  $$<HTMLAnchorElement>("#related-pic li.label-trailer a.related-pic-video")
+const extractTrailers = (doc: Document): Trailer[] =>
+  $$<HTMLAnchorElement>(
+    "#related-pic li.label-trailer a.related-pic-video",
+    doc
+  )
     .map((a) => {
       const style = a.getAttribute("style") || "";
       const m = style.match(RE_BG_URL);

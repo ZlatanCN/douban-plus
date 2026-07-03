@@ -75,9 +75,9 @@ const matchInterestText = (
  * Find wish (想看) and collect (看过) interest buttons.
  * Tries the primary interest section first, then falls back to secondary selectors.
  */
-const findInterestButtons = (): InterestButtons => {
+const findInterestButtons = (doc: Document): InterestButtons => {
   const result: InterestButtons = { collect: null, do: null, wish: null };
-  const root = $("#interest_sect_level") || $("#interest_sectl");
+  const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
   const anchors = root ? $$<HTMLAnchorElement>("a", root) : [];
   const scan = (
     list: HTMLAnchorElement[],
@@ -101,7 +101,7 @@ const findInterestButtons = (): InterestButtons => {
   scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
   if (!result.do || !result.wish || !result.collect) {
     scan(
-      $$<HTMLAnchorElement>("#interest_sectl a"),
+      $$<HTMLAnchorElement>("#interest_sectl a", doc),
       RE_DO_EXACT,
       RE_WISH_EXACT,
       RE_COLLECT_EXACT
@@ -217,10 +217,10 @@ const detectS2Status = (
  * Extract the user's interest state (wish/do/collect) from the Douban page.
  * Handles logged-out, S3 (new DOM), and S2 (legacy DOM) paths.
  */
-const extractInterestState = (): InterestState => {
-  const ck = (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+const extractInterestState = (doc: Document): InterestState => {
+  const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
   const loggedIn = !!ck;
-  const root = $("#interest_sect_level") || $("#interest_sectl");
+  const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
   const anchors = root ? $$<HTMLAnchorElement>("a", root) : [];
 
   if (!loggedIn) {
