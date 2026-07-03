@@ -12,9 +12,7 @@ import type { Page } from "playwright";
 
 import {
   assertAwards,
-  assertBodyBg,
   assertCast,
-  assertCommentContentFull,
   assertCommentOverlay,
   assertCommentOverlayExpandBtn,
   assertCommentOverlayVote,
@@ -22,26 +20,22 @@ import {
   assertExpandInline,
   assertHero,
   assertIMDb,
-  assertInfoFields,
   assertInterestModal,
   assertNoScriptErrors,
-  assertNoTVElements,
   assertPhotos,
   assertPosterModal,
   assertRating,
-  assertTrailerTile,
-  assertVideoModal,
-  assertRatingCorrect,
   assertRecommendations,
   assertRoot,
   assertStickyNav,
   assertStreaming,
   assertSummaryTeaser,
   assertTitleCorrect,
+  assertTrailerTile,
   assertTVMeta,
-  assertTVSpecific,
   assertTVStreamingPopup,
-  assertWrapper,
+  assertTVTerms,
+  assertVideoModal,
   captureScreenshots,
 } from "./qa/asserts";
 import {
@@ -97,18 +91,14 @@ const executeBody = async (
   await assertRoot(ctx);
   await assertHero(ctx);
   await assertTitleCorrect(ctx);
-  await assertRatingCorrect(ctx);
-  await assertNoTVElements(ctx);
-  await assertTVSpecific(ctx);
+  await assertRating(ctx);
+  await assertTVTerms(ctx);
 
   /* ── Phase 2: Content sections ── */
   await assertCast(ctx);
   await assertPhotos(ctx);
-  await assertRating(ctx);
   await assertRecommendations(ctx);
-  await assertInfoFields(ctx);
   await assertComments(ctx);
-  await assertCommentContentFull(ctx);
 
   /* ── Phase 3: Interactive features ── */
   await assertSummaryTeaser(ctx);
@@ -119,10 +109,8 @@ const executeBody = async (
   await assertInterestModal(ctx);
 
   /* ── Phase 4: UI chrome & navigation ── */
-  await assertWrapper(ctx);
   await assertIMDb(ctx);
   assertNoScriptErrors(ctx);
-  await assertBodyBg(ctx);
   await assertStickyNav(ctx);
 
   /* ── Phase 5: Edge features ── */

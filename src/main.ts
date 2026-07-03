@@ -3,6 +3,7 @@ import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
 import { fetchImdbRating } from "./api/imdb";
 import { postInterest, removeInterest } from "./api/interest";
+import { fetchRtRating } from "./api/rotten";
 import {
   buildCast,
   buildComments,
@@ -11,6 +12,7 @@ import {
   buildImdbRating,
   buildPhotos,
   buildRecs,
+  buildRtRating,
   buildStickyNav,
   buildStreaming,
 } from "./build";
@@ -58,22 +60,75 @@ const computeNavSections = (data: DoubanData): NavSection[] => {
   return sections;
 };
 
-/* ── Async IMDb Rating Fetch ─────────────────────────── */
+/* ── Async IMDb / RT Rating Fetch ────────────────── */
 
-const resolveImdbRating = async (imdbId: string): Promise<void> => {
+/** Strip season/variant info from a Douban h1 like
+ *  "权力的游戏 第五季 Game of Thrones Season 5 (2015)"
+ *  to extract just the English series name ("Game of Thrones"). */
+const extractEnglishSeriesName = (h1: string): string => {
+  const cleaned = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim();
+  const m = cleaned.match(/[A-Za-z][\w\s'\-!&.,]*/u);
+  if (!m) {
+    return cleaned;
+  }
+  return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
+};
+
+const extractSeasonFromH1 = (h1: string): number | undefined => {
+  const m = h1.match(/Season\s*(?<seasonDigit>\d+)/iu);
+  return m?.groups?.seasonDigit
+    ? Number.parseInt(m.groups.seasonDigit, 10)
+    : undefined;
+};
+
+const resolveRtRating = async (
+  title: string,
+  isTV?: boolean,
+  season?: number
+): Promise<void> => {
+  const section = document.querySelector<HTMLElement>(".atv-rating-panel-rt");
+  if (!section) {
+    console.warn("[RT] RT panel section not found in DOM");
+    return;
+  }
+  const rating = await fetchRtRating(title, isTV, season);
+  if (rating) {
+    const loaded = buildRtRating(rating);
+    section.replaceWith(loaded);
+  } else {
+    section.classList.remove("is-loading");
+    section.classList.add("is-empty");
+  }
+};
+
+const resolveImdbRating = async (
+  imdbId: string,
+  isTV: boolean,
+  season?: number
+): Promise<void> => {
   const section = document.querySelector<HTMLElement>(".atv-rating-panel-imdb");
   if (!section) {
     console.warn("[IMDB] IMDb panel section not found in DOM");
     return;
   }
 
-  const rating = await fetchImdbRating(imdbId);
-  if (rating) {
-    const loaded = buildImdbRating(rating);
+  const result = await fetchImdbRating(imdbId, season);
+  if (result.rating) {
+    const loaded = buildImdbRating(result.rating);
     section.replaceWith(loaded);
   } else {
     section.classList.remove("is-loading");
     section.classList.add("is-empty");
+  }
+
+  // For RT lookup: extract English series name from Douban H1,
+  // fallback to the IMDb title for non-TV content.
+  const doubanH1 =
+    document.querySelector("#content h1")?.textContent?.trim() || "";
+  const rtTitle = extractEnglishSeriesName(doubanH1) || result.title || "";
+  const rtSeason = extractSeasonFromH1(doubanH1) ?? season;
+  if (rtTitle) {
+    resolveRtRating(rtTitle, isTV, rtSeason);
   }
 };
 
@@ -107,6 +162,24 @@ const buildHeroCallbacks = (subjectId: string): HeroCallbacks => {
     onWatchingClick: () => interestBtns.do?.click(),
     onWishClick: () => interestBtns.wish?.click(),
   };
+};
+
+const triggerImdbFetch = (imdbId: string, isTV: boolean): void => {
+  const seasonEl = document.querySelector<HTMLSelectElement>("#season");
+  const seasonNumber = seasonEl
+    ? (() => {
+        const opt = seasonEl.options[seasonEl.selectedIndex];
+        if (!opt) {
+          return;
+        }
+        const m = (opt.textContent || "").trim().match(/(?<season>\d+)/u);
+        return m?.groups ? Number.parseInt(m.groups.season, 10) : undefined;
+      })()
+    : undefined;
+  const h1Text = document.querySelector("#content h1")?.textContent ?? "";
+  const effectiveSeason =
+    seasonNumber ?? (h1Text ? extractSeasonFromH1(h1Text) : undefined);
+  resolveImdbRating(imdbId, isTV, effectiveSeason);
 };
 
 const render = (): void => {
@@ -250,7 +323,7 @@ const render = (): void => {
 
   const imdbId = data.info.imdb || null;
   if (imdbId) {
-    resolveImdbRating(imdbId);
+    triggerImdbFetch(imdbId, data.isTV);
   }
 };
 

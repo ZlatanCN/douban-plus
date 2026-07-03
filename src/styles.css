@@ -382,7 +382,8 @@ body {
 }
 
 .atv-rating-panel-douban,
-.atv-rating-panel-imdb {
+.atv-rating-panel-imdb,
+.atv-rating-panel-rt {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -392,6 +393,10 @@ body {
 }
 
 .atv-rating-panel-douban {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.atv-rating-panel-imdb {
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -452,12 +457,14 @@ body {
   padding: 10px 0;
 }
 
-/* ── IMDb skeleton (loading) ────────────────────── */
+/* ── Skeleton (loading) ─────────────────────────── */
 
-.atv-rating-panel-imdb.is-loading {
+.atv-rating-panel-imdb.is-loading,
+.atv-rating-panel-rt.is-loading {
   transition: opacity 400ms ease;
 }
-.atv-rating-panel-imdb.is-empty {
+.atv-rating-panel-imdb.is-empty,
+.atv-rating-panel-rt.is-empty {
   display: none;
 }
 

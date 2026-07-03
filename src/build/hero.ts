@@ -14,6 +14,7 @@ import type { HeroData, HeroCallbacks, InterestState, Photo } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { hashStr } from "../utils/hash";
 import { buildImdbRating } from "./imdb-rating";
+import { buildRtRating } from "./rt-rating";
 
 /* ── Hero Banner UI Builders ─────────────────────────── */
 
@@ -200,6 +201,11 @@ const buildRatingPanel = (
   /* ── IMDb section (skeleton placeholder) ──────── */
   if (imdbId) {
     panel.append(buildImdbRating(null));
+  }
+
+  /* ── RT section (skeleton placeholder) ────────── */
+  if (imdbId) {
+    panel.append(buildRtRating(null));
   }
 
   return panel;

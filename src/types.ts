@@ -21,6 +21,12 @@ type ImdbRating = {
   count: number;
 };
 
+/** Rotten Tomatoes tomatometer — score 0-100 (percentage), count = number of critic reviews */
+type RtRating = {
+  score: number;
+  count: number;
+};
+
 /** Return type of extractRating() */
 type RatingInfo = {
   score: number;
@@ -246,6 +252,7 @@ export type {
   HeroData,
   ImdbRating,
   InfoBlock,
+  RtRating,
   InterestFormState,
   InterestState,
   Link,

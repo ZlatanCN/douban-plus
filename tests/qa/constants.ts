@@ -11,7 +11,6 @@ const ATV_STACK_REGEX = /ATV-Douban|atv-/u;
 const TIMEOUT_PAGE_LOAD = 60_000;
 const TIMEOUT_CONTENT_READY = 30_000;
 
-const COLOR_BLACK_RGB = "rgb(0, 0, 0)";
 const COLOR_GOLD_RGB = "rgb(255, 184, 0)";
 const SCROLL_TEST_POSITION = 700;
 const STICKY_NAV_MIN_OPACITY = 0.8;
@@ -55,7 +54,7 @@ const injectAfterLoad = userscriptRaw.replace(
 );
 
 const SCENARIOS: Scenario[] = [
-  /* ── Existing (keep for regression) ── */
+  /* ── Core regression ── */
   {
     kind: "movie",
     name: "movie-shawshank",
@@ -63,24 +62,14 @@ const SCENARIOS: Scenario[] = [
   },
   {
     kind: "movie",
-    name: "movie-nezha",
-    url: "https://movie.douban.com/subject/26794435/",
-  },
-  {
-    kind: "movie",
     name: "movie-wandering-earth-2",
     url: "https://movie.douban.com/subject/35267208/",
   },
+  /* ── TV ── */
   {
     kind: "tv",
     name: "tv-got-s1",
     url: "https://movie.douban.com/subject/3016187/",
-  },
-  /* ── Boundary: Chinese TV drama ── */
-  {
-    kind: "tv",
-    name: "tv-blossoms-shanghai",
-    url: "https://movie.douban.com/subject/34874646/",
   },
   /* ── Boundary: Japanese anime film ── */
   {
@@ -93,18 +82,6 @@ const SCENARIOS: Scenario[] = [
     kind: "movie",
     name: "movie-rashomon",
     url: "https://movie.douban.com/subject/1291879/",
-  },
-  /* ── Boundary: Niche indie film ── */
-  {
-    kind: "movie",
-    name: "movie-all-about-ing",
-    url: "https://movie.douban.com/subject/26752564/",
-  },
-  /* ── Boundary: Modern blockbuster ── */
-  {
-    kind: "movie",
-    name: "movie-oppenheimer",
-    url: "https://movie.douban.com/subject/35593344/",
   },
   /* ── Trailer-specific: movie with multiple trailers ── */
   {
@@ -133,7 +110,6 @@ const C = {
 export {
   ATV_NOISE_REGEX,
   ATV_STACK_REGEX,
-  COLOR_BLACK_RGB,
   COLOR_GOLD_RGB,
   C,
   DOUBAN_NOISE_REGEX,

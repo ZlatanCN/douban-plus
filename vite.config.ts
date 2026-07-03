@@ -19,7 +19,12 @@ export default defineConfig({
         prefix: "dev:",
       },
       userscript: {
-        connect: ["douban.com", "movie.douban.com", "graphql.imdb.com"],
+        connect: [
+          "douban.com",
+          "movie.douban.com",
+          "graphql.imdb.com",
+          "www.rottentomatoes.com",
+        ],
         exclude: [
           "*://movie.douban.com/subject/*/all_photos",
           "*://movie.douban.com/subject/*/photos*",

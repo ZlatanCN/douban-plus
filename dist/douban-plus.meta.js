@@ -14,6 +14,7 @@
 // @connect      douban.com
 // @connect      movie.douban.com
 // @connect      graphql.imdb.com
+// @connect      www.rottentomatoes.com
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @run-at       document-end

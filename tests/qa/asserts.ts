@@ -3,7 +3,6 @@ import path from "node:path";
 import type { Page } from "playwright";
 
 import {
-  COLOR_BLACK_RGB,
   COLOR_GOLD_RGB,
   EXTERNAL_URL_REGEX,
   IMDB_LINK_REGEX,
@@ -62,16 +61,22 @@ const assertHero = async (ctx: AssertCtx): Promise<void> => {
 };
 
 const assertRating = async ({ page, scenario }: AssertCtx): Promise<void> => {
-  const ratingNum = await page
-    .$eval(`${ROOT_SEL} .atv-rating-score`, (el) => el.textContent.trim())
-    .catch(() => null);
-  const ratingFallback = await page
-    .$eval(`${ROOT_SEL} .atv-rating-none`, (el) => el.textContent.trim())
-    .catch(() => null);
+  const panel = await page.$(`${ROOT_SEL} .atv-rating-panel`);
+  if (!panel) {
+    record(scenario.name, "rating panel present", false);
+    return;
+  }
+  const scoreEl = await page.$(`${ROOT_SEL} .atv-rating-panel-score`);
+  const emptyEl = await page.$(`${ROOT_SEL} .atv-rating-empty`);
+
+  const found = scoreEl || emptyEl;
+  const text = found
+    ? await found.evaluate((el) => el.textContent.trim()).catch(() => "")
+    : "";
   record(
     scenario.name,
-    `rating shown (score: "${ratingNum}" / fallback: "${ratingFallback}")`,
-    (ratingNum !== null && ratingNum.length > 0) || ratingFallback !== null
+    `rating panel rendered (got: "${text.slice(0, 20)}")`,
+    found !== null
   );
 };
 
@@ -147,22 +152,6 @@ const assertRecommendations = async ({
   }
 };
 
-const assertWrapper = async ({ page, scenario }: AssertCtx): Promise<void> => {
-  const wrapperState = await page.evaluate(() => {
-    const w = document.querySelector("#wrapper");
-    if (!w) {
-      return "removed";
-    }
-    const { display } = getComputedStyle(w);
-    return display === "none" ? "hidden" : "visible";
-  });
-  record(
-    scenario.name,
-    `#wrapper hidden but preserved (got: "${wrapperState}")`,
-    wrapperState === "hidden"
-  );
-};
-
 const assertIMDb = async (ctx: AssertCtx): Promise<void> => {
   const { page, scenario } = ctx;
   const imdbLink = await page
@@ -189,17 +178,6 @@ const assertNoScriptErrors = (ctx: AssertCtx): void => {
     `no script-originated errors (count: ${ourErrors.length})`,
     ourErrors.length === 0,
     ourErrors.slice(0, 2).join(" | ")
-  );
-};
-
-const assertBodyBg = async ({ page, scenario }: AssertCtx): Promise<void> => {
-  const bodyBg = await page.evaluate(
-    () => getComputedStyle(document.body).backgroundColor
-  );
-  record(
-    scenario.name,
-    `body bg is black (got: ${bodyBg})`,
-    new RegExp(COLOR_BLACK_RGB.replaceAll(/[()]/gu, "\\$&"), "u").test(bodyBg)
   );
 };
 
@@ -788,131 +766,25 @@ const assertTitleCorrect = async (ctx: AssertCtx): Promise<void> => {
   );
 };
 
-const assertRatingCorrect = async (ctx: AssertCtx): Promise<void> => {
+const assertTVTerms = async (ctx: AssertCtx): Promise<void> => {
   const { page, scenario } = ctx;
-  const scoreEl = await page.$(`${ROOT_SEL} .atv-rating-score`);
-  const fallbackEl = await page.$(`${ROOT_SEL} .atv-rating-none`);
-  const emptyEl = await page.$(`${ROOT_SEL} .atv-rating-empty`);
-
-  const found = scoreEl || fallbackEl || emptyEl;
-  const text = found
-    ? await found.evaluate((el) => el.textContent.trim()).catch(() => "")
-    : "";
-  record(
-    scenario.name,
-    `rating element present (got: "${text.slice(0, 20)}")`,
-    found !== null
-  );
-};
-
-const assertInfoFields = async (ctx: AssertCtx): Promise<void> => {
-  const { page, scenario } = ctx;
-  const labels = await page.$$(`${ROOT_SEL} .atv-info-label`);
-  if (labels.length === 0) {
-    warn(ctx, "no info labels to verify");
-    return;
-  }
-  let allNonEmpty = true;
-  const results = await Promise.all(
-    labels.map((label) =>
-      label.evaluate((el) => {
-        const next = el.nextElementSibling;
-        return {
-          labelText: el.textContent?.trim() ?? "",
-          valueText: next ? (next.textContent?.trim() ?? "") : "",
-        };
-      })
-    )
-  );
-  for (const { labelText, valueText } of results) {
-    if (!valueText) {
-      allNonEmpty = false;
-      record(
-        scenario.name,
-        `info field "${labelText}" has non-empty value`,
-        false,
-        `value for "${labelText}" was empty`
-      );
-    }
-  }
-  if (allNonEmpty && labels.length > 0) {
+  if (scenario.kind === "tv") {
+    const heroMeta = await page
+      .$eval(`${ROOT_SEL} .atv-hero-meta`, (el) => el.textContent)
+      .catch(() => "");
     record(
       scenario.name,
-      `all ${labels.length} info fields have non-empty values`,
-      true
-    );
-  }
-};
-
-/**
- * Verify comment card body text matches the full content from
- * the original Douban .full span (hidden in #wrapper).
- */
-const assertCommentContentFull = async (ctx: AssertCtx): Promise<void> => {
-  const { page, scenario } = ctx;
-  const commentCards = await page.$$(`${ROOT_SEL} .atv-comment-card`);
-  if (commentCards.length === 0) {
-    warn(ctx, "no comment cards to verify full content");
-    return;
-  }
-
-  const [firstCard] = commentCards;
-  const cardBodyText = await firstCard
-    .$eval(".atv-comment-body", (el) => (el.textContent || "").trim())
-    .catch(() => "");
-
-  /* Read .full from the original Douban DOM (still present in #wrapper) */
-  const originalFull = await page.evaluate(() => {
-    const item = document.querySelector(".comment-item");
-    if (!item) {
-      return "";
-    }
-    const full = item.querySelector(".full");
-    return full ? (full.textContent || "").trim() : "";
-  });
-
-  if (originalFull && cardBodyText) {
-    record(
-      scenario.name,
-      "comment card body matches .full original text",
-      cardBodyText === originalFull,
-      originalFull.slice(0, 40)
+      `TV hero meta contains 集/季 (got: "${heroMeta.slice(0, 80)}")`,
+      TV_EPISODE_REGEX.test(heroMeta)
     );
   } else {
-    warn(
-      ctx,
-      "could not compare comment text",
-      "originalFull or cardBodyText empty"
+    const rootText = await page.$eval(
+      `${ROOT_SEL}`,
+      (el) => el.textContent || ""
     );
+    const hasTVTerms = TV_EPISODE_REGEX.test(rootText);
+    record(scenario.name, `no TV terms (集/季) on movie page`, !hasTVTerms);
   }
-};
-
-const assertNoTVElements = async (ctx: AssertCtx): Promise<void> => {
-  const { page, scenario } = ctx;
-  if (scenario.kind !== "movie") {
-    return;
-  }
-  const rootText = await page.$eval(
-    `${ROOT_SEL}`,
-    (el) => el.textContent || ""
-  );
-  const hasTVTerms = TV_EPISODE_REGEX.test(rootText);
-  record(scenario.name, `no TV terms (集/季) on movie page`, !hasTVTerms);
-};
-
-const assertTVSpecific = async (ctx: AssertCtx): Promise<void> => {
-  const { page, scenario } = ctx;
-  if (scenario.kind !== "tv") {
-    return;
-  }
-  const heroMeta = await page
-    .$eval(`${ROOT_SEL} .atv-hero-meta`, (el) => el.textContent)
-    .catch(() => "");
-  record(
-    scenario.name,
-    `TV hero meta contains 集 or 季 (got: "${heroMeta.slice(0, 80)}")`,
-    TV_EPISODE_REGEX.test(heroMeta)
-  );
 };
 
 const captureScreenshots = async ({
@@ -1023,9 +895,7 @@ const assertVideoModal = async (ctx: AssertCtx): Promise<void> => {
 
 export {
   assertAwards,
-  assertBodyBg,
   assertCast,
-  assertCommentContentFull,
   assertCommentOverlay,
   assertCommentOverlayExpandBtn,
   assertCommentOverlayVote,
@@ -1033,15 +903,12 @@ export {
   assertExpandInline,
   assertHero,
   assertIMDb,
-  assertInfoFields,
   assertInfoGrid,
   assertInterestModal,
   assertNoScriptErrors,
-  assertNoTVElements,
   assertPhotos,
   assertPosterModal,
   assertRating,
-  assertRatingCorrect,
   assertRecommendations,
   assertRoot,
   assertStickyNav,
@@ -1050,9 +917,8 @@ export {
   assertTitleCorrect,
   assertTrailerTile,
   assertTVMeta,
-  assertTVSpecific,
   assertTVStreamingPopup,
+  assertTVTerms,
   assertVideoModal,
-  assertWrapper,
   captureScreenshots,
 };

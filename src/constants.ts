@@ -50,6 +50,11 @@ const LOGO_IMDB =
   '<rect width="44" height="18" rx="3" fill="#f5c518"/>' +
   '<text x="22" y="13" text-anchor="middle" fill="#000" font-family="-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif" font-weight="800" font-size="11">IMDb</text>' +
   "</svg>";
+const LOGO_RT =
+  '<svg viewBox="0 0 44 18" width="44" height="18" aria-label="Rotten Tomatoes">' +
+  '<rect width="44" height="18" rx="3" fill="#FA320A"/>' +
+  '<text x="22" y="13" text-anchor="middle" fill="#fff" font-family="-apple-system,BlinkMacSystemFont,Arial,Helvetica,sans-serif" font-weight="800" font-size="11">RT</text>' +
+  "</svg>";
 
 const ICON_PLAY =
   '<svg viewBox="0 0 14 14" width="14" height="14" aria-hidden="true">' +
@@ -102,6 +107,7 @@ export {
   ICON_PLAY,
   LOGO_DOUBAN,
   LOGO_IMDB,
+  LOGO_RT,
   ICON_STAR_EMPTY,
   ICON_STAR_FULL,
   ICON_STAR_HALF,

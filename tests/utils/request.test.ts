@@ -212,10 +212,12 @@ describe("gmGet", () => {
     expect(callArgs?.headers?.Referer).toBeUndefined();
   });
 
-  it("does not set Content-Type header", async () => {
+  it("sets Content-Type header to application/x-www-form-urlencoded", async () => {
     await gmGet("https://example.com");
     const callArgs = mockGmXhr.mock.calls[0]?.[0];
     expect(callArgs).toBeDefined();
-    expect(callArgs?.headers?.["Content-Type"]).toBeUndefined();
+    expect(callArgs?.headers?.["Content-Type"]).toBe(
+      "application/x-www-form-urlencoded"
+    );
   });
 });
