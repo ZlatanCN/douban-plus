@@ -116,6 +116,14 @@ type Streaming = {
   href: string;
 };
 
+/** Return type of extractSeries() */
+type SeriesItem = {
+  title: string;
+  poster: string;
+  rating: string;
+  link: string;
+};
+
 /* ── Aggregate Data Type ──────────────────────────────── */
 
 /** The complete data object assembled in render() */
@@ -134,6 +142,7 @@ type DoubanData = {
   comments: Comment[];
   awards: Award[];
   streaming: Streaming[];
+  series: SeriesItem[];
   /** Interest state (wish/do/collect) extracted once at render time */
   interest: InterestState;
   isTV: boolean;
@@ -264,6 +273,7 @@ export type {
   PhotosData,
   RatingInfo,
   Recommendation,
+  SeriesItem,
   StickyNavData,
   Streaming,
   TitleInfo,

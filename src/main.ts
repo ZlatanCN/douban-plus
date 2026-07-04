@@ -13,6 +13,7 @@ import {
   buildPhotos,
   buildRecs,
   buildRtRating,
+  buildSeries,
   buildStickyNav,
   buildStreaming,
 } from "./build";
@@ -25,6 +26,7 @@ import {
   extractInterestState,
   extractPhotos,
   extractPoster,
+  extractSeries,
   extractTrailers,
   extractRating,
   extractRecommendations,
@@ -37,12 +39,32 @@ import {
 } from "./extract";
 import type { DoubanData, HeroCallbacks, NavSection } from "./types";
 
+/** Extract the series more-link from the DOM header
+ *  ("全部 N 部" link pointing to the full series page). */
+const extractSeriesMoreLink = ():
+  | { href: string; text: string }
+  | undefined => {
+  const linkEl = document.querySelector(
+    "#series-items .items-swiper-title .pl a"
+  );
+  if (!linkEl) {
+    return undefined;
+  }
+  return {
+    href: (linkEl as HTMLAnchorElement).href,
+    text: (linkEl.textContent || "").replaceAll(/[()（）]/gu, "").trim(),
+  };
+};
+
 /* ── Compute which nav sections have content ──────────── */
 
 const computeNavSections = (data: DoubanData): NavSection[] => {
   const sections: NavSection[] = [];
   if (data.streaming.length > 0) {
     sections.push({ id: "atv-stream", label: "在哪儿看" });
+  }
+  if (data.series.length > 0) {
+    sections.push({ id: "atv-series", label: "同系列" });
   }
   if (data.celebrities.length > 0) {
     sections.push({ id: "atv-cast", label: "演职员" });
@@ -220,6 +242,7 @@ const render = (): void => {
       poster: extractPoster(document),
       rating: extractRating(document),
       recommendations: extractRecommendations(document),
+      series: extractSeries(document),
       streaming: extractStreaming(document),
       subjectId: extractSubjectId(document),
       summary: extractSummary(document),
@@ -272,6 +295,13 @@ const render = (): void => {
   const streaming = buildStreaming(data.streaming);
   if (streaming) {
     root.append(streaming);
+  }
+
+  const series = buildSeries(data.series, {
+    moreLink: extractSeriesMoreLink(),
+  });
+  if (series) {
+    root.append(series);
   }
 
   const cast = buildCast(data.celebrities);
