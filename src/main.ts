@@ -88,14 +88,15 @@ const extractSeasonFromH1 = (h1: string): number | undefined => {
 const resolveRtRating = async (
   title: string,
   isTV?: boolean,
-  season?: number
+  season?: number,
+  year?: string
 ): Promise<void> => {
   const section = document.querySelector<HTMLElement>(".atv-rating-panel-rt");
   if (!section) {
     console.warn("[RT] RT panel section not found in DOM");
     return;
   }
-  const rating = await fetchRtRating(title, isTV, season);
+  const rating = await fetchRtRating(title, isTV, season, year);
   if (rating) {
     const loaded = buildRtRating(rating);
     section.replaceWith(loaded);
@@ -131,8 +132,11 @@ const resolveImdbRating = async (
     document.querySelector("#content h1")?.textContent?.trim() || "";
   const rtTitle = extractEnglishSeriesName(doubanH1) || result.title || "";
   const rtSeason = extractSeasonFromH1(doubanH1) ?? season;
+  // Extract year from trailing "(YYYY)" in Douban H1 for movie URL disambiguation
+  const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
+  const rtYear = isTV ? undefined : (yearMatch?.groups?.year ?? undefined);
   if (rtTitle) {
-    resolveRtRating(rtTitle, isTV, rtSeason);
+    resolveRtRating(rtTitle, isTV, rtSeason, rtYear);
   }
 };
 

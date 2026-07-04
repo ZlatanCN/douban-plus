@@ -69,11 +69,19 @@ const toSlug = (title: string): string => {
   return slug;
 };
 
-/** Build a cache key from slug + optional season suffix.
- *  E.g. "game_of_thrones" or "game_of_thrones-s05".
- *  This prevents different seasons from sharing the same cached rating. */
-const cacheKey = (slug: string, season?: number): string =>
-  season ? `${slug}-s${String(season).padStart(2, "0")}` : slug;
+/** Build a cache key from slug + optional season suffix + optional year suffix.
+ *  E.g. "game_of_thrones" or "game_of_thrones-s05" or "pressure_2026".
+ *  Year suffix prevents slug collisions between same-named movies from different years. */
+const cacheKey = (slug: string, season?: number, year?: string): string => {
+  let key = slug;
+  if (year) {
+    key = `${key}_${year}`;
+  }
+  if (season) {
+    key = `${key}-s${String(season).padStart(2, "0")}`;
+  }
+  return key;
+};
 
 /* ── RT Page HTML Parsing ──────────────────────────── */
 
@@ -82,63 +90,80 @@ type ReviewsData = {
     score?: string | number;
     certified?: boolean;
     scorePercent?: string;
+    ratingCount?: number;
   };
   audienceScore?: {
     score?: string | number;
     reviewCount?: number;
+    likedCount?: number;
+    notLikedCount?: number;
   };
 };
 
-const parseData = (raw: string): { score: number; count: number } | null => {
+const parseData = (raw: string): RtRating | null => {
   const data = JSON.parse(raw) as ReviewsData;
-  const criticsScore = data.criticsScore?.score;
-  if (criticsScore === undefined || criticsScore === null) {
+  const criticsRaw = data.criticsScore?.score;
+  const audienceRaw = data.audienceScore?.score;
+  if (
+    criticsRaw === undefined ||
+    criticsRaw === null ||
+    audienceRaw === undefined ||
+    audienceRaw === null
+  ) {
     return null;
   }
-  const score =
-    typeof criticsScore === "string"
-      ? Number.parseInt(criticsScore, 10)
-      : criticsScore;
-  if (Number.isNaN(score)) {
+  const criticsScore =
+    typeof criticsRaw === "string"
+      ? Number.parseInt(criticsRaw, 10)
+      : criticsRaw;
+  const audienceScore =
+    typeof audienceRaw === "string"
+      ? Number.parseInt(audienceRaw, 10)
+      : audienceRaw;
+  if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) {
     return null;
   }
-  return { count: data.audienceScore?.reviewCount ?? 0, score };
+  return {
+    audienceCount:
+      (data.audienceScore?.likedCount ?? 0) +
+      (data.audienceScore?.notLikedCount ?? 0),
+    audienceScore,
+    criticsCount: data.criticsScore?.ratingCount ?? 0,
+    criticsScore,
+  };
 };
 
 const parseMediaScorecard = (html: string): RtRating | null => {
   const mc = html.match(
-    /<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>.*?)<\/script>/iu
+    /<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>[\s\S]*?)<\/script>/iu
   );
   if (!mc?.groups?.json) {
     return null;
   }
   try {
-    const result = parseData(mc.groups.json);
-    return result ? { count: result.count, score: result.score } : null;
+    return parseData(mc.groups.json.trim());
   } catch {
     return null;
   }
 };
 
 const parseRtPage = (html: string): RtRating | null => {
+  // mediaScorecard has richer data (criticsScore.ratingCount),
+  // so try it first. Fall back to reviewsData.
+  const msRating = parseMediaScorecard(html);
+  if (msRating) {
+    return msRating;
+  }
+
   const match = html.match(
-    /<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>.*?)<\/script>/iu
+    /<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>[\s\S]*?)<\/script>/iu
   );
   if (match?.groups?.json) {
     try {
-      const result = parseData(match.groups.json);
-      if (result) {
-        return { count: result.count, score: result.score };
-      }
+      return parseData(match.groups.json.trim());
     } catch {
-      /* invalid JSON, try mediaScorecard fallback */
+      /* invalid JSON */
     }
-    return null;
-  }
-
-  const mcResult = parseMediaScorecard(html);
-  if (mcResult) {
-    return mcResult;
   }
   return null;
 };
@@ -148,7 +173,8 @@ const parseRtPage = (html: string): RtRating | null => {
 const fetchRtRating = async (
   title: string,
   isTV?: boolean,
-  season?: number
+  season?: number,
+  year?: string
 ): Promise<RtRating | null> => {
   if (!title) {
     return null;
@@ -159,7 +185,7 @@ const fetchRtRating = async (
     return null;
   }
 
-  const key = cacheKey(slug, season);
+  const key = cacheKey(slug, season, year);
   const cached = cacheGet(key);
   if (cached) {
     return cached;
@@ -174,6 +200,9 @@ const fetchRtRating = async (
     }
     urls.push(`https://www.rottentomatoes.com/tv/${slug}`);
   } else {
+    if (year) {
+      urls.push(`https://www.rottentomatoes.com/m/${slug}_${year}`);
+    }
     urls.push(`https://www.rottentomatoes.com/m/${slug}`);
   }
 

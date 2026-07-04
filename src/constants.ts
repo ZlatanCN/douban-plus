@@ -80,6 +80,15 @@ const ICON_EXPAND =
   '<svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true">' +
   '<path fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M3 5.5l4 4 4-4"/>' +
   "</svg>";
+const ICON_TOMATO =
+  '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+  '<circle cx="8" cy="8" r="5.5" fill="currentColor"/>' +
+  "</svg>";
+const ICON_POPCORN =
+  '<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">' +
+  '<path fill="currentColor" d="M8 2l6 6-6 6-6-6z"/>' +
+  "</svg>";
+
 const ICON_FILM_PLACEHOLDER =
   '<svg viewBox="0 0 64 96" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">' +
   '<defs><linearGradient id="atvFilmGrad" x1="0" y1="0" x2="1" y2="1">' +
@@ -113,6 +122,8 @@ export {
   ICON_STAR_HALF,
   ICON_THUMB,
   ICON_EXPAND,
+  ICON_TOMATO,
+  ICON_POPCORN,
   RE_ALLSTAR,
   RE_BG_URL,
   RE_COLLECT,

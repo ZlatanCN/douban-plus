@@ -182,15 +182,13 @@ const buildRatingPanel = (
         text: rating.score.toFixed(1),
       })
     );
-    const detail = el("div", { className: "atv-rating-panel-detail" });
-    detail.append(renderStars(rating.score));
+    douban.append(renderStars(rating.score));
     const countTxt = rating.count
       ? `评价 ${rating.count.toLocaleString("en-US")}`
       : "已评分";
-    detail.append(
+    douban.append(
       el("div", { className: "atv-rating-panel-count", text: countTxt })
     );
-    douban.append(detail);
   } else {
     douban.append(
       el("div", { className: "atv-rating-empty", text: "暂无评分" })

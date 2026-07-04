@@ -21,10 +21,12 @@ type ImdbRating = {
   count: number;
 };
 
-/** Rotten Tomatoes tomatometer — score 0-100 (percentage), count = number of critic reviews */
+/** Rotten Tomatoes ratings — Tomatometer (critics) and Popcornmeter (audience), each score 0-100 */
 type RtRating = {
-  score: number;
-  count: number;
+  criticsScore: number;
+  criticsCount: number;
+  audienceScore: number;
+  audienceCount: number;
 };
 
 /** Return type of extractRating() */
