@@ -38,6 +38,19 @@ describe("extractTitle", () => {
     expect(result.primary).toBe("盗梦空间");
     expect(result.original).toBe("/ Inception");
   });
+
+  it("strips season prefix from original for TV shows (t3)", () => {
+    const html = `<!DOCTYPE html>
+<html><body>
+  <div id="content">
+    <h1><span property="v:itemreviewed">权力的游戏 第一季 / Game of Thrones Season 1</span><span class="year">(2011)</span></h1>
+  </div>
+</body></html>`;
+    const doc = buildDoc(html);
+    const result = extractTitle(doc);
+    expect(result.primary).toBe("权力的游戏");
+    expect(result.original).toBe("/ Game of Thrones Season 1");
+  });
 });
 
 describe("extractYear", () => {

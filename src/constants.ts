@@ -23,6 +23,7 @@ const RE_COLLECT_EXACT = /^看过$/u;
 const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
 const RE_IMDB_LINK = /^tt\d+$/u;
 const RE_SEASON_SUFFIX = /\d$/u;
+const RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
 const RE_PLAY_SOURCES =
   /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
 const RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
@@ -140,6 +141,7 @@ export {
   RE_NON_DIGIT,
   RE_ONLINE_VIDEO,
   RE_PLAY_SOURCES,
+  RE_SEASON_EP,
   RE_SEASON_SUFFIX,
   RE_SLASH_SEP,
   RE_SOURCES_SCRIPT,

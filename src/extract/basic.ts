@@ -1,7 +1,13 @@
 /* ── Basic Extractors ─────────────────────────────────── */
 /* Title, year, poster, subject ID.                        */
 
-import { RE_SUBJECT_ID, RE_WS, RE_YEAR, RE_YEAR_TRAIL } from "../constants";
+import {
+  RE_SEASON_EP,
+  RE_SUBJECT_ID,
+  RE_WS,
+  RE_YEAR,
+  RE_YEAR_TRAIL,
+} from "../constants";
 import type { TitleInfo } from "../types";
 import { $, safeText } from "../utils/dom";
 import { upgradePoster } from "../utils/upgrade";
@@ -22,7 +28,7 @@ const extractTitle = (doc: Document): TitleInfo => {
   const idx = full.search(RE_WS);
   if (idx > 0) {
     primary = full.slice(0, idx).trim();
-    original = full.slice(idx).trim();
+    original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
   }
   return { full, original, primary };
 };

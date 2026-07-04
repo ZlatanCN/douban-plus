@@ -575,6 +575,7 @@
 	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
 	var RE_IMDB_LINK = /^tt\d+$/u;
 	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
 	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
 	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
 	var ICON_STAR_FULL = "<svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z\"/></svg>";
@@ -1826,7 +1827,7 @@
 		const idx = full.search(RE_WS);
 		if (idx > 0) {
 			primary = full.slice(0, idx).trim();
-			original = full.slice(idx).trim();
+			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
 		}
 		return {
 			full,
