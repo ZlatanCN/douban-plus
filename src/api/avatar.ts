@@ -1,65 +1,8 @@
 import type { Comment } from "../types";
+import { createCache } from "../utils/cache";
 import { gmGet } from "../utils/request";
 
-/* ── Persistent Cache (localStorage-backed) ──────────── */
-
-const TTL_MS = 30 * 60 * 1000;
-const STORAGE_KEY = "dp:avatar-cache";
-
-type CacheEntry = {
-  expiresAt: number;
-  url: string;
-};
-
-const loadCache = (): Map<string, CacheEntry> => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return new Map();
-    }
-    const parsed = JSON.parse(raw) as [string, CacheEntry][];
-    const map = new Map<string, CacheEntry>(parsed);
-    const now = Date.now();
-    for (const [key, entry] of map) {
-      if (now > entry.expiresAt) {
-        map.delete(key);
-      }
-    }
-
-    return map;
-  } catch (error) {
-    console.warn("[AVATAR] cache: load failed", error);
-    return new Map();
-  }
-};
-
-const persistCache = (cache: Map<string, CacheEntry>): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...cache.entries()]));
-  } catch {
-    /* quota exceeded or unavailable */
-  }
-};
-
-const cache = loadCache();
-
-const cacheGet = (link: string): string | undefined => {
-  const entry = cache.get(link);
-  if (!entry) {
-    return undefined;
-  }
-  if (Date.now() > entry.expiresAt) {
-    cache.delete(link);
-    persistCache(cache);
-    return undefined;
-  }
-  return entry.url;
-};
-
-const cacheSet = (link: string, url: string): void => {
-  cache.set(link, { expiresAt: Date.now() + TTL_MS, url });
-  persistCache(cache);
-};
+const avatarCache = createCache<string>("dp:avatar-cache", 30 * 60 * 1000);
 
 /* ── Profile Page Parsing ────────────────────────────── */
 
@@ -111,11 +54,11 @@ const updateAvatarDom = (url: string, selector: string, retries = 5): void => {
 /* ── resolveCommentAvatars ───────────────────────────── */
 
 const resolveCommentAvatars = async (comments: Comment[]): Promise<void> => {
-  const pending = comments.filter((c) => c.link && !cacheGet(c.link));
+  const pending = comments.filter((c) => c.link && !avatarCache.get(c.link));
 
   // Update DOM immediately for entries already in cache
   for (const c of comments) {
-    const url = cacheGet(c.link);
+    const url = avatarCache.get(c.link);
     if (!url) {
       continue;
     }
@@ -153,7 +96,7 @@ const resolveCommentAvatars = async (comments: Comment[]): Promise<void> => {
     if (result.status === "fulfilled") {
       const { link, url } = result.value;
       if (url) {
-        cacheSet(link, url);
+        avatarCache.set(link, url);
         cachedCount += 1;
       }
     }
@@ -161,7 +104,7 @@ const resolveCommentAvatars = async (comments: Comment[]): Promise<void> => {
 
   // Update DOM for newly fetched avatars
   for (const c of comments) {
-    const url = cacheGet(c.link);
+    const url = avatarCache.get(c.link);
     if (!url) {
       continue;
     }

@@ -10,3 +10,9 @@ export { buildImdbRating } from "./imdb-rating";
 export { buildRtRating } from "./rt-rating";
 export { buildStickyNav } from "./sticky-nav";
 export { buildSeries } from "./series";
+export {
+  buildApp,
+  computeNavSections,
+  type BuildAppDeps,
+  type BuildAppResult,
+} from "./app";

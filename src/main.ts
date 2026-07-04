@@ -4,19 +4,7 @@ import { postVote } from "./api/comment";
 import { fetchImdbRating } from "./api/imdb";
 import { postInterest, removeInterest } from "./api/interest";
 import { fetchRtRating } from "./api/rotten";
-import {
-  buildCast,
-  buildComments,
-  buildDetails,
-  buildHero,
-  buildImdbRating,
-  buildPhotos,
-  buildRecs,
-  buildRtRating,
-  buildSeries,
-  buildStickyNav,
-  buildStreaming,
-} from "./build";
+import { buildApp, buildImdbRating, buildRtRating, buildSeries } from "./build";
 import { el, openInterestModal } from "./components";
 import {
   extractAwards,
@@ -37,7 +25,7 @@ import {
   extractYear,
   findInterestButtons,
 } from "./extract";
-import type { DoubanData, HeroCallbacks, NavSection } from "./types";
+import type { DoubanData, HeroCallbacks } from "./types";
 
 /** Extract the series more-link from the DOM header
  *  ("全部 N 部" link pointing to the full series page). */
@@ -123,32 +111,6 @@ const watchSeries = (root: HTMLElement, stickyNav: HTMLElement): void => {
   });
 
   observer.observe(container, { childList: true, subtree: true });
-};
-
-/* ── Compute which nav sections have content ──────────── */
-
-const computeNavSections = (data: DoubanData): NavSection[] => {
-  const sections: NavSection[] = [];
-  if (data.streaming.length > 0) {
-    sections.push({ id: "atv-stream", label: "在哪儿看" });
-  }
-  if (data.series.length > 0) {
-    sections.push({ id: "atv-series", label: "同系列" });
-  }
-  if (data.celebrities.length > 0) {
-    sections.push({ id: "atv-cast", label: "演职员" });
-  }
-  if (data.photos.length > 0 || data.trailers.length > 0) {
-    sections.push({ id: "atv-photos", label: "剧照" });
-  }
-  if (data.comments.length > 0) {
-    sections.push({ id: "atv-comments", label: "短评" });
-  }
-  if (data.recommendations.length > 0) {
-    sections.push({ id: "atv-recs", label: "相似作品" });
-  }
-  sections.push({ id: "atv-info", label: "详情" });
-  return sections;
 };
 
 /* ── Async IMDb / RT Rating Fetch ────────────────── */
@@ -324,93 +286,20 @@ const render = (): void => {
     return;
   }
 
-  const root = el("div", { id: "atv-douban-root" });
-
   document.title = `${
     (data.title.primary || data.title.full) +
     (data.year ? ` (${data.year})` : "")
   } · 豆瓣`;
 
-  const sections = computeNavSections(data);
-
-  const stickyNav = buildStickyNav({
-    sections,
-    title: { full: data.title.full, primary: data.title.primary },
+  const { root, stickyNav } = buildApp(data, {
+    heroCallbacks: buildHeroCallbacks(data.subjectId),
+    onVote: (cid) => postVote(cid, data.subjectId),
+    seriesMoreLink: extractSeriesMoreLink(),
   });
 
-  const heroCallbacks = buildHeroCallbacks(data.subjectId);
-
-  /* ── Append sections in order ───────────────────────── */
-
-  root.append(
-    buildHero(
-      {
-        imdbId: data.info.imdb || null,
-        info: data.info,
-        interest: data.interest,
-        isTV: data.isTV,
-        photos: data.photos,
-        poster: data.poster,
-        rating: data.rating,
-        subjectId: data.subjectId,
-        summary: data.summary,
-        title: data.title,
-        year: data.year,
-      },
-      heroCallbacks
-    )
-  );
-
-  const streaming = buildStreaming(data.streaming);
-  if (streaming) {
-    root.append(streaming);
-  }
-
-  const series = buildSeries(data.series, {
-    moreLink: extractSeriesMoreLink(),
-  });
-  if (series) {
-    root.append(series);
-  }
-
-  const cast = buildCast(data.celebrities);
-  if (cast) {
-    root.append(cast);
-  }
-
-  const photos = buildPhotos({
-    photos: data.photos,
-    subjectId: data.subjectId,
-    trailers: data.trailers,
-  });
-  if (photos) {
-    root.append(photos);
-  }
-
-  const comments = buildComments(
-    { comments: data.comments, subjectId: data.subjectId },
-    (cid) => postVote(cid, data.subjectId)
-  );
-  if (comments) {
-    root.append(comments);
+  if (data.comments.length > 0) {
     resolveCommentAvatars(data.comments);
   }
-
-  const recs = buildRecs(data.recommendations);
-  if (recs) {
-    root.append(recs);
-  }
-
-  const details = buildDetails({
-    awards: data.awards,
-    info: data.info,
-    isTV: data.isTV,
-  });
-  if (details) {
-    root.append(details);
-  }
-
-  root.append(el("div", { className: "atv-footer-spacer" }));
 
   /* ── DOM insertion ──────────────────────────────────── */
 
@@ -440,7 +329,7 @@ const render = (): void => {
 
 /* ── Exports (for testability) ───────────────────────── */
 
-export { buildHeroCallbacks, computeNavSections, watchSeries };
+export { buildHeroCallbacks, watchSeries };
 
 /* ── Startup ─────────────────────────────────────────── */
 

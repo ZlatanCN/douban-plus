@@ -1,83 +1,11 @@
 import type { ImdbRating } from "../types";
+import { createCache } from "../utils/cache";
 import { gmPost } from "../utils/request";
 
-/* ── Persistent Cache (localStorage-backed) ──────────── */
-
-const TTL_MS = 24 * 60 * 60 * 1000;
-const STORAGE_KEY = "dp:imdb-cache-v2";
-
-type CacheEntry = {
-  expiresAt: number;
+const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;
   title: string;
-};
-
-const loadCache = (): Map<string, CacheEntry> => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return new Map();
-    }
-    const parsed = JSON.parse(raw) as [string, CacheEntry][];
-    const map = new Map<string, CacheEntry>(parsed);
-    const now = Date.now();
-    for (const [key, entry] of map) {
-      if (now > entry.expiresAt) {
-        map.delete(key);
-      }
-    }
-
-    return map;
-  } catch {
-    return new Map();
-  }
-};
-
-const persistCache = (cache: Map<string, CacheEntry>): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...cache.entries()]));
-  } catch {
-    /* quota exceeded or unavailable */
-  }
-};
-
-type CachedData = {
-  rating: NonNullable<ImdbRating>;
-  title: string;
-};
-
-/* Read from localStorage on every access — no module-level cache
- * so tests can clear localStorage for proper isolation. */
-const cacheGet = (id: string): CachedData | undefined => {
-  const entries = loadCache();
-  const entry = entries.get(id);
-  if (!entry) {
-    return undefined;
-  }
-  if (Date.now() > entry.expiresAt) {
-    entries.delete(id);
-    persistCache(entries);
-    return undefined;
-  }
-  return {
-    rating: entry.rating,
-    title: entry.title,
-  };
-};
-
-const cacheSet = (
-  id: string,
-  rating: NonNullable<ImdbRating>,
-  title: string
-): void => {
-  const entries = loadCache();
-  entries.set(id, {
-    expiresAt: Date.now() + TTL_MS,
-    rating,
-    title,
-  });
-  persistCache(entries);
-};
+}>("dp:imdb-cache");
 
 /* ── GraphQL Queries ────────────────────────────────── */
 
@@ -251,9 +179,9 @@ const fetchImdbRating = async (
 
   // ----- Check cache before HTTP request -----
 
-  const cached = cacheGet(imdbId);
+  const cached = imdbCache.get(imdbId);
   if (cached) {
-    return cached;
+    return { rating: cached.rating, title: cached.title };
   }
 
   // ----- First pass: get title info + check if tconst is an episode -----
@@ -288,9 +216,9 @@ const fetchImdbRating = async (
   const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
   if (season && seriesIdForSeason) {
     const sKey = seasonCacheKey(seriesIdForSeason, season);
-    const sCached = cacheGet(sKey);
+    const sCached = imdbCache.get(sKey);
     if (sCached) {
-      return sCached;
+      return { rating: sCached.rating, title: sCached.title };
     }
 
     try {
@@ -306,7 +234,7 @@ const fetchImdbRating = async (
       const seasonResult = parseSeasonRating(sJson);
       if (seasonResult) {
         const title = seriesInfo?.titleText ?? titleText ?? "";
-        cacheSet(sKey, seasonResult.rating, title);
+        imdbCache.set(sKey, { rating: seasonResult.rating, title });
         return { rating: seasonResult.rating, title };
       }
     } catch {
@@ -329,7 +257,7 @@ const fetchImdbRating = async (
       score: effectiveRating,
     };
     const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
-    cacheSet(imdbId, rating, title);
+    imdbCache.set(imdbId, { rating, title });
     return { rating, title };
   }
 

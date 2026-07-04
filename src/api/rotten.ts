@@ -1,61 +1,8 @@
 import type { RtRating } from "../types";
+import { createCache } from "../utils/cache";
 import { gmGet } from "../utils/request";
 
-/* ── Persistent Cache (localStorage-backed) ──────────── */
-
-const TTL_MS = 24 * 60 * 60 * 1000;
-const STORAGE_KEY = "dp:rotten-cache";
-
-type CacheEntry = { expiresAt: number; rating: NonNullable<RtRating> };
-
-const loadCache = (): Map<string, CacheEntry> => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      return new Map();
-    }
-    const parsed = JSON.parse(raw) as [string, CacheEntry][];
-    const map = new Map<string, CacheEntry>(parsed);
-    const now = Date.now();
-    for (const [key, entry] of map) {
-      if (now > entry.expiresAt) {
-        map.delete(key);
-      }
-    }
-
-    return map;
-  } catch {
-    return new Map();
-  }
-};
-
-const persistCache = (cache: Map<string, CacheEntry>): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([...cache.entries()]));
-  } catch {
-    /* quota exceeded or unavailable */
-  }
-};
-
-const cacheGet = (slug: string): NonNullable<RtRating> | undefined => {
-  const entries = loadCache();
-  const entry = entries.get(slug);
-  if (!entry) {
-    return undefined;
-  }
-  if (Date.now() > entry.expiresAt) {
-    entries.delete(slug);
-    persistCache(entries);
-    return undefined;
-  }
-  return entry.rating;
-};
-
-const cacheSet = (slug: string, rating: NonNullable<RtRating>): void => {
-  const entries = loadCache();
-  entries.set(slug, { expiresAt: Date.now() + TTL_MS, rating });
-  persistCache(entries);
-};
+const rottenCache = createCache<NonNullable<RtRating>>("dp:rotten-cache");
 
 /* ── RT Slug Construction ──────────────────────────── */
 
@@ -186,7 +133,7 @@ const fetchRtRating = async (
   }
 
   const key = cacheKey(slug, season, year);
-  const cached = cacheGet(key);
+  const cached = rottenCache.get(key);
   if (cached) {
     return cached;
   }
@@ -212,7 +159,7 @@ const fetchRtRating = async (
       const html = await gmGet(url, "https://www.rottentomatoes.com/");
       const rating = parseRtPage(html);
       if (rating) {
-        cacheSet(key, rating);
+        rottenCache.set(key, rating);
         return rating;
       }
     } catch {

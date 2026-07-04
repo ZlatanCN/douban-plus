@@ -4,11 +4,9 @@
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import {
-  buildHeroCallbacks,
-  computeNavSections,
-  watchSeries,
-} from "../src/main";
+import { buildApp, computeNavSections } from "../src/build";
+import type { BuildAppDeps } from "../src/build";
+import { buildHeroCallbacks, watchSeries } from "../src/main";
 import type { DoubanData, InfoBlock, InterestState } from "../src/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
@@ -60,7 +58,14 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
       votes: 10,
     },
   ],
-  info: makeInfoBlock(),
+  info: makeInfoBlock({
+    country: "USA",
+    director: [{ href: "", text: "Frank Darabont" }],
+    genres: ["Drama"],
+    language: "English",
+    releaseDate: "1994-09-23",
+    runtime: "142",
+  }),
   interest: {
     ck: "",
     comment: "",
@@ -95,6 +100,19 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
   },
   trailers: [],
   year: "1994",
+  ...overrides,
+});
+
+/* ── buildApp deps helper ────────────────────────────────── */
+
+const makeDeps = (overrides?: Partial<BuildAppDeps>): BuildAppDeps => ({
+  heroCallbacks: {
+    onCollectClick: () => {},
+    onOpenInterest: () => {},
+    onWatchingClick: () => {},
+    onWishClick: () => {},
+  },
+  onVote: () => Promise.resolve({ ok: true }),
   ...overrides,
 });
 
@@ -424,5 +442,103 @@ describe("watchSeries", () => {
     watchSeries(root, nav);
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ── buildApp ────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
+
+describe("buildApp", () => {
+  it("builds root element with correct id (t23)", () => {
+    const { root } = buildApp(makeDoubanData(), makeDeps());
+    expect(root.id).toBe("atv-douban-root");
+  });
+
+  it("returns stickyNav with correct structure (t24)", () => {
+    const { stickyNav } = buildApp(makeDoubanData(), makeDeps());
+    expect(stickyNav.classList.contains("atv-stickynav")).toBe(true);
+  });
+
+  it("includes all sections when data is complete (t25)", () => {
+    const { root } = buildApp(makeDoubanData(), makeDeps());
+    expect(root.querySelector(".atv-hero")).not.toBeNull();
+    expect(root.querySelector("#atv-stream")).not.toBeNull();
+    expect(root.querySelector("#atv-cast")).not.toBeNull();
+    expect(root.querySelector("#atv-photos")).not.toBeNull();
+    expect(root.querySelector("#atv-comments")).not.toBeNull();
+    expect(root.querySelector("#atv-recs")).not.toBeNull();
+    expect(root.querySelector("#atv-info")).not.toBeNull();
+  });
+
+  it("omits streaming section when streaming array is empty (t26)", () => {
+    const { root } = buildApp(makeDoubanData({ streaming: [] }), makeDeps());
+    expect(root.querySelector("#atv-stream")).toBeNull();
+  });
+
+  it("omits cast section when celebrities array is empty (t27)", () => {
+    const { root } = buildApp(makeDoubanData({ celebrities: [] }), makeDeps());
+    expect(root.querySelector("#atv-cast")).toBeNull();
+  });
+
+  it("omits photos section when both photos and trailers are empty (t28)", () => {
+    const { root } = buildApp(
+      makeDoubanData({ photos: [], trailers: [] }),
+      makeDeps()
+    );
+    expect(root.querySelector("#atv-photos")).toBeNull();
+  });
+
+  it("includes photos section when trailers exist even if photos empty (t29)", () => {
+    const { root } = buildApp(
+      makeDoubanData({
+        photos: [],
+        trailers: [{ thumbUrl: "", title: "预告片", trailerPageUrl: "" }],
+      }),
+      makeDeps()
+    );
+    expect(root.querySelector("#atv-photos")).not.toBeNull();
+  });
+
+  it("omits comments section when comments array is empty (t30)", () => {
+    const { root } = buildApp(makeDoubanData({ comments: [] }), makeDeps());
+    expect(root.querySelector("#atv-comments")).toBeNull();
+  });
+
+  it("omits recs section when recommendations array is empty (t31)", () => {
+    const { root } = buildApp(
+      makeDoubanData({ recommendations: [] }),
+      makeDeps()
+    );
+    expect(root.querySelector("#atv-recs")).toBeNull();
+  });
+
+  it("details section is always present even when all optional data empty (t32)", () => {
+    const { root } = buildApp(
+      makeDoubanData({
+        celebrities: [],
+        comments: [],
+        info: {
+          ...makeInfoBlock(),
+          director: [{ href: "", text: "Frank Darabont" }],
+        },
+        photos: [],
+        recommendations: [],
+        streaming: [],
+        trailers: [],
+      }),
+      makeDeps()
+    );
+    expect(root.querySelector("#atv-info")).not.toBeNull();
+  });
+
+  it("includes footer spacer element (t33)", () => {
+    const { root } = buildApp(makeDoubanData(), makeDeps());
+    expect(root.querySelector(".atv-footer-spacer")).not.toBeNull();
+  });
+
+  it("handles empty series gracefully — no series section (t34)", () => {
+    const { root } = buildApp(makeDoubanData({ series: [] }), makeDeps());
+    expect(root.querySelector("#atv-series")).toBeNull();
   });
 });
