@@ -56,6 +56,75 @@ const extractSeriesMoreLink = ():
   };
 };
 
+/** Watch #series-items for late-loading .items-swiper (Douban loads series
+ *  data asynchronously via AJAX after the initial page render). When the
+ *  swiper appears, build the series section and insert it into the root. */
+const watchSeries = (root: HTMLElement, stickyNav: HTMLElement): void => {
+  const container = document.querySelector("#series-items");
+  if (!container) {
+    return;
+  }
+  if (container.querySelector(".items-swiper")) {
+    return;
+  }
+  if (root.querySelector("#atv-series")) {
+    return;
+  }
+
+  const observer = new MutationObserver((): void => {
+    if (!container.querySelector(".items-swiper")) {
+      return;
+    }
+    observer.disconnect();
+
+    const items = extractSeries(document);
+    if (items.length === 0) {
+      return;
+    }
+
+    const series = buildSeries(items, {
+      moreLink: extractSeriesMoreLink(),
+    });
+    if (!series) {
+      return;
+    }
+
+    /* Insert after streaming section, or after hero (first child) */
+    const ref = root.querySelector("#atv-stream");
+    if (ref) {
+      ref.after(series);
+    } else if (root.firstElementChild) {
+      root.firstElementChild.after(series);
+    }
+
+    /* Update sticky nav — insert "同系列" after streaming link */
+    const wrap = stickyNav.querySelector(".atv-stickynav-jumps");
+    if (!wrap) {
+      return;
+    }
+    if (wrap.querySelector('a[href="#atv-series"]')) {
+      return;
+    }
+
+    const a = el("a", { href: "#atv-series", text: "同系列" });
+    a.addEventListener("click", (e) => {
+      e.preventDefault();
+      document
+        .querySelector("#atv-series")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    const streamLink = wrap.querySelector('a[href="#atv-stream"]');
+    if (streamLink) {
+      streamLink.after(a);
+    } else {
+      wrap.prepend(a);
+    }
+  });
+
+  observer.observe(container, { childList: true, subtree: true });
+};
+
 /* ── Compute which nav sections have content ──────────── */
 
 const computeNavSections = (data: DoubanData): NavSection[] => {
@@ -363,11 +432,15 @@ const render = (): void => {
   if (imdbId) {
     triggerImdbFetch(imdbId, data.isTV);
   }
+
+  /* ── Watch for deferred series data ──────────────── */
+
+  watchSeries(root, stickyNav);
 };
 
 /* ── Exports (for testability) ───────────────────────── */
 
-export { buildHeroCallbacks, computeNavSections };
+export { buildHeroCallbacks, computeNavSections, watchSeries };
 
 /* ── Startup ─────────────────────────────────────────── */
 

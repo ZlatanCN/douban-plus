@@ -2293,6 +2293,44 @@
 			text: (linkEl.textContent || "").replaceAll(/[()（）]/gu, "").trim()
 		};
 	};
+	var watchSeries = (root, stickyNav) => {
+		const container = document.querySelector("#series-items");
+		if (!container) return;
+		if (container.querySelector(".items-swiper")) return;
+		if (root.querySelector("#atv-series")) return;
+		const observer = new MutationObserver(() => {
+			if (!container.querySelector(".items-swiper")) return;
+			observer.disconnect();
+			const items = extractSeries(document);
+			if (items.length === 0) return;
+			const series = buildSeries(items, { moreLink: extractSeriesMoreLink() });
+			if (!series) return;
+			const ref = root.querySelector("#atv-stream");
+			if (ref) ref.after(series);
+			else if (root.firstElementChild) root.firstElementChild.after(series);
+			const wrap = stickyNav.querySelector(".atv-stickynav-jumps");
+			if (!wrap) return;
+			if (wrap.querySelector("a[href=\"#atv-series\"]")) return;
+			const a = el("a", {
+				href: "#atv-series",
+				text: "同系列"
+			});
+			a.addEventListener("click", (e) => {
+				e.preventDefault();
+				document.querySelector("#atv-series")?.scrollIntoView({
+					behavior: "smooth",
+					block: "start"
+				});
+			});
+			const streamLink = wrap.querySelector("a[href=\"#atv-stream\"]");
+			if (streamLink) streamLink.after(a);
+			else wrap.prepend(a);
+		});
+		observer.observe(container, {
+			childList: true,
+			subtree: true
+		});
+	};
 	var computeNavSections = (data) => {
 		const sections = [];
 		if (data.streaming.length > 0) sections.push({
@@ -2504,6 +2542,7 @@
 		reveal();
 		const imdbId = data.info.imdb || null;
 		if (imdbId) triggerImdbFetch(imdbId, data.isTV);
+		watchSeries(root, stickyNav);
 	};
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render, { once: true });
 	else render();

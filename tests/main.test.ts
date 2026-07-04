@@ -4,7 +4,11 @@
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import { buildHeroCallbacks, computeNavSections } from "../src/main";
+import {
+  buildHeroCallbacks,
+  computeNavSections,
+  watchSeries,
+} from "../src/main";
 import type { DoubanData, InfoBlock, InterestState } from "../src/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
@@ -322,5 +326,103 @@ describe("buildHeroCallbacks", () => {
     ) as HTMLElement;
     expect(titleEl).not.toBeNull();
     expect(titleEl?.textContent).toBe("修改看过");
+  });
+});
+
+/* ═══════════════════════════════════════════════════════════ */
+/* ── watchSeries ──────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════ */
+
+describe("watchSeries", () => {
+  afterEach(() => {
+    document.body.innerHTML = "";
+  });
+
+  it("builds series section when .items-swiper appears late in #series-items (t20)", async () => {
+    document.body.innerHTML = `
+      <div id="series-items"></div>
+      <div id="atv-douban-root">
+        <section class="atv-hero-section"></section>
+        <div class="atv-footer-spacer"></div>
+      </div>
+      <nav class="atv-stickynav">
+        <div class="atv-stickynav-title">Title</div>
+        <div class="atv-stickynav-jumps"></div>
+      </nav>
+    `;
+
+    const root = document.querySelector("#atv-douban-root") as HTMLElement;
+    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
+
+    watchSeries(root, nav);
+
+    const container = document.querySelector("#series-items") as HTMLElement;
+    container.innerHTML = `
+      <div class="items-swiper">
+        <div class="items-swiper-item">
+          <div class="items-swiper-item-pic"><a href="https://movie.douban.com/subject/1/"><img src="https://img1.doubanio.com/poster1.jpg"></a></div>
+          <div class="items-swiper-item-title" title="第一季"><a href="https://movie.douban.com/subject/1/">第一季</a><span class="items-swiper-item-rating">9.5</span></div>
+        </div>
+        <div class="items-swiper-item">
+          <div class="items-swiper-item-pic"><a href="https://movie.douban.com/subject/2/"><img src="https://img1.doubanio.com/poster2.jpg"></a></div>
+          <div class="items-swiper-item-title" title="第二季"><a href="https://movie.douban.com/subject/2/">第二季</a><span class="items-swiper-item-rating">9.3</span></div>
+        </div>
+      </div>
+    `;
+
+    await vi.waitFor(() => {
+      expect(root.querySelector("#atv-series")).not.toBeNull();
+    });
+
+    const seriesSection = root.querySelector("#atv-series") as HTMLElement;
+    expect(seriesSection.classList.contains("atv-section")).toBe(true);
+
+    const cards = root.querySelectorAll(".atv-series-card");
+    expect(cards.length).toBe(2);
+
+    const navLink = nav.querySelector('a[href="#atv-series"]');
+    expect(navLink).not.toBeNull();
+    expect(navLink?.textContent).toBe("同系列");
+  });
+
+  it("does not set up observer when .items-swiper already exists (t21)", () => {
+    document.body.innerHTML = `
+      <div id="series-items">
+        <div class="items-swiper"><div class="items-swiper-item"></div></div>
+      </div>
+      <div id="atv-douban-root">
+        <section class="atv-hero-section"></section>
+      </div>
+      <nav class="atv-stickynav">
+        <div class="atv-stickynav-jumps"></div>
+      </nav>
+    `;
+
+    const root = document.querySelector("#atv-douban-root") as HTMLElement;
+    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
+
+    const spy = vi.spyOn(window, "MutationObserver");
+    watchSeries(root, nav);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("does nothing when #series-items is absent from page (t22)", () => {
+    document.body.innerHTML = `
+      <div id="atv-douban-root">
+        <section class="atv-hero-section"></section>
+      </div>
+      <nav class="atv-stickynav">
+        <div class="atv-stickynav-jumps"></div>
+      </nav>
+    `;
+
+    const root = document.querySelector("#atv-douban-root") as HTMLElement;
+    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
+
+    const spy = vi.spyOn(window, "MutationObserver");
+    watchSeries(root, nav);
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });
