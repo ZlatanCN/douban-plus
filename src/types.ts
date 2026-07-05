@@ -21,6 +21,12 @@ type ImdbRating = {
   count: number;
 };
 
+/** Return type of fetchMcRating() — weighted critic score 0-100, review count */
+type McRating = {
+  score: number;
+  reviewCount: number;
+};
+
 /** Rotten Tomatoes ratings — Tomatometer (critics) and Popcornmeter (audience), each score 0-100 */
 type RtRating = {
   criticsScore: number;
@@ -263,6 +269,7 @@ export type {
   HeroData,
   ImdbRating,
   InfoBlock,
+  McRating,
   RtRating,
   InterestFormState,
   InterestState,

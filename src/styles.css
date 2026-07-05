@@ -369,6 +369,7 @@ body {
 
 .atv-rating-panel {
   display: flex;
+  flex-wrap: wrap;
   gap: 0;
   align-items: stretch;
   width: fit-content;
@@ -380,7 +381,8 @@ body {
 
 .atv-rating-panel-douban,
 .atv-rating-panel-imdb,
-.atv-rating-panel-rt {
+.atv-rating-panel-rt,
+.atv-rating-panel-mc {
   flex: 1;
   display: grid;
   grid-template-rows: 28px 44px 20px 1fr;
@@ -392,7 +394,8 @@ body {
 }
 .atv-rating-panel-douban:hover,
 .atv-rating-panel-imdb:hover,
-.atv-rating-panel-rt:hover {
+.atv-rating-panel-rt:hover,
+.atv-rating-panel-mc:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -401,6 +404,10 @@ body {
 }
 
 .atv-rating-panel-imdb {
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.atv-rating-panel-mc {
   border-right: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -430,6 +437,61 @@ body {
   line-height: 1;
   letter-spacing: -0.03em;
   color: var(--atv-text-primary);
+}
+
+/* ── MC Score color by range ────────────────────── */
+
+.atv-rating-panel-score.is-high {
+  color: #3bb33b;
+}
+.atv-rating-panel-score.is-medium {
+  color: #ffb800;
+}
+.atv-rating-panel-score.is-low {
+  color: #fa320a;
+}
+
+/* ── MC label row (score bar + Chinese word label) ── */
+
+.atv-mc-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atv-mc-bar-track {
+  display: inline-block;
+  width: 40px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.atv-mc-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.atv-mc-bar-fill.is-high {
+  background: #3bb33b;
+}
+.atv-mc-bar-fill.is-medium {
+  background: #ffb800;
+}
+.atv-mc-bar-fill.is-low {
+  background: #fa320a;
+}
+
+.atv-mc-word-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--atv-text-tertiary);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .atv-rating-stars {
@@ -596,7 +658,8 @@ body {
   }
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb,
-  .atv-rating-panel-rt {
+  .atv-rating-panel-rt,
+  .atv-rating-panel-mc {
     padding: 12px 14px 10px;
     grid-template-rows: 24px 38px 18px 1fr;
   }
@@ -610,6 +673,15 @@ body {
   .atv-rt-score-label {
     font-size: 10px;
   }
+  .atv-mc-bar-track {
+    width: 32px;
+  }
+  .atv-mc-word-label {
+    font-size: 10px;
+  }
+  .atv-rating-panel {
+    min-width: 0;
+  }
 }
 
 .atv-rating-empty {
@@ -622,11 +694,13 @@ body {
 /* ── Skeleton (loading) ─────────────────────────── */
 
 .atv-rating-panel-imdb.is-loading,
-.atv-rating-panel-rt.is-loading {
+.atv-rating-panel-rt.is-loading,
+.atv-rating-panel-mc.is-loading {
   transition: opacity 400ms ease;
 }
 .atv-rating-panel-imdb.is-empty,
-.atv-rating-panel-rt.is-empty {
+.atv-rating-panel-rt.is-empty,
+.atv-rating-panel-mc.is-empty {
   display: none;
 }
 
@@ -2138,7 +2212,8 @@ a.atv-comment-overlay-author:hover {
   }
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb,
-  .atv-rating-panel-rt {
+  .atv-rating-panel-rt,
+  .atv-rating-panel-mc {
     padding: 12px 14px 10px;
   }
   .atv-rating-panel {

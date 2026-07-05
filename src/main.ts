@@ -3,8 +3,15 @@ import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
 import { fetchImdbRating } from "./api/imdb";
 import { postInterest, removeInterest } from "./api/interest";
+import { fetchMcRating } from "./api/metacritic";
 import { fetchRtRating } from "./api/rotten";
-import { buildApp, buildImdbRating, buildRtRating, buildSeries } from "./build";
+import {
+  buildApp,
+  buildImdbRating,
+  buildMcRating,
+  buildRtRating,
+  buildSeries,
+} from "./build";
 import { el, openInterestModal } from "./components";
 import {
   extractAwards,
@@ -159,6 +166,27 @@ const resolveRtRating = async (
   }
 };
 
+const resolveMcRating = async (
+  title: string,
+  isTV?: boolean,
+  season?: number,
+  year?: string
+): Promise<void> => {
+  const section = document.querySelector<HTMLElement>(".atv-rating-panel-mc");
+  if (!section) {
+    console.warn("[MC] MC panel section not found in DOM");
+    return;
+  }
+  const rating = await fetchMcRating(title, isTV, season, year);
+  if (rating) {
+    const loaded = buildMcRating(rating);
+    section.replaceWith(loaded);
+  } else {
+    section.classList.remove("is-loading");
+    section.classList.add("is-empty");
+  }
+};
+
 const resolveImdbRating = async (
   imdbId: string,
   isTV: boolean,
@@ -190,6 +218,7 @@ const resolveImdbRating = async (
   const rtYear = isTV ? undefined : (yearMatch?.groups?.year ?? undefined);
   if (rtTitle) {
     resolveRtRating(rtTitle, isTV, rtSeason, rtYear);
+    resolveMcRating(rtTitle, isTV, rtSeason, rtYear);
   }
 };
 

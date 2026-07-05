@@ -5,7 +5,7 @@ import { gmPost } from "../utils/request";
 const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;
   title: string;
-}>("dp:imdb-cache");
+}>("dp:imdb-cache", 30 * 24 * 60 * 60 * 1000);
 
 /* ── GraphQL Queries ────────────────────────────────── */
 

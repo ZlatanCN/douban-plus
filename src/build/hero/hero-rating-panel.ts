@@ -2,6 +2,7 @@ import { el, renderStars } from "../../components";
 import { LOGO_DOUBAN } from "../../constants";
 import type { HeroData } from "../../types";
 import { buildImdbRating } from "../imdb-rating";
+import { buildMcRating } from "../mc-rating";
 import { buildRtRating } from "../rt-rating";
 
 /* ── buildRatingPanel — Douban score + IMDb/RT skeleton ── */
@@ -46,6 +47,11 @@ const buildRatingPanel = (
   /* ── IMDb section (skeleton placeholder) ──────── */
   if (imdbId) {
     panel.append(buildImdbRating(null));
+  }
+
+  /* ── MC section (skeleton placeholder) ────────── */
+  if (imdbId) {
+    panel.append(buildMcRating(null));
   }
 
   /* ── RT section (skeleton placeholder) ────────── */

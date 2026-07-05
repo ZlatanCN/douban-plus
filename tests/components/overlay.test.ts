@@ -109,7 +109,7 @@ describe("createOverlay(options)", () => {
 
   it("second call with same id removes first overlay", () => {
     stubRaf();
-    const _first = createOverlay({
+    createOverlay({
       content: [el("div", { text: "first" })],
       id: "test-modal",
     });

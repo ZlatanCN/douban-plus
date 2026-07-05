@@ -25,6 +25,7 @@ export default defineConfig({
           "movie.douban.com",
           "graphql.imdb.com",
           "www.rottentomatoes.com",
+          "www.metacritic.com",
         ],
         exclude: [
           "*://movie.douban.com/subject/*/all_photos",

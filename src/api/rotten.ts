@@ -2,7 +2,10 @@ import type { RtRating } from "../types";
 import { createCache } from "../utils/cache";
 import { gmGet } from "../utils/request";
 
-const rottenCache = createCache<NonNullable<RtRating>>("dp:rotten-cache");
+const rottenCache = createCache<NonNullable<RtRating>>(
+  "dp:rotten-cache",
+  7 * 24 * 60 * 60 * 1000
+);
 
 /* ── RT Slug Construction ──────────────────────────── */
 
