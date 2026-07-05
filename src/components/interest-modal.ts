@@ -1,6 +1,7 @@
 import type { InterestState, ModalCallbacks } from "../types";
 import { INTEREST_LABELS } from "../types";
 import { buildInterestModalContent } from "./interest-modal-content";
+import { createOverlay } from "./overlay";
 
 type LoadingState = { loading: boolean };
 
@@ -8,46 +9,27 @@ const openInterestModal = (
   state: InterestState,
   callbacks: ModalCallbacks
 ): void => {
-  /* ── Cleanup old instance ── */
-
-  const old = document.querySelector("#atv-interest-modal");
-  if (old) {
-    old.remove();
-  }
-
-  /* ── Build DOM ── */
+  /* ── Build content using pure builder ── */
 
   const content = buildInterestModalContent(state);
   const loading: LoadingState = { loading: false };
 
-  /* ── Dismiss ── */
+  /* ── Extract children from builder's overlay ── */
 
-  const dismiss = (): void => {
-    if (!content.overlay.isConnected) {
-      return;
-    }
-    content.overlay.classList.remove("is-open");
-    document.body.style.overflow = "";
-    setTimeout(() => {
-      content.overlay.remove();
-    }, 350);
-  };
+  const children: HTMLElement[] = [];
+  while (content.overlay.firstElementChild) {
+    const child = content.overlay.firstElementChild as HTMLElement;
+    child.remove();
+    children.push(child);
+  }
 
-  content.closeBtn.addEventListener("click", dismiss);
+  /* ── Create overlay with scaffold behavior ── */
 
-  content.overlay.addEventListener("click", (e: MouseEvent) => {
-    if (e.target === content.overlay) {
-      dismiss();
-    }
+  const { dismiss } = createOverlay({
+    className: "atv-interest-modal",
+    content: children,
+    id: "atv-interest-modal",
   });
-
-  const keyHandler = (e: KeyboardEvent): void => {
-    if (e.key === "Escape") {
-      dismiss();
-      document.removeEventListener("keydown", keyHandler);
-    }
-  };
-  document.addEventListener("keydown", keyHandler);
 
   /* ── Status button wiring ── */
 
@@ -123,11 +105,7 @@ const openInterestModal = (
     });
   }
 
-  /* ── Mount ── */
-
-  document.body.append(content.overlay);
-  document.body.style.overflow = "hidden";
-  requestAnimationFrame(() => content.overlay.classList.add("is-open"));
+  /* ── Note: Mount + scroll lock + rAF is handled by createOverlay ── */
 };
 
 export { openInterestModal };

@@ -1,4 +1,4 @@
-import { el, renderStars } from "../components";
+import { createOverlay, el, renderStars } from "../components";
 import { ICON_EXPAND, ICON_THUMB } from "../constants";
 import type { Comment, CommentsData } from "../types";
 import { buildSection } from "./sections";
@@ -14,26 +14,10 @@ type VoteCallback = (cid: string) => Promise<{ ok: boolean; count?: number }>;
 /* ── openCommentOverlay ───────────────────────────────── */
 
 const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
-  const old = document.querySelector("#atv-comment-overlay");
-  if (old) {
-    old.remove();
-  }
-
-  const overlay = el("div", {
-    className: "atv-comment-overlay",
-    id: "atv-comment-overlay",
-  });
   const inner = el("div", { className: "atv-comment-overlay-inner" });
 
   const accent = el("div", { className: "atv-comment-overlay-accent" });
   inner.append(accent);
-
-  const close = el("button", {
-    attrs: { type: "button" },
-    className: "atv-comment-overlay-close",
-    html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>',
-  });
-  inner.append(close);
 
   const top = el("div", { className: "atv-comment-overlay-top" });
   const avatar = el("div", {
@@ -126,32 +110,12 @@ const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
 
   foot.append(voteBtn);
   inner.append(foot);
-  overlay.append(inner);
-
-  const dismiss = (): void => {
-    overlay.classList.remove("is-open");
-    document.body.style.overflow = "";
-    setTimeout(() => {
-      overlay.remove();
-    }, 350);
-  };
-
-  close.addEventListener("click", dismiss);
-  overlay.addEventListener("click", (e: MouseEvent) => {
-    if (e.target === overlay) {
-      dismiss();
-    }
+  createOverlay({
+    className: "atv-comment-overlay",
+    closeSize: 16,
+    content: [inner],
+    id: "atv-comment-overlay",
   });
-  document.addEventListener("keydown", function handler(e: KeyboardEvent) {
-    if (e.key === "Escape") {
-      dismiss();
-      document.removeEventListener("keydown", handler);
-    }
-  });
-
-  document.body.append(overlay);
-  document.body.style.overflow = "hidden";
-  requestAnimationFrame(() => overlay.classList.add("is-open"));
 };
 
 /* ── buildComments ────────────────────────────────────── */
