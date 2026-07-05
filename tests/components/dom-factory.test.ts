@@ -4,6 +4,7 @@
 import { describe, it, expect } from "vitest";
 
 import { el, renderStars } from "../../src/components";
+import { renderStarRating } from "../../src/components/dom-factory";
 
 /* ── el() — Tag creation ─────────────────────────────────── */
 
@@ -377,5 +378,52 @@ describe("renderStars(score, opts?) — options", () => {
     const stars = renderStars(5, { outOfFive: true });
     expect(stars instanceof HTMLElement).toBe(true);
     expect(stars.tagName).toBe("SPAN");
+  });
+});
+
+/* ── renderStarRating() ─────────────────────────────────── */
+
+const makeStarEls = (): HTMLSpanElement[] => {
+  const els: HTMLSpanElement[] = [];
+  for (let i = 0; i < 5; i += 1) {
+    const span = document.createElement("span");
+    els.push(span);
+  }
+  return els;
+};
+
+describe("renderStarRating(starEls, rating)", () => {
+  it("renderStarRating(starEls, 3) sets first 3 to full", () => {
+    const els = makeStarEls();
+    renderStarRating(els, 3);
+    for (let i = 0; i < 3; i += 1) {
+      expect(els[i].classList.contains("is-full")).toBe(true);
+    }
+    for (let i = 3; i < 5; i += 1) {
+      expect(els[i].classList.contains("is-full")).toBe(false);
+    }
+  });
+
+  it("renderStarRating(starEls, 0) sets all to empty", () => {
+    const els = makeStarEls();
+    renderStarRating(els, 0);
+    for (let i = 0; i < 5; i += 1) {
+      expect(els[i].classList.contains("is-full")).toBe(false);
+    }
+  });
+
+  it("renderStarRating(starEls, 5) sets all to full", () => {
+    const els = makeStarEls();
+    renderStarRating(els, 5);
+    for (let i = 0; i < 5; i += 1) {
+      expect(els[i].classList.contains("is-full")).toBe(true);
+    }
+  });
+
+  it("renderStarRating sets innerHTML to full SVG for full stars", () => {
+    const els = makeStarEls();
+    renderStarRating(els, 2);
+    expect(els[0].innerHTML).toContain("svg");
+    expect(els[1].innerHTML).toContain("svg");
   });
 });

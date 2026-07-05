@@ -132,4 +132,16 @@ const renderStars = (
   return wrap;
 };
 
-export { el, renderStars };
+/**
+ * Update existing star elements in-place (used by interest modal).
+ * Sets innerHTML and .is-full class on each element.
+ */
+const renderStarRating = (starEls: HTMLSpanElement[], rating: number): void => {
+  for (let idx = 0; idx < 5; idx += 1) {
+    const full = idx < rating;
+    starEls[idx].innerHTML = full ? ICON_STAR_FULL : ICON_STAR_EMPTY;
+    starEls[idx].classList.toggle("is-full", full);
+  }
+};
+
+export { el, renderStars, renderStarRating };

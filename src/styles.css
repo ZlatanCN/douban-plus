@@ -1379,10 +1379,10 @@ a.atv-comment-author:hover {
   padding: 24px;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.72);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
   opacity: 0;
-  transition: opacity 350ms ease;
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .atv-comment-overlay.is-open {
   pointer-events: auto;
@@ -1583,11 +1583,11 @@ a.atv-comment-overlay-author:hover {
   align-items: center;
   justify-content: center;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(0, 0, 0, 0.78);
   opacity: 0;
-  -webkit-backdrop-filter: blur(40px);
-  backdrop-filter: blur(40px);
-  transition: opacity 300ms ease;
+  -webkit-backdrop-filter: blur(28px) saturate(1.15);
+  backdrop-filter: blur(28px) saturate(1.15);
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .atv-modal-overlay.is-open {
   pointer-events: auto;
@@ -1621,10 +1621,12 @@ a.atv-comment-overlay-author:hover {
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 50%;
   transition:
+    color 200ms ease,
     background 200ms ease,
     border-color 200ms ease;
 }
 .atv-modal-close:hover {
+  color: #fff;
   background: rgba(255, 255, 255, 0.16);
   border-color: rgba(255, 255, 255, 0.3);
 }
@@ -1647,22 +1649,24 @@ a.atv-comment-overlay-author:hover {
   justify-content: center;
   padding: 24px;
   pointer-events: none;
-  background: rgba(0, 0, 0, 0.88);
+  background: rgba(0, 0, 0, 0.72);
   opacity: 0;
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  transition: opacity 300ms ease;
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 .atv-interest-modal.is-open {
   pointer-events: auto;
   opacity: 1;
 }
 .atv-interest-modal-inner {
+  position: relative;
   width: 100%;
   max-width: 380px;
   max-height: 90vh;
   overflow-y: auto;
   background: var(--atv-bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
   transform: scale(0.92) translateY(8px);
@@ -1670,6 +1674,27 @@ a.atv-comment-overlay-author:hover {
 }
 .atv-interest-modal.is-open .atv-interest-modal-inner {
   transform: scale(1) translateY(0);
+}
+.atv-interest-modal-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-accent) 15%,
+    var(--atv-accent) 85%,
+    transparent
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-interest-modal.is-open .atv-interest-modal-accent {
+  transform: scaleX(1);
 }
 .atv-interest-modal-header {
   position: relative;
@@ -1688,30 +1713,33 @@ a.atv-comment-overlay-author:hover {
   position: absolute;
   top: 14px;
   right: 14px;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  color: var(--atv-text-tertiary);
+  color: rgba(255, 255, 255, 0.6);
   cursor: pointer;
-  background: transparent;
-  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50%;
   font-family: inherit;
   transition:
     color 200ms ease,
-    background 200ms ease;
+    background 200ms ease,
+    border-color 200ms ease;
   -webkit-tap-highlight-color: transparent;
 }
 .atv-interest-modal-close:hover {
-  color: var(--atv-text-primary);
-  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 .atv-interest-modal-close:active {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 .atv-interest-modal-close svg {
   display: block;
@@ -2153,6 +2181,25 @@ a.atv-comment-overlay-author:hover {
   }
   .atv-comment-avatar.atv-avatar-loaded {
     animation: none;
+  }
+
+  /* Modal overlay fades */
+  .atv-modal-overlay,
+  .atv-comment-overlay,
+  .atv-interest-modal {
+    transition: none;
+  }
+
+  /* Accent edge glow */
+  .atv-comment-overlay-accent,
+  .atv-interest-modal-accent {
+    transition: none;
+  }
+
+  /* Ensure accent glows are visible even without animation */
+  .atv-comment-overlay.is-open .atv-comment-overlay-accent,
+  .atv-interest-modal.is-open .atv-interest-modal-accent {
+    transform: scaleX(1);
   }
 }
 @media (max-width: 768px) {
