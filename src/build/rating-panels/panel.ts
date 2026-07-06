@@ -1,9 +1,9 @@
 import { el, renderStars } from "../../components";
 import { LOGO_DOUBAN } from "../../constants";
 import type { HeroData } from "../../types";
-import { buildImdbRating } from "../imdb-rating";
-import { buildMcRating } from "../mc-rating";
-import { buildRtRating } from "../rt-rating";
+import { buildImdbRating } from "./imdb";
+import { buildMcRating } from "./mc";
+import { buildRtRating } from "./rt";
 
 /* ── buildRatingPanel — Douban score + IMDb/RT skeleton ── */
 

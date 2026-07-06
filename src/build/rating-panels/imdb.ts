@@ -1,6 +1,6 @@
-import { el, renderStars } from "../components";
-import { LOGO_IMDB } from "../constants";
-import type { ImdbRating } from "../types";
+import { el, renderStars } from "../../components";
+import { LOGO_IMDB } from "../../constants";
+import type { ImdbRating } from "../../types";
 
 /* ── IMDb Rating Panel Section ──────────────────── */
 

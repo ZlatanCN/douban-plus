@@ -1,6 +1,6 @@
-import { el } from "../components";
-import { LOGO_METACRITIC } from "../constants";
-import type { McRating } from "../types";
+import { el } from "../../components";
+import { LOGO_METACRITIC } from "../../constants";
+import type { McRating } from "../../types";
 
 /* ── MC Rating Panel Section ──────────────────── */
 

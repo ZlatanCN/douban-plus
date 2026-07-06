@@ -6,9 +6,7 @@ export { buildCast } from "./cast";
 export { buildPhotos } from "./photos";
 export { buildRecs } from "./recommendations";
 export { buildDetails } from "./details";
-export { buildImdbRating } from "./imdb-rating";
-export { buildMcRating } from "./mc-rating";
-export { buildRtRating } from "./rt-rating";
+export { buildImdbRating, buildMcRating, buildRtRating } from "./rating-panels";
 export { buildStickyNav } from "./sticky-nav";
 export { buildSeries } from "./series";
 export {

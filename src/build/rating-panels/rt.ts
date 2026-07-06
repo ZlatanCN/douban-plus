@@ -1,6 +1,6 @@
-import { el } from "../components";
-import { ICON_POPCORN, ICON_TOMATO, LOGO_RT } from "../constants";
-import type { RtRating } from "../types";
+import { el } from "../../components";
+import { ICON_POPCORN, ICON_TOMATO, LOGO_RT } from "../../constants";
+import type { RtRating } from "../../types";
 
 /* ── Rotten Tomatoes Rating Panel Section ─────────── */
 

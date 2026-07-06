@@ -1046,6 +1046,95 @@
 		}
 		return meta;
 	};
+	var makeInterestBtn = (text, cls, onClick) => {
+		const btn = el("button", {
+			attrs: { type: "button" },
+			className: cls
+		}, [el("span", { html: text === "想看" ? ICON_PLAY : ICON_CHECK }), el("span", { text })]);
+		btn.addEventListener("click", onClick);
+		return btn;
+	};
+	var addWatchingBtn = (actions, onClick) => {
+		const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
+		const seenBtn = actions.lastElementChild;
+		if (seenBtn) seenBtn.before(btn);
+		else actions.append(btn);
+	};
+	var buildActions = (state, callbacks) => {
+		const actions = el("div", { className: "atv-actions" });
+		if (!state.loggedIn) {
+			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", callbacks.onWishClick));
+			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", callbacks.onCollectClick));
+			if (state.hasWatching) addWatchingBtn(actions, callbacks.onWatchingClick);
+			return actions;
+		}
+		if (!state.marked) {
+			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", () => callbacks.onOpenInterest(state)));
+			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", () => callbacks.onOpenInterest(state)));
+			if (state.hasWatching) addWatchingBtn(actions, () => callbacks.onOpenInterest(state));
+			return actions;
+		}
+		const label = INTEREST_LABELS[state.status];
+		const header = el("div", { className: "atv-interest-panel-header" });
+		header.append(el("button", {
+			attrs: { type: "button" },
+			className: [
+				"atv-btn",
+				"atv-btn-primary",
+				"is-active",
+				"atv-interest-badge"
+			],
+			onclick: () => callbacks.onOpenInterest(state)
+		}, [el("span", { html: ICON_CHECK }), el("span", { text: label })]));
+		if (state.rating > 0) {
+			const starHtml = Array.from({ length: 5 }, (_, i) => i < state.rating ? ICON_STAR_FULL : ICON_STAR_EMPTY).join("");
+			header.append(el("span", {
+				className: "atv-interest-panel-stars",
+				html: starHtml
+			}));
+		}
+		if (state.date) header.append(el("span", {
+			className: "atv-interest-panel-date",
+			text: state.date
+		}));
+		const panel = el("div", { className: "atv-interest-panel" }, [header]);
+		if (state.comment) {
+			const commentChildren = [el("span", { text: `"${state.comment}"` })];
+			if (state.usefulCount) {
+				const num = state.usefulCount.replaceAll(/\D/gu, "");
+				commentChildren.push(el("span", { className: "atv-useful-badge" }, [el("span", { html: ICON_THUMB }), el("span", { text: num })]));
+			}
+			panel.append(el("div", { className: "atv-interest-panel-comment" }, commentChildren));
+		}
+		actions.append(panel);
+		return actions;
+	};
+	var buildSummary = (text) => {
+		if (!text) return null;
+		const summary = el("div", { className: "atv-hero-summary" });
+		const teaser = el("p", {
+			className: "atv-hero-teaser is-clamped",
+			text
+		});
+		summary.append(teaser);
+		const more = el("button", {
+			attrs: { type: "button" },
+			className: "atv-hero-more"
+		});
+		const moreLabel = el("span", { text: "展开" });
+		more.append(moreLabel);
+		more.append(el("span", { html: ICON_CHEVRON }));
+		more.addEventListener("click", () => {
+			const open = !teaser.classList.toggle("is-clamped");
+			more.classList.toggle("is-open", open);
+			moreLabel.textContent = open ? "收起" : "展开";
+		});
+		requestAnimationFrame(() => {
+			if (!(teaser.scrollHeight - teaser.clientHeight > 4)) more.style.display = "none";
+		});
+		summary.append(more);
+		return summary;
+	};
 	var buildImdbRating = (rating) => {
 		const section = el("div", { className: "atv-rating-panel-imdb" });
 		section.append(el("div", {
@@ -1191,95 +1280,6 @@
 		if (imdbId) panel.append(buildMcRating(null));
 		if (imdbId) panel.append(buildRtRating(null));
 		return panel;
-	};
-	var makeInterestBtn = (text, cls, onClick) => {
-		const btn = el("button", {
-			attrs: { type: "button" },
-			className: cls
-		}, [el("span", { html: text === "想看" ? ICON_PLAY : ICON_CHECK }), el("span", { text })]);
-		btn.addEventListener("click", onClick);
-		return btn;
-	};
-	var addWatchingBtn = (actions, onClick) => {
-		const btn = makeInterestBtn("在看", "atv-btn atv-btn-secondary", onClick);
-		const seenBtn = actions.lastElementChild;
-		if (seenBtn) seenBtn.before(btn);
-		else actions.append(btn);
-	};
-	var buildActions = (state, callbacks) => {
-		const actions = el("div", { className: "atv-actions" });
-		if (!state.loggedIn) {
-			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", callbacks.onWishClick));
-			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", callbacks.onCollectClick));
-			if (state.hasWatching) addWatchingBtn(actions, callbacks.onWatchingClick);
-			return actions;
-		}
-		if (!state.marked) {
-			actions.append(makeInterestBtn("想看", "atv-btn atv-btn-primary", () => callbacks.onOpenInterest(state)));
-			actions.append(makeInterestBtn("看过", "atv-btn atv-btn-secondary", () => callbacks.onOpenInterest(state)));
-			if (state.hasWatching) addWatchingBtn(actions, () => callbacks.onOpenInterest(state));
-			return actions;
-		}
-		const label = INTEREST_LABELS[state.status];
-		const header = el("div", { className: "atv-interest-panel-header" });
-		header.append(el("button", {
-			attrs: { type: "button" },
-			className: [
-				"atv-btn",
-				"atv-btn-primary",
-				"is-active",
-				"atv-interest-badge"
-			],
-			onclick: () => callbacks.onOpenInterest(state)
-		}, [el("span", { html: ICON_CHECK }), el("span", { text: label })]));
-		if (state.rating > 0) {
-			const starHtml = Array.from({ length: 5 }, (_, i) => i < state.rating ? ICON_STAR_FULL : ICON_STAR_EMPTY).join("");
-			header.append(el("span", {
-				className: "atv-interest-panel-stars",
-				html: starHtml
-			}));
-		}
-		if (state.date) header.append(el("span", {
-			className: "atv-interest-panel-date",
-			text: state.date
-		}));
-		const panel = el("div", { className: "atv-interest-panel" }, [header]);
-		if (state.comment) {
-			const commentChildren = [el("span", { text: `"${state.comment}"` })];
-			if (state.usefulCount) {
-				const num = state.usefulCount.replaceAll(/\D/gu, "");
-				commentChildren.push(el("span", { className: "atv-useful-badge" }, [el("span", { html: ICON_THUMB }), el("span", { text: num })]));
-			}
-			panel.append(el("div", { className: "atv-interest-panel-comment" }, commentChildren));
-		}
-		actions.append(panel);
-		return actions;
-	};
-	var buildSummary = (text) => {
-		if (!text) return null;
-		const summary = el("div", { className: "atv-hero-summary" });
-		const teaser = el("p", {
-			className: "atv-hero-teaser is-clamped",
-			text
-		});
-		summary.append(teaser);
-		const more = el("button", {
-			attrs: { type: "button" },
-			className: "atv-hero-more"
-		});
-		const moreLabel = el("span", { text: "展开" });
-		more.append(moreLabel);
-		more.append(el("span", { html: ICON_CHEVRON }));
-		more.addEventListener("click", () => {
-			const open = !teaser.classList.toggle("is-clamped");
-			more.classList.toggle("is-open", open);
-			moreLabel.textContent = open ? "收起" : "展开";
-		});
-		requestAnimationFrame(() => {
-			if (!(teaser.scrollHeight - teaser.clientHeight > 4)) more.style.display = "none";
-		});
-		summary.append(more);
-		return summary;
 	};
 	var buildHero = (data, callbacks) => {
 		const hero = el("section", { className: "atv-hero" });

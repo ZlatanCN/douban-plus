@@ -1,10 +1,10 @@
 import { el } from "../../components";
 import type { HeroData, HeroCallbacks } from "../../types";
+import { buildRatingPanel } from "../rating-panels";
 import { buildActions } from "./hero-actions";
 import { buildHeroBg } from "./hero-bg";
 import { buildMeta } from "./hero-meta";
 import { buildPosterCard } from "./hero-poster";
-import { buildRatingPanel } from "./hero-rating-panel";
 import { buildSummary } from "./hero-summary";
 
 /* ── buildHero — full hero banner orchestrator ────────── */

@@ -14,16 +14,12 @@ Assets created during tickets should be linked to from the map, not duplicated w
 
 ### Structure
 
-Entries ("tickets"), each its own section keyed by a short dash-case slug that
-reads as a mini-title (e.g. `relational-db`, `auth-strategy`, `cache-layer`) —
-terse enough to stay token-efficient, and unique within the map.
+Entries ("tickets"), each its own section keyed by a short dash-case slug that reads as a mini-title (e.g. `relational-db`, `auth-strategy`, `cache-layer`) — terse enough to stay token-efficient, and unique within the map.
 
 ```markdown
 ## relational-db: Relational Or Non-Relational Database?
 
-Blocked by: <slug>, <slug>
-Status: open | in-progress | resolved
-Type: Research | Prototype | Grilling
+Blocked by: <slug>, <slug> Status: open | in-progress | resolved Type: Research | Prototype | Grilling
 
 ### Question
 
@@ -34,11 +30,7 @@ Type: Research | Prototype | Grilling
 <answer-here>
 ```
 
-The slug is the canonical id, used in every `Blocked by` edge and prose
-reference; the title after the colon is optional. A ticket
-is **unblocked** when every ticket in its `Blocked by` list is `resolved`. A
-session **claims** its ticket by setting `Status: in-progress` and saving the map
-before any work, so concurrent sessions skip it.
+The slug is the canonical id, used in every `Blocked by` edge and prose reference; the title after the colon is optional. A ticket is **unblocked** when every ticket in its `Blocked by` list is `resolved`. A session **claims** its ticket by setting `Status: in-progress` and saving the map before any work, so concurrent sessions skip it.
 
 Each ticket must be sized to one 100K token agent session.
 
@@ -87,8 +79,7 @@ End every session by clearing the context and opening one or more fresh sessions
 
 **Open tickets remain.** List the currently-unblocked tickets, then give two copy-paste options: a bare command for one session (you pick the next ticket), and one pinned command per unblocked ticket for running them in parallel. Paste one line per fresh window — opening one, some, or all of them.
 
-> **Next steps** — 3 tickets unblocked: `auth-strategy`, `cache-layer`, `rate-limits`.
-> Clear the context, then open fresh sessions.
+> **Next steps** — 3 tickets unblocked: `auth-strategy`, `cache-layer`, `rate-limits`. Clear the context, then open fresh sessions.
 >
 > **One session** — resolves the next unblocked ticket:
 >
