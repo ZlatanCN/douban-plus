@@ -1,4 +1,3 @@
-import type { Comment } from "../types";
 import { createCache } from "../utils/cache";
 import { gmGet } from "../utils/request";
 
@@ -27,98 +26,53 @@ const extractProfileAvatar = (html: string): string => {
   return "";
 };
 
-/* ── DOM Update (with preload + reveal) ──────────────── */
+/* ── fetchAvatarUrls ─────────────────────────────────── */
 
-const updateAvatarDom = (url: string, selector: string, retries = 5): void => {
-  const el = document.querySelector<HTMLElement>(selector);
-  if (!el) {
-    if (retries > 0) {
-      requestAnimationFrame(() => updateAvatarDom(url, selector, retries - 1));
+const fetchAvatarUrls = async (
+  links: string[]
+): Promise<Map<string, string>> => {
+  if (links.length === 0) {
+    return new Map();
+  }
+
+  const result = new Map<string, string>();
+  const missing: string[] = [];
+
+  for (const link of links) {
+    const cached = avatarCache.get(link);
+    if (cached) {
+      result.set(link, cached);
+    } else {
+      missing.push(link);
     }
-    return;
   }
 
-  const img = new Image();
-  img.addEventListener("load", () => {
-    el.style.backgroundImage = `url("${url}")`;
-    el.textContent = "";
-    el.classList.add("atv-avatar-loaded");
-  });
-  img.addEventListener("error", () => {
-    console.warn("[AVATAR] preload FAILED for", url);
-    // Keep fallback
-  });
-  img.src = url;
-};
-
-/* ── resolveCommentAvatars ───────────────────────────── */
-
-const resolveCommentAvatars = async (comments: Comment[]): Promise<void> => {
-  const pending = comments.filter((c) => c.link && !avatarCache.get(c.link));
-
-  // Update DOM immediately for entries already in cache
-  for (const c of comments) {
-    const url = avatarCache.get(c.link);
-    if (!url) {
-      continue;
-    }
-    c.avatar = url;
-    updateAvatarDom(
-      url,
-      `.atv-comment-card[data-cid="${c.cid}"] .atv-comment-avatar`
-    );
-    updateAvatarDom(url, `.atv-comment-overlay-avatar[data-cid="${c.cid}"]`);
+  if (missing.length === 0) {
+    return result;
   }
 
-  if (pending.length === 0) {
-    return;
-  }
-
-  const results = await Promise.allSettled(
-    pending.map(async (c) => {
-      const name = c.link.replace(/\/+$/u, "").split("/").pop() || "";
+  const fetchResults = await Promise.allSettled(
+    missing.map(async (link) => {
       try {
-        const html = await gmGet(
-          `https://www.douban.com/people/${name}/`,
-          location.href
-        );
-        const avatar = extractProfileAvatar(html);
-        return { link: c.link, url: avatar };
-      } catch (error) {
-        console.warn("[AVATAR] fetch FAILED for", name, error);
-        return { link: c.link, url: "" };
+        const html = await gmGet(link, location.href);
+        return { link, url: extractProfileAvatar(html) };
+      } catch {
+        return { link, url: "" };
       }
     })
   );
 
-  let cachedCount = 0;
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      const { link, url } = result.value;
+  for (const fetchResult of fetchResults) {
+    if (fetchResult.status === "fulfilled") {
+      const { link, url } = fetchResult.value;
       if (url) {
         avatarCache.set(link, url);
-        cachedCount += 1;
       }
+      result.set(link, url);
     }
   }
 
-  // Update DOM for newly fetched avatars
-  for (const c of comments) {
-    const url = avatarCache.get(c.link);
-    if (!url) {
-      continue;
-    }
-    // c.avatar might already be set from the first loop (cached hit)
-    if (c.avatar === url) {
-      continue;
-    }
-    c.avatar = url;
-    updateAvatarDom(
-      url,
-      `.atv-comment-card[data-cid="${c.cid}"] .atv-comment-avatar`
-    );
-    updateAvatarDom(url, `.atv-comment-overlay-avatar[data-cid="${c.cid}"]`);
-  }
+  return result;
 };
 
-export { resolveCommentAvatars };
+export { fetchAvatarUrls };

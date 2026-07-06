@@ -1,9 +1,7 @@
-/* ── resolveCommentAvatars — Cache Tests ─────────────── */
+/* ── fetchAvatarUrls — Test Suite ──────────────────────── */
 /* Tests for src/api/avatar.ts. Mocks gmGet so no real HTTP. */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-
-import type { Comment } from "../../src/types";
 
 const mockGmGet = vi.hoisted(() => vi.fn());
 
@@ -11,89 +9,95 @@ vi.mock("../../src/utils/request", () => ({
   gmGet: mockGmGet,
 }));
 
-const { resolveCommentAvatars } = await import("../../src/api/avatar");
+const { fetchAvatarUrls } = await import("../../src/api/avatar");
 
 /* ── Helpers ──────────────────────────────────────────── */
 
 const makeProfilePage = (avatarUrl: string): string =>
   `<!DOCTYPE html><html><body><div id="profile"><div class="pic"><img src="${avatarUrl}" /></div></div></body></html>`;
 
-const makeComments = (...links: string[]): Comment[] =>
-  links.map(
-    (link, i): Comment => ({
-      avatar: "",
-      cid: String(i + 1),
-      content: "",
-      link,
-      name: "",
-      ratingWord: "",
-      stars: 0,
-      time: "",
-      voted: false,
-      votes: 0,
-    })
-  );
+const LINK_A = "https://www.douban.com/people/user1/";
+const LINK_B = "https://www.douban.com/people/user2/";
+const AVATAR_A = "https://example.com/avatar-a.jpg";
+const AVATAR_B = "https://example.com/avatar-b.jpg";
 
 /* ── Suite ────────────────────────────────────────────── */
 
-describe("resolveCommentAvatars", () => {
+describe("fetchAvatarUrls", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     localStorage.clear();
   });
 
-  /* ── Caching ─────────────────────────────────────── */
+  /* t1: Basic fetch with 2 distinct links */
+  it("fetches avatars for multiple distinct links (t1)", async () => {
+    mockGmGet
+      .mockResolvedValueOnce(makeProfilePage(AVATAR_A))
+      .mockResolvedValueOnce(makeProfilePage(AVATAR_B));
 
-  it("caches fetched avatar and reuses it on second call (t1)", async () => {
-    mockGmGet.mockResolvedValue(
-      makeProfilePage("https://example.com/avatar.jpg")
-    );
+    const result = await fetchAvatarUrls([LINK_A, LINK_B]);
 
-    const comments = makeComments("https://www.douban.com/people/user1/");
-    await resolveCommentAvatars(comments);
+    expect(result.size).toBe(2);
+    expect(result.get(LINK_A)).toBe(AVATAR_A);
+    expect(result.get(LINK_B)).toBe(AVATAR_B);
+  });
 
-    // First call: makes HTTP request
+  /* t2: Cache re-use — second call with same link hits cache */
+  it("reuses cached avatar and skips HTTP on second call (t2)", async () => {
+    mockGmGet.mockResolvedValue(makeProfilePage(AVATAR_A));
+
+    await fetchAvatarUrls([LINK_A]);
     expect(mockGmGet).toHaveBeenCalledTimes(1);
 
-    // Second call with same link: should use cache
     mockGmGet.mockClear();
-    const comments2 = makeComments("https://www.douban.com/people/user1/");
-    await resolveCommentAvatars(comments2);
+    await fetchAvatarUrls([LINK_A]);
 
     expect(mockGmGet).not.toHaveBeenCalled();
   });
 
-  it("re-fetches when cache entry is expired (t2)", async () => {
-    // Seed an expired cache entry
+  /* t3: Expired cache entry triggers re-fetch */
+  it("re-fetches when cache entry is expired (t3)", async () => {
     const expired = JSON.stringify([
-      [
-        "https://www.douban.com/people/user1/",
-        { expiresAt: Date.now() - 1000, value: "https://example.com/old.jpg" },
-      ],
+      [LINK_A, { expiresAt: Date.now() - 1000, value: AVATAR_A }],
     ]);
     localStorage.setItem("dp:avatar-cache", expired);
 
     mockGmGet.mockResolvedValue(makeProfilePage("https://example.com/new.jpg"));
 
-    const comments = makeComments("https://www.douban.com/people/user1/");
-    await resolveCommentAvatars(comments);
+    const result = await fetchAvatarUrls([LINK_A]);
 
-    // Should fetch because cache was expired
     expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(result.get(LINK_A)).toBe("https://example.com/new.jpg");
   });
 
-  it("handles multiple distinct links independently (t3)", async () => {
-    mockGmGet.mockResolvedValue(
-      makeProfilePage("https://example.com/avatar1.jpg")
-    );
+  /* t4: Empty input returns empty Map */
+  it("returns empty Map for empty link array (t4)", async () => {
+    const result = await fetchAvatarUrls([]);
 
-    const comments = makeComments(
-      "https://www.douban.com/people/user1/",
-      "https://www.douban.com/people/user2/"
-    );
-    await resolveCommentAvatars(comments);
+    expect(result.size).toBe(0);
+    expect(mockGmGet).not.toHaveBeenCalled();
+  });
 
-    // One request per unique user
-    expect(mockGmGet).toHaveBeenCalledTimes(2);
+  /* t5: Fetch failure returns empty URL for that link */
+  it("returns empty string for a link when fetch fails (t5)", async () => {
+    mockGmGet.mockRejectedValue(new Error("Network error"));
+
+    const result = await fetchAvatarUrls([LINK_A]);
+
+    expect(result.size).toBe(1);
+    expect(result.get(LINK_A)).toBe("");
+  });
+
+  /* t6: Mixed success and failure across multiple links */
+  it("handles mixed success and failure across multiple links (t6)", async () => {
+    mockGmGet
+      .mockRejectedValueOnce(new Error("Network error"))
+      .mockResolvedValueOnce(makeProfilePage(AVATAR_B));
+
+    const result = await fetchAvatarUrls([LINK_A, LINK_B]);
+
+    expect(result.size).toBe(2);
+    expect(result.get(LINK_A)).toBe("");
+    expect(result.get(LINK_B)).toBe(AVATAR_B);
   });
 });

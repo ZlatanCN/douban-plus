@@ -132,65 +132,35 @@
 		}
 		return "";
 	};
-	var updateAvatarDom = (url, selector, retries = 5) => {
-		const el = document.querySelector(selector);
-		if (!el) {
-			if (retries > 0) requestAnimationFrame(() => updateAvatarDom(url, selector, retries - 1));
-			return;
+	var fetchAvatarUrls = async (links) => {
+		if (links.length === 0) return new Map();
+		const result = new Map();
+		const missing = [];
+		for (const link of links) {
+			const cached = avatarCache.get(link);
+			if (cached) result.set(link, cached);
+			else missing.push(link);
 		}
-		const img = new Image();
-		img.addEventListener("load", () => {
-			el.style.backgroundImage = `url("${url}")`;
-			el.textContent = "";
-			el.classList.add("atv-avatar-loaded");
-		});
-		img.addEventListener("error", () => {
-			console.warn("[AVATAR] preload FAILED for", url);
-		});
-		img.src = url;
-	};
-	var resolveCommentAvatars = async (comments) => {
-		const pending = comments.filter((c) => c.link && !avatarCache.get(c.link));
-		for (const c of comments) {
-			const url = avatarCache.get(c.link);
-			if (!url) continue;
-			c.avatar = url;
-			updateAvatarDom(url, `.atv-comment-card[data-cid="${c.cid}"] .atv-comment-avatar`);
-			updateAvatarDom(url, `.atv-comment-overlay-avatar[data-cid="${c.cid}"]`);
-		}
-		if (pending.length === 0) return;
-		const results = await Promise.allSettled(pending.map(async (c) => {
-			const name = c.link.replace(/\/+$/u, "").split("/").pop() || "";
+		if (missing.length === 0) return result;
+		const fetchResults = await Promise.allSettled(missing.map(async (link) => {
 			try {
-				const avatar = extractProfileAvatar(await gmGet(`https://www.douban.com/people/${name}/`, location.href));
 				return {
-					link: c.link,
-					url: avatar
+					link,
+					url: extractProfileAvatar(await gmGet(link, location.href))
 				};
-			} catch (error) {
-				console.warn("[AVATAR] fetch FAILED for", name, error);
+			} catch {
 				return {
-					link: c.link,
+					link,
 					url: ""
 				};
 			}
 		}));
-		let cachedCount = 0;
-		for (const result of results) if (result.status === "fulfilled") {
-			const { link, url } = result.value;
-			if (url) {
-				avatarCache.set(link, url);
-				cachedCount += 1;
-			}
+		for (const fetchResult of fetchResults) if (fetchResult.status === "fulfilled") {
+			const { link, url } = fetchResult.value;
+			if (url) avatarCache.set(link, url);
+			result.set(link, url);
 		}
-		for (const c of comments) {
-			const url = avatarCache.get(c.link);
-			if (!url) continue;
-			if (c.avatar === url) continue;
-			c.avatar = url;
-			updateAvatarDom(url, `.atv-comment-card[data-cid="${c.cid}"] .atv-comment-avatar`);
-			updateAvatarDom(url, `.atv-comment-overlay-avatar[data-cid="${c.cid}"]`);
-		}
+		return result;
 	};
 	var API_VOTE = "https://movie.douban.com/j/comment/vote";
 	var postVote = async (cid, subjectId) => {
@@ -718,6 +688,32 @@
 			btn.classList.toggle("is-voted", voted);
 		};
 		return btn;
+	};
+	var updateAvatarDom = (url, selector, retries = 5) => {
+		const el = document.querySelector(selector);
+		if (!el) {
+			if (retries > 0) requestAnimationFrame(() => updateAvatarDom(url, selector, retries - 1));
+			return;
+		}
+		el.style.backgroundImage = `url("${url}")`;
+		el.textContent = "";
+		el.classList.add("atv-avatar-loaded");
+		try {
+			const img = new Image();
+			img.addEventListener("error", () => {
+				console.warn("[AVATAR] preload FAILED for", url);
+			});
+			img.src = url;
+		} catch {}
+	};
+	var applyCommentAvatars = (urlMap, comments) => {
+		for (const comment of comments) {
+			const url = urlMap.get(comment.link);
+			if (!url) continue;
+			comment.avatar = url;
+			updateAvatarDom(url, `.atv-comment-card[data-cid="${comment.cid}"] .atv-comment-avatar`);
+			updateAvatarDom(url, `.atv-comment-overlay-avatar[data-cid="${comment.cid}"]`);
+		}
 	};
 	var hashStr = (str) => {
 		let h = 0;
@@ -2633,7 +2629,12 @@
 			onVote: (cid) => postVote(cid, data.subjectId),
 			seriesMoreLink: extractSeriesMoreLink()
 		});
-		if (data.comments.length > 0) resolveCommentAvatars(data.comments);
+		if (data.comments.length > 0) {
+			const links = data.comments.map((c) => c.link);
+			(async () => {
+				applyCommentAvatars(await fetchAvatarUrls(links), data.comments);
+			})();
+		}
 		document.body.insertBefore(root, document.body.firstChild);
 		document.body.append(stickyNav);
 		const reveal = () => {

@@ -1,9 +1,10 @@
 import "./styles.css";
-import { resolveCommentAvatars } from "./api/avatar";
+import { fetchAvatarUrls } from "./api/avatar";
 import { postVote } from "./api/comment";
 import { postInterest, removeInterest } from "./api/interest";
 import { buildApp, buildSeries } from "./build";
 import { el, openInterestModal } from "./components";
+import { applyCommentAvatars } from "./components/avatar-dom";
 import {
   extractAwards,
   extractCelebrities,
@@ -216,7 +217,11 @@ const render = (): void => {
   });
 
   if (data.comments.length > 0) {
-    resolveCommentAvatars(data.comments);
+    const links = data.comments.map((c) => c.link);
+    void (async () => {
+      const urls = await fetchAvatarUrls(links);
+      applyCommentAvatars(urls, data.comments);
+    })();
   }
 
   /* ── DOM insertion ──────────────────────────────────── */

@@ -6,13 +6,13 @@ import { el } from "./dom-factory";
 
 /* ── Types ──────────────────────────────────────────────── */
 
-export type OverlayController = {
+type OverlayController = {
   dismiss: () => void;
   overlay: HTMLElement;
   closeBtn: HTMLButtonElement;
 };
 
-export type CreateOverlayOptions = {
+type CreateOverlayOptions = {
   id: string;
   className?: string | string[];
   content?: HTMLElement[];
@@ -104,3 +104,4 @@ const createOverlay = (options: CreateOverlayOptions): OverlayController => {
 };
 
 export { createOverlay };
+export type { CreateOverlayOptions, OverlayController };

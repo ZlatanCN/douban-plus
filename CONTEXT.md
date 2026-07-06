@@ -38,12 +38,20 @@ src/
   components/          — reusable UI components
     dom-factory.ts       — el() DOM builder, renderStars()
     sections.ts          — section/header-row builders (moved from build/ 2026-07-06)
+    avatar-dom.ts        — applyCommentAvatars(): DOM mutation for comment avatars (split from api/avatar 2026-07-06)
     vote-btn.ts          — buildVoteBtn() with optimistic update + API rollback (extracted 2026-07-06)
     overlay.ts, modal.ts — overlay/modal primitives
     interest-modal*      — interest marking modal
     index.ts             — barrel
+  api/                 — data fetching & scraping interfaces
+    avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
+    comment.ts           — postVote() for comment voting via GM POST
+    interest.ts          — postInterest/removeInterest for interest marking
+    imdb.ts              — fetchImdbRating() via IMDB GraphQL API
+    metacritic.ts        — fetchMcRating() via Metacritic scraping
+    rotten.ts            — fetchRtRating() via Rotten Tomatoes scraping
   scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
-  main.ts              — entry point. ~270 lines. Calls buildContext → resolveAll → appliers.
+  main.ts              — entry point. ~260 lines. Orchestrates extract → build → fetch avatars → resolve ratings.
   content/             — content script entry (injected into Douban page)
 ```
 
@@ -80,9 +88,27 @@ The `build/` directory was extracted from a single `src/html/` file in two tiers
 
 3. **Vote button (2026-07-06)** — `buildVoteBtn()` extracted from duplicated code in `src/build/comments.ts` into `src/components/vote-btn.ts`. The vote button logic (optimistic update + API rollback + animation) was identical in `openCommentOverlay` and the comment card loop. Extracted with 9 unit tests covering happy path, guards, API failure rollback, and server count override. Returns `VoteButtonElement` (HTMLButtonElement + `setVoteState` method) so external code can sync state across instances.
 
+4. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:
+   - `api/avatar.ts` — pure data pipeline: `fetchAvatarUrls(links)` returns `Map<link, url>` with read-through cache, parallel fetch via `Promise.allSettled`, no DOM access
+   - `components/avatar-dom.ts` — DOM mutation: `applyCommentAvatars(urlMap, comments)` sets `comment.avatar`, preloads images, applies `backgroundImage` with RAF retry
+   - `main.ts` orchestrates with `void (async () => { const urls = await fetchAvatarUrls(links); applyCommentAvatars(urls, comments); })()`
+   - 14 tests total (6 data pipeline + 8 DOM), up from 3
+
 ### Bug fixes
 
 - **Vote state sync: card ↔ overlay (2026-07-06)** — Two `buildVoteBtn` instances (one in the comment card, one in the overlay) each have independent closure state (`let voted`). Voting in the overlay updates its own closure and the shared `Comment` object, but the card's closure never re-reads it. Fixed by: (a) adding `setVoteState` to `VoteButtonElement` so external code can push state into a button's closure, (b) maintaining a `Map<cid, VoteButtonElement>` in `buildComments`, (c) calling `cardBtn.setVoteState(true, result.count)` from the overlay's `onVote` after a successful vote. Regression test: t23 in `tests/build/comments.test.ts`.
+
+### Data pipeline integrity — avatar split
+
+`src/api/avatar.ts` was the only module crossing the data/DOM boundary. Split on 2026-07-06:
+
+| Layer | File | Export | Responsibility | DOM-free? |
+| --- | --- | --- | --- | --- |
+| Data pipeline | `api/avatar.ts` | `fetchAvatarUrls(links)` | Cache read-through → fetch → parse → cache → return Map | ✅ |
+| DOM mutation | `components/avatar-dom.ts` | `applyCommentAvatars(urlMap, comments)` | Preload images, RAF-retry querySelector, set backgroundImage | ❌ (DOM-only) |
+| Orchestration | `main.ts:219` | inline | `await pipeline → apply to DOM` | — |
+
+6 data tests (no DOM needed) + 8 DOM tests (happy-dom) = 14 total, replacing 3 cache-only tests.
 
 ### Key design decisions
 
@@ -90,3 +116,4 @@ The `build/` directory was extracted from a single `src/html/` file in two tiers
 - **Scrapers are async**: Each external source gets its own scraper module. Scraping happens before build.
 - **No config/layout coupling**: Every rating panel has its own state toggle. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.
+- **Bottom exports**: All exports are declared at the bottom of each file via a single `export { ... }` block. Never use `export const` or `export function` inline. This makes the module's public API immediately visible at a glance.

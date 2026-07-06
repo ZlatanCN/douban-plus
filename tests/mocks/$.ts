@@ -23,4 +23,6 @@ if (!xhr) {
   );
 }
 
-export const GM_xmlhttpRequest: GmXhrFn = xhr;
+const GM_xmlhttpRequest: GmXhrFn = xhr;
+
+export { GM_xmlhttpRequest };
