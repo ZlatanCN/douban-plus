@@ -16,7 +16,6 @@ src/
     app.ts             — entry: orchestrates all sections, attaches to DOM
     hero/              — hero section parts (bg, poster, meta, actions, summary)
     rating-panels/     — IMDb / Metacritic / Rotten Tomatoes rating panels (extracted 2026-07-06)
-    sections/          — section header row builder
     streaming/         — where to watch
     comments/          — comments section
     cast/              — cast list
@@ -38,6 +37,7 @@ src/
     apply.ts            — applyImdbResult/applyRtResult/applyMcResult: apply results to DOM
   components/          — reusable UI components
     dom-factory.ts       — el() DOM builder, renderStars()
+    sections.ts          — section/header-row builders (moved from build/ 2026-07-06)
     vote-btn.ts          — buildVoteBtn() with optimistic update + API rollback (extracted 2026-07-06)
     overlay.ts, modal.ts — overlay/modal primitives
     interest-modal*      — interest marking modal

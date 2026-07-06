@@ -1,7 +1,7 @@
 import { el } from "../components";
+import { buildSection } from "../components/sections";
 import { ICON_FILM_PLACEHOLDER } from "../constants";
 import type { Recommendation } from "../types";
-import { buildSection } from "./sections";
 
 const buildRecs = (recommendations: Recommendation[]): HTMLElement | null => {
   if (!recommendations?.length) {

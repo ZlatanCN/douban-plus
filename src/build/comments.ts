@@ -1,8 +1,8 @@
 import { buildVoteBtn, createOverlay, el, renderStars } from "../components";
+import { buildSection } from "../components/sections";
 import type { VoteButtonElement } from "../components/vote-btn";
 import { ICON_EXPAND } from "../constants";
 import type { Comment, CommentsData } from "../types";
-import { buildSection } from "./sections";
 
 /* ── buildComments ────────────────────────────────────── */
 

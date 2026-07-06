@@ -1,6 +1,6 @@
 /* ── Section Header Builders ──────────────────────────── */
 
-import { el } from "../components";
+import { el } from "./dom-factory";
 
 const buildSectionHeader = (text: string): HTMLHeadingElement =>
   el("h2", { className: "atv-section-h", text });

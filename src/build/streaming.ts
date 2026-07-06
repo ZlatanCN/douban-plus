@@ -1,9 +1,9 @@
 /* ── Streaming Section Builder ───────────────────────── */
 
 import { el } from "../components";
+import { buildSection } from "../components/sections";
 import { ICON_ARROW } from "../constants";
 import type { Streaming } from "../types";
-import { buildSection } from "./sections";
 
 const buildStreaming = (streaming: Streaming[]): HTMLElement | null => {
   if (!streaming?.length) {

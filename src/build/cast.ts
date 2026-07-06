@@ -1,6 +1,6 @@
 import { el } from "../components";
+import { buildSection } from "../components/sections";
 import type { Celebrity } from "../types";
-import { buildSection } from "./sections";
 
 /* ── buildCast ────────────────────────────────────────── */
 

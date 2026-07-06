@@ -2,10 +2,10 @@
 /* "同系列作品" carousel with Apple TV+ poster card style.  */
 
 import { el } from "../components";
+import { buildSection } from "../components/sections";
+import type { BuildSectionOptions } from "../components/sections";
 import { ICON_FILM_PLACEHOLDER } from "../constants";
 import type { SeriesItem } from "../types";
-import { buildSection } from "./sections";
-import type { BuildSectionOptions } from "./sections";
 
 type BuildSeriesOptions = {
   moreLink?: BuildSectionOptions["moreLink"];

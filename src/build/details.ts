@@ -1,9 +1,9 @@
 /* ── Info Details Section Builder ────────────────────── */
 
 import { el } from "../components";
+import { buildSection } from "../components/sections";
 import { ICON_ARROW, RE_IMDB_LINK } from "../constants";
 import type { Award, DetailsData, InfoBlock } from "../types";
-import { buildSection } from "./sections";
 
 const linksValue = (arr: { text: string; href?: string }[]): HTMLElement => {
   const wrap = el("div", { className: "atv-info-value" });
