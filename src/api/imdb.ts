@@ -265,3 +265,4 @@ const fetchImdbRating = async (
 };
 
 export { fetchImdbRating };
+export type { FetchImdbResult };

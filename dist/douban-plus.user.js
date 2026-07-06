@@ -209,161 +209,6 @@
 			return { ok: false };
 		}
 	};
-	var imdbCache = createCache("dp:imdb-cache", 720 * 60 * 60 * 1e3);
-	var GRAPHQL_QUERY = `query GetRating($id: ID!) {
-  title(id: $id) {
-    id
-    titleText { text }
-    ratingsSummary { aggregateRating voteCount }
-    series {
-      series {
-        id
-        titleText { text }
-      }
-    }
-  }
-}`;
-	var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
-  title(id: $id) {
-    episodes {
-      episodes(first: 50, filter: {includeSeasons: [$season]}) {
-        edges {
-          node {
-            ratingsSummary { aggregateRating voteCount }
-          }
-        }
-      }
-    }
-  }
-}`;
-	var extractTitleFields = (parsed) => {
-		if (parsed.errors) return null;
-		const title = parsed?.data?.title;
-		const seriesNested = title?.series?.series;
-		const seriesInfo = seriesNested?.id ? {
-			id: seriesNested.id,
-			titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? ""
-		} : null;
-		return {
-			aggregateRating: title?.ratingsSummary?.aggregateRating,
-			seriesInfo,
-			titleText: title?.titleText?.text ?? null,
-			voteCount: title?.ratingsSummary?.voteCount
-		};
-	};
-	var parseResponse = (json) => {
-		try {
-			return extractTitleFields(JSON.parse(json)) ?? { error: true };
-		} catch {
-			return { error: true };
-		}
-	};
-	var parseSeasonRating = (json) => {
-		try {
-			const edges = JSON.parse(json)?.data?.title?.episodes?.episodes?.edges;
-			if (!edges || edges.length === 0) return null;
-			let totalWeighted = 0;
-			let totalVotes = 0;
-			for (const edge of edges) {
-				const rs = edge?.node?.ratingsSummary;
-				if (rs && typeof rs.aggregateRating === "number" && typeof rs.voteCount === "number" && rs.voteCount > 0) {
-					totalWeighted += rs.aggregateRating * rs.voteCount;
-					totalVotes += rs.voteCount;
-				}
-			}
-			if (totalVotes === 0) return null;
-			return { rating: {
-				count: totalVotes,
-				score: Math.round(totalWeighted / totalVotes * 10) / 10
-			} };
-		} catch {
-			return null;
-		}
-	};
-	var seasonCacheKey = (seriesId, season) => `${seriesId}-s${String(season).padStart(2, "0")}`;
-	var fetchImdbRating = async (imdbId, season) => {
-		if (!imdbId) return {
-			rating: null,
-			title: null
-		};
-		const cached = imdbCache.get(imdbId);
-		if (cached) return {
-			rating: cached.rating,
-			title: cached.title
-		};
-		let json;
-		try {
-			json = await gmPost("https://graphql.imdb.com/", JSON.stringify({
-				query: GRAPHQL_QUERY,
-				variables: { id: imdbId }
-			}), "https://www.imdb.com/", { "Content-Type": "application/json" });
-		} catch (error) {
-			console.warn("[IMDB] fetch FAILED for", imdbId, error);
-			return {
-				rating: null,
-				title: null
-			};
-		}
-		const parsed = parseResponse(json);
-		if ("error" in parsed) return {
-			rating: null,
-			title: null
-		};
-		const { aggregateRating, voteCount, titleText, seriesInfo } = parsed;
-		const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
-		if (season && seriesIdForSeason) {
-			const sKey = seasonCacheKey(seriesIdForSeason, season);
-			const sCached = imdbCache.get(sKey);
-			if (sCached) return {
-				rating: sCached.rating,
-				title: sCached.title
-			};
-			try {
-				const seasonResult = parseSeasonRating(await gmPost("https://graphql.imdb.com/", JSON.stringify({
-					query: SEASON_EPISODES_QUERY,
-					variables: {
-						id: seriesIdForSeason,
-						season: String(season)
-					}
-				}), "https://www.imdb.com/", { "Content-Type": "application/json" }));
-				if (seasonResult) {
-					const title = seriesInfo?.titleText ?? titleText ?? "";
-					imdbCache.set(sKey, {
-						rating: seasonResult.rating,
-						title
-					});
-					return {
-						rating: seasonResult.rating,
-						title
-					};
-				}
-			} catch {
-				console.warn("[IMDB] season episodes query failed, falling back");
-			}
-		}
-		const effectiveRating = aggregateRating;
-		const effectiveCount = voteCount;
-		const effectiveTitle = titleText;
-		if (typeof effectiveRating === "number" && typeof effectiveCount === "number") {
-			const rating = {
-				count: effectiveCount,
-				score: effectiveRating
-			};
-			const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
-			imdbCache.set(imdbId, {
-				rating,
-				title
-			});
-			return {
-				rating,
-				title
-			};
-		}
-		return {
-			rating: null,
-			title: effectiveTitle
-		};
-	};
 	var API_INTEREST = "https://movie.douban.com/j/subject";
 	var API_REMOVE = "https://movie.douban.com/subject";
 	var postInterest = async (subjectId, interest, options) => {
@@ -415,124 +260,6 @@
 				ok: false
 			};
 		}
-	};
-	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
-	var toMcSlug = (title) => {
-		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
-	};
-	var cacheKey$1 = (slug, season, year) => {
-		let key = slug;
-		if (year) key = `${key}-${year}`;
-		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
-		return key;
-	};
-	var parseMcPage = (html) => {
-		const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (!match?.groups?.json) return null;
-		try {
-			const rating = JSON.parse(match.groups.json.trim())?.aggregateRating;
-			if (rating?.ratingValue === null || rating?.reviewCount === null) return null;
-			const score = Number.parseInt(String(rating.ratingValue), 10);
-			const reviewCount = Number.parseInt(String(rating.reviewCount), 10);
-			if (Number.isNaN(score) || Number.isNaN(reviewCount)) return null;
-			return {
-				reviewCount,
-				score
-			};
-		} catch {
-			return null;
-		}
-	};
-	var fetchMcRating = async (title, isTV, season, year) => {
-		if (!title) return null;
-		const slug = toMcSlug(title);
-		if (!slug) return null;
-		const key = cacheKey$1(slug, season, year);
-		const cached = mcCache.get(key);
-		if (cached) return cached;
-		const urls = [];
-		if (isTV) {
-			if (season) urls.push(`https://www.metacritic.com/tv/${slug}/season-${season}`);
-			urls.push(`https://www.metacritic.com/tv/${slug}`);
-		} else {
-			if (year) urls.push(`https://www.metacritic.com/movie/${slug}-${year}`);
-			urls.push(`https://www.metacritic.com/movie/${slug}`);
-		}
-		for (const url of urls) try {
-			const rating = parseMcPage(await gmGet(url, "https://www.metacritic.com/"));
-			if (rating) {
-				mcCache.set(key, rating);
-				return rating;
-			}
-		} catch {}
-		return null;
-	};
-	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
-	var toSlug = (title) => {
-		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
-	};
-	var cacheKey = (slug, season, year) => {
-		let key = slug;
-		if (year) key = `${key}_${year}`;
-		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
-		return key;
-	};
-	var parseData = (raw) => {
-		const data = JSON.parse(raw);
-		const criticsRaw = data.criticsScore?.score;
-		const audienceRaw = data.audienceScore?.score;
-		if (criticsRaw === void 0 || criticsRaw === null || audienceRaw === void 0 || audienceRaw === null) return null;
-		const criticsScore = typeof criticsRaw === "string" ? Number.parseInt(criticsRaw, 10) : criticsRaw;
-		const audienceScore = typeof audienceRaw === "string" ? Number.parseInt(audienceRaw, 10) : audienceRaw;
-		if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) return null;
-		return {
-			audienceCount: (data.audienceScore?.likedCount ?? 0) + (data.audienceScore?.notLikedCount ?? 0),
-			audienceScore,
-			criticsCount: data.criticsScore?.ratingCount ?? 0,
-			criticsScore
-		};
-	};
-	var parseMediaScorecard = (html) => {
-		const mc = html.match(/<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (!mc?.groups?.json) return null;
-		try {
-			return parseData(mc.groups.json.trim());
-		} catch {
-			return null;
-		}
-	};
-	var parseRtPage = (html) => {
-		const msRating = parseMediaScorecard(html);
-		if (msRating) return msRating;
-		const match = html.match(/<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (match?.groups?.json) try {
-			return parseData(match.groups.json.trim());
-		} catch {}
-		return null;
-	};
-	var fetchRtRating = async (title, isTV, season, year) => {
-		if (!title) return null;
-		const slug = toSlug(title);
-		if (!slug) return null;
-		const key = cacheKey(slug, season, year);
-		const cached = rottenCache.get(key);
-		if (cached) return cached;
-		const urls = [];
-		if (isTV) {
-			if (season) urls.push(`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`);
-			urls.push(`https://www.rottentomatoes.com/tv/${slug}`);
-		} else {
-			if (year) urls.push(`https://www.rottentomatoes.com/m/${slug}_${year}`);
-			urls.push(`https://www.rottentomatoes.com/m/${slug}`);
-		}
-		for (const url of urls) try {
-			const rating = parseRtPage(await gmGet(url, "https://www.rottentomatoes.com/"));
-			if (rating) {
-				rottenCache.set(key, rating);
-				return rating;
-			}
-		} catch {}
-		return null;
 	};
 	var RE_SLASH_SEP = /\s*\/\s*/gu;
 	var RE_WS_GLOBAL = /\s+/gu;
@@ -984,6 +711,12 @@
 				btn.classList.remove("is-voted");
 			}
 		});
+		btn.setVoteState = (newVoted, newCount) => {
+			voted = newVoted;
+			count = newCount;
+			countSpan.textContent = String(count);
+			btn.classList.toggle("is-voted", voted);
+		};
 		return btn;
 	};
 	var hashStr = (str) => {
@@ -1391,7 +1124,7 @@
 		}
 		return buildSection("atv-stream", "在哪儿看", row);
 	};
-	var openCommentOverlay = (comment, onVote) => {
+	var openCommentOverlay = (comment, onVote, cardVoteBtns) => {
 		const inner = el("div", { className: "atv-comment-overlay-inner" });
 		const accent = el("div", { className: "atv-comment-overlay-accent" });
 		inner.append(accent);
@@ -1437,6 +1170,8 @@
 				if (result.ok && result.count !== void 0) {
 					comment.voted = true;
 					comment.votes = result.count;
+					const cardBtn = cardVoteBtns.get(cid);
+					if (cardBtn) cardBtn.setVoteState(true, result.count);
 				}
 				return result;
 			},
@@ -1455,6 +1190,7 @@
 		if (!data.comments?.length) return null;
 		const grid = el("div", { className: "atv-comments" });
 		const pending = [];
+		const cardVoteBtns = new Map();
 		for (const c of data.comments) {
 			const card = el("div", {
 				attrs: c.cid ? { "data-cid": c.cid } : void 0,
@@ -1493,7 +1229,7 @@
 				className: "atv-comment-expand",
 				html: ICON_EXPAND
 			});
-			const voteBtn = buildVoteBtn({
+			const cardVoteBtn = buildVoteBtn({
 				cid: c.cid,
 				className: "atv-comment-votes",
 				count: c.votes,
@@ -1507,11 +1243,12 @@
 				},
 				voted: c.voted
 			});
-			footRight.append(expandBtn, voteBtn);
+			cardVoteBtns.set(c.cid, cardVoteBtn);
+			footRight.append(expandBtn, cardVoteBtn);
 			foot.append(footRight);
 			card.append(foot);
 			const showOverlay = () => {
-				openCommentOverlay(c, onVote);
+				openCommentOverlay(c, onVote, cardVoteBtns);
 			};
 			expandBtn.addEventListener("click", (e) => {
 				e.stopPropagation();
@@ -1904,6 +1641,18 @@
 			root,
 			stickyNav
 		};
+	};
+	var extractEnglishSeriesName = (h1) => {
+		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
+		if (!m) return "";
+		return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
+	};
+	var extractSeasonFromH1 = (h1) => {
+		const cn = "一二三四五六七八九十";
+		const m = h1.match(/(?:Season|第)\s*(?<digit>\d+|[一二三四五六七八九十])/iu);
+		if (!m?.groups?.digit) return;
+		const d = m.groups.digit;
+		return /^\d+$/u.test(d) ? Number.parseInt(d, 10) : cn.indexOf(d) + 1;
 	};
 	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
 	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
@@ -2398,6 +2147,376 @@
 		}
 		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
 	};
+	var applyImdbResult = (result) => {
+		const section = document.querySelector(".atv-rating-panel-imdb");
+		if (!section) return;
+		if (result?.rating) {
+			const loaded = buildImdbRating(result.rating);
+			section.replaceWith(loaded);
+		} else {
+			section.classList.remove("is-loading");
+			section.classList.add("is-empty");
+		}
+	};
+	var applyRtResult = (rating) => {
+		const section = document.querySelector(".atv-rating-panel-rt");
+		if (!section) return;
+		if (rating) {
+			const loaded = buildRtRating(rating);
+			section.replaceWith(loaded);
+		} else {
+			section.classList.remove("is-loading");
+			section.classList.add("is-empty");
+		}
+	};
+	var applyMcResult = (rating) => {
+		const section = document.querySelector(".atv-rating-panel-mc");
+		if (!section) return;
+		if (rating) {
+			const loaded = buildMcRating(rating);
+			section.replaceWith(loaded);
+		} else {
+			section.classList.remove("is-loading");
+			section.classList.add("is-empty");
+		}
+	};
+	var buildContext = (imdbId, isTV, doc) => {
+		const doubanH1 = doc.querySelector("#content h1")?.textContent?.trim() || "";
+		const englishTitle = doubanH1 ? extractEnglishSeriesName(doubanH1) : null;
+		const season = doubanH1 ? extractSeasonFromH1(doubanH1) : void 0;
+		const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
+		const year = isTV ? void 0 : yearMatch?.groups?.year ?? void 0;
+		return {
+			englishTitle: englishTitle || null,
+			imdbId,
+			isTV,
+			season,
+			year
+		};
+	};
+	var imdbCache = createCache("dp:imdb-cache", 720 * 60 * 60 * 1e3);
+	var GRAPHQL_QUERY = `query GetRating($id: ID!) {
+  title(id: $id) {
+    id
+    titleText { text }
+    ratingsSummary { aggregateRating voteCount }
+    series {
+      series {
+        id
+        titleText { text }
+      }
+    }
+  }
+}`;
+	var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
+  title(id: $id) {
+    episodes {
+      episodes(first: 50, filter: {includeSeasons: [$season]}) {
+        edges {
+          node {
+            ratingsSummary { aggregateRating voteCount }
+          }
+        }
+      }
+    }
+  }
+}`;
+	var extractTitleFields = (parsed) => {
+		if (parsed.errors) return null;
+		const title = parsed?.data?.title;
+		const seriesNested = title?.series?.series;
+		const seriesInfo = seriesNested?.id ? {
+			id: seriesNested.id,
+			titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? ""
+		} : null;
+		return {
+			aggregateRating: title?.ratingsSummary?.aggregateRating,
+			seriesInfo,
+			titleText: title?.titleText?.text ?? null,
+			voteCount: title?.ratingsSummary?.voteCount
+		};
+	};
+	var parseResponse = (json) => {
+		try {
+			return extractTitleFields(JSON.parse(json)) ?? { error: true };
+		} catch {
+			return { error: true };
+		}
+	};
+	var parseSeasonRating = (json) => {
+		try {
+			const edges = JSON.parse(json)?.data?.title?.episodes?.episodes?.edges;
+			if (!edges || edges.length === 0) return null;
+			let totalWeighted = 0;
+			let totalVotes = 0;
+			for (const edge of edges) {
+				const rs = edge?.node?.ratingsSummary;
+				if (rs && typeof rs.aggregateRating === "number" && typeof rs.voteCount === "number" && rs.voteCount > 0) {
+					totalWeighted += rs.aggregateRating * rs.voteCount;
+					totalVotes += rs.voteCount;
+				}
+			}
+			if (totalVotes === 0) return null;
+			return { rating: {
+				count: totalVotes,
+				score: Math.round(totalWeighted / totalVotes * 10) / 10
+			} };
+		} catch {
+			return null;
+		}
+	};
+	var seasonCacheKey = (seriesId, season) => `${seriesId}-s${String(season).padStart(2, "0")}`;
+	var fetchImdbRating = async (imdbId, season) => {
+		if (!imdbId) return {
+			rating: null,
+			title: null
+		};
+		const cached = imdbCache.get(imdbId);
+		if (cached) return {
+			rating: cached.rating,
+			title: cached.title
+		};
+		let json;
+		try {
+			json = await gmPost("https://graphql.imdb.com/", JSON.stringify({
+				query: GRAPHQL_QUERY,
+				variables: { id: imdbId }
+			}), "https://www.imdb.com/", { "Content-Type": "application/json" });
+		} catch (error) {
+			console.warn("[IMDB] fetch FAILED for", imdbId, error);
+			return {
+				rating: null,
+				title: null
+			};
+		}
+		const parsed = parseResponse(json);
+		if ("error" in parsed) return {
+			rating: null,
+			title: null
+		};
+		const { aggregateRating, voteCount, titleText, seriesInfo } = parsed;
+		const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
+		if (season && seriesIdForSeason) {
+			const sKey = seasonCacheKey(seriesIdForSeason, season);
+			const sCached = imdbCache.get(sKey);
+			if (sCached) return {
+				rating: sCached.rating,
+				title: sCached.title
+			};
+			try {
+				const seasonResult = parseSeasonRating(await gmPost("https://graphql.imdb.com/", JSON.stringify({
+					query: SEASON_EPISODES_QUERY,
+					variables: {
+						id: seriesIdForSeason,
+						season: String(season)
+					}
+				}), "https://www.imdb.com/", { "Content-Type": "application/json" }));
+				if (seasonResult) {
+					const title = seriesInfo?.titleText ?? titleText ?? "";
+					imdbCache.set(sKey, {
+						rating: seasonResult.rating,
+						title
+					});
+					return {
+						rating: seasonResult.rating,
+						title
+					};
+				}
+			} catch {
+				console.warn("[IMDB] season episodes query failed, falling back");
+			}
+		}
+		const effectiveRating = aggregateRating;
+		const effectiveCount = voteCount;
+		const effectiveTitle = titleText;
+		if (typeof effectiveRating === "number" && typeof effectiveCount === "number") {
+			const rating = {
+				count: effectiveCount,
+				score: effectiveRating
+			};
+			const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
+			imdbCache.set(imdbId, {
+				rating,
+				title
+			});
+			return {
+				rating,
+				title
+			};
+		}
+		return {
+			rating: null,
+			title: effectiveTitle
+		};
+	};
+	var resolveImdb = (ctx) => {
+		if (!ctx.imdbId) return Promise.resolve(null);
+		return fetchImdbRating(ctx.imdbId, ctx.season);
+	};
+	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
+	var toMcSlug = (title) => {
+		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
+	};
+	var cacheKey$1 = (slug, season, year) => {
+		let key = slug;
+		if (year) key = `${key}-${year}`;
+		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
+		return key;
+	};
+	var parseMcPage = (html) => {
+		const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (!match?.groups?.json) return null;
+		try {
+			const rating = JSON.parse(match.groups.json.trim())?.aggregateRating;
+			if (rating?.ratingValue === null || rating?.reviewCount === null) return null;
+			const score = Number.parseInt(String(rating.ratingValue), 10);
+			const reviewCount = Number.parseInt(String(rating.reviewCount), 10);
+			if (Number.isNaN(score) || Number.isNaN(reviewCount)) return null;
+			return {
+				reviewCount,
+				score
+			};
+		} catch {
+			return null;
+		}
+	};
+	var fetchMcRating = async (title, isTV, season, year) => {
+		if (!title) return null;
+		const slug = toMcSlug(title);
+		if (!slug) return null;
+		const key = cacheKey$1(slug, season, year);
+		const cached = mcCache.get(key);
+		if (cached) return cached;
+		const urls = [];
+		if (isTV) {
+			if (season) urls.push(`https://www.metacritic.com/tv/${slug}/season-${season}`);
+			urls.push(`https://www.metacritic.com/tv/${slug}`);
+		} else {
+			if (year) urls.push(`https://www.metacritic.com/movie/${slug}-${year}`);
+			urls.push(`https://www.metacritic.com/movie/${slug}`);
+		}
+		for (const url of urls) try {
+			const rating = parseMcPage(await gmGet(url, "https://www.metacritic.com/"));
+			if (rating) {
+				mcCache.set(key, rating);
+				return rating;
+			}
+		} catch {}
+		return null;
+	};
+	var resolveMc = (ctx) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
+	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
+	var toSlug = (title) => {
+		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
+	};
+	var cacheKey = (slug, season, year) => {
+		let key = slug;
+		if (year) key = `${key}_${year}`;
+		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
+		return key;
+	};
+	var parseData = (raw) => {
+		const data = JSON.parse(raw);
+		const criticsRaw = data.criticsScore?.score;
+		const audienceRaw = data.audienceScore?.score;
+		if (criticsRaw === void 0 || criticsRaw === null || audienceRaw === void 0 || audienceRaw === null) return null;
+		const criticsScore = typeof criticsRaw === "string" ? Number.parseInt(criticsRaw, 10) : criticsRaw;
+		const audienceScore = typeof audienceRaw === "string" ? Number.parseInt(audienceRaw, 10) : audienceRaw;
+		if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) return null;
+		return {
+			audienceCount: (data.audienceScore?.likedCount ?? 0) + (data.audienceScore?.notLikedCount ?? 0),
+			audienceScore,
+			criticsCount: data.criticsScore?.ratingCount ?? 0,
+			criticsScore
+		};
+	};
+	var parseMediaScorecard = (html) => {
+		const mc = html.match(/<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (!mc?.groups?.json) return null;
+		try {
+			return parseData(mc.groups.json.trim());
+		} catch {
+			return null;
+		}
+	};
+	var parseRtPage = (html) => {
+		const msRating = parseMediaScorecard(html);
+		if (msRating) return msRating;
+		const match = html.match(/<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (match?.groups?.json) try {
+			return parseData(match.groups.json.trim());
+		} catch {}
+		return null;
+	};
+	var fetchRtRating = async (title, isTV, season, year) => {
+		if (!title) return null;
+		const slug = toSlug(title);
+		if (!slug) return null;
+		const key = cacheKey(slug, season, year);
+		const cached = rottenCache.get(key);
+		if (cached) return cached;
+		const urls = [];
+		if (isTV) {
+			if (season) urls.push(`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`);
+			urls.push(`https://www.rottentomatoes.com/tv/${slug}`);
+		} else {
+			if (year) urls.push(`https://www.rottentomatoes.com/m/${slug}_${year}`);
+			urls.push(`https://www.rottentomatoes.com/m/${slug}`);
+		}
+		for (const url of urls) try {
+			const rating = parseRtPage(await gmGet(url, "https://www.rottentomatoes.com/"));
+			if (rating) {
+				rottenCache.set(key, rating);
+				return rating;
+			}
+		} catch {}
+		return null;
+	};
+	var resolveRt = (ctx) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
+	var createDefaultDeps = () => ({
+		resolveImdb,
+		resolveMc,
+		resolveRt
+	});
+	var resolveAll = async (ctx, deps) => {
+		const { resolveImdb, resolveMc, resolveRt } = deps ?? createDefaultDeps();
+		if (ctx.englishTitle) {
+			const [imdb, rt, mc] = await Promise.allSettled([
+				resolveImdb(ctx),
+				resolveRt(ctx),
+				resolveMc(ctx)
+			]);
+			return {
+				imdb: imdb.status === "fulfilled" ? imdb.value : null,
+				mc: mc.status === "fulfilled" ? mc.value : null,
+				rt: rt.status === "fulfilled" ? rt.value : null
+			};
+		}
+		const imdbResult = await resolveImdb(ctx);
+		if (imdbResult?.title) {
+			const fallbackCtx = {
+				...ctx,
+				englishTitle: imdbResult.title
+			};
+			const [rt, mc] = await Promise.allSettled([resolveRt(fallbackCtx), resolveMc(fallbackCtx)]);
+			return {
+				imdb: imdbResult,
+				mc: mc.status === "fulfilled" ? mc.value : null,
+				rt: rt.status === "fulfilled" ? rt.value : null
+			};
+		}
+		return {
+			imdb: imdbResult,
+			mc: null,
+			rt: null
+		};
+	};
 	var extractSeriesMoreLink = () => {
 		const linkEl = document.querySelector("#series-items .items-swiper-title .pl a");
 		if (!linkEl) return;
@@ -2444,71 +2563,11 @@
 			subtree: true
 		});
 	};
-	var extractEnglishSeriesName = (h1) => {
-		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
-		if (!m) return "";
-		return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
-	};
-	var extractSeasonFromH1 = (h1) => {
-		const cn = "一二三四五六七八九十";
-		const m = h1.match(/(?:Season|第)\s*(?<digit>\d+|[一二三四五六七八九十])/iu);
-		if (!m?.groups?.digit) return;
-		const d = m.groups.digit;
-		return /^\d+$/u.test(d) ? Number.parseInt(d, 10) : cn.indexOf(d) + 1;
-	};
-	var resolveRtRating = async (title, isTV, season, year) => {
-		const section = document.querySelector(".atv-rating-panel-rt");
-		if (!section) {
-			console.warn("[RT] RT panel section not found in DOM");
-			return;
-		}
-		const rating = await fetchRtRating(title, isTV, season, year);
-		if (rating) {
-			const loaded = buildRtRating(rating);
-			section.replaceWith(loaded);
-		} else {
-			section.classList.remove("is-loading");
-			section.classList.add("is-empty");
-		}
-	};
-	var resolveMcRating = async (title, isTV, season, year) => {
-		const section = document.querySelector(".atv-rating-panel-mc");
-		if (!section) {
-			console.warn("[MC] MC panel section not found in DOM");
-			return;
-		}
-		const rating = await fetchMcRating(title, isTV, season, year);
-		if (rating) {
-			const loaded = buildMcRating(rating);
-			section.replaceWith(loaded);
-		} else {
-			section.classList.remove("is-loading");
-			section.classList.add("is-empty");
-		}
-	};
-	var resolveImdbRating = async (imdbId, isTV, season) => {
-		const section = document.querySelector(".atv-rating-panel-imdb");
-		if (!section) {
-			console.warn("[IMDB] IMDb panel section not found in DOM");
-			return;
-		}
-		const result = await fetchImdbRating(imdbId, season);
-		if (result.rating) {
-			const loaded = buildImdbRating(result.rating);
-			section.replaceWith(loaded);
-		} else {
-			section.classList.remove("is-loading");
-			section.classList.add("is-empty");
-		}
-		const doubanH1 = document.querySelector("#content h1")?.textContent?.trim() || "";
-		const rtTitle = extractEnglishSeriesName(doubanH1) || result.title || "";
-		const rtSeason = extractSeasonFromH1(doubanH1) ?? season;
-		const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
-		const rtYear = isTV ? void 0 : yearMatch?.groups?.year ?? void 0;
-		if (rtTitle) {
-			resolveRtRating(rtTitle, isTV, rtSeason, rtYear);
-			resolveMcRating(rtTitle, isTV, rtSeason, rtYear);
-		}
+	var resolveAllRatings = async (imdbId, isTV) => {
+		const results = await resolveAll(buildContext(imdbId, isTV, document));
+		applyImdbResult(results.imdb);
+		applyRtResult(results.rt);
+		applyMcResult(results.mc);
 	};
 	var buildHeroCallbacks = (subjectId) => {
 		const interestBtns = findInterestButtons(document);
@@ -2534,17 +2593,6 @@
 			onWatchingClick: () => interestBtns.do?.click(),
 			onWishClick: () => interestBtns.wish?.click()
 		};
-	};
-	var triggerImdbFetch = (imdbId, isTV) => {
-		const seasonEl = document.querySelector("#season");
-		const seasonNumber = seasonEl ? (() => {
-			const opt = seasonEl.options[seasonEl.selectedIndex];
-			if (!opt) return;
-			const m = (opt.textContent || "").trim().match(/(?<season>\d+)/u);
-			return m?.groups ? Number.parseInt(m.groups.season, 10) : void 0;
-		})() : void 0;
-		const h1Text = document.querySelector("#content h1")?.textContent ?? "";
-		resolveImdbRating(imdbId, isTV, seasonNumber ?? (h1Text ? extractSeasonFromH1(h1Text) : void 0));
 	};
 	var render = () => {
 		if (document.querySelector("#atv-douban-root")) return;
@@ -2595,7 +2643,7 @@
 		window.addEventListener("scroll", reveal, { passive: true });
 		reveal();
 		const imdbId = data.info.imdb || null;
-		if (imdbId) triggerImdbFetch(imdbId, data.isTV);
+		if (imdbId) resolveAllRatings(imdbId, data.isTV);
 		watchSeries(root, stickyNav);
 	};
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", render, { once: true });

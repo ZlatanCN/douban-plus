@@ -1,17 +1,8 @@
 import "./styles.css";
 import { resolveCommentAvatars } from "./api/avatar";
 import { postVote } from "./api/comment";
-import { fetchImdbRating } from "./api/imdb";
 import { postInterest, removeInterest } from "./api/interest";
-import { fetchMcRating } from "./api/metacritic";
-import { fetchRtRating } from "./api/rotten";
-import {
-  buildApp,
-  buildImdbRating,
-  buildMcRating,
-  buildRtRating,
-  buildSeries,
-} from "./build";
+import { buildApp, buildSeries } from "./build";
 import { el, openInterestModal } from "./components";
 import {
   extractAwards,
@@ -32,6 +23,9 @@ import {
   extractYear,
   findInterestButtons,
 } from "./extract";
+import { applyImdbResult, applyMcResult, applyRtResult } from "./resolve/apply";
+import { buildContext } from "./resolve/context";
+import { resolveAll } from "./resolve/orchestrate";
 import type { DoubanData, HeroCallbacks } from "./types";
 
 /** Extract the series more-link from the DOM header
@@ -120,106 +114,17 @@ const watchSeries = (root: HTMLElement, stickyNav: HTMLElement): void => {
   observer.observe(container, { childList: true, subtree: true });
 };
 
-/* ── Async IMDb / RT Rating Fetch ────────────────── */
+/* ── Resolve all ratings via the resolution seam ──── */
 
-/** Strip season/variant info from a Douban h1 like
- *  "权力的游戏 第五季 Game of Thrones Season 5 (2015)"
- *  to extract just the English series name ("Game of Thrones"). */
-const extractEnglishSeriesName = (h1: string): string => {
-  const cleaned = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim();
-  const m = cleaned.match(/[A-Za-z][\w\s'\-!&.,]*/u);
-  if (!m) {
-    return "";
-  }
-  return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
-};
-
-const extractSeasonFromH1 = (h1: string): number | undefined => {
-  const cn = "一二三四五六七八九十";
-  const m = h1.match(/(?:Season|第)\s*(?<digit>\d+|[一二三四五六七八九十])/iu);
-  if (!m?.groups?.digit) {
-    return undefined;
-  }
-  const d = m.groups.digit;
-
-  return /^\d+$/u.test(d) ? Number.parseInt(d, 10) : cn.indexOf(d) + 1;
-};
-
-const resolveRtRating = async (
-  title: string,
-  isTV?: boolean,
-  season?: number,
-  year?: string
-): Promise<void> => {
-  const section = document.querySelector<HTMLElement>(".atv-rating-panel-rt");
-  if (!section) {
-    console.warn("[RT] RT panel section not found in DOM");
-    return;
-  }
-  const rating = await fetchRtRating(title, isTV, season, year);
-  if (rating) {
-    const loaded = buildRtRating(rating);
-    section.replaceWith(loaded);
-  } else {
-    section.classList.remove("is-loading");
-    section.classList.add("is-empty");
-  }
-};
-
-const resolveMcRating = async (
-  title: string,
-  isTV?: boolean,
-  season?: number,
-  year?: string
-): Promise<void> => {
-  const section = document.querySelector<HTMLElement>(".atv-rating-panel-mc");
-  if (!section) {
-    console.warn("[MC] MC panel section not found in DOM");
-    return;
-  }
-  const rating = await fetchMcRating(title, isTV, season, year);
-  if (rating) {
-    const loaded = buildMcRating(rating);
-    section.replaceWith(loaded);
-  } else {
-    section.classList.remove("is-loading");
-    section.classList.add("is-empty");
-  }
-};
-
-const resolveImdbRating = async (
+const resolveAllRatings = async (
   imdbId: string,
-  isTV: boolean,
-  season?: number
+  isTV: boolean
 ): Promise<void> => {
-  const section = document.querySelector<HTMLElement>(".atv-rating-panel-imdb");
-  if (!section) {
-    console.warn("[IMDB] IMDb panel section not found in DOM");
-    return;
-  }
-
-  const result = await fetchImdbRating(imdbId, season);
-  if (result.rating) {
-    const loaded = buildImdbRating(result.rating);
-    section.replaceWith(loaded);
-  } else {
-    section.classList.remove("is-loading");
-    section.classList.add("is-empty");
-  }
-
-  // For RT lookup: extract English series name from Douban H1,
-  // fallback to the IMDb title for non-TV content.
-  const doubanH1 =
-    document.querySelector("#content h1")?.textContent?.trim() || "";
-  const rtTitle = extractEnglishSeriesName(doubanH1) || result.title || "";
-  const rtSeason = extractSeasonFromH1(doubanH1) ?? season;
-  // Extract year from trailing "(YYYY)" in Douban H1 for movie URL disambiguation
-  const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
-  const rtYear = isTV ? undefined : (yearMatch?.groups?.year ?? undefined);
-  if (rtTitle) {
-    resolveRtRating(rtTitle, isTV, rtSeason, rtYear);
-    resolveMcRating(rtTitle, isTV, rtSeason, rtYear);
-  }
+  const ctx = buildContext(imdbId, isTV, document);
+  const results = await resolveAll(ctx);
+  applyImdbResult(results.imdb);
+  applyRtResult(results.rt);
+  applyMcResult(results.mc);
 };
 
 /* ── Wire hero callbacks (replaces direct api/extract imports in hero.ts) ── */
@@ -254,23 +159,7 @@ const buildHeroCallbacks = (subjectId: string): HeroCallbacks => {
   };
 };
 
-const triggerImdbFetch = (imdbId: string, isTV: boolean): void => {
-  const seasonEl = document.querySelector<HTMLSelectElement>("#season");
-  const seasonNumber = seasonEl
-    ? (() => {
-        const opt = seasonEl.options[seasonEl.selectedIndex];
-        if (!opt) {
-          return;
-        }
-        const m = (opt.textContent || "").trim().match(/(?<season>\d+)/u);
-        return m?.groups ? Number.parseInt(m.groups.season, 10) : undefined;
-      })()
-    : undefined;
-  const h1Text = document.querySelector("#content h1")?.textContent ?? "";
-  const effectiveSeason =
-    seasonNumber ?? (h1Text ? extractSeasonFromH1(h1Text) : undefined);
-  resolveImdbRating(imdbId, isTV, effectiveSeason);
-};
+// (resolved via resolveAllRatings above — no standalone trigger needed)
 
 const render = (): void => {
   if (document.querySelector("#atv-douban-root")) {
@@ -348,7 +237,7 @@ const render = (): void => {
 
   const imdbId = data.info.imdb || null;
   if (imdbId) {
-    triggerImdbFetch(imdbId, data.isTV);
+    void resolveAllRatings(imdbId, data.isTV);
   }
 
   /* ── Watch for deferred series data ──────────────── */

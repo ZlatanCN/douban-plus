@@ -1,3 +1,4 @@
+export { extractEnglishSeriesName, extractSeasonFromH1 } from "./title-helpers";
 export { extractAwards } from "./awards";
 export {
   extractPoster,

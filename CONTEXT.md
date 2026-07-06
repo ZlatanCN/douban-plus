@@ -6,6 +6,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 GreaseMonkey-style userscript built with vanilla TypeScript. No framework. DOM is built via `src/build/` modules — pure functions returning `HTMLElement | null`. No virtual DOM, no state management.
 
+Rating data flows through a three-layer seam: **extract → resolve → apply**. The `resolve/` layer is the testable middle — it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM.
+
 ### Module layout
 
 ```
@@ -23,6 +25,17 @@ src/
     details/           — detail fields
     sticky-nav/        — sticky nav bar
     series/            — series info
+  extract/             — DOM data extraction
+    index.ts            — barrel
+    title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
+  resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
+    types.ts            — ResolutionContext, RatingResultMap, RatingSource
+    context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
+    imdb.ts             — resolveImdb(ctx): wraps fetchImdbRating, guards on ctx.imdbId
+    rt.ts               — resolveRt(ctx): wraps fetchRtRating, guards on ctx.englishTitle
+    mc.ts               — resolveMc(ctx): wraps fetchMcRating, guards on ctx.englishTitle
+    orchestrate.ts      — resolveAll(ctx, deps?): parallel-first strategy with Promise.allSettled
+    apply.ts            — applyImdbResult/applyRtResult/applyMcResult: apply results to DOM
   components/          — reusable UI components
     dom-factory.ts       — el() DOM builder, renderStars()
     vote-btn.ts          — buildVoteBtn() with optimistic update + API rollback (extracted 2026-07-06)
@@ -30,8 +43,29 @@ src/
     interest-modal*      — interest marking modal
     index.ts             — barrel
   scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
+  main.ts              — entry point. ~270 lines. Calls buildContext → resolveAll → appliers.
   content/             — content script entry (injected into Douban page)
 ```
+
+### Rating resolution strategy
+
+`resolveAll` in `orchestrate.ts` uses a **parallel-first** strategy:
+
+1. If H1 has an English title (95%+ of cases) → IMDb + RT + MC fire simultaneously via `Promise.allSettled`. One failure never blocks the others.
+2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
+3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
+
+All resolvers accept `ResolutionContext` and none touch the DOM. The `apply.ts` module is the single bridge from results to DOM — each applier finds its panel, calls the build function, and replaces the skeleton.
+
+### Resolution seam tests (28 tests across 5 files)
+
+| File | What it covers |
+| --- | --- |
+| `tests/resolve/context.test.ts` | 7 tests: movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
+| `tests/resolve/imdb.test.ts` | 4 tests: delegating fetch, season passthrough, null/empty imdbId guard |
+| `tests/resolve/rt.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
+| `tests/resolve/mc.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
+| `tests/resolve/orchestrate.test.ts` | 7 tests: all-three-parallel, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
 
 ### Tiered extraction
 
