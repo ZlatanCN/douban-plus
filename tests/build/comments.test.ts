@@ -2,7 +2,7 @@
 /* Tests the comments section builder for rendering            */
 /* individual comment cards with avatars, author, body, votes. */
 
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 
 import { buildComments } from "../../src/build";
 import type { Comment, CommentsData } from "../../src/types";
@@ -299,6 +299,60 @@ describe("buildComments", () => {
     expect(voteBtn.classList.contains("is-voted")).toBe(false);
   });
 
+  /* ── Bug: Card ↔ overlay vote state sync ──────────────── */
+
+  it("voting in overlay syncs back to the card vote button (t23)", async () => {
+    /* eslint-disable promise/prefer-await-to-callbacks — RAF is callback-based */
+    const raf = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback): number => {
+        cb(0);
+        return 0;
+      });
+    /* eslint-enable promise/prefer-await-to-callbacks */
+
+    const comment = makeComment({ cid: "c1", voted: false, votes: 5 });
+    const section = buildComments(makeData({ comments: [comment] }), () =>
+      Promise.resolve({ count: 6, ok: true })
+    ) as HTMLElement;
+
+    const cardVoteBtn = section.querySelector(
+      ".atv-comment-card .atv-comment-votes"
+    ) as HTMLButtonElement;
+    expect(cardVoteBtn.classList.contains("is-voted")).toBe(false);
+
+    const expandBtn = section.querySelector(
+      ".atv-comment-card .atv-comment-expand"
+    ) as HTMLButtonElement;
+    expandBtn.click();
+
+    const overlay = document.querySelector(
+      "#atv-comment-overlay"
+    ) as HTMLElement;
+    expect(overlay).not.toBeNull();
+
+    const overlayVoteBtn = overlay.querySelector(
+      ".atv-comment-overlay-votes"
+    ) as HTMLButtonElement;
+    expect(overlayVoteBtn).not.toBeNull();
+    overlayVoteBtn.click();
+
+    await vi.waitFor(() => {
+      expect(overlayVoteBtn.classList.contains("is-voted")).toBe(true);
+    });
+
+    const closeBtn = overlay.querySelector(
+      ".atv-modal-close"
+    ) as HTMLButtonElement;
+    expect(closeBtn).not.toBeNull();
+    closeBtn.click();
+
+    expect(cardVoteBtn.classList.contains("is-voted")).toBe(true);
+    expect(cardVoteBtn.textContent).toContain("6");
+
+    raf.mockRestore();
+  });
+
   /* ── Expand button ────────────────────────────────────── */
 
   it("card has an atv-comment-expand button (t19)", () => {
@@ -347,5 +401,39 @@ describe("buildComments", () => {
     expect(() => {
       expandBtn.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     }).not.toThrow();
+  });
+
+  /* ── Vote state synchronisation ────────────────────────── */
+
+  it("voting on card updates the Comment data for overlay consistency (t22)", async () => {
+    /* eslint-disable promise/prefer-await-to-callbacks — RAF is callback-based */
+    const raf = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback): number => {
+        cb(0);
+        return 0;
+      });
+    /* eslint-enable promise/prefer-await-to-callbacks */
+
+    const comment = makeComment({ cid: "c1", voted: false, votes: 5 });
+    const section = buildComments(makeData({ comments: [comment] }), () =>
+      Promise.resolve({ count: 6, ok: true })
+    ) as HTMLElement;
+
+    const voteBtn = section.querySelector(
+      ".atv-comment-card .atv-comment-votes"
+    ) as HTMLButtonElement;
+    expect(voteBtn).not.toBeNull();
+
+    voteBtn.click();
+
+    await vi.waitFor(() => {
+      expect(voteBtn.classList.contains("is-voted")).toBe(true);
+    });
+
+    expect(comment.voted).toBe(true);
+    expect(comment.votes).toBe(6);
+
+    raf.mockRestore();
   });
 });

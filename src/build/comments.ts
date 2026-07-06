@@ -1,5 +1,6 @@
-import { createOverlay, el, renderStars } from "../components";
-import { ICON_EXPAND, ICON_THUMB } from "../constants";
+import { buildVoteBtn, createOverlay, el, renderStars } from "../components";
+import type { VoteButtonElement } from "../components/vote-btn";
+import { ICON_EXPAND } from "../constants";
 import type { Comment, CommentsData } from "../types";
 import { buildSection } from "./sections";
 
@@ -13,7 +14,11 @@ type VoteCallback = (cid: string) => Promise<{ ok: boolean; count?: number }>;
 
 /* ── openCommentOverlay ───────────────────────────────── */
 
-const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
+const openCommentOverlay = (
+  comment: Comment,
+  onVote: VoteCallback,
+  cardVoteBtns: Map<string, VoteButtonElement>
+): void => {
   const inner = el("div", { className: "atv-comment-overlay-inner" });
 
   const accent = el("div", { className: "atv-comment-overlay-accent" });
@@ -65,47 +70,23 @@ const openCommentOverlay = (comment: Comment, onVote: VoteCallback): void => {
     })
   );
 
-  const voteBtn = el("button", {
-    attrs: { type: "button" },
+  const voteBtn = buildVoteBtn({
+    cid: comment.cid,
     className: "atv-comment-overlay-votes",
-  });
-  const voteIcon = el("span", { html: ICON_THUMB });
-  const voteCount = el("span", { text: String(comment.votes) });
-  voteBtn.append(voteIcon, voteCount);
-
-  let count = comment.votes;
-  let { voted } = comment;
-  if (voted) {
-    voteBtn.classList.add("is-voted");
-  }
-
-  const animateBtn = (): void => {
-    voteBtn.style.transform = "scale(1.2)";
-    requestAnimationFrame(() => {
-      voteBtn.style.transform = "";
-    });
-  };
-
-  voteBtn.addEventListener("click", async () => {
-    if (voted || !comment.cid) {
-      return;
-    }
-    voted = true;
-    count += 1;
-    voteCount.textContent = String(count);
-    voteBtn.classList.add("is-voted");
-    animateBtn();
-
-    const result = await onVote(comment.cid);
-    if (result.ok && result.count !== undefined) {
-      ({ count } = result);
-      voteCount.textContent = String(count);
-    } else {
-      voted = false;
-      count -= 1;
-      voteCount.textContent = String(count);
-      voteBtn.classList.remove("is-voted");
-    }
+    count: comment.votes,
+    onVote: async (cid) => {
+      const result = await onVote(cid);
+      if (result.ok && result.count !== undefined) {
+        comment.voted = true;
+        comment.votes = result.count;
+        const cardBtn = cardVoteBtns.get(cid);
+        if (cardBtn) {
+          cardBtn.setVoteState(true, result.count);
+        }
+      }
+      return result;
+    },
+    voted: comment.voted,
   });
 
   foot.append(voteBtn);
@@ -129,6 +110,7 @@ const buildComments = (
   }
   const grid = el("div", { className: "atv-comments" });
   const pending: { card: HTMLElement; body: HTMLElement }[] = [];
+  const cardVoteBtns = new Map<string, VoteButtonElement>();
   for (const c of data.comments) {
     const card = el("div", {
       attrs: c.cid ? { "data-cid": c.cid } : undefined,
@@ -177,55 +159,27 @@ const buildComments = (
       html: ICON_EXPAND,
     });
 
-    const voteBtn = el("button", {
-      attrs: { type: "button" },
+    const cardVoteBtn = buildVoteBtn({
+      cid: c.cid,
       className: "atv-comment-votes",
+      count: c.votes,
+      onVote: async (cid) => {
+        const result = await onVote(cid);
+        if (result.ok && result.count !== undefined) {
+          c.voted = true;
+          c.votes = result.count;
+        }
+        return result;
+      },
+      voted: c.voted,
     });
-    const voteIcon = el("span", { html: ICON_THUMB });
-    const voteCount = el("span", { text: String(c.votes) });
-    voteBtn.append(voteIcon, voteCount);
-
-    let count = c.votes;
-    let { voted } = c;
-    if (voted) {
-      voteBtn.classList.add("is-voted");
-    }
-
-    const animateBtn = () => {
-      voteBtn.style.transform = "scale(1.2)";
-      requestAnimationFrame(() => {
-        voteBtn.style.transform = "";
-      });
-    };
-
-    voteBtn.addEventListener("click", async () => {
-      if (voted || !c.cid) {
-        return;
-      }
-
-      voted = true;
-      count += 1;
-      voteCount.textContent = String(count);
-      voteBtn.classList.add("is-voted");
-      animateBtn();
-
-      const result = await onVote(c.cid);
-      if (result.ok && result.count !== undefined) {
-        ({ count } = result);
-        voteCount.textContent = String(count);
-      } else {
-        voted = false;
-        count -= 1;
-        voteCount.textContent = String(count);
-        voteBtn.classList.remove("is-voted");
-      }
-    });
-    footRight.append(expandBtn, voteBtn);
+    cardVoteBtns.set(c.cid, cardVoteBtn);
+    footRight.append(expandBtn, cardVoteBtn);
     foot.append(footRight);
     card.append(foot);
 
     const showOverlay = (): void => {
-      openCommentOverlay(c, onVote);
+      openCommentOverlay(c, onVote, cardVoteBtns);
     };
     expandBtn.addEventListener("click", (e: Event) => {
       e.stopPropagation();
