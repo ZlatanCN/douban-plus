@@ -44,12 +44,29 @@ const cleanupStaleScreenshots = (scenarios: Scenario[]): void => {
   }
 };
 
+const resetViewportToTop = async (
+  page: AssertCtx["page"],
+  viewport: { height: number; width: number }
+): Promise<void> => {
+  await page.setViewportSize(viewport);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForFunction(
+    ({ height, width }) =>
+      window.scrollY === 0 &&
+      document.documentElement.clientWidth === width &&
+      window.innerHeight === height,
+    viewport,
+    { timeout: TIMEOUT_CONTENT_READY }
+  );
+};
+
 const captureScreenshots = async ({
   page,
   scenario,
 }: AssertCtx): Promise<void> => {
   await clearOpenOverlays(page);
   await clearExternalDoubanOverlays(page);
+  await resetViewportToTop(page, { height: 900, width: 1440 });
 
   const hasExternalLoginModal = await page
     .getByText(/短信登录\/注册|密码登录|海外手机登录|社交帐号登录|登录豆瓣/u)
@@ -95,6 +112,12 @@ const captureScreenshots = async ({
     "screenshots are free of external viewport blockers",
     !hasExternalViewportBlocker
   );
+  const screenshotScrollY = await page.evaluate(() => window.scrollY);
+  record(
+    scenario.name,
+    `screenshots start at top (scrollY=${screenshotScrollY})`,
+    screenshotScrollY === 0
+  );
 
   await page.screenshot({
     fullPage: false,
@@ -105,11 +128,7 @@ const captureScreenshots = async ({
     path: path.join(SCREENSHOT_DIR, `${scenario.name}-full.png`),
   });
 
-  await page.setViewportSize({ height: 844, width: 390 });
-  await page.waitForFunction(
-    () => document.documentElement.clientWidth === 390,
-    { timeout: TIMEOUT_CONTENT_READY }
-  );
+  await resetViewportToTop(page, { height: 844, width: 390 });
   await page.screenshot({
     fullPage: true,
     path: path.join(SCREENSHOT_DIR, `${scenario.name}-mobile.png`),
