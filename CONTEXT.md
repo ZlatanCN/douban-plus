@@ -21,6 +21,7 @@ src/
     cast/              — cast list
     photos/            — photo gallery
     recommendations/   — recommendation carousel
+    review-experience/  — deep module for review cards, modal lifecycle, content loading, and vote state (deepened 2026-07-08)
     details/           — detail fields
     sticky-nav/        — sticky nav bar
     series/            — series info
@@ -51,7 +52,16 @@ src/
     metacritic.ts        — fetchMcRating() via Metacritic scraping
     rotten.ts            — fetchRtRating() via Rotten Tomatoes scraping
   scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
-  main.ts              — entry point. ~260 lines. Orchestrates extract → build → fetch avatars → resolve ratings.
+  runtime/             — subject page runtime module (deepened 2026-07-08)
+    mount.ts             — external runtime interface: extract → build → mount → start effects
+    extract-data.ts      — assembles DoubanData from extract modules
+    interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
+    hero-callbacks.ts    — compatibility facade for hero action callbacks
+    avatar-effect.ts     — comment avatar fetch/apply effect
+    ratings-effect.ts    — resolve/apply ratings effect
+    series-effect.ts     — late-loading series observer and nav insertion
+    sticky-effect.ts     — sticky nav reveal + active-section tracking
+  main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
   content/             — content script entry (injected into Douban page)
 ```
 
@@ -75,6 +85,29 @@ All resolvers accept `ResolutionContext` and none touch the DOM. The `apply.ts` 
 | `tests/resolve/mc.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
 | `tests/resolve/orchestrate.test.ts` | 7 tests: all-three-parallel, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
 
+### QA / E2E harness
+
+`pnpm run test:e2e` runs `tests/qa.ts` against real Douban subject pages with Playwright Edge (`channel: "msedge"`). It injects the built userscript from `dist/douban-plus.user.js`, so the harness guards that `dist/` is fresh relative to `src/` and `vite.config.ts`; run `pnpm run build` first after source changes.
+
+The QA assertions are split by responsibility under `tests/qa/`:
+
+| File | Responsibility |
+| --- | --- |
+| `assert-core.ts` | root/hero/rating/title/sticky-nav/script-error checks |
+| `assert-sections.ts` | cast/photos/recommendations/comments/streaming/awards/info-grid |
+| `assert-interactions.ts` | inline expansion, comment overlay, voting, interest modal |
+| `assert-media.ts` | TV streaming popup, poster modal, trailer/video modal |
+| `assert-screenshots.ts` | screenshot lifecycle and screenshot-specific invariants |
+| `assert-helpers.ts` | shared helpers for warnings, failures, overlay cleanup |
+| `runner.ts` | external QA runner seam: launch browser, run scenarios, close browser, return exit code |
+| `scenario-runner.ts` | per-scenario orchestration: fresh context per attempt, userscript injection, assertion phases, retry/deadline |
+
+Warnings are categorized as `data-missing`, `auth-dependent`, or `browser-policy`. They do not fail CI by default. Interaction-blocked or product-uncertain behavior should be recorded as a failure, not downgraded to a warning.
+
+Screenshots are part of the e2e contract. Each scenario owns exactly three screenshots in `tests/screenshots/`: `hero`, `full`, and `mobile`. Before capture, the harness closes ATV overlays, removes external Douban login/backdrop overlays, restores the desktop viewport, and resets `scrollY` to `0`; the mobile capture also resets to the top after resizing. Stale screenshots for scenarios no longer in `SCENARIOS` are cleaned up before the run.
+
+`tests/qa.ts` is a thin CLI entry over `runQa()` (deepened 2026-07-08). The QA runner creates a fresh Playwright `BrowserContext` for every scenario attempt, so retries do not inherit cookies, storage, visited-link state, or mutated page state from a failed attempt. `runQa()` returns an exit code instead of exiting internally; only the CLI facade calls `process.exit()`.
+
 ### Tiered extraction
 
 The `build/` directory was extracted from a single `src/html/` file in two tiers:
@@ -93,6 +126,29 @@ The `build/` directory was extracted from a single `src/html/` file in two tiers
    - `components/avatar-dom.ts` — DOM mutation: `applyCommentAvatars(urlMap, comments)` sets `comment.avatar`, preloads images, applies `backgroundImage` with RAF retry
    - `main.ts` orchestrates with `void (async () => { const urls = await fetchAvatarUrls(links); applyCommentAvatars(urls, comments); })()`
    - 14 tests total (6 data pipeline + 8 DOM), up from 3
+
+5. **Review experience module (2026-07-08)** — `src/build/reviews.ts` was deepened from a 500+ line mixed implementation into a facade over `src/build/review-experience/`:
+   - External seam remains `buildReviews(data)`; callers and tests still use the same interface
+   - Internal modules localize review identity, vote persistence, vote buttons, content loading, modal focus, modal lifecycle, and card rendering
+   - The modal follows the APG-style dialog behavior already encoded in tests: labelled dialog, trapped focus, Escape/backdrop/close dismissal, and focus return to the originating review card
+
+6. **Subject page runtime module (2026-07-08)** — `src/main.ts` was deepened from the full page orchestrator into a thin startup facade over `src/runtime/`:
+   - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, build the app, insert DOM, and start post-render effects
+   - Runtime effects are localized: avatars, ratings, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
+   - `main.ts` still re-exports `buildHeroCallbacks` and `watchSeries` for existing tests, but the implementation no longer sits in the entry file
+   - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
+
+7. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
+   - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the existing `HeroCallbacks` shape so build-layer callers do not learn modal/API details
+   - The module localizes original Douban button proxy-clicking, modal save/remove callbacks, API result handling, and successful page reload
+   - `src/runtime/hero-callbacks.ts` remains as a compatibility facade exporting `buildHeroCallbacks`
+   - Tests inject adapters at the module seam instead of mocking global `location.reload()` or reaching through the modal implementation
+
+8. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` was deepened from a full Playwright orchestration script into a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
+   - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
+   - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
+   - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
+   - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
 ### Bug fixes
 
