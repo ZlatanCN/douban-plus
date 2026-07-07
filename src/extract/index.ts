@@ -17,3 +17,4 @@ export {
 } from "./interest";
 export { extractStreaming, parsePlaySources } from "./streaming";
 export { extractSeries } from "./series";
+export { extractReviews } from "./reviews";

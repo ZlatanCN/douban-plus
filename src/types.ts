@@ -107,6 +107,34 @@ type Comment = {
   voted: boolean;
 };
 
+/** Return type of extractReviews() */
+type Review = {
+  /** DOM element id or data-rid */
+  id: string;
+  /** Review title from h2 a text */
+  title: string;
+  /** Review content (short excerpt) */
+  content: string;
+  /** Author display name */
+  name: string;
+  /** Link to author's Douban profile */
+  link: string;
+  /** Author avatar URL */
+  avatar: string;
+  /** Star rating (0-5 scale, e.g. 4.5) */
+  stars: number;
+  /** Rating word like "力荐", "推荐" */
+  ratingWord: string;
+  /** Publish time string */
+  time: string;
+  /** Number of "有用" (useful) votes */
+  usefulCount: number;
+  /** Number of "没用" (useless) votes */
+  uselessCount: number;
+  /** Whether this review has a spoiler warning (.spoiler-tip) */
+  spoiler: boolean;
+};
+
 /** Return type of extractAwards() */
 type Award = {
   org: string;
@@ -146,6 +174,7 @@ type DoubanData = {
   trailers: Trailer[];
   recommendations: Recommendation[];
   comments: Comment[];
+  reviews: Review[];
   awards: Award[];
   streaming: Streaming[];
   series: SeriesItem[];
@@ -199,6 +228,21 @@ type PhotosData = {
 type CommentsData = {
   comments: Comment[];
   subjectId: string;
+};
+
+/** Callback seam for review voting. */
+type ReviewVoteCallback = (
+  rid: string,
+  type: "useful" | "useless"
+) => Promise<{ ok: boolean; usefulCount?: number; uselessCount?: number }>;
+
+/** Data slice for buildReviews */
+type ReviewData = {
+  reviews: Review[];
+  subjectId: string;
+  /** true for TV series → use "剧评" instead of "影评" */
+  isTV: boolean;
+  onReviewVote?: ReviewVoteCallback;
 };
 
 /** Data slice for buildDetails */
@@ -280,6 +324,9 @@ export type {
   PhotosData,
   RatingInfo,
   Recommendation,
+  Review,
+  ReviewData,
+  ReviewVoteCallback,
   SeriesItem,
   StickyNavData,
   Streaming,

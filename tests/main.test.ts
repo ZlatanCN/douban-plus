@@ -89,6 +89,7 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
   poster: null,
   rating: { count: 2_345_678, score: 9.7 },
   recommendations: [{ link: "", poster: "", title: "The Godfather" }],
+  reviews: [],
   series: [],
   streaming: [{ href: "https://netflix.com", name: "Netflix" }],
   subjectId: "1292052",

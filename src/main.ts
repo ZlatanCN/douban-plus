@@ -2,6 +2,7 @@ import "./styles.css";
 import { fetchAvatarUrls } from "./api/avatar";
 import { postVote } from "./api/comment";
 import { postInterest, removeInterest } from "./api/interest";
+import { postReviewVote } from "./api/review";
 import { buildApp, buildSeries } from "./build";
 import { el, openInterestModal } from "./components";
 import { applyCommentAvatars } from "./components/avatar-dom";
@@ -17,6 +18,7 @@ import {
   extractTrailers,
   extractRating,
   extractRecommendations,
+  extractReviews,
   extractStreaming,
   extractSubjectId,
   extractSummary,
@@ -250,6 +252,7 @@ const render = (): void => {
       poster: extractPoster(document),
       rating: extractRating(document),
       recommendations: extractRecommendations(document),
+      reviews: extractReviews(document),
       series: extractSeries(document),
       streaming: extractStreaming(document),
       subjectId: extractSubjectId(document),
@@ -270,6 +273,8 @@ const render = (): void => {
 
   const { root, stickyNav } = buildApp(data, {
     heroCallbacks: buildHeroCallbacks(data.subjectId),
+    onReviewVote: (rid: string, type: "useful" | "useless") =>
+      postReviewVote(rid, type, data.subjectId),
     onVote: (cid) => postVote(cid, data.subjectId),
     seriesMoreLink: extractSeriesMoreLink(),
   });

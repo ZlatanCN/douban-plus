@@ -12,6 +12,7 @@ export { buildDetails } from "./details";
 export { buildImdbRating, buildMcRating, buildRtRating } from "./rating-panels";
 export { buildStickyNav } from "./sticky-nav";
 export { buildSeries } from "./series";
+export { buildReviews } from "./reviews";
 export {
   buildApp,
   computeNavSections,

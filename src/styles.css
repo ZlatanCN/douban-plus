@@ -1282,17 +1282,21 @@ body {
 .atv-comment-card {
   display: flex;
   flex-direction: column;
-  padding: 16px 18px;
-  background: var(--atv-bg-secondary);
-  border: 1px solid var(--atv-border-subtle);
+  padding: 18px 20px;
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--atv-radius-md);
   transition:
-    transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 260ms ease;
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 350ms ease,
+    box-shadow 350ms ease;
 }
 .atv-comment-card:hover {
-  border-color: var(--atv-border-medium);
-  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(65, 190, 93, 0.04);
 }
 .atv-comment-top {
   display: flex;
@@ -1305,17 +1309,17 @@ body {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   overflow: hidden;
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
   color: #fff;
   background-color: var(--atv-accent);
   background-position: center;
   background-size: cover;
   border-radius: 50%;
-  border: 1.5px solid var(--atv-border-subtle);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
   transition:
     border-color 260ms ease,
@@ -1358,11 +1362,14 @@ a.atv-comment-author:hover {
 }
 .atv-comment-stars {
   display: inline-flex;
-  gap: 1px;
+  gap: 2px;
+  align-items: center;
   color: var(--atv-rating-gold);
 }
 .atv-comment-stars svg {
   display: block;
+  width: 14px;
+  height: 14px;
 }
 .atv-comment-body {
   position: relative;
@@ -1391,7 +1398,7 @@ a.atv-comment-author:hover {
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
@@ -1399,16 +1406,18 @@ a.atv-comment-author:hover {
   letter-spacing: 0.02em;
   cursor: pointer;
   background: none;
-  border: 1px solid transparent;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
+    background 200ms ease,
     transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .atv-comment-votes:hover {
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.18);
+  border-color: rgba(65, 190, 93, 0.2);
+  background: rgba(65, 190, 93, 0.04);
   transform: scale(1.05);
 }
 .atv-comment-votes:active {
@@ -1421,8 +1430,8 @@ a.atv-comment-author:hover {
 }
 .atv-comment-votes svg {
   display: block;
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
 }
 
 /* ---------- Comment Expand Overlay ---------- */
@@ -1494,8 +1503,8 @@ a.atv-comment-author:hover {
   max-width: 580px;
   max-height: 80vh;
   overflow-y: auto;
-  background: var(--atv-bg-secondary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
   transform: scale(0.92) translateY(8px);
@@ -1609,8 +1618,8 @@ a.atv-comment-overlay-author:hover {
 }
 .atv-comment-overlay-stars svg {
   display: block;
-  width: 15px;
-  height: 15px;
+  width: 16px;
+  height: 16px;
 }
 .atv-comment-overlay-body {
   padding: 20px 28px;
@@ -1636,7 +1645,7 @@ a.atv-comment-overlay-author:hover {
   display: inline-flex;
   gap: 5px;
   align-items: center;
-  padding: 6px 12px;
+  padding: 6px 14px;
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
@@ -1645,7 +1654,7 @@ a.atv-comment-overlay-author:hover {
   cursor: pointer;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 100px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
@@ -1654,7 +1663,7 @@ a.atv-comment-overlay-author:hover {
 }
 .atv-comment-overlay-votes:hover {
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.18);
+  border-color: rgba(65, 190, 93, 0.2);
   background: rgba(65, 190, 93, 0.04);
 }
 .atv-comment-overlay-votes:active {
@@ -2168,6 +2177,333 @@ a.atv-comment-overlay-author:hover {
   transform: scale(1);
 }
 
+/* ---------- Reviews ---------- */
+.atv-reviews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 20px;
+}
+.atv-review-card {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  background: #121214;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--atv-radius-md);
+  cursor: pointer;
+  transition:
+    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 350ms ease,
+    box-shadow 350ms ease;
+}
+.atv-review-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(65, 190, 93, 0.04);
+}
+.atv-review-card:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.atv-review-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.atv-review-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--atv-accent);
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+}
+.atv-review-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.atv-review-author {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--atv-text-primary);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.atv-review-author:hover {
+  color: var(--atv-accent);
+}
+.atv-review-stars {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  color: var(--atv-rating-gold);
+}
+.atv-review-stars svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+.atv-review-title {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #f0f0f0;
+  margin-bottom: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.atv-review-excerpt {
+  font-size: 14px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.72);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 14px;
+  flex: 1;
+}
+.atv-review-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.atv-review-time {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.35);
+  letter-spacing: 0.02em;
+}
+.atv-review-readmore {
+  opacity: 0;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--atv-accent);
+  letter-spacing: 0.04em;
+  pointer-events: none;
+  transition:
+    opacity 300ms ease,
+    transform 300ms ease;
+  transform: translateX(-3px);
+}
+.atv-review-card:hover .atv-review-readmore {
+  opacity: 0.7;
+  transform: translateX(0);
+}
+.atv-review-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.atv-vote-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  cursor: pointer;
+  line-height: 1;
+  transition: all 250ms ease;
+  white-space: nowrap;
+}
+.atv-vote-btn:hover {
+  border-color: var(--atv-accent);
+  color: var(--atv-accent);
+  background: rgba(65, 190, 93, 0.06);
+}
+.atv-vote-btn.is-lg {
+  padding: 8px 20px;
+  font-size: 14px;
+}
+.atv-vote-btn.down:hover {
+  background: rgba(255, 69, 58, 0.06);
+  border-color: #ff453a;
+  color: #ff453a;
+}
+.atv-vote-btn.is-voted {
+  color: var(--atv-accent);
+  border-color: rgba(65, 190, 93, 0.2);
+  background: rgba(65, 190, 93, 0.06);
+  cursor: default;
+}
+
+/* ---------- Review Modal ---------- */
+.atv-review-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.85);
+  opacity: 0;
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-review-modal.is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+.atv-review-modal .atv-modal-close {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10001;
+}
+.atv-review-modal-scroll {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: var(--atv-radius-lg);
+  background: #121214;
+  padding: 48px 56px 32px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  transform: scale(0.94);
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-review-modal.is-open .atv-review-modal-scroll {
+  transform: scale(1);
+}
+/* Accent bar — same pattern as .atv-comment-overlay-accent */
+.atv-review-modal-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-accent) 15%,
+    var(--atv-accent) 85%,
+    transparent
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-review-modal.is-open .atv-review-modal-accent {
+  transform: scaleX(1);
+}
+.atv-review-modal-header {
+  margin-bottom: 28px;
+}
+.atv-review-modal-title {
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: #f0f0f0;
+  margin-bottom: 6px;
+}
+.atv-review-modal-author {
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.45);
+}
+.atv-review-modal-body {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 15.5px;
+  line-height: 1.85;
+}
+.atv-review-modal-body h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  line-height: 1.4;
+  color: #f0f0f0;
+}
+.atv-review-modal-body h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+.atv-review-modal-body h2 a:hover {
+  color: var(--atv-accent);
+}
+.atv-review-modal-body p {
+  margin-bottom: 14px;
+}
+.atv-review-modal-body .review-content,
+.atv-review-modal-body .review-content p,
+.atv-review-modal-body .review-content div,
+.atv-review-modal-body .review-content span {
+  color: rgba(255, 255, 255, 0.78);
+}
+.atv-review-modal-body .spoiler-tip {
+  color: #ff9f0a;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.atv-review-modal-body .main-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.atv-review-modal-body .main-hd a.name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--atv-accent);
+  text-decoration: none;
+}
+.atv-review-modal-body .main-hd a.name:hover {
+  text-decoration: underline;
+}
+.atv-review-modal-votes {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.atv-review-modal-link {
+  text-align: center;
+  margin-top: 18px;
+  padding-bottom: 8px;
+}
+.atv-review-modal-link-a {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.35);
+  text-decoration: none;
+  transition: color 200ms ease;
+}
+.atv-review-modal-link-a:hover {
+  color: var(--atv-accent);
+}
+
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
   .atv-hero {
@@ -2257,6 +2593,17 @@ a.atv-comment-overlay-author:hover {
   .atv-comment-overlay-foot {
     padding: 0 20px 24px;
   }
+  .atv-reviews {
+    grid-template-columns: 1fr;
+  }
+  .atv-review-modal-scroll {
+    padding: 28px 20px 24px;
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+  .atv-review-modal {
+    padding: 20px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .atv-trailer-tile,
@@ -2282,6 +2629,20 @@ a.atv-comment-overlay-author:hover {
   }
   .atv-comment-avatar.atv-avatar-loaded {
     animation: none;
+  }
+  .atv-review-card,
+  .atv-review-card:hover,
+  .atv-review-card:active {
+    transform: none;
+    transition: none;
+    box-shadow: none;
+  }
+  .atv-review-modal-scroll {
+    transition: none;
+  }
+  .atv-review-modal-accent {
+    transition: none;
+    transform: scaleX(1);
   }
 
   /* Modal overlay fades */

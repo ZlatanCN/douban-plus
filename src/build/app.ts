@@ -1,11 +1,17 @@
 import { el } from "../components";
-import type { DoubanData, HeroCallbacks, NavSection } from "../types";
+import type {
+  DoubanData,
+  HeroCallbacks,
+  NavSection,
+  ReviewVoteCallback,
+} from "../types";
 import { buildCast } from "./cast";
 import { buildComments } from "./comments";
 import { buildDetails } from "./details";
 import { buildHero } from "./hero";
 import { buildPhotos } from "./photos";
 import { buildRecs } from "./recommendations";
+import { buildReviews } from "./reviews";
 import { buildSeries } from "./series";
 import { buildStickyNav } from "./sticky-nav";
 import { buildStreaming } from "./streaming";
@@ -15,6 +21,7 @@ import { buildStreaming } from "./streaming";
 type BuildAppDeps = {
   heroCallbacks: HeroCallbacks;
   onVote: (cid: string) => Promise<{ ok: boolean; count?: number }>;
+  onReviewVote?: ReviewVoteCallback;
   seriesMoreLink?: { href: string; text: string };
 };
 
@@ -41,6 +48,9 @@ const computeNavSections = (data: DoubanData): NavSection[] => {
   }
   if (data.comments.length > 0) {
     sections.push({ id: "atv-comments", label: "短评" });
+  }
+  if (data.reviews?.length > 0) {
+    sections.push({ id: "atv-reviews", label: data.isTV ? "剧评" : "影评" });
   }
   if (data.recommendations.length > 0) {
     sections.push({ id: "atv-recs", label: "相似作品" });
@@ -114,6 +124,16 @@ const buildApp = (data: DoubanData, deps: BuildAppDeps): BuildAppResult => {
   );
   if (comments) {
     root.append(comments);
+  }
+
+  const reviews = buildReviews({
+    isTV: data.isTV,
+    onReviewVote: deps.onReviewVote,
+    reviews: data.reviews,
+    subjectId: data.subjectId,
+  });
+  if (reviews) {
+    root.append(reviews);
   }
 
   const recs = buildRecs(data.recommendations);
