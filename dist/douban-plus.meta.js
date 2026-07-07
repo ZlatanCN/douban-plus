@@ -11,6 +11,8 @@
 // @exclude      *://movie.douban.com/subject/*/photos[?]*
 // @exclude      *://movie.douban.com/subject/*/comments*
 // @exclude      *://movie.douban.com/subject/*/comments[?]*
+// @exclude      *://movie.douban.com/subject/*/reviews*
+// @exclude      *://movie.douban.com/subject/*/reviews[?]*
 // @connect      douban.com
 // @connect      movie.douban.com
 // @connect      graphql.imdb.com

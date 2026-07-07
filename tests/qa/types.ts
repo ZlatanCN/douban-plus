@@ -14,10 +14,13 @@ type AssertResult = {
 };
 
 type AssertWarn = {
+  category: WarningCategory;
   detail: string;
   name: string;
   scenario: string;
 };
+
+type WarningCategory = "auth-dependent" | "browser-policy" | "data-missing";
 
 type ScenarioResult = {
   name: string;
@@ -33,4 +36,11 @@ type AssertCtx = {
   ourErrors: string[];
 };
 
-export type { AssertCtx, AssertResult, AssertWarn, Scenario, ScenarioResult };
+export type {
+  AssertCtx,
+  AssertResult,
+  AssertWarn,
+  Scenario,
+  ScenarioResult,
+  WarningCategory,
+};

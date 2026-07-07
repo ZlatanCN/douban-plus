@@ -289,6 +289,23 @@ describe("buildHeroCallbacks", () => {
     expect(modal).toBeInstanceOf(HTMLElement);
   });
 
+  it("onOpenInterest renders a single close button inside the modal header (t16b)", () => {
+    stubRaf();
+    const cbs = buildHeroCallbacks("1292052");
+    cbs.onOpenInterest(defaultInterest);
+
+    const modal = document.querySelector("#atv-interest-modal") as HTMLElement;
+    const closeButtons = modal.querySelectorAll(
+      ".atv-interest-modal-close, .atv-modal-close"
+    );
+    expect(closeButtons).toHaveLength(1);
+    expect(
+      modal.querySelector(
+        ".atv-interest-modal-header > .atv-interest-modal-close"
+      )
+    ).not.toBeNull();
+  });
+
   it("onOpenInterest removes existing modal before creating new one (t17)", () => {
     stubRaf();
     const cbs = buildHeroCallbacks("1292052");

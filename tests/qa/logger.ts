@@ -1,5 +1,5 @@
 import { C } from "./constants";
-import type { AssertResult, AssertWarn } from "./types";
+import type { AssertResult, AssertWarn, WarningCategory } from "./types";
 
 const results: AssertResult[] = [];
 const warnings: AssertWarn[] = [];
@@ -14,8 +14,13 @@ const record = (
 };
 
 /** Records a warning — doesn't count as a suite failure, but flagged for review. */
-const recordWarn = (scenario: string, name: string, detail = ""): void => {
-  warnings.push({ detail, name, scenario });
+const recordWarn = (
+  scenario: string,
+  category: WarningCategory,
+  name: string,
+  detail = ""
+): void => {
+  warnings.push({ category, detail, name, scenario });
 };
 
 const printSummary = (): void => {
@@ -56,7 +61,7 @@ const printSummary = (): void => {
     console.log("");
     for (const w of warnings) {
       console.log(
-        `  ${C.yellow}!${C.reset} ${C.cyan}[${w.scenario}]${C.reset} ${w.name}`
+        `  ${C.yellow}!${C.reset} ${C.cyan}[${w.scenario}]${C.reset} ${C.dim}${w.category}${C.reset} ${w.name}`
       );
       if (w.detail) {
         console.log(`    ${C.dim}${w.detail}${C.reset}`);

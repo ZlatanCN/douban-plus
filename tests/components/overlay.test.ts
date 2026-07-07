@@ -160,6 +160,28 @@ describe("createOverlay(options)", () => {
     expect(svg.getAttribute("height")).toBe("16");
   });
 
+  it("adopts a caller-owned close button without appending a duplicate", () => {
+    stubRaf();
+    const surface = el("div", { className: "surface" });
+    const closeBtn = el("button", {
+      attrs: { type: "button" },
+      className: "surface-close",
+      text: "close",
+    });
+    surface.append(closeBtn);
+
+    const ctrl = createOverlay({
+      closeButton: closeBtn,
+      content: [surface],
+      id: "test-modal",
+    });
+    const overlay = document.querySelector("#test-modal") as HTMLElement;
+
+    expect(ctrl.closeBtn).toBe(closeBtn);
+    expect(overlay.querySelectorAll("button")).toHaveLength(1);
+    expect(surface.contains(closeBtn)).toBe(true);
+  });
+
   /* ── S8: Double dismiss ── */
 
   it("second dismiss() call is no-op (does not throw)", () => {

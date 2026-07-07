@@ -37,6 +37,7 @@ import {
   assertTVTerms,
   assertVideoModal,
   captureScreenshots,
+  cleanupStaleScreenshots,
 } from "./qa/asserts";
 import {
   ATV_NOISE_REGEX,
@@ -57,7 +58,10 @@ import type { AssertCtx, Scenario } from "./qa/types";
 
 const delay = promisify(setTimeout);
 
-const browser = await chromium.launch({ headless: true });
+const browser = await chromium.launch({
+  channel: "msedge",
+  headless: true,
+});
 
 const isDoubanNoise = (t: string) => DOUBAN_NOISE_REGEX.test(t);
 
@@ -198,6 +202,7 @@ const runScenario = async (sc: Scenario): Promise<void> => {
 
 const reporter = new Reporter({ scenarios: SCENARIOS });
 reporter.start();
+cleanupStaleScreenshots(SCENARIOS);
 
 process.on("SIGINT", () => {
   reporter.onSIGINT();

@@ -1,4 +1,10 @@
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  statSync,
+} from "node:fs";
 import path from "node:path";
 
 import type { Scenario } from "./types";
@@ -25,10 +31,50 @@ const __dirname = import.meta.dirname;
 const ROOT = path.dirname(path.dirname(__dirname));
 const USERSCRIPT_PATH = path.join(ROOT, "dist/douban-plus.user.js");
 const SCREENSHOT_DIR = path.join(path.dirname(__dirname), "screenshots");
+const DIST_FRESHNESS_ROOTS = [
+  path.join(ROOT, "src"),
+  path.join(ROOT, "vite.config.ts"),
+];
 
 if (!existsSync(SCREENSHOT_DIR)) {
   mkdirSync(SCREENSHOT_DIR, { recursive: true });
 }
+
+const newestMtime = (entryPath: string): number => {
+  if (!existsSync(entryPath)) {
+    return 0;
+  }
+
+  const stat = statSync(entryPath);
+  if (!stat.isDirectory()) {
+    return stat.mtimeMs;
+  }
+
+  let latest = stat.mtimeMs;
+  for (const child of readdirSync(entryPath)) {
+    const childPath = path.join(entryPath, child);
+    latest = Math.max(latest, newestMtime(childPath));
+  }
+  return latest;
+};
+
+const assertUserscriptFresh = (): void => {
+  if (!existsSync(USERSCRIPT_PATH)) {
+    throw new Error(
+      `Missing ${path.relative(ROOT, USERSCRIPT_PATH)}. Run pnpm run build before pnpm run test:e2e.`
+    );
+  }
+
+  const distMtime = statSync(USERSCRIPT_PATH).mtimeMs;
+  const sourceMtime = Math.max(...DIST_FRESHNESS_ROOTS.map(newestMtime));
+  if (sourceMtime > distMtime) {
+    throw new Error(
+      `${path.relative(ROOT, USERSCRIPT_PATH)} is older than source files. Run pnpm run build before pnpm run test:e2e.`
+    );
+  }
+};
+
+assertUserscriptFresh();
 
 const userscriptRaw = readFileSync(USERSCRIPT_PATH, "utf-8");
 

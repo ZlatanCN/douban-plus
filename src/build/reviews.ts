@@ -14,6 +14,8 @@ const reviewNumericId = (rid: string): string => {
   return m?.groups?.num ?? rid;
 };
 
+const reviewDisplayName = (name: string): string => name.trim() || "匿名用户";
+
 /* ── Review vote state cache (cross-page-load) ───────── */
 
 const voteCache = createCache<"up" | "down">(
@@ -219,6 +221,18 @@ const visibleFocusable = (node: HTMLElement): boolean =>
   node.style.display !== "none" &&
   node.style.visibility !== "hidden";
 
+const isNestedReviewControl = (
+  target: EventTarget | null,
+  card: HTMLElement
+): boolean => {
+  if (!(target instanceof Element) || target === card) {
+    return false;
+  }
+
+  const control = target.closest("a, button");
+  return Boolean(control && card.contains(control));
+};
+
 const trapReviewModalFocus = (
   overlay: HTMLElement,
   initialFocus: HTMLElement
@@ -273,6 +287,7 @@ const openReviewModal = (
     return;
   }
 
+  const displayName = reviewDisplayName(r.name);
   let modalOpen = true;
   let modalOverlay: HTMLElement | null = null;
   const getOverlay = (): HTMLElement | null =>
@@ -320,12 +335,30 @@ const openReviewModal = (
       })
     );
   }
-  modalHeader.append(
-    el("div", {
-      className: "atv-review-modal-author",
-      text: r.name + (r.time ? ` · ${r.time}` : ""),
-    })
+  /* Byline: avatar + author name + publish time */
+  const byline = el("div", { className: "atv-review-modal-byline" });
+  const avatar = el("div", { className: "atv-review-modal-avatar" });
+  if (r.avatar) {
+    avatar.style.backgroundImage = `url("${r.avatar}")`;
+  } else {
+    avatar.textContent = displayName.slice(0, 1).toUpperCase();
+  }
+  byline.append(avatar);
+
+  const bylineText = el("div", { className: "atv-review-modal-byline-text" });
+  bylineText.append(
+    el("span", { className: "atv-review-modal-byline-name", text: displayName })
   );
+  if (r.time) {
+    bylineText.append(
+      el("span", {
+        className: "atv-review-modal-byline-time",
+        text: `· ${r.time}`,
+      })
+    );
+  }
+  byline.append(bylineText);
+  modalHeader.append(byline);
   content.append(modalHeader);
   content.append(contentDiv);
 
@@ -394,9 +427,11 @@ const openReviewModal = (
           foot.append(moved);
         }
       }
+      card?.focus({ preventScroll: true });
     },
   });
   modalOverlay = overlay;
+  modalHeader.before(closeBtn);
   overlay.setAttribute("aria-labelledby", "atv-review-modal-title");
   overlay.setAttribute("aria-modal", "true");
   overlay.setAttribute("role", "dialog");
@@ -411,8 +446,14 @@ const buildReviewCard = (
   r: Review,
   onVote: ReviewVoteCallback | undefined
 ): HTMLElement => {
+  const displayName = reviewDisplayName(r.name);
   const card = el("div", {
-    attrs: r.id ? { "data-rid": r.id } : undefined,
+    attrs: {
+      ...(r.id ? { "data-rid": r.id } : {}),
+      "aria-label": `展开阅读：${r.title}`,
+      role: "button",
+      tabindex: "0",
+    },
     className: "atv-review-card",
   });
 
@@ -423,7 +464,7 @@ const buildReviewCard = (
   if (r.avatar) {
     avatar.style.backgroundImage = `url("${r.avatar}")`;
   } else {
-    avatar.textContent = (r.name || "?").slice(0, 1).toUpperCase();
+    avatar.textContent = displayName.slice(0, 1).toUpperCase();
   }
   top.append(avatar);
 
@@ -433,7 +474,7 @@ const buildReviewCard = (
     href: r.link || undefined,
     rel: r.link ? "noopener" : undefined,
     target: r.link ? "_blank" : undefined,
-    text: r.name,
+    text: displayName,
   });
   meta.append(author);
   if (r.stars > 0) {
@@ -486,7 +527,20 @@ const buildReviewCard = (
 
   /* ── Click → modal overlay with full content ───── */
 
-  card.addEventListener("click", () => {
+  card.addEventListener("click", (event: MouseEvent) => {
+    if (isNestedReviewControl(event.target, card)) {
+      return;
+    }
+    openReviewModal(r, card, onVote);
+  });
+  card.addEventListener("keydown", (event: KeyboardEvent) => {
+    if (event.target !== card) {
+      return;
+    }
+    if (event.key !== "Enter" && event.key !== " ") {
+      return;
+    }
+    event.preventDefault();
     openReviewModal(r, card, onVote);
   });
   card.style.cursor = "pointer";

@@ -6,6 +6,9 @@ import type { Comment, CommentsData } from "../types";
 
 /* ── buildComments ────────────────────────────────────── */
 
+const CLOSE_SVG =
+  '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>';
+
 /**
  * Callback invoked when a user votes on a comment.
  * Returns updated count on success, or { ok: false } on failure for rollback.
@@ -23,6 +26,12 @@ const openCommentOverlay = (
 
   const accent = el("div", { className: "atv-comment-overlay-accent" });
   inner.append(accent);
+  const closeBtn = el("button", {
+    attrs: { "aria-label": "关闭短评", type: "button" },
+    className: "atv-comment-overlay-close",
+    html: CLOSE_SVG,
+  });
+  inner.append(closeBtn);
 
   const top = el("div", { className: "atv-comment-overlay-top" });
   const avatar = el("div", {
@@ -93,7 +102,7 @@ const openCommentOverlay = (
   inner.append(foot);
   createOverlay({
     className: "atv-comment-overlay",
-    closeSize: 16,
+    closeButton: closeBtn,
     content: [inner],
     id: "atv-comment-overlay",
   });

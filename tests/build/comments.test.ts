@@ -342,7 +342,7 @@ describe("buildComments", () => {
     });
 
     const closeBtn = overlay.querySelector(
-      ".atv-modal-close"
+      ".atv-comment-overlay-close"
     ) as HTMLButtonElement;
     expect(closeBtn).not.toBeNull();
     closeBtn.click();
@@ -351,6 +351,48 @@ describe("buildComments", () => {
     expect(cardVoteBtn.textContent).toContain("6");
 
     raf.mockRestore();
+  });
+
+  it("renders the comment overlay close button inside the overlay surface (t23b)", () => {
+    /* eslint-disable promise/prefer-await-to-callbacks — RAF is callback-based */
+    const raf = vi
+      .spyOn(window, "requestAnimationFrame")
+      .mockImplementation((cb: FrameRequestCallback): number => {
+        cb(0);
+        return 0;
+      });
+    /* eslint-enable promise/prefer-await-to-callbacks */
+
+    try {
+      const section = buildComments(
+        makeData({
+          comments: [makeComment({ cid: "c1", content: "Long comment" })],
+        }),
+        () => Promise.resolve({ count: 1, ok: true })
+      ) as HTMLElement;
+
+      const expandBtn = section.querySelector(
+        ".atv-comment-card .atv-comment-expand"
+      ) as HTMLButtonElement;
+      expandBtn.click();
+
+      const overlay = document.querySelector(
+        "#atv-comment-overlay"
+      ) as HTMLElement;
+      const inner = overlay.querySelector(
+        ".atv-comment-overlay-inner"
+      ) as HTMLElement;
+      const closeBtn = inner.querySelector(
+        ".atv-comment-overlay-close"
+      ) as HTMLButtonElement;
+
+      expect(closeBtn).not.toBeNull();
+      expect(overlay.querySelector(":scope > .atv-modal-close")).toBeNull();
+      expect(inner.contains(closeBtn)).toBe(true);
+    } finally {
+      document.querySelector("#atv-comment-overlay")?.remove();
+      raf.mockRestore();
+    }
   });
 
   /* ── Expand button ────────────────────────────────────── */

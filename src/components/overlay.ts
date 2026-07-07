@@ -16,6 +16,7 @@ type CreateOverlayOptions = {
   id: string;
   className?: string | string[];
   content?: HTMLElement[];
+  closeButton?: HTMLButtonElement;
   closeSize?: 22 | 16;
   closeIcon?: string;
   onClose?: () => void;
@@ -46,19 +47,24 @@ const createOverlay = (options: CreateOverlayOptions): OverlayController => {
     }
   }
 
-  /* 4. Create close button */
-  const icon = options.closeIcon ?? CLOSE_SVG;
-  const btnSvg = options.closeSize
-    ? icon
-        .replace(`width="22"`, `width="${options.closeSize}"`)
-        .replace(`height="22"`, `height="${options.closeSize}"`)
-    : icon;
-  const closeBtn = el("button", {
-    attrs: { type: "button" },
-    className: "atv-modal-close",
-    html: btnSvg,
-  });
-  overlay.append(closeBtn);
+  /* 4. Create or adopt close button */
+  const closeBtn =
+    options.closeButton ??
+    el("button", {
+      attrs: { type: "button" },
+      className: "atv-modal-close",
+      html: (() => {
+        const icon = options.closeIcon ?? CLOSE_SVG;
+        return options.closeSize
+          ? icon
+              .replace(`width="22"`, `width="${options.closeSize}"`)
+              .replace(`height="22"`, `height="${options.closeSize}"`)
+          : icon;
+      })(),
+    });
+  if (!overlay.contains(closeBtn)) {
+    overlay.append(closeBtn);
+  }
 
   /* 5. Dismiss logic */
   let dismissed = false;

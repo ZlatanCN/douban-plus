@@ -111,6 +111,18 @@ describe("buildReviews", () => {
     expect(card.dataset.rid).toBe("r1");
   });
 
+  it("card exposes button semantics for keyboard users (t5b)", () => {
+    const section = buildReviews(
+      makeData({
+        reviews: [makeReview({ id: "r1", title: "Accessible title" })],
+      })
+    ) as HTMLElement;
+    const card = section.querySelector(".atv-review-card") as HTMLElement;
+    expect(card.getAttribute("role")).toBe("button");
+    expect(card.getAttribute("tabindex")).toBe("0");
+    expect(card.getAttribute("aria-label")).toBe("展开阅读：Accessible title");
+  });
+
   it("avatar has background-image when avatar is provided (t6)", () => {
     const section = buildReviews(
       makeData({
@@ -135,6 +147,38 @@ describe("buildReviews", () => {
     ) as HTMLElement;
     expect(avatar).not.toBeNull();
     expect(avatar.textContent).toBe("A");
+  });
+
+  it("uses anonymous fallback when review author name is empty (t7b)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const section = buildReviews(
+        makeData({
+          reviews: [makeReview({ avatar: "", id: "r1", name: "" })],
+        })
+      ) as HTMLElement;
+      const card = section.querySelector(".atv-review-card") as HTMLElement;
+      expect(card.querySelector(".atv-review-author")?.textContent).toBe(
+        "匿名用户"
+      );
+      expect(card.querySelector(".atv-review-avatar")?.textContent).toBe("匿");
+
+      card.click();
+      const modal = document.querySelector("#atv-review-modal") as HTMLElement;
+      expect(
+        modal.querySelector(".atv-review-modal-byline-name")?.textContent
+      ).toBe("匿名用户");
+      expect(modal.querySelector(".atv-review-modal-avatar")?.textContent).toBe(
+        "匿"
+      );
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
   });
 
   it("author with link renders as anchor with href, rel, target (t8)", () => {
@@ -171,6 +215,38 @@ describe("buildReviews", () => {
     expect(author).not.toBeNull();
     expect(author.tagName).toBe("DIV");
     expect(author.textContent).toBe("Bob");
+  });
+
+  it("clicking the author link does not open the review modal (t9b)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const section = buildReviews(
+        makeData({
+          reviews: [
+            makeReview({
+              id: "r1",
+              link: "https://douban.com/people/u1/",
+              name: "Alice",
+            }),
+          ],
+        })
+      ) as HTMLElement;
+      const author = section.querySelector(".atv-review-author") as HTMLElement;
+      author.addEventListener("click", (event) => event.preventDefault(), {
+        once: true,
+      });
+      author.dispatchEvent(
+        new MouseEvent("click", { bubbles: true, cancelable: true })
+      );
+      expect(document.querySelector("#atv-review-modal")).toBeNull();
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
   });
 
   /* ── Title ──────────────────────────────────────────────── */
@@ -443,6 +519,36 @@ describe("buildReviews", () => {
     }
   });
 
+  it("opens the review modal from Enter and Space on the focused card (t21b)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const section = buildReviews(
+        makeData({
+          reviews: [makeReview({ id: "r1", title: "Keyboard title" })],
+        })
+      ) as HTMLElement;
+      const card = section.querySelector(".atv-review-card") as HTMLElement;
+
+      card.dispatchEvent(
+        new KeyboardEvent("keydown", { bubbles: true, key: "Enter" })
+      );
+      expect(document.querySelector("#atv-review-modal")).not.toBeNull();
+      document.querySelector("#atv-review-modal")?.remove();
+
+      card.dispatchEvent(
+        new KeyboardEvent("keydown", { bubbles: true, key: " " })
+      );
+      expect(document.querySelector("#atv-review-modal")).not.toBeNull();
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
   it("buttons move to modal and back to card on close (t22)", () => {
     const nativeItem = document.createElement("div");
     nativeItem.className = "review-item";
@@ -480,6 +586,35 @@ describe("buildReviews", () => {
         document.querySelector("#atv-review-modal .atv-vote-btn.up")
       ).toBeNull();
     } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("returns focus to the originating card when the modal closes (t22b)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+    let section: HTMLElement | null = null;
+
+    try {
+      section = buildReviews(
+        makeData({
+          reviews: [makeReview({ id: "r1", title: "Focus return" })],
+        })
+      ) as HTMLElement;
+      document.body.append(section);
+      const card = section.querySelector(".atv-review-card") as HTMLElement;
+
+      card.click();
+      const modal = document.querySelector("#atv-review-modal") as HTMLElement;
+      const closeBtn = modal.querySelector(".atv-modal-close") as HTMLElement;
+      closeBtn.click();
+
+      expect(document.activeElement).toBe(card);
+    } finally {
+      section?.remove();
       nativeItem.remove();
       window.requestAnimationFrame = origRaf;
       document.querySelector("#atv-review-modal")?.remove();
@@ -651,9 +786,16 @@ describe("buildReviews", () => {
         "atv-review-modal-title"
       );
       expect(title?.textContent).toBe("A long review");
-      expect(modal.querySelector(".atv-review-modal-author")?.textContent).toBe(
-        "Reader · 2026-07-07"
-      );
+      expect(
+        modal.querySelector(".atv-review-modal-byline-name")?.textContent
+      ).toBe("Reader");
+      expect(
+        modal.querySelector(".atv-review-modal-byline-time")?.textContent
+      ).toBe("· 2026-07-07");
+      expect(modal.querySelector(".atv-review-modal-avatar")).not.toBeNull();
+      expect(
+        modal.querySelector(".atv-review-modal-scroll > .atv-modal-close")
+      ).not.toBeNull();
       expect(modal.querySelector(".atv-review-modal-body")?.textContent).toBe(
         "Readable full text."
       );
@@ -662,6 +804,49 @@ describe("buildReviews", () => {
       expect(
         modal.querySelector(".atv-modal-close")?.getAttribute("aria-label")
       ).toBe("关闭影评");
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("keeps focus trapped inside the review modal while tabbing (t27b)", () => {
+    const nativeItem = appendNativeReview("r1", "<p>Readable full text.</p>");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const modal = openModalForReview(
+        makeReview({
+          id: "r1",
+          title: "A long review",
+          usefulCount: 7,
+          uselessCount: 1,
+        })
+      );
+      const title = modal.querySelector(
+        "#atv-review-modal-title"
+      ) as HTMLElement;
+      const closeBtn = modal.querySelector(".atv-modal-close") as HTMLElement;
+
+      expect(document.activeElement).toBe(title);
+      modal.dispatchEvent(
+        new KeyboardEvent("keydown", { bubbles: true, key: "Tab" })
+      );
+      expect(document.activeElement).toBe(closeBtn);
+
+      closeBtn.focus();
+      modal.dispatchEvent(
+        new KeyboardEvent("keydown", {
+          bubbles: true,
+          key: "Tab",
+          shiftKey: true,
+        })
+      );
+      expect(
+        document.activeElement?.classList.contains("atv-review-modal-link-a")
+      ).toBe(true);
     } finally {
       nativeItem.remove();
       window.requestAnimationFrame = origRaf;

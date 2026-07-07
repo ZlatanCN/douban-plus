@@ -27,6 +27,7 @@ const openInterestModal = (
 
   const { dismiss } = createOverlay({
     className: "atv-interest-modal",
+    closeButton: content.closeBtn,
     content: children,
     id: "atv-interest-modal",
   });
