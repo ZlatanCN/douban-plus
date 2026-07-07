@@ -33,6 +33,30 @@ const makeData = (overrides?: Partial<ReviewData>): ReviewData => ({
   ...overrides,
 });
 
+const appendNativeReview = (
+  rid = "r1",
+  fullHtml = "<p>Full review content.</p>"
+): HTMLElement => {
+  const numericId = rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
+  const nativeItem = document.createElement("div");
+  nativeItem.className = "review-item";
+  nativeItem.id = rid;
+  nativeItem.innerHTML = `<div id="review_${numericId}_full"><div class="review-content">${fullHtml}</div></div>`;
+  document.body.append(nativeItem);
+  return nativeItem;
+};
+
+const openModalForReview = (review: Review): HTMLElement => {
+  const section = buildReviews(
+    makeData({
+      reviews: [review],
+    })
+  ) as HTMLElement;
+  const card = section.querySelector(".atv-review-card") as HTMLElement;
+  card.click();
+  return document.querySelector("#atv-review-modal") as HTMLElement;
+};
+
 /* ── Tests ─────────────────────────────────────────────────── */
 
 /* eslint-disable promise/prefer-await-to-callbacks */
@@ -350,7 +374,7 @@ describe("buildReviews", () => {
     nativeItem.className = "review-item";
     nativeItem.id = "r1";
     nativeItem.innerHTML =
-      '<div class="main-bd"><h2><a href="/review/r1/">Title</a></h2><p>Full content.</p></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
+      '<div id="review_1_full"><div class="review-content"><p>Full content.</p></div></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
     document.body.append(nativeItem);
 
     /* Mock requestAnimationFrame so createOverlay mounts synchronously */
@@ -391,7 +415,8 @@ describe("buildReviews", () => {
     const nativeItem = document.createElement("div");
     nativeItem.className = "review-item";
     nativeItem.id = "17189613";
-    nativeItem.innerHTML = '<div class="main-bd"><p>Content.</p></div>';
+    nativeItem.innerHTML =
+      '<div id="review_17189613_full"><div class="review-content"><p>Content.</p></div></div>';
     document.body.append(nativeItem);
 
     const origRaf = window.requestAnimationFrame;
@@ -423,7 +448,7 @@ describe("buildReviews", () => {
     nativeItem.className = "review-item";
     nativeItem.id = "r1";
     nativeItem.innerHTML =
-      '<div class="main-bd"><h2><a href="/review/r1/">Title</a></h2><p>Full.</p></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
+      '<div id="review_1_full"><div class="review-content"><p>Full.</p></div></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
     document.body.append(nativeItem);
 
     const origRaf = window.requestAnimationFrame;
@@ -466,7 +491,7 @@ describe("buildReviews", () => {
     nativeItem.className = "review-item";
     nativeItem.id = "r1";
     nativeItem.innerHTML =
-      '<div class="main-bd"><h2><a href="/review/r1/">Title</a></h2><p>Full.</p></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
+      '<div id="review_1_full"><div class="review-content"><p>Full.</p></div></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
     document.body.append(nativeItem);
 
     const origRaf = window.requestAnimationFrame;
@@ -516,7 +541,7 @@ describe("buildReviews", () => {
     nativeItem.className = "review-item";
     nativeItem.id = "r1";
     nativeItem.innerHTML =
-      '<div class="main-bd"><h2><a href="/review/r1/">Title</a></h2><p>Full.</p></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
+      '<div id="review_1_full"><div class="review-content"><p>Full.</p></div></div><div class="action"><a class="action-btn up" data-rid="r1">5</a><a class="action-btn down" data-rid="r1">1</a></div>';
     document.body.append(nativeItem);
 
     const origRaf = window.requestAnimationFrame;
@@ -562,6 +587,223 @@ describe("buildReviews", () => {
     } finally {
       nativeItem.remove();
       window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("renders stars in modal header when review.stars > 0 (t25)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const modal = openModalForReview(
+        makeReview({ id: "r1", stars: 4, title: "With stars" })
+      );
+      const stars = modal.querySelector(".atv-review-modal-stars");
+      expect(stars).not.toBeNull();
+      expect(stars?.querySelectorAll("svg").length).toBe(5);
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("hides stars in modal header when review.stars is 0 (t26)", () => {
+    const nativeItem = appendNativeReview("r1");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const modal = openModalForReview(
+        makeReview({ id: "r1", stars: 0, title: "No stars" })
+      );
+      expect(modal.querySelector(".atv-review-modal-stars")).toBeNull();
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("review modal exposes dialog semantics and reading structure (t27)", () => {
+    const nativeItem = appendNativeReview("r1", "<p>Readable full text.</p>");
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+
+    try {
+      const modal = openModalForReview(
+        makeReview({
+          id: "r1",
+          name: "Reader",
+          stars: 5,
+          time: "2026-07-07",
+          title: "A long review",
+          usefulCount: 7,
+          uselessCount: 1,
+        })
+      );
+      const title = modal.querySelector("#atv-review-modal-title");
+      expect(modal.getAttribute("role")).toBe("dialog");
+      expect(modal.getAttribute("aria-modal")).toBe("true");
+      expect(modal.getAttribute("aria-labelledby")).toBe(
+        "atv-review-modal-title"
+      );
+      expect(title?.textContent).toBe("A long review");
+      expect(modal.querySelector(".atv-review-modal-author")?.textContent).toBe(
+        "Reader · 2026-07-07"
+      );
+      expect(modal.querySelector(".atv-review-modal-body")?.textContent).toBe(
+        "Readable full text."
+      );
+      expect(modal.querySelector(".atv-review-modal-votes")).not.toBeNull();
+      expect(modal.querySelector(".atv-review-modal-link-a")).not.toBeNull();
+      expect(
+        modal.querySelector(".atv-modal-close")?.getAttribute("aria-label")
+      ).toBe("关闭影评");
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("shows skeleton while async review content is unresolved (t28)", () => {
+    const nativeItem = document.createElement("div");
+    nativeItem.className = "review-item";
+    nativeItem.id = "r1";
+    document.body.append(nativeItem);
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+    const fetchDeferred = Promise.withResolvers<Response>();
+    vi.stubGlobal("fetch", vi.fn().mockReturnValue(fetchDeferred.promise));
+
+    try {
+      const modal = openModalForReview(makeReview({ id: "r1" }));
+      const body = modal.querySelector(".atv-review-modal-body") as HTMLElement;
+      expect(body.classList.contains("is-skeleton")).toBe(true);
+      expect(body.getAttribute("aria-busy")).toBe("true");
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      vi.unstubAllGlobals();
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("replaces skeleton with fetched review content (t29)", async () => {
+    const nativeItem = document.createElement("div");
+    nativeItem.className = "review-item";
+    nativeItem.id = "r1";
+    document.body.append(nativeItem);
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () =>
+          Promise.resolve(
+            '<div class="review-content"><p style="color:red">Fetched text<a class="unfold">展开</a><span class="short-content">Short</span></p></div>'
+          ),
+      })
+    );
+
+    try {
+      const modal = openModalForReview(makeReview({ id: "r1" }));
+      const body = modal.querySelector(".atv-review-modal-body") as HTMLElement;
+      await vi.waitFor(() => {
+        expect(body.classList.contains("is-skeleton")).toBe(false);
+        expect(body.textContent).toBe("Fetched text");
+      });
+      expect(body.getAttribute("aria-busy")).toBe("false");
+      expect(body.innerHTML).not.toContain("style=");
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      vi.unstubAllGlobals();
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("shows error state and retries failed review fetches (t30)", async () => {
+    const nativeItem = document.createElement("div");
+    nativeItem.className = "review-item";
+    nativeItem.id = "r1";
+    document.body.append(nativeItem);
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+    const fetchMock = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("network"))
+      .mockResolvedValueOnce({
+        ok: true,
+        text: () =>
+          Promise.resolve(
+            '<div class="review-content"><p>Recovered content</p></div>'
+          ),
+      });
+    vi.stubGlobal("fetch", fetchMock);
+
+    try {
+      const modal = openModalForReview(makeReview({ id: "r1" }));
+      const body = modal.querySelector(".atv-review-modal-body") as HTMLElement;
+      await vi.waitFor(() => {
+        expect(body.classList.contains("is-error")).toBe(true);
+      });
+      expect(body.textContent).toContain("影评内容暂时加载失败");
+
+      const retry = body.querySelector(
+        ".atv-review-modal-retry"
+      ) as HTMLButtonElement;
+      retry.click();
+
+      await vi.waitFor(() => {
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(body.textContent).toBe("Recovered content");
+      });
+      expect(body.classList.contains("is-error")).toBe(false);
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      vi.unstubAllGlobals();
+      document.querySelector("#atv-review-modal")?.remove();
+    }
+  });
+
+  it("does not update review content after modal closes (t31)", async () => {
+    const nativeItem = document.createElement("div");
+    nativeItem.className = "review-item";
+    nativeItem.id = "r1";
+    document.body.append(nativeItem);
+    const origRaf = window.requestAnimationFrame;
+    window.requestAnimationFrame = mockRaf;
+    const textDeferred = Promise.withResolvers<string>();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        text: () => textDeferred.promise,
+      })
+    );
+
+    try {
+      const modal = openModalForReview(makeReview({ id: "r1" }));
+      const body = modal.querySelector(".atv-review-modal-body") as HTMLElement;
+      const closeBtn = modal.querySelector(".atv-modal-close") as HTMLElement;
+
+      closeBtn.click();
+      textDeferred.resolve('<div class="review-content"><p>Too late</p></div>');
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(body.classList.contains("is-skeleton")).toBe(true);
+      expect(body.textContent).toBe("加载中");
+    } finally {
+      nativeItem.remove();
+      window.requestAnimationFrame = origRaf;
+      vi.unstubAllGlobals();
       document.querySelector("#atv-review-modal")?.remove();
     }
   });

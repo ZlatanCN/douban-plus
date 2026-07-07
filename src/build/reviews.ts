@@ -142,6 +142,122 @@ const stripUnfold = (root: HTMLElement): void => {
   }
 };
 
+const loadContent = async (
+  numericId: string,
+  contentDiv: HTMLElement,
+  getOverlay: () => HTMLElement | null
+): Promise<void> => {
+  contentDiv.classList.remove("is-error");
+  contentDiv.classList.add("is-skeleton");
+  contentDiv.setAttribute("aria-busy", "true");
+  contentDiv.textContent = "加载中";
+
+  try {
+    const res = await fetch(`https://movie.douban.com/review/${numericId}/`);
+    if (!getOverlay()?.isConnected) {
+      return;
+    }
+    if (!res.ok) {
+      throw new Error(String(res.status));
+    }
+
+    const html = await res.text();
+    if (!getOverlay()?.isConnected) {
+      return;
+    }
+
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const full = doc.querySelector<HTMLElement>(".review-content");
+    if (!full) {
+      throw new Error("no content");
+    }
+
+    if (!getOverlay()?.isConnected) {
+      return;
+    }
+    contentDiv.classList.remove("is-skeleton", "is-error");
+    contentDiv.setAttribute("aria-busy", "false");
+    contentDiv.innerHTML = full.innerHTML.replaceAll(/\sstyle="[^"]*"/giu, "");
+    stripUnfold(contentDiv);
+  } catch {
+    if (!getOverlay()?.isConnected) {
+      return;
+    }
+    contentDiv.classList.remove("is-skeleton");
+    contentDiv.classList.add("is-error");
+    contentDiv.setAttribute("aria-busy", "false");
+    contentDiv.innerHTML = "";
+
+    const retry = el("button", {
+      attrs: { type: "button" },
+      className: "atv-review-modal-retry",
+      text: "重新加载",
+    });
+    retry.addEventListener("click", () => {
+      void loadContent(numericId, contentDiv, getOverlay);
+    });
+
+    const error = el("div", { className: "atv-review-modal-error" });
+    error.append(el("p", { text: "影评内容暂时加载失败" }), retry);
+    contentDiv.append(error);
+  }
+};
+
+const focusableSelector = [
+  "a[href]",
+  "button:not([disabled])",
+  "input:not([disabled])",
+  "textarea:not([disabled])",
+  "select:not([disabled])",
+  '[tabindex]:not([tabindex="-1"])',
+].join(",");
+
+const visibleFocusable = (node: HTMLElement): boolean =>
+  !node.hasAttribute("disabled") &&
+  !node.hidden &&
+  node.getAttribute("aria-hidden") !== "true" &&
+  node.style.display !== "none" &&
+  node.style.visibility !== "hidden";
+
+const trapReviewModalFocus = (
+  overlay: HTMLElement,
+  initialFocus: HTMLElement
+): ((event: KeyboardEvent) => void) => {
+  const onKeydown = (event: KeyboardEvent): void => {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusables = [
+      ...overlay.querySelectorAll<HTMLElement>(focusableSelector),
+    ].filter(visibleFocusable);
+    if (focusables.length === 0) {
+      return;
+    }
+
+    const [first] = focusables;
+    const last = focusables.at(-1) ?? first;
+    const active = document.activeElement;
+
+    if (event.shiftKey) {
+      if (active === first || active === initialFocus) {
+        event.preventDefault();
+        last.focus();
+      }
+      return;
+    }
+
+    if (active === last || active === initialFocus) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  overlay.addEventListener("keydown", onKeydown);
+  initialFocus.focus({ preventScroll: true });
+  return onKeydown;
+};
+
 /** Open an overlay modal showing the full review content + vote buttons. */
 const openReviewModal = (
   r: Review,
@@ -157,7 +273,15 @@ const openReviewModal = (
     return;
   }
 
-  const contentDiv = el("div", { className: "atv-review-modal-body" });
+  let modalOpen = true;
+  let modalOverlay: HTMLElement | null = null;
+  const getOverlay = (): HTMLElement | null =>
+    modalOpen ? modalOverlay : null;
+
+  const contentDiv = el("div", {
+    attrs: { "aria-live": "polite" },
+    className: "atv-review-modal-body",
+  });
 
   /* Full content already loaded in DOM (review was expanded on the page)? */
   const numericId = reviewNumericId(r.id);
@@ -169,32 +293,7 @@ const openReviewModal = (
     contentDiv.append(clone);
     stripUnfold(contentDiv);
   } else {
-    /* Show loading state, then async-fetch the full review page */
-    contentDiv.textContent = "加载中…";
-
-    (async () => {
-      try {
-        const res = await fetch(
-          `https://movie.douban.com/review/${numericId}/`
-        );
-        if (!res.ok) {
-          contentDiv.textContent = "加载失败";
-          return;
-        }
-        const html = await res.text();
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const full = doc.querySelector<HTMLElement>(".review-content");
-        if (!full) {
-          contentDiv.textContent = "无法获取评论内容";
-          return;
-        }
-        const html_ = full.innerHTML.replaceAll(/\sstyle="[^"]*"/giu, "");
-        contentDiv.innerHTML = html_;
-        stripUnfold(contentDiv);
-      } catch {
-        contentDiv.textContent = "加载失败";
-      }
-    })();
+    void loadContent(numericId, contentDiv, getOverlay);
   }
 
   /* ── Build modal content ── */
@@ -206,8 +305,22 @@ const openReviewModal = (
 
   /* Review title + author header */
   const modalHeader = el("div", { className: "atv-review-modal-header" });
+  const modalTitle = el("div", {
+    attrs: { tabindex: "-1" },
+    className: "atv-review-modal-title",
+    id: "atv-review-modal-title",
+    text: r.title,
+  });
+  modalHeader.append(modalTitle);
+  if (r.stars > 0) {
+    modalHeader.append(
+      renderStars(r.stars, {
+        className: "atv-review-modal-stars",
+        outOfFive: true,
+      })
+    );
+  }
   modalHeader.append(
-    el("div", { className: "atv-review-modal-title", text: r.title }),
     el("div", {
       className: "atv-review-modal-author",
       text: r.name + (r.time ? ` · ${r.time}` : ""),
@@ -259,11 +372,16 @@ const openReviewModal = (
   );
   content.append(linkRow);
 
-  createOverlay({
+  let reviewModalKeydown: ((event: KeyboardEvent) => void) | null = null;
+  const { closeBtn, overlay } = createOverlay({
     className: "atv-review-modal",
     content: [content],
     id: "atv-review-modal",
     onClose: () => {
+      modalOpen = false;
+      if (reviewModalKeydown && modalOverlay) {
+        modalOverlay.removeEventListener("keydown", reviewModalKeydown);
+      }
       const moved = document.querySelector(
         `.atv-review-modal-votes > .atv-review-actions[data-rid="${r.id}"]`
       );
@@ -278,6 +396,12 @@ const openReviewModal = (
       }
     },
   });
+  modalOverlay = overlay;
+  overlay.setAttribute("aria-labelledby", "atv-review-modal-title");
+  overlay.setAttribute("aria-modal", "true");
+  overlay.setAttribute("role", "dialog");
+  closeBtn.setAttribute("aria-label", "关闭影评");
+  reviewModalKeydown = trapReviewModalFocus(overlay, modalTitle);
 };
 
 /* ── Review Card Builder ──────────────────────────────── */
