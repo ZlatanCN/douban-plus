@@ -1,0 +1,87 @@
+/* ---------- Trailer Tile ---------- */
+.atv-trailer-tile {
+  flex: 0 0 400px;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  cursor: pointer;
+  scroll-snap-align: start;
+  background: var(--atv-bg-tertiary);
+  border-radius: var(--atv-radius-md);
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    filter 300ms ease;
+}
+.atv-trailer-tile:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+.atv-trailer-play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.12);
+  transition: background 300ms ease;
+}
+.atv-trailer-tile:hover .atv-trailer-play-overlay {
+  background: rgba(0, 0, 0, 0.2);
+}
+.atv-trailer-play-btn {
+  width: 56px;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 300ms ease;
+}
+.atv-trailer-play-btn svg {
+  display: block;
+  width: 24px;
+  height: 24px;
+  color: #fff;
+  margin-left: 3px;
+}
+.atv-trailer-tile:hover .atv-trailer-play-btn {
+  transform: scale(1.08);
+  box-shadow: 0 0 30px var(--atv-accent-glow);
+}
+.atv-trailer-label {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 12px;
+  font-weight: 500;
+  color: #fff;
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+/* ---------- Video Modal ---------- */
+.atv-modal-overlay.is-video {
+  background: #000;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.atv-modal-video {
+  display: block;
+  max-width: 95vw;
+  max-height: 90vh;
+  border-radius: var(--atv-radius-lg);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);
+  transform: scale(0.92);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-modal-overlay.is-open .atv-modal-video {
+  transform: scale(1);
+}

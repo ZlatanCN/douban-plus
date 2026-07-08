@@ -1,0 +1,210 @@
+/* ---------- Hero ---------- */
+.atv-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 75vh;
+  padding: 132px max(28px, 5vw) 56px;
+  overflow: visible;
+  isolation: isolate;
+}
+.atv-hero-inner-section {
+  flex: 0 0 auto;
+}
+.atv-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: -4;
+  height: 75vh;
+  overflow: hidden;
+  background: #000;
+}
+.atv-hero-still {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center 30%;
+  background-size: cover;
+  transform: scale(1.04);
+  backface-visibility: hidden;
+  will-change: transform, opacity;
+}
+.atv-hero-still.is-thumb {
+  filter: blur(12px) saturate(1.12) brightness(0.84);
+  transform: scale(1.14);
+}
+.atv-hero-still.is-hd {
+  opacity: 0;
+  filter: saturate(1.08) brightness(0.88);
+  transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.atv-hero-still.is-hd.is-loaded {
+  opacity: 1;
+  animation: atv-kenburns 22s ease-out forwards;
+}
+.atv-hero-still.is-poster {
+  background-position: center 22%;
+  filter: blur(60px) saturate(1.25) brightness(0.78);
+  transform: scale(1.25);
+}
+@keyframes atv-kenburns {
+  from {
+    transform: scale(1) translate(0, 0);
+  }
+  to {
+    transform: scale(1.1) translate(-1.8%, -1.2%);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .atv-hero-still.is-hd.is-loaded {
+    transform: scale(1.04);
+    animation: none;
+  }
+}
+.atv-hero-vignette {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: -3;
+  height: 75vh;
+  background: radial-gradient(
+    120% 90% at 70% 30%,
+    transparent 0%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+.atv-hero-overlay-x {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: -2;
+  height: 75vh;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0.96) 0%,
+    rgba(0, 0, 0, 0.82) 32%,
+    rgba(0, 0, 0, 0.5) 62%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+.atv-hero-overlay-y {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: -1;
+  height: 75vh;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.45) 0%,
+    transparent 28%,
+    transparent 55%,
+    #000 100%
+  );
+}
+.atv-hero-inner {
+  display: flex;
+  gap: 56px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.atv-poster-card {
+  display: flex;
+  flex: 0 0 auto;
+  width: 360px;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border: none;
+  padding: 0;
+  background: var(--atv-bg-tertiary);
+  border-radius: var(--atv-radius-lg);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.6),
+    0 0 0 1px var(--atv-border-subtle) inset;
+  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.atv-poster-card:hover {
+  transform: scale(1.03);
+}
+.atv-poster-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.atv-poster-placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.atv-hero-info {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.atv-hero-title {
+  margin: 0 0 8px;
+  font-size: clamp(44px, 5.5vw, 72px);
+  font-weight: 700;
+  line-height: 1.05;
+  color: #fff;
+  letter-spacing: -0.02em;
+  text-shadow:
+    0 2px 20px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(0, 0, 0, 0.3);
+}
+.atv-hero-orig {
+  margin-bottom: 22px;
+  font-size: clamp(18px, 1.6vw, 22px);
+  font-weight: 400;
+  color: var(--atv-text-secondary);
+  letter-spacing: -0.01em;
+  opacity: 0.85;
+}
+.atv-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  margin-bottom: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--atv-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.atv-meta-dot {
+  display: inline-flex;
+  align-items: center;
+}
+.atv-meta-dot + .atv-meta-dot::before {
+  margin-right: 14px;
+  color: var(--atv-text-tertiary);
+  content: "·";
+}
+.atv-meta-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.atv-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 11px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--atv-text-secondary);
+  text-transform: none;
+  letter-spacing: 0.02em;
+  background: var(--atv-bg-elevated);
+  border: 1px solid var(--atv-border-subtle);
+  border-radius: 999px;
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}

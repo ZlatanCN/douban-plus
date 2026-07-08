@@ -8,7 +8,7 @@ GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, a
 
 `src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject-page/` or shared Preact primitives under `src/components/`.
 
-Rating data flows through a three-layer seam: **extract → resolve → apply**. The `resolve/` layer is the testable middle — it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM.
+External rating data flows through **extract → resolve → Preact render**. The `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. The active UI consumes those results in `src/modules/subject-page/ratings/use-external-ratings.ts`; there is no longer a DOM `apply.ts` bridge.
 
 ### Module layout
 
@@ -22,14 +22,16 @@ src/
       ratings/           — Douban / IMDb / Metacritic / Rotten Tomatoes panels
       media/             — streaming, series, cast, photos, recommendations
       details/           — facts, IMDb link, awards
-      comments/          — short-comment cards, modal, voting
-      reviews/           — review cards, modal lifecycle, content loading, voting
+      comments/          — short-comment cards, modal, icon voting, shared vote state
+      reviews/           — review cards, modal lifecycle, content loading, up/down vote state
       interest/          — interest marking form and imperative opener
       login/             — ATV login modal shell + trusted Douban iframe host
   components/
     common/            — reusable leaf UI such as poster and stars
     layout/            — Section, sticky nav, nav-section calculation
     modal/             — shared Preact modal shell, close button, focus trap
+  styles.css           — single stylesheet manifest imported by main.ts
+  styles/              — ownership-oriented CSS files ordered by the manifest
   extract/             — DOM data extraction
     index.ts            — barrel
     title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
@@ -40,8 +42,6 @@ src/
     rt.ts               — resolveRt(ctx): wraps fetchRtRating, guards on ctx.englishTitle
     mc.ts               — resolveMc(ctx): wraps fetchMcRating, guards on ctx.englishTitle
     orchestrate.ts      — resolveAll(ctx, deps?): parallel-first strategy with Promise.allSettled
-    apply.ts            — applyImdbResult/applyRtResult/applyMcResult: apply results to DOM
-  components/          — shared UI primitives and legacy DOM helpers
   api/                 — data fetching & scraping interfaces
     avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
     comment.ts           — postVote() for comment voting via GM POST
@@ -58,7 +58,6 @@ src/
     interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
     hero-callbacks.ts    — compatibility facade for hero action callbacks
     avatar-effect.ts     — comment avatar fetch/apply effect
-    ratings-effect.ts    — resolve/apply ratings effect
     series-effect.ts     — late-loading series observer and nav insertion
     sticky-effect.ts     — sticky nav reveal + active-section tracking
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
@@ -73,17 +72,17 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-All resolvers accept `ResolutionContext` and none touch the DOM. The `apply.ts` module is the single bridge from results to DOM — each applier finds its panel, calls the build function, and replaces the skeleton.
+All resolvers accept `ResolutionContext` and none touch the DOM. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and rating panel components render the state.
 
-### Resolution seam tests (28 tests across 5 files)
+### Resolution seam tests (31 tests across 5 files)
 
 | File | What it covers |
 | --- | --- |
-| `tests/resolve/context.test.ts` | 7 tests: movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
+| `tests/resolve/context.test.ts` | movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
 | `tests/resolve/imdb.test.ts` | 4 tests: delegating fetch, season passthrough, null/empty imdbId guard |
 | `tests/resolve/rt.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
 | `tests/resolve/mc.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
-| `tests/resolve/orchestrate.test.ts` | 7 tests: all-three-parallel, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
+| `tests/resolve/orchestrate.test.ts` | parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
 
 ### QA / E2E harness
 
@@ -115,6 +114,8 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
    - Internal modules follow user-facing experiences: `hero`, `ratings`, `media`, `details`, `comments`, `reviews`, `interest`, and `login`.
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
+   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. Comment vote state is modeled in `comments/comment-vote-state.ts`; review useful/useless vote state is modeled in `reviews/review-vote-state.ts`.
+   - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
 
 2. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:
    - `api/avatar.ts` — pure data pipeline: `fetchAvatarUrls(links)` returns `Map<link, url>` with read-through cache, parallel fetch via `Promise.allSettled`, no DOM access
@@ -154,7 +155,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 | --- | --- | --- | --- | --- |
 | Data pipeline | `api/avatar.ts` | `fetchAvatarUrls(links)` | Cache read-through → fetch → parse → cache → return Map | ✅ |
 | DOM mutation | `components/avatar-dom.ts` | `applyCommentAvatars(urlMap, comments)` | Preload images, RAF-retry querySelector, set backgroundImage | ❌ (DOM-only) |
-| Orchestration | `main.ts:219` | inline | `await pipeline → apply to DOM` | — |
+| Orchestration | `runtime/avatar-effect.ts` | `startAvatarEffect(comments)` | `await pipeline → apply to DOM` | — |
 
 6 data tests (no DOM needed) + 8 DOM tests (happy-dom) = 14 total, replacing 3 cache-only tests.
 
@@ -162,6 +163,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 
 - **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
 - **Deep subject-page seam**: Runtime calls `SubjectPage({ data, deps })`; module internals own layout, local UI state, modals, voting affordances, and rating panels.
+- **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles.
 - **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.
