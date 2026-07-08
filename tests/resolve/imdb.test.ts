@@ -10,7 +10,7 @@ const mockFetchImdbRating = vi.hoisted(() =>
   vi.fn<(imdbId: string, season?: number) => Promise<FetchImdbResult>>()
 );
 
-vi.mock("../../src/api/imdb", () => ({
+vi.mock(import("../../src/api/imdb"), () => ({
   fetchImdbRating: mockFetchImdbRating,
 }));
 
@@ -41,7 +41,7 @@ describe("resolveImdb", () => {
     const result = await resolveImdb(ctx);
 
     expect(mockFetchImdbRating).toHaveBeenCalledWith("tt0111161", undefined);
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       rating: { count: 1_200_000, score: 9.3 },
       title: "The Shawshank Redemption",
     });

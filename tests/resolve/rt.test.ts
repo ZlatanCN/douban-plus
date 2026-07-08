@@ -17,7 +17,7 @@ const mockFetchRtRating = vi.hoisted(() =>
   >()
 );
 
-vi.mock("../../src/api/rotten", () => ({
+vi.mock(import("../../src/api/rotten"), () => ({
   fetchRtRating: mockFetchRtRating,
 }));
 
@@ -55,7 +55,7 @@ describe("resolveRt", () => {
       undefined,
       undefined
     );
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 173_380,
       audienceScore: 76,
       criticsCount: 300,
@@ -125,6 +125,6 @@ describe("resolveRt", () => {
     const result = await resolveRt(ctx);
 
     expect(result).toBeNull();
-    expect(mockFetchRtRating).toHaveBeenCalledTimes(1);
+    expect(mockFetchRtRating).toHaveBeenCalledOnce();
   });
 });

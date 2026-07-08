@@ -43,7 +43,7 @@ describe("buildContext", () => {
 
     expect(ctx.imdbId).toBe("tt0111161");
     expect(ctx.englishTitle).toBe("The Shawshank Redemption");
-    expect(ctx.isTV).toBe(false);
+    expect(ctx.isTV).toBeFalsy();
     expect(ctx.year).toBe("1994");
   });
 
@@ -68,7 +68,7 @@ describe("buildContext", () => {
 
     expect(ctx.englishTitle).toBe("Game of Thrones");
     expect(ctx.season).toBe(5);
-    expect(ctx.isTV).toBe(true);
+    expect(ctx.isTV).toBeTruthy();
     expect(ctx.year).toBeUndefined();
   });
 
@@ -79,7 +79,7 @@ describe("buildContext", () => {
 
     expect(ctx.englishTitle).toBe("Breaking Bad");
     expect(ctx.season).toBeUndefined();
-    expect(ctx.isTV).toBe(true);
+    expect(ctx.isTV).toBeTruthy();
   });
 
   /* ── No English title in H1 ────────────────────── */

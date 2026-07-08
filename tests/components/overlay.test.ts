@@ -49,9 +49,21 @@ describe("createOverlay(options)", () => {
     expect(overlay).not.toBeNull();
     expect(overlay?.className).toContain("test-overlay");
     expect(overlay?.textContent).toContain("test content");
+    expect(ctrl.overlay).toBe(overlay);
+  });
+
+  it("creates overlay with close button", () => {
+    const content = document.createElement("div");
+    content.textContent = "test content";
+    const ctrl = createOverlay({
+      className: "test-overlay",
+      content: [content],
+      id: "test-modal",
+    });
+
+    const overlay = document.querySelector("#test-modal");
     const closeBtn = overlay?.querySelector("button");
     expect(closeBtn).not.toBeNull();
-    expect(ctrl.overlay).toBe(overlay);
     expect(ctrl.closeBtn).toBe(closeBtn);
   });
 
@@ -62,11 +74,11 @@ describe("createOverlay(options)", () => {
     stubRaf();
     const ctrl = createOverlay({ id: "test-modal" });
     const overlay = document.querySelector("#test-modal") as HTMLElement;
-    expect(overlay.classList.contains("is-open")).toBe(true);
+    expect(overlay.classList.contains("is-open")).toBeTruthy();
     expect(document.body.style.overflow).toBe("hidden");
 
     ctrl.closeBtn.click();
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
 
     vi.advanceTimersByTime(350);
@@ -82,7 +94,7 @@ describe("createOverlay(options)", () => {
     createOverlay({ id: "test-modal" });
     document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
     const overlay = document.querySelector("#test-modal") as HTMLElement;
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
     vi.advanceTimersByTime(350);
     expect(document.querySelector("#test-modal")).toBeNull();
@@ -98,7 +110,7 @@ describe("createOverlay(options)", () => {
     const overlay = document.querySelector("#test-modal") as HTMLElement;
     // click on the overlay itself (backdrop)
     overlay.click();
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
     vi.advanceTimersByTime(350);
     expect(document.querySelector("#test-modal")).toBeNull();
@@ -118,7 +130,7 @@ describe("createOverlay(options)", () => {
       content: [el("div", { text: "second" })],
       id: "test-modal",
     });
-    expect(document.body.contains(firstEl)).toBe(false);
+    expect(document.body.contains(firstEl)).toBeFalsy();
     const overlay = document.querySelector("#test-modal");
     expect(overlay?.textContent).toContain("second");
   });
@@ -128,27 +140,32 @@ describe("createOverlay(options)", () => {
   it("onClose callback fires after dismiss animation", () => {
     vi.useFakeTimers();
     stubRaf();
-    const onClose = vi.fn();
+    const onClose = vi.fn<() => void>();
     const ctrl = createOverlay({ id: "test-modal", onClose });
     ctrl.dismiss();
     vi.advanceTimersByTime(350);
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledOnce();
     vi.useRealTimers();
   });
 
   /* ── S7: Close size ── */
 
-  it("default closeSize (22) renders correct SVG, no leaked attribute text", () => {
+  it("default closeSize (22) renders close button with SVG", () => {
     stubRaf();
     createOverlay({ id: "test-modal" });
     const btn = document.querySelector("#test-modal button") as HTMLElement;
     expect(btn).not.toBeNull();
-    // The button innerHTML should be the SVG, not leaked attributes
-    expect(btn.innerHTML).not.toContain('height="22"width="22"');
     const svg = btn.querySelector("svg") as SVGElement;
     expect(svg).not.toBeNull();
     expect(svg.getAttribute("width")).toBe("22");
     expect(svg.getAttribute("height")).toBe("22");
+  });
+
+  it("default closeSize (22) does not leak attribute text", () => {
+    stubRaf();
+    createOverlay({ id: "test-modal" });
+    const btn = document.querySelector("#test-modal button") as HTMLElement;
+    expect(btn.innerHTML).not.toContain('height="22"width="22"');
   });
 
   it("closeSize=16 creates 16px close button icon", () => {
@@ -179,7 +196,7 @@ describe("createOverlay(options)", () => {
 
     expect(ctrl.closeBtn).toBe(closeBtn);
     expect(overlay.querySelectorAll("button")).toHaveLength(1);
-    expect(surface.contains(closeBtn)).toBe(true);
+    expect(surface.contains(closeBtn)).toBeTruthy();
   });
 
   /* ── S8: Double dismiss ── */

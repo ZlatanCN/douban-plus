@@ -21,7 +21,7 @@ const CN_DIGIT: Record<string, number> = {
 /** Parse a Chinese numeral (e.g. "七" → 7, "十二" → 12, "二十" → 20). */
 const parseCnNum = (s: string): number => {
   /* Arabic digit in Chinese text — uncommon but handle it */
-  const arabic = Number.parseInt(s, 10);
+  const arabic = Math.trunc(Number(s));
   if (!Number.isNaN(arabic)) {
     return arabic;
   }

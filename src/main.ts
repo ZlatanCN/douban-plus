@@ -1,8 +1,8 @@
-import { buildHeroCallbacks, mountSubjectPage, watchSeries } from "./runtime";
 import {
   installLoginFrameTheme,
   isDoubanLoginFrame,
 } from "./runtime/login-frame-theme";
+import { mountSubjectPage } from "./runtime/mount";
 
 const mountSubjectPageWhenReady = (): void => {
   void import("./styles.css");
@@ -22,4 +22,5 @@ if (isDoubanLoginFrame()) {
   mountSubjectPageWhenReady();
 }
 
-export { buildHeroCallbacks, watchSeries };
+export { buildHeroCallbacks } from "./runtime/hero-callbacks";
+export { watchSeries } from "./runtime/series-effect";

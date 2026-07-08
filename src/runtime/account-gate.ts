@@ -1,13 +1,13 @@
-import { openLoginModal } from "../components";
+import { openLoginModal } from "../modules/subject-page/login";
 
-type AccountGateOptions = {
+interface AccountGateOptions {
   loggedIn: boolean;
   openPrompt?: (action: string) => void;
-};
+}
 
-type AccountGate = {
+interface AccountGate {
   requireLogin: (action: string) => boolean;
-};
+}
 
 const createAccountGate = (options: AccountGateOptions): AccountGate => {
   const openPrompt =

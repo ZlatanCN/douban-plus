@@ -6,10 +6,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { postInterest, removeInterest } from "../../src/api/interest";
 
-const mockGmPost = vi.hoisted(() => vi.fn());
-const mockGetCk = vi.hoisted(() => vi.fn());
+const mockGmPost = vi.hoisted(() =>
+  vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
+);
+const mockGetCk = vi.hoisted(() => vi.fn<() => string>());
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   getCk: mockGetCk,
   gmPost: mockGmPost,
 }));
@@ -17,7 +19,7 @@ vi.mock("../../src/utils/request", () => ({
 // ----------------------------------------------------------------
 // postInterest
 // ----------------------------------------------------------------
-describe("postInterest", () => {
+describe(postInterest, () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
@@ -28,7 +30,7 @@ describe("postInterest", () => {
 
     const result = await postInterest("1292052", "wish");
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toStrictEqual({ ok: true });
     expect(mockGmPost).toHaveBeenCalledWith(
       "https://movie.douban.com/j/subject/1292052/interest",
       expect.any(String),
@@ -41,7 +43,7 @@ describe("postInterest", () => {
 
     const result = await postInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "未登录", ok: false });
+    expect(result).toStrictEqual({ error: "未登录", ok: false });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 
@@ -51,7 +53,7 @@ describe("postInterest", () => {
 
     const result = await postInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "失败", ok: false });
+    expect(result).toStrictEqual({ error: "失败", ok: false });
   });
 
   it("returns ok=false with default error message when r=1 and no msg", async () => {
@@ -60,7 +62,7 @@ describe("postInterest", () => {
 
     const result = await postInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "操作失败", ok: false });
+    expect(result).toStrictEqual({ error: "操作失败", ok: false });
   });
 
   it("includes rating in POST data when rating option is provided", async () => {
@@ -116,7 +118,10 @@ describe("postInterest", () => {
 
     const result = await postInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "Error: Network failure", ok: false });
+    expect(result).toStrictEqual({
+      error: "Error: Network failure",
+      ok: false,
+    });
     expect(warnSpy).toHaveBeenCalledWith(
       "[ATV-Douban] postInterest error:",
       expect.any(Error)
@@ -181,7 +186,7 @@ describe("postInterest", () => {
 // ----------------------------------------------------------------
 // removeInterest
 // ----------------------------------------------------------------
-describe("removeInterest", () => {
+describe(removeInterest, () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
@@ -189,7 +194,7 @@ describe("removeInterest", () => {
   it("returns ok=true immediately when currentStatus is none (gmPost not called)", async () => {
     const result = await removeInterest("1292052", "none");
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toStrictEqual({ ok: true });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 
@@ -199,7 +204,7 @@ describe("removeInterest", () => {
 
     const result = await removeInterest("1292052", "wish");
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toStrictEqual({ ok: true });
   });
 
   it("returns ok=false with 未登录 and skips gmPost when getCk returns empty", async () => {
@@ -207,7 +212,7 @@ describe("removeInterest", () => {
 
     const result = await removeInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "未登录", ok: false });
+    expect(result).toStrictEqual({ error: "未登录", ok: false });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 
@@ -218,7 +223,7 @@ describe("removeInterest", () => {
 
     const result = await removeInterest("1292052", "wish");
 
-    expect(result).toEqual({ error: "Error: Remove failed", ok: false });
+    expect(result).toStrictEqual({ error: "Error: Remove failed", ok: false });
     expect(warnSpy).toHaveBeenCalledWith(
       "[ATV-Douban] removeInterest error:",
       expect.any(Error)
@@ -255,7 +260,7 @@ describe("removeInterest", () => {
 
     const result = await removeInterest("1292052", "collect");
 
-    expect(result).toEqual({ ok: true });
-    expect(mockGmPost).toHaveBeenCalled();
+    expect(result).toStrictEqual({ ok: true });
+    expect(mockGmPost).toHaveBeenCalledOnce();
   });
 });

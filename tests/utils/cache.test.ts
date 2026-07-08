@@ -7,7 +7,7 @@ import { createCache } from "../../src/utils/cache";
 
 /* ── Suite ────────────────────────────────────────────── */
 
-describe("createCache", () => {
+describe(createCache, () => {
   beforeEach(() => {
     localStorage.clear();
   });
@@ -100,7 +100,10 @@ describe("createCache", () => {
   /* ── Complex value type ─────────────────────────── */
 
   it("works with object values (t9)", () => {
-    type Data = { rating: { count: number; score: number }; title: string };
+    interface Data {
+      rating: { count: number; score: number };
+      title: string;
+    }
     const cache = createCache<Data>("dp:obj-cache");
 
     const value: Data = {
@@ -109,7 +112,7 @@ describe("createCache", () => {
     };
     cache.set("tt0111161", value);
 
-    expect(cache.get("tt0111161")).toEqual(value);
+    expect(cache.get("tt0111161")).toStrictEqual(value);
   });
 
   /* ── Custom TTL ─────────────────────────────────── */

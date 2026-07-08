@@ -2,7 +2,10 @@ import { getCk, gmPost } from "../utils/request";
 
 const API_VOTE = "https://movie.douban.com/j/comment/vote";
 
-type VoteResult = { ok: boolean; count?: number };
+interface VoteResult {
+  ok: boolean;
+  count?: number;
+}
 
 const postVote = async (
   cid: string,

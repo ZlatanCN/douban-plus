@@ -52,8 +52,8 @@ const parseMcPage = (html: string): McRating | null => {
     if (rating?.ratingValue === null || rating?.reviewCount === null) {
       return null;
     }
-    const score = Number.parseInt(String(rating.ratingValue), 10);
-    const reviewCount = Number.parseInt(String(rating.reviewCount), 10);
+    const score = Math.trunc(Number(String(rating.ratingValue)));
+    const reviewCount = Math.trunc(Number(String(rating.reviewCount)));
     if (Number.isNaN(score) || Number.isNaN(reviewCount)) {
       return null;
     }

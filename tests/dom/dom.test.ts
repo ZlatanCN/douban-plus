@@ -58,7 +58,7 @@ describe("$$ (multiple element query)", () => {
 
   it("returns empty array for missing selector", () => {
     const doc = buildDoc(HTML);
-    expect($$(".nonexistent", doc)).toEqual([]);
+    expect($$(".nonexistent", doc)).toStrictEqual([]);
   });
 
   it("accepts a narrower context", () => {
@@ -71,11 +71,11 @@ describe("$$ (multiple element query)", () => {
   it("returns typed elements", () => {
     const doc = buildDoc(HTML);
     const items = $$<HTMLSpanElement>(".item", doc);
-    expect(items[0] instanceof HTMLSpanElement).toBe(true);
+    expect(items[0] instanceof HTMLSpanElement).toBeTruthy();
   });
 });
 
-describe("safeText", () => {
+describe(safeText, () => {
   it("returns trimmed text content", () => {
     const doc = buildDoc(HTML);
     const p = $("p", doc);

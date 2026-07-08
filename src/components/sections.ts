@@ -26,9 +26,9 @@ const buildSectionHeaderRow = (
   return row;
 };
 
-type BuildSectionOptions = {
+interface BuildSectionOptions {
   moreLink?: { text: string; href: string };
-};
+}
 
 const buildSection = (
   id: string,

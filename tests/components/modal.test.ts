@@ -73,7 +73,7 @@ describe("openPosterModal(src, alt)", () => {
     openPosterModal("https://img.example.com/first.jpg", "First");
     const first = document.querySelector("#atv-poster-modal");
     openPosterModal("https://img.example.com/second.jpg", "Second");
-    expect(document.body.contains(first)).toBe(false);
+    expect(document.body.contains(first)).toBeFalsy();
     const img = document.querySelector<HTMLImageElement>(
       "#atv-poster-modal .atv-modal-img"
     );
@@ -107,7 +107,7 @@ describe("openPosterModal(src, alt)", () => {
   it("adds is-open class via requestAnimationFrame", () => {
     openPosterModal("https://img.example.com/poster.jpg", "Test");
     const overlay = document.querySelector("#atv-poster-modal");
-    expect(overlay?.classList.contains("is-open")).toBe(true);
+    expect(overlay?.classList.contains("is-open")).toBeTruthy();
   });
 
   it("removes is-open class and restores overflow on close button click", () => {
@@ -117,7 +117,7 @@ describe("openPosterModal(src, alt)", () => {
     );
     closeBtn?.click();
     const overlay = document.querySelector("#atv-poster-modal") as HTMLElement;
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
   });
 
@@ -125,7 +125,7 @@ describe("openPosterModal(src, alt)", () => {
     openPosterModal("https://img.example.com/poster.jpg", "Test");
     const overlay = document.querySelector("#atv-poster-modal") as HTMLElement;
     overlay.click();
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
   });
 
@@ -168,7 +168,7 @@ describe("openPosterModal(src, alt)", () => {
 describe("openVideoModal(trailer)", () => {
   beforeEach(() => {
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(SUCCESS_HTML, { status: 200 })
     );
@@ -193,21 +193,21 @@ describe("openVideoModal(trailer)", () => {
     openVideoModal(TRAILER);
     const style = document.querySelector("#atv-vs");
     expect(style).not.toBeNull();
-    expect(style instanceof HTMLStyleElement).toBe(true);
+    expect(style instanceof HTMLStyleElement).toBeTruthy();
   });
 
   it("injects style only once across multiple calls", () => {
     openVideoModal(TRAILER);
     openVideoModal(TRAILER);
     const styles = document.querySelectorAll("#atv-vs");
-    expect(styles.length).toBe(1);
+    expect(styles).toHaveLength(1);
   });
 
   it("replaces existing video modal on second call", () => {
     openVideoModal(TRAILER);
     const first = document.querySelector("#atv-video-modal");
     openVideoModal(TRAILER);
-    expect(document.body.contains(first)).toBe(false);
+    expect(document.body.contains(first)).toBeFalsy();
   });
 
   it("shows loading indicator initially", () => {
@@ -238,7 +238,7 @@ describe("openVideoModal(trailer)", () => {
   it("adds is-open class via requestAnimationFrame", () => {
     openVideoModal(TRAILER);
     const overlay = document.querySelector("#atv-video-modal");
-    expect(overlay?.classList.contains("is-open")).toBe(true);
+    expect(overlay?.classList.contains("is-open")).toBeTruthy();
   });
 
   it("removes is-open class and restores overflow on close button click", () => {
@@ -248,14 +248,14 @@ describe("openVideoModal(trailer)", () => {
     );
     closeBtn?.click();
     const overlay = document.querySelector("#atv-video-modal") as HTMLElement;
-    expect(overlay.classList.contains("is-open")).toBe(false);
+    expect(overlay.classList.contains("is-open")).toBeFalsy();
     expect(document.body.style.overflow).toBe("");
   });
 
   it("dismisses via close button and removes after 350ms", () => {
     vi.useFakeTimers();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(SUCCESS_HTML, { status: 200 })
     );
@@ -272,7 +272,7 @@ describe("openVideoModal(trailer)", () => {
   it("dismisses via Escape key and removes after 350ms", () => {
     vi.useFakeTimers();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(SUCCESS_HTML, { status: 200 })
     );
@@ -286,7 +286,7 @@ describe("openVideoModal(trailer)", () => {
   it("dismisses via click outside and removes after 350ms", () => {
     vi.useFakeTimers();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(SUCCESS_HTML, { status: 200 })
     );
@@ -316,7 +316,7 @@ describe("openVideoModal(trailer)", () => {
   it("shows error toast and redirects on fetch failure", async () => {
     vi.restoreAllMocks();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Network error"));
     vi.useFakeTimers();
     openVideoModal(TRAILER);
@@ -334,7 +334,7 @@ describe("openVideoModal(trailer)", () => {
   it("auto-removes error toast after 3 seconds", async () => {
     vi.restoreAllMocks();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("fail"));
     vi.useFakeTimers();
     openVideoModal(TRAILER);
@@ -354,7 +354,7 @@ describe("openVideoModal(trailer)", () => {
     });
     vi.restoreAllMocks();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockReturnValue(fetchPromise);
     vi.useFakeTimers();
     openVideoModal(TRAILER);
@@ -374,7 +374,7 @@ describe("openVideoModal(trailer)", () => {
     const noEmbedHtml = `<html><head><script type="application/ld+json">{"title":"No Video"}</script></head></html>`;
     vi.restoreAllMocks();
     stubRaf();
-    vi.spyOn(window, "open").mockImplementation(() => null);
+    vi.spyOn(window, "open").mockReturnValue(null);
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       new Response(noEmbedHtml, { status: 200 })
     );
@@ -384,7 +384,7 @@ describe("openVideoModal(trailer)", () => {
       expect(document.querySelector(".atv-modal-toast")).not.toBeNull();
     });
     vi.advanceTimersByTime(2000);
-    expect(window.open).toHaveBeenCalled();
+    expect(window.open).toHaveBeenCalledOnce();
     expect(document.querySelector("#atv-video-modal")).toBeNull();
     vi.useRealTimers();
   });

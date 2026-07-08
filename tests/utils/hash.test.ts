@@ -5,7 +5,7 @@ import { describe, it, expect } from "vitest";
 
 import { hashStr } from "../../src/utils/hash";
 
-describe("hashStr", () => {
+describe(hashStr, () => {
   it("returns the same value for the same input (deterministic)", () => {
     expect(hashStr("肖申克的救赎")).toBe(hashStr("肖申克的救赎"));
   });
@@ -53,7 +53,7 @@ describe("hashStr", () => {
   });
 
   it("hash of digits produces expected results", () => {
-    expect(typeof hashStr("1292052")).toBe("number");
+    expect(hashStr("1292052")).toBeTypeOf("number");
     expect(hashStr("1292052")).toBeGreaterThan(0);
   });
 });

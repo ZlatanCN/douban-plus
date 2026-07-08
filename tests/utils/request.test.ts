@@ -12,14 +12,14 @@ import { mockCookie } from "../helpers/doc";
 // ----------------------------------------------------------------
 // Types matching the ambient declare in request.ts for mock
 // ----------------------------------------------------------------
-type GmXhrOpts = {
+interface GmXhrOpts {
   url: string;
   method: "GET" | "POST";
   headers?: Record<string, string>;
   data?: string;
   onerror: () => void;
   onload: (r: { responseText: string }) => void;
-};
+}
 
 // ----------------------------------------------------------------
 // Install mock GM_xmlhttpRequest on globalThis BEFORE imports.
@@ -36,7 +36,7 @@ const mockGmXhr = vi.hoisted(() => {
 // ----------------------------------------------------------------
 // getCk — reads document.cookie directly, no GM dependency
 // ----------------------------------------------------------------
-describe("getCk", () => {
+describe(getCk, () => {
   it("reads ck value from document.cookie", () => {
     const restore = mockCookie(document, "ck=abc123;");
     expect(getCk()).toBe("abc123");
@@ -77,7 +77,7 @@ describe("getCk", () => {
 // ----------------------------------------------------------------
 // gmPost — wraps GM_xmlhttpRequest in Promise (method: POST)
 // ----------------------------------------------------------------
-describe("gmPost", () => {
+describe(gmPost, () => {
   beforeEach(() => {
     mockGmXhr.mockReset();
     mockGmXhr.mockImplementation((opts) => {
@@ -157,7 +157,7 @@ describe("gmPost", () => {
 // ----------------------------------------------------------------
 // gmGet — wraps GM_xmlhttpRequest in Promise (method: GET)
 // ----------------------------------------------------------------
-describe("gmGet", () => {
+describe(gmGet, () => {
   beforeEach(() => {
     mockGmXhr.mockReset();
     mockGmXhr.mockImplementation((opts) => {

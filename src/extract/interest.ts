@@ -19,11 +19,11 @@ import { $, $$ } from "../utils/dom";
  * Found interest (wish/do/collect) DOM anchor elements.
  * Used for proxy-clicking original Douban buttons when not logged in.
  */
-type InterestButtons = {
+interface InterestButtons {
   do: HTMLAnchorElement | null;
   wish: HTMLAnchorElement | null;
   collect: HTMLAnchorElement | null;
-};
+}
 
 /* ── Internal Helpers ───────────────────────────────── */
 
@@ -154,7 +154,7 @@ const detectS3State = (
   );
 
   const ratingInput = root.querySelector<HTMLInputElement>("#n_rating");
-  const rating = ratingInput ? Number.parseInt(ratingInput.value, 10) : 0;
+  const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
 
   const dateEl = root.querySelector<HTMLElement>(".collection_date");
   const date = dateEl ? (dateEl.textContent || "").trim() : "";

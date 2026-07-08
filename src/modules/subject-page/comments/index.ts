@@ -1,0 +1,10 @@
+export { CommentAvatar } from "./comment-avatar";
+export type { CommentAvatarProps } from "./comment-avatar";
+export { CommentCard } from "./comment-card";
+export type { CommentCardProps } from "./comment-card";
+export { CommentModal } from "./comment-modal";
+export type { CommentModalProps } from "./comment-modal";
+export { CommentsSection } from "./comments-section";
+export type { CommentsSectionProps } from "./comments-section";
+export { CommentVoteButton } from "./comment-vote-button";
+export type { CommentVoteButtonProps } from "./comment-vote-button";

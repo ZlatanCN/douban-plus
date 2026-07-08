@@ -1,48 +1,48 @@
 /* ── Generic Types ─────────────────────────────────────── */
 
 /** A name + URL pair, used by streaming sources and links */
-type Link = {
+interface Link {
   name: string;
   url: string;
-};
+}
 
 /* ── Extract Return Types ─────────────────────────────── */
 
 /** Return type of extractTitle() */
-type TitleInfo = {
+interface TitleInfo {
   full: string;
   primary: string;
   original: string;
-};
+}
 
 /** Return type of fetchImdbRating() — score 0-10, count = number of votes */
-type ImdbRating = {
+interface ImdbRating {
   score: number;
   count: number;
-};
+}
 
 /** Return type of fetchMcRating() — weighted critic score 0-100, review count */
-type McRating = {
+interface McRating {
   score: number;
   reviewCount: number;
-};
+}
 
 /** Rotten Tomatoes ratings — Tomatometer (critics) and Popcornmeter (audience), each score 0-100 */
-type RtRating = {
+interface RtRating {
   criticsScore: number;
   criticsCount: number;
   audienceScore: number;
   audienceCount: number;
-};
+}
 
 /** Return type of extractRating() */
-type RatingInfo = {
+interface RatingInfo {
   score: number;
   count: number;
-};
+}
 
 /** Return type of extractInfo() — the "info" block from #info */
-type InfoBlock = {
+interface InfoBlock {
   director: { text: string; href: string }[];
   writers: { text: string; href: string }[];
   cast: { text: string; href: string }[];
@@ -57,42 +57,42 @@ type InfoBlock = {
   episodeRuntime: string;
   aliases: string;
   imdb: string;
-};
+}
 
 /** Return type of extractCelebrities() */
-type Celebrity = {
+interface Celebrity {
   name: string;
   role: string;
   avatar: string;
   link: string;
-};
+}
 
 /** Return type of extractPhotos() */
-type Photo = {
+interface Photo {
   thumbUrl: string;
   hdUrl: string;
   link: string;
-};
+}
 
 /** Return type of extractTrailers() */
-type Trailer = {
+interface Trailer {
   /** Thumbnail image URL from background-image CSS */
   thumbUrl: string;
   /** URL to the trailer page on Douban (e.g. /trailer/324711/) */
   trailerPageUrl: string;
   /** Title text (e.g. "预告片", "预告片1") */
   title: string;
-};
+}
 
 /** Return type of extractRecommendations() */
-type Recommendation = {
+interface Recommendation {
   title: string;
   poster: string;
   link: string;
-};
+}
 
 /** Return type of extractComments() */
-type Comment = {
+interface Comment {
   name: string;
   link: string;
   content: string;
@@ -105,10 +105,10 @@ type Comment = {
   cid: string;
   /** true if the current user already voted (a.j.vote-comment replaced by "已投票") */
   voted: boolean;
-};
+}
 
 /** Return type of extractReviews() */
-type Review = {
+interface Review {
   /** DOM element id or data-rid */
   id: string;
   /** Review title from h2 a text */
@@ -133,35 +133,35 @@ type Review = {
   uselessCount: number;
   /** Whether this review has a spoiler warning (.spoiler-tip) */
   spoiler: boolean;
-};
+}
 
 /** Return type of extractAwards() */
-type Award = {
+interface Award {
   org: string;
   orgLink: string;
   name: string;
   person: string;
   personLink: string;
-};
+}
 
 /** Return type of extractStreaming() */
-type Streaming = {
+interface Streaming {
   name: string;
   href: string;
-};
+}
 
 /** Return type of extractSeries() */
-type SeriesItem = {
+interface SeriesItem {
   title: string;
   poster: string;
   rating: string;
   link: string;
-};
+}
 
 /* ── Aggregate Data Type ──────────────────────────────── */
 
 /** The complete data object assembled in render() */
-type DoubanData = {
+interface DoubanData {
   subjectId: string;
   title: TitleInfo;
   year: string;
@@ -181,18 +181,18 @@ type DoubanData = {
   /** Interest state (wish/do/collect) extracted once at render time */
   interest: InterestState;
   isTV: boolean;
-};
+}
 
 /* ── Narrow Builder Interfaces ──────────────────────────── */
 
 /** A section link for the sticky navigation bar */
-type NavSection = {
+interface NavSection {
   id: string;
   label: string;
-};
+}
 
 /** Data slice for buildHero — exactly the fields the hero section renders */
-type HeroData = {
+interface HeroData {
   photos: Photo[];
   subjectId: string;
   poster: string | null;
@@ -207,28 +207,28 @@ type HeroData = {
   imdbId: string | null;
   interest: InterestState;
   summary: string | null;
-};
+}
 
 /** Callback seam for hero interest actions — replaces direct api/extract imports */
-type HeroCallbacks = {
-  onWishClick: () => void;
-  onWatchingClick: () => void;
-  onCollectClick: () => void;
-  onOpenInterest: (state: InterestState) => void;
-};
+interface HeroCallbacks {
+  handleWishClick: () => void;
+  handleWatchingClick: () => void;
+  handleCollectClick: () => void;
+  handleOpenInterest: (state: InterestState) => void;
+}
 
 /** Data slice for buildPhotos */
-type PhotosData = {
+interface PhotosData {
   photos: Photo[];
   trailers: Trailer[];
   subjectId: string;
-};
+}
 
 /** Data slice for buildComments */
-type CommentsData = {
+interface CommentsData {
   comments: Comment[];
   subjectId: string;
-};
+}
 
 /** Callback seam for review voting. */
 type ReviewVoteCallback = (
@@ -238,32 +238,32 @@ type ReviewVoteCallback = (
 type AccountActionGuard = () => boolean;
 
 /** Data slice for buildReviews */
-type ReviewData = {
+interface ReviewData {
   reviews: Review[];
   subjectId: string;
   /** true for TV series → use "剧评" instead of "影评" */
   isTV: boolean;
-  onReviewVote?: ReviewVoteCallback;
+  handleReviewVote?: ReviewVoteCallback;
   canReviewVote?: AccountActionGuard;
-};
+}
 
 /** Data slice for buildDetails */
-type DetailsData = {
+interface DetailsData {
   info: InfoBlock;
   isTV: boolean;
   awards: Award[];
-};
+}
 
 /** Data slice for buildStickyNav */
-type StickyNavData = {
+interface StickyNavData {
   title: Pick<TitleInfo, "primary" | "full">;
   sections: NavSection[];
-};
+}
 
 /* ── Interest / Mark Types ────────────────────────────── */
 
 /** Parsed interest state from the real Douban page */
-type InterestState = {
+interface InterestState {
   loggedIn: boolean;
   marked: boolean;
   status: "none" | "wish" | "do" | "collect";
@@ -277,22 +277,22 @@ type InterestState = {
   comment: string;
   /** vote count text from the .pl child span, e.g. "1有用" (S3 only) */
   usefulCount: string;
-};
+}
 
 /** Form data the user fills in the interest modal */
-type InterestFormState = {
+interface InterestFormState {
   status: "wish" | "do" | "collect";
   rating: number;
   comment: string;
-};
+}
 
 /** Callback seam — modal calls these instead of importing API directly */
-type ModalCallbacks = {
+interface ModalCallbacks {
   onSave: (form: InterestFormState) => Promise<{ ok: boolean; error?: string }>;
   onRemove: (
     status: InterestState["status"]
   ) => Promise<{ ok: boolean; error?: string }>;
-};
+}
 
 /** Map from interest value to Chinese label */
 const INTEREST_LABELS: Record<InterestState["status"], string> = {

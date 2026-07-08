@@ -3,9 +3,11 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGmGet = vi.hoisted(() => vi.fn());
+const mockGmGet = vi.hoisted(() =>
+  vi.fn<(url: string, referer?: string) => Promise<string>>()
+);
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   gmGet: mockGmGet,
 }));
 
@@ -73,7 +75,7 @@ describe("fetchMcRating", () => {
 
     const result = await fetchMcRating("The Shawshank Redemption", false);
 
-    expect(result).toEqual({ reviewCount: 22, score: 82 });
+    expect(result).toStrictEqual({ reviewCount: 22, score: 82 });
   });
 
   it("sends correct referer header (t5)", async () => {
@@ -125,13 +127,13 @@ describe("fetchMcRating", () => {
 
     // First call — fetches and caches
     const first = await fetchMcRating("The Shawshank Redemption", false);
-    expect(first).toEqual({ reviewCount: 22, score: 82 });
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(first).toStrictEqual({ reviewCount: 22, score: 82 });
+    expect(mockGmGet).toHaveBeenCalledOnce();
 
     // Second call — should use cache
     mockGmGet.mockClear();
     const second = await fetchMcRating("The Shawshank Redemption", false);
-    expect(second).toEqual({ reviewCount: 22, score: 82 });
+    expect(second).toStrictEqual({ reviewCount: 22, score: 82 });
     expect(mockGmGet).not.toHaveBeenCalled();
   });
 
@@ -151,8 +153,8 @@ describe("fetchMcRating", () => {
     const result = await fetchMcRating("The Shawshank Redemption", false);
 
     // Should re-fetch since cache is expired
-    expect(result).toEqual({ reviewCount: 22, score: 82 });
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(result).toStrictEqual({ reviewCount: 22, score: 82 });
+    expect(mockGmGet).toHaveBeenCalledOnce();
   });
 
   it("returns null when ratingValue is not a number (t12)", async () => {
@@ -198,7 +200,7 @@ describe("fetchMcRating", () => {
 
     const result = await fetchMcRating("True Grit", false, undefined, "2010");
 
-    expect(result).toEqual({ reviewCount: 43, score: 69 });
+    expect(result).toStrictEqual({ reviewCount: 43, score: 69 });
     expect(mockGmGet).toHaveBeenCalledTimes(2);
     expect(mockGmGet).toHaveBeenNthCalledWith(
       1,
@@ -234,7 +236,7 @@ describe("fetchMcRating", () => {
 
     const result = await fetchMcRating("The Shawshank Redemption", false);
 
-    expect(result).toEqual({ reviewCount: 22, score: 82 });
+    expect(result).toStrictEqual({ reviewCount: 22, score: 82 });
   });
 
   /* ── Slug format ────────────────────────────────── */

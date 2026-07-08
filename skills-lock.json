@@ -217,6 +217,12 @@
       "skillPath": "skills/deprecated/ubiquitous-language/SKILL.md",
       "computedHash": "c8968b02b83c365bc81d85cc17fb4c8854b80f5b6dece322164fff5b00142231"
     },
+    "ultracite": {
+      "source": "haydenbleasel/ultracite",
+      "sourceType": "github",
+      "skillPath": "skills/ultracite/SKILL.md",
+      "computedHash": "e061f8c74bb2ee6ceb57d4a904fc83be81fd559febe6e76971f055913910df75"
+    },
     "wayfinder": {
       "source": "mattpocock/skills",
       "sourceType": "github",

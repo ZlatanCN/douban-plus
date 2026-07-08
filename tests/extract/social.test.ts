@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { extractComments, extractRecommendations } from "../../src/extract";
 import { buildDoc } from "../helpers";
 
-describe("extractRecommendations", () => {
+describe(extractRecommendations, () => {
   it("extracts related movie recommendations from .recommendations-bd", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -43,12 +43,12 @@ describe("extractRecommendations", () => {
 
   it("returns empty array when no recommendations section", () => {
     const doc = buildDoc("<html><body><p>No recs</p></body></html>");
-    expect(extractRecommendations(doc)).toEqual([]);
+    expect(extractRecommendations(doc)).toStrictEqual([]);
   });
 });
 
-describe("extractComments", () => {
-  it("extracts user comments from #hot-comments", () => {
+describe(extractComments, () => {
+  it("extracts user identity and content from #hot-comments", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <div id="hot-comments">
@@ -68,6 +68,26 @@ describe("extractComments", () => {
     expect(result).toHaveLength(1);
     expect(result[0].name).toBe("用户1");
     expect(result[0].content).toBe("经典之作");
+  });
+
+  it("extracts stars, votes and cid from #hot-comments", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="hot-comments">
+  <div class="comment-item" data-cid="1001">
+    <div class="avatar"><a href="/people/user1/"><img src="https://img1.doubanio.com/icon/u1.jpg"/></a></div>
+    <div class="comment-info"><a href="/people/user1/">用户1</a></div>
+    <div class="comment-content">
+      <span class="allstar50"></span>
+      <span class="comment-time" title="2024-01-15">2024-01-15</span>
+    </div>
+    <span class="short">经典之作</span>
+    <span class="vote-count">128</span>
+  </div>
+</div>
+</body></html>`);
+    const result = extractComments(doc);
+    expect(result).toHaveLength(1);
     expect(result[0].stars).toBe(5);
     expect(result[0].votes).toBe(128);
     expect(result[0].cid).toBe("1001");
@@ -100,7 +120,7 @@ describe("extractComments", () => {
 
   it("returns empty array when no comments section", () => {
     const doc = buildDoc("<html><body><p>No comments</p></body></html>");
-    expect(extractComments(doc)).toEqual([]);
+    expect(extractComments(doc)).toStrictEqual([]);
   });
 
   it("does not infer voted state merely because .j.vote-comment is missing", () => {
@@ -116,7 +136,7 @@ describe("extractComments", () => {
 </body></html>`);
     const result = extractComments(doc);
     expect(result).toHaveLength(1);
-    expect(result[0].voted).toBe(false);
+    expect(result[0].voted).toBeFalsy();
   });
 
   it("detects voted state from the comment vote area", () => {
@@ -132,6 +152,6 @@ describe("extractComments", () => {
 </body></html>`);
     const result = extractComments(doc);
     expect(result).toHaveLength(1);
-    expect(result[0].voted).toBe(true);
+    expect(result[0].voted).toBeTruthy();
   });
 });

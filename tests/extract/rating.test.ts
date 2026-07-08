@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { extractRating, extractSummary } from "../../src/extract";
 import { buildDoc } from "../helpers";
 
-describe("extractRating", () => {
+describe(extractRating, () => {
   it("extracts score from strong.rating_num", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -67,7 +67,7 @@ describe("extractRating", () => {
   });
 });
 
-describe("extractSummary", () => {
+describe(extractSummary, () => {
   it("extracts summary from v:summary span", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

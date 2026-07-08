@@ -8,9 +8,10 @@ import type { McRating, RtRating } from "../../src/types";
 
 // Mock request utils to prevent GM_xmlhttpRequest check from firing
 // during module import chain resolution.
-vi.mock("../../src/utils/request", () => ({
-  gmGet: vi.fn(),
-  gmPost: vi.fn(),
+vi.mock(import("../../src/utils/request"), () => ({
+  gmGet: vi.fn<(url: string, referer?: string) => Promise<string>>(),
+  gmPost:
+    vi.fn<(url: string, data: string, referer?: string) => Promise<string>>(),
 }));
 
 // Import after all mocks are set up
@@ -55,9 +56,39 @@ describe("resolveAll", () => {
   /* ── Happy: all three with H1 title ─────────────── */
 
   it("resolves all three in parallel when englishTitle is available (t1)", async () => {
-    const resolveImdb = vi.fn().mockResolvedValue(makeImdbResult());
-    const resolveRt = vi.fn().mockResolvedValue(makeRtRating());
-    const resolveMc = vi.fn().mockResolvedValue(makeMcRating());
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(makeImdbResult());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(makeRtRating());
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
+
+    await resolveAll(
+      makeCtx({
+        englishTitle: "The Shawshank Redemption",
+        imdbId: "tt0111161",
+      }),
+      { resolveImdb, resolveMc, resolveRt }
+    );
+
+    expect(resolveImdb).toHaveBeenCalledOnce();
+    expect(resolveRt).toHaveBeenCalledOnce();
+    expect(resolveMc).toHaveBeenCalledOnce();
+  });
+
+  it("returns all three resolved results when englishTitle is available (t1b)", async () => {
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(makeImdbResult());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(makeRtRating());
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
 
     const result = await resolveAll(
       makeCtx({
@@ -67,23 +98,52 @@ describe("resolveAll", () => {
       { resolveImdb, resolveMc, resolveRt }
     );
 
-    expect(resolveImdb).toHaveBeenCalledTimes(1);
-    expect(resolveRt).toHaveBeenCalledTimes(1);
-    expect(resolveMc).toHaveBeenCalledTimes(1);
-
-    expect(result.imdb).toEqual(makeImdbResult());
-    expect(result.rt).toEqual(makeRtRating());
-    expect(result.mc).toEqual(makeMcRating());
+    expect(result.imdb).toStrictEqual(makeImdbResult());
+    expect(result.rt).toStrictEqual(makeRtRating());
+    expect(result.mc).toStrictEqual(makeMcRating());
   });
 
   /* ── Fallback: no H1 title, IMDb provides title ── */
 
   it("resolves RT/MC after IMDb when no H1 title but IMDb has title (t2)", async () => {
     const resolveImdb = vi
-      .fn()
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
       .mockResolvedValue(makeImdbResult({ title: "Inception" }));
-    const resolveRt = vi.fn().mockResolvedValue(makeRtRating());
-    const resolveMc = vi.fn().mockResolvedValue(makeMcRating());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(makeRtRating());
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
+
+    await resolveAll(
+      makeCtx({
+        englishTitle: null,
+        imdbId: "tt1375666",
+      }),
+      { resolveImdb, resolveMc, resolveRt }
+    );
+
+    // RT/MC should be called with englishTitle from IMDb result
+    expect(resolveImdb).toHaveBeenCalledOnce();
+    expect(resolveRt).toHaveBeenCalledWith(
+      expect.objectContaining({ englishTitle: "Inception" })
+    );
+    expect(resolveMc).toHaveBeenCalledWith(
+      expect.objectContaining({ englishTitle: "Inception" })
+    );
+  });
+
+  it("returns results when RT/MC resolved via IMDb fallback (t2b)", async () => {
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(makeImdbResult({ title: "Inception" }));
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(makeRtRating());
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
 
     const result = await resolveAll(
       makeCtx({
@@ -93,28 +153,23 @@ describe("resolveAll", () => {
       { resolveImdb, resolveMc, resolveRt }
     );
 
-    // RT/MC should be called with englishTitle from IMDb result
-    expect(resolveImdb).toHaveBeenCalledTimes(1);
-    expect(resolveRt).toHaveBeenCalledWith(
-      expect.objectContaining({ englishTitle: "Inception" })
-    );
-    expect(resolveMc).toHaveBeenCalledWith(
-      expect.objectContaining({ englishTitle: "Inception" })
-    );
-
-    expect(result.imdb).toEqual(makeImdbResult({ title: "Inception" }));
-    expect(result.rt).toEqual(makeRtRating());
-    expect(result.mc).toEqual(makeMcRating());
+    expect(result.imdb).toStrictEqual(makeImdbResult({ title: "Inception" }));
+    expect(result.rt).toStrictEqual(makeRtRating());
+    expect(result.mc).toStrictEqual(makeMcRating());
   });
 
   /* ── Error isolation ───────────────────────────── */
 
   it("isolates errors: one rejected resolver does not block others (t3)", async () => {
     const resolveImdb = vi
-      .fn()
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
       .mockRejectedValue(new Error("IMDb network error"));
-    const resolveRt = vi.fn().mockResolvedValue(makeRtRating());
-    const resolveMc = vi.fn().mockResolvedValue(makeMcRating());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(makeRtRating());
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
 
     const result = await resolveAll(
       makeCtx({
@@ -125,14 +180,20 @@ describe("resolveAll", () => {
     );
 
     expect(result.imdb).toBeNull();
-    expect(result.rt).toEqual(makeRtRating());
-    expect(result.mc).toEqual(makeMcRating());
+    expect(result.rt).toStrictEqual(makeRtRating());
+    expect(result.mc).toStrictEqual(makeMcRating());
   });
 
   it("isolates errors: RT failure still returns IMDb and MC (t4)", async () => {
-    const resolveImdb = vi.fn().mockResolvedValue(makeImdbResult());
-    const resolveRt = vi.fn().mockRejectedValue(new Error("RT error"));
-    const resolveMc = vi.fn().mockResolvedValue(makeMcRating());
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(makeImdbResult());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockRejectedValue(new Error("RT error"));
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
 
     const result = await resolveAll(
       makeCtx({
@@ -142,17 +203,23 @@ describe("resolveAll", () => {
       { resolveImdb, resolveMc, resolveRt }
     );
 
-    expect(result.imdb).toEqual(makeImdbResult());
+    expect(result.imdb).toStrictEqual(makeImdbResult());
     expect(result.rt).toBeNull();
-    expect(result.mc).toEqual(makeMcRating());
+    expect(result.mc).toStrictEqual(makeMcRating());
   });
 
   /* ── No identifiers ────────────────────────────── */
 
   it("returns all nulls when no identifiers available (t5)", async () => {
-    const resolveImdb = vi.fn().mockResolvedValue(null);
-    const resolveRt = vi.fn().mockResolvedValue(null);
-    const resolveMc = vi.fn().mockResolvedValue(null);
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(null);
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(null);
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(null);
 
     const result = await resolveAll(
       makeCtx({ englishTitle: null, imdbId: null }),
@@ -163,7 +230,26 @@ describe("resolveAll", () => {
     expect(result.imdb).toBeNull();
     expect(result.rt).toBeNull();
     expect(result.mc).toBeNull();
-    expect(resolveImdb).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call resolvers when no identifiers are available (t5b)", async () => {
+    const resolveImdb = vi
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
+      .mockResolvedValue(null);
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockResolvedValue(null);
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(null);
+
+    await resolveAll(makeCtx({ englishTitle: null, imdbId: null }), {
+      resolveImdb,
+      resolveMc,
+      resolveRt,
+    });
+
+    expect(resolveImdb).toHaveBeenCalledOnce();
     expect(resolveRt).not.toHaveBeenCalled();
     expect(resolveMc).not.toHaveBeenCalled();
   });
@@ -172,17 +258,19 @@ describe("resolveAll", () => {
 
   it("returns nulls for RT/MC when neither H1 nor IMDb provides title (t6)", async () => {
     const resolveImdb = vi
-      .fn()
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
       .mockResolvedValue(makeImdbResult({ title: null }));
-    const resolveRt = vi.fn();
-    const resolveMc = vi.fn();
+    const resolveRt =
+      vi.fn<(ctx: ResolutionContext) => Promise<RtRating | null>>();
+    const resolveMc =
+      vi.fn<(ctx: ResolutionContext) => Promise<McRating | null>>();
 
     const result = await resolveAll(
       makeCtx({ englishTitle: null, imdbId: "tt0111161" }),
       { resolveImdb, resolveMc, resolveRt }
     );
 
-    expect(result.imdb).toEqual(makeImdbResult({ title: null }));
+    expect(result.imdb).toStrictEqual(makeImdbResult({ title: null }));
     expect(result.rt).toBeNull();
     expect(result.mc).toBeNull();
     // RT/MC should not be called because IMDb has no title either
@@ -194,20 +282,24 @@ describe("resolveAll", () => {
 
   it("fallback path isolates errors: RT reject, MC succeeds (t7)", async () => {
     const resolveImdb = vi
-      .fn()
+      .fn<(ctx: ResolutionContext) => Promise<FetchImdbResult | null>>()
       .mockResolvedValue(makeImdbResult({ title: "The Fallback Movie" }));
-    const resolveRt = vi.fn().mockRejectedValue(new Error("RT not found"));
-    const resolveMc = vi.fn().mockResolvedValue(makeMcRating());
+    const resolveRt = vi
+      .fn<(ctx: ResolutionContext) => Promise<RtRating | null>>()
+      .mockRejectedValue(new Error("RT not found"));
+    const resolveMc = vi
+      .fn<(ctx: ResolutionContext) => Promise<McRating | null>>()
+      .mockResolvedValue(makeMcRating());
 
     const result = await resolveAll(
       makeCtx({ englishTitle: null, imdbId: "tt0000001" }),
       { resolveImdb, resolveMc, resolveRt }
     );
 
-    expect(result.imdb).toEqual(
+    expect(result.imdb).toStrictEqual(
       makeImdbResult({ title: "The Fallback Movie" })
     );
     expect(result.rt).toBeNull();
-    expect(result.mc).toEqual(makeMcRating());
+    expect(result.mc).toStrictEqual(makeMcRating());
   });
 });

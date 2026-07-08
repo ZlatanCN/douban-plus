@@ -3,9 +3,11 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGmGet = vi.hoisted(() => vi.fn());
+const mockGmGet = vi.hoisted(() =>
+  vi.fn<(url: string, referer?: string) => Promise<string>>()
+);
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   gmGet: mockGmGet,
 }));
 
@@ -47,7 +49,7 @@ describe("fetchAvatarUrls", () => {
     mockGmGet.mockResolvedValue(makeProfilePage(AVATAR_A));
 
     await fetchAvatarUrls([LINK_A]);
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(mockGmGet).toHaveBeenCalledOnce();
 
     mockGmGet.mockClear();
     await fetchAvatarUrls([LINK_A]);
@@ -66,7 +68,7 @@ describe("fetchAvatarUrls", () => {
 
     const result = await fetchAvatarUrls([LINK_A]);
 
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(mockGmGet).toHaveBeenCalledOnce();
     expect(result.get(LINK_A)).toBe("https://example.com/new.jpg");
   });
 

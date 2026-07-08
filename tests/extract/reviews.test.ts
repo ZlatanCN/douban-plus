@@ -6,8 +6,8 @@ import { describe, it, expect } from "vitest";
 import { extractReviews } from "../../src/extract";
 import { buildDoc } from "../helpers";
 
-describe("extractReviews", () => {
-  it("extracts reviews from #reviews-wrapper", () => {
+describe(extractReviews, () => {
+  it("extracts review metadata from #reviews-wrapper", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <div id="reviews-wrapper">
@@ -37,6 +37,33 @@ describe("extractReviews", () => {
     expect(result[0].title).toBe("很棒的影片");
     expect(result[0].stars).toBe(4);
     expect(result[0].time).toBe("2024-03-10");
+  });
+
+  it("extracts review vote counts and content from #reviews-wrapper", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="reviews-wrapper">
+  <div class="main review-item" id="17191063">
+    <header class="main-hd">
+      <a href="/people/user1/" class="avator"><img src="https://img1.doubanio.com/icon/u12345.jpg"/></a>
+      <a href="/people/user1/" class="name">用户1</a>
+      <span class="allstar40 main-title-rating" title="推荐"></span>
+      <span class="main-meta">2024-03-10</span>
+    </header>
+    <div class="main-bd">
+      <h2><a href="/review/17191063/">很棒的影片</a></h2>
+      <div class="review-short" data-rid="17191063">
+        <div class="short-content">一部令人深思的经典之作</div>
+      </div>
+      <div class="action">
+        <a href="javascript:;" class="action-btn up" data-rid="17191063" title="有用">12</a>
+        <a href="javascript:;" class="action-btn down" data-rid="17191063" title="没用">1</a>
+      </div>
+    </div>
+  </div>
+</div>
+</body></html>`);
+    const result = extractReviews(doc);
     expect(result[0].usefulCount).toBe(12);
     expect(result[0].uselessCount).toBe(1);
     expect(result[0].content).toBe("一部令人深思的经典之作");
@@ -86,7 +113,7 @@ describe("extractReviews", () => {
 
   it("returns empty array when no reviews section", () => {
     const doc = buildDoc("<html><body><p>No reviews here</p></body></html>");
-    expect(extractReviews(doc)).toEqual([]);
+    expect(extractReviews(doc)).toStrictEqual([]);
   });
 
   it("detects spoiler", () => {
@@ -110,7 +137,7 @@ describe("extractReviews", () => {
 </body></html>`);
     const result = extractReviews(doc);
     expect(result).toHaveLength(1);
-    expect(result[0].spoiler).toBe(true);
+    expect(result[0].spoiler).toBeTruthy();
   });
 
   it("handles missing avatar", () => {

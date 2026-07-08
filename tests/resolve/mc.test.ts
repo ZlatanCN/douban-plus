@@ -17,7 +17,7 @@ const mockFetchMcRating = vi.hoisted(() =>
   >()
 );
 
-vi.mock("../../src/api/metacritic", () => ({
+vi.mock(import("../../src/api/metacritic"), () => ({
   fetchMcRating: mockFetchMcRating,
 }));
 
@@ -53,7 +53,7 @@ describe("resolveMc", () => {
       undefined,
       undefined
     );
-    expect(result).toEqual({ reviewCount: 22, score: 82 });
+    expect(result).toStrictEqual({ reviewCount: 22, score: 82 });
   });
 
   it("passes season and year to fetchMcRating (t2)", async () => {
@@ -118,6 +118,6 @@ describe("resolveMc", () => {
     const result = await resolveMc(ctx);
 
     expect(result).toBeNull();
-    expect(mockFetchMcRating).toHaveBeenCalledTimes(1);
+    expect(mockFetchMcRating).toHaveBeenCalledOnce();
   });
 });

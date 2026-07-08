@@ -11,7 +11,7 @@ export default defineConfig({
   test: {
     coverage: {
       exclude: ["src/main.ts"],
-      include: ["src/**/*.ts"],
+      include: ["src/**/*.{ts,tsx}"],
       provider: "v8",
       reporter: ["text", "lcov", "html"],
       reportsDirectory: "coverage",
@@ -30,7 +30,7 @@ export default defineConfig({
       },
     },
     environment: "happy-dom",
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.{test.ts,test.tsx}"],
     setupFiles: ["tests/setup.ts"],
     testTimeout: 10_000,
   },

@@ -35,7 +35,7 @@ const cacheKey = (slug: string, season?: number, year?: string): string => {
 
 /* ── RT Page HTML Parsing ──────────────────────────── */
 
-type ReviewsData = {
+interface ReviewsData {
   criticsScore?: {
     score?: string | number;
     certified?: boolean;
@@ -48,7 +48,7 @@ type ReviewsData = {
     likedCount?: number;
     notLikedCount?: number;
   };
-};
+}
 
 const parseData = (raw: string): RtRating | null => {
   const data = JSON.parse(raw) as ReviewsData;
@@ -64,11 +64,11 @@ const parseData = (raw: string): RtRating | null => {
   }
   const criticsScore =
     typeof criticsRaw === "string"
-      ? Number.parseInt(criticsRaw, 10)
+      ? Math.trunc(Number(criticsRaw))
       : criticsRaw;
   const audienceScore =
     typeof audienceRaw === "string"
-      ? Number.parseInt(audienceRaw, 10)
+      ? Math.trunc(Number(audienceRaw))
       : audienceRaw;
   if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) {
     return null;

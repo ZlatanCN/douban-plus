@@ -13,7 +13,7 @@ const extractRating = (doc: Document): RatingInfo | null => {
     $<HTMLElement>("strong.rating_num", doc) ||
     $<HTMLElement>('strong[property="v:average"]', doc);
   const raw = safeText(scoreEl);
-  const score = raw ? Number.parseFloat(raw) : Number.NaN;
+  const score = raw ? Number(raw) : Number.NaN;
   if (!score || Number.isNaN(score) || score <= 0) {
     return null;
   }
@@ -22,7 +22,7 @@ const extractRating = (doc: Document): RatingInfo | null => {
     $<HTMLElement>('span[property="v:votes"]', doc) ||
     $<HTMLElement>(".rating_people span", doc);
   const count = votesEl
-    ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+    ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0
     : 0;
 
   return { count, score };

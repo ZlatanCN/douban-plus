@@ -1,12 +1,9 @@
 import { defineConfig } from "oxlint";
 import core from "ultracite/oxlint/core";
+import react from "ultracite/oxlint/react";
+import vitest from "ultracite/oxlint/vitest";
 
 export default defineConfig({
-  extends: [core],
-  ignorePatterns: core.ignorePatterns?.filter(
-    (pattern) => !pattern.includes("build")
-  ),
-  rules: {
-    "typescript/consistent-type-definitions": ["error", "type"],
-  },
+  extends: [core, react, vitest],
+  ignorePatterns: core.ignorePatterns,
 });

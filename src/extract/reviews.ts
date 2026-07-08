@@ -21,7 +21,7 @@ const extractReviewRating = (
   if (ratingEl) {
     const rm = (ratingEl.className || "").match(RE_ALLSTAR);
     if (rm) {
-      stars = Number.parseInt(rm[1], 10) / 10;
+      stars = Math.trunc(Number(rm[1])) / 10;
     }
     ratingWord = ratingEl.getAttribute("title") || "";
   }
@@ -56,8 +56,8 @@ const extractReviewVotes = (
   const upEl = $<HTMLElement>(".action-btn.up", action);
   const downEl = $<HTMLElement>(".action-btn.down", action);
   return {
-    usefulCount: Number.parseInt((upEl?.textContent ?? "").trim(), 10) || 0,
-    uselessCount: Number.parseInt((downEl?.textContent ?? "").trim(), 10) || 0,
+    usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
+    uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0,
   };
 };
 

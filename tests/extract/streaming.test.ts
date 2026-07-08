@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { extractStreaming, parsePlaySources } from "../../src/extract";
 import { buildDoc } from "../helpers";
 
-describe("parsePlaySources", () => {
+describe(parsePlaySources, () => {
   it("extracts play sources from inline script", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -24,11 +24,11 @@ sources[1] = [{play_link: "https://www.youku.com/play/1"}];
 
   it("returns empty object when no sources script exists", () => {
     const doc = buildDoc("<html><body><p>No script</p></body></html>");
-    expect(parsePlaySources(doc)).toEqual({});
+    expect(parsePlaySources(doc)).toStrictEqual({});
   });
 });
 
-describe("extractStreaming", () => {
+describe(extractStreaming, () => {
   it("extracts streaming sources from a.playBtn elements", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -73,6 +73,6 @@ describe("extractStreaming", () => {
 
   it("returns empty array when no streaming sources", () => {
     const doc = buildDoc("<html><body><p>No streams</p></body></html>");
-    expect(extractStreaming(doc)).toEqual([]);
+    expect(extractStreaming(doc)).toStrictEqual([]);
   });
 });

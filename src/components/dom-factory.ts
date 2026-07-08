@@ -1,6 +1,6 @@
 import { ICON_STAR_EMPTY, ICON_STAR_FULL, ICON_STAR_HALF } from "../constants";
 
-type ElementAttrs = {
+interface ElementAttrs {
   className?: string | string[];
   class?: string | string[];
   id?: string;
@@ -17,7 +17,7 @@ type ElementAttrs = {
   onclick?: (event: Event) => void;
   /** Arbitrary attributes set via setAttribute() */
   attrs?: Record<string, string>;
-};
+}
 
 const strAttrs: [keyof ElementAttrs, string][] = [
   ["id", "id"],
@@ -31,7 +31,7 @@ const strAttrs: [keyof ElementAttrs, string][] = [
   ["type", "type"],
 ];
 
-type ElementTagMap = {
+interface ElementTagMap {
   a: HTMLAnchorElement;
   button: HTMLButtonElement;
   div: HTMLDivElement;
@@ -49,7 +49,7 @@ type ElementTagMap = {
   style: HTMLStyleElement;
   textarea: HTMLTextAreaElement;
   video: HTMLVideoElement;
-};
+}
 
 const el = <K extends keyof ElementTagMap>(
   tag: K,

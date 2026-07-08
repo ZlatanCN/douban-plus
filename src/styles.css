@@ -296,16 +296,21 @@ body {
   margin: 0 auto;
 }
 .atv-poster-card {
+  display: flex;
   flex: 0 0 auto;
   width: 360px;
   aspect-ratio: 2 / 3;
   overflow: hidden;
+  border: none;
+  padding: 0;
   background: var(--atv-bg-tertiary);
   border-radius: var(--atv-radius-lg);
   box-shadow:
     0 24px 60px rgba(0, 0, 0, 0.6),
     0 0 0 1px var(--atv-border-subtle) inset;
   transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-poster-card:hover {
   transform: scale(1.03);
@@ -760,19 +765,23 @@ body {
   gap: 8px;
   height: 44px;
   padding: 0 22px;
-  border-radius: 999px;
+  border: none;
+  background: none;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.01em;
-  border: none;
+  color: inherit;
   cursor: pointer;
+  border-radius: 999px;
   transition:
     transform 200ms ease,
     background 200ms ease,
     box-shadow 200ms ease,
     color 200ms ease;
-  font-family: inherit;
   -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-btn-primary {
   color: #fff;
@@ -824,14 +833,16 @@ body {
   gap: 6px;
   align-items: center;
   padding: 0;
-  font-family: inherit;
+  border: none;
+  background: none;
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--atv-accent-bright);
   letter-spacing: 0.02em;
   cursor: pointer;
-  background: none;
-  border: none;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-hero-more:hover {
   color: var(--atv-accent);
@@ -1131,9 +1142,12 @@ body {
   gap: 12px;
 }
 .atv-photo-tile {
+  display: flex;
   flex: 0 0 400px;
   aspect-ratio: 16 / 9;
   overflow: hidden;
+  border: none;
+  padding: 0;
   cursor: pointer;
   scroll-snap-align: start;
   background: var(--atv-bg-tertiary);
@@ -1141,6 +1155,8 @@ body {
   transition:
     transform 300ms cubic-bezier(0.22, 1, 0.36, 1),
     filter 300ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-photo-tile.is-portrait {
   flex: 0 0 240px;
@@ -1373,15 +1389,29 @@ a.atv-comment-author:hover {
 }
 .atv-comment-body {
   position: relative;
-  display: -webkit-box;
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
-  -webkit-box-orient: vertical;
   margin: 0 0 14px;
-  overflow: hidden;
-  -webkit-line-clamp: 4;
+  border: none;
+  padding: 0;
+  width: 100%;
+  background: none;
+  font: inherit;
   font-size: 15px;
   line-height: 1.5;
   color: rgba(255, 255, 255, 0.85);
+  text-align: left;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  word-break: break-word;
+}
+.atv-comment-body-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  -webkit-line-clamp: 4;
   word-break: break-word;
 }
 .atv-comment-foot {
@@ -1447,11 +1477,11 @@ a.atv-comment-author:hover {
   width: 22px;
   height: 22px;
   padding: 0;
-  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.3);
+  font: inherit;
   color: var(--atv-text-tertiary);
   cursor: pointer;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 50%;
   backdrop-filter: blur(4px);
   transition:
@@ -1459,6 +1489,8 @@ a.atv-comment-author:hover {
     border-color 200ms ease,
     background 200ms ease,
     transform 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-comment-card.has-overflow .atv-comment-expand {
   display: inline-flex;
@@ -1485,7 +1517,11 @@ a.atv-comment-author:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   padding: 24px;
+  border: none;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.72);
   -webkit-backdrop-filter: blur(24px) saturate(1.15);
@@ -1545,15 +1581,18 @@ a.atv-comment-author:hover {
   width: 32px;
   height: 32px;
   padding: 0;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  cursor: pointer;
   border-radius: 50%;
   transition:
     color 200ms ease,
     background 200ms ease,
     border-color 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-comment-overlay-close:hover {
   color: #fff;
@@ -1646,20 +1685,22 @@ a.atv-comment-overlay-author:hover {
   gap: 5px;
   align-items: center;
   padding: 6px 14px;
-  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  font: inherit;
   font-size: 13px;
   font-weight: 500;
   color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease,
     transform 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-comment-overlay-votes:hover {
   color: var(--atv-accent);
@@ -1724,15 +1765,19 @@ a.atv-comment-overlay-author:hover {
   justify-content: center;
   width: 44px;
   height: 44px;
-  color: #fff;
-  cursor: pointer;
-  background: rgba(255, 255, 255, 0.08);
+  padding: 0;
   border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
   border-radius: 50%;
   transition:
     color 200ms ease,
     background 200ms ease,
     border-color 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-modal-close:hover {
   color: #fff;
@@ -1756,8 +1801,11 @@ a.atv-comment-overlay-author:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
   min-height: 100vh;
   min-height: 100dvh;
+  margin: 0;
+  border: none;
   padding: max(24px, env(safe-area-inset-top))
     max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
     max(24px, env(safe-area-inset-left));
@@ -1954,7 +2002,11 @@ a.atv-comment-overlay-author:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   padding: 24px;
+  border: none;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.72);
   opacity: 0;
@@ -2069,19 +2121,21 @@ a.atv-comment-overlay-author:hover {
   justify-content: center;
   height: 36px;
   padding: 0 12px;
+  border: none;
+  background: transparent;
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--atv-text-tertiary);
   letter-spacing: 0.01em;
   cursor: pointer;
-  border: none;
   border-radius: 999px;
-  background: transparent;
-  font-family: inherit;
   transition:
     color 200ms ease,
     background 200ms ease;
   -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-interest-modal-status:hover {
   color: var(--atv-text-secondary);
@@ -2097,13 +2151,19 @@ a.atv-comment-overlay-author:hover {
   margin-bottom: 24px;
 }
 .atv-interest-modal-star {
+  display: flex;
   width: 28px;
   height: 28px;
+  padding: 0;
+  border: none;
+  background: none;
   color: rgba(255, 255, 255, 0.2);
   cursor: pointer;
   transition:
     color 200ms ease,
     transform 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-interest-modal-star.is-full {
   color: var(--atv-rating-gold);
@@ -2152,20 +2212,22 @@ a.atv-comment-overlay-author:hover {
   height: 44px;
   padding: 0 24px;
   margin-bottom: 10px;
+  border: none;
+  background: var(--atv-accent);
+  font: inherit;
   font-size: 14px;
   font-weight: 600;
   color: #fff;
   letter-spacing: 0.01em;
   cursor: pointer;
-  background: var(--atv-accent);
-  border: none;
   border-radius: 999px;
-  font-family: inherit;
   transition:
     background 200ms ease,
     transform 200ms ease;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-interest-modal-submit:hover {
   background: var(--atv-accent-bright);
@@ -2185,20 +2247,22 @@ a.atv-comment-overlay-author:hover {
   height: 36px;
   padding: 0 24px;
   margin-bottom: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  font: inherit;
   font-size: 12px;
   font-weight: 500;
   color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  font-family: inherit;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease;
   -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-interest-modal-remove:hover {
   color: var(--atv-text-secondary);
@@ -2389,12 +2453,17 @@ a.atv-comment-overlay-author:hover {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: var(--atv-radius-md);
   cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   transition:
     transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 350ms ease,
     box-shadow 350ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-review-card:hover {
   border-color: rgba(255, 255, 255, 0.12);
@@ -2531,11 +2600,12 @@ a.atv-comment-overlay-author:hover {
   align-items: center;
   gap: 4px;
   padding: 5px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font: inherit;
   font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 100px;
   cursor: pointer;
   line-height: 1;
@@ -2544,6 +2614,8 @@ a.atv-comment-overlay-author:hover {
     background 250ms ease,
     border-color 250ms ease;
   white-space: nowrap;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-vote-btn:hover {
   border-color: var(--atv-accent);
@@ -2574,7 +2646,11 @@ a.atv-comment-overlay-author:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
   padding: 48px;
+  border: none;
   pointer-events: none;
   background: rgba(0, 0, 0, 0.72);
   opacity: 0;
@@ -2645,7 +2721,9 @@ a.atv-comment-overlay-author:hover {
   transform: scaleX(1);
 }
 .atv-review-modal-header {
-  margin-bottom: 28px;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 .atv-review-modal-title {
   font-size: 24px;
@@ -2653,7 +2731,7 @@ a.atv-comment-overlay-author:hover {
   line-height: 1.32;
   letter-spacing: -0.01em;
   color: #f0f0f0;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .atv-review-modal-title:focus {
   outline: none;
@@ -2662,7 +2740,7 @@ a.atv-comment-overlay-author:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 .atv-review-modal-avatar {
   width: 28px;
@@ -2695,8 +2773,8 @@ a.atv-comment-overlay-author:hover {
 }
 .atv-review-modal-body {
   color: rgba(255, 255, 255, 0.82);
-  font-size: 16px;
-  line-height: 1.9;
+  font-size: 17px;
+  line-height: 1.85;
 }
 .atv-review-modal-body h2 {
   font-size: 20px;
@@ -2994,33 +3072,36 @@ a.atv-comment-overlay-author:hover {
 .atv-review-modal-body .main-hd a.name:hover {
   text-decoration: underline;
 }
+.atv-review-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
 .atv-review-modal-votes {
   display: flex;
   gap: 14px;
-  justify-content: center;
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 .atv-review-modal-link {
-  text-align: center;
-  margin-top: 18px;
-  padding-bottom: 8px;
+  display: flex;
+  align-items: center;
 }
-.atv-review-modal-link-a {
+#atv-douban-root .atv-review-modal-link-a {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.5);
   background: transparent;
   text-decoration: none;
   transition: color 200ms ease;
 }
-.atv-review-modal-link-a:link,
-.atv-review-modal-link-a:visited {
-  color: rgba(255, 255, 255, 0.35);
+#atv-douban-root .atv-review-modal-link-a:link,
+#atv-douban-root .atv-review-modal-link-a:visited {
+  color: rgba(255, 255, 255, 0.5);
   background: transparent;
 }
-.atv-review-modal-link-a:hover,
-.atv-review-modal-link-a:active {
+#atv-douban-root .atv-review-modal-link-a:hover,
+#atv-douban-root .atv-review-modal-link-a:active {
   color: var(--atv-accent);
   background: transparent;
 }
@@ -3028,7 +3109,7 @@ a.atv-comment-overlay-author:hover {
   display: inline-flex;
   gap: 2px;
   align-items: center;
-  margin: 0 0 8px;
+  margin: 0 0 4px;
   color: var(--atv-rating-gold);
 }
 .atv-review-modal-stars svg {
@@ -3086,18 +3167,20 @@ a.atv-comment-overlay-author:hover {
   justify-content: center;
   min-height: 34px;
   padding: 0 18px;
-  font-family: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  font: inherit;
   font-size: 13px;
   font-weight: 600;
   color: var(--atv-text-secondary);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .atv-review-modal-retry:hover,
 .atv-review-modal-retry:focus-visible {
@@ -3107,7 +3190,7 @@ a.atv-comment-overlay-author:hover {
 }
 .atv-review-modal-retry:focus-visible,
 .atv-review-modal .atv-modal-close:focus-visible,
-.atv-review-modal-link-a:focus-visible {
+#atv-douban-root .atv-review-modal-link-a:focus-visible {
   outline: 2px solid var(--atv-accent);
   outline-offset: 3px;
 }

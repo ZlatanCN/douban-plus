@@ -39,12 +39,12 @@ const SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String
   }
 }`;
 
-type FetchImdbResult = {
+interface FetchImdbResult {
   rating: ImdbRating | null;
   title: string | null;
-};
+}
 
-type ParsedResponse = {
+interface ParsedResponse {
   titleText: string | null;
   aggregateRating: number | undefined;
   voteCount: number | undefined;
@@ -54,9 +54,9 @@ type ParsedResponse = {
     id: string;
     titleText: string;
   } | null;
-};
+}
 
-type ParsedRaw = {
+interface ParsedRaw {
   data?: {
     title?: {
       id: string;
@@ -71,7 +71,7 @@ type ParsedRaw = {
     };
   };
   errors?: unknown;
-};
+}
 
 const extractTitleFields = (parsed: ParsedRaw): ParsedResponse | null => {
   if (parsed.errors) {

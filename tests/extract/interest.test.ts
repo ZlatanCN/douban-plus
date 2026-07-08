@@ -10,7 +10,7 @@ import {
 } from "../../src/extract";
 import { buildDoc, mockCookie } from "../helpers";
 
-describe("extractInterestState", () => {
+describe(extractInterestState, () => {
   it("returns logged-out state when no ck cookie", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -19,9 +19,9 @@ describe("extractInterestState", () => {
 </div>
 </body></html>`);
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(false);
+    expect(result.loggedIn).toBeFalsy();
     expect(result.status).toBe("none");
-    expect(result.marked).toBe(false);
+    expect(result.marked).toBeFalsy();
   });
 
   it("detects S3 collect state with cookie set", () => {
@@ -36,9 +36,9 @@ describe("extractInterestState", () => {
 </body></html>`);
     const restore = mockCookie(doc, "ck=test123;");
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(true);
+    expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("collect");
-    expect(result.marked).toBe(true);
+    expect(result.marked).toBeTruthy();
     expect(result.rating).toBe(4);
     restore();
   });
@@ -54,9 +54,9 @@ describe("extractInterestState", () => {
 </body></html>`);
     const restore = mockCookie(doc, "ck=test456;");
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(true);
+    expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("wish");
-    expect(result.marked).toBe(true);
+    expect(result.marked).toBeTruthy();
     restore();
   });
 
@@ -71,7 +71,7 @@ describe("extractInterestState", () => {
 </body></html>`);
     const restore = mockCookie(doc, "ck=test789;");
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(true);
+    expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("do");
     restore();
   });
@@ -85,10 +85,10 @@ describe("extractInterestState", () => {
 </body></html>`);
     const restore = mockCookie(doc, "ck=test;");
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(true);
+    expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("collect");
     // S2 does not set marked
-    expect(result.marked).toBe(false);
+    expect(result.marked).toBeFalsy();
     restore();
   });
 
@@ -102,13 +102,13 @@ describe("extractInterestState", () => {
 </body></html>`);
     const restore = mockCookie(doc, "ck=test;");
     const result = extractInterestState(doc);
-    expect(result.loggedIn).toBe(true);
+    expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("none");
     restore();
   });
 });
 
-describe("findInterestButtons", () => {
+describe(findInterestButtons, () => {
   it("finds wish/collect/do buttons from #interest_sect_level", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -132,14 +132,14 @@ describe("findInterestButtons", () => {
   });
 });
 
-describe("isInterestActive", () => {
+describe(isInterestActive, () => {
   it("returns true when element or parent has active class", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <a class="done" href="/do?action=collect">看过</a>
 </body></html>`);
     const el = doc.querySelector("a");
-    expect(isInterestActive(el)).toBe(true);
+    expect(isInterestActive(el)).toBeTruthy();
   });
 
   it("returns false when no active class", () => {
@@ -148,10 +148,10 @@ describe("isInterestActive", () => {
 <a href="/do?action=wish">想看</a>
 </body></html>`);
     const el = doc.querySelector("a");
-    expect(isInterestActive(el)).toBe(false);
+    expect(isInterestActive(el)).toBeFalsy();
   });
 
   it("returns false for null element", () => {
-    expect(isInterestActive(null)).toBe(false);
+    expect(isInterestActive(null)).toBeFalsy();
   });
 });

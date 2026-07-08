@@ -13,11 +13,11 @@ import type { RatingResultMap, ResolutionContext } from "./types";
  *  1. If englishTitle is available from H1 → run IMDb + RT + MC in parallel.
  *  2. If no H1 title but IMDb returns one → run RT + MC with IMDb title as fallback.
  *  3. Error isolation: Promise.allSettled ensures one failure never blocks others. */
-type ResolveAllDeps = {
+interface ResolveAllDeps {
   resolveImdb: typeof defaultResolveImdb;
   resolveRt: typeof defaultResolveRt;
   resolveMc: typeof defaultResolveMc;
-};
+}
 
 const createDefaultDeps = (): ResolveAllDeps => ({
   resolveImdb: defaultResolveImdb,
