@@ -4,11 +4,14 @@ import { Section } from "../../../components/layout/section";
 import type { AccountActionGuard, Comment } from "../../../types";
 import type { CommentVoteCallback } from "../types";
 import { CommentCard } from "./comment-card";
+import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentsSectionProps = {
   canVote?: AccountActionGuard;
   comments: Comment[];
+  getVoteState?: (comment: Comment) => CommentVoteState;
   onOpen: (comment: Comment) => void;
+  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
   onVote: CommentVoteCallback;
   subjectId: string;
 };
@@ -16,7 +19,9 @@ type CommentsSectionProps = {
 const CommentsSection = ({
   canVote,
   comments,
+  getVoteState,
   onOpen,
+  onVoteStateChange,
   onVote,
   subjectId,
 }: CommentsSectionProps) => {
@@ -60,7 +65,9 @@ const CommentsSection = ({
             comment={comment}
             key={comment.cid}
             onOpen={onOpen}
+            onVoteStateChange={onVoteStateChange}
             onVote={onVote}
+            voteState={getVoteState?.(comment)}
           />
         ))}
       </div>

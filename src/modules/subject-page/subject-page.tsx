@@ -3,6 +3,12 @@ import { useState } from "preact/hooks";
 import type { Comment, DoubanData, HeroData, Review } from "../../types";
 import { CommentsSection } from "./comments";
 import { CommentModal } from "./comments/comment-modal";
+import {
+  commentVoteKey,
+  commentWithVoteState,
+  initialCommentVoteState,
+} from "./comments/comment-vote-state";
+import type { CommentVoteState } from "./comments/comment-vote-state";
 import { DetailsSection } from "./details";
 import { Hero } from "./hero";
 import {
@@ -45,6 +51,16 @@ const toHeroData = (data: DoubanData): HeroData => ({
 const SubjectPage = ({ data, deps }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
+  const [commentVoteStates, setCommentVoteStates] = useState<
+    Record<string, CommentVoteState>
+  >(() =>
+    Object.fromEntries(
+      data.comments.map((comment) => [
+        commentVoteKey(comment),
+        initialCommentVoteState(comment),
+      ])
+    )
+  );
   const [reviewVoteStates, setReviewVoteStates] = useState<
     Record<string, ReviewVoteState>
   >(() =>
@@ -55,6 +71,20 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       ])
     )
   );
+
+  const getCommentVoteState = (comment: Comment): CommentVoteState =>
+    commentVoteStates[commentVoteKey(comment)] ??
+    initialCommentVoteState(comment);
+
+  const setCommentVoteState = (
+    comment: Comment,
+    state: CommentVoteState
+  ): void => {
+    setCommentVoteStates((current) => ({
+      ...current,
+      [commentVoteKey(comment)]: state,
+    }));
+  };
 
   const getReviewVoteState = (review: Review): ReviewVoteState =>
     reviewVoteStates[reviewVoteKey(review)] ?? initialReviewVoteState(review);
@@ -88,8 +118,12 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       />
       <CommentsSection
         canVote={deps.canVote}
-        comments={data.comments}
+        comments={data.comments.map((comment) =>
+          commentWithVoteState(comment, getCommentVoteState(comment))
+        )}
+        getVoteState={getCommentVoteState}
         onOpen={setActiveComment}
+        onVoteStateChange={setCommentVoteState}
         onVote={deps.handleVote}
         subjectId={data.subjectId}
       />
@@ -115,9 +149,14 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       {activeComment ? (
         <CommentModal
           canVote={deps.canVote}
-          comment={activeComment}
+          comment={commentWithVoteState(
+            activeComment,
+            getCommentVoteState(activeComment)
+          )}
           onClose={() => setActiveComment(null)}
+          onVoteStateChange={setCommentVoteState}
           onVote={deps.handleVote}
+          voteState={getCommentVoteState(activeComment)}
         />
       ) : null}
       {activeReview ? (

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SubjectPage } from "../../../src/modules/subject-page";
 import type { SubjectPageDeps } from "../../../src/modules/subject-page";
-import type { DoubanData, InfoBlock, Review } from "../../../src/types";
+import type { Comment, DoubanData, InfoBlock } from "../../../src/types";
 
 vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;
@@ -27,26 +27,24 @@ const makeInfoBlock = (overrides?: Partial<InfoBlock>): InfoBlock => ({
   ...overrides,
 });
 
-const makeReview = (overrides?: Partial<Review>): Review => ({
+const makeComment = (overrides?: Partial<Comment>): Comment => ({
   avatar: "",
-  content: "A must-see classic.",
-  id: "r1",
+  cid: "c1",
+  content: "A short comment that can open from the expand button.",
   link: "",
   name: "TestUser",
   ratingWord: "",
-  spoiler: false,
   stars: 0,
   time: "2024-01-15",
-  title: "Great movie with deep meaning",
-  usefulCount: 5,
-  uselessCount: 1,
+  voted: false,
+  votes: 5,
   ...overrides,
 });
 
 const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   awards: [],
   celebrities: [],
-  comments: [],
+  comments: [makeComment()],
   info: makeInfoBlock(),
   interest: {
     ck: "",
@@ -65,7 +63,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   poster: null,
   rating: null,
   recommendations: [],
-  reviews: [makeReview()],
+  reviews: [],
   series: [],
   streaming: [],
   subjectId: "1292052",
@@ -77,8 +75,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
 });
 
 const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
-  canReviewVote: () => true,
-  handleReviewVote: () => Promise.resolve({ ok: true }),
+  canVote: () => true,
   handleVote: () => Promise.resolve({ ok: true }),
   heroCallbacks: {
     handleCollectClick: () => {},
@@ -99,28 +96,16 @@ const renderPage = (
   return root;
 };
 
-const openReviewModal = async (root: HTMLElement): Promise<HTMLElement> => {
-  root.querySelector<HTMLButtonElement>(".atv-review-open-button")?.click();
+const openCommentModal = async (root: HTMLElement): Promise<HTMLElement> => {
+  root.querySelector<HTMLButtonElement>(".atv-comment-expand")?.click();
   await Promise.resolve();
-  const modal = root.querySelector<HTMLElement>("#atv-review-modal");
+  const modal = root.querySelector<HTMLElement>("#atv-comment-overlay");
   expect(modal).not.toBeNull();
   return modal as HTMLElement;
 };
 
-const storeReviewVote = (
-  key: string,
-  value: unknown,
-  expiresAt = Date.now() + 365 * 24 * 60 * 60 * 1000
-): void => {
-  localStorage.setItem(
-    "atv:review:vote",
-    JSON.stringify([[key, { expiresAt, value }]])
-  );
-};
-
-describe("review vote state across cards and modals", () => {
+describe("comment vote state across cards and modals", () => {
   beforeEach(() => {
-    localStorage.clear();
     document.body.innerHTML = "";
     vi.stubGlobal(
       "fetch",
@@ -134,65 +119,44 @@ describe("review vote state across cards and modals", () => {
     const root = renderPage(
       makeData(),
       makeDeps({
-        handleReviewVote: () =>
-          Promise.resolve({ ok: true, usefulCount: 12, uselessCount: 1 }),
+        handleVote: () => Promise.resolve({ count: 9, ok: true }),
       })
     );
 
-    root
-      .querySelector<HTMLButtonElement>(".atv-review-card .atv-vote-btn.up")
-      ?.click();
+    root.querySelector<HTMLButtonElement>(".atv-comment-votes")?.click();
     await Promise.resolve();
     await Promise.resolve();
-    const modal = await openReviewModal(root);
-
-    const modalUp = modal.querySelector<HTMLButtonElement>(
-      ".atv-review-modal-votes .atv-vote-btn.up"
+    const modal = await openCommentModal(root);
+    const modalVote = modal.querySelector<HTMLButtonElement>(
+      ".atv-comment-overlay-votes"
     );
-    expect(modalUp?.classList.contains("is-voted")).toBeTruthy();
-    expect(modalUp?.textContent).toContain("12");
+
+    expect(modalVote?.classList.contains("is-voted")).toBeTruthy();
+    expect(modalVote?.getAttribute("aria-pressed")).toBe("true");
+    expect(modalVote?.textContent).toContain("9");
   });
 
   it("shows modal vote state on the card after closing the modal", async () => {
     const root = renderPage(
       makeData(),
       makeDeps({
-        handleReviewVote: () =>
-          Promise.resolve({ ok: true, usefulCount: 5, uselessCount: 7 }),
+        handleVote: () => Promise.resolve({ count: 11, ok: true }),
       })
     );
-    const modal = await openReviewModal(root);
+    const modal = await openCommentModal(root);
 
     modal
-      .querySelector<HTMLButtonElement>(
-        ".atv-review-modal-votes .atv-vote-btn.down"
-      )
+      .querySelector<HTMLButtonElement>(".atv-comment-overlay-votes")
       ?.click();
     await Promise.resolve();
     await Promise.resolve();
     modal.querySelector<HTMLButtonElement>(".atv-modal-close")?.click();
     await Promise.resolve();
 
-    const cardDown = root.querySelector<HTMLButtonElement>(
-      ".atv-review-card .atv-vote-btn.down"
-    );
-    expect(cardDown?.classList.contains("is-voted")).toBeTruthy();
-    expect(cardDown?.textContent).toContain("7");
-  });
-
-  it("restores previous vote state after a page refresh", () => {
-    storeReviewVote("1", {
-      type: "useful",
-      usefulCount: 12,
-      uselessCount: 1,
-    });
-
-    const root = renderPage();
-    const up = root.querySelector<HTMLButtonElement>(
-      ".atv-review-card .atv-vote-btn.up"
-    );
-
-    expect(up?.classList.contains("is-voted")).toBeTruthy();
-    expect(up?.textContent).toContain("12");
+    const cardVote =
+      root.querySelector<HTMLButtonElement>(".atv-comment-votes");
+    expect(cardVote?.classList.contains("is-voted")).toBeTruthy();
+    expect(cardVote?.getAttribute("aria-pressed")).toBe("true");
+    expect(cardVote?.textContent).toContain("11");
   });
 });

@@ -5,22 +5,29 @@ import type { AccountActionGuard, Comment } from "../../../types";
 import type { CommentVoteCallback } from "../types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
+import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentModalProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onClose: () => void;
+  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
   onVote: CommentVoteCallback;
+  voteState?: CommentVoteState;
 };
 
 const CommentModalContent = ({
   canVote,
   comment,
+  onVoteStateChange,
   onVote,
+  voteState,
 }: {
   canVote?: AccountActionGuard;
   comment: Comment;
+  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
   onVote: CommentVoteCallback;
+  voteState?: CommentVoteState;
 }) => {
   const handleClose = useModalClose();
   return (
@@ -67,7 +74,13 @@ const CommentModalContent = ({
           cid={comment.cid}
           className="atv-comment-overlay-votes"
           count={comment.votes}
+          onStateChange={
+            onVoteStateChange
+              ? (state) => onVoteStateChange(comment, state)
+              : undefined
+          }
           onVote={onVote}
+          state={voteState}
           voted={comment.voted}
         />
       </div>
@@ -79,7 +92,9 @@ const CommentModal = ({
   canVote,
   comment,
   onClose,
+  onVoteStateChange,
   onVote,
+  voteState,
 }: CommentModalProps) => (
   <ModalShell
     className="atv-comment-overlay"
@@ -87,7 +102,13 @@ const CommentModal = ({
     onClose={onClose}
     surfaceClassName="atv-comment-overlay-inner"
   >
-    <CommentModalContent canVote={canVote} comment={comment} onVote={onVote} />
+    <CommentModalContent
+      canVote={canVote}
+      comment={comment}
+      onVoteStateChange={onVoteStateChange}
+      onVote={onVote}
+      voteState={voteState}
+    />
   </ModalShell>
 );
 

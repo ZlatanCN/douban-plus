@@ -4,19 +4,24 @@ import type { AccountActionGuard, Comment } from "../../../types";
 import type { CommentVoteCallback } from "../types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
+import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentCardProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onOpen: (comment: Comment) => void;
+  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
   onVote: CommentVoteCallback;
+  voteState?: CommentVoteState;
 };
 
 const CommentCard = ({
   canVote,
   comment,
   onOpen,
+  onVoteStateChange,
   onVote,
+  voteState,
 }: CommentCardProps) => (
   <div class="atv-comment-card" data-cid={comment.cid || undefined}>
     <div class="atv-comment-top">
@@ -77,7 +82,13 @@ const CommentCard = ({
           cid={comment.cid}
           className="atv-comment-votes"
           count={comment.votes}
+          onStateChange={
+            onVoteStateChange
+              ? (state) => onVoteStateChange(comment, state)
+              : undefined
+          }
           onVote={onVote}
+          state={voteState}
           voted={comment.voted}
         />
       </div>

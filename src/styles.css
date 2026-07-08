@@ -1450,6 +1450,10 @@ a.atv-comment-author:hover {
   background: rgba(65, 190, 93, 0.04);
   transform: scale(1.05);
 }
+.atv-comment-votes:focus-visible {
+  outline: 2px solid rgba(65, 190, 93, 0.75);
+  outline-offset: 3px;
+}
 .atv-comment-votes:active {
   transform: scale(0.95);
 }
@@ -1462,6 +1466,9 @@ a.atv-comment-author:hover {
   display: block;
   width: 13px;
   height: 13px;
+}
+.atv-vote-count {
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- Comment Expand Overlay ---------- */
@@ -1706,6 +1713,10 @@ a.atv-comment-overlay-author:hover {
   color: var(--atv-accent);
   border-color: rgba(65, 190, 93, 0.2);
   background: rgba(65, 190, 93, 0.04);
+}
+.atv-comment-overlay-votes:focus-visible {
+  outline: 2px solid rgba(65, 190, 93, 0.75);
+  outline-offset: 3px;
 }
 .atv-comment-overlay-votes:active {
   transform: scale(0.95);
@@ -2454,6 +2465,7 @@ dialog::backdrop {
   gap: 20px;
 }
 .atv-review-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 22px;
@@ -2473,6 +2485,23 @@ dialog::backdrop {
   appearance: none;
   -webkit-appearance: none;
 }
+.atv-review-open-button {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--atv-radius-md);
+  appearance: none;
+  -webkit-appearance: none;
+}
+.atv-review-content {
+  position: relative;
+  z-index: 1;
+  display: contents;
+}
 .atv-review-card:hover {
   border-color: rgba(255, 255, 255, 0.12);
   transform: translateY(-3px);
@@ -2490,11 +2519,16 @@ dialog::backdrop {
   border-color: rgba(65, 190, 93, 0.45);
   box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);
 }
+.atv-review-open-button:focus-visible {
+  outline: 2px solid var(--atv-accent);
+  outline-offset: 4px;
+}
 .atv-review-top {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 12px;
+  pointer-events: none;
 }
 .atv-review-avatar {
   width: 36px;
@@ -2517,8 +2551,11 @@ dialog::backdrop {
   flex-direction: column;
   gap: 3px;
   min-width: 0;
+  pointer-events: none;
 }
 .atv-review-author {
+  position: relative;
+  z-index: 2;
   font-size: 14px;
   font-weight: 600;
   color: var(--atv-text-primary);
@@ -2526,6 +2563,7 @@ dialog::backdrop {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  pointer-events: auto;
 }
 .atv-review-author:hover {
   color: var(--atv-accent);
@@ -2552,6 +2590,7 @@ dialog::backdrop {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  pointer-events: none;
 }
 .atv-review-excerpt {
   font-size: 14px;
@@ -2563,6 +2602,7 @@ dialog::backdrop {
   overflow: hidden;
   margin-bottom: 14px;
   flex: 1;
+  pointer-events: none;
 }
 .atv-review-foot {
   display: flex;
@@ -2571,6 +2611,7 @@ dialog::backdrop {
   gap: 8px;
   padding-top: 14px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
+  pointer-events: none;
 }
 .atv-review-time {
   font-size: 12px;
@@ -2598,15 +2639,27 @@ dialog::backdrop {
   opacity: 0.7;
   transform: translateX(0);
 }
+.atv-review-card:has(.atv-review-open-button:focus-visible) {
+  border-color: rgba(65, 190, 93, 0.45);
+  box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);
+}
+.atv-review-card:has(.atv-review-open-button:focus-visible)
+  .atv-review-readmore {
+  opacity: 0.7;
+  transform: translateX(0);
+}
 .atv-review-actions {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 6px;
   margin-left: auto;
+  pointer-events: auto;
 }
 .atv-vote-btn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   padding: 5px 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.03);
@@ -2630,20 +2683,39 @@ dialog::backdrop {
   color: var(--atv-accent);
   background: rgba(65, 190, 93, 0.06);
 }
+.atv-vote-btn:focus-visible {
+  outline: 2px solid rgba(65, 190, 93, 0.75);
+  outline-offset: 3px;
+}
 .atv-vote-btn.is-lg {
   padding: 8px 20px;
   font-size: 14px;
+}
+.atv-vote-btn svg {
+  display: block;
+  width: 11px;
+  height: 11px;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 .atv-vote-btn.down:hover {
   background: rgba(255, 69, 58, 0.06);
   border-color: #ff453a;
   color: #ff453a;
 }
+.atv-vote-btn.down svg {
+  transform: rotate(180deg);
+}
 .atv-vote-btn.is-voted {
   color: var(--atv-accent);
   border-color: rgba(65, 190, 93, 0.2);
   background: rgba(65, 190, 93, 0.06);
   cursor: default;
+}
+.atv-vote-btn.down.is-voted {
+  color: #ff453a;
+  border-color: rgba(255, 69, 58, 0.22);
+  background: rgba(255, 69, 58, 0.06);
 }
 
 /* ---------- Review Modal ---------- */

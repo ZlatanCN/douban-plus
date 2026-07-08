@@ -121,6 +121,12 @@ const IconThumb = (props: IconProps) => (
   </svg>
 );
 
+const IconVoteTriangle = (props: IconProps) => (
+  <svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true" {...props}>
+    <path fill="currentColor" d="M6 2.2 10.4 9H1.6L6 2.2z" />
+  </svg>
+);
+
 const IconExpand = (props: IconProps) => (
   <svg viewBox="0 0 14 14" width="12" height="12" aria-hidden="true" {...props}>
     <path
@@ -280,6 +286,7 @@ export {
   IconStarHalf,
   IconThumb,
   IconTomato,
+  IconVoteTriangle,
   LogoDouban,
   LogoImdb,
   LogoMetacritic,

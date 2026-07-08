@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 
+import { IconVoteTriangle } from "../../../components/common/icons";
 import type {
   AccountActionGuard,
   Review,
@@ -83,28 +84,36 @@ const ReviewVoteButtons = ({
   return (
     <>
       <button
+        aria-label={`有用，${voteState.usefulCount} 人觉得有用`}
+        aria-pressed={voteState.voted === "useful"}
         class={`atv-vote-btn up${
           voteState.voted === "useful" ? " is-voted" : ""
         }${sizeClass}`}
+        disabled={!onVote || loading || voteState.voted === "useful"}
         onClick={(event) => {
           event.stopPropagation();
           void vote("useful");
         }}
         type="button"
       >
-        有用 {voteState.usefulCount}
+        <IconVoteTriangle />
+        <span class="atv-vote-count">{voteState.usefulCount}</span>
       </button>
       <button
+        aria-label={`没用，${voteState.uselessCount} 人觉得没用`}
+        aria-pressed={voteState.voted === "useless"}
         class={`atv-vote-btn down${
           voteState.voted === "useless" ? " is-voted" : ""
         }${sizeClass}`}
+        disabled={!onVote || loading || voteState.voted === "useless"}
         onClick={(event) => {
           event.stopPropagation();
           void vote("useless");
         }}
         type="button"
       >
-        没用 {voteState.uselessCount}
+        <IconVoteTriangle />
+        <span class="atv-vote-count">{voteState.uselessCount}</span>
       </button>
     </>
   );

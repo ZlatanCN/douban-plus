@@ -86,7 +86,7 @@ describe(CommentsSection, () => {
     expect(author?.target).toBe("_blank");
   });
 
-  it("renders stars, votes and more link", () => {
+  it("renders stars, vote count and more link", () => {
     const root = renderComments(
       makeData({
         comments: [
@@ -103,13 +103,23 @@ describe(CommentsSection, () => {
     );
 
     expect(root.querySelector(".atv-comment-stars")).not.toBeNull();
-    expect(root.querySelector(".atv-comment-votes")?.textContent).toContain(
-      "42"
-    );
+    const voteButton =
+      root.querySelector<HTMLButtonElement>(".atv-comment-votes");
+    expect(voteButton?.textContent).toContain("42");
     const more = root.querySelector<HTMLAnchorElement>(".atv-section-more");
     expect(more?.href).toBe(
       "https://movie.douban.com/subject/1292052/comments?status=P"
     );
+  });
+
+  it("renders the comment vote as an accessible icon toggle", () => {
+    const root = renderComments(makeData({ comments: [makeComment()] }));
+    const voteButton =
+      root.querySelector<HTMLButtonElement>(".atv-comment-votes");
+
+    expect(voteButton?.getAttribute("aria-label")).toBe("有用，5 人觉得有用");
+    expect(voteButton?.getAttribute("aria-pressed")).toBe("false");
+    expect(voteButton?.querySelector("svg")).not.toBeNull();
   });
 
   it("uses avatar fallback and omits more link when subject id is empty", () => {
@@ -228,6 +238,7 @@ describe(CommentsSection, () => {
     const button = root.querySelector<HTMLButtonElement>(".atv-comment-votes");
     expect(onVote).toHaveBeenCalledWith("c1");
     expect(button?.classList.contains("is-voted")).toBeTruthy();
+    expect(button?.getAttribute("aria-pressed")).toBe("true");
     expect(button?.textContent).toContain("9");
   });
 });

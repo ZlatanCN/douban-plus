@@ -100,7 +100,7 @@ describe(ReviewsSection, () => {
     expect(more?.href).toBe("https://movie.douban.com/subject/1292052/reviews");
   });
 
-  it("renders accessible card attributes", () => {
+  it("renders a separate open button for the review card", () => {
     const root = renderReviews(
       makeData({
         reviews: [
@@ -117,12 +117,40 @@ describe(ReviewsSection, () => {
       })
     );
     const card = root.querySelector<HTMLElement>(".atv-review-card");
+    const openButton = root.querySelector<HTMLButtonElement>(
+      ".atv-review-open-button"
+    );
 
     expect(card?.dataset.rid).toBe("r123");
-    expect(card?.getAttribute("aria-label")).toBe(
+    expect(card?.tagName).toBe("ARTICLE");
+    expect(openButton?.getAttribute("aria-label")).toBe(
       "展开阅读：Great movie with deep meaning"
     );
-    expect(card?.tagName).toBe("BUTTON");
+    expect(openButton?.tagName).toBe("BUTTON");
+  });
+
+  it("does not nest author links or vote buttons inside the open button", () => {
+    const root = renderReviews(
+      makeData({
+        reviews: [
+          makeReview({
+            id: "r123",
+            link: "https://douban.com/people/u1/",
+            name: "Alice",
+          }),
+        ],
+      })
+    );
+    const openButton = root.querySelector<HTMLButtonElement>(
+      ".atv-review-open-button"
+    );
+
+    expect(
+      openButton?.contains(root.querySelector(".atv-review-author"))
+    ).toBeFalsy();
+    expect(
+      openButton?.contains(root.querySelector(".atv-vote-btn"))
+    ).toBeFalsy();
   });
 
   it("renders author link, stars, excerpt and vote counts", () => {
@@ -148,10 +176,46 @@ describe(ReviewsSection, () => {
     expect(root.querySelector(".atv-review-excerpt")?.textContent).toBe(
       "A must-see classic."
     );
-    expect(root.querySelector(".atv-vote-btn.up")?.textContent).toContain("10");
-    expect(root.querySelector(".atv-vote-btn.down")?.textContent).toContain(
-      "2"
+  });
+
+  it("renders review votes as accessible triangle toggles", () => {
+    const root = renderReviews(
+      makeData({
+        reviews: [
+          makeReview({
+            usefulCount: 10,
+            uselessCount: 2,
+          }),
+        ],
+      })
     );
+    const up = root.querySelector<HTMLButtonElement>(".atv-vote-btn.up");
+    const down = root.querySelector<HTMLButtonElement>(".atv-vote-btn.down");
+
+    expect(up?.textContent).toContain("10");
+    expect(up?.getAttribute("aria-label")).toBe("有用，10 人觉得有用");
+    expect(up?.getAttribute("aria-pressed")).toBe("false");
+    expect(down?.textContent).toContain("2");
+  });
+
+  it("renders the down review vote as a separate negative toggle", () => {
+    const root = renderReviews(
+      makeData({
+        reviews: [
+          makeReview({
+            usefulCount: 10,
+            uselessCount: 2,
+          }),
+        ],
+      })
+    );
+    const up = root.querySelector<HTMLButtonElement>(".atv-vote-btn.up");
+    const down = root.querySelector<HTMLButtonElement>(".atv-vote-btn.down");
+
+    expect(up?.querySelector("svg")).not.toBeNull();
+    expect(down?.getAttribute("aria-label")).toBe("没用，2 人觉得没用");
+    expect(down?.getAttribute("aria-pressed")).toBe("false");
+    expect(down?.querySelector("svg")).not.toBeNull();
   });
 
   it("does not open the modal when clicking the author link", async () => {
@@ -191,7 +255,7 @@ describe(ReviewsSection, () => {
       />
     );
 
-    root.querySelector<HTMLElement>(".atv-review-card")?.click();
+    root.querySelector<HTMLElement>(".atv-review-open-button")?.click();
     await Promise.resolve();
 
     expect(onOpen).toHaveBeenCalledWith(data.reviews[0]);

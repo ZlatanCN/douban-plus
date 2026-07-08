@@ -32,70 +32,65 @@ const ReviewCard = ({
   const displayName = reviewDisplayName(review.name);
 
   return (
-    <button
-      aria-label={`展开阅读：${review.title}`}
-      class="atv-review-card"
-      data-rid={review.id || undefined}
-      onClick={() => onOpen(review)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpen(review);
-        }
-      }}
-      style={{ cursor: "pointer" }}
-      type="button"
-    >
-      <div class="atv-review-top">
-        <div
-          class="atv-review-avatar"
-          style={
-            review.avatar
-              ? { backgroundImage: `url("${review.avatar}")` }
-              : undefined
-          }
-        >
-          {review.avatar ? null : displayName.slice(0, 1).toUpperCase()}
+    <article class="atv-review-card" data-rid={review.id || undefined}>
+      <button
+        aria-label={`展开阅读：${review.title}`}
+        class="atv-review-open-button"
+        onClick={() => onOpen(review)}
+        type="button"
+      />
+      <div class="atv-review-content">
+        <div class="atv-review-top">
+          <div
+            class="atv-review-avatar"
+            style={
+              review.avatar
+                ? { backgroundImage: `url("${review.avatar}")` }
+                : undefined
+            }
+          >
+            {review.avatar ? null : displayName.slice(0, 1).toUpperCase()}
+          </div>
+          <div class="atv-review-meta">
+            {review.link ? (
+              <a
+                class="atv-review-author"
+                href={review.link}
+                onClick={(event) => event.stopPropagation()}
+                rel="noopener"
+                target="_blank"
+              >
+                {displayName}
+              </a>
+            ) : (
+              <div class="atv-review-author">{displayName}</div>
+            )}
+            {review.stars > 0 ? (
+              <Stars
+                className="atv-review-stars"
+                outOfFive
+                score={review.stars}
+              />
+            ) : null}
+          </div>
         </div>
-        <div class="atv-review-meta">
-          {review.link ? (
-            <a
-              class="atv-review-author"
-              href={review.link}
-              onClick={(event) => event.stopPropagation()}
-              rel="noopener"
-              target="_blank"
-            >
-              {displayName}
-            </a>
-          ) : (
-            <div class="atv-review-author">{displayName}</div>
-          )}
-          {review.stars > 0 ? (
-            <Stars
-              className="atv-review-stars"
-              outOfFive
-              score={review.stars}
+        <div class="atv-review-title">{review.title}</div>
+        <div class="atv-review-excerpt">{review.content}</div>
+        <div class="atv-review-foot">
+          <span class="atv-review-time">{review.time || ""}</span>
+          <span class="atv-review-readmore">展开阅读</span>
+          <div class="atv-review-actions" data-rid={review.id || undefined}>
+            <ReviewVoteButtons
+              canVote={canVote}
+              onStateChange={onVoteStateChange}
+              onVote={onVote}
+              review={review}
+              state={voteState}
             />
-          ) : null}
+          </div>
         </div>
       </div>
-      <div class="atv-review-title">{review.title}</div>
-      <div class="atv-review-excerpt">{review.content}</div>
-      <div class="atv-review-foot">
-        <span class="atv-review-time">{review.time || ""}</span>
-        <span class="atv-review-readmore">展开阅读</span>
-        <div class="atv-review-actions" data-rid={review.id || undefined}>
-          <ReviewVoteButtons
-            canVote={canVote}
-            onStateChange={onVoteStateChange}
-            onVote={onVote}
-            review={review}
-            state={voteState}
-          />
-        </div>
-      </div>
-    </button>
+    </article>
   );
 };
 
