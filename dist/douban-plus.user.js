@@ -1660,7 +1660,6 @@ input::placeholder {
 	var RE_WS = /\s+/u;
 	var RE_YEAR = /(?<year>\d{4})/u;
 	var RE_NON_DIGIT = /\D/gu;
-	var RE_WS_NL = /\s+\n/gu;
 	var RE_HSPACE = /[ \t]+/gu;
 	var RE_NL_MULTI = /\n{3,}/gu;
 	var RE_IMDB_ID = /(?<id>tt\d+)/u;
@@ -2169,6 +2168,8 @@ input::placeholder {
 			trailerPageUrl: a.href
 		};
 	}).filter((t) => t.trailerPageUrl);
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
 	var extractRating$1 = (doc) => {
 		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
 		const score = raw ? Number(raw) : NaN;
@@ -2179,12 +2180,11 @@ input::placeholder {
 			score
 		};
 	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
 	var extractSummary = (doc) => {
 		const summary = $("span[property=\"v:summary\"]", doc);
 		if (!summary) return null;
-		let txt = (summary.textContent || "").trim();
-		txt = txt.replace(RE_WS_NL, "\n").replace(RE_HSPACE, " ").replace(RE_NL_MULTI, "\n\n").trim();
-		return txt || null;
+		return normalizeSummaryText(summary.textContent || "") || null;
 	};
 	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
 		const linkEl = $("dt a", dl);
