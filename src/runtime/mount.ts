@@ -1,6 +1,7 @@
 import { postVote } from "../api/comment";
 import { postReviewVote } from "../api/review";
 import { buildApp } from "../build";
+import { createAccountGate } from "./account-gate";
 import { startAvatarEffect } from "./avatar-effect";
 import { extractDoubanData } from "./extract-data";
 import { buildHeroCallbacks } from "./hero-callbacks";
@@ -41,9 +42,16 @@ const mountSubjectPage = (doc: Document = document): void => {
   }
 
   setSubjectTitle(doc, data);
+  const accountGate = createAccountGate({ loggedIn: data.interest.loggedIn });
 
   const { root, stickyNav } = buildApp(data, {
-    heroCallbacks: buildHeroCallbacks(data.subjectId, doc),
+    canReviewVote: () => accountGate.requireLogin("给影评投票"),
+    canVote: () => accountGate.requireLogin("给短评点有用"),
+    heroCallbacks: buildHeroCallbacks(
+      data.subjectId,
+      doc,
+      data.interest.loggedIn
+    ),
     onReviewVote: (rid: string, type: "useful" | "useless") =>
       postReviewVote(rid, type, data.subjectId),
     onVote: (cid) => postVote(cid, data.subjectId),

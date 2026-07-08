@@ -9,6 +9,7 @@ import { buildVoteBtn } from "../../src/components/vote-btn";
 /* ── Factory helpers ─────────────────────────────────────── */
 
 type VoteBtnOptions = {
+  canVote?: () => boolean;
   cid: string;
   count: number;
   voted: boolean;
@@ -164,5 +165,38 @@ describe("buildVoteBtn(options)", () => {
     });
     expect(btn.classList.contains("is-voted")).toBe(true);
     expect(onVote).toHaveBeenCalledWith("c1");
+  });
+
+  it("does not optimistically update when canVote blocks the click", async () => {
+    const canVote = vi.fn().mockReturnValue(false);
+    const onVote = vi.fn().mockResolvedValue({ count: 6, ok: true });
+    const btn = buildVoteBtn(
+      makeOptions({ canVote, count: 5, onVote, voted: false })
+    );
+
+    btn.click();
+
+    expect(canVote).toHaveBeenCalledOnce();
+    expect(onVote).not.toHaveBeenCalled();
+    expect(btn.classList.contains("is-voted")).toBe(false);
+    expect(btn.textContent).toContain("5");
+    await vi.waitFor(() => {
+      expect(onVote).not.toHaveBeenCalled();
+    });
+  });
+
+  it("runs the account gate before the voted guard", () => {
+    const canVote = vi.fn().mockReturnValue(false);
+    const onVote = vi.fn().mockResolvedValue({ count: 6, ok: true });
+    const btn = buildVoteBtn(
+      makeOptions({ canVote, count: 5, onVote, voted: true })
+    );
+
+    btn.click();
+
+    expect(canVote).toHaveBeenCalledOnce();
+    expect(onVote).not.toHaveBeenCalled();
+    expect(btn.classList.contains("is-voted")).toBe(true);
+    expect(btn.textContent).toContain("5");
   });
 });

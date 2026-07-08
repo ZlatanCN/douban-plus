@@ -235,6 +235,7 @@ type ReviewVoteCallback = (
   rid: string,
   type: "useful" | "useless"
 ) => Promise<{ ok: boolean; usefulCount?: number; uselessCount?: number }>;
+type AccountActionGuard = () => boolean;
 
 /** Data slice for buildReviews */
 type ReviewData = {
@@ -243,6 +244,7 @@ type ReviewData = {
   /** true for TV series → use "剧评" instead of "影评" */
   isTV: boolean;
   onReviewVote?: ReviewVoteCallback;
+  canReviewVote?: AccountActionGuard;
 };
 
 /** Data slice for buildDetails */
@@ -303,6 +305,7 @@ const INTEREST_LABELS: Record<InterestState["status"], string> = {
 /* ── Exports ──────────────────────────────────────────── */
 
 export type {
+  AccountActionGuard,
   Award,
   Celebrity,
   Comment,

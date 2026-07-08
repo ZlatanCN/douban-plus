@@ -1,5 +1,5 @@
 import { el } from "../../components";
-import type { ReviewVoteCallback } from "../../types";
+import type { AccountActionGuard, ReviewVoteCallback } from "../../types";
 import { reviewNumericId } from "./identity";
 import { getReviewVotePersisted, persistReviewVote } from "./vote-state";
 import type { ReviewVoteDirection } from "./vote-state";
@@ -13,7 +13,8 @@ const buildReviewVotePair = (
   rid: string,
   usefulInit: number,
   uselessInit: number,
-  onVote: ReviewVoteCallback | undefined
+  onVote: ReviewVoteCallback | undefined,
+  canVote?: AccountActionGuard
 ): ReviewVotePair => {
   const persisted = getReviewVotePersisted(rid);
   let usefulCount = usefulInit;
@@ -65,6 +66,9 @@ const buildReviewVotePair = (
       return;
     }
     if (!onVote) {
+      return;
+    }
+    if (canVote && !canVote()) {
       return;
     }
 

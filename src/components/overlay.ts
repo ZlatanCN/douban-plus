@@ -68,6 +68,7 @@ const createOverlay = (options: CreateOverlayOptions): OverlayController => {
 
   /* 5. Dismiss logic */
   let dismissed = false;
+  let keyHandler: ((e: KeyboardEvent) => void) | null = null;
 
   const dismiss = (): void => {
     if (dismissed || !overlay.isConnected) {
@@ -76,6 +77,9 @@ const createOverlay = (options: CreateOverlayOptions): OverlayController => {
     dismissed = true;
     overlay.classList.remove("is-open");
     document.body.style.overflow = "";
+    if (keyHandler) {
+      document.removeEventListener("keydown", keyHandler);
+    }
     options.onClose?.();
     setTimeout(() => {
       overlay.remove();
@@ -93,10 +97,9 @@ const createOverlay = (options: CreateOverlayOptions): OverlayController => {
   });
 
   /* 8. Escape key */
-  const keyHandler = (e: KeyboardEvent): void => {
+  keyHandler = (e: KeyboardEvent): void => {
     if (e.key === "Escape") {
       dismiss();
-      document.removeEventListener("keydown", keyHandler);
     }
   };
   document.addEventListener("keydown", keyHandler);

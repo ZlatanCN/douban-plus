@@ -10,7 +10,7 @@ const buildReviews = (data: ReviewData): HTMLElement | null => {
 
   const grid = el("div", { className: "atv-reviews" });
   for (const review of data.reviews) {
-    grid.append(buildReviewCard(review, data.onReviewVote));
+    grid.append(buildReviewCard(review, data.onReviewVote, data.canReviewVote));
   }
 
   const allHref = data.subjectId

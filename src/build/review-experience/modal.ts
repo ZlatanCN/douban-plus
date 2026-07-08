@@ -1,5 +1,9 @@
 import { createOverlay, el, renderStars } from "../../components";
-import type { Review, ReviewVoteCallback } from "../../types";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "../../types";
 import { loadReviewContent, stripUnfold } from "./content-loader";
 import { trapReviewModalFocus } from "./focus";
 import { reviewDisplayName, reviewNumericId } from "./identity";
@@ -84,7 +88,8 @@ const buildModalHeader = (review: Review, displayName: string): HTMLElement => {
 const buildVoteRow = (
   review: Review,
   card: HTMLElement | undefined,
-  onVote: ReviewVoteCallback | undefined
+  onVote: ReviewVoteCallback | undefined,
+  canVote?: AccountActionGuard
 ): HTMLElement => {
   const voteRow = el("div", { className: "atv-review-modal-votes" });
   const cardActions = card?.querySelector<HTMLElement>(
@@ -102,7 +107,8 @@ const buildVoteRow = (
     review.id,
     review.usefulCount ?? 0,
     review.uselessCount ?? 0,
-    onVote
+    onVote,
+    canVote
   );
   upBtn.classList.add("is-lg");
   downBtn.classList.add("is-lg");
@@ -129,7 +135,8 @@ const restoreVoteRow = (
 const openReviewModal = (
   review: Review,
   card?: HTMLElement,
-  onVote?: ReviewVoteCallback
+  onVote?: ReviewVoteCallback,
+  canVote?: AccountActionGuard
 ): void => {
   const nativeItem = document.querySelector(`[id="${review.id}"]`);
   if (!nativeItem) {
@@ -152,7 +159,7 @@ const openReviewModal = (
   const modalHeader = buildModalHeader(review, displayName);
   content.append(modalHeader);
   content.append(buildModalContentBody(review, nativeItem, getOverlay));
-  content.append(buildVoteRow(review, card, onVote));
+  content.append(buildVoteRow(review, card, onVote, canVote));
   content.append(
     el("div", { className: "atv-review-modal-link" }, [
       el("a", {

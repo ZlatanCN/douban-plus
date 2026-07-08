@@ -43,6 +43,7 @@ src/
     vote-btn.ts          — buildVoteBtn() with optimistic update + API rollback (extracted 2026-07-06)
     overlay.ts, modal.ts — overlay/modal primitives
     interest-modal*      — interest marking modal
+    login-modal.ts       — ATV shell that extracts and hosts only Douban's native login iframe
     index.ts             — barrel
   api/                 — data fetching & scraping interfaces
     avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
@@ -55,6 +56,8 @@ src/
   runtime/             — subject page runtime module (deepened 2026-07-08)
     mount.ts             — external runtime interface: extract → build → mount → start effects
     extract-data.ts      — assembles DoubanData from extract modules
+    account-gate.ts      — account-gated action guard and login prompt trigger
+    login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
     hero-callbacks.ts    — compatibility facade for hero action callbacks
     avatar-effect.ts     — comment avatar fetch/apply effect
@@ -149,6 +152,13 @@ The `build/` directory was extracted from a single `src/html/` file in two tiers
    - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
+
+9. **Account-gated actions (2026-07-08)** — Account writes now share `src/runtime/account-gate.ts` and `src/components/login-modal.ts`:
+   - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
+   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
+   - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin
+   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
+   - API modules still keep their `ck` checks as the final safety net
 
 ### Bug fixes
 

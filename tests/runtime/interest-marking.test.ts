@@ -117,4 +117,26 @@ describe("buildInterestMarkingCallbacks", () => {
     });
     expect(reload).not.toHaveBeenCalled();
   });
+
+  it("opens the login prompt instead of proxy-clicking when logged out", () => {
+    const doc = parseDoc(`
+      <div id="interest_sect_level">
+        <a href="/wish">想看</a>
+      </div>
+    `);
+    const clicked = vi.fn();
+    doc.querySelector("a")?.addEventListener("click", clicked);
+    const requireLogin = vi.fn().mockReturnValue(false);
+
+    const callbacks = buildInterestMarkingCallbacks("1292052", {
+      accountGate: { requireLogin },
+      doc,
+      loggedIn: false,
+    });
+
+    callbacks.onWishClick();
+
+    expect(requireLogin).toHaveBeenCalledWith("标记想看");
+    expect(clicked).not.toHaveBeenCalled();
+  });
 });

@@ -3,7 +3,8 @@ import { buildInterestMarkingCallbacks } from "./interest-marking";
 
 const buildHeroCallbacks = (
   subjectId: string,
-  doc: Document = document
-): HeroCallbacks => buildInterestMarkingCallbacks(subjectId, { doc });
+  doc: Document = document,
+  loggedIn = true
+): HeroCallbacks => buildInterestMarkingCallbacks(subjectId, { doc, loggedIn });
 
 export { buildHeroCallbacks };

@@ -4,6 +4,7 @@ import { el } from "./dom-factory";
 /* ── Types ────────────────────────────────────────────── */
 
 type VoteBtnOptions = {
+  canVote?: () => boolean;
   cid: string;
   count: number;
   voted: boolean;
@@ -20,6 +21,7 @@ type VoteButtonElement = HTMLButtonElement & {
 
 const buildVoteBtn = ({
   cid,
+  canVote,
   count: initialCount,
   voted: initialVoted,
   className,
@@ -46,7 +48,13 @@ const buildVoteBtn = ({
   };
 
   btn.addEventListener("click", async () => {
-    if (voted || !cid) {
+    if (!cid) {
+      return;
+    }
+    if (canVote && !canVote()) {
+      return;
+    }
+    if (voted) {
       return;
     }
 

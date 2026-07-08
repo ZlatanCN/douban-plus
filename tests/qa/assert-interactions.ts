@@ -232,11 +232,23 @@ const assertInterestModal = async (ctx: AssertCtx): Promise<void> => {
     })
     .catch(() => null);
   if (!modal) {
-    warn(
-      ctx,
-      "auth-dependent",
-      "interest modal not opened (logged-out — proxy-click fired)"
-    );
+    const loginModal = await page.$("#atv-login-modal.is-open");
+    if (loginModal) {
+      record(
+        scenario.name,
+        "login prompt opens for account-gated action",
+        true
+      );
+      warn(
+        ctx,
+        "auth-dependent",
+        "interest modal not opened (logged-out — ATV login prompt shown)"
+      );
+      await closeIfPresent(page, "#atv-login-modal .atv-login-modal-close");
+      await waitForGone(page, "#atv-login-modal");
+      return;
+    }
+    warn(ctx, "auth-dependent", "interest modal not opened (logged-out)");
     return;
   }
   record(scenario.name, "interest modal opens", true);

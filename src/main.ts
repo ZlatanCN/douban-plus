@@ -1,12 +1,25 @@
-import "./styles.css";
 import { buildHeroCallbacks, mountSubjectPage, watchSeries } from "./runtime";
+import {
+  installLoginFrameTheme,
+  isDoubanLoginFrame,
+} from "./runtime/login-frame-theme";
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => mountSubjectPage(), {
-    once: true,
-  });
+const mountSubjectPageWhenReady = (): void => {
+  void import("./styles.css");
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => mountSubjectPage(), {
+      once: true,
+    });
+  } else {
+    mountSubjectPage();
+  }
+};
+
+if (isDoubanLoginFrame()) {
+  installLoginFrameTheme();
 } else {
-  mountSubjectPage();
+  mountSubjectPageWhenReady();
 }
 
 export { buildHeroCallbacks, watchSeries };

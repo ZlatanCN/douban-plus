@@ -14,13 +14,15 @@ const CLOSE_SVG =
  * Returns updated count on success, or { ok: false } on failure for rollback.
  */
 type VoteCallback = (cid: string) => Promise<{ ok: boolean; count?: number }>;
+type VoteGuard = () => boolean;
 
 /* ── openCommentOverlay ───────────────────────────────── */
 
 const openCommentOverlay = (
   comment: Comment,
   onVote: VoteCallback,
-  cardVoteBtns: Map<string, VoteButtonElement>
+  cardVoteBtns: Map<string, VoteButtonElement>,
+  canVote?: VoteGuard
 ): void => {
   const inner = el("div", { className: "atv-comment-overlay-inner" });
 
@@ -80,6 +82,7 @@ const openCommentOverlay = (
   );
 
   const voteBtn = buildVoteBtn({
+    canVote,
     cid: comment.cid,
     className: "atv-comment-overlay-votes",
     count: comment.votes,
@@ -112,7 +115,8 @@ const openCommentOverlay = (
 
 const buildComments = (
   data: CommentsData,
-  onVote: VoteCallback
+  onVote: VoteCallback,
+  canVote?: VoteGuard
 ): HTMLElement | null => {
   if (!data.comments?.length) {
     return null;
@@ -169,6 +173,7 @@ const buildComments = (
     });
 
     const cardVoteBtn = buildVoteBtn({
+      canVote,
       cid: c.cid,
       className: "atv-comment-votes",
       count: c.votes,
@@ -188,7 +193,7 @@ const buildComments = (
     card.append(foot);
 
     const showOverlay = (): void => {
-      openCommentOverlay(c, onVote, cardVoteBtns);
+      openCommentOverlay(c, onVote, cardVoteBtns, canVote);
     };
     expandBtn.addEventListener("click", (e: Event) => {
       e.stopPropagation();

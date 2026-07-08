@@ -1748,6 +1748,204 @@ a.atv-comment-overlay-author:hover {
   height: 64px;
 }
 
+/* ---------- Login Prompt Modal ---------- */
+.atv-login-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: max(24px, env(safe-area-inset-top))
+    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))
+    max(24px, env(safe-area-inset-left));
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.72);
+  opacity: 0;
+  overscroll-behavior: contain;
+  -webkit-backdrop-filter: blur(24px) saturate(1.15);
+  backdrop-filter: blur(24px) saturate(1.15);
+  transition: opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-login-modal.is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+.atv-login-modal-inner {
+  position: relative;
+  box-sizing: border-box;
+  width: min(100%, 424px);
+  max-height: min(736px, calc(100dvh - 48px));
+  padding: 30px 22px 22px;
+  overflow: auto;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
+  color: var(--atv-text-primary);
+  text-align: center;
+  background: var(--atv-bg-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 80px rgba(0, 0, 0, 0.55);
+  transform: scale(0.92) translateY(8px);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  scrollbar-width: none;
+}
+.atv-login-modal-inner::-webkit-scrollbar {
+  display: none;
+}
+.atv-login-modal.is-open .atv-login-modal-inner {
+  transform: scale(1) translateY(0);
+}
+.atv-login-modal-accent {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-accent) 15%,
+    var(--atv-accent) 85%,
+    transparent
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-login-modal.is-open .atv-login-modal-accent {
+  transform: scaleX(1);
+}
+.atv-login-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  transition:
+    color 200ms ease,
+    background 200ms ease,
+    border-color 200ms ease;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.atv-login-modal-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.atv-login-modal-close svg {
+  display: block;
+}
+.atv-login-modal-title {
+  margin: 0 42px 6px;
+  font-size: 18px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--atv-text-primary);
+  text-wrap: balance;
+}
+.atv-login-modal-desc {
+  max-width: 300px;
+  margin: 0 auto 14px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--atv-text-tertiary);
+  text-wrap: pretty;
+}
+.atv-login-modal-status {
+  min-height: 20px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--atv-text-tertiary);
+}
+.atv-login-modal-status[hidden] {
+  display: none;
+}
+.atv-login-modal-native {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.atv-login-modal-native:empty {
+  min-height: 360px;
+}
+.atv-login-modal-native[aria-busy="true"] {
+  min-height: 360px;
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.055),
+      transparent
+    ),
+    rgba(255, 255, 255, 0.035);
+  background-size:
+    220% 100%,
+    auto;
+  animation: atv-login-native-loading 1400ms ease-in-out infinite;
+}
+.atv-login-modal-native > iframe,
+.atv-login-modal-iframe {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 340px !important;
+  max-width: 100% !important;
+  height: 448px !important;
+  max-height: calc(100vh - 168px) !important;
+  margin: 0 auto !important;
+  overflow: hidden !important;
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  /* Cross-origin iframe dark-mode override (first-principles):
+     invert(0.89) maps white #fff → #1c1c1c, which matches
+     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more
+     pure-black void. Text #333 → #bbb, borders #e0 → #343434.
+     hue-rotate(180deg) counter-rotates the color shift from
+     invert so green stays green-ish and blue stays blue-ish.
+     invert(0.89) is the precise value calculated to hit the
+     existing modal surface color while keeping text readable. */
+  filter: invert(0.89) hue-rotate(180deg) !important;
+}
+.atv-login-modal-close:focus-visible {
+  outline: 2px solid var(--atv-accent);
+  outline-offset: 3px;
+}
+@keyframes atv-login-native-loading {
+  from {
+    background-position:
+      160% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      -60% 0,
+      0 0;
+  }
+}
+
 /* ---------- Interest Modal ---------- */
 .atv-interest-modal {
   position: fixed;
@@ -3055,6 +3253,14 @@ a.atv-comment-overlay-author:hover {
   .atv-review-modal-body td {
     padding: 8px 10px;
   }
+  .atv-login-modal {
+    align-items: flex-end;
+    padding: 16px;
+  }
+  .atv-login-modal-inner {
+    width: 100%;
+    padding: 28px 20px 20px;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   .atv-trailer-tile,
@@ -3112,19 +3318,30 @@ a.atv-comment-overlay-author:hover {
   /* Modal overlay fades */
   .atv-modal-overlay,
   .atv-comment-overlay,
-  .atv-interest-modal {
+  .atv-interest-modal,
+  .atv-login-modal {
     transition: none;
+  }
+  .atv-login-modal-inner,
+  .atv-login-modal.is-open .atv-login-modal-inner {
+    transform: none;
+    transition: none;
+  }
+  .atv-login-modal-native[aria-busy="true"] {
+    animation: none;
   }
 
   /* Accent edge glow */
   .atv-comment-overlay-accent,
-  .atv-interest-modal-accent {
+  .atv-interest-modal-accent,
+  .atv-login-modal-accent {
     transition: none;
   }
 
   /* Ensure accent glows are visible even without animation */
   .atv-comment-overlay.is-open .atv-comment-overlay-accent,
-  .atv-interest-modal.is-open .atv-interest-modal-accent {
+  .atv-interest-modal.is-open .atv-interest-modal-accent,
+  .atv-login-modal.is-open .atv-login-modal-accent {
     transform: scaleX(1);
   }
 }

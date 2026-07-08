@@ -103,14 +103,30 @@ describe("extractComments", () => {
     expect(extractComments(doc)).toEqual([]);
   });
 
-  it("detects voted state when .j.vote-comment is missing", () => {
+  it("does not infer voted state merely because .j.vote-comment is missing", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <div id="hot-comments">
   <div class="comment-item" data-cid="1004">
     <div class="comment-info"><a href="/people/u/">用户A</a></div>
-    <span class="short">已投票</span>
-    <!-- no .j.vote-comment → voted=true -->
+    <span class="short">未登录页面没有 vote-comment 链接</span>
+    <span class="comment-vote"><span class="vote-count">8</span></span>
+  </div>
+</div>
+</body></html>`);
+    const result = extractComments(doc);
+    expect(result).toHaveLength(1);
+    expect(result[0].voted).toBe(false);
+  });
+
+  it("detects voted state from the comment vote area", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="hot-comments">
+  <div class="comment-item" data-cid="1005">
+    <div class="comment-info"><a href="/people/u/">用户A</a></div>
+    <span class="short">正常短评内容</span>
+    <span class="comment-vote"><span class="vote-count">8</span><span>已投票</span></span>
   </div>
 </div>
 </body></html>`);

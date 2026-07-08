@@ -670,6 +670,33 @@ describe("buildReviews", () => {
     }
   });
 
+  it("does not optimistically update review vote when guard blocks", async () => {
+    const mockVote = vi
+      .fn()
+      .mockResolvedValue({ ok: true, usefulCount: 6, uselessCount: 1 });
+    const canReviewVote = vi.fn().mockReturnValue(false);
+    const section = buildReviews(
+      makeData({
+        canReviewVote,
+        onReviewVote: mockVote,
+        reviews: [makeReview({ id: "r1", usefulCount: 5, uselessCount: 1 })],
+      })
+    ) as HTMLElement;
+    const upBtn = section.querySelector(
+      ".atv-vote-btn.up"
+    ) as HTMLButtonElement;
+
+    upBtn.click();
+
+    expect(canReviewVote).toHaveBeenCalledOnce();
+    expect(mockVote).not.toHaveBeenCalled();
+    expect(upBtn.classList.contains("is-voted")).toBe(false);
+    expect(upBtn.textContent).toContain("5");
+    await vi.waitFor(() => {
+      expect(mockVote).not.toHaveBeenCalled();
+    });
+  });
+
   it("vote in modal → close → card shows same state (t24)", async () => {
     localStorage.removeItem("atv:review:vote");
     const nativeItem = document.createElement("div");

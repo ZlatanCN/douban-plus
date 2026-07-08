@@ -47,6 +47,7 @@ const clearOpenOverlays = async (page: Page): Promise<void> => {
   await Promise.all([
     waitForGone(page, "#atv-comment-overlay"),
     waitForGone(page, "#atv-interest-modal"),
+    waitForGone(page, "#atv-login-modal"),
     waitForGone(page, "#atv-review-modal"),
     waitForGone(page, "#atv-poster-modal"),
     waitForGone(page, "#atv-video-modal"),

@@ -67,6 +67,15 @@ const extractAvatar = (item: HTMLElement): string => {
   return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
 };
 
+const extractVoted = (item: HTMLElement): boolean => {
+  if (item.querySelector(".j.vote-comment")) {
+    return false;
+  }
+
+  const voteArea = $<HTMLElement>(".comment-vote", item);
+  return /已投票|已赞|已推荐/u.test(safeText(voteArea));
+};
+
 /**
  * Extract user comments from "#hot-comments" section.
  * Iterates `.comment-item` elements and pulls author, content,
@@ -94,9 +103,6 @@ const extractComments = (doc: Document): Comment[] => {
     }
 
     const { stars, ratingWord } = extractRating(item);
-    // After voting, Douban replaces a.j.vote-comment with a "已投票" span
-    const voted = !item.querySelector(".j.vote-comment");
-
     out.push({
       avatar: extractAvatar(item),
       cid: item.dataset.cid ?? "",
@@ -106,7 +112,7 @@ const extractComments = (doc: Document): Comment[] => {
       ratingWord,
       stars,
       time: extractTime(item),
-      voted,
+      voted: extractVoted(item),
       votes: extractVotes(item),
     });
   }

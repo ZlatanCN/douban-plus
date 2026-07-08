@@ -19,6 +19,8 @@ import { buildStreaming } from "./streaming";
 /* ── Types ──────────────────────────────────────────────── */
 
 type BuildAppDeps = {
+  canReviewVote?: () => boolean;
+  canVote?: () => boolean;
   heroCallbacks: HeroCallbacks;
   onVote: (cid: string) => Promise<{ ok: boolean; count?: number }>;
   onReviewVote?: ReviewVoteCallback;
@@ -120,13 +122,15 @@ const buildApp = (data: DoubanData, deps: BuildAppDeps): BuildAppResult => {
 
   const comments = buildComments(
     { comments: data.comments, subjectId: data.subjectId },
-    deps.onVote
+    deps.onVote,
+    deps.canVote
   );
   if (comments) {
     root.append(comments);
   }
 
   const reviews = buildReviews({
+    canReviewVote: deps.canReviewVote,
     isTV: data.isTV,
     onReviewVote: deps.onReviewVote,
     reviews: data.reviews,

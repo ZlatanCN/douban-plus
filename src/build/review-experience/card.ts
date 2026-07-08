@@ -1,5 +1,9 @@
 import { el, renderStars } from "../../components";
-import type { Review, ReviewVoteCallback } from "../../types";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "../../types";
 import { reviewDisplayName } from "./identity";
 import { openReviewModal } from "./modal";
 import { buildReviewVotePair } from "./vote-pair";
@@ -54,7 +58,8 @@ const appendReviewCardTop = (
 
 const buildReviewFoot = (
   review: Review,
-  onVote: ReviewVoteCallback | undefined
+  onVote: ReviewVoteCallback | undefined,
+  canVote?: AccountActionGuard
 ): HTMLElement => {
   const foot = el("div", { className: "atv-review-foot" });
   foot.append(
@@ -73,7 +78,8 @@ const buildReviewFoot = (
       review.id,
       review.usefulCount ?? 0,
       review.uselessCount ?? 0,
-      onVote
+      onVote,
+      canVote
     );
     actions.append(upBtn, downBtn);
   }
@@ -84,13 +90,14 @@ const buildReviewFoot = (
 const bindReviewCardInteractions = (
   card: HTMLElement,
   review: Review,
-  onVote: ReviewVoteCallback | undefined
+  onVote: ReviewVoteCallback | undefined,
+  canVote?: AccountActionGuard
 ): void => {
   card.addEventListener("click", (event: MouseEvent) => {
     if (isNestedReviewControl(event.target, card)) {
       return;
     }
-    openReviewModal(review, card, onVote);
+    openReviewModal(review, card, onVote, canVote);
   });
   card.addEventListener("keydown", (event: KeyboardEvent) => {
     if (event.target !== card) {
@@ -100,13 +107,14 @@ const bindReviewCardInteractions = (
       return;
     }
     event.preventDefault();
-    openReviewModal(review, card, onVote);
+    openReviewModal(review, card, onVote, canVote);
   });
 };
 
 const buildReviewCard = (
   review: Review,
-  onVote: ReviewVoteCallback | undefined
+  onVote: ReviewVoteCallback | undefined,
+  canVote?: AccountActionGuard
 ): HTMLElement => {
   const displayName = reviewDisplayName(review.name);
   const card = el("div", {
@@ -124,8 +132,8 @@ const buildReviewCard = (
   card.append(
     el("div", { className: "atv-review-excerpt", text: review.content })
   );
-  card.append(buildReviewFoot(review, onVote));
-  bindReviewCardInteractions(card, review, onVote);
+  card.append(buildReviewFoot(review, onVote, canVote));
+  bindReviewCardInteractions(card, review, onVote, canVote);
   card.style.cursor = "pointer";
 
   return card;
