@@ -5,20 +5,29 @@ import type {
   ReviewVoteCallback,
 } from "../../../types";
 import { ReviewCard } from "./review-card";
+import type { ReviewVoteState } from "./review-vote-state";
 
-interface ReviewsSectionProps {
+type ReviewsSectionProps = {
   canVote?: AccountActionGuard;
+  getVoteState?: (review: Review) => ReviewVoteState;
   isTV: boolean;
   onOpen: (review: Review) => void;
+  onVoteStateChange?: (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ) => void;
   onVote?: ReviewVoteCallback;
   reviews: Review[];
   subjectId: string;
-}
+};
 
 const ReviewsSection = ({
   canVote,
+  getVoteState,
   isTV,
   onOpen,
+  onVoteStateChange,
   onVote,
   reviews,
   subjectId,
@@ -43,7 +52,9 @@ const ReviewsSection = ({
             key={review.id}
             onOpen={onOpen}
             onVote={onVote}
+            onVoteStateChange={onVoteStateChange}
             review={review}
+            voteState={getVoteState?.(review)}
           />
         ))}
       </div>

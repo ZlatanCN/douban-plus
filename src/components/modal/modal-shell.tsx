@@ -6,7 +6,7 @@ import { ModalCloseContext } from "./modal-close-context";
 
 const TRANSITION_DURATION_MS = 400;
 
-interface ModalShellProps {
+type ModalShellProps = {
   ariaDescribedBy?: string;
   ariaLabelledBy?: string;
   children: ComponentChildren;
@@ -14,7 +14,7 @@ interface ModalShellProps {
   id: string;
   onClose: () => void;
   surfaceClassName: string;
-}
+};
 
 const ModalShell = ({
   ariaDescribedBy,

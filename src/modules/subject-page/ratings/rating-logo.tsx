@@ -14,9 +14,9 @@ const LOGO_MAP: Record<string, JSX.Element> = {
   rt: <LogoRT />,
 };
 
-interface RatingLogoProps {
+type RatingLogoProps = {
   name: keyof typeof LOGO_MAP;
-}
+};
 
 const RatingLogo = ({ name }: RatingLogoProps) => (
   <div class="atv-rating-panel-logo">{LOGO_MAP[name]}</div>

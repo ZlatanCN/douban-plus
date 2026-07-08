@@ -5,14 +5,14 @@ import { Section } from "../../../components/layout/section";
 import { RE_IMDB_LINK } from "../../../constants";
 import type { Award, DetailsData, InfoBlock } from "../../../types";
 
-interface DetailsSectionProps {
+type DetailsSectionProps = {
   data: DetailsData;
-}
+};
 
-interface DetailRow {
+type DetailRow = {
   label: ComponentChild;
   value: ComponentChild;
-}
+};
 
 const textValue = (text: string) => <div class="atv-info-value">{text}</div>;
 

@@ -4,10 +4,10 @@ import { ModalCloseButton, ModalShell } from "../../../components/modal/index";
 import { useModalClose } from "../../../components/modal/modal-close-context";
 import { mountNativeLoginFrame } from "./native-login-frame";
 
-interface LoginModalProps {
+type LoginModalProps = {
   action: string;
   onClose: () => void;
-}
+};
 
 const LoginModalContent = ({
   action,

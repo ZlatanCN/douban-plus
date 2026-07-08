@@ -2,17 +2,17 @@ import { getCk, gmPost } from "../utils/request";
 
 const API_REVIEW_VOTE = "https://movie.douban.com/j/review";
 
-interface ReviewVoteResult {
+type ReviewVoteResult = {
   ok: boolean;
   usefulCount?: number;
   uselessCount?: number;
-}
+};
 
-interface ReviewVoteResponse {
+type ReviewVoteResponse = {
   useful_count: number;
   useless_count: number;
   r: number;
-}
+};
 
 const postReviewVote = async (
   rid: string,

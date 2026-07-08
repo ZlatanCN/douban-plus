@@ -6,10 +6,10 @@ import {
 } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 
-interface MetacriticRatingProps {
+type MetacriticRatingProps = {
   rating: McRating | null;
   resolved: boolean;
-}
+};
 
 const renderMetacriticContent = (
   rating: McRating | null,

@@ -1,9 +1,9 @@
 import type { Comment } from "../../../types";
 
-interface CommentAvatarProps {
+type CommentAvatarProps = {
   className: string;
   comment: Pick<Comment, "avatar" | "cid" | "name">;
-}
+};
 
 const CommentAvatar = ({ className, comment }: CommentAvatarProps) => (
   <div

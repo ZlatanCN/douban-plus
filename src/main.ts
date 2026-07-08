@@ -4,8 +4,8 @@ import {
 } from "./runtime/login-frame-theme";
 import { mountSubjectPage } from "./runtime/mount";
 
-const mountSubjectPageWhenReady = (): void => {
-  void import("./styles.css");
+const mountSubjectPageWhenReady = async (): Promise<void> => {
+  await import("./styles.css");
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => mountSubjectPage(), {

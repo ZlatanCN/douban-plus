@@ -3,10 +3,10 @@ import { render } from "preact";
 import { LoginModal } from "./login-modal";
 import { clearNativeLoginMasks } from "./native-login-frame";
 
-interface LoginModalOptions {
+type LoginModalOptions = {
   action: string;
   returnUrl?: string;
-}
+};
 
 const openLoginModal = (options: LoginModalOptions): void => {
   void options.returnUrl;

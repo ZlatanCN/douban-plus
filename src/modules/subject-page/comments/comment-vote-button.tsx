@@ -3,14 +3,14 @@ import { useState } from "preact/hooks";
 import type { AccountActionGuard } from "../../../types";
 import type { CommentVoteCallback } from "../types";
 
-interface CommentVoteButtonProps {
+type CommentVoteButtonProps = {
   canVote?: AccountActionGuard;
   cid: string;
   className: string;
   count: number;
   onVote: CommentVoteCallback;
   voted: boolean;
-}
+};
 
 const CommentVoteButton = ({
   canVote,

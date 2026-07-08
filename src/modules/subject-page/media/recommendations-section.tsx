@@ -2,9 +2,9 @@ import { PosterImage } from "../../../components/common/poster-image";
 import { Section } from "../../../components/layout/section";
 import type { Recommendation } from "../../../types";
 
-interface RecommendationsSectionProps {
+type RecommendationsSectionProps = {
   recommendations: Recommendation[];
-}
+};
 
 const RecommendationsSection = ({
   recommendations,

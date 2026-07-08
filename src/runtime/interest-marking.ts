@@ -10,12 +10,12 @@ import type {
 import { createAccountGate } from "./account-gate";
 import type { AccountGate } from "./account-gate";
 
-interface InterestResult {
+type InterestResult = {
   ok: boolean;
   error?: string;
-}
+};
 
-interface InterestMarkingAdapters {
+type InterestMarkingAdapters = {
   accountGate?: AccountGate;
   doc?: Document;
   loggedIn?: boolean;
@@ -30,7 +30,7 @@ interface InterestMarkingAdapters {
     subjectId: string,
     currentStatus: InterestState["status"]
   ) => Promise<InterestResult>;
-}
+};
 
 const reloadPage = (): void => {
   location.reload();

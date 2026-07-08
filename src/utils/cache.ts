@@ -1,14 +1,14 @@
 /** Generic localStorage-backed cache with TTL-based expiry. */
 
-interface Cache<T> {
+type Cache<T> = {
   get: (key: string) => T | undefined;
   set: (key: string, value: T) => void;
-}
+};
 
-interface CacheEntry<T> {
+type CacheEntry<T> = {
   expiresAt: number;
   value: T;
-}
+};
 
 const createCache = <T>(
   storageKey: string,

@@ -1,10 +1,10 @@
 import { IconStarEmpty, IconStarFull } from "../../../components/common/icons";
 
-interface StarRatingInputProps {
+type StarRatingInputProps = {
   disabled?: boolean;
   onChange: (rating: number) => void;
   rating: number;
-}
+};
 
 const StarRatingInput = ({
   disabled = false,

@@ -5,10 +5,10 @@ import type { RtRating } from "../../../types";
 import { isFresh, ratingStateClass } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 
-interface RottenTomatoesRatingProps {
+type RottenTomatoesRatingProps = {
   rating: RtRating | null;
   resolved: boolean;
-}
+};
 
 const RtLabel = ({
   className,

@@ -9,14 +9,21 @@ import type {
 } from "../../../types";
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
+import type { ReviewVoteState } from "./review-vote-state";
 import { useReviewContent } from "./use-review-content";
 
-interface ReviewModalProps {
+type ReviewModalProps = {
   canVote?: AccountActionGuard;
   onClose: () => void;
+  onVoteStateChange?: (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ) => void;
   onVote?: ReviewVoteCallback;
   review: Review;
-}
+  voteState?: ReviewVoteState;
+};
 
 const bodyClassName = (
   status: ReturnType<typeof useReviewContent>["status"]
@@ -32,12 +39,20 @@ const bodyClassName = (
 
 const ReviewModalContent = ({
   canVote,
+  onVoteStateChange,
   onVote,
   review,
+  voteState,
 }: {
   canVote?: AccountActionGuard;
+  onVoteStateChange?: (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ) => void;
   onVote?: ReviewVoteCallback;
   review: Review;
+  voteState?: ReviewVoteState;
 }) => {
   const handleClose = useModalClose();
   const content = useReviewContent(review.id);
@@ -99,9 +114,11 @@ const ReviewModalContent = ({
           <div class="atv-review-actions" data-rid={review.id || undefined}>
             <ReviewVoteButtons
               canVote={canVote}
+              onStateChange={onVoteStateChange}
               onVote={onVote}
               review={review}
               size="large"
+              state={voteState}
             />
           </div>
         </div>
@@ -123,8 +140,10 @@ const ReviewModalContent = ({
 const ReviewModal = ({
   canVote,
   onClose,
+  onVoteStateChange,
   onVote,
   review,
+  voteState,
 }: ReviewModalProps) => (
   <ModalShell
     ariaLabelledBy="atv-review-modal-title"
@@ -133,7 +152,13 @@ const ReviewModal = ({
     onClose={onClose}
     surfaceClassName="atv-review-modal-scroll"
   >
-    <ReviewModalContent canVote={canVote} onVote={onVote} review={review} />
+    <ReviewModalContent
+      canVote={canVote}
+      onVote={onVote}
+      onVoteStateChange={onVoteStateChange}
+      review={review}
+      voteState={voteState}
+    />
   </ModalShell>
 );
 

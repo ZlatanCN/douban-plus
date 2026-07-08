@@ -35,7 +35,7 @@ const cacheKey = (slug: string, season?: number, year?: string): string => {
 
 /* ── RT Page HTML Parsing ──────────────────────────── */
 
-interface ReviewsData {
+type ReviewsData = {
   criticsScore?: {
     score?: string | number;
     certified?: boolean;
@@ -48,7 +48,7 @@ interface ReviewsData {
     likedCount?: number;
     notLikedCount?: number;
   };
-}
+};
 
 const parseData = (raw: string): RtRating | null => {
   const data = JSON.parse(raw) as ReviewsData;

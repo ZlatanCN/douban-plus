@@ -6,13 +6,13 @@ import { el } from "./dom-factory";
 
 /* ── Types ──────────────────────────────────────────────── */
 
-interface OverlayController {
+type OverlayController = {
   dismiss: () => void;
   overlay: HTMLElement;
   closeBtn: HTMLButtonElement;
-}
+};
 
-interface CreateOverlayOptions {
+type CreateOverlayOptions = {
   id: string;
   className?: string | string[];
   content?: HTMLElement[];
@@ -20,7 +20,7 @@ interface CreateOverlayOptions {
   closeSize?: 22 | 16;
   closeIcon?: string;
   onClose?: () => void;
-}
+};
 
 const CLOSE_SVG =
   '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6l-12 12"/></svg>';

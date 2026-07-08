@@ -44,6 +44,7 @@ const renderReviews = (
   data = makeData(),
   options?: {
     canVote?: () => boolean;
+    onOpen?: (review: Review) => void;
     onVote?: (
       rid: string,
       type: "useful" | "useless"
@@ -54,6 +55,7 @@ const renderReviews = (
     <ReviewsSection
       canVote={options?.canVote}
       isTV={data.isTV}
+      onOpen={options?.onOpen ?? vi.fn<(review: Review) => void>()}
       onVote={options?.onVote}
       reviews={data.reviews}
       subjectId={data.subjectId}

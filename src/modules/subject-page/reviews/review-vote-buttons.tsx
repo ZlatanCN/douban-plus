@@ -6,54 +6,74 @@ import type {
   ReviewVoteCallback,
 } from "../../../types";
 import { reviewNumericId } from "./review-identity";
+import {
+  initialReviewVoteState,
+  optimisticReviewVoteState,
+  persistReviewVoteState,
+  resolvedReviewVoteState,
+} from "./review-vote-state";
+import type { ReviewVoteDirection, ReviewVoteState } from "./review-vote-state";
 
-interface ReviewVoteButtonsProps {
+type ReviewVoteButtonsProps = {
   canVote?: AccountActionGuard;
+  onStateChange?: (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ) => void;
   onVote?: ReviewVoteCallback;
   review: Review;
   size?: "normal" | "large";
-}
-
-type VoteDirection = "useful" | "useless";
+  state?: ReviewVoteState;
+};
 
 const ReviewVoteButtons = ({
   canVote,
+  onStateChange,
   onVote,
   review,
   size = "normal",
+  state,
 }: ReviewVoteButtonsProps) => {
-  const [counts, setCounts] = useState({
-    useful: review.usefulCount ?? 0,
-    useless: review.uselessCount ?? 0,
-  });
-  const [voted, setVoted] = useState<VoteDirection | null>(null);
+  const [localState, setLocalState] = useState<ReviewVoteState>(() =>
+    initialReviewVoteState(review)
+  );
   const [loading, setLoading] = useState(false);
+  const voteState = state ?? localState;
 
-  const vote = async (type: VoteDirection): Promise<void> => {
-    if (loading || voted === type || !onVote) {
+  const setVoteState = (
+    nextState: ReviewVoteState,
+    options?: { persist?: boolean }
+  ): void => {
+    if (onStateChange) {
+      onStateChange(review, nextState, options);
+    } else {
+      setLocalState(nextState);
+      if (options?.persist) {
+        persistReviewVoteState(review, nextState);
+      }
+    }
+  };
+
+  const vote = async (type: ReviewVoteDirection): Promise<void> => {
+    if (loading || voteState.voted === type || !onVote) {
       return;
     }
     if (canVote && !canVote()) {
       return;
     }
 
-    const previous = { counts, voted };
+    const previous = voteState;
     setLoading(true);
-    setVoted(type);
-    setCounts((current) => ({
-      useful: current.useful + (type === "useful" ? 1 : 0),
-      useless: current.useless + (type === "useless" ? 1 : 0),
-    }));
+    setVoteState(optimisticReviewVoteState(voteState, type));
 
     const result = await onVote(reviewNumericId(review.id), type);
     if (result.ok) {
-      setCounts((current) => ({
-        useful: result.usefulCount ?? current.useful,
-        useless: result.uselessCount ?? current.useless,
-      }));
+      setVoteState(resolvedReviewVoteState(voteState, type, result), {
+        persist: true,
+      });
     } else {
-      setCounts(previous.counts);
-      setVoted(previous.voted);
+      setVoteState(previous);
     }
     setLoading(false);
   };
@@ -63,24 +83,28 @@ const ReviewVoteButtons = ({
   return (
     <>
       <button
-        class={`atv-vote-btn up${voted === "useful" ? " is-voted" : ""}${sizeClass}`}
+        class={`atv-vote-btn up${
+          voteState.voted === "useful" ? " is-voted" : ""
+        }${sizeClass}`}
         onClick={(event) => {
           event.stopPropagation();
           void vote("useful");
         }}
         type="button"
       >
-        有用 {counts.useful}
+        有用 {voteState.usefulCount}
       </button>
       <button
-        class={`atv-vote-btn down${voted === "useless" ? " is-voted" : ""}${sizeClass}`}
+        class={`atv-vote-btn down${
+          voteState.voted === "useless" ? " is-voted" : ""
+        }${sizeClass}`}
         onClick={(event) => {
           event.stopPropagation();
           void vote("useless");
         }}
         type="button"
       >
-        没用 {counts.useless}
+        没用 {voteState.uselessCount}
       </button>
     </>
   );

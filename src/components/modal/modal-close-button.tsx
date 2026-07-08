@@ -1,11 +1,11 @@
 import { IconClose } from "../../components/common/icons";
 
-interface ModalCloseButtonProps {
+type ModalCloseButtonProps = {
   ariaLabel: string;
   className?: string;
   onClick: () => void;
   size?: 16 | 18 | 22;
-}
+};
 
 const ModalCloseButton = ({
   ariaLabel,

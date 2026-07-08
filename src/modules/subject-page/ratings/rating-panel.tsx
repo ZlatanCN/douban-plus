@@ -5,11 +5,11 @@ import { MetacriticRating } from "./metacritic-rating";
 import { RottenTomatoesRating } from "./rotten-tomatoes-rating";
 import { useExternalRatings } from "./use-external-ratings";
 
-interface RatingPanelProps {
+type RatingPanelProps = {
   douban: RatingInfo | null;
   imdbId: string | null;
   isTV: boolean;
-}
+};
 
 const RatingPanel = ({ douban, imdbId, isTV }: RatingPanelProps) => {
   const external = useExternalRatings(imdbId, isTV);

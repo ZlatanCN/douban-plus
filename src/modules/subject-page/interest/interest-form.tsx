@@ -10,11 +10,11 @@ import type {
 import { INTEREST_LABELS } from "../../../types";
 import { StarRatingInput } from "./star-rating-input";
 
-interface InterestFormProps {
+type InterestFormProps = {
   callbacks: ModalCallbacks;
   onClose: () => void;
   state: InterestState;
-}
+};
 
 const statusEntries = (
   hasWatching: boolean

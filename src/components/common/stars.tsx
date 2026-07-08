@@ -1,10 +1,10 @@
 import { IconStarEmpty, IconStarFull, IconStarHalf } from "./icons";
 
-interface StarsProps {
+type StarsProps = {
   className?: string;
   outOfFive?: boolean;
   score: number;
-}
+};
 
 const starComponents = (
   score: number,

@@ -1,14 +1,14 @@
 import { RE_SEASON_SUFFIX } from "../../../constants";
 import type { InfoBlock } from "../../../types";
 
-interface HeroMetaProps {
+type HeroMetaProps = {
   info: Pick<
     InfoBlock,
     "country" | "episodeRuntime" | "episodes" | "genres" | "runtime" | "seasons"
   >;
   isTV: boolean;
   year: string;
-}
+};
 
 const HeroMeta = ({ info, isTV, year }: HeroMetaProps) => {
   const metaParts: string[] = [];

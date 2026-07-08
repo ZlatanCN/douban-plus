@@ -19,11 +19,11 @@ import { $, $$ } from "../utils/dom";
  * Found interest (wish/do/collect) DOM anchor elements.
  * Used for proxy-clicking original Douban buttons when not logged in.
  */
-interface InterestButtons {
+type InterestButtons = {
   do: HTMLAnchorElement | null;
   wish: HTMLAnchorElement | null;
   collect: HTMLAnchorElement | null;
-}
+};
 
 /* ── Internal Helpers ───────────────────────────────── */
 

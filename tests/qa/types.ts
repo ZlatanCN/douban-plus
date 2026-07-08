@@ -1,40 +1,40 @@
 import type { Page } from "playwright";
 
-interface Scenario {
+type Scenario = {
   kind: "movie" | "tv";
   name: string;
   url: string;
-}
+};
 
-interface AssertResult {
+type AssertResult = {
   detail: string;
   name: string;
   pass: boolean;
   scenario: string;
-}
+};
 
-interface AssertWarn {
+type AssertWarn = {
   category: WarningCategory;
   detail: string;
   name: string;
   scenario: string;
-}
+};
 
 type WarningCategory = "auth-dependent" | "browser-policy" | "data-missing";
 
-interface ScenarioResult {
+type ScenarioResult = {
   name: string;
   passed: number;
   total: number;
   warnings: number;
   elapsedSec: number;
-}
+};
 
-interface AssertCtx {
+type AssertCtx = {
   page: Page;
   scenario: Scenario;
   ourErrors: string[];
-}
+};
 
 export type {
   AssertCtx,

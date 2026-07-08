@@ -2,10 +2,10 @@ import { PosterImage } from "../../../components/common/poster-image";
 import { Section } from "../../../components/layout/section";
 import type { SeriesItem } from "../../../types";
 
-interface SeriesSectionProps {
+type SeriesSectionProps = {
   items: SeriesItem[];
   moreLink?: { href: string; text: string };
-}
+};
 
 const subjectPath = (url: string): string => {
   try {

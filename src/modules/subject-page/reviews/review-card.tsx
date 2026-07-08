@@ -6,15 +6,29 @@ import type {
 } from "../../../types";
 import { reviewDisplayName } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
+import type { ReviewVoteState } from "./review-vote-state";
 
-interface ReviewCardProps {
+type ReviewCardProps = {
   canVote?: AccountActionGuard;
   onOpen: (review: Review) => void;
+  onVoteStateChange?: (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ) => void;
   onVote?: ReviewVoteCallback;
   review: Review;
-}
+  voteState?: ReviewVoteState;
+};
 
-const ReviewCard = ({ canVote, onOpen, onVote, review }: ReviewCardProps) => {
+const ReviewCard = ({
+  canVote,
+  onOpen,
+  onVote,
+  onVoteStateChange,
+  review,
+  voteState,
+}: ReviewCardProps) => {
   const displayName = reviewDisplayName(review.name);
 
   return (
@@ -74,8 +88,10 @@ const ReviewCard = ({ canVote, onOpen, onVote, review }: ReviewCardProps) => {
         <div class="atv-review-actions" data-rid={review.id || undefined}>
           <ReviewVoteButtons
             canVote={canVote}
+            onStateChange={onVoteStateChange}
             onVote={onVote}
             review={review}
+            state={voteState}
           />
         </div>
       </div>

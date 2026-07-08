@@ -100,10 +100,10 @@ describe(createCache, () => {
   /* ── Complex value type ─────────────────────────── */
 
   it("works with object values (t9)", () => {
-    interface Data {
+    type Data = {
       rating: { count: number; score: number };
       title: string;
-    }
+    };
     const cache = createCache<Data>("dp:obj-cache");
 
     const value: Data = {

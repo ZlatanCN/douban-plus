@@ -14,12 +14,19 @@ import {
 } from "./media";
 import { ReviewsSection } from "./reviews";
 import { ReviewModal } from "./reviews/review-modal";
+import {
+  initialReviewVoteState,
+  persistReviewVoteState,
+  reviewVoteKey,
+  reviewWithVoteState,
+} from "./reviews/review-vote-state";
+import type { ReviewVoteState } from "./reviews/review-vote-state";
 import type { SubjectPageDeps } from "./types";
 
-interface SubjectPageProps {
+type SubjectPageProps = {
   data: DoubanData;
   deps: SubjectPageDeps;
-}
+};
 
 const toHeroData = (data: DoubanData): HeroData => ({
   imdbId: data.info.imdb || null,
@@ -38,6 +45,33 @@ const toHeroData = (data: DoubanData): HeroData => ({
 const SubjectPage = ({ data, deps }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
+  const [reviewVoteStates, setReviewVoteStates] = useState<
+    Record<string, ReviewVoteState>
+  >(() =>
+    Object.fromEntries(
+      data.reviews.map((review) => [
+        reviewVoteKey(review),
+        initialReviewVoteState(review),
+      ])
+    )
+  );
+
+  const getReviewVoteState = (review: Review): ReviewVoteState =>
+    reviewVoteStates[reviewVoteKey(review)] ?? initialReviewVoteState(review);
+
+  const setReviewVoteState = (
+    review: Review,
+    state: ReviewVoteState,
+    options?: { persist?: boolean }
+  ): void => {
+    setReviewVoteStates((current) => ({
+      ...current,
+      [reviewVoteKey(review)]: state,
+    }));
+    if (options?.persist) {
+      persistReviewVoteState(review, state);
+    }
+  };
 
   return (
     <>
@@ -61,10 +95,14 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       />
       <ReviewsSection
         canVote={deps.canReviewVote}
+        getVoteState={getReviewVoteState}
         isTV={data.isTV}
         onOpen={setActiveReview}
+        onVoteStateChange={setReviewVoteState}
         onVote={deps.handleReviewVote}
-        reviews={data.reviews}
+        reviews={data.reviews.map((review) =>
+          reviewWithVoteState(review, getReviewVoteState(review))
+        )}
         subjectId={data.subjectId}
       />
       <RecommendationsSection recommendations={data.recommendations} />
@@ -86,8 +124,13 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         <ReviewModal
           canVote={deps.canReviewVote}
           onClose={() => setActiveReview(null)}
+          onVoteStateChange={setReviewVoteState}
           onVote={deps.handleReviewVote}
-          review={activeReview}
+          review={reviewWithVoteState(
+            activeReview,
+            getReviewVoteState(activeReview)
+          )}
+          voteState={getReviewVoteState(activeReview)}
         />
       ) : null}
     </>

@@ -2,9 +2,9 @@ import { Stars } from "../../../components/common/stars";
 import type { RatingInfo } from "../../../types";
 import { RatingLogo } from "./rating-logo";
 
-interface DoubanRatingProps {
+type DoubanRatingProps = {
   rating: RatingInfo | null;
-}
+};
 
 const DoubanRating = ({ rating }: DoubanRatingProps) => (
   <div class="atv-rating-panel-douban">

@@ -1,9 +1,9 @@
 import { Section } from "../../../components/layout/section";
 import type { Celebrity } from "../../../types";
 
-interface CastSectionProps {
+type CastSectionProps = {
   celebrities: Celebrity[];
-}
+};
 
 const CastSection = ({ celebrities }: CastSectionProps) =>
   celebrities.length ? (

@@ -4,10 +4,10 @@ import { PosterPlaceholder } from "../../../components/common/poster-placeholder
 import { openPosterModal } from "../../../components/modal";
 import type { TitleInfo } from "../../../types";
 
-interface HeroPosterProps {
+type HeroPosterProps = {
   poster: string | null;
   title: TitleInfo;
-}
+};
 
 const HeroPoster = ({ poster, title }: HeroPosterProps) => {
   const [failed, setFailed] = useState(false);

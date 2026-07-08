@@ -8,10 +8,10 @@ import { Reporter } from "./reporter";
 import { runScenario } from "./scenario-runner";
 import type { Scenario } from "./types";
 
-interface QaRunnerOptions {
+type QaRunnerOptions = {
   launchBrowser?: () => Promise<Browser>;
   scenarios?: Scenario[];
-}
+};
 
 const launchEdge = (): Promise<Browser> =>
   chromium.launch({

@@ -8,10 +8,10 @@ import {
 import type { HeroCallbacks, InterestState } from "../../../types";
 import { INTEREST_LABELS } from "../../../types";
 
-interface HeroActionsProps {
+type HeroActionsProps = {
   callbacks: HeroCallbacks;
   state: InterestState;
-}
+};
 
 const InterestButton = ({
   className,

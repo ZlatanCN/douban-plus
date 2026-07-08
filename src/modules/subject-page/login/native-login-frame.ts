@@ -94,12 +94,18 @@ const mountNativeLoginFrame = (
     }
     host.replaceChildren(result.iframe);
     host.setAttribute("aria-busy", "false");
+    onError("");
     requestAnimationFrame(() => result.iframe.focus());
     return;
   }
 
   if (attempt === 0) {
     triggerNativeLoginDialog();
+    // Douban's click handler synchronously inserts a white
+    // .dui-dialog-msk overlay that covers the viewport. Remove it
+    // before the next paint so it doesn't flash through our
+    // modal's fade-in transition.
+    clearNativeLoginMasks();
   }
   if (attempt < maxAttempts) {
     window.setTimeout(() => {

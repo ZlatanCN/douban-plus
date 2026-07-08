@@ -2,9 +2,9 @@ import { IconArrow } from "../../../components/common/icons";
 import { Section } from "../../../components/layout/section";
 import type { Streaming } from "../../../types";
 
-interface StreamingSectionProps {
+type StreamingSectionProps = {
   streaming: Streaming[];
-}
+};
 
 const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   streaming.length ? (

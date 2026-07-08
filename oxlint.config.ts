@@ -6,4 +6,7 @@ import vitest from "ultracite/oxlint/vitest";
 export default defineConfig({
   extends: [core, react, vitest],
   ignorePatterns: core.ignorePatterns,
+  rules: {
+    "typescript/consistent-type-definitions": ["error", "type"],
+  },
 });

@@ -3,10 +3,10 @@ import type { ImdbRating as ImdbRatingData } from "../../../types";
 import { ratingStateClass } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 
-interface ImdbRatingProps {
+type ImdbRatingProps = {
   rating: ImdbRatingData | null;
   resolved: boolean;
-}
+};
 
 const renderImdbContent = (
   rating: ImdbRatingData | null,

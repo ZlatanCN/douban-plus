@@ -12,14 +12,14 @@ import { mockCookie } from "../helpers/doc";
 // ----------------------------------------------------------------
 // Types matching the ambient declare in request.ts for mock
 // ----------------------------------------------------------------
-interface GmXhrOpts {
+type GmXhrOpts = {
   url: string;
   method: "GET" | "POST";
   headers?: Record<string, string>;
   data?: string;
   onerror: () => void;
   onload: (r: { responseText: string }) => void;
-}
+};
 
 // ----------------------------------------------------------------
 // Install mock GM_xmlhttpRequest on globalThis BEFORE imports.

@@ -5,13 +5,13 @@ import type { AccountActionGuard, Comment } from "../../../types";
 import type { CommentVoteCallback } from "../types";
 import { CommentCard } from "./comment-card";
 
-interface CommentsSectionProps {
+type CommentsSectionProps = {
   canVote?: AccountActionGuard;
   comments: Comment[];
   onOpen: (comment: Comment) => void;
   onVote: CommentVoteCallback;
   subjectId: string;
-}
+};
 
 const CommentsSection = ({
   canVote,

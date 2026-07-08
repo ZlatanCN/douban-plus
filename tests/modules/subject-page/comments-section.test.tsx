@@ -1,3 +1,4 @@
+import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommentsSection } from "../../../src/modules/subject-page/comments";
@@ -28,6 +29,7 @@ const renderComments = (
   data = makeData(),
   options?: {
     canVote?: () => boolean;
+    onOpen?: (comment: Comment) => void;
     onVote?: (cid: string) => Promise<{ count?: number; ok: boolean }>;
   }
 ) =>
@@ -35,6 +37,7 @@ const renderComments = (
     <CommentsSection
       canVote={options?.canVote}
       comments={data.comments}
+      onOpen={options?.onOpen ?? vi.fn<(comment: Comment) => void>()}
       onVote={options?.onVote ?? (() => Promise.resolve({ ok: true }))}
       subjectId={data.subjectId}
     />
@@ -121,6 +124,58 @@ describe(CommentsSection, () => {
     expect(root.querySelector(".atv-section-more")).toBeNull();
   });
 
+  it("does not add has-overflow when scrollHeight equals clientHeight (no overflow)", () => {
+    const root = renderComments(
+      makeData({
+        comments: [
+          makeComment({
+            cid: "c1",
+            content: "Short text that fits in one line.",
+          }),
+        ],
+      })
+    );
+    const card = root.querySelector<HTMLElement>(".atv-comment-card");
+    expect(card?.classList.contains("has-overflow")).toBeFalsy();
+  });
+
+  it("adds has-overflow when scrollHeight exceeds clientHeight (overflow detected)", () => {
+    const root = renderIntoRoot(
+      <CommentsSection
+        comments={[makeComment({ cid: "c1", content: "A".repeat(500) })]}
+        onOpen={vi.fn<() => void>()}
+        onVote={() => Promise.resolve({ ok: true })}
+        subjectId="1292052"
+      />
+    );
+
+    const body = root.querySelector<HTMLElement>(".atv-comment-body-text");
+    expect(body).not.toBeNull();
+
+    const bodyEl = body as HTMLElement;
+    Object.defineProperty(bodyEl, "scrollHeight", {
+      configurable: true,
+      value: 300,
+    });
+    Object.defineProperty(bodyEl, "clientHeight", {
+      configurable: true,
+      value: 100,
+    });
+
+    render(
+      <CommentsSection
+        comments={[makeComment({ cid: "c1", content: "B".repeat(300) })]}
+        onOpen={vi.fn<() => void>()}
+        onVote={() => Promise.resolve({ ok: true })}
+        subjectId="1292052"
+      />,
+      root
+    );
+
+    const card = root.querySelector<HTMLElement>(".atv-comment-card");
+    expect(card?.classList.contains("has-overflow")).toBeTruthy();
+  });
+
   it("calls onOpen on card body click only when card has overflow", async () => {
     const onOpen = vi.fn<() => void>();
     const data = makeData();
@@ -128,6 +183,7 @@ describe(CommentsSection, () => {
       <CommentsSection
         comments={data.comments}
         onOpen={onOpen}
+        onVote={() => Promise.resolve({ ok: true })}
         subjectId={data.subjectId}
       />
     );

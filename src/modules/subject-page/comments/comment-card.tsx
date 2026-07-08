@@ -5,12 +5,12 @@ import type { CommentVoteCallback } from "../types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 
-interface CommentCardProps {
+type CommentCardProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onOpen: (comment: Comment) => void;
   onVote: CommentVoteCallback;
-}
+};
 
 const CommentCard = ({
   canVote,

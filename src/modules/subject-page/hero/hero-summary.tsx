@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from "preact/hooks";
 
 import { IconChevron } from "../../../components/common/icons";
 
-interface HeroSummaryProps {
+type HeroSummaryProps = {
   text: string;
-}
+};
 
 const HeroSummary = ({ text }: HeroSummaryProps) => {
   const teaserRef = useRef<HTMLParagraphElement>(null);

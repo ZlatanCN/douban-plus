@@ -6,12 +6,12 @@ import type { CommentVoteCallback } from "../types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 
-interface CommentModalProps {
+type CommentModalProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onClose: () => void;
   onVote: CommentVoteCallback;
-}
+};
 
 const CommentModalContent = ({
   canVote,

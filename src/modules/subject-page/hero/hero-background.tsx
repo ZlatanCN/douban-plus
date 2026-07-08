@@ -3,11 +3,11 @@ import { useEffect, useState } from "preact/hooks";
 import type { Photo } from "../../../types";
 import { hashStr } from "../../../utils/hash";
 
-interface HeroBackgroundProps {
+type HeroBackgroundProps = {
   photos: Photo[];
   poster: string | null;
   subjectId: string;
-}
+};
 
 const pickStill = (photos: Photo[], seed: string): Photo | null => {
   if (!photos.length) {

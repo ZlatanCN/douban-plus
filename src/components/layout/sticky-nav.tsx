@@ -1,9 +1,9 @@
 import type { NavSection, TitleInfo } from "../../types";
 
-interface StickyNavProps {
+type StickyNavProps = {
   sections: NavSection[];
   title: Pick<TitleInfo, "full" | "primary">;
-}
+};
 
 const StickyNav = ({ sections, title }: StickyNavProps) => (
   <>

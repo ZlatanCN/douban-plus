@@ -5,9 +5,9 @@ import { Section } from "../../../components/layout/section";
 import { openPosterModal, openVideoModal } from "../../../components/modal";
 import type { Photo, PhotosData } from "../../../types";
 
-interface PhotosSectionProps {
+type PhotosSectionProps = {
   data: PhotosData;
-}
+};
 
 const PhotoTile = ({ photo }: { photo: Photo }) => {
   const tileRef = useRef<HTMLButtonElement>(null);

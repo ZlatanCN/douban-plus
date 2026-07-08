@@ -2,11 +2,11 @@ import { useState } from "preact/hooks";
 
 import { PosterPlaceholder } from "./poster-placeholder";
 
-interface PosterImageProps {
+type PosterImageProps = {
   alt: string;
   className?: string;
   poster: string;
-}
+};
 
 const PosterImage = ({ alt, className, poster }: PosterImageProps) => {
   const [failed, setFailed] = useState(false);

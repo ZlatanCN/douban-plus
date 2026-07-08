@@ -6,10 +6,10 @@ import { HeroMeta } from "./hero-meta";
 import { HeroPoster } from "./hero-poster";
 import { HeroSummary } from "./hero-summary";
 
-interface HeroProps {
+type HeroProps = {
   callbacks: HeroCallbacks;
   data: HeroData;
-}
+};
 
 const Hero = ({ callbacks, data }: HeroProps) => (
   <section class="atv-hero">
