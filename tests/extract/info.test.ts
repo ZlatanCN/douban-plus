@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractInfo } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractInfo } from "@/extract/info";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractInfo, () => {
   it("extracts crew info from #info block", () => {

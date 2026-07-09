@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { buildContext } from "../../../resolve/context";
-import { resolveAll } from "../../../resolve/orchestrate";
+import { buildContext } from "@/resolve/context";
+import { resolveAll } from "@/resolve/orchestrate";
 
 type ExternalRatings = Awaited<ReturnType<typeof resolveAll>>;
 

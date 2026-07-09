@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { RottenTomatoesRating } from "../../../src/modules/subject-page/ratings/rotten-tomatoes-rating";
-import type { RtRating } from "../../../src/types";
-import { renderSingle } from "../../helpers";
+import { RottenTomatoesRating } from "@/modules/subject-page/ratings/rotten-tomatoes-rating";
+import type { RtRating } from "@/types";
+
+import { renderSingle } from "../../helpers/render";
 
 const makeRating = (overrides?: Partial<RtRating>): RtRating => ({
   audienceCount: 50_000,

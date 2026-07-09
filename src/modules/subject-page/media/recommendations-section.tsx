@@ -1,6 +1,6 @@
-import { PosterImage } from "../../../components/common/poster-image";
-import { Section } from "../../../components/layout/section";
-import type { Recommendation } from "../../../types";
+import { PosterImage } from "@/components/common/poster-image";
+import { Section } from "@/components/layout/section";
+import type { Recommendation } from "@/types";
 
 type RecommendationsSectionProps = {
   recommendations: Recommendation[];

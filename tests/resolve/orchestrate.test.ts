@@ -2,9 +2,9 @@
 
 import { describe, it, expect, vi } from "vitest";
 
-import type { FetchImdbResult } from "../../src/api/imdb";
-import type { ResolutionContext } from "../../src/resolve/types";
-import type { McRating, RtRating } from "../../src/types";
+import type { FetchImdbResult } from "@/api/imdb";
+import type { ResolutionContext } from "@/resolve/types";
+import type { McRating, RtRating } from "@/types";
 
 // Mock request utils to prevent GM_xmlhttpRequest check from firing
 // during module import chain resolution.

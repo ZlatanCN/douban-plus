@@ -1,12 +1,9 @@
-import { HtmlContent } from "../../../components/common/icons";
-import { Stars } from "../../../components/common/stars";
-import { ModalCloseButton, ModalShell } from "../../../components/modal/index";
-import { useModalClose } from "../../../components/modal/modal-close-context";
-import type {
-  AccountActionGuard,
-  Review,
-  ReviewVoteCallback,
-} from "../../../types";
+import { HtmlContent } from "@/components/common/icons";
+import { Stars } from "@/components/common/stars";
+import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { useModalClose } from "@/components/modal/modal-close-context";
+import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
 import type { ReviewVoteState } from "./review-vote-state";

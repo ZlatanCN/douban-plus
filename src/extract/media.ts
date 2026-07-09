@@ -1,10 +1,10 @@
 /* ── Media Extractors ──────────────────────────────────── */
 /* Celebrities (cast/crew) and photo gallery.              */
 
-import { RE_BG_URL } from "../constants";
-import type { Celebrity, Photo, Trailer } from "../types";
-import { $, $$, safeText } from "../utils/dom";
-import { upgradePhoto } from "../utils/upgrade";
+import { RE_BG_URL } from "@/constants";
+import type { Celebrity, Photo, Trailer } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
+import { upgradePhoto } from "@/utils/upgrade";
 
 /**
  * Extract cast/crew from the "#celebrities" list.

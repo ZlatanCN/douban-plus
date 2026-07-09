@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
-import type { Comment, DoubanData, HeroData, Review } from "../../types";
+import type { Comment, DoubanData, HeroData, Review } from "@/types";
+
 import { CommentsSection } from "./comments";
 import { CommentModal } from "./comments/comment-modal";
 import {

@@ -1,13 +1,10 @@
 import { useState } from "preact/hooks";
 
-import { ModalCloseButton, ModalShell } from "../../../components/modal/index";
-import { useModalClose } from "../../../components/modal/modal-close-context";
-import type {
-  InterestFormState,
-  InterestState,
-  ModalCallbacks,
-} from "../../../types";
-import { INTEREST_LABELS } from "../../../types";
+import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { useModalClose } from "@/components/modal/modal-close-context";
+import type { InterestFormState, InterestState, ModalCallbacks } from "@/types";
+import { INTEREST_LABELS } from "@/types";
+
 import { StarRatingInput } from "./star-rating-input";
 
 type InterestFormProps = {

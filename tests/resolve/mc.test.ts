@@ -3,8 +3,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import type { ResolutionContext } from "../../src/resolve/types";
-import type { McRating } from "../../src/types";
+import type { ResolutionContext } from "@/resolve/types";
+import type { McRating } from "@/types";
 
 const mockFetchMcRating = vi.hoisted(() =>
   vi.fn<

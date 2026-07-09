@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractComments, extractRecommendations } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractComments, extractRecommendations } from "@/extract/social";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractRecommendations, () => {
   it("extracts related movie recommendations from .recommendations-bd", () => {

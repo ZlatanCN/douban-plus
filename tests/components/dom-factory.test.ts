@@ -3,8 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { el, renderStars } from "../../src/components";
-import { renderStarRating } from "../../src/components/dom-factory";
+import { el, renderStars, renderStarRating } from "@/components/dom-factory";
 
 /* ── el() — Tag creation ─────────────────────────────────── */
 

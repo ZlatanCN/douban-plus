@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAccountGate } from "../../src/runtime/account-gate";
+import { createAccountGate } from "@/runtime/account-gate";
 
 describe(createAccountGate, () => {
   it("allows account-gated actions when logged in", () => {

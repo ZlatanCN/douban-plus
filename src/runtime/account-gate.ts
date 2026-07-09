@@ -1,4 +1,4 @@
-import { openLoginModal } from "../modules/subject-page/login";
+import { openLoginModal } from "@/modules/subject-page/login";
 
 type AccountGateOptions = {
   loggedIn: boolean;

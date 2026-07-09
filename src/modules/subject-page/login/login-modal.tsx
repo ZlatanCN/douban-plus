@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { ModalCloseButton, ModalShell } from "../../../components/modal/index";
-import { useModalClose } from "../../../components/modal/modal-close-context";
+import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { useModalClose } from "@/components/modal/modal-close-context";
+
 import { mountNativeLoginFrame } from "./native-login-frame";
 
 type LoginModalProps = {

@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach } from "vitest";
 
-import { createCache } from "../../src/utils/cache";
+import { createCache } from "@/utils/cache";
 
 /* ── Suite ────────────────────────────────────────────── */
 

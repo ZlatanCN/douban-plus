@@ -1,4 +1,4 @@
-import { ICON_STAR_EMPTY, ICON_STAR_FULL, ICON_STAR_HALF } from "../constants";
+import { ICON_STAR_EMPTY, ICON_STAR_FULL, ICON_STAR_HALF } from "@/constants";
 
 type ElementAttrs = {
   className?: string | string[];

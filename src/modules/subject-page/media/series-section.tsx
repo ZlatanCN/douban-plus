@@ -1,6 +1,6 @@
-import { PosterImage } from "../../../components/common/poster-image";
-import { Section } from "../../../components/layout/section";
-import type { SeriesItem } from "../../../types";
+import { PosterImage } from "@/components/common/poster-image";
+import { Section } from "@/components/layout/section";
+import type { SeriesItem } from "@/types";
 
 type SeriesSectionProps = {
   items: SeriesItem[];

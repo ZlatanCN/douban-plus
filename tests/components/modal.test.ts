@@ -3,8 +3,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { openPosterModal, openVideoModal } from "../../src/components";
-import type { Trailer } from "../../src/types";
+import { openPosterModal, openVideoModal } from "@/components/modal";
+import type { Trailer } from "@/types";
 
 const stubRaf = (): void => {
   vi.spyOn(window, "requestAnimationFrame").mockImplementation(

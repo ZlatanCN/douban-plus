@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { StickyNav } from "../../../src/components/layout/sticky-nav";
-import type { StickyNavData } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+import { StickyNav } from "@/components/layout/sticky-nav";
+import type { StickyNavData } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makeData = (overrides?: Partial<StickyNavData>): StickyNavData => ({
   sections: [

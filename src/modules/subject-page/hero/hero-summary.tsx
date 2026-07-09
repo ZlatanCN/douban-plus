@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { IconChevron } from "../../../components/common/icons";
+import { IconChevron } from "@/components/common/icons";
 
 type HeroSummaryProps = {
   text: string;

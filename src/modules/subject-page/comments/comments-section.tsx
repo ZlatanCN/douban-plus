@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { Section } from "../../../components/layout/section";
-import type { AccountActionGuard, Comment } from "../../../types";
+import { Section } from "@/components/layout/section";
+import type { AccountActionGuard, Comment } from "@/types";
+
 import type { CommentVoteCallback } from "../types";
 import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";

@@ -5,12 +5,12 @@
 import { render } from "preact";
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import { computeNavSections } from "../src/components/layout/nav";
-import { StickyNav } from "../src/components/layout/sticky-nav";
-import { buildHeroCallbacks, watchSeries } from "../src/main";
-import { SubjectPage } from "../src/modules/subject-page";
-import type { SubjectPageDeps } from "../src/modules/subject-page";
-import type { DoubanData, InfoBlock, InterestState } from "../src/types";
+import { computeNavSections } from "@/components/layout/nav";
+import { StickyNav } from "@/components/layout/sticky-nav";
+import { buildHeroCallbacks, watchSeries } from "@/main";
+import { SubjectPage } from "@/modules/subject-page/subject-page";
+import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import type { DoubanData, InfoBlock, InterestState } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */

@@ -5,7 +5,7 @@ import {
   isTrustedLoginIframe,
   mountNativeLoginFrame,
   prepareNativeLoginIframe,
-} from "../../../src/modules/subject-page/login/native-login-frame";
+} from "@/modules/subject-page/login/native-login-frame";
 
 describe("native login frame", () => {
   beforeEach(() => {

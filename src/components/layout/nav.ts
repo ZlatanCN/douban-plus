@@ -1,4 +1,4 @@
-import type { DoubanData, NavSection } from "../../types";
+import type { DoubanData, NavSection } from "@/types";
 
 const computeNavSections = (data: DoubanData): NavSection[] => {
   const sections: NavSection[] = [];

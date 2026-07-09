@@ -1,9 +1,9 @@
 import { useRef } from "preact/hooks";
 
-import { PlayIcon } from "../../../components/common/icons";
-import { Section } from "../../../components/layout/section";
-import { openPosterModal, openVideoModal } from "../../../components/modal";
-import type { Photo, PhotosData } from "../../../types";
+import { PlayIcon } from "@/components/common/icons";
+import { Section } from "@/components/layout/section";
+import { openPosterModal, openVideoModal } from "@/components/modal";
+import type { Photo, PhotosData } from "@/types";
 
 type PhotosSectionProps = {
   data: PhotosData;

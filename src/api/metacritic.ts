@@ -1,6 +1,6 @@
-import type { McRating } from "../types";
-import { createCache } from "../utils/cache";
-import { gmGet } from "../utils/request";
+import type { McRating } from "@/types";
+import { createCache } from "@/utils/cache";
+import { gmGet } from "@/utils/request";
 
 const mcCache = createCache<NonNullable<McRating>>(
   "dp:metacritic-cache",
@@ -10,15 +10,13 @@ const mcCache = createCache<NonNullable<McRating>>(
 /** Convert a title to a Metacritic-style hyphen slug.
  *  Metacritic uses hyphens (not underscores like RT).
  *  E.g. "The Shawshank Redemption" → "the-shawshank-redemption" */
-const toMcSlug = (title: string): string => {
-  const slug = title
+const toMcSlug = (title: string): string =>
+  title
     .normalize("NFD")
     .replaceAll(/[\u0300-\u036F]/gu, "")
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/gu, "-")
     .replaceAll(/^-|-$/gu, "");
-  return slug;
-};
 
 /** Build a cache key from slug + optional season suffix + optional year suffix.
  *  E.g. "the-wire" or "the-wire-s05" or "true-grit-2010-s00".

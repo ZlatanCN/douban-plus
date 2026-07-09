@@ -1,8 +1,8 @@
 /* ── Series Extractor ──────────────────────────────────── */
 /* "同系列作品" carousel from #series-items section.       */
 
-import type { SeriesItem } from "../types";
-import { $, $$, safeText } from "../utils/dom";
+import type { SeriesItem } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
 
 /* ── Chinese numeral helpers ──────────────────────────── */
 

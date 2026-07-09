@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { PhotosSection } from "../../../src/modules/subject-page/media";
-import type { Photo, PhotosData, Trailer } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+import { PhotosSection } from "@/modules/subject-page/media";
+import type { Photo, PhotosData, Trailer } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makePhoto = (overrides?: Partial<Photo>): Photo => ({
   hdUrl: "https://example.com/hd.jpg",

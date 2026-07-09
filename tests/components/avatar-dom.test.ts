@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { applyCommentAvatars } from "../../src/components/avatar-dom";
-import type { Comment } from "../../src/types";
+import { applyCommentAvatars } from "@/components/avatar-dom";
+import type { Comment } from "@/types";
 
 /* ── Mock Image: trigger load synchronously via stub RAF ── */
 

@@ -1,5 +1,6 @@
-import { Stars } from "../../../components/common/stars";
-import type { RatingInfo } from "../../../types";
+import { Stars } from "@/components/common/stars";
+import type { RatingInfo } from "@/types";
+
 import { RatingLogo } from "./rating-logo";
 
 type DoubanRatingProps = {

@@ -4,9 +4,9 @@ import {
   IconStarEmpty,
   IconStarFull,
   IconThumb,
-} from "../../../components/common/icons";
-import type { HeroCallbacks, InterestState } from "../../../types";
-import { INTEREST_LABELS } from "../../../types";
+} from "@/components/common/icons";
+import type { HeroCallbacks, InterestState } from "@/types";
+import { INTEREST_LABELS } from "@/types";
 
 type HeroActionsProps = {
   callbacks: HeroCallbacks;

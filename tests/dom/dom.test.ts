@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { $, $$, safeText } from "../../src/utils/dom";
-import { buildDoc } from "../helpers";
+import { $, $$, safeText } from "@/utils/dom";
+
+import { buildDoc } from "../helpers/doc";
 
 const HTML = `<!DOCTYPE html>
 <html>

@@ -750,6 +750,26 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
+	var Section = ({ children, id, moreLink, title }) => u$1("section", {
+		class: "atv-section",
+		id,
+		children: [moreLink ? u$1("div", {
+			class: "atv-section-h-row",
+			children: [u$1("h2", {
+				class: "atv-section-h",
+				children: title
+			}), u$1("a", {
+				class: "atv-section-more",
+				href: moreLink.href,
+				rel: "noopener",
+				target: "_blank",
+				children: moreLink.text
+			})]
+		}) : u$1("h2", {
+			class: "atv-section-h",
+			children: title
+		}), children]
+	});
 	var StickyNav = ({ sections, title }) => u$1(S, { children: [u$1("div", {
 		class: "atv-stickynav-title",
 		children: title.primary || title.full
@@ -853,7 +873,7 @@ input::placeholder {
 		var i = (r = n.__c).__H;
 		i && (u === r ? (i.__h = [], r.__h = [], i.__.some(function(n) {
 			n.__N && (n.__ = n.__N), n.u = n.__N = void 0;
-		})) : (i.__h.length && j(), t = 0)), u = r;
+		})) : (i.__h.some(z), i.__h.some(B), i.__h = [], t = 0)), u = r;
 	}, c.diffed = function(n) {
 		v && v(n);
 		var t = n.__c;
@@ -1283,6 +1303,60 @@ input::placeholder {
 			stroke: "none"
 		})
 	});
+	var LogoBilibili = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z" })
+	});
+	var LogoNetflix = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "m5.398 0 8.348 23.602c2.346.059 4.856.398 4.856.398L10.113 0H5.398zm8.489 0v9.172l4.715 13.33V0h-4.715zM5.398 1.5V24c1.873-.225 2.81-.312 4.715-.398V14.83L5.398 1.5z" })
+	});
+	var LogoYouTube = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" })
+	});
+	var LogoAppleTv = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M20.57 17.735h-1.815l-3.34-9.203h1.633l2.02 5.987c.075.231.273.9.586 2.012l.297-.997.33-1.006 2.094-6.004H24zm-5.344-.066a5.76 5.76 0 0 1-1.55.207c-1.23 0-1.84-.693-1.84-2.087V9.646h-1.063V8.532h1.121V7.081l1.476-.602v2.062h1.707v1.113H13.38v5.805c0 .446.074.75.214.932.14.182.396.264.75.264.207 0 .495-.041.883-.115zm-7.29-5.343c.017 1.764 1.55 2.358 1.567 2.366-.017.042-.248.842-.808 1.658-.487.71-.99 1.418-1.79 1.435-.783.016-1.03-.462-1.93-.462-.89 0-1.17.445-1.913.478-.758.025-1.344-.775-1.838-1.484-.998-1.451-1.765-4.098-.734-5.88.51-.89 1.426-1.451 2.416-1.46.75-.016 1.468.512 1.93.512.461 0 1.327-.627 2.234-.536.38.016 1.452.157 2.136 1.154-.058.033-1.278.743-1.27 2.219M6.468 7.988c.404-.495.685-1.18.61-1.864-.585.025-1.294.388-1.723.883-.38.437-.71 1.138-.619 1.806.652.05 1.328-.338 1.732-.825Z" })
+	});
+	var LogoHbo = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M7.042 16.896H4.414v-3.754H2.708v3.754H.01L0 7.22h2.708v3.6h1.706v-3.6h2.628zm12.043.046C21.795 16.94 24 14.689 24 11.978a4.89 4.89 0 0 0-4.915-4.92c-2.707-.002-4.09 1.991-4.432 2.795.003-1.207-1.187-2.632-2.58-2.634H7.59v9.674l4.181.001c1.686 0 2.886-1.46 2.888-2.713.385.788 1.72 2.762 4.427 2.76zm-7.665-3.936c.387 0 .692.382.692.817 0 .435-.305.817-.692.817h-1.33v-1.634zm.005-3.633c.387 0 .692.382.692.817 0 .436-.305.818-.692.818h-1.33V9.373zm1.77 2.607c.305-.039.813-.387.992-.61-.063.276-.068 1.074.006 1.35-.204-.314-.688-.701-.998-.74zm3.43 0a2.462 2.462 0 1 1 4.924 0 2.462 2.462 0 0 1-4.925 0zm2.462 1.936a1.936 1.936 0 1 0 0-3.872 1.936 1.936 0 0 0 0 3.872Z" })
+	});
+	var LogoHboMax = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M3.784 8.716c-.655 0-1.32.29-2.173.946v-.78H0v6.236h1.715V11.24c.749-.592 1.091-.78 1.372-.78.333 0 .551.209.551.729v3.928h1.715V11.23c.748-.582 1.081-.769 1.372-.769.333 0 .55.208.55.728v3.928H8.99v-4.53c0-1.403-.8-1.871-1.57-1.871-.654 0-1.32.27-2.192.936-.28-.697-.894-.936-1.444-.936zm8.689 0c-1.705 0-3.118 1.466-3.118 3.284 0 1.82 1.413 3.285 3.118 3.285.842 0 1.57-.312 2.131-.988v.82h1.632V8.883h-1.632v.822c-.561-.676-1.29-.988-2.131-.988zm4.064.166c.707 1.102 1.507 2.09 2.443 3.077a26.593 26.593 0 0 0-2.443 3.16h2.069a13.603 13.603 0 0 1 1.673-2.183 14.067 14.067 0 0 1 1.632 2.182H24a25.142 25.142 0 0 0-2.432-3.16A23.918 23.918 0 0 0 24 8.883h-2.047a14.65 14.65 0 0 1-1.674 2.11 13.357 13.357 0 0 1-1.674-2.11zm-3.804 1.279c1.018 0 1.84.82 1.84 1.84a1.837 1.837 0 0 1-1.84 1.839c-1.019 0-1.84-.82-1.84-1.84 0-1.018.821-1.84 1.84-1.84zm0 .415c-.78 0-1.414.633-1.414 1.423s.634 1.424 1.413 1.424c.78 0 1.414-.634 1.414-1.424s-.634-1.424-1.414-1.424z" })
+	});
+	var LogoParamountPlus = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M16.347 21.373c.057-.084.151-.314-.025-.74l-.53-1.428c-.073-.182.084-.293.19-.173 0 0 1.004 1.157 1.264 1.64l.495.822c.425.028 1.6.06 2.732.06a3.26 3.26 0 0 1-.316-.364c-1.93-2.392-3.154-3.724-3.166-3.737-.391-.426-.572-.508-.87-.643a4.82 4.82 0 0 1-.138-.065v.364c0 .047-.057.073-.086.022l-2.846-5.001a1.598 1.598 0 0 0-.508-.587l-.277-.194-1.354 3.123c.212 0 .354.216.27.409l-1.25 2.893h1.147c.443 0 .883.087 1.294.255l.302.125s-.913 1.878-.913 2.867c0 .181.028.362.075.534h2.104l-.096-.595s1.266.294 2.502.413M12 2.437c-6.627 0-12 5.373-12 12 0 2.669.873 5.133 2.346 7.126.503-.218.783-.542.983-.791l2.234-2.858a.467.467 0 0 1 .179-.138l.336-.146 3.674-4.659.534-.417 1.094-1.524a.482.482 0 0 1 .101-.102l.478-.347a.34.34 0 0 1 .398-.004l.578.407c.308.216.557.504.726.84l2.322 4.077c.051.09.09.129.182.174.454.227.732.268 1.33.913.277.304 1.495 1.666 3.203 3.784.236.318.538.588.963.783A11.948 11.948 0 0 0 24 14.437c0-6.627-5.373-12-12-12M3.236 15.1l-.778-.253-.48.662v-.818l-.778-.253.778-.253v-.818l.48.662.778-.253-.48.662Zm-.185 2.676-.252.778-.253-.778h-.818l.661-.481-.253-.777.663.48.66-.48-.252.777.662.481Zm.156-6.195.253.778-.661-.48-.663.48.253-.778-.66-.48h.817l.253-.778.252.777h.818Zm1.314-1.76L4.04 9.16l-.778.253.48-.661-.48-.663.778.254.48-.662v.818l.778.253-.777.252Zm2.045-2.862-.253.777-.252-.777h-.818l.662-.48-.253-.778.661.48.661-.48-.252.777.662.48Zm2.577-1.313-.48.661V5.49l-.779-.254.778-.253v-.817l.48.66.78-.253-.481.663.48.66zm3.265-.75.253.778-.661-.48-.662.48.252-.777-.66-.481h.818L12 3.637l.252.778h.818zm2.93.595v.816l-.481-.661-.777.252.48-.662-.48-.662.777.253.48-.66v.817l.779.252zm5.426 8.285.778.253.48-.662v.818l.778.253-.778.253v.818l-.48-.662-.778.253.48-.662zm-3.077-6.04-.253-.777h-.818l.662-.48-.253-.778.662.48.662-.48-.254.778.662.48h-.818zm1.792 2.086v-.818l-.777-.252.777-.253V7.68l.481.662.777-.254-.48.663.48.66-.777-.252zm1.469 1.278.253-.777.254.777h.816l-.66.481.252.778-.662-.48-.661.48.253-.778-.662-.48zm.506 6.676-.253.778-.253-.778h-.817l.662-.481-.253-.777.66.48.663-.48-.253.777.661.481zm-12.08-.615.76-1.588c.024-.048-.032-.108-.067-.067l-.664.668c-.313.329-.847 1.25-.95 1.421l-.808 1.335a.109.109 0 0 1 .1.162l-.739 1.238c-.18.309.145.523.189.452 1.157-1.868 1.832-1.719 1.832-1.719l.387-.897c.022-.047-.001-.1-.05-.12-.12-.05-.316-.27.01-.885z" })
+	});
+	var LogoTubi = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M16.696 15.272v-.752c.4.548 1.107.917 1.934.917 1.475 0 2.28-.956 2.28-2.865 0-1.714-.893-2.858-2.235-2.858-.851 0-1.55.347-1.979.908v-2.06h-2.674v6.71zm1.57-2.614c0 .827-.337 1.275-.827 1.275-.486 0-.837-.452-.837-1.275s.342-1.28.837-1.28c.495 0 .828.452.828 1.28zM6.94 9.988v3.6c0 1.236.754 1.841 1.955 1.841.959 0 1.625-.396 2.028-1.064v.91h2.597V9.989h-2.675v3.14c0 .493-.346.693-.666.693-.321 0-.568-.192-.568-.655V9.989Zm14.39 0H24v5.276h-2.67ZM6.553 11.136c0 .781-.635 1.415-1.42 1.415-.783 0-1.419-.634-1.419-1.415 0-.782.636-1.415 1.42-1.415.784 0 1.42.633 1.42 1.415zM3.49 9.702v2.668c.005.653.327.924.976.924.225 0 .526-.053.672-.166v1.931c-.49.243-.869.378-1.535.378 0 0-.069 0-.18-.006l-.003.006c-1.614 0-2.51-1.035-2.482-2.686v-.47H0V9.99h.92V8.563h2.569Z" })
+	});
+	var LogoVimeo = (props) => u$1("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u$1("path", { d: "M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z" })
+	});
 	var starComponents = (score, outOfFive = false) => {
 		const normalized = outOfFive ? score : score / 2;
 		return Array.from({ length: 5 }, (_, index) => {
@@ -1532,6 +1606,181 @@ input::placeholder {
 			})
 		});
 	};
+	var RE_SLASH_SEP = /\s*\/\s*/gu;
+	var RE_WS_GLOBAL = /\s+/gu;
+	var RE_COLON_WS = /[:：\s]/gu;
+	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_WS = /\s+/u;
+	var RE_YEAR = /(?<year>\d{4})/u;
+	var RE_NON_DIGIT = /\D/gu;
+	var RE_HSPACE = /[ \t]+/gu;
+	var RE_NL_MULTI = /\n{3,}/gu;
+	var RE_IMDB_ID = /(?<id>tt\d+)/u;
+	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
+	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
+	var RE_HTTP = /^https?:\/\//u;
+	var RE_ONLINE_VIDEO = /online-video/u;
+	var RE_WISH = /想看/u;
+	var RE_DO = /在看/u;
+	var RE_COLLECT = /看过/u;
+	var RE_WISH_EXACT = /^想看$/u;
+	var RE_DO_EXACT = /^在看$/u;
+	var RE_COLLECT_EXACT = /^看过$/u;
+	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
+	var RE_IMDB_LINK = /^tt\d+$/u;
+	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
+	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
+	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
+	var strAttrs = [
+		["id", "id"],
+		["textContent", "textContent"],
+		["text", "textContent"],
+		["href", "href"],
+		["src", "src"],
+		["alt", "alt"],
+		["target", "target"],
+		["rel", "rel"],
+		["type", "type"]
+	];
+	var el = (tag, attrs, children) => {
+		const node = document.createElement(tag);
+		if (attrs) {
+			const cls = attrs.className ?? attrs.class;
+			if (cls) node.className = Array.isArray(cls) ? cls.join(" ") : cls;
+			for (const [key, attr] of strAttrs) {
+				const val = attrs[key];
+				if (val) if (attr === "id") node.id = val;
+				else if (attr === "textContent") node.textContent = val;
+				else node.setAttribute(attr, val);
+			}
+			if (attrs.html) node.innerHTML = attrs.html;
+			if (attrs.attrs) for (const k of Object.keys(attrs.attrs)) node.setAttribute(k, attrs.attrs[k]);
+			if (attrs.style) for (const k of Object.keys(attrs.style)) node.style.setProperty(k, attrs.style[k]);
+			if (attrs.onclick) node.addEventListener("click", attrs.onclick);
+		}
+		if (children) for (const child of children) if (typeof child === "string") node.append(document.createTextNode(child));
+		else node.append(child);
+		return node;
+	};
+	var CLOSE_SVG = "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M6 6l12 12M18 6l-12 12\"/></svg>";
+	var createOverlay = (options) => {
+		const existing = document.querySelector(`#${options.id}`);
+		if (existing) existing.remove();
+		const overlay = el("div", {
+			className: options.className || "",
+			id: options.id
+		});
+		if (options.content) for (const child of options.content) overlay.append(child);
+		const closeBtn = options.closeButton ?? el("button", {
+			attrs: { type: "button" },
+			className: "atv-modal-close",
+			html: (() => {
+				const icon = options.closeIcon ?? CLOSE_SVG;
+				return options.closeSize ? icon.replace(`width="22"`, `width="${options.closeSize}"`).replace(`height="22"`, `height="${options.closeSize}"`) : icon;
+			})()
+		});
+		if (!overlay.contains(closeBtn)) overlay.append(closeBtn);
+		let dismissed = false;
+		let keyHandler = null;
+		const dismiss = () => {
+			if (dismissed || !overlay.isConnected) return;
+			dismissed = true;
+			overlay.classList.remove("is-open");
+			document.body.style.overflow = "";
+			if (keyHandler) document.removeEventListener("keydown", keyHandler);
+			options.onClose?.();
+			setTimeout(() => {
+				overlay.remove();
+			}, 350);
+		};
+		closeBtn.addEventListener("click", dismiss);
+		overlay.addEventListener("click", (e) => {
+			if (e.target === overlay) dismiss();
+		});
+		keyHandler = (e) => {
+			if (e.key === "Escape") dismiss();
+		};
+		document.addEventListener("keydown", keyHandler);
+		document.body.append(overlay);
+		document.body.style.overflow = "hidden";
+		requestAnimationFrame(() => overlay.classList.add("is-open"));
+		return {
+			closeBtn,
+			dismiss,
+			overlay
+		};
+	};
+	var openPosterModal = (src, alt) => {
+		createOverlay({
+			className: "atv-modal-overlay",
+			content: [el("img", {
+				alt: alt || "",
+				className: "atv-modal-img",
+				src
+			})],
+			id: "atv-poster-modal"
+		});
+	};
+	var openVideoModal = (trailer) => {
+		if (!document.querySelector("#atv-vs")) {
+			const s = el("style", {
+				id: "atv-vs",
+				textContent: "@keyframes atv-spin{to{transform:rotate(360deg)}}.atv-modal-loading{display:flex;flex-direction:column;align-items:center;gap:16px;color:#fff;font-size:15px}.atv-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#41be5d;border-radius:50%;animation:atv-spin .8s linear infinite}"
+			});
+			document.head.append(s);
+		}
+		const content = el("div", { className: "atv-modal-video-content" });
+		const loading = el("div", {
+			className: "atv-modal-loading",
+			html: "<div class=\"atv-spinner\"></div><span>加载中...</span>"
+		});
+		content.append(loading);
+		const { dismiss, overlay } = createOverlay({
+			className: ["atv-modal-overlay", "is-video"],
+			content: [content],
+			id: "atv-video-modal"
+		});
+		const showToast = (msg) => {
+			const t = el("div", {
+				className: "atv-modal-toast",
+				text: msg
+			});
+			content.append(t);
+			setTimeout(() => t.remove(), 3e3);
+		};
+		(async () => {
+			try {
+				const res = await fetch(trailer.trailerPageUrl);
+				if (!overlay.isConnected) return;
+				const ldMatch = (await res.text()).match(/<script type="application\/ld\+json">(?<json>[\s\S]*?)<\/script>/u);
+				if (!ldMatch || !ldMatch.groups) throw new Error("no ld+json");
+				const data = JSON.parse(ldMatch.groups.json);
+				const embedUrl = data?.embedUrl ?? data?.video?.embedUrl ?? null;
+				if (typeof embedUrl !== "string" || !embedUrl) throw new Error("no embedUrl");
+				if (!overlay.isConnected) return;
+				const video = el("video", {
+					attrs: {
+						autoplay: "true",
+						controls: "true",
+						playsinline: "true",
+						src: embedUrl
+					},
+					className: "atv-modal-video"
+				});
+				content.innerHTML = "";
+				content.append(video);
+			} catch {
+				if (!overlay.isConnected) return;
+				showToast("视频加载失败");
+				setTimeout(() => {
+					window.open(trailer.trailerPageUrl, "_blank");
+					dismiss();
+				}, 1500);
+			}
+		})();
+	};
 	var CommentModalContent = ({ canVote, comment, onVoteStateChange, onVote, voteState }) => {
 		const handleClose = useModalClose();
 		return u$1(S, { children: [
@@ -1600,26 +1849,6 @@ input::placeholder {
 			voteState
 		})
 	});
-	var Section = ({ children, id, moreLink, title }) => u$1("section", {
-		class: "atv-section",
-		id,
-		children: [moreLink ? u$1("div", {
-			class: "atv-section-h-row",
-			children: [u$1("h2", {
-				class: "atv-section-h",
-				children: title
-			}), u$1("a", {
-				class: "atv-section-more",
-				href: moreLink.href,
-				rel: "noopener",
-				target: "_blank",
-				children: moreLink.text
-			})]
-		}) : u$1("h2", {
-			class: "atv-section-h",
-			children: title
-		}), children]
-	});
 	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
 		const gridRef = A(null);
 		h(() => {
@@ -1653,33 +1882,6 @@ input::placeholder {
 			})
 		});
 	};
-	var RE_SLASH_SEP = /\s*\/\s*/gu;
-	var RE_WS_GLOBAL = /\s+/gu;
-	var RE_COLON_WS = /[:：\s]/gu;
-	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
-	var RE_WS = /\s+/u;
-	var RE_YEAR = /(?<year>\d{4})/u;
-	var RE_NON_DIGIT = /\D/gu;
-	var RE_HSPACE = /[ \t]+/gu;
-	var RE_NL_MULTI = /\n{3,}/gu;
-	var RE_IMDB_ID = /(?<id>tt\d+)/u;
-	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
-	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
-	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
-	var RE_HTTP = /^https?:\/\//u;
-	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_WISH = /想看/u;
-	var RE_DO = /在看/u;
-	var RE_COLLECT = /看过/u;
-	var RE_WISH_EXACT = /^想看$/u;
-	var RE_DO_EXACT = /^在看$/u;
-	var RE_COLLECT_EXACT = /^看过$/u;
-	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
-	var RE_IMDB_LINK = /^tt\d+$/u;
-	var RE_SEASON_SUFFIX = /\d$/u;
-	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
-	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
-	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
 	var textValue = (text) => u$1("div", {
 		class: "atv-info-value",
 		children: text
@@ -1983,581 +2185,6 @@ input::placeholder {
 		const d = m.groups.digit;
 		return /^\d+$/u.test(d) ? Math.trunc(Number(d)) : cn.indexOf(d) + 1;
 	};
-	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
-	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
-	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
-	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
-		const lis = $$("li", ul);
-		const orgEl = lis[0] ? $("a", lis[0]) : null;
-		const org = lis[0] ? safeText(lis[0]) : "";
-		const name = lis[1] ? safeText(lis[1]) : "";
-		const personEl = lis[2] ? $("a", lis[2]) : null;
-		const person = lis[2] ? safeText(lis[2]) : "";
-		return {
-			name,
-			org,
-			orgLink: orgEl ? orgEl.href : "",
-			person,
-			personLink: personEl ? personEl.href : ""
-		};
-	}).filter((a) => a.org);
-	var upgradePoster = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
-	};
-	var upgradePhoto = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
-	};
-	var extractTitle = (doc) => {
-		const h1 = $("#content h1", doc);
-		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
-		let primary = full;
-		let original = "";
-		const idx = full.search(RE_WS);
-		if (idx > 0) {
-			primary = full.slice(0, idx).trim();
-			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
-		}
-		return {
-			full,
-			original,
-			primary
-		};
-	};
-	var extractYear = (doc) => {
-		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
-		return m ? m[1] : "";
-	};
-	var extractPoster = (doc) => {
-		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
-		if (!img) return null;
-		return upgradePoster(img.src || img.dataset.src || "");
-	};
-	var extractSubjectId = (doc) => {
-		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
-		return m ? m[1] : "";
-	};
-	var findLabel = (root, label) => {
-		if (!root) return null;
-		const spans = $$("span.pl", root);
-		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
-		return null;
-	};
-	var collectInfoTextAfter = (root, label, trim) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return "";
-		let out = "";
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 3) out += n.nodeValue;
-			else if (n.nodeType === 1) out += n.textContent || "";
-			n = n.nextSibling;
-		}
-		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
-		if (trim !== false) result = result.trim();
-		return result;
-	};
-	var collectLinksAfter = (root, label) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return [];
-		const out = [];
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 1) {
-				const el = n;
-				const anchors = el.tagName === "A" ? [el] : $$("a", el);
-				for (const a of anchors) {
-					const t = (a.textContent || "").trim();
-					if (t) out.push({
-						href: a.href || "",
-						text: t
-					});
-				}
-			}
-			n = n.nextSibling;
-		}
-		return out;
-	};
-	var extractInfo = (doc) => {
-		const info = $("#info", doc);
-		const out = {
-			aliases: "",
-			cast: [],
-			country: "",
-			director: [],
-			episodeRuntime: "",
-			episodes: "",
-			firstAired: "",
-			genres: [],
-			imdb: "",
-			language: "",
-			releaseDate: "",
-			runtime: "",
-			seasons: "",
-			writers: []
-		};
-		if (!info) return out;
-		out.director = collectLinksAfter(info, "导演");
-		out.writers = collectLinksAfter(info, "编剧");
-		const starringEls = $$("a[rel=\"v:starring\"]", info);
-		out.cast = starringEls.length ? starringEls.map((a) => ({
-			href: a.href || "",
-			text: (a.textContent || "").trim()
-		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
-		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
-		out.country = collectInfoTextAfter(info, "制片国家/地区");
-		out.language = collectInfoTextAfter(info, "语言");
-		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
-		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.firstAired = collectInfoTextAfter(info, "首播");
-		const runEls = $$("span[property=\"v:runtime\"]", info);
-		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.episodes = collectInfoTextAfter(info, "集数");
-		if (findLabel(info, "季数")) {
-			const sel = $("#season", info);
-			if (sel) {
-				const opt = sel.options[sel.selectedIndex];
-				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
-			} else out.seasons = collectInfoTextAfter(info, "季数");
-		}
-		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
-		out.aliases = collectInfoTextAfter(info, "又名");
-		if (findLabel(info, "IMDb")) {
-			const raw = collectInfoTextAfter(info, "IMDb");
-			const m = raw.match(RE_IMDB_ID);
-			out.imdb = m ? m[1] : raw;
-		}
-		return out;
-	};
-	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
-		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
-		const roleEl = $(".info .role", li);
-		const avatarEl = $(".avatar", li);
-		let avatar = "";
-		if (avatarEl) {
-			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
-			if (m) [, avatar] = m;
-		}
-		return {
-			avatar: encodeURI(avatar),
-			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
-			name: safeText(nameEl),
-			role: safeText(roleEl)
-		};
-	}).filter((c) => c.name);
-	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
-		const thumb = img.src || img.dataset.src || "";
-		const a = img.closest("a");
-		return {
-			hdUrl: upgradePhoto(thumb) || "",
-			link: a ? a.href : "",
-			thumbUrl: encodeURI(thumb)
-		};
-	}).filter((p) => p.thumbUrl);
-	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
-		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
-		const thumbUrl = m ? m[1] : "";
-		return {
-			thumbUrl: encodeURI(thumbUrl),
-			title: a.getAttribute("title") || "",
-			trailerPageUrl: a.href
-		};
-	}).filter((t) => t.trailerPageUrl);
-	var RE_CRLF = /\r\n?/gu;
-	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
-	var extractRating$1 = (doc) => {
-		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
-		const score = raw ? Number(raw) : NaN;
-		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
-		return {
-			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
-			score
-		};
-	};
-	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
-	var extractSummary = (doc) => {
-		const summary = $("span[property=\"v:summary\"]", doc);
-		if (!summary) return null;
-		return normalizeSummaryText(summary.textContent || "") || null;
-	};
-	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
-		const linkEl = $("dt a", dl);
-		const imgEl = $("dt a img", dl);
-		const titleEl = $("dd a", dl);
-		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
-		return {
-			link: linkEl ? linkEl.href : "",
-			poster: upgradePoster(rawPoster) || "",
-			title: safeText(titleEl)
-		};
-	}).filter((r) => r.title);
-	var extractRating = (item) => {
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (!ratingEl) return {
-			ratingWord: "",
-			stars: 0
-		};
-		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-		return {
-			ratingWord: ratingEl.getAttribute("title") || "",
-			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
-		};
-	};
-	var extractTime = (item) => {
-		const timeEl = $(".comment-time", item);
-		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
-	};
-	var extractVotes = (item) => {
-		const votesEl = $(".vote-count", item) ?? $(".votes", item);
-		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
-	};
-	var extractAvatar = (item) => {
-		const img = $(".avatar img", item);
-		if (!img) return "";
-		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
-	};
-	var extractVoted = (item) => {
-		if (item.querySelector(".j.vote-comment")) return false;
-		const voteArea = $(".comment-vote", item);
-		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
-	};
-	var extractComments = (doc) => {
-		const items = $$("#hot-comments .comment-item", doc);
-		const out = [];
-		for (const item of items) {
-			const authorEl = $(".comment-info a", item);
-			const name = safeText(authorEl);
-			if (!name) continue;
-			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
-			if (!content) continue;
-			const { stars, ratingWord } = extractRating(item);
-			out.push({
-				avatar: extractAvatar(item),
-				cid: item.dataset.cid ?? "",
-				content,
-				link: authorEl?.href ?? "",
-				name,
-				ratingWord,
-				stars,
-				time: extractTime(item),
-				voted: extractVoted(item),
-				votes: extractVotes(item)
-			});
-		}
-		return out;
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
-	};
-	var findInterestButtons = (doc) => {
-		const result = {
-			collect: null,
-			do: null,
-			wish: null
-		};
-		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-		const anchors = root ? $$("a", root) : [];
-		const scan = (list, doRe, wishRe, collectRe) => {
-			for (const a of list) {
-				const t = (a.textContent || "").trim();
-				if (!result.do && doRe.test(t)) result.do = a;
-				if (!result.wish && wishRe.test(t)) result.wish = a;
-				if (!result.collect && collectRe.test(t)) result.collect = a;
-			}
-		};
-		scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
-		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
-		return result;
-	};
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
-			comment = comment.trim();
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
-		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchInterestText(text);
-			if (s) {
-				const cls = `${a.className} ${a.parentElement?.className || ""}`;
-				if (RE_INTEREST_ACTIVE.test(cls)) status = s;
-			}
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-		const anchors = root ? $$("a", root) : [];
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: [],
-				usefulCount: s3.usefulCount
-			};
-		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
-		};
-	};
-	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = (doc) => {
-		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
-		if (!srcScript) return {};
-		const txt = srcScript.textContent;
-		const map = {};
-		let m = RE_PLAY_SOURCES.exec(txt);
-		while (m) {
-			const [, sourceId] = m;
-			const playLink = m[2].replaceAll("&amp;", "&");
-			if (!map[sourceId]) map[sourceId] = playLink;
-			m = RE_PLAY_SOURCES.exec(txt);
-		}
-		return map;
-	};
-	var extractStreaming = (doc) => {
-		const seen = new Set();
-		const out = [];
-		const sourcesMap = parsePlaySources(doc);
-		const playBtns = $$("a.playBtn", doc);
-		for (const a of playBtns) {
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			let { href } = a;
-			if (!isRealUrl(href)) {
-				const sourceId = a.dataset.source;
-				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
-				else continue;
-			}
-			out.push({
-				href,
-				name
-			});
-		}
-		for (const a of $$("a", doc)) {
-			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			if (isRealUrl(a.href)) out.push({
-				href: a.href,
-				name
-			});
-		}
-		return out;
-	};
-	var CN_DIGIT = {
-		一: 1,
-		七: 7,
-		三: 3,
-		九: 9,
-		二: 2,
-		五: 5,
-		八: 8,
-		六: 6,
-		四: 4
-	};
-	var parseCnNum = (s) => {
-		const arabic = Math.trunc(Number(s));
-		if (!Number.isNaN(arabic)) return arabic;
-		const parts = s.split("十");
-		if (parts.length === 2) {
-			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
-			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
-			return tens * 10 + ones;
-		}
-		if (s === "十") return 10;
-		return CN_DIGIT[s] ?? 0;
-	};
-	var seasonNum = (title) => {
-		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
-		if (!m?.groups?.num) return 0;
-		return parseCnNum(m.groups.num);
-	};
-	var extractSeries = (doc) => {
-		const container = $("#series-items .items-swiper", doc);
-		if (!container) return [];
-		const seen = new Set();
-		const items = $$(".items-swiper-item", container);
-		const out = [];
-		for (const el of items) {
-			const linkEl = $(".items-swiper-item-pic a", el);
-			const imgEl = $(".items-swiper-item-pic a img", el);
-			const titleEl = $(".items-swiper-item-title a", el);
-			const ratingEl = $(".items-swiper-item-rating", el);
-			const link = linkEl ? linkEl.href : "";
-			if (!link || seen.has(link)) continue;
-			seen.add(link);
-			out.push({
-				link,
-				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
-				rating: safeText(ratingEl),
-				title: safeText(titleEl)
-			});
-		}
-		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
-	};
-	var extractReviewRating = (item) => {
-		let stars = 0;
-		let ratingWord = "";
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (ratingEl) {
-			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
-			ratingWord = ratingEl.getAttribute("title") || "";
-		}
-		if (stars === 0) {
-			const titleRating = $(".main-title-rating", item);
-			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
-		}
-		return {
-			ratingWord,
-			stars
-		};
-	};
-	var extractReviewContent = (item) => {
-		const shortContent = $(".review-short .short-content", item);
-		if (shortContent) {
-			shortContent.querySelector("a.unfold")?.remove();
-			return safeText(shortContent).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
-		}
-		const mainBd = $(".main-bd", item);
-		return mainBd ? safeText(mainBd) : "";
-	};
-	var extractReviewVotes = (item) => {
-		const action = $(".action", item);
-		if (!action) return {
-			usefulCount: 0,
-			uselessCount: 0
-		};
-		const upEl = $(".action-btn.up", action);
-		const downEl = $(".action-btn.down", action);
-		return {
-			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
-			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
-		};
-	};
-	var extractReviewItem = (item) => {
-		const title = safeText($(".main-bd h2 a", item));
-		if (!title) return null;
-		const nameLink = $(".main-hd a.name", item);
-		const name = safeText(nameLink);
-		if (!name) return null;
-		const avatarImg = $(".main-hd .avator img", item);
-		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
-		const { stars, ratingWord } = extractReviewRating(item);
-		const time = safeText($(".main-hd .main-meta", item));
-		const content = extractReviewContent(item);
-		const { usefulCount, uselessCount } = extractReviewVotes(item);
-		const spoiler = !!$(".spoiler-tip", item);
-		return {
-			avatar,
-			content,
-			id: item.id || "",
-			link: nameLink?.href ?? "",
-			name,
-			ratingWord,
-			spoiler,
-			stars,
-			time,
-			title,
-			usefulCount,
-			uselessCount
-		};
-	};
-	var extractReviews = (doc) => {
-		const items = $$("#reviews-wrapper .review-item", doc);
-		const out = [];
-		for (const item of items) {
-			const review = extractReviewItem(item);
-			if (review) out.push(review);
-		}
-		return out;
-	};
 	var buildContext = (imdbId, isTV, doc) => {
 		const doubanH1 = doc.querySelector("#content h1")?.textContent?.trim() || "";
 		const englishTitle = doubanH1 ? extractEnglishSeriesName(doubanH1) : null;
@@ -2770,9 +2397,7 @@ input::placeholder {
 		return fetchImdbRating(ctx.imdbId, ctx.season);
 	};
 	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
-	var toMcSlug = (title) => {
-		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
-	};
+	var toMcSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
 	var cacheKey$1 = (slug, season, year) => {
 		let key = slug;
 		if (year) key = `${key}-${year}`;
@@ -2825,9 +2450,7 @@ input::placeholder {
 		return fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
 	};
 	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
-	var toSlug = (title) => {
-		return title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
-	};
+	var toSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
 	var cacheKey = (slug, season, year) => {
 		let key = slug;
 		if (year) key = `${key}_${year}`;
@@ -3133,154 +2756,6 @@ input::placeholder {
 		class: "atv-poster-placeholder",
 		children: u$1(IconFilmPlaceholder, {})
 	});
-	var strAttrs = [
-		["id", "id"],
-		["textContent", "textContent"],
-		["text", "textContent"],
-		["href", "href"],
-		["src", "src"],
-		["alt", "alt"],
-		["target", "target"],
-		["rel", "rel"],
-		["type", "type"]
-	];
-	var el = (tag, attrs, children) => {
-		const node = document.createElement(tag);
-		if (attrs) {
-			const cls = attrs.className ?? attrs.class;
-			if (cls) node.className = Array.isArray(cls) ? cls.join(" ") : cls;
-			for (const [key, attr] of strAttrs) {
-				const val = attrs[key];
-				if (val) if (attr === "id") node.id = val;
-				else if (attr === "textContent") node.textContent = val;
-				else node.setAttribute(attr, val);
-			}
-			if (attrs.html) node.innerHTML = attrs.html;
-			if (attrs.attrs) for (const k of Object.keys(attrs.attrs)) node.setAttribute(k, attrs.attrs[k]);
-			if (attrs.style) for (const k of Object.keys(attrs.style)) node.style.setProperty(k, attrs.style[k]);
-			if (attrs.onclick) node.addEventListener("click", attrs.onclick);
-		}
-		if (children) for (const child of children) if (typeof child === "string") node.append(document.createTextNode(child));
-		else node.append(child);
-		return node;
-	};
-	var CLOSE_SVG = "<svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M6 6l12 12M18 6l-12 12\"/></svg>";
-	var createOverlay = (options) => {
-		const existing = document.querySelector(`#${options.id}`);
-		if (existing) existing.remove();
-		const overlay = el("div", {
-			className: options.className || "",
-			id: options.id
-		});
-		if (options.content) for (const child of options.content) overlay.append(child);
-		const closeBtn = options.closeButton ?? el("button", {
-			attrs: { type: "button" },
-			className: "atv-modal-close",
-			html: (() => {
-				const icon = options.closeIcon ?? CLOSE_SVG;
-				return options.closeSize ? icon.replace(`width="22"`, `width="${options.closeSize}"`).replace(`height="22"`, `height="${options.closeSize}"`) : icon;
-			})()
-		});
-		if (!overlay.contains(closeBtn)) overlay.append(closeBtn);
-		let dismissed = false;
-		let keyHandler = null;
-		const dismiss = () => {
-			if (dismissed || !overlay.isConnected) return;
-			dismissed = true;
-			overlay.classList.remove("is-open");
-			document.body.style.overflow = "";
-			if (keyHandler) document.removeEventListener("keydown", keyHandler);
-			options.onClose?.();
-			setTimeout(() => {
-				overlay.remove();
-			}, 350);
-		};
-		closeBtn.addEventListener("click", dismiss);
-		overlay.addEventListener("click", (e) => {
-			if (e.target === overlay) dismiss();
-		});
-		keyHandler = (e) => {
-			if (e.key === "Escape") dismiss();
-		};
-		document.addEventListener("keydown", keyHandler);
-		document.body.append(overlay);
-		document.body.style.overflow = "hidden";
-		requestAnimationFrame(() => overlay.classList.add("is-open"));
-		return {
-			closeBtn,
-			dismiss,
-			overlay
-		};
-	};
-	var openVideoModal = (trailer) => {
-		if (!document.querySelector("#atv-vs")) {
-			const s = el("style", {
-				id: "atv-vs",
-				textContent: "@keyframes atv-spin{to{transform:rotate(360deg)}}.atv-modal-loading{display:flex;flex-direction:column;align-items:center;gap:16px;color:#fff;font-size:15px}.atv-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#41be5d;border-radius:50%;animation:atv-spin .8s linear infinite}"
-			});
-			document.head.append(s);
-		}
-		const content = el("div", { className: "atv-modal-video-content" });
-		const loading = el("div", {
-			className: "atv-modal-loading",
-			html: "<div class=\"atv-spinner\"></div><span>加载中...</span>"
-		});
-		content.append(loading);
-		const { dismiss, overlay } = createOverlay({
-			className: ["atv-modal-overlay", "is-video"],
-			content: [content],
-			id: "atv-video-modal"
-		});
-		const showToast = (msg) => {
-			const t = el("div", {
-				className: "atv-modal-toast",
-				text: msg
-			});
-			content.append(t);
-			setTimeout(() => t.remove(), 3e3);
-		};
-		(async () => {
-			try {
-				const res = await fetch(trailer.trailerPageUrl);
-				if (!overlay.isConnected) return;
-				const ldMatch = (await res.text()).match(/<script type="application\/ld\+json">(?<json>[\s\S]*?)<\/script>/u);
-				if (!ldMatch || !ldMatch.groups) throw new Error("no ld+json");
-				const data = JSON.parse(ldMatch.groups.json);
-				const embedUrl = data?.embedUrl ?? data?.video?.embedUrl ?? null;
-				if (typeof embedUrl !== "string" || !embedUrl) throw new Error("no embedUrl");
-				if (!overlay.isConnected) return;
-				const video = el("video", {
-					attrs: {
-						autoplay: "true",
-						controls: "true",
-						playsinline: "true",
-						src: embedUrl
-					},
-					className: "atv-modal-video"
-				});
-				content.innerHTML = "";
-				content.append(video);
-			} catch {
-				if (!overlay.isConnected) return;
-				showToast("视频加载失败");
-				setTimeout(() => {
-					window.open(trailer.trailerPageUrl, "_blank");
-					dismiss();
-				}, 1500);
-			}
-		})();
-	};
-	var openPosterModal = (src, alt) => {
-		createOverlay({
-			className: "atv-modal-overlay",
-			content: [el("img", {
-				alt: alt || "",
-				className: "atv-modal-img",
-				src
-			})],
-			id: "atv-poster-modal"
-		});
-	};
 	var HeroPoster = ({ poster, title }) => {
 		const [failed, setFailed] = d(false);
 		return u$1("button", {
@@ -3543,60 +3018,6 @@ input::placeholder {
 		})
 	}) : null;
 	var UNKNOWN_PROVIDER_COLOR = "#41be5d";
-	var LogoBilibili = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z" })
-	});
-	var LogoNetflix = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "m5.398 0 8.348 23.602c2.346.059 4.856.398 4.856.398L10.113 0H5.398zm8.489 0v9.172l4.715 13.33V0h-4.715zM5.398 1.5V24c1.873-.225 2.81-.312 4.715-.398V14.83L5.398 1.5z" })
-	});
-	var LogoYouTube = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" })
-	});
-	var LogoAppleTv = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M20.57 17.735h-1.815l-3.34-9.203h1.633l2.02 5.987c.075.231.273.9.586 2.012l.297-.997.33-1.006 2.094-6.004H24zm-5.344-.066a5.76 5.76 0 0 1-1.55.207c-1.23 0-1.84-.693-1.84-2.087V9.646h-1.063V8.532h1.121V7.081l1.476-.602v2.062h1.707v1.113H13.38v5.805c0 .446.074.75.214.932.14.182.396.264.75.264.207 0 .495-.041.883-.115zm-7.29-5.343c.017 1.764 1.55 2.358 1.567 2.366-.017.042-.248.842-.808 1.658-.487.71-.99 1.418-1.79 1.435-.783.016-1.03-.462-1.93-.462-.89 0-1.17.445-1.913.478-.758.025-1.344-.775-1.838-1.484-.998-1.451-1.765-4.098-.734-5.88.51-.89 1.426-1.451 2.416-1.46.75-.016 1.468.512 1.93.512.461 0 1.327-.627 2.234-.536.38.016 1.452.157 2.136 1.154-.058.033-1.278.743-1.27 2.219M6.468 7.988c.404-.495.685-1.18.61-1.864-.585.025-1.294.388-1.723.883-.38.437-.71 1.138-.619 1.806.652.05 1.328-.338 1.732-.825Z" })
-	});
-	var LogoHbo = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M7.042 16.896H4.414v-3.754H2.708v3.754H.01L0 7.22h2.708v3.6h1.706v-3.6h2.628zm12.043.046C21.795 16.94 24 14.689 24 11.978a4.89 4.89 0 0 0-4.915-4.92c-2.707-.002-4.09 1.991-4.432 2.795.003-1.207-1.187-2.632-2.58-2.634H7.59v9.674l4.181.001c1.686 0 2.886-1.46 2.888-2.713.385.788 1.72 2.762 4.427 2.76zm-7.665-3.936c.387 0 .692.382.692.817 0 .435-.305.817-.692.817h-1.33v-1.634zm.005-3.633c.387 0 .692.382.692.817 0 .436-.305.818-.692.818h-1.33V9.373zm1.77 2.607c.305-.039.813-.387.992-.61-.063.276-.068 1.074.006 1.35-.204-.314-.688-.701-.998-.74zm3.43 0a2.462 2.462 0 1 1 4.924 0 2.462 2.462 0 0 1-4.925 0zm2.462 1.936a1.936 1.936 0 1 0 0-3.872 1.936 1.936 0 0 0 0 3.872Z" })
-	});
-	var LogoHboMax = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M3.784 8.716c-.655 0-1.32.29-2.173.946v-.78H0v6.236h1.715V11.24c.749-.592 1.091-.78 1.372-.78.333 0 .551.209.551.729v3.928h1.715V11.23c.748-.582 1.081-.769 1.372-.769.333 0 .55.208.55.728v3.928H8.99v-4.53c0-1.403-.8-1.871-1.57-1.871-.654 0-1.32.27-2.192.936-.28-.697-.894-.936-1.444-.936zm8.689 0c-1.705 0-3.118 1.466-3.118 3.284 0 1.82 1.413 3.285 3.118 3.285.842 0 1.57-.312 2.131-.988v.82h1.632V8.883h-1.632v.822c-.561-.676-1.29-.988-2.131-.988zm4.064.166c.707 1.102 1.507 2.09 2.443 3.077a26.593 26.593 0 0 0-2.443 3.16h2.069a13.603 13.603 0 0 1 1.673-2.183 14.067 14.067 0 0 1 1.632 2.182H24a25.142 25.142 0 0 0-2.432-3.16A23.918 23.918 0 0 0 24 8.883h-2.047a14.65 14.65 0 0 1-1.674 2.11 13.357 13.357 0 0 1-1.674-2.11zm-3.804 1.279c1.018 0 1.84.82 1.84 1.84a1.837 1.837 0 0 1-1.84 1.839c-1.019 0-1.84-.82-1.84-1.84 0-1.018.821-1.84 1.84-1.84zm0 .415c-.78 0-1.414.633-1.414 1.423s.634 1.424 1.413 1.424c.78 0 1.414-.634 1.414-1.424s-.634-1.424-1.414-1.424z" })
-	});
-	var LogoParamountPlus = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M16.347 21.373c.057-.084.151-.314-.025-.74l-.53-1.428c-.073-.182.084-.293.19-.173 0 0 1.004 1.157 1.264 1.64l.495.822c.425.028 1.6.06 2.732.06a3.26 3.26 0 0 1-.316-.364c-1.93-2.392-3.154-3.724-3.166-3.737-.391-.426-.572-.508-.87-.643a4.82 4.82 0 0 1-.138-.065v.364c0 .047-.057.073-.086.022l-2.846-5.001a1.598 1.598 0 0 0-.508-.587l-.277-.194-1.354 3.123c.212 0 .354.216.27.409l-1.25 2.893h1.147c.443 0 .883.087 1.294.255l.302.125s-.913 1.878-.913 2.867c0 .181.028.362.075.534h2.104l-.096-.595s1.266.294 2.502.413M12 2.437c-6.627 0-12 5.373-12 12 0 2.669.873 5.133 2.346 7.126.503-.218.783-.542.983-.791l2.234-2.858a.467.467 0 0 1 .179-.138l.336-.146 3.674-4.659.534-.417 1.094-1.524a.482.482 0 0 1 .101-.102l.478-.347a.34.34 0 0 1 .398-.004l.578.407c.308.216.557.504.726.84l2.322 4.077c.051.09.09.129.182.174.454.227.732.268 1.33.913.277.304 1.495 1.666 3.203 3.784.236.318.538.588.963.783A11.948 11.948 0 0 0 24 14.437c0-6.627-5.373-12-12-12M3.236 15.1l-.778-.253-.48.662v-.818l-.778-.253.778-.253v-.818l.48.662.778-.253-.48.662Zm-.185 2.676-.252.778-.253-.778h-.818l.661-.481-.253-.777.663.48.66-.48-.252.777.662.481Zm.156-6.195.253.778-.661-.48-.663.48.253-.778-.66-.48h.817l.253-.778.252.777h.818Zm1.314-1.76L4.04 9.16l-.778.253.48-.661-.48-.663.778.254.48-.662v.818l.778.253-.777.252Zm2.045-2.862-.253.777-.252-.777h-.818l.662-.48-.253-.778.661.48.661-.48-.252.777.662.48Zm2.577-1.313-.48.661V5.49l-.779-.254.778-.253v-.817l.48.66.78-.253-.481.663.48.66zm3.265-.75.253.778-.661-.48-.662.48.252-.777-.66-.481h.818L12 3.637l.252.778h.818zm2.93.595v.816l-.481-.661-.777.252.48-.662-.48-.662.777.253.48-.66v.817l.779.252zm5.426 8.285.778.253.48-.662v.818l.778.253-.778.253v.818l-.48-.662-.778.253.48-.662zm-3.077-6.04-.253-.777h-.818l.662-.48-.253-.778.662.48.662-.48-.254.778.662.48h-.818zm1.792 2.086v-.818l-.777-.252.777-.253V7.68l.481.662.777-.254-.48.663.48.66-.777-.252zm1.469 1.278.253-.777.254.777h.816l-.66.481.252.778-.662-.48-.661.48.253-.778-.662-.48zm.506 6.676-.253.778-.253-.778h-.817l.662-.481-.253-.777.66.48.663-.48-.253.777.661.481zm-12.08-.615.76-1.588c.024-.048-.032-.108-.067-.067l-.664.668c-.313.329-.847 1.25-.95 1.421l-.808 1.335a.109.109 0 0 1 .1.162l-.739 1.238c-.18.309.145.523.189.452 1.157-1.868 1.832-1.719 1.832-1.719l.387-.897c.022-.047-.001-.1-.05-.12-.12-.05-.316-.27.01-.885z" })
-	});
-	var LogoTubi = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M16.696 15.272v-.752c.4.548 1.107.917 1.934.917 1.475 0 2.28-.956 2.28-2.865 0-1.714-.893-2.858-2.235-2.858-.851 0-1.55.347-1.979.908v-2.06h-2.674v6.71zm1.57-2.614c0 .827-.337 1.275-.827 1.275-.486 0-.837-.452-.837-1.275s.342-1.28.837-1.28c.495 0 .828.452.828 1.28zM6.94 9.988v3.6c0 1.236.754 1.841 1.955 1.841.959 0 1.625-.396 2.028-1.064v.91h2.597V9.989h-2.675v3.14c0 .493-.346.693-.666.693-.321 0-.568-.192-.568-.655V9.989Zm14.39 0H24v5.276h-2.67ZM6.553 11.136c0 .781-.635 1.415-1.42 1.415-.783 0-1.419-.634-1.419-1.415 0-.782.636-1.415 1.42-1.415.784 0 1.42.633 1.42 1.415zM3.49 9.702v2.668c.005.653.327.924.976.924.225 0 .526-.053.672-.166v1.931c-.49.243-.869.378-1.535.378 0 0-.069 0-.18-.006l-.003.006c-1.614 0-2.51-1.035-2.482-2.686v-.47H0V9.99h.92V8.563h2.569Z" })
-	});
-	var LogoVimeo = (props) => u$1("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u$1("path", { d: "M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z" })
-	});
 	var PROVIDERS = [
 		{
 			Icon: LogoBilibili,
@@ -4485,6 +3906,581 @@ input::placeholder {
 		(async () => {
 			applyCommentAvatars(await fetchAvatarUrls(links), comments);
 		})();
+	};
+	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
+	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
+	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
+		const lis = $$("li", ul);
+		const orgEl = lis[0] ? $("a", lis[0]) : null;
+		const org = lis[0] ? safeText(lis[0]) : "";
+		const name = lis[1] ? safeText(lis[1]) : "";
+		const personEl = lis[2] ? $("a", lis[2]) : null;
+		const person = lis[2] ? safeText(lis[2]) : "";
+		return {
+			name,
+			org,
+			orgLink: orgEl ? orgEl.href : "",
+			person,
+			personLink: personEl ? personEl.href : ""
+		};
+	}).filter((a) => a.org);
+	var upgradePoster = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
+	};
+	var upgradePhoto = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	};
+	var extractTitle = (doc) => {
+		const h1 = $("#content h1", doc);
+		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
+		let primary = full;
+		let original = "";
+		const idx = full.search(RE_WS);
+		if (idx > 0) {
+			primary = full.slice(0, idx).trim();
+			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
+		}
+		return {
+			full,
+			original,
+			primary
+		};
+	};
+	var extractYear = (doc) => {
+		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
+		return m ? m[1] : "";
+	};
+	var extractPoster = (doc) => {
+		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
+		if (!img) return null;
+		return upgradePoster(img.src || img.dataset.src || "");
+	};
+	var extractSubjectId = (doc) => {
+		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
+		return m ? m[1] : "";
+	};
+	var findLabel = (root, label) => {
+		if (!root) return null;
+		const spans = $$("span.pl", root);
+		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
+		return null;
+	};
+	var collectInfoTextAfter = (root, label, trim) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return "";
+		let out = "";
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 3) out += n.nodeValue;
+			else if (n.nodeType === 1) out += n.textContent || "";
+			n = n.nextSibling;
+		}
+		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
+		if (trim !== false) result = result.trim();
+		return result;
+	};
+	var collectLinksAfter = (root, label) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return [];
+		const out = [];
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 1) {
+				const el = n;
+				const anchors = el.tagName === "A" ? [el] : $$("a", el);
+				for (const a of anchors) {
+					const t = (a.textContent || "").trim();
+					if (t) out.push({
+						href: a.href || "",
+						text: t
+					});
+				}
+			}
+			n = n.nextSibling;
+		}
+		return out;
+	};
+	var extractInfo = (doc) => {
+		const info = $("#info", doc);
+		const out = {
+			aliases: "",
+			cast: [],
+			country: "",
+			director: [],
+			episodeRuntime: "",
+			episodes: "",
+			firstAired: "",
+			genres: [],
+			imdb: "",
+			language: "",
+			releaseDate: "",
+			runtime: "",
+			seasons: "",
+			writers: []
+		};
+		if (!info) return out;
+		out.director = collectLinksAfter(info, "导演");
+		out.writers = collectLinksAfter(info, "编剧");
+		const starringEls = $$("a[rel=\"v:starring\"]", info);
+		out.cast = starringEls.length ? starringEls.map((a) => ({
+			href: a.href || "",
+			text: (a.textContent || "").trim()
+		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
+		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
+		out.country = collectInfoTextAfter(info, "制片国家/地区");
+		out.language = collectInfoTextAfter(info, "语言");
+		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
+		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.firstAired = collectInfoTextAfter(info, "首播");
+		const runEls = $$("span[property=\"v:runtime\"]", info);
+		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.episodes = collectInfoTextAfter(info, "集数");
+		if (findLabel(info, "季数")) {
+			const sel = $("#season", info);
+			if (sel) {
+				const opt = sel.options[sel.selectedIndex];
+				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
+			} else out.seasons = collectInfoTextAfter(info, "季数");
+		}
+		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
+		out.aliases = collectInfoTextAfter(info, "又名");
+		if (findLabel(info, "IMDb")) {
+			const raw = collectInfoTextAfter(info, "IMDb");
+			const m = raw.match(RE_IMDB_ID);
+			out.imdb = m ? m[1] : raw;
+		}
+		return out;
+	};
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		}
+		return null;
+	};
+	var findInterestButtons = (doc) => {
+		const result = {
+			collect: null,
+			do: null,
+			wish: null
+		};
+		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+		const anchors = root ? $$("a", root) : [];
+		const scan = (list, doRe, wishRe, collectRe) => {
+			for (const a of list) {
+				const t = (a.textContent || "").trim();
+				if (!result.do && doRe.test(t)) result.do = a;
+				if (!result.wish && wishRe.test(t)) result.wish = a;
+				if (!result.collect && collectRe.test(t)) result.collect = a;
+			}
+		};
+		scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
+		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
+		return result;
+	};
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchInterestText((el.textContent || "").trim(), true);
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
+			comment = comment.trim();
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchInterestText(text);
+			if (s) {
+				const cls = `${a.className} ${a.parentElement?.className || ""}`;
+				if (RE_INTEREST_ACTIVE.test(cls)) status = s;
+			}
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+		const anchors = root ? $$("a", root) : [];
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: [],
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
+	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
+		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
+		const roleEl = $(".info .role", li);
+		const avatarEl = $(".avatar", li);
+		let avatar = "";
+		if (avatarEl) {
+			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
+			if (m) [, avatar] = m;
+		}
+		return {
+			avatar: encodeURI(avatar),
+			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
+			name: safeText(nameEl),
+			role: safeText(roleEl)
+		};
+	}).filter((c) => c.name);
+	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
+		const thumb = img.src || img.dataset.src || "";
+		const a = img.closest("a");
+		return {
+			hdUrl: upgradePhoto(thumb) || "",
+			link: a ? a.href : "",
+			thumbUrl: encodeURI(thumb)
+		};
+	}).filter((p) => p.thumbUrl);
+	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
+		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
+		const thumbUrl = m ? m[1] : "";
+		return {
+			thumbUrl: encodeURI(thumbUrl),
+			title: a.getAttribute("title") || "",
+			trailerPageUrl: a.href
+		};
+	}).filter((t) => t.trailerPageUrl);
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
+		const score = raw ? Number(raw) : NaN;
+		if (!score || Number.isNaN(score) || score <= 0) return null;
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
+		return {
+			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
+			score
+		};
+	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
+		if (!summary) return null;
+		return normalizeSummaryText(summary.textContent || "") || null;
+	};
+	var extractReviewRating = (item) => {
+		let stars = 0;
+		let ratingWord = "";
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (ratingEl) {
+			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
+			ratingWord = ratingEl.getAttribute("title") || "";
+		}
+		if (stars === 0) {
+			const titleRating = $(".main-title-rating", item);
+			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
+		}
+		return {
+			ratingWord,
+			stars
+		};
+	};
+	var extractReviewContent = (item) => {
+		const shortContent = $(".review-short .short-content", item);
+		if (shortContent) {
+			shortContent.querySelector("a.unfold")?.remove();
+			return safeText(shortContent).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
+		}
+		const mainBd = $(".main-bd", item);
+		return mainBd ? safeText(mainBd) : "";
+	};
+	var extractReviewVotes = (item) => {
+		const action = $(".action", item);
+		if (!action) return {
+			usefulCount: 0,
+			uselessCount: 0
+		};
+		const upEl = $(".action-btn.up", action);
+		const downEl = $(".action-btn.down", action);
+		return {
+			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
+			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
+		};
+	};
+	var extractReviewItem = (item) => {
+		const title = safeText($(".main-bd h2 a", item));
+		if (!title) return null;
+		const nameLink = $(".main-hd a.name", item);
+		const name = safeText(nameLink);
+		if (!name) return null;
+		const avatarImg = $(".main-hd .avator img", item);
+		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
+		const { stars, ratingWord } = extractReviewRating(item);
+		const time = safeText($(".main-hd .main-meta", item));
+		const content = extractReviewContent(item);
+		const { usefulCount, uselessCount } = extractReviewVotes(item);
+		const spoiler = !!$(".spoiler-tip", item);
+		return {
+			avatar,
+			content,
+			id: item.id || "",
+			link: nameLink?.href ?? "",
+			name,
+			ratingWord,
+			spoiler,
+			stars,
+			time,
+			title,
+			usefulCount,
+			uselessCount
+		};
+	};
+	var extractReviews = (doc) => {
+		const items = $$("#reviews-wrapper .review-item", doc);
+		const out = [];
+		for (const item of items) {
+			const review = extractReviewItem(item);
+			if (review) out.push(review);
+		}
+		return out;
+	};
+	var CN_DIGIT = {
+		一: 1,
+		七: 7,
+		三: 3,
+		九: 9,
+		二: 2,
+		五: 5,
+		八: 8,
+		六: 6,
+		四: 4
+	};
+	var parseCnNum = (s) => {
+		const arabic = Math.trunc(Number(s));
+		if (!Number.isNaN(arabic)) return arabic;
+		const parts = s.split("十");
+		if (parts.length === 2) {
+			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
+			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
+			return tens * 10 + ones;
+		}
+		if (s === "十") return 10;
+		return CN_DIGIT[s] ?? 0;
+	};
+	var seasonNum = (title) => {
+		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
+		if (!m?.groups?.num) return 0;
+		return parseCnNum(m.groups.num);
+	};
+	var extractSeries = (doc) => {
+		const container = $("#series-items .items-swiper", doc);
+		if (!container) return [];
+		const seen = new Set();
+		const items = $$(".items-swiper-item", container);
+		const out = [];
+		for (const el of items) {
+			const linkEl = $(".items-swiper-item-pic a", el);
+			const imgEl = $(".items-swiper-item-pic a img", el);
+			const titleEl = $(".items-swiper-item-title a", el);
+			const ratingEl = $(".items-swiper-item-rating", el);
+			const link = linkEl ? linkEl.href : "";
+			if (!link || seen.has(link)) continue;
+			seen.add(link);
+			out.push({
+				link,
+				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
+				rating: safeText(ratingEl),
+				title: safeText(titleEl)
+			});
+		}
+		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
+	};
+	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
+		const linkEl = $("dt a", dl);
+		const imgEl = $("dt a img", dl);
+		const titleEl = $("dd a", dl);
+		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
+		return {
+			link: linkEl ? linkEl.href : "",
+			poster: upgradePoster(rawPoster) || "",
+			title: safeText(titleEl)
+		};
+	}).filter((r) => r.title);
+	var extractRating = (item) => {
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (!ratingEl) return {
+			ratingWord: "",
+			stars: 0
+		};
+		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+		return {
+			ratingWord: ratingEl.getAttribute("title") || "",
+			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
+		};
+	};
+	var extractTime = (item) => {
+		const timeEl = $(".comment-time", item);
+		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
+	};
+	var extractVotes = (item) => {
+		const votesEl = $(".vote-count", item) ?? $(".votes", item);
+		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
+	};
+	var extractAvatar = (item) => {
+		const img = $(".avatar img", item);
+		if (!img) return "";
+		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
+	};
+	var extractVoted = (item) => {
+		if (item.querySelector(".j.vote-comment")) return false;
+		const voteArea = $(".comment-vote", item);
+		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
+	};
+	var extractComments = (doc) => {
+		const items = $$("#hot-comments .comment-item", doc);
+		const out = [];
+		for (const item of items) {
+			const authorEl = $(".comment-info a", item);
+			const name = safeText(authorEl);
+			if (!name) continue;
+			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
+			if (!content) continue;
+			const { stars, ratingWord } = extractRating(item);
+			out.push({
+				avatar: extractAvatar(item),
+				cid: item.dataset.cid ?? "",
+				content,
+				link: authorEl?.href ?? "",
+				name,
+				ratingWord,
+				stars,
+				time: extractTime(item),
+				voted: extractVoted(item),
+				votes: extractVotes(item)
+			});
+		}
+		return out;
+	};
+	var isRealUrl = (h) => RE_HTTP.test(h || "");
+	var parsePlaySources = (doc) => {
+		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+		if (!srcScript) return {};
+		const txt = srcScript.textContent;
+		const map = {};
+		let m = RE_PLAY_SOURCES.exec(txt);
+		while (m) {
+			const [, sourceId] = m;
+			const playLink = m[2].replaceAll("&amp;", "&");
+			if (!map[sourceId]) map[sourceId] = playLink;
+			m = RE_PLAY_SOURCES.exec(txt);
+		}
+		return map;
+	};
+	var extractStreaming = (doc) => {
+		const seen = new Set();
+		const out = [];
+		const sourcesMap = parsePlaySources(doc);
+		const playBtns = $$("a.playBtn", doc);
+		for (const a of playBtns) {
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			let { href } = a;
+			if (!isRealUrl(href)) {
+				const sourceId = a.dataset.source;
+				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
+				else continue;
+			}
+			out.push({
+				href,
+				name
+			});
+		}
+		for (const a of $$("a", doc)) {
+			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			if (isRealUrl(a.href)) out.push({
+				href: a.href,
+				name
+			});
+		}
+		return out;
 	};
 	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
 	var extractDoubanData = (doc) => {

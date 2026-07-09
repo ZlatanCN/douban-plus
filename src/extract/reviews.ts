@@ -1,9 +1,9 @@
 /* ── Reviews (剧评) Extractors ─────────────────────────── */
 /* Long-form review extraction from Douban subject pages.    */
 
-import { RE_ALLSTAR } from "../constants";
-import type { Review } from "../types";
-import { $, $$, safeText } from "../utils/dom";
+import { RE_ALLSTAR } from "@/constants";
+import type { Review } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
 
 /**
  * Extract long-form reviews from #reviews-wrapper section.

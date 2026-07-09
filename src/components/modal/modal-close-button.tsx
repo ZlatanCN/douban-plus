@@ -1,4 +1,4 @@
-import { IconClose } from "../../components/common/icons";
+import { IconClose } from "@/components/common/icons";
 
 type ModalCloseButtonProps = {
   ariaLabel: string;

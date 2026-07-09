@@ -1,10 +1,10 @@
 import { render } from "preact";
 
-import { postVote } from "../api/comment";
-import { postReviewVote } from "../api/review";
-import { computeNavSections } from "../components/layout/nav";
-import { StickyNav } from "../components/layout/sticky-nav";
-import { SubjectPage } from "../modules/subject-page/subject-page";
+import { postVote } from "@/api/comment";
+import { postReviewVote } from "@/api/review";
+import { computeNavSections, StickyNav } from "@/components/layout";
+import { SubjectPage } from "@/modules/subject-page/subject-page";
+
 import { createAccountGate } from "./account-gate";
 import { startAvatarEffect } from "./avatar-effect";
 import { extractDoubanData } from "./extract-data";

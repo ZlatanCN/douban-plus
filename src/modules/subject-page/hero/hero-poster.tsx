@@ -1,8 +1,8 @@
 import { useState } from "preact/hooks";
 
-import { PosterPlaceholder } from "../../../components/common/poster-placeholder";
-import { openPosterModal } from "../../../components/modal";
-import type { TitleInfo } from "../../../types";
+import { PosterPlaceholder } from "@/components/common/poster-placeholder";
+import { openPosterModal } from "@/components/modal";
+import type { TitleInfo } from "@/types";
 
 type HeroPosterProps = {
   poster: string | null;

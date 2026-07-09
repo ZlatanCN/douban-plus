@@ -4,8 +4,8 @@
 
 import { describe, it, expect, vi, afterEach } from "vitest";
 
-import { el } from "../../src/components";
-import { createOverlay } from "../../src/components/overlay";
+import { el } from "@/components/dom-factory";
+import { createOverlay } from "@/components/overlay";
 
 const stubRaf = (): void => {
   vi.spyOn(window, "requestAnimationFrame").mockImplementation(

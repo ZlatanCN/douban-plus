@@ -1,8 +1,8 @@
-import type { Trailer } from "../types";
-import { el } from "./dom-factory";
-import { createOverlay } from "./overlay";
+import type { Trailer } from "../../types";
+import { el } from "../dom-factory";
+import { createOverlay } from "../overlay";
 
-const openVideoModal = (trailer: Trailer): void => {
+export const openVideoModal = (trailer: Trailer): void => {
   if (!document.querySelector("#atv-vs")) {
     const s = el("style", {
       id: "atv-vs",
@@ -76,19 +76,3 @@ const openVideoModal = (trailer: Trailer): void => {
     }
   })();
 };
-
-const openPosterModal = (src: string, alt: string): void => {
-  const img = el("img", {
-    alt: alt || "",
-    className: "atv-modal-img",
-    src,
-  });
-
-  createOverlay({
-    className: "atv-modal-overlay",
-    content: [img],
-    id: "atv-poster-modal",
-  });
-};
-
-export { openPosterModal, openVideoModal };

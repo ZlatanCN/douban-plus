@@ -1,8 +1,9 @@
-import type { JSX } from "preact";
+import type { ComponentType, JSX } from "preact";
 
-import { IconPlay } from "../../../components/common/icons";
-import { Section } from "../../../components/layout/section";
-import type { Streaming } from "../../../types";
+import { IconPlay } from "@/components/common/icons";
+import { Section } from "@/components/layout/section";
+import type { Streaming } from "@/types";
+
 import { resolveStreamingProvider } from "./streaming-provider";
 
 type StreamingSectionProps = {
@@ -11,7 +12,7 @@ type StreamingSectionProps = {
 
 type StreamingLogoProps = {
   fallbackLabel: string;
-  Icon?: (props: JSX.SVGAttributes<SVGSVGElement>) => JSX.Element;
+  Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
 };
 
 const StreamingLogo = ({ fallbackLabel, Icon }: StreamingLogoProps) => (

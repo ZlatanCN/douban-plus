@@ -1,9 +1,6 @@
-import { Section } from "../../../components/layout/section";
-import type {
-  AccountActionGuard,
-  Review,
-  ReviewVoteCallback,
-} from "../../../types";
+import { Section } from "@/components/layout/section";
+import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+
 import { ReviewCard } from "./review-card";
 import type { ReviewVoteState } from "./review-vote-state";
 

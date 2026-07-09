@@ -1,5 +1,5 @@
-import { RE_SEASON_SUFFIX } from "../../../constants";
-import type { InfoBlock } from "../../../types";
+import { RE_SEASON_SUFFIX } from "@/constants";
+import type { InfoBlock } from "@/types";
 
 type HeroMetaProps = {
   info: Pick<

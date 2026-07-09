@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractStreaming, parsePlaySources } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractStreaming, parsePlaySources } from "@/extract/streaming";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(parsePlaySources, () => {
   it("extracts play sources from inline script", () => {

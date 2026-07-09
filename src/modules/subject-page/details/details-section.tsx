@@ -1,9 +1,9 @@
 import type { ComponentChild } from "preact";
 
-import { IconArrow } from "../../../components/common/icons";
-import { Section } from "../../../components/layout/section";
-import { RE_IMDB_LINK } from "../../../constants";
-import type { Award, DetailsData, InfoBlock } from "../../../types";
+import { IconArrow } from "@/components/common/icons";
+import { Section } from "@/components/layout/section";
+import { RE_IMDB_LINK } from "@/constants";
+import type { Award, DetailsData, InfoBlock } from "@/types";
 
 type DetailsSectionProps = {
   data: DetailsData;

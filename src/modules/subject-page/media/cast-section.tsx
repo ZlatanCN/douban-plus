@@ -1,5 +1,5 @@
-import { Section } from "../../../components/layout/section";
-import type { Celebrity } from "../../../types";
+import { Section } from "@/components/layout/section";
+import type { Celebrity } from "@/types";
 
 type CastSectionProps = {
   celebrities: Celebrity[];

@@ -1,4 +1,5 @@
-import type { McRating } from "../../../types";
+import type { McRating } from "@/types";
+
 import {
   mcWordRatingChinese,
   ratingStateClass,

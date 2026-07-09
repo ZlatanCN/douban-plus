@@ -4,7 +4,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { postInterest, removeInterest } from "../../src/api/interest";
+import { postInterest, removeInterest } from "@/api/interest";
 
 const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()

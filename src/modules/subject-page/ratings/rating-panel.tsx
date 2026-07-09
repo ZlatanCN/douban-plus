@@ -1,4 +1,5 @@
-import type { RatingInfo } from "../../../types";
+import type { RatingInfo } from "@/types";
+
 import { DoubanRating } from "./douban-rating";
 import { ImdbRating } from "./imdb-rating";
 import { MetacriticRating } from "./metacritic-rating";

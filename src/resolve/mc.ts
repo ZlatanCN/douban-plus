@@ -1,7 +1,8 @@
 /* ── MC Resolver — wraps fetchMcRating ─────────────────── */
 
-import { fetchMcRating } from "../api/metacritic";
-import type { McRating } from "../types";
+import { fetchMcRating } from "@/api/metacritic";
+import type { McRating } from "@/types";
+
 import type { ResolutionContext } from "./types";
 
 /** Resolve Metacritic rating from the resolution context.

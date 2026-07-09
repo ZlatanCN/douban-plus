@@ -1,8 +1,9 @@
 import { render } from "preact";
 
+import { extractSeries } from "@/extract/series";
+import { SeriesSection } from "@/modules/subject-page/media";
+
 import { el } from "../components/dom-factory";
-import { extractSeries } from "../extract";
-import { SeriesSection } from "../modules/subject-page/media";
 
 const extractSeriesMoreLink = (
   doc: Document = document

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { ImdbRating } from "../../../src/modules/subject-page/ratings/imdb-rating";
-import type { ImdbRating as ImdbRatingData } from "../../../src/types";
-import { renderSingle } from "../../helpers";
+import { ImdbRating } from "@/modules/subject-page/ratings/imdb-rating";
+import type { ImdbRating as ImdbRatingData } from "@/types";
+
+import { renderSingle } from "../../helpers/render";
 
 describe(ImdbRating, () => {
   it("renders loading skeleton when unresolved", () => {

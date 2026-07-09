@@ -3,9 +3,10 @@ import { describe, expect, it } from "vitest";
 import {
   DetailsSection,
   collectDetailRows,
-} from "../../../src/modules/subject-page/details";
-import type { DetailsData, InfoBlock } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+} from "@/modules/subject-page/details";
+import type { DetailsData, InfoBlock } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const emptyInfo: InfoBlock = {
   aliases: "",

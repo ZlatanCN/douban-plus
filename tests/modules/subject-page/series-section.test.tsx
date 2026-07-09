@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { SeriesSection } from "../../../src/modules/subject-page/media";
-import type { SeriesItem } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+import { SeriesSection } from "@/modules/subject-page/media";
+import type { SeriesItem } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makeItem = (overrides?: Partial<SeriesItem>): SeriesItem => ({
   link: "https://movie.douban.com/subject/1/",

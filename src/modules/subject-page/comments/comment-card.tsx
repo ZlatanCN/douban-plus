@@ -1,6 +1,7 @@
-import { IconExpand } from "../../../components/common/icons";
-import { Stars } from "../../../components/common/stars";
-import type { AccountActionGuard, Comment } from "../../../types";
+import { IconExpand } from "@/components/common/icons";
+import { Stars } from "@/components/common/stars";
+import type { AccountActionGuard, Comment } from "@/types";
+
 import type { CommentVoteCallback } from "../types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";

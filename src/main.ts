@@ -1,8 +1,8 @@
 import {
   installLoginFrameTheme,
   isDoubanLoginFrame,
-} from "./runtime/login-frame-theme";
-import { mountSubjectPage } from "./runtime/mount";
+} from "@/runtime/login-frame-theme";
+import { mountSubjectPage } from "@/runtime/mount";
 
 const mountSubjectPageWhenReady = async (): Promise<void> => {
   await import("./styles.css");

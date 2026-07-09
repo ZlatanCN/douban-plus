@@ -1,8 +1,8 @@
 /* ── Rating / Summary Extractors ────────────────────────── */
 
-import { RE_HSPACE, RE_NL_MULTI, RE_NON_DIGIT } from "../constants";
-import type { RatingInfo } from "../types";
-import { $, safeText } from "../utils/dom";
+import { RE_HSPACE, RE_NL_MULTI, RE_NON_DIGIT } from "@/constants";
+import type { RatingInfo } from "@/types";
+import { $, safeText } from "@/utils/dom";
 
 const RE_CRLF = /\r\n?/gu;
 const RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;

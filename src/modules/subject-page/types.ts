@@ -2,7 +2,7 @@ import type {
   AccountActionGuard,
   HeroCallbacks,
   ReviewVoteCallback,
-} from "../../types";
+} from "@/types";
 
 type CommentVoteCallback = (
   cid: string

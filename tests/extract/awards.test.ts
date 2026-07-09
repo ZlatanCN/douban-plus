@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractAwards } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractAwards } from "@/extract/awards";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractAwards, () => {
   it("extracts awards from ul.award elements", () => {

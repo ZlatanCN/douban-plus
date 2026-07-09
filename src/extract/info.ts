@@ -2,9 +2,10 @@
 /* Directors, writers, cast, genres, country, language,     */
 /* dates, runtime, episodes, seasons, aliases, IMDb.        */
 
-import { RE_IMDB_ID } from "../constants";
-import type { InfoBlock } from "../types";
-import { $, $$ } from "../utils/dom";
+import { RE_IMDB_ID } from "@/constants";
+import type { InfoBlock } from "@/types";
+import { $, $$ } from "@/utils/dom";
+
 import { collectInfoTextAfter, collectLinksAfter, findLabel } from "./helpers";
 
 /**

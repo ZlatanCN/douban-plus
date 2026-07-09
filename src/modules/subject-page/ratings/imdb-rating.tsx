@@ -1,5 +1,6 @@
-import { Stars } from "../../../components/common/stars";
-import type { ImdbRating as ImdbRatingData } from "../../../types";
+import { Stars } from "@/components/common/stars";
+import type { ImdbRating as ImdbRatingData } from "@/types";
+
 import { ratingStateClass } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 

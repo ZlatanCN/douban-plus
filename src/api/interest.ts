@@ -1,5 +1,5 @@
-import type { InterestState } from "../types";
-import { getCk, gmPost } from "../utils/request";
+import type { InterestState } from "@/types";
+import { getCk, gmPost } from "@/utils/request";
 
 const API_INTEREST = "https://movie.douban.com/j/subject";
 const API_REMOVE = "https://movie.douban.com/subject";

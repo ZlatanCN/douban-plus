@@ -1,7 +1,8 @@
 import { useState } from "preact/hooks";
 
-import { IconThumb } from "../../../components/common/icons";
-import type { AccountActionGuard } from "../../../types";
+import { IconThumb } from "@/components/common/icons";
+import type { AccountActionGuard } from "@/types";
+
 import type { CommentVoteCallback } from "../types";
 import {
   optimisticCommentVoteState,

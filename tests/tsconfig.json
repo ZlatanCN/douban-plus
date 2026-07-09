@@ -4,7 +4,10 @@
     "types": ["node", "vite/client", "vite-plugin-monkey/client"],
     "noEmit": true,
     "skipLibCheck": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "paths": {
+      "@/*": ["../src/*"]
+    }
   },
   "include": ["."],
   "exclude": ["node_modules", "dist"]

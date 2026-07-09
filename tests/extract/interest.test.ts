@@ -7,8 +7,9 @@ import {
   extractInterestState,
   findInterestButtons,
   isInterestActive,
-} from "../../src/extract";
-import { buildDoc, mockCookie } from "../helpers";
+} from "@/extract/interest";
+
+import { buildDoc, mockCookie } from "../helpers/doc";
 
 describe(extractInterestState, () => {
   it("returns logged-out state when no ck cookie", () => {

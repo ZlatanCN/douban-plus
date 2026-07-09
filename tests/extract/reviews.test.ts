@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractReviews } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractReviews } from "@/extract/reviews";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractReviews, () => {
   it("extracts review metadata from #reviews-wrapper", () => {

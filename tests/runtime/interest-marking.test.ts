@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { buildInterestMarkingCallbacks } from "../../src/runtime/interest-marking";
-import type { InterestState, ModalCallbacks } from "../../src/types";
+import { buildInterestMarkingCallbacks } from "@/runtime/interest-marking";
+import type { InterestState, ModalCallbacks } from "@/types";
 
 vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;

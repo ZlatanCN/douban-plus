@@ -1,7 +1,7 @@
 /* ── Awards Extractor ──────────────────────────────────── */
 
-import type { Award } from "../types";
-import { $, $$, safeText } from "../utils/dom";
+import type { Award } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
 
 /**
  * Extract awards from `ul.award` elements in the info section.

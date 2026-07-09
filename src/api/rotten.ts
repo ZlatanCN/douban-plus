@@ -1,6 +1,6 @@
-import type { RtRating } from "../types";
-import { createCache } from "../utils/cache";
-import { gmGet } from "../utils/request";
+import type { RtRating } from "@/types";
+import { createCache } from "@/utils/cache";
+import { gmGet } from "@/utils/request";
 
 const rottenCache = createCache<NonNullable<RtRating>>(
   "dp:rotten-cache",
@@ -9,15 +9,13 @@ const rottenCache = createCache<NonNullable<RtRating>>(
 
 /* ── RT Slug Construction ──────────────────────────── */
 
-const toSlug = (title: string): string => {
-  const slug = title
+const toSlug = (title: string): string =>
+  title
     .normalize("NFD")
     .replaceAll(/[\u0300-\u036F]/gu, "")
     .toLowerCase()
     .replaceAll(/[^a-z0-9]+/gu, "_")
     .replaceAll(/^_|_$/gu, "");
-  return slug;
-};
 
 /** Build a cache key from slug + optional season suffix + optional year suffix.
  *  E.g. "game_of_thrones" or "game_of_thrones-s05" or "pressure_2026".

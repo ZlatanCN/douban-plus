@@ -4,9 +4,10 @@ import {
   InterestForm,
   initialStatus,
   statusEntries,
-} from "../../../src/modules/subject-page/interest/interest-form";
-import type { InterestState, ModalCallbacks } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+} from "@/modules/subject-page/interest/interest-form";
+import type { InterestState, ModalCallbacks } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makeState = (overrides?: Partial<InterestState>): InterestState => ({
   ck: "token",

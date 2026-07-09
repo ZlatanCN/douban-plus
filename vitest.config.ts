@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -6,6 +8,7 @@ export default defineConfig({
       // $ is a virtual module from vite-plugin-monkey (not active in vitest).
       // Alias to a test mock so request.ts can import GM_xmlhttpRequest.
       $: new URL("tests/mocks/$", import.meta.url).pathname,
+      "@": path.resolve(import.meta.dirname ?? ".", "src"),
     },
   },
   test: {

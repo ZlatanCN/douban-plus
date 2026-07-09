@@ -1,9 +1,10 @@
 import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CommentsSection } from "../../../src/modules/subject-page/comments";
-import type { Comment, CommentsData } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+import { CommentsSection } from "@/modules/subject-page/comments";
+import type { Comment, CommentsData } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makeComment = (overrides?: Partial<Comment>): Comment => ({
   avatar: "",

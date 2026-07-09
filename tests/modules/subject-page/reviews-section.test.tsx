@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ReviewsSection } from "../../../src/modules/subject-page/reviews";
-import type { Review, ReviewData } from "../../../src/types";
-import { renderIntoRoot } from "../../helpers";
+import { ReviewsSection } from "@/modules/subject-page/reviews";
+import type { Review, ReviewData } from "@/types";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 const makeReview = (overrides?: Partial<Review>): Review => ({
   avatar: "",

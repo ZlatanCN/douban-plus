@@ -10,8 +10,9 @@ import {
   extractYear,
   extractPoster,
   extractSubjectId,
-} from "../../src/extract";
-import { buildDoc, mockLocation } from "../helpers";
+} from "@/extract/basic";
+
+import { buildDoc, mockLocation } from "../helpers/doc";
 
 const FIXTURES = `${import.meta.dirname}/../fixtures`;
 const MINIMAL = readFileSync(`${FIXTURES}/movie-minimal.html`, "utf-8");

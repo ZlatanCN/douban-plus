@@ -7,8 +7,9 @@ import {
   extractCelebrities,
   extractPhotos,
   extractTrailers,
-} from "../../src/extract";
-import { buildDoc } from "../helpers";
+} from "@/extract/media";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractCelebrities, () => {
   it("extracts first celebrity details from #celebrities list", () => {

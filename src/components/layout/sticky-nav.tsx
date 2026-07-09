@@ -1,4 +1,4 @@
-import type { NavSection, TitleInfo } from "../../types";
+import type { NavSection, TitleInfo } from "@/types";
 
 type StickyNavProps = {
   sections: NavSection[];

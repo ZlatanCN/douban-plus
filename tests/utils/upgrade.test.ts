@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { upgradePhoto, upgradePoster } from "../../src/utils/upgrade";
+import { upgradePhoto, upgradePoster } from "@/utils/upgrade";
 
 /* ── upgradePoster ──────────────────────────────────────────── */
 

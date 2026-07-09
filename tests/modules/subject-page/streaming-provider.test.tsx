@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { StreamingSection } from "../../../src/modules/subject-page/media";
+import { StreamingSection } from "@/modules/subject-page/media";
 import {
   decodeStreamingHref,
   resolveStreamingProvider,
-} from "../../../src/modules/subject-page/media/streaming-provider";
-import type { Streaming } from "../../../src/types";
-import { renderSingle } from "../../helpers";
+} from "@/modules/subject-page/media/streaming-provider";
+import type { Streaming } from "@/types";
+
+import { renderSingle } from "../../helpers/render";
 
 const stream = (overrides: Partial<Streaming>): Streaming => ({
   href: "https://example.com/watch",

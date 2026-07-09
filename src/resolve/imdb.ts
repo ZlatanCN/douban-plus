@@ -1,7 +1,8 @@
 /* ── IMDb Resolver — wraps fetchImdbRating ─────────────── */
 
-import { fetchImdbRating } from "../api/imdb";
-import type { FetchImdbResult } from "../api/imdb";
+import { fetchImdbRating } from "@/api/imdb";
+import type { FetchImdbResult } from "@/api/imdb";
+
 import type { ResolutionContext } from "./types";
 
 /** Resolve IMDb rating from the resolution context.

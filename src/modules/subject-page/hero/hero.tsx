@@ -1,4 +1,5 @@
-import type { HeroCallbacks, HeroData } from "../../../types";
+import type { HeroCallbacks, HeroData } from "@/types";
+
 import { RatingPanel } from "../ratings/rating-panel";
 import { HeroActions } from "./hero-actions";
 import { HeroBackground } from "./hero-background";

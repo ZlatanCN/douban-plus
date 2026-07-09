@@ -2,18 +2,10 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import {
-  Hero,
-  HeroBackground,
-  pickStill,
-} from "../../../src/modules/subject-page/hero";
-import type {
-  HeroCallbacks,
-  HeroData,
-  InterestState,
-  Photo,
-} from "../../../src/types";
-import { renderSingle } from "../../helpers";
+import { Hero, HeroBackground, pickStill } from "@/modules/subject-page/hero";
+import type { HeroCallbacks, HeroData, InterestState, Photo } from "@/types";
+
+import { renderSingle } from "../../helpers/render";
 
 const mockRequest = vi.hoisted(() =>
   vi.fn<(url: string, ...args: unknown[]) => Promise<string>>()

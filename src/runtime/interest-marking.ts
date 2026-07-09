@@ -1,12 +1,13 @@
-import { postInterest, removeInterest } from "../api/interest";
-import { findInterestButtons } from "../extract";
-import { openInterestModal } from "../modules/subject-page/interest";
+import { postInterest, removeInterest } from "@/api/interest";
+import { findInterestButtons } from "@/extract/interest";
+import { openInterestModal } from "@/modules/subject-page/interest";
 import type {
   HeroCallbacks,
   InterestFormState,
   InterestState,
   ModalCallbacks,
-} from "../types";
+} from "@/types";
+
 import { createAccountGate } from "./account-gate";
 import type { AccountGate } from "./account-gate";
 

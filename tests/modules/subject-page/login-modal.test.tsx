@@ -2,9 +2,10 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { LoginModal } from "../../../src/modules/subject-page/login/login-modal";
-import { mountNativeLoginFrame } from "../../../src/modules/subject-page/login/native-login-frame";
-import { renderIntoRoot } from "../../helpers";
+import { LoginModal } from "@/modules/subject-page/login/login-modal";
+import { mountNativeLoginFrame } from "@/modules/subject-page/login/native-login-frame";
+
+import { renderIntoRoot } from "../../helpers/render";
 
 // Mock mountNativeLoginFrame to isolate the component's state management
 // from the real function's complex polling/DOM interactions.

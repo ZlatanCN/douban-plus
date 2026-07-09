@@ -1,9 +1,9 @@
 import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { SubjectPage } from "../../../src/modules/subject-page";
-import type { SubjectPageDeps } from "../../../src/modules/subject-page";
-import type { DoubanData, InfoBlock, Review } from "../../../src/types";
+import { SubjectPage } from "@/modules/subject-page/subject-page";
+import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import type { DoubanData, InfoBlock, Review } from "@/types";
 
 vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;

@@ -1,6 +1,6 @@
-import { fetchAvatarUrls } from "../api/avatar";
-import { applyCommentAvatars } from "../components/avatar-dom";
-import type { Comment } from "../types";
+import { fetchAvatarUrls } from "@/api/avatar";
+import { applyCommentAvatars } from "@/components/avatar-dom";
+import type { Comment } from "@/types";
 
 const startAvatarEffect = (comments: Comment[]): void => {
   if (comments.length === 0) {

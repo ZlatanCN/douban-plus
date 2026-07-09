@@ -3,8 +3,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import type { FetchImdbResult } from "../../src/api/imdb";
-import type { ResolutionContext } from "../../src/resolve/types";
+import type { FetchImdbResult } from "@/api/imdb";
+import type { ResolutionContext } from "@/resolve/types";
 
 const mockFetchImdbRating = vi.hoisted(() =>
   vi.fn<(imdbId: string, season?: number) => Promise<FetchImdbResult>>()

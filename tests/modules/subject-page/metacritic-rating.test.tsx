@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { MetacriticRating } from "../../../src/modules/subject-page/ratings/metacritic-rating";
-import type { McRating } from "../../../src/types";
-import { renderSingle } from "../../helpers";
+import { MetacriticRating } from "@/modules/subject-page/ratings/metacritic-rating";
+import type { McRating } from "@/types";
+
+import { renderSingle } from "../../helpers/render";
 
 describe(MetacriticRating, () => {
   it("renders loading skeleton when unresolved", () => {

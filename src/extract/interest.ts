@@ -9,9 +9,9 @@ import {
   RE_INTEREST_ACTIVE,
   RE_WISH,
   RE_WISH_EXACT,
-} from "../constants";
-import type { InterestState } from "../types";
-import { $, $$ } from "../utils/dom";
+} from "@/constants";
+import type { InterestState } from "@/types";
+import { $, $$ } from "@/utils/dom";
 
 /* ── Internal Types ─────────────────────────────────── */
 

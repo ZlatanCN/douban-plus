@@ -1,10 +1,10 @@
 /* ── Social Extractors ─────────────────────────────────── */
 /* User comments and related recommendations.              */
 
-import { RE_ALLSTAR, RE_NON_DIGIT } from "../constants";
-import type { Comment, Recommendation } from "../types";
-import { $, $$, safeText } from "../utils/dom";
-import { upgradePoster } from "../utils/upgrade";
+import { RE_ALLSTAR, RE_NON_DIGIT } from "@/constants";
+import type { Comment, Recommendation } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
+import { upgradePoster } from "@/utils/upgrade";
 
 /**
  * Extract related recommendations from `.recommendations-bd`.

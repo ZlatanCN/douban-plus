@@ -1,5 +1,5 @@
-import { createCache } from "../utils/cache";
-import { gmGet } from "../utils/request";
+import { createCache } from "@/utils/cache";
+import { gmGet } from "@/utils/request";
 
 const avatarCache = createCache<string>("dp:avatar-cache", 30 * 60 * 1000);
 

@@ -6,14 +6,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import {
-  buildDoc,
-  createTestDoc,
-  mockLocation,
-  mockCookie,
-  installMockGM,
-  cleanupMockGM,
-} from "./index";
+import { buildDoc, createTestDoc, mockCookie, mockLocation } from "./doc";
+import { cleanupMockGM, installMockGM } from "./gm";
 
 const MINIMAL_HTML = `<!DOCTYPE html>
 <html>

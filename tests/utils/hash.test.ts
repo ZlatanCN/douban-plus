@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { hashStr } from "../../src/utils/hash";
+import { hashStr } from "@/utils/hash";
 
 describe(hashStr, () => {
   it("returns the same value for the same input (deterministic)", () => {

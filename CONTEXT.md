@@ -168,3 +168,4 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.
 - **Bottom exports**: All exports are declared at the bottom of each file via a single `export { ... }` block. Never use `export const` or `export function` inline. This makes the module's public API immediately visible at a glance.
+- **`@/` import alias**: `@/` maps to `src/`. Use `@/components/foo` instead of `../../../components/foo` for imports that go up 2+ levels. Short relative imports (`./foo`, `../bar`) can stay relative. Configured in `tsconfig.json` (paths), `vite.config.ts` (resolve.alias), and `vitest.config.ts` (resolve.alias).

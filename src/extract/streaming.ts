@@ -6,9 +6,9 @@ import {
   RE_ONLINE_VIDEO,
   RE_PLAY_SOURCES,
   RE_SOURCES_SCRIPT,
-} from "../constants";
-import type { Streaming } from "../types";
-import { $$ } from "../utils/dom";
+} from "@/constants";
+import type { Streaming } from "@/types";
+import { $$ } from "@/utils/dom";
 
 const isRealUrl = (h: string) => RE_HTTP.test(h || "");
 

@@ -3,8 +3,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractRating, extractSummary } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractRating, extractSummary } from "@/extract/rating";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractRating, () => {
   it("extracts score from strong.rating_num", () => {

@@ -1,7 +1,8 @@
 import type { JSX } from "preact";
 
-import { IconPopcorn, IconTomato } from "../../../components/common/icons";
-import type { RtRating } from "../../../types";
+import { IconPopcorn, IconTomato } from "@/components/common/icons";
+import type { RtRating } from "@/types";
+
 import { isFresh, ratingStateClass } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 

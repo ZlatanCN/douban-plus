@@ -1,6 +1,7 @@
 import { render } from "preact";
 
-import type { InterestState, ModalCallbacks } from "../../../types";
+import type { InterestState, ModalCallbacks } from "@/types";
+
 import { InterestForm } from "./interest-form";
 
 const openInterestModal = (

@@ -1,6 +1,6 @@
-import type { ImdbRating } from "../types";
-import { createCache } from "../utils/cache";
-import { gmPost } from "../utils/request";
+import type { ImdbRating } from "@/types";
+import { createCache } from "@/utils/cache";
+import { gmPost } from "@/utils/request";
 
 const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;

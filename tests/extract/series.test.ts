@@ -2,8 +2,9 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractSeries } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractSeries } from "@/extract/series";
+
+import { buildDoc } from "../helpers/doc";
 
 describe(extractSeries, () => {
   it("extracts first series item from #series-items section", () => {
