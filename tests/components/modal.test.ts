@@ -3,9 +3,14 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { h, render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { openPosterModal, openVideoModal } from "@/components/modal";
+import {
+  ModalCloseButton,
+  openPosterModal,
+  openVideoModal,
+} from "@/components/modal";
 import type { Trailer } from "@/types";
 
 const MODAL_TRANSITION_MS = 400;
@@ -69,6 +74,39 @@ describe("modal stylesheet", () => {
     expect(overlayRule).toContain("margin: 0");
     expect(overlayRule).toContain("padding: 0");
     expect(overlayRule).toContain("border: none");
+  });
+
+  it("defines the shared modal accent bar", () => {
+    const accentRule = modalCss.match(
+      /\.atv-modal-accent-bar\s*\{(?<body>[^}]*)\}/u
+    )?.groups?.body;
+
+    expect(accentRule).toContain("height: 3px");
+    expect(accentRule).toContain("var(--atv-accent) 15%");
+    expect(accentRule).toContain("transform: scaleX(0)");
+  });
+});
+
+describe(ModalCloseButton, () => {
+  afterEach(() => {
+    cleanupDom();
+  });
+
+  it("keeps the shared close class when a modal supplies an owner class", () => {
+    const root = document.createElement("div");
+
+    render(
+      h(ModalCloseButton, {
+        ariaLabel: "关闭",
+        className: "atv-custom-close",
+        onClick: () => {},
+      }),
+      root
+    );
+
+    const closeButton = root.querySelector("button");
+    expect(closeButton?.classList.contains("atv-modal-close")).toBeTruthy();
+    expect(closeButton?.classList.contains("atv-custom-close")).toBeTruthy();
   });
 });
 

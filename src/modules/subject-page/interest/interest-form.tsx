@@ -77,7 +77,7 @@ const InterestFormContent = ({
 
   return (
     <>
-      <div class="atv-interest-modal-accent" />
+      <div class="atv-modal-accent-bar atv-interest-modal-accent" />
       <div class="atv-interest-modal-header">
         <span
           class="atv-interest-modal-header__title"

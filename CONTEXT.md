@@ -172,7 +172,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 
 - **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
 - **Deep subject-page seam**: Runtime calls `SubjectPage({ data, deps })`; module internals own layout, local UI state, modals, voting affordances, and rating panels.
-- **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles.
+- **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Shared modal visual tokens such as the accent bar and base close button styling live in `src/styles/modals.css`; experience files should keep only positioning or state-specific overrides.
 - **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.

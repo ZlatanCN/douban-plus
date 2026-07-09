@@ -24,7 +24,7 @@ const LoginModalContent = ({
   const handleClose = useModalClose();
   return (
     <>
-      <div class="atv-login-modal-accent" />
+      <div class="atv-modal-accent-bar atv-login-modal-accent" />
       <ModalCloseButton
         ariaLabel="关闭登录弹窗"
         className="atv-login-modal-close"

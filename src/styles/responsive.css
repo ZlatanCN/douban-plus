@@ -187,10 +187,6 @@
   .atv-review-modal.is-open .atv-review-modal-scroll {
     transform: none;
   }
-  .atv-review-modal-accent {
-    transition: none;
-    transform: scaleX(1);
-  }
   .atv-review-modal {
     transition: none;
     -webkit-backdrop-filter: none;
@@ -218,16 +214,8 @@
   }
 
   /* Accent edge glow */
-  .atv-comment-overlay-accent,
-  .atv-interest-modal-accent,
-  .atv-login-modal-accent {
+  .atv-modal-accent-bar {
     transition: none;
-  }
-
-  /* Ensure accent glows are visible even without animation */
-  .atv-comment-overlay.is-open .atv-comment-overlay-accent,
-  .atv-interest-modal.is-open .atv-interest-modal-accent,
-  .atv-login-modal.is-open .atv-login-modal-accent {
     transform: scaleX(1);
   }
 }

@@ -62,56 +62,21 @@ dialog::backdrop {
 .atv-login-modal.is-open .atv-login-modal-inner {
   transform: scale(1) translateY(0);
 }
-.atv-login-modal-accent {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    var(--atv-accent) 15%,
-    var(--atv-accent) 85%,
-    transparent
-  );
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-.atv-login-modal.is-open .atv-login-modal-accent {
-  transform: scaleX(1);
-}
-.atv-login-modal-close {
+.atv-modal-close.atv-login-modal-close {
   position: absolute;
   top: 12px;
   right: 12px;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   width: 32px;
   height: 32px;
-  padding: 0;
   color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
   background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transition:
-    color 200ms ease,
-    background 200ms ease,
-    border-color 200ms ease;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  border-color: rgba(255, 255, 255, 0.1);
 }
-.atv-login-modal-close:hover {
+.atv-modal-close.atv-login-modal-close:hover {
   color: #fff;
   background: rgba(255, 255, 255, 0.12);
   border-color: rgba(255, 255, 255, 0.2);
-}
-.atv-login-modal-close svg {
-  display: block;
 }
 .atv-login-modal-title {
   margin: 0 42px 6px;
