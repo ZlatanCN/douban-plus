@@ -2532,14 +2532,35 @@ input::placeholder {
 			title: effectiveTitle
 		};
 	};
-	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
-	var toMcSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
-	var cacheKey$1 = (slug, season, year) => {
+	var toRatingSlug = (title, separator) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, separator).replaceAll(separator === "-" ? /^-|-$/gu : /^_|_$/gu, "");
+	var createRatingCacheKey = (slug, separator, season, year) => {
 		let key = slug;
-		if (year) key = `${key}-${year}`;
+		if (year) key = `${key}${separator}${year}`;
 		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
 		return key;
 	};
+	var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async (title, isTV, season, year) => {
+		if (!title) return null;
+		const slug = toRatingSlug(title, slugSeparator);
+		if (!slug) return null;
+		const key = createRatingCacheKey(slug, slugSeparator, season, year);
+		const cached = cache.get(key);
+		if (cached) return cached;
+		for (const url of urls({
+			isTV: Boolean(isTV),
+			season,
+			slug,
+			year
+		})) try {
+			const rating = parse(await gmGet(url, referer));
+			if (rating) {
+				cache.set(key, rating);
+				return rating;
+			}
+		} catch {}
+		return null;
+	};
+	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
 	var parseMcPage = (html) => {
 		const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
 		if (!match?.groups?.json) return null;
@@ -2557,38 +2578,17 @@ input::placeholder {
 			return null;
 		}
 	};
-	var fetchMcRating = async (title, isTV, season, year) => {
-		if (!title) return null;
-		const slug = toMcSlug(title);
-		if (!slug) return null;
-		const key = cacheKey$1(slug, season, year);
-		const cached = mcCache.get(key);
-		if (cached) return cached;
-		const urls = [];
-		if (isTV) {
-			if (season) urls.push(`https://www.metacritic.com/tv/${slug}/season-${season}`);
-			urls.push(`https://www.metacritic.com/tv/${slug}`);
-		} else {
-			if (year) urls.push(`https://www.metacritic.com/movie/${slug}-${year}`);
-			urls.push(`https://www.metacritic.com/movie/${slug}`);
+	var fetchMcRating = createRatingFetcher({
+		cache: mcCache,
+		parse: parseMcPage,
+		referer: "https://www.metacritic.com/",
+		slugSeparator: "-",
+		urls: ({ isTV, season, slug, year }) => {
+			if (isTV) return season ? [`https://www.metacritic.com/tv/${slug}/season-${season}`, `https://www.metacritic.com/tv/${slug}`] : [`https://www.metacritic.com/tv/${slug}`];
+			return year ? [`https://www.metacritic.com/movie/${slug}-${year}`, `https://www.metacritic.com/movie/${slug}`] : [`https://www.metacritic.com/movie/${slug}`];
 		}
-		for (const url of urls) try {
-			const rating = parseMcPage(await gmGet(url, "https://www.metacritic.com/"));
-			if (rating) {
-				mcCache.set(key, rating);
-				return rating;
-			}
-		} catch {}
-		return null;
-	};
+	});
 	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
-	var toSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
-	var cacheKey = (slug, season, year) => {
-		let key = slug;
-		if (year) key = `${key}_${year}`;
-		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
-		return key;
-	};
 	var parseData = (raw) => {
 		const data = JSON.parse(raw);
 		const criticsRaw = data.criticsScore?.score;
@@ -2622,30 +2622,16 @@ input::placeholder {
 		} catch {}
 		return null;
 	};
-	var fetchRtRating = async (title, isTV, season, year) => {
-		if (!title) return null;
-		const slug = toSlug(title);
-		if (!slug) return null;
-		const key = cacheKey(slug, season, year);
-		const cached = rottenCache.get(key);
-		if (cached) return cached;
-		const urls = [];
-		if (isTV) {
-			if (season) urls.push(`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`);
-			urls.push(`https://www.rottentomatoes.com/tv/${slug}`);
-		} else {
-			if (year) urls.push(`https://www.rottentomatoes.com/m/${slug}_${year}`);
-			urls.push(`https://www.rottentomatoes.com/m/${slug}`);
+	var fetchRtRating = createRatingFetcher({
+		cache: rottenCache,
+		parse: parseRtPage,
+		referer: "https://www.rottentomatoes.com/",
+		slugSeparator: "_",
+		urls: ({ isTV, season, slug, year }) => {
+			if (isTV) return season ? [`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`, `https://www.rottentomatoes.com/tv/${slug}`] : [`https://www.rottentomatoes.com/tv/${slug}`];
+			return year ? [`https://www.rottentomatoes.com/m/${slug}_${year}`, `https://www.rottentomatoes.com/m/${slug}`] : [`https://www.rottentomatoes.com/m/${slug}`];
 		}
-		for (const url of urls) try {
-			const rating = parseRtPage(await gmGet(url, "https://www.rottentomatoes.com/"));
-			if (rating) {
-				rottenCache.set(key, rating);
-				return rating;
-			}
-		} catch {}
-		return null;
-	};
+	});
 	var createDefaultDeps = () => ({
 		fetchImdbRating,
 		fetchMcRating,

@@ -1,35 +1,11 @@
+import { createRatingFetcher } from "@/api/rating-fetcher";
 import type { RtRating } from "@/types";
 import { createCache } from "@/utils/cache";
-import { gmGet } from "@/utils/request";
 
 const rottenCache = createCache<NonNullable<RtRating>>(
   "dp:rotten-cache",
   7 * 24 * 60 * 60 * 1000
 );
-
-/* ── RT Slug Construction ──────────────────────────── */
-
-const toSlug = (title: string): string =>
-  title
-    .normalize("NFD")
-    .replaceAll(/[\u0300-\u036F]/gu, "")
-    .toLowerCase()
-    .replaceAll(/[^a-z0-9]+/gu, "_")
-    .replaceAll(/^_|_$/gu, "");
-
-/** Build a cache key from slug + optional season suffix + optional year suffix.
- *  E.g. "game_of_thrones" or "game_of_thrones-s05" or "pressure_2026".
- *  Year suffix prevents slug collisions between same-named movies from different years. */
-const cacheKey = (slug: string, season?: number, year?: string): string => {
-  let key = slug;
-  if (year) {
-    key = `${key}_${year}`;
-  }
-  if (season) {
-    key = `${key}-s${String(season).padStart(2, "0")}`;
-  }
-  return key;
-};
 
 /* ── RT Page HTML Parsing ──────────────────────────── */
 
@@ -116,58 +92,27 @@ const parseRtPage = (html: string): RtRating | null => {
   return null;
 };
 
-/* ── Fetch ─────────────────────────────────────────── */
-
-const fetchRtRating = async (
-  title: string,
-  isTV?: boolean,
-  season?: number,
-  year?: string
-): Promise<RtRating | null> => {
-  if (!title) {
-    return null;
-  }
-
-  const slug = toSlug(title);
-  if (!slug) {
-    return null;
-  }
-
-  const key = cacheKey(slug, season, year);
-  const cached = rottenCache.get(key);
-  if (cached) {
-    return cached;
-  }
-
-  const urls: string[] = [];
-  if (isTV) {
-    if (season) {
-      urls.push(
-        `https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`
-      );
+const fetchRtRating = createRatingFetcher<RtRating>({
+  cache: rottenCache,
+  parse: parseRtPage,
+  referer: "https://www.rottentomatoes.com/",
+  slugSeparator: "_",
+  urls: ({ isTV, season, slug, year }) => {
+    if (isTV) {
+      return season
+        ? [
+            `https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`,
+            `https://www.rottentomatoes.com/tv/${slug}`,
+          ]
+        : [`https://www.rottentomatoes.com/tv/${slug}`];
     }
-    urls.push(`https://www.rottentomatoes.com/tv/${slug}`);
-  } else {
-    if (year) {
-      urls.push(`https://www.rottentomatoes.com/m/${slug}_${year}`);
-    }
-    urls.push(`https://www.rottentomatoes.com/m/${slug}`);
-  }
-
-  for (const url of urls) {
-    try {
-      // eslint-disable-next-line no-await-in-loop — sequential fallback
-      const html = await gmGet(url, "https://www.rottentomatoes.com/");
-      const rating = parseRtPage(html);
-      if (rating) {
-        rottenCache.set(key, rating);
-        return rating;
-      }
-    } catch {
-      /* continue to fallback URL */
-    }
-  }
-  return null;
-};
+    return year
+      ? [
+          `https://www.rottentomatoes.com/m/${slug}_${year}`,
+          `https://www.rottentomatoes.com/m/${slug}`,
+        ]
+      : [`https://www.rottentomatoes.com/m/${slug}`];
+  },
+});
 
 export { fetchRtRating };
