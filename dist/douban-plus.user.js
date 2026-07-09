@@ -2534,10 +2534,6 @@ input::placeholder {
 			title: effectiveTitle
 		};
 	};
-	var resolveImdb = (ctx) => {
-		if (!ctx.imdbId) return Promise.resolve(null);
-		return fetchImdbRating(ctx.imdbId, ctx.season);
-	};
 	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
 	var toMcSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "-").replaceAll(/^-|-$/gu, "");
 	var cacheKey$1 = (slug, season, year) => {
@@ -2586,10 +2582,6 @@ input::placeholder {
 			}
 		} catch {}
 		return null;
-	};
-	var resolveMc = (ctx) => {
-		if (!ctx.englishTitle) return Promise.resolve(null);
-		return fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
 	};
 	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
 	var toSlug = (title) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, "_").replaceAll(/^_|_$/gu, "");
@@ -2656,22 +2648,30 @@ input::placeholder {
 		} catch {}
 		return null;
 	};
-	var resolveRt = (ctx) => {
-		if (!ctx.englishTitle) return Promise.resolve(null);
-		return fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
-	};
 	var createDefaultDeps = () => ({
-		resolveImdb,
-		resolveMc,
-		resolveRt
+		fetchImdbRating,
+		fetchMcRating,
+		fetchRtRating
 	});
+	var fetchImdbFromContext = (ctx, deps) => {
+		if (!ctx.imdbId) return Promise.resolve(null);
+		return deps.fetchImdbRating(ctx.imdbId, ctx.season);
+	};
+	var fetchRtFromContext = (ctx, deps) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return deps.fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
+	var fetchMcFromContext = (ctx, deps) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return deps.fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
 	var resolveAll = async (ctx, deps) => {
-		const { resolveImdb, resolveMc, resolveRt } = deps ?? createDefaultDeps();
+		const resolvedDeps = deps ?? createDefaultDeps();
 		if (ctx.englishTitle) {
 			const [imdb, rt, mc] = await Promise.allSettled([
-				resolveImdb(ctx),
-				resolveRt(ctx),
-				resolveMc(ctx)
+				fetchImdbFromContext(ctx, resolvedDeps),
+				fetchRtFromContext(ctx, resolvedDeps),
+				fetchMcFromContext(ctx, resolvedDeps)
 			]);
 			return {
 				imdb: imdb.status === "fulfilled" ? imdb.value : null,
@@ -2679,13 +2679,13 @@ input::placeholder {
 				rt: rt.status === "fulfilled" ? rt.value : null
 			};
 		}
-		const imdbResult = await resolveImdb(ctx);
+		const imdbResult = ctx.imdbId ? await fetchImdbFromContext(ctx, resolvedDeps).catch(() => null) : null;
 		if (imdbResult?.title) {
 			const fallbackCtx = {
 				...ctx,
 				englishTitle: imdbResult.title
 			};
-			const [rt, mc] = await Promise.allSettled([resolveRt(fallbackCtx), resolveMc(fallbackCtx)]);
+			const [rt, mc] = await Promise.allSettled([fetchRtFromContext(fallbackCtx, resolvedDeps), fetchMcFromContext(fallbackCtx, resolvedDeps)]);
 			return {
 				imdb: imdbResult,
 				mc: mc.status === "fulfilled" ? mc.value : null,

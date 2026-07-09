@@ -38,10 +38,7 @@ src/
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
     context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
-    imdb.ts             — resolveImdb(ctx): wraps fetchImdbRating, guards on ctx.imdbId
-    rt.ts               — resolveRt(ctx): wraps fetchRtRating, guards on ctx.englishTitle
-    mc.ts               — resolveMc(ctx): wraps fetchMcRating, guards on ctx.englishTitle
-    orchestrate.ts      — resolveAll(ctx, deps?): parallel-first strategy with Promise.allSettled
+    orchestrate.ts      — resolveAll(ctx, deps?): guards identifiers, calls fetch adapters, parallel-first strategy with Promise.allSettled
   api/                 — data fetching & scraping interfaces
     avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
     comment.ts           — postVote() for comment voting via GM POST
@@ -72,17 +69,14 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-All resolvers accept `ResolutionContext` and none touch the DOM. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and rating panel components render the state.
+`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and rating panel modules render the state.
 
-### Resolution seam tests (31 tests across 5 files)
+### Resolution seam tests (18 tests across 2 files)
 
 | File | What it covers |
 | --- | --- |
 | `tests/resolve/context.test.ts` | movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
-| `tests/resolve/imdb.test.ts` | 4 tests: delegating fetch, season passthrough, null/empty imdbId guard |
-| `tests/resolve/rt.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
-| `tests/resolve/mc.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
-| `tests/resolve/orchestrate.test.ts` | parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
+| `tests/resolve/orchestrate.test.ts` | fetch adapter calls, parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
 
 ### QA / E2E harness
 

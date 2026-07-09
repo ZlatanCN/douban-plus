@@ -2,9 +2,12 @@
  * Coordinates parallel resolution of IMDb, RT, and MC ratings.
  * Strategy: parallel-first with H1 title; fallback to IMDb title. */
 
-import { resolveImdb as defaultResolveImdb } from "./imdb";
-import { resolveMc as defaultResolveMc } from "./mc";
-import { resolveRt as defaultResolveRt } from "./rt";
+import { fetchImdbRating as defaultFetchImdbRating } from "@/api/imdb";
+import type { FetchImdbResult } from "@/api/imdb";
+import { fetchMcRating as defaultFetchMcRating } from "@/api/metacritic";
+import { fetchRtRating as defaultFetchRtRating } from "@/api/rotten";
+import type { McRating, RtRating } from "@/types";
+
 import type { RatingResultMap, ResolutionContext } from "./types";
 
 /** Resolve all rating sources in parallel where possible.
@@ -14,28 +17,58 @@ import type { RatingResultMap, ResolutionContext } from "./types";
  *  2. If no H1 title but IMDb returns one → run RT + MC with IMDb title as fallback.
  *  3. Error isolation: Promise.allSettled ensures one failure never blocks others. */
 type ResolveAllDeps = {
-  resolveImdb: typeof defaultResolveImdb;
-  resolveRt: typeof defaultResolveRt;
-  resolveMc: typeof defaultResolveMc;
+  fetchImdbRating: typeof defaultFetchImdbRating;
+  fetchRtRating: typeof defaultFetchRtRating;
+  fetchMcRating: typeof defaultFetchMcRating;
 };
 
 const createDefaultDeps = (): ResolveAllDeps => ({
-  resolveImdb: defaultResolveImdb,
-  resolveMc: defaultResolveMc,
-  resolveRt: defaultResolveRt,
+  fetchImdbRating: defaultFetchImdbRating,
+  fetchMcRating: defaultFetchMcRating,
+  fetchRtRating: defaultFetchRtRating,
 });
+
+const fetchImdbFromContext = (
+  ctx: ResolutionContext,
+  deps: ResolveAllDeps
+): Promise<FetchImdbResult | null> => {
+  if (!ctx.imdbId) {
+    return Promise.resolve(null);
+  }
+  return deps.fetchImdbRating(ctx.imdbId, ctx.season);
+};
+
+const fetchRtFromContext = (
+  ctx: ResolutionContext,
+  deps: ResolveAllDeps
+): Promise<RtRating | null> => {
+  if (!ctx.englishTitle) {
+    return Promise.resolve(null);
+  }
+  return deps.fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+};
+
+const fetchMcFromContext = (
+  ctx: ResolutionContext,
+  deps: ResolveAllDeps
+): Promise<McRating | null> => {
+  if (!ctx.englishTitle) {
+    return Promise.resolve(null);
+  }
+  return deps.fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+};
 
 const resolveAll = async (
   ctx: ResolutionContext,
   deps?: ResolveAllDeps
 ): Promise<RatingResultMap> => {
-  const { resolveImdb, resolveMc, resolveRt } = deps ?? createDefaultDeps();
+  const resolvedDeps = deps ?? createDefaultDeps();
   /* ── Fast path: English title available from H1 ──── */
   if (ctx.englishTitle) {
     const [imdb, rt, mc] = await Promise.allSettled([
-      resolveImdb(ctx),
-      resolveRt(ctx),
-      resolveMc(ctx),
+      fetchImdbFromContext(ctx, resolvedDeps),
+      fetchRtFromContext(ctx, resolvedDeps),
+      fetchMcFromContext(ctx, resolvedDeps),
     ]);
 
     return {
@@ -46,7 +79,9 @@ const resolveAll = async (
   }
 
   /* ── Fallback: try to get English title from IMDb ── */
-  const imdbResult = await resolveImdb(ctx);
+  const imdbResult = ctx.imdbId
+    ? await fetchImdbFromContext(ctx, resolvedDeps).catch(() => null)
+    : null;
 
   if (imdbResult?.title) {
     const fallbackCtx: ResolutionContext = {
@@ -54,8 +89,8 @@ const resolveAll = async (
       englishTitle: imdbResult.title,
     };
     const [rt, mc] = await Promise.allSettled([
-      resolveRt(fallbackCtx),
-      resolveMc(fallbackCtx),
+      fetchRtFromContext(fallbackCtx, resolvedDeps),
+      fetchMcFromContext(fallbackCtx, resolvedDeps),
     ]);
 
     return {
