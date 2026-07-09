@@ -8,6 +8,7 @@ const TRANSITION_DURATION_MS = 400;
 
 type ModalShellProps = {
   ariaDescribedBy?: string;
+  ariaLabel?: string;
   ariaLabelledBy?: string;
   children: ComponentChildren;
   className: string;
@@ -18,6 +19,7 @@ type ModalShellProps = {
 
 const ModalShell = ({
   ariaDescribedBy,
+  ariaLabel,
   ariaLabelledBy,
   children,
   className,
@@ -94,6 +96,7 @@ const ModalShell = ({
     <ModalCloseContext.Provider value={handleClose}>
       <dialog
         aria-describedby={ariaDescribedBy}
+        aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         aria-modal="true"
         class={`${className}${openClass}`}
