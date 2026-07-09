@@ -3717,6 +3717,26 @@ input::placeholder {
 			})
 		});
 	};
+	var toInitialStates = (items, strategy) => Object.fromEntries(items.map((item) => [strategy.key(item), strategy.initial(item)]));
+	var useVoteState = (items, strategy) => {
+		const [states, setStates] = d(() => toInitialStates(items, strategy));
+		const getVoteState = (item) => states[strategy.key(item)] ?? strategy.initial(item);
+		const setVoteState = (item, state, options) => {
+			setStates((current) => ({
+				...current,
+				[strategy.key(item)]: state
+			}));
+			if (options?.persist) strategy.persist?.(item, state);
+		};
+		const mergeVoteState = (item) => strategy.merge(item, getVoteState(item));
+		const mergeVoteStates = (nextItems) => nextItems.map(mergeVoteState);
+		return {
+			getVoteState,
+			mergeVoteState,
+			mergeVoteStates,
+			setVoteState
+		};
+	};
 	var toHeroData = (data) => ({
 		imdbId: data.info.imdb || null,
 		info: data.info,
@@ -3730,26 +3750,24 @@ input::placeholder {
 		title: data.title,
 		year: data.year
 	});
+	var commentVoteStrategy = {
+		initial: initialCommentVoteState,
+		key: commentVoteKey,
+		merge: commentWithVoteState
+	};
+	var reviewVoteStrategy = {
+		initial: initialReviewVoteState,
+		key: reviewVoteKey,
+		merge: reviewWithVoteState,
+		persist: persistReviewVoteState
+	};
 	var SubjectPage = ({ data, deps }) => {
 		const [activeComment, setActiveComment] = d(null);
 		const [activeReview, setActiveReview] = d(null);
-		const [commentVoteStates, setCommentVoteStates] = d(() => Object.fromEntries(data.comments.map((comment) => [commentVoteKey(comment), initialCommentVoteState(comment)])));
-		const [reviewVoteStates, setReviewVoteStates] = d(() => Object.fromEntries(data.reviews.map((review) => [reviewVoteKey(review), initialReviewVoteState(review)])));
-		const getCommentVoteState = (comment) => commentVoteStates[commentVoteKey(comment)] ?? initialCommentVoteState(comment);
-		const setCommentVoteState = (comment, state) => {
-			setCommentVoteStates((current) => ({
-				...current,
-				[commentVoteKey(comment)]: state
-			}));
-		};
-		const getReviewVoteState = (review) => reviewVoteStates[reviewVoteKey(review)] ?? initialReviewVoteState(review);
-		const setReviewVoteState = (review, state, options) => {
-			setReviewVoteStates((current) => ({
-				...current,
-				[reviewVoteKey(review)]: state
-			}));
-			if (options?.persist) persistReviewVoteState(review, state);
-		};
+		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
+		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
+		const handleCommentVoteStateChange = commentVotes.setVoteState;
+		const handleReviewVoteStateChange = reviewVotes.setVoteState;
 		return u$1(S, { children: [
 			u$1(Hero, {
 				callbacks: deps.heroCallbacks,
@@ -3768,21 +3786,21 @@ input::placeholder {
 			} }),
 			u$1(CommentsSection, {
 				canVote: deps.canVote,
-				comments: data.comments.map((comment) => commentWithVoteState(comment, getCommentVoteState(comment))),
-				getVoteState: getCommentVoteState,
+				comments: commentVotes.mergeVoteStates(data.comments),
+				getVoteState: commentVotes.getVoteState,
 				onOpen: setActiveComment,
-				onVoteStateChange: setCommentVoteState,
+				onVoteStateChange: handleCommentVoteStateChange,
 				onVote: deps.handleVote,
 				subjectId: data.subjectId
 			}),
 			u$1(ReviewsSection, {
 				canVote: deps.canReviewVote,
-				getVoteState: getReviewVoteState,
+				getVoteState: reviewVotes.getVoteState,
 				isTV: data.isTV,
 				onOpen: setActiveReview,
-				onVoteStateChange: setReviewVoteState,
+				onVoteStateChange: handleReviewVoteStateChange,
 				onVote: deps.handleReviewVote,
-				reviews: data.reviews.map((review) => reviewWithVoteState(review, getReviewVoteState(review))),
+				reviews: reviewVotes.mergeVoteStates(data.reviews),
 				subjectId: data.subjectId
 			}),
 			u$1(RecommendationsSection, { recommendations: data.recommendations }),
@@ -3794,19 +3812,19 @@ input::placeholder {
 			u$1("div", { class: "atv-footer-spacer" }),
 			activeComment ? u$1(CommentModal, {
 				canVote: deps.canVote,
-				comment: commentWithVoteState(activeComment, getCommentVoteState(activeComment)),
+				comment: commentVotes.mergeVoteState(activeComment),
 				onClose: () => setActiveComment(null),
-				onVoteStateChange: setCommentVoteState,
+				onVoteStateChange: handleCommentVoteStateChange,
 				onVote: deps.handleVote,
-				voteState: getCommentVoteState(activeComment)
+				voteState: commentVotes.getVoteState(activeComment)
 			}) : null,
 			activeReview ? u$1(ReviewModal, {
 				canVote: deps.canReviewVote,
 				onClose: () => setActiveReview(null),
-				onVoteStateChange: setReviewVoteState,
+				onVoteStateChange: handleReviewVoteStateChange,
 				onVote: deps.handleReviewVote,
-				review: reviewWithVoteState(activeReview, getReviewVoteState(activeReview)),
-				voteState: getReviewVoteState(activeReview)
+				review: reviewVotes.mergeVoteState(activeReview),
+				voteState: reviewVotes.getVoteState(activeReview)
 			}) : null
 		] });
 	};

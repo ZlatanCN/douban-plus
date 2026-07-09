@@ -26,6 +26,7 @@ src/
       reviews/           — review cards, modal lifecycle, content loading, up/down vote state
       interest/          — interest marking form and imperative opener
       login/             — ATV login modal shell + trusted Douban iframe host
+      use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
   components/
     common/            — reusable leaf UI such as poster and stars
     layout/            — Section, sticky nav, nav-section calculation
@@ -110,7 +111,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
    - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
-   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. Comment vote state is modeled in `comments/comment-vote-state.ts`; review useful/useless vote state is modeled in `reviews/review-vote-state.ts`.
+   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The shared keyed owner-state plumbing lives in `use-vote-state.ts`; comment vote behavior is modeled in `comments/comment-vote-state.ts`, and review useful/useless behavior plus persistence is modeled in `reviews/review-vote-state.ts`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
 
 2. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:

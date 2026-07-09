@@ -29,6 +29,8 @@ import {
 } from "./reviews/review-vote-state";
 import type { ReviewVoteState } from "./reviews/review-vote-state";
 import type { SubjectPageDeps } from "./types";
+import { useVoteState } from "./use-vote-state";
+import type { VoteStateStrategy } from "./use-vote-state";
 
 type SubjectPageProps = {
   data: DoubanData;
@@ -49,60 +51,26 @@ const toHeroData = (data: DoubanData): HeroData => ({
   year: data.year,
 });
 
+const commentVoteStrategy = {
+  initial: initialCommentVoteState,
+  key: commentVoteKey,
+  merge: commentWithVoteState,
+} satisfies VoteStateStrategy<Comment, CommentVoteState>;
+
+const reviewVoteStrategy = {
+  initial: initialReviewVoteState,
+  key: reviewVoteKey,
+  merge: reviewWithVoteState,
+  persist: persistReviewVoteState,
+} satisfies VoteStateStrategy<Review, ReviewVoteState>;
+
 const SubjectPage = ({ data, deps }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
-  const [commentVoteStates, setCommentVoteStates] = useState<
-    Record<string, CommentVoteState>
-  >(() =>
-    Object.fromEntries(
-      data.comments.map((comment) => [
-        commentVoteKey(comment),
-        initialCommentVoteState(comment),
-      ])
-    )
-  );
-  const [reviewVoteStates, setReviewVoteStates] = useState<
-    Record<string, ReviewVoteState>
-  >(() =>
-    Object.fromEntries(
-      data.reviews.map((review) => [
-        reviewVoteKey(review),
-        initialReviewVoteState(review),
-      ])
-    )
-  );
-
-  const getCommentVoteState = (comment: Comment): CommentVoteState =>
-    commentVoteStates[commentVoteKey(comment)] ??
-    initialCommentVoteState(comment);
-
-  const setCommentVoteState = (
-    comment: Comment,
-    state: CommentVoteState
-  ): void => {
-    setCommentVoteStates((current) => ({
-      ...current,
-      [commentVoteKey(comment)]: state,
-    }));
-  };
-
-  const getReviewVoteState = (review: Review): ReviewVoteState =>
-    reviewVoteStates[reviewVoteKey(review)] ?? initialReviewVoteState(review);
-
-  const setReviewVoteState = (
-    review: Review,
-    state: ReviewVoteState,
-    options?: { persist?: boolean }
-  ): void => {
-    setReviewVoteStates((current) => ({
-      ...current,
-      [reviewVoteKey(review)]: state,
-    }));
-    if (options?.persist) {
-      persistReviewVoteState(review, state);
-    }
-  };
+  const commentVotes = useVoteState(data.comments, commentVoteStrategy);
+  const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
+  const handleCommentVoteStateChange = commentVotes.setVoteState;
+  const handleReviewVoteStateChange = reviewVotes.setVoteState;
 
   return (
     <>
@@ -119,25 +87,21 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       />
       <CommentsSection
         canVote={deps.canVote}
-        comments={data.comments.map((comment) =>
-          commentWithVoteState(comment, getCommentVoteState(comment))
-        )}
-        getVoteState={getCommentVoteState}
+        comments={commentVotes.mergeVoteStates(data.comments)}
+        getVoteState={commentVotes.getVoteState}
         onOpen={setActiveComment}
-        onVoteStateChange={setCommentVoteState}
+        onVoteStateChange={handleCommentVoteStateChange}
         onVote={deps.handleVote}
         subjectId={data.subjectId}
       />
       <ReviewsSection
         canVote={deps.canReviewVote}
-        getVoteState={getReviewVoteState}
+        getVoteState={reviewVotes.getVoteState}
         isTV={data.isTV}
         onOpen={setActiveReview}
-        onVoteStateChange={setReviewVoteState}
+        onVoteStateChange={handleReviewVoteStateChange}
         onVote={deps.handleReviewVote}
-        reviews={data.reviews.map((review) =>
-          reviewWithVoteState(review, getReviewVoteState(review))
-        )}
+        reviews={reviewVotes.mergeVoteStates(data.reviews)}
         subjectId={data.subjectId}
       />
       <RecommendationsSection recommendations={data.recommendations} />
@@ -150,27 +114,21 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       {activeComment ? (
         <CommentModal
           canVote={deps.canVote}
-          comment={commentWithVoteState(
-            activeComment,
-            getCommentVoteState(activeComment)
-          )}
+          comment={commentVotes.mergeVoteState(activeComment)}
           onClose={() => setActiveComment(null)}
-          onVoteStateChange={setCommentVoteState}
+          onVoteStateChange={handleCommentVoteStateChange}
           onVote={deps.handleVote}
-          voteState={getCommentVoteState(activeComment)}
+          voteState={commentVotes.getVoteState(activeComment)}
         />
       ) : null}
       {activeReview ? (
         <ReviewModal
           canVote={deps.canReviewVote}
           onClose={() => setActiveReview(null)}
-          onVoteStateChange={setReviewVoteState}
+          onVoteStateChange={handleReviewVoteStateChange}
           onVote={deps.handleReviewVote}
-          review={reviewWithVoteState(
-            activeReview,
-            getReviewVoteState(activeReview)
-          )}
-          voteState={getReviewVoteState(activeReview)}
+          review={reviewVotes.mergeVoteState(activeReview)}
+          voteState={reviewVotes.getVoteState(activeReview)}
         />
       ) : null}
     </>
