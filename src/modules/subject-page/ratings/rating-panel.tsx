@@ -1,9 +1,7 @@
 import type { RatingInfo } from "@/types";
 
 import { DoubanRating } from "./douban-rating";
-import { ImdbRating } from "./imdb-rating";
-import { MetacriticRating } from "./metacritic-rating";
-import { RottenTomatoesRating } from "./rotten-tomatoes-rating";
+import { ExternalRating } from "./external-rating";
 import { useExternalRatings } from "./use-external-ratings";
 
 type RatingPanelProps = {
@@ -25,14 +23,20 @@ const RatingPanel = ({ douban, imdbId, isTV }: RatingPanelProps) => {
       <DoubanRating rating={douban} />
       {imdbId ? (
         <>
-          <ImdbRating
+          <ExternalRating
             rating={external?.imdb?.rating ?? null}
             resolved={resolved}
+            source="imdb"
           />
-          <MetacriticRating rating={external?.mc ?? null} resolved={resolved} />
-          <RottenTomatoesRating
+          <ExternalRating
+            rating={external?.mc ?? null}
+            resolved={resolved}
+            source="metacritic"
+          />
+          <ExternalRating
             rating={external?.rt ?? null}
             resolved={resolved}
+            source="rt"
           />
         </>
       ) : null}

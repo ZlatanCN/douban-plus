@@ -2207,56 +2207,45 @@ input::placeholder {
 		if (resolved) return "is-empty";
 		return "is-loading";
 	};
-	var renderImdbContent = (rating, resolved) => {
-		if (rating) return u$1(S, { children: [
-			u$1("div", {
-				class: "atv-rating-panel-score",
-				children: rating.score.toFixed(1)
-			}),
-			u$1(Stars, { score: rating.score }),
-			u$1("div", {
-				class: "atv-rating-panel-count",
-				children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
-			})
-		] });
-		if (resolved) return null;
-		return u$1("div", { class: "atv-rating-panel-skeleton" });
+	var SOURCE_CLASS = {
+		imdb: "atv-rating-panel-imdb",
+		metacritic: "atv-rating-panel-mc",
+		rt: "atv-rating-panel-rt"
 	};
-	var ImdbRating = ({ rating, resolved }) => u$1("div", {
-		class: `atv-rating-panel-imdb ${ratingStateClass(Boolean(rating), resolved)}`,
-		children: [u$1(RatingLogo, { name: "imdb" }), renderImdbContent(rating, resolved)]
-	});
-	var renderMetacriticContent = (rating, resolved) => {
-		if (rating) return u$1(S, { children: [
-			u$1("div", {
-				class: `atv-rating-panel-score ${scoreClass(rating.score)}`,
-				children: String(rating.score)
-			}),
-			u$1("div", {
-				class: "atv-mc-label-row",
-				children: [u$1("span", {
-					class: "atv-mc-bar-track",
-					children: u$1("span", {
-						class: `atv-mc-bar-fill ${scoreClass(rating.score)}`,
-						style: { width: `${Math.min(100, rating.score)}%` }
-					})
-				}), u$1("span", {
-					class: "atv-mc-word-label",
-					children: mcWordRatingChinese(rating.score)
-				})]
-			}),
-			u$1("div", {
-				class: "atv-rating-panel-count",
-				children: rating.reviewCount ? `评价 ${rating.reviewCount.toLocaleString("en-US")}` : "已评分"
-			})
-		] });
-		if (resolved) return null;
-		return u$1("div", { class: "atv-rating-panel-skeleton" });
-	};
-	var MetacriticRating = ({ rating, resolved }) => u$1("div", {
-		class: `atv-rating-panel-mc ${ratingStateClass(Boolean(rating), resolved)}`,
-		children: [u$1(RatingLogo, { name: "metacritic" }), renderMetacriticContent(rating, resolved)]
-	});
+	var renderImdbRating = (rating) => u$1(S, { children: [
+		u$1("div", {
+			class: "atv-rating-panel-score",
+			children: rating.score.toFixed(1)
+		}),
+		u$1(Stars, { score: rating.score }),
+		u$1("div", {
+			class: "atv-rating-panel-count",
+			children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
+		})
+	] });
+	var renderMetacriticRating = (rating) => u$1(S, { children: [
+		u$1("div", {
+			class: `atv-rating-panel-score ${scoreClass(rating.score)}`,
+			children: String(rating.score)
+		}),
+		u$1("div", {
+			class: "atv-mc-label-row",
+			children: [u$1("span", {
+				class: "atv-mc-bar-track",
+				children: u$1("span", {
+					class: `atv-mc-bar-fill ${scoreClass(rating.score)}`,
+					style: { width: `${Math.min(100, rating.score)}%` }
+				})
+			}), u$1("span", {
+				class: "atv-mc-word-label",
+				children: mcWordRatingChinese(rating.score)
+			})]
+		}),
+		u$1("div", {
+			class: "atv-rating-panel-count",
+			children: rating.reviewCount ? `评价 ${rating.reviewCount.toLocaleString("en-US")}` : "已评分"
+		})
+	] });
 	var RtLabel = ({ className, icon, score, text }) => u$1("span", {
 		class: `atv-rt-label-item ${className} ${isFresh(score) ? "is-fresh" : "is-rotten"}`,
 		children: [u$1("span", {
@@ -2267,53 +2256,62 @@ input::placeholder {
 			children: text
 		})]
 	});
-	var renderRottenTomatoesContent = (rating, resolved) => {
-		if (rating) return u$1(S, { children: [
-			u$1("div", {
-				class: "atv-rt-score-row",
-				children: [
-					u$1("div", {
-						class: `atv-rt-score-value ${isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"}`,
-						children: `${rating.criticsScore}%`
-					}),
-					u$1("div", { class: "atv-rt-divider" }),
-					u$1("div", {
-						class: `atv-rt-score-value ${isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"}`,
-						children: `${rating.audienceScore}%`
-					})
-				]
-			}),
-			u$1("div", {
-				class: "atv-rt-label-row",
-				children: [u$1(RtLabel, {
-					className: "is-critics",
-					icon: u$1(IconTomato, {}),
-					score: rating.criticsScore,
-					text: "影评人"
-				}), u$1(RtLabel, {
-					className: "is-audience",
-					icon: u$1(IconPopcorn, {}),
-					score: rating.audienceScore,
-					text: "观众"
-				})]
-			}),
-			u$1("div", {
-				class: "atv-rt-count-row",
-				children: [u$1("span", {
-					class: "atv-rt-count-value",
-					children: `评价 ${rating.criticsCount.toLocaleString("en-US")}`
-				}), u$1("span", {
-					class: "atv-rt-count-value",
-					children: `评价 ${rating.audienceCount.toLocaleString("en-US")}`
-				})]
-			})
-		] });
-		if (resolved) return null;
+	var renderRottenTomatoesRating = (rating) => u$1(S, { children: [
+		u$1("div", {
+			class: "atv-rt-score-row",
+			children: [
+				u$1("div", {
+					class: `atv-rt-score-value ${isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"}`,
+					children: `${rating.criticsScore}%`
+				}),
+				u$1("div", { class: "atv-rt-divider" }),
+				u$1("div", {
+					class: `atv-rt-score-value ${isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"}`,
+					children: `${rating.audienceScore}%`
+				})
+			]
+		}),
+		u$1("div", {
+			class: "atv-rt-label-row",
+			children: [u$1(RtLabel, {
+				className: "is-critics",
+				icon: u$1(IconTomato, {}),
+				score: rating.criticsScore,
+				text: "影评人"
+			}), u$1(RtLabel, {
+				className: "is-audience",
+				icon: u$1(IconPopcorn, {}),
+				score: rating.audienceScore,
+				text: "观众"
+			})]
+		}),
+		u$1("div", {
+			class: "atv-rt-count-row",
+			children: [u$1("span", {
+				class: "atv-rt-count-value",
+				children: `评价 ${rating.criticsCount.toLocaleString("en-US")}`
+			}), u$1("span", {
+				class: "atv-rt-count-value",
+				children: `评价 ${rating.audienceCount.toLocaleString("en-US")}`
+			})]
+		})
+	] });
+	var renderLoadedRating = (props) => {
+		switch (props.source) {
+			case "imdb": return props.rating ? renderImdbRating(props.rating) : null;
+			case "metacritic": return props.rating ? renderMetacriticRating(props.rating) : null;
+			case "rt": return props.rating ? renderRottenTomatoesRating(props.rating) : null;
+			default: return null;
+		}
+	};
+	var renderExternalRatingContent = (props) => {
+		if (props.rating) return renderLoadedRating(props);
+		if (props.resolved) return null;
 		return u$1("div", { class: "atv-rating-panel-skeleton" });
 	};
-	var RottenTomatoesRating = ({ rating, resolved }) => u$1("div", {
-		class: `atv-rating-panel-rt ${ratingStateClass(Boolean(rating), resolved)}`,
-		children: [u$1(RatingLogo, { name: "rt" }), renderRottenTomatoesContent(rating, resolved)]
+	var ExternalRating = (props) => u$1("div", {
+		class: `${SOURCE_CLASS[props.source]} ${ratingStateClass(Boolean(props.rating), props.resolved)}`,
+		children: [u$1(RatingLogo, { name: props.source }), renderExternalRatingContent(props)]
 	});
 	var extractEnglishSeriesName = (h1) => {
 		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
@@ -2724,17 +2722,20 @@ input::placeholder {
 		return u$1("div", {
 			class: "atv-rating-panel",
 			children: [u$1(DoubanRating, { rating: douban }), imdbId ? u$1(S, { children: [
-				u$1(ImdbRating, {
+				u$1(ExternalRating, {
 					rating: external?.imdb?.rating ?? null,
-					resolved
+					resolved,
+					source: "imdb"
 				}),
-				u$1(MetacriticRating, {
+				u$1(ExternalRating, {
 					rating: external?.mc ?? null,
-					resolved
+					resolved,
+					source: "metacritic"
 				}),
-				u$1(RottenTomatoesRating, {
+				u$1(ExternalRating, {
 					rating: external?.rt ?? null,
-					resolved
+					resolved,
+					source: "rt"
 				})
 			] }) : null]
 		});

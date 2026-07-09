@@ -19,7 +19,7 @@ src/
       subject-page.tsx   — page composition seam; callers pass data + deps
       types.ts           — subject-page dependency and callback contracts
       hero/              — hero background, poster, metadata, summary, actions
-      ratings/           — Douban / IMDb / Metacritic / Rotten Tomatoes panels
+      ratings/           — Douban panel plus unified IMDb / Metacritic / Rotten Tomatoes external rating display
       media/             — streaming, series, cast, photos, recommendations
       details/           — facts, IMDb link, awards
       comments/          — short-comment cards, modal, icon voting, shared vote state
@@ -69,7 +69,7 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and rating panel modules render the state.
+`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
 
 ### Resolution seam tests (18 tests across 2 files)
 
@@ -108,6 +108,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
    - Internal modules follow user-facing experiences: `hero`, `ratings`, `media`, `details`, `comments`, `reviews`, `interest`, and `login`.
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
+   - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. Comment vote state is modeled in `comments/comment-vote-state.ts`; review useful/useless vote state is modeled in `reviews/review-vote-state.ts`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
 
