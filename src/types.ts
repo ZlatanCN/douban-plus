@@ -148,6 +148,8 @@ type Award = {
 type Streaming = {
   name: string;
   href: string;
+  /** Provider icon URL from Douban's own vendor-icon img, if available */
+  iconUrl?: string;
 };
 
 /** Return type of extractSeries() */

@@ -13,23 +13,29 @@ type StreamingSectionProps = {
 type StreamingLogoProps = {
   fallbackLabel: string;
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
+  imgSrc?: string;
 };
 
-const StreamingLogo = ({ fallbackLabel, Icon }: StreamingLogoProps) => (
-  <span class="atv-stream-logo" aria-hidden="true">
-    {Icon ? (
-      <Icon />
-    ) : (
-      <span class="atv-stream-logo-fallback">
-        {fallbackLabel.trim().at(0) || <IconPlay />}
-      </span>
-    )}
-  </span>
-);
+const StreamingLogo = ({ fallbackLabel, Icon, imgSrc }: StreamingLogoProps) => {
+  if (imgSrc) {
+    return <img alt="" class="atv-stream-vendor-icon" src={imgSrc} />;
+  }
+  return (
+    <span class="atv-stream-logo" aria-hidden="true">
+      {Icon ? (
+        <Icon />
+      ) : (
+        <span class="atv-stream-logo-fallback">
+          {fallbackLabel.trim().at(0) || <IconPlay />}
+        </span>
+      )}
+    </span>
+  );
+};
 
 const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   streaming.length ? (
-    <Section id="atv-stream" title="在哪儿看">
+    <Section id="atv-stream" title="播放源">
       <div class="atv-stream-row">
         {streaming.map((item) => {
           const provider = resolveStreamingProvider(item);
@@ -39,7 +45,9 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
 
           return (
             <a
-              class="atv-stream-card"
+              class={`atv-stream-card${
+                provider.combinedSvg ? " atv-stream-card--combined" : ""
+              }`}
               data-provider={provider.key}
               href={item.href}
               key={item.href}
@@ -47,11 +55,18 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
               style={style}
               target="_blank"
             >
-              <StreamingLogo
-                fallbackLabel={provider.label}
-                Icon={provider.Icon}
-              />
-              <span class="atv-stream-name">{item.name}</span>
+              {provider.combinedSvg && provider.Icon ? (
+                <provider.Icon />
+              ) : (
+                <>
+                  <StreamingLogo
+                    fallbackLabel={provider.label}
+                    Icon={provider.Icon}
+                    imgSrc={item.iconUrl}
+                  />
+                  <span class="atv-stream-name">{item.name}</span>
+                </>
+              )}
             </a>
           );
         })}

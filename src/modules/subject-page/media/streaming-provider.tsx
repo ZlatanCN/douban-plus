@@ -2,13 +2,16 @@ import type { JSX, SVGAttributes } from "preact";
 
 import {
   LogoAppleTv,
-  LogoBilibili,
+  LogoBilibiliCombined,
   LogoHbo,
   LogoHboMax,
+  LogoIqiyiCombined,
   LogoNetflix,
   LogoParamountPlus,
+  LogoTencentCombined,
   LogoTubi,
   LogoVimeo,
+  LogoYoukuCombined,
   LogoYouTube,
 } from "@/components/common/icons";
 import type { Streaming } from "@/types";
@@ -38,6 +41,7 @@ type StreamingProvider = {
   aliases: string[];
   hosts: string[];
   Icon?: (props: ProviderIconProps) => JSX.Element;
+  combinedSvg?: boolean;
 };
 
 type ResolvedStreamingProvider = {
@@ -45,36 +49,44 @@ type ResolvedStreamingProvider = {
   label: string;
   color: string;
   Icon?: (props: ProviderIconProps) => JSX.Element;
+  combinedSvg?: boolean;
 };
 
 const UNKNOWN_PROVIDER_COLOR = "#41be5d";
 
 const PROVIDERS: StreamingProvider[] = [
   {
-    Icon: LogoBilibili,
+    Icon: LogoBilibiliCombined,
     aliases: ["哔哩哔哩", "bilibili", "b站", "b 站"],
-    color: "#00A1D6",
+    color: "#FF5588",
+    combinedSvg: true,
     hosts: ["bilibili.com"],
     key: "bilibili",
     label: "哔哩哔哩",
   },
   {
+    Icon: LogoIqiyiCombined,
     aliases: ["爱奇艺", "iqiyi", "iQIYI"],
-    color: "#00CC36",
+    color: "#00DC5A",
+    combinedSvg: true,
     hosts: ["iqiyi.com"],
     key: "iqiyi",
     label: "爱奇艺",
   },
   {
+    Icon: LogoTencentCombined,
     aliases: ["腾讯视频", "tencent video"],
     color: "#00A2FF",
+    combinedSvg: true,
     hosts: ["v.qq.com"],
     key: "tencent-video",
     label: "腾讯视频",
   },
   {
+    Icon: LogoYoukuCombined,
     aliases: ["优酷", "youku"],
     color: "#00A6FF",
+    combinedSvg: true,
     hosts: ["youku.com"],
     key: "youku",
     label: "优酷",
@@ -193,8 +205,8 @@ const resolveStreamingProvider = (
   );
 
   if (provider) {
-    const { Icon, color, key, label } = provider;
-    return { Icon, color, key, label };
+    const { Icon, color, key, label, combinedSvg } = provider;
+    return { Icon, color, combinedSvg, key, label };
   }
 
   return {

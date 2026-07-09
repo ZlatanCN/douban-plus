@@ -70,7 +70,8 @@ const extractStreaming = (doc: Document): Streaming[] => {
         continue;
       }
     }
-    out.push({ href, name });
+    const iconUrl = a.dataset.pic || undefined;
+    out.push({ href, iconUrl, name });
   }
 
   for (const a of $$<HTMLAnchorElement>("a", doc)) {

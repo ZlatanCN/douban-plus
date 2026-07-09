@@ -26,7 +26,7 @@ describe(resolveStreamingProvider, () => {
 
     expect(provider.key).toBe("bilibili");
     expect(provider.Icon).toBeTypeOf("function");
-    expect(provider.color).toBe("#00A1D6");
+    expect(provider.color).toBe("#FF5588");
   });
 
   it("resolves wrapped Douban link2 URLs by target host", () => {
@@ -40,17 +40,17 @@ describe(resolveStreamingProvider, () => {
     expect(provider.key).toBe("netflix");
   });
 
-  it("keeps unsupported official icons on the fallback path", () => {
+  it("falls back to source name when the provider is unknown", () => {
     const provider = resolveStreamingProvider(
       stream({
-        href: "https://v.qq.com/x/cover/example.html",
-        name: "腾讯视频",
+        href: "https://www.mgtv.com/billboard/example.html",
+        name: "芒果TV",
       })
     );
 
-    expect(provider.key).toBe("tencent-video");
+    expect(provider.key).toBe("unknown");
     expect(provider.Icon).toBeUndefined();
-    expect(provider.label).toBe("腾讯视频");
+    expect(provider.label).toBe("芒果TV");
   });
 
   it("falls back to the source name for unknown providers", () => {
@@ -92,26 +92,32 @@ describe(StreamingSection, () => {
 
     const cards = root.querySelectorAll<HTMLAnchorElement>(".atv-stream-card");
     expect(cards).toHaveLength(2);
-    expect(root.querySelectorAll(".atv-stream-logo")).toHaveLength(2);
+    expect(root.querySelectorAll(".atv-stream-logo")).toHaveLength(0);
     expect(root.querySelector(".atv-stream-arrow")).toBeNull();
+    for (const card of cards) {
+      expect(card.classList.contains("atv-stream-card--combined")).toBeTruthy();
+      expect(card.querySelector("svg")).not.toBeNull();
+    }
     expect(cards[0]?.dataset.provider).toBe("bilibili");
-    expect(cards[0]?.querySelector("svg")).not.toBeNull();
   });
 
-  it("renders unsupported provider icons with the fallback mark", () => {
+  it("renders unknown provider icons with the fallback mark", () => {
     const root = renderSingle(
       <StreamingSection
         streaming={[
-          stream({ href: "https://v.qq.com/x/cover/1.html", name: "腾讯视频" }),
+          stream({
+            href: "https://www.mgtv.com/billboard/example.html",
+            name: "芒果TV",
+          }),
         ]}
       />
     );
 
     const card = root.querySelector<HTMLAnchorElement>(".atv-stream-card");
-    expect(card?.dataset.provider).toBe("tencent-video");
+    expect(card?.dataset.provider).toBe("unknown");
     expect(card?.querySelector("svg")).toBeNull();
     expect(card?.querySelector(".atv-stream-logo-fallback")?.textContent).toBe(
-      "腾"
+      "芒"
     );
   });
 });

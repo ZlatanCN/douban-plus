@@ -5,17 +5,18 @@
   gap: 12px;
 }
 .atv-stream-card {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 11px;
   height: 52px;
   max-width: 240px;
-  padding: 0 18px 0 12px;
+  padding: 0 20px 0 14px;
   border-radius: var(--atv-radius-md);
   background: var(--atv-bg-elevated);
   border: 1px solid var(--atv-border-medium);
   color: var(--atv-text-primary);
-  font-size: 15px;
+  font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.01em;
   font-family: inherit;
@@ -24,14 +25,67 @@
   transition:
     background 220ms ease,
     border-color 220ms ease,
-    box-shadow 220ms ease;
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* Center-glow overlay — subtle brand bloom from card center */
+.atv-stream-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 220ms ease;
+  background: radial-gradient(
+    circle at center,
+    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,
+    transparent 70%
+  );
+}
+.atv-stream-card:not(.atv-stream-card--combined):hover::after {
+  opacity: 0.18;
 }
 .atv-stream-card:hover {
-  background: rgba(255, 255, 255, 0.075);
+  background: rgba(255, 255, 255, 0.09);
   border-color: rgba(255, 255, 255, 0.18);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     0 12px 26px rgba(0, 0, 0, 0.24);
+  transform: translateY(-2px);
+}
+
+/* ── Combined SVG cards ── */
+.atv-stream-card--combined {
+  height: 52px;
+  padding: 0 16px;
+  gap: 0;
+}
+.atv-stream-card--combined svg {
+  display: block;
+  height: 32px;
+  width: auto;
+  max-width: 160px;
+  transition: filter 220ms ease;
+}
+.atv-stream-card--combined:hover svg {
+  filter: drop-shadow(
+    0 0 14px var(--atv-stream-brand, var(--atv-accent-bright))
+  );
+}
+
+.atv-stream-logo svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+.atv-stream-vendor-icon {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .atv-stream-logo {
@@ -39,10 +93,10 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 9px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),
     rgba(255, 255, 255, 0.05);
@@ -52,19 +106,13 @@
   color: var(--atv-stream-brand, var(--atv-accent-bright));
   overflow: hidden;
 }
-.atv-stream-logo svg {
-  display: block;
-  width: 17px;
-  height: 17px;
-  fill: currentColor;
-}
 .atv-stream-logo-fallback {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100%;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 800;
   line-height: 1;
   color: currentColor;
@@ -75,6 +123,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 220ms ease;
 }
 .atv-stream-card:focus-visible {
   outline: 2px solid var(--atv-accent-bright);
