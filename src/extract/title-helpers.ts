@@ -20,7 +20,7 @@ const extractSeasonFromH1 = (h1: string): number | undefined => {
   }
   const d = m.groups.digit;
 
-  return /^\d+$/u.test(d) ? Number.parseInt(d, 10) : cn.indexOf(d) + 1;
+  return /^\d+$/u.test(d) ? Math.trunc(Number(d)) : cn.indexOf(d) + 1;
 };
 
 export { extractEnglishSeriesName, extractSeasonFromH1 };

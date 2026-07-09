@@ -174,6 +174,7 @@ const runScenario = async (
   browser: Browser,
   scenario: Scenario
 ): Promise<void> => {
+  // oxlint-disable-next-line no-unreachable-loop -- assertion throws on failure, caught below, loop continues
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt += 1) {
     try {
       // oxlint-disable-next-line no-await-in-loop

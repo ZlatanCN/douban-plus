@@ -1,4 +1,5 @@
-import type { HeroCallbacks } from "../types";
+import type { HeroCallbacks } from "@/types";
+
 import { buildInterestMarkingCallbacks } from "./interest-marking";
 
 const buildHeroCallbacks = (

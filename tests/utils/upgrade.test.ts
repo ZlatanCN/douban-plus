@@ -3,11 +3,11 @@
 
 import { describe, it, expect } from "vitest";
 
-import { upgradePhoto, upgradePoster } from "../../src/utils/upgrade";
+import { upgradePhoto, upgradePoster } from "@/utils/upgrade";
 
 /* ── upgradePoster ──────────────────────────────────────────── */
 
-describe("upgradePoster", () => {
+describe(upgradePoster, () => {
   const STD =
     "https://img1.doubanio.com/view/photo/s_ratio_poster/public/p480747492.jpg";
 
@@ -58,7 +58,7 @@ describe("upgradePoster", () => {
 
 /* ── upgradePhoto ──────────────────────────────────────────── */
 
-describe("upgradePhoto", () => {
+describe(upgradePhoto, () => {
   it("replaces /sqxs/ with /large/", () => {
     const url =
       "https://img1.doubanio.com/view/photo/sqxs/public/p480747492.jpg";

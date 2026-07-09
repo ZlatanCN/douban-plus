@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { buildInterestMarkingCallbacks } from "../../src/runtime/interest-marking";
-import type { InterestState, ModalCallbacks } from "../../src/types";
+import { buildInterestMarkingCallbacks } from "@/runtime/interest-marking";
+import type { InterestState, ModalCallbacks } from "@/types";
 
 vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;
@@ -30,7 +30,7 @@ const defaultInterest: InterestState = {
   usefulCount: "",
 };
 
-describe("buildInterestMarkingCallbacks", () => {
+describe(buildInterestMarkingCallbacks, () => {
   it("proxy-clicks original Douban interest buttons", () => {
     const doc = parseDoc(`
       <div id="interest_sect_level">
@@ -48,23 +48,27 @@ describe("buildInterestMarkingCallbacks", () => {
     }
 
     const callbacks = buildInterestMarkingCallbacks("1292052", { doc });
-    callbacks.onWishClick();
-    callbacks.onWatchingClick();
-    callbacks.onCollectClick();
+    callbacks.handleWishClick();
+    callbacks.handleWatchingClick();
+    callbacks.handleCollectClick();
 
-    expect(clicked).toEqual(["想看", "在看", "看过"]);
+    expect(clicked).toStrictEqual(["想看", "在看", "看过"]);
   });
 
   it("opens the modal with save/remove callbacks scoped to the subject", async () => {
     let modalCallbacks: ModalCallbacks | null = null;
-    const openModal = vi.fn(
-      (_state: InterestState, callbacks: ModalCallbacks) => {
-        modalCallbacks = callbacks;
-      }
-    );
-    const post = vi.fn().mockResolvedValue({ ok: true });
-    const remove = vi.fn().mockResolvedValue({ ok: true });
-    const reload = vi.fn();
+    const openModal = vi.fn<
+      (state: InterestState, callbacks: ModalCallbacks) => void
+    >((_state: InterestState, callbacks: ModalCallbacks) => {
+      modalCallbacks = callbacks;
+    });
+    const post = vi
+      .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
+      .mockResolvedValue({ ok: true });
+    const remove = vi
+      .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
+      .mockResolvedValue({ ok: true });
+    const reload = vi.fn<() => void>();
 
     const callbacks = buildInterestMarkingCallbacks("1292052", {
       openModal,
@@ -72,7 +76,7 @@ describe("buildInterestMarkingCallbacks", () => {
       reload,
       remove,
     });
-    callbacks.onOpenInterest(defaultInterest);
+    callbacks.handleOpenInterest(defaultInterest);
 
     expect(openModal).toHaveBeenCalledWith(defaultInterest, expect.any(Object));
     const openedCallbacks = assertModalCallbacks(modalCallbacks);
@@ -93,8 +97,10 @@ describe("buildInterestMarkingCallbacks", () => {
 
   it("does not send an empty rating and does not reload on failed save", async () => {
     let modalCallbacks: ModalCallbacks | null = null;
-    const post = vi.fn().mockResolvedValue({ error: "未登录", ok: false });
-    const reload = vi.fn();
+    const post = vi
+      .fn<(...args: unknown[]) => Promise<{ error?: string; ok: boolean }>>()
+      .mockResolvedValue({ error: "未登录", ok: false });
+    const reload = vi.fn<() => void>();
 
     const callbacks = buildInterestMarkingCallbacks("1292052", {
       openModal: (_state, openedCallbacks) => {
@@ -103,14 +109,14 @@ describe("buildInterestMarkingCallbacks", () => {
       post,
       reload,
     });
-    callbacks.onOpenInterest(defaultInterest);
+    callbacks.handleOpenInterest(defaultInterest);
     const result = await assertModalCallbacks(modalCallbacks).onSave({
       comment: "",
       rating: 0,
       status: "wish",
     });
 
-    expect(result).toEqual({ error: "未登录", ok: false });
+    expect(result).toStrictEqual({ error: "未登录", ok: false });
     expect(post).toHaveBeenCalledWith("1292052", "wish", {
       comment: "",
       rating: undefined,
@@ -124,9 +130,11 @@ describe("buildInterestMarkingCallbacks", () => {
         <a href="/wish">想看</a>
       </div>
     `);
-    const clicked = vi.fn();
+    const clicked = vi.fn<(event: Event) => void>();
     doc.querySelector("a")?.addEventListener("click", clicked);
-    const requireLogin = vi.fn().mockReturnValue(false);
+    const requireLogin = vi
+      .fn<(action: string) => boolean>()
+      .mockReturnValue(false);
 
     const callbacks = buildInterestMarkingCallbacks("1292052", {
       accountGate: { requireLogin },
@@ -134,7 +142,7 @@ describe("buildInterestMarkingCallbacks", () => {
       loggedIn: false,
     });
 
-    callbacks.onWishClick();
+    callbacks.handleWishClick();
 
     expect(requireLogin).toHaveBeenCalledWith("标记想看");
     expect(clicked).not.toHaveBeenCalled();

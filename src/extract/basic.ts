@@ -7,10 +7,10 @@ import {
   RE_WS,
   RE_YEAR,
   RE_YEAR_TRAIL,
-} from "../constants";
-import type { TitleInfo } from "../types";
-import { $, safeText } from "../utils/dom";
-import { upgradePoster } from "../utils/upgrade";
+} from "@/constants";
+import type { TitleInfo } from "@/types";
+import { $, safeText } from "@/utils/dom";
+import { upgradePoster } from "@/utils/upgrade";
 
 /**
  * Extract full / primary / original title from the page heading.

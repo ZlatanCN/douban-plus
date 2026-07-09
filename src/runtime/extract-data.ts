@@ -1,23 +1,23 @@
+import { extractAwards } from "@/extract/awards";
 import {
-  extractAwards,
-  extractCelebrities,
-  extractComments,
-  extractInfo,
-  extractInterestState,
-  extractPhotos,
   extractPoster,
-  extractRating,
-  extractRecommendations,
-  extractReviews,
-  extractSeries,
-  extractStreaming,
   extractSubjectId,
-  extractSummary,
   extractTitle,
-  extractTrailers,
   extractYear,
-} from "../extract";
-import type { DoubanData } from "../types";
+} from "@/extract/basic";
+import { extractInfo } from "@/extract/info";
+import { extractInterestState } from "@/extract/interest";
+import {
+  extractCelebrities,
+  extractPhotos,
+  extractTrailers,
+} from "@/extract/media";
+import { extractRating, extractSummary } from "@/extract/rating";
+import { extractReviews } from "@/extract/reviews";
+import { extractSeries } from "@/extract/series";
+import { extractComments, extractRecommendations } from "@/extract/social";
+import { extractStreaming } from "@/extract/streaming";
+import type { DoubanData } from "@/types";
 
 const isTVInfo = (info: DoubanData["info"]): boolean =>
   !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);

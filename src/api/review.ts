@@ -1,4 +1,4 @@
-import { getCk, gmPost } from "../utils/request";
+import { getCk, gmPost } from "@/utils/request";
 
 const API_REVIEW_VOTE = "https://movie.douban.com/j/review";
 

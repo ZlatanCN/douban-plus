@@ -6,7 +6,8 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { getCk, gmGet, gmPost } from "../../src/utils/request";
+import { getCk, gmGet, gmPost } from "@/utils/request";
+
 import { mockCookie } from "../helpers/doc";
 
 // ----------------------------------------------------------------
@@ -36,7 +37,7 @@ const mockGmXhr = vi.hoisted(() => {
 // ----------------------------------------------------------------
 // getCk — reads document.cookie directly, no GM dependency
 // ----------------------------------------------------------------
-describe("getCk", () => {
+describe(getCk, () => {
   it("reads ck value from document.cookie", () => {
     const restore = mockCookie(document, "ck=abc123;");
     expect(getCk()).toBe("abc123");
@@ -77,7 +78,7 @@ describe("getCk", () => {
 // ----------------------------------------------------------------
 // gmPost — wraps GM_xmlhttpRequest in Promise (method: POST)
 // ----------------------------------------------------------------
-describe("gmPost", () => {
+describe(gmPost, () => {
   beforeEach(() => {
     mockGmXhr.mockReset();
     mockGmXhr.mockImplementation((opts) => {
@@ -157,7 +158,7 @@ describe("gmPost", () => {
 // ----------------------------------------------------------------
 // gmGet — wraps GM_xmlhttpRequest in Promise (method: GET)
 // ----------------------------------------------------------------
-describe("gmGet", () => {
+describe(gmGet, () => {
   beforeEach(() => {
     mockGmXhr.mockReset();
     mockGmXhr.mockImplementation((opts) => {

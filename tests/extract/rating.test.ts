@@ -3,10 +3,11 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractRating, extractSummary } from "../../src/extract";
-import { buildDoc } from "../helpers";
+import { extractRating, extractSummary } from "@/extract/rating";
 
-describe("extractRating", () => {
+import { buildDoc } from "../helpers/doc";
+
+describe(extractRating, () => {
   it("extracts score from strong.rating_num", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -67,7 +68,7 @@ describe("extractRating", () => {
   });
 });
 
-describe("extractSummary", () => {
+describe(extractSummary, () => {
   it("extracts summary from v:summary span", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -101,6 +102,21 @@ describe("extractSummary", () => {
     expect(result).not.toBeNull();
     expect(result).toContain("段落一");
     expect(result).toContain("段落二");
+  });
+
+  it("keeps summary line breaks without paragraph indentation or blank lines", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <span property="v:summary">承接上集于纽约大陆酒店中枪坠楼。
+ 　　为了找出一条真正出路、打破宿命。
+
+
+   第三段前面也可能有普通空格。</span>
+</body></html>`);
+    const result = extractSummary(doc);
+    expect(result).toBe(
+      "承接上集于纽约大陆酒店中枪坠楼。\n为了找出一条真正出路、打破宿命。\n第三段前面也可能有普通空格。"
+    );
   });
 
   it("returns null for empty summary", () => {

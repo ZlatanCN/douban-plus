@@ -1,8 +1,11 @@
 /* ── Rating / Summary Extractors ────────────────────────── */
 
-import { RE_HSPACE, RE_NL_MULTI, RE_NON_DIGIT, RE_WS_NL } from "../constants";
-import type { RatingInfo } from "../types";
-import { $, safeText } from "../utils/dom";
+import { RE_HSPACE, RE_NL_MULTI, RE_NON_DIGIT } from "@/constants";
+import type { RatingInfo } from "@/types";
+import { $, safeText } from "@/utils/dom";
+
+const RE_CRLF = /\r\n?/gu;
+const RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
 
 /**
  * Extract rating score and vote count from the page.
@@ -13,7 +16,7 @@ const extractRating = (doc: Document): RatingInfo | null => {
     $<HTMLElement>("strong.rating_num", doc) ||
     $<HTMLElement>('strong[property="v:average"]', doc);
   const raw = safeText(scoreEl);
-  const score = raw ? Number.parseFloat(raw) : Number.NaN;
+  const score = raw ? Number(raw) : Number.NaN;
   if (!score || Number.isNaN(score) || score <= 0) {
     return null;
   }
@@ -22,11 +25,22 @@ const extractRating = (doc: Document): RatingInfo | null => {
     $<HTMLElement>('span[property="v:votes"]', doc) ||
     $<HTMLElement>(".rating_people span", doc);
   const count = votesEl
-    ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+    ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0
     : 0;
 
   return { count, score };
 };
+
+const normalizeSummaryText = (text: string): string =>
+  text
+    .replace(RE_CRLF, "\n")
+    .split("\n")
+    .map((line) =>
+      line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")
+    )
+    .join("\n")
+    .replace(RE_NL_MULTI, "\n")
+    .trim();
 
 /**
  * Extract the movie summary / description text.
@@ -38,12 +52,7 @@ const extractSummary = (doc: Document): string | null => {
     return null;
   }
 
-  let txt = (summary.textContent || "").trim();
-  txt = txt
-    .replace(RE_WS_NL, "\n")
-    .replace(RE_HSPACE, " ")
-    .replace(RE_NL_MULTI, "\n\n")
-    .trim();
+  const txt = normalizeSummaryText(summary.textContent || "");
   return txt || null;
 };
 

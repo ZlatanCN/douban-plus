@@ -148,6 +148,8 @@ type Award = {
 type Streaming = {
   name: string;
   href: string;
+  /** Provider icon URL from Douban's own vendor-icon img, if available */
+  iconUrl?: string;
 };
 
 /** Return type of extractSeries() */
@@ -211,10 +213,10 @@ type HeroData = {
 
 /** Callback seam for hero interest actions — replaces direct api/extract imports */
 type HeroCallbacks = {
-  onWishClick: () => void;
-  onWatchingClick: () => void;
-  onCollectClick: () => void;
-  onOpenInterest: (state: InterestState) => void;
+  handleWishClick: () => void;
+  handleWatchingClick: () => void;
+  handleCollectClick: () => void;
+  handleOpenInterest: (state: InterestState) => void;
 };
 
 /** Data slice for buildPhotos */
@@ -243,7 +245,7 @@ type ReviewData = {
   subjectId: string;
   /** true for TV series → use "剧评" instead of "影评" */
   isTV: boolean;
-  onReviewVote?: ReviewVoteCallback;
+  handleReviewVote?: ReviewVoteCallback;
   canReviewVote?: AccountActionGuard;
 };
 

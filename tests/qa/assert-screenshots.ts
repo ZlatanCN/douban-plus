@@ -92,13 +92,13 @@ const captureScreenshots = async ({
 
       const style = getComputedStyle(el);
       const rect = el.getBoundingClientRect();
-      const zIndex = Number.parseInt(style.zIndex || "0", 10);
+      const zIndex = Math.trunc(Number(style.zIndex || "0"));
       if (
         (style.position === "fixed" || style.position === "absolute") &&
         zIndex >= 10 &&
         rect.width >= window.innerWidth * 0.9 &&
         rect.height >= window.innerHeight * 0.9 &&
-        Number.parseFloat(style.opacity || "1") > 0.05 &&
+        Number(style.opacity || "1") > 0.05 &&
         style.display !== "none" &&
         style.visibility !== "hidden"
       ) {

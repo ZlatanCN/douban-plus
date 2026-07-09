@@ -1,0 +1,93 @@
+/* ---------- Sticky nav ---------- */
+.atv-stickynav {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 9999;
+  box-sizing: border-box;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  padding: 0 max(28px, 5vw);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
+  pointer-events: none;
+  background: rgba(10, 10, 12, 0.74);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  opacity: 0;
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  transform: translateY(-100%);
+  transition:
+    opacity 280ms ease,
+    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-stickynav.is-visible {
+  pointer-events: auto;
+  opacity: 1;
+  transform: none;
+}
+.atv-stickynav-title {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+.atv-stickynav-jumps {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 24px;
+}
+.atv-stickynav-jumps a {
+  position: relative;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 200ms ease;
+}
+.atv-stickynav-jumps a::after {
+  content: "";
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background: var(--atv-accent);
+  border-radius: 1px;
+  transition:
+    width 250ms ease,
+    left 250ms ease;
+}
+.atv-stickynav-jumps a:hover {
+  color: var(--atv-accent-bright);
+  background: transparent;
+}
+.atv-stickynav-jumps a.is-active {
+  color: var(--atv-accent-bright);
+}
+.atv-stickynav-jumps a.is-active::after {
+  left: 0;
+  width: 100%;
+}
+@media (max-width: 768px) {
+  .atv-stickynav-title {
+    font-size: 14px;
+  }
+  .atv-stickynav-jumps {
+    gap: 14px;
+  }
+  .atv-stickynav-jumps a {
+    font-size: 12px;
+  }
+}

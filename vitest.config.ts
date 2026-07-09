@@ -1,3 +1,5 @@
+import path from "node:path";
+
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
@@ -6,12 +8,13 @@ export default defineConfig({
       // $ is a virtual module from vite-plugin-monkey (not active in vitest).
       // Alias to a test mock so request.ts can import GM_xmlhttpRequest.
       $: new URL("tests/mocks/$", import.meta.url).pathname,
+      "@": path.resolve(import.meta.dirname ?? ".", "src"),
     },
   },
   test: {
     coverage: {
       exclude: ["src/main.ts"],
-      include: ["src/**/*.ts"],
+      include: ["src/**/*.{ts,tsx}"],
       provider: "v8",
       reporter: ["text", "lcov", "html"],
       reportsDirectory: "coverage",
@@ -30,7 +33,7 @@ export default defineConfig({
       },
     },
     environment: "happy-dom",
-    include: ["tests/**/*.test.ts"],
+    include: ["tests/**/*.{test.ts,test.tsx}"],
     setupFiles: ["tests/setup.ts"],
     testTimeout: 10_000,
   },

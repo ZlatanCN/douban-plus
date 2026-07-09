@@ -9,9 +9,9 @@ import {
   RE_INTEREST_ACTIVE,
   RE_WISH,
   RE_WISH_EXACT,
-} from "../constants";
-import type { InterestState } from "../types";
-import { $, $$ } from "../utils/dom";
+} from "@/constants";
+import type { InterestState } from "@/types";
+import { $, $$ } from "@/utils/dom";
 
 /* ── Internal Types ─────────────────────────────────── */
 
@@ -154,7 +154,7 @@ const detectS3State = (
   );
 
   const ratingInput = root.querySelector<HTMLInputElement>("#n_rating");
-  const rating = ratingInput ? Number.parseInt(ratingInput.value, 10) : 0;
+  const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
 
   const dateEl = root.querySelector<HTMLElement>(".collection_date");
   const date = dateEl ? (dateEl.textContent || "").trim() : "";

@@ -10,14 +10,15 @@ import {
   extractYear,
   extractPoster,
   extractSubjectId,
-} from "../../src/extract";
-import { buildDoc, mockLocation } from "../helpers";
+} from "@/extract/basic";
+
+import { buildDoc, mockLocation } from "../helpers/doc";
 
 const FIXTURES = `${import.meta.dirname}/../fixtures`;
 const MINIMAL = readFileSync(`${FIXTURES}/movie-minimal.html`, "utf-8");
 const NO_POSTER = readFileSync(`${FIXTURES}/no-poster.html`, "utf-8");
 
-describe("extractTitle", () => {
+describe(extractTitle, () => {
   it("extracts full/primary/original title from v:itemreviewed", () => {
     const doc = buildDoc(MINIMAL);
     const result = extractTitle(doc);
@@ -53,7 +54,7 @@ describe("extractTitle", () => {
   });
 });
 
-describe("extractYear", () => {
+describe(extractYear, () => {
   it("extracts year from .year element", () => {
     const doc = buildDoc(MINIMAL);
     expect(extractYear(doc)).toBe("1994");
@@ -67,7 +68,7 @@ describe("extractYear", () => {
   });
 });
 
-describe("extractPoster", () => {
+describe(extractPoster, () => {
   it("extracts poster URL from #mainpic img and upgrades to HD", () => {
     const doc = buildDoc(MINIMAL);
     const result = extractPoster(doc);
@@ -82,7 +83,7 @@ describe("extractPoster", () => {
   });
 });
 
-describe("extractSubjectId", () => {
+describe(extractSubjectId, () => {
   it("extracts subject ID from doc location pathname", () => {
     const doc = buildDoc(MINIMAL);
     const restore = mockLocation(doc, "/subject/1292052/");

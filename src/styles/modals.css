@@ -1,0 +1,99 @@
+/* ---------- Poster Modal ---------- */
+.atv-poster-card {
+  cursor: pointer;
+}
+.atv-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  border: none;
+  pointer-events: none;
+  background: rgba(0, 0, 0, 0.78);
+  opacity: 0;
+  -webkit-backdrop-filter: blur(28px) saturate(1.15);
+  backdrop-filter: blur(28px) saturate(1.15);
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-modal-overlay.is-open {
+  pointer-events: auto;
+  opacity: 1;
+}
+.atv-modal-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--atv-radius-lg);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);
+  transform: scale(0.92);
+  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.atv-modal-overlay.is-open .atv-modal-img {
+  transform: scale(1);
+}
+.atv-modal-accent-bar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-accent) 15%,
+    var(--atv-accent) 85%,
+    transparent
+  );
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.is-open .atv-modal-accent-bar {
+  transform: scaleX(1);
+}
+.atv-modal-close {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 50%;
+  transition:
+    color 200ms ease,
+    background 200ms ease,
+    border-color 200ms ease;
+  touch-action: manipulation;
+  appearance: none;
+  -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.atv-modal-close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.atv-modal-close svg {
+  display: block;
+}
+
+/* ---------- Footer spacer ---------- */
+.atv-footer-spacer {
+  height: 64px;
+}

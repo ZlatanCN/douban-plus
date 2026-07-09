@@ -2,7 +2,11 @@
  * Builds a ResolutionContext from already-extracted identifiers
  * plus the Douban document for H1-based title parsing. */
 
-import { extractEnglishSeriesName, extractSeasonFromH1 } from "../extract";
+import {
+  extractEnglishSeriesName,
+  extractSeasonFromH1,
+} from "@/extract/title-helpers";
+
 import type { ResolutionContext } from "./types";
 
 /** Build the resolution context from available identifiers and the DOM.

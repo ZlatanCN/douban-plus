@@ -139,7 +139,7 @@ const assertStickyNav = async ({
       return (
         cs.position === "fixed" &&
         Math.round(rect.top) <= 2 &&
-        Number.parseFloat(cs.opacity) > 0.8
+        Number(cs.opacity) > 0.8
       );
     },
     { timeout: TIMEOUT_CONTENT_READY }
@@ -154,14 +154,13 @@ const assertStickyNav = async ({
     const titleEl = nav.querySelector(".atv-stickynav-title");
     const titleCs = titleEl ? getComputedStyle(titleEl) : null;
     return {
-      opacity: Number.parseFloat(cs.opacity),
+      opacity: Number(cs.opacity),
       position: cs.position,
       rectTop: Math.round(rect.top),
       title: titleEl?.textContent?.trim() || "",
       titleColor: titleCs?.color || "",
       titleVisible: titleCs
-        ? titleCs.visibility === "visible" &&
-          Number.parseFloat(titleCs.opacity || "1") > 0
+        ? titleCs.visibility === "visible" && Number(titleCs.opacity || "1") > 0
         : false,
     };
   });

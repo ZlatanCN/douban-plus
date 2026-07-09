@@ -1,67 +1,62 @@
 # douban-plus
 
-Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metadata, ratings (IMDb, Metacritic, Rotten Tomatoes), streaming availability, cast info, and tight layout.
+Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metadata, ratings (IMDb, Metacritic, Rotten Tomatoes), streaming availability, cast info, and tight Apple TV-inspired layout.
 
 ## Architecture
 
-GreaseMonkey-style userscript built with vanilla TypeScript. No framework. DOM is built via `src/build/` modules — pure functions returning `HTMLElement | null`. No virtual DOM, no state management.
+GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject-page UI is moving to traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
 
-Rating data flows through a three-layer seam: **extract → resolve → apply**. The `resolve/` layer is the testable middle — it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM.
+`src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject-page/` or shared Preact primitives under `src/components/`.
+
+External rating data flows through **extract → resolve → Preact render**. The `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. The active UI consumes those results in `src/modules/subject-page/ratings/use-external-ratings.ts`; there is no longer a DOM `apply.ts` bridge.
 
 ### Module layout
 
 ```
 src/
-  build/             — DOM builders (one dir per section, no idempotent concern)
-    app.ts             — entry: orchestrates all sections, attaches to DOM
-    hero/              — hero section parts (bg, poster, meta, actions, summary)
-    rating-panels/     — IMDb / Metacritic / Rotten Tomatoes rating panels (extracted 2026-07-06)
-    streaming/         — where to watch
-    comments/          — comments section
-    cast/              — cast list
-    photos/            — photo gallery
-    recommendations/   — recommendation carousel
-    review-experience/  — deep module for review cards, modal lifecycle, content loading, and vote state (deepened 2026-07-08)
-    details/           — detail fields
-    sticky-nav/        — sticky nav bar
-    series/            — series info
+  modules/
+    subject-page/      — active Preact page module and domain UI experiences
+      subject-page.tsx   — page composition seam; callers pass data + deps
+      types.ts           — subject-page dependency and callback contracts
+      hero/              — hero background, poster, metadata, summary, actions
+      ratings/           — Douban panel plus unified IMDb / Metacritic / Rotten Tomatoes external rating display
+      media/             — streaming, series, cast, photos, recommendations
+      details/           — facts, IMDb link, awards
+      comments/          — short-comment cards, modal, icon voting, shared vote state
+      reviews/           — review cards, modal lifecycle, content loading, up/down vote state
+      interest/          — interest marking form and imperative opener
+      login/             — ATV login modal shell + trusted Douban iframe host
+      use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
+  components/
+    common/            — reusable leaf UI such as poster and stars
+    layout/            — Section, sticky nav, nav-section calculation
+    modal/             — canonical Preact modal shell, close button, focus trap, poster/video imperative openers
+  styles.css           — single stylesheet manifest imported by main.ts
+  styles/              — ownership-oriented CSS files ordered by the manifest
   extract/             — DOM data extraction
     index.ts            — barrel
     title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
     context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
-    imdb.ts             — resolveImdb(ctx): wraps fetchImdbRating, guards on ctx.imdbId
-    rt.ts               — resolveRt(ctx): wraps fetchRtRating, guards on ctx.englishTitle
-    mc.ts               — resolveMc(ctx): wraps fetchMcRating, guards on ctx.englishTitle
-    orchestrate.ts      — resolveAll(ctx, deps?): parallel-first strategy with Promise.allSettled
-    apply.ts            — applyImdbResult/applyRtResult/applyMcResult: apply results to DOM
-  components/          — reusable UI components
-    dom-factory.ts       — el() DOM builder, renderStars()
-    sections.ts          — section/header-row builders (moved from build/ 2026-07-06)
-    avatar-dom.ts        — applyCommentAvatars(): DOM mutation for comment avatars (split from api/avatar 2026-07-06)
-    vote-btn.ts          — buildVoteBtn() with optimistic update + API rollback (extracted 2026-07-06)
-    overlay.ts, modal.ts — overlay/modal primitives
-    interest-modal*      — interest marking modal
-    login-modal.ts       — ATV shell that extracts and hosts only Douban's native login iframe
-    index.ts             — barrel
+    orchestrate.ts      — resolveAll(ctx, deps?): guards identifiers, calls fetch adapters, parallel-first strategy with Promise.allSettled
   api/                 — data fetching & scraping interfaces
     avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
     comment.ts           — postVote() for comment voting via GM POST
     interest.ts          — postInterest/removeInterest for interest marking
     imdb.ts              — fetchImdbRating() via IMDB GraphQL API
-    metacritic.ts        — fetchMcRating() via Metacritic scraping
-    rotten.ts            — fetchRtRating() via Rotten Tomatoes scraping
+    rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
+    metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
+    rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
   scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
   runtime/             — subject page runtime module (deepened 2026-07-08)
-    mount.ts             — external runtime interface: extract → build → mount → start effects
+    mount.tsx            — external runtime interface: extract → render Preact → start effects
     extract-data.ts      — assembles DoubanData from extract modules
     account-gate.ts      — account-gated action guard and login prompt trigger
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
     hero-callbacks.ts    — compatibility facade for hero action callbacks
     avatar-effect.ts     — comment avatar fetch/apply effect
-    ratings-effect.ts    — resolve/apply ratings effect
     series-effect.ts     — late-loading series observer and nav insertion
     sticky-effect.ts     — sticky nav reveal + active-section tracking
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
@@ -76,17 +71,14 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-All resolvers accept `ResolutionContext` and none touch the DOM. The `apply.ts` module is the single bridge from results to DOM — each applier finds its panel, calls the build function, and replaces the skeleton.
+`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
 
-### Resolution seam tests (28 tests across 5 files)
+### Resolution seam tests (18 tests across 2 files)
 
 | File | What it covers |
 | --- | --- |
-| `tests/resolve/context.test.ts` | 7 tests: movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
-| `tests/resolve/imdb.test.ts` | 4 tests: delegating fetch, season passthrough, null/empty imdbId guard |
-| `tests/resolve/rt.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
-| `tests/resolve/mc.test.ts` | 5 tests: delegating fetch, param passthrough, null/empty title guard, fetch failure |
-| `tests/resolve/orchestrate.test.ts` | 7 tests: all-three-parallel, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
+| `tests/resolve/context.test.ts` | movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
+| `tests/resolve/orchestrate.test.ts` | fetch adapter calls, parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
 
 ### QA / E2E harness
 
@@ -111,58 +103,58 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 
 `tests/qa.ts` is a thin CLI entry over `runQa()` (deepened 2026-07-08). The QA runner creates a fresh Playwright `BrowserContext` for every scenario attempt, so retries do not inherit cookies, storage, visited-link state, or mutated page state from a failed attempt. `runQa()` returns an exit code instead of exiting internally; only the CLI facade calls `process.exit()`.
 
-### Tiered extraction
+### Current deep modules
 
-The `build/` directory was extracted from a single `src/html/` file in two tiers:
+1. **Subject page Preact module (2026-07-08)** — `src/modules/subject-page/` owns the active UI:
+   - External seam is `SubjectPage({ data, deps })`; runtime passes extracted `DoubanData` and injected callbacks.
+   - Internal modules follow user-facing experiences: `hero`, `ratings`, `media`, `details`, `comments`, `reviews`, `interest`, and `login`.
+   - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
+   - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
+   - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
+   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The shared keyed owner-state plumbing lives in `use-vote-state.ts`; comment vote behavior is modeled in `comments/comment-vote-state.ts`, and review useful/useless behavior plus persistence is modeled in `reviews/review-vote-state.ts`.
+   - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
 
-1. **Wave 1-3 (MCs)** — Each rating panel was initially a separate file in `build/`. MC panel was redesigned (Tier 1-3: extraction, score bar + Chinese labels, metric calculation fixes). Dividers refactored from `build/streaming` into a shared helper.
-
-2. **Subdirectory (2026-07-06)** — `build/rating-panels/` extracted from flat `build/` files:
-   - `imdb.ts`, `mc.ts`, `rt.ts`, `panel.ts` + barrel `index.ts`
-   - Previously lived as `imdb-rating.ts`, `mc-rating.ts`, `rt-rating.ts` in `build/`, and `hero-rating-panel.ts` in `build/hero/`
-   - `panel.ts` orchestrates rendering of all three rating panels into the hero area
-
-3. **Vote button (2026-07-06)** — `buildVoteBtn()` extracted from duplicated code in `src/build/comments.ts` into `src/components/vote-btn.ts`. The vote button logic (optimistic update + API rollback + animation) was identical in `openCommentOverlay` and the comment card loop. Extracted with 9 unit tests covering happy path, guards, API failure rollback, and server count override. Returns `VoteButtonElement` (HTMLButtonElement + `setVoteState` method) so external code can sync state across instances.
-
-4. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:
+2. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:
    - `api/avatar.ts` — pure data pipeline: `fetchAvatarUrls(links)` returns `Map<link, url>` with read-through cache, parallel fetch via `Promise.allSettled`, no DOM access
    - `components/avatar-dom.ts` — DOM mutation: `applyCommentAvatars(urlMap, comments)` sets `comment.avatar`, preloads images, applies `backgroundImage` with RAF retry
-   - `main.ts` orchestrates with `void (async () => { const urls = await fetchAvatarUrls(links); applyCommentAvatars(urls, comments); })()`
-   - 14 tests total (6 data pipeline + 8 DOM), up from 3
+   - `runtime/avatar-effect.ts` orchestrates `await pipeline → apply to DOM`
 
-5. **Review experience module (2026-07-08)** — `src/build/reviews.ts` was deepened from a 500+ line mixed implementation into a facade over `src/build/review-experience/`:
-   - External seam remains `buildReviews(data)`; callers and tests still use the same interface
-   - Internal modules localize review identity, vote persistence, vote buttons, content loading, modal focus, modal lifecycle, and card rendering
-   - The modal follows the APG-style dialog behavior already encoded in tests: labelled dialog, trapped focus, Escape/backdrop/close dismissal, and focus return to the originating review card
+3. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
+   - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
+   - The shared implementation handles empty titles, slug normalization, cache-key construction, TTL cache lookup/write, sequential URL fallback, network-error isolation, and parser-null fallback
+   - Provider modules keep only site-specific knowledge: Metacritic URL shapes + JSON-LD parser; Rotten Tomatoes URL shapes + script JSON parser
+   - Preserve sequential fallback. These provider URLs are alternatives, not independent sources, so do not parallelize them.
 
-6. **Subject page runtime module (2026-07-08)** — `src/main.ts` was deepened from the full page orchestrator into a thin startup facade over `src/runtime/`:
-   - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, build the app, insert DOM, and start post-render effects
-   - Runtime effects are localized: avatars, ratings, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
-   - `main.ts` still re-exports `buildHeroCallbacks` and `watchSeries` for existing tests, but the implementation no longer sits in the entry file
+4. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
+   - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
+   - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
+   - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
+   - `components/dom-factory.ts` still exists for non-modal DOM runtime code such as section headers and late series nav insertion. Do not reintroduce modal behavior there.
+
+5. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
+   - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
+   - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
+   - External rating resolution now lives inside the Preact `ratings` module through `useExternalRatings`
    - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
 
-7. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
-   - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the existing `HeroCallbacks` shape so build-layer callers do not learn modal/API details
+6. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
+   - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the `HeroCallbacks` shape so the page UI does not learn modal/API details
    - The module localizes original Douban button proxy-clicking, modal save/remove callbacks, API result handling, and successful page reload
    - `src/runtime/hero-callbacks.ts` remains as a compatibility facade exporting `buildHeroCallbacks`
    - Tests inject adapters at the module seam instead of mocking global `location.reload()` or reaching through the modal implementation
 
-8. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` was deepened from a full Playwright orchestration script into a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
+7. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
    - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-9. **Account-gated actions (2026-07-08)** — Account writes now share `src/runtime/account-gate.ts` and `src/components/login-modal.ts`:
+8. **Account-gated actions (2026-07-08)** — Account writes share `src/runtime/account-gate.ts` and `src/modules/subject-page/login/`:
    - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
    - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
    - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin
    - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
    - API modules still keep their `ck` checks as the final safety net
-
-### Bug fixes
-
-- **Vote state sync: card ↔ overlay (2026-07-06)** — Two `buildVoteBtn` instances (one in the comment card, one in the overlay) each have independent closure state (`let voted`). Voting in the overlay updates its own closure and the shared `Comment` object, but the card's closure never re-reads it. Fixed by: (a) adding `setVoteState` to `VoteButtonElement` so external code can push state into a button's closure, (b) maintaining a `Map<cid, VoteButtonElement>` in `buildComments`, (c) calling `cardBtn.setVoteState(true, result.count)` from the overlay's `onVote` after a successful vote. Regression test: t23 in `tests/build/comments.test.ts`.
 
 ### Data pipeline integrity — avatar split
 
@@ -172,14 +164,17 @@ The `build/` directory was extracted from a single `src/html/` file in two tiers
 | --- | --- | --- | --- | --- |
 | Data pipeline | `api/avatar.ts` | `fetchAvatarUrls(links)` | Cache read-through → fetch → parse → cache → return Map | ✅ |
 | DOM mutation | `components/avatar-dom.ts` | `applyCommentAvatars(urlMap, comments)` | Preload images, RAF-retry querySelector, set backgroundImage | ❌ (DOM-only) |
-| Orchestration | `main.ts:219` | inline | `await pipeline → apply to DOM` | — |
+| Orchestration | `runtime/avatar-effect.ts` | `startAvatarEffect(comments)` | `await pipeline → apply to DOM` | — |
 
 6 data tests (no DOM needed) + 8 DOM tests (happy-dom) = 14 total, replacing 3 cache-only tests.
 
 ### Key design decisions
 
-- **Pure DOM builders**: Functions accept data, return `HTMLElement | null`. No side effects, no async.
-- **Scrapers are async**: Each external source gets its own scraper module. Scraping happens before build.
-- **No config/layout coupling**: Every rating panel has its own state toggle. No shared visibility model.
+- **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
+- **Deep subject-page seam**: Runtime calls `SubjectPage({ data, deps })`; module internals own layout, local UI state, modals, voting affordances, and rating panels.
+- **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Shared modal visual tokens such as the accent bar and base close button styling live in `src/styles/modals.css`; experience files should keep only positioning or state-specific overrides.
+- **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
+- **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.
 - **Bottom exports**: All exports are declared at the bottom of each file via a single `export { ... }` block. Never use `export const` or `export function` inline. This makes the module's public API immediately visible at a glance.
+- **`@/` import alias**: `@/` maps to `src/`. Use `@/components/foo` instead of `../../../components/foo` for imports that go up 2+ levels. Short relative imports (`./foo`, `../bar`) can stay relative. Configured in `tsconfig.json` (paths), `vite.config.ts` (resolve.alias), and `vitest.config.ts` (resolve.alias).

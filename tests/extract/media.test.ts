@@ -7,11 +7,12 @@ import {
   extractCelebrities,
   extractPhotos,
   extractTrailers,
-} from "../../src/extract";
-import { buildDoc } from "../helpers";
+} from "@/extract/media";
 
-describe("extractCelebrities", () => {
-  it("extracts cast/crew from #celebrities list", () => {
+import { buildDoc } from "../helpers/doc";
+
+describe(extractCelebrities, () => {
+  it("extracts first celebrity details from #celebrities list", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <ul id="celebrities">
@@ -31,6 +32,23 @@ describe("extractCelebrities", () => {
     expect(result[0].role).toBe("饰 安迪");
     expect(result[0].link).toContain("/celebrity/1054534/");
     expect(result[0].avatar).toContain("u1.jpg");
+  });
+
+  it("extracts second celebrity from #celebrities list", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<ul id="celebrities">
+  <li class="celebrity">
+    <div class="avatar" style="background-image: url(https://img1.doubanio.com/icon/u1.jpg);"></div>
+    <div class="info"><div class="name"><a href="/celebrity/1054534/">蒂姆·罗宾斯</a></div><div class="role">饰 安迪</div></div>
+  </li>
+  <li class="celebrity">
+    <div class="avatar" style="background-image: url(https://img1.doubanio.com/icon/u2.jpg);"></div>
+    <div class="info"><div class="name">摩根·弗里曼</div><div class="role">饰 瑞德</div></div>
+  </li>
+</ul>
+</body></html>`);
+    const result = extractCelebrities(doc);
     expect(result[1].name).toBe("摩根·弗里曼");
   });
 
@@ -49,11 +67,11 @@ describe("extractCelebrities", () => {
 
   it("returns empty array when no celebrities section", () => {
     const doc = buildDoc("<html><body><p>No celebs</p></body></html>");
-    expect(extractCelebrities(doc)).toEqual([]);
+    expect(extractCelebrities(doc)).toStrictEqual([]);
   });
 });
 
-describe("extractPhotos", () => {
+describe(extractPhotos, () => {
   it("extracts photos from #related-pic section", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
@@ -84,7 +102,7 @@ describe("extractPhotos", () => {
   });
 });
 
-describe("extractTrailers", () => {
+describe(extractTrailers, () => {
   it("extracts trailers from #related-pic li.label-trailer", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

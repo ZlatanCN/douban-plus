@@ -1,8 +1,8 @@
 /* ── Extract Helpers ───────────────────────────────────── */
 /* Shared utilities for all extract modules.                */
 
-import { RE_COLON_WS, RE_SLASH_SEP, RE_WS_GLOBAL } from "../constants";
-import { $$ } from "../utils/dom";
+import { RE_COLON_WS, RE_SLASH_SEP, RE_WS_GLOBAL } from "@/constants";
+import { $$ } from "@/utils/dom";
 
 /**
  * Find a label <span.pl> by its text content within a root element.

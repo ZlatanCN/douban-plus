@@ -3,9 +3,11 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGmPost = vi.hoisted(() => vi.fn());
+const mockGmPost = vi.hoisted(() =>
+  vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
+);
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   gmPost: mockGmPost,
 }));
 
@@ -45,26 +47,33 @@ describe("fetchImdbRating", () => {
 
     const result = await fetchImdbRating("tt0111161");
 
-    expect(result.rating).toEqual({ count: 1_200_000, score: 9.3 });
+    expect(result.rating).toStrictEqual({ count: 1_200_000, score: 9.3 });
     expect(result.title).toBe("The Shawshank Redemption");
   });
 
-  it("sends correct GraphQL query, headers, variables, and includes titleText (t2)", async () => {
+  it("sends correct GraphQL request URL and headers (t2a)", async () => {
     mockGmPost.mockResolvedValue(makeGraphQLSuccess(8.5, 500_000));
 
     await fetchImdbRating("tt0120737");
 
-    expect(mockGmPost).toHaveBeenCalledTimes(1);
-    const [[url, body, referer]] = mockGmPost.mock.calls;
+    expect(mockGmPost).toHaveBeenCalledOnce();
+    const [[url, _body, referer]] = mockGmPost.mock.calls;
     expect(url).toBe("https://graphql.imdb.com/");
     expect(referer).toBe("https://www.imdb.com/");
+  });
 
+  it("sends correct GraphQL query content and variables (t2b)", async () => {
+    mockGmPost.mockResolvedValue(makeGraphQLSuccess(8.5, 500_000));
+
+    await fetchImdbRating("tt0120737");
+
+    const [[_url, body]] = mockGmPost.mock.calls;
     const parsed = JSON.parse(body);
     expect(parsed.query).toContain("GetRating");
     expect(parsed.query).toContain("titleText");
     expect(parsed.query).toContain("aggregateRating");
     expect(parsed.query).toContain("voteCount");
-    expect(parsed.variables).toEqual({ id: "tt0120737" });
+    expect(parsed.variables).toStrictEqual({ id: "tt0120737" });
   });
 
   /* ── Error handling ────────────────────────────── */
@@ -104,12 +113,12 @@ describe("fetchImdbRating", () => {
     // First call — populates cache
     mockGmPost.mockResolvedValue(makeGraphQLSuccess(9.3, 1_200_000));
     await fetchImdbRating("tt0111161");
-    expect(mockGmPost).toHaveBeenCalledTimes(1);
+    expect(mockGmPost).toHaveBeenCalledOnce();
 
     // Second call — should use cache
     mockGmPost.mockClear();
     const result = await fetchImdbRating("tt0111161");
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       rating: { count: 1_200_000, score: 9.3 },
       title: "The Shawshank Redemption",
     });
@@ -132,12 +141,12 @@ describe("fetchImdbRating", () => {
     mockGmPost.mockResolvedValue(makeGraphQLSuccess(9.3, 1_200_000));
     const result = await fetchImdbRating("tt0111161");
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       rating: { count: 1_200_000, score: 9.3 },
       title: "The Shawshank Redemption",
     });
     // Fresh fetch (old cache key "dp:imdb-cache" vs current "dp:imdb-cache-v2" — misses on purpose)
-    expect(mockGmPost).toHaveBeenCalledTimes(1);
+    expect(mockGmPost).toHaveBeenCalledOnce();
   });
 
   /* ── Edge cases ───────────────────────────────── */
@@ -145,7 +154,7 @@ describe("fetchImdbRating", () => {
   it("returns null for empty imdbId (t8)", async () => {
     const result = await fetchImdbRating("");
 
-    expect(result).toEqual({ rating: null, title: null });
+    expect(result).toStrictEqual({ rating: null, title: null });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 });

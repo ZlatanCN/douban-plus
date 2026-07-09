@@ -3,9 +3,11 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const mockGmGet = vi.hoisted(() => vi.fn());
+const mockGmGet = vi.hoisted(() =>
+  vi.fn<(url: string, referer?: string) => Promise<string>>()
+);
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   gmGet: mockGmGet,
 }));
 
@@ -24,7 +26,7 @@ const makeRtPage = (options?: {
   const as = options?.audienceScore ?? "76";
   const cc = options?.criticsCount ?? 0;
   const ac = options?.audienceCount ?? 173_380;
-  const score = typeof as === "string" ? Number.parseInt(as, 10) : as;
+  const score = Math.trunc(Number(as));
   const likedCount = Math.round(ac * (score / 100));
   const notLikedCount = ac - likedCount;
   return `<!DOCTYPE html><html><head></head><body>
@@ -91,7 +93,7 @@ describe("fetchRtRating", () => {
 
     const result = await fetchRtRating("The Shawshank Redemption", false);
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 173_380,
       audienceScore: 76,
       criticsCount: 300,
@@ -153,12 +155,12 @@ describe("fetchRtRating", () => {
       makeRtPage({ audienceCount: 173_380, criticsScore: "94" })
     );
     await fetchRtRating("The Shawshank Redemption", false);
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(mockGmGet).toHaveBeenCalledOnce();
 
     // Second call — should use cache
     mockGmGet.mockClear();
     const result = await fetchRtRating("The Shawshank Redemption", false);
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 173_380,
       audienceScore: 76,
       criticsCount: 0,
@@ -190,14 +192,14 @@ describe("fetchRtRating", () => {
     );
     const result = await fetchRtRating("The Shawshank Redemption", false);
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 173_380,
       audienceScore: 76,
       criticsCount: 0,
       criticsScore: 94,
     });
     // Fresh fetch
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
+    expect(mockGmGet).toHaveBeenCalledOnce();
   });
 
   /* ── Edge cases ───────────────────────────────── */
@@ -224,7 +226,7 @@ describe("fetchRtRating", () => {
 
     const result = await fetchRtRating("Test Movie", false);
 
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 50_000,
       audienceScore: 88,
       criticsCount: 250,
@@ -275,7 +277,7 @@ describe("fetchRtRating", () => {
       "https://www.rottentomatoes.com/m/pressure",
       "https://www.rottentomatoes.com/"
     );
-    expect(result).toEqual({
+    expect(result).toStrictEqual({
       audienceCount: 173_380,
       audienceScore: 76,
       criticsCount: 0,
@@ -288,8 +290,7 @@ describe("fetchRtRating", () => {
 
     await fetchRtRating("Game of Thrones", true, undefined, "2011");
 
-    expect(mockGmGet).toHaveBeenCalledTimes(1);
-    expect(mockGmGet).toHaveBeenCalledWith(
+    expect(mockGmGet).toHaveBeenCalledExactlyOnceWith(
       "https://www.rottentomatoes.com/tv/game_of_thrones",
       "https://www.rottentomatoes.com/"
     );

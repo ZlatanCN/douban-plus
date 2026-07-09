@@ -1,16 +1,20 @@
-import { postInterest, removeInterest } from "../api/interest";
-import { openInterestModal } from "../components";
-import { findInterestButtons } from "../extract";
+import { postInterest, removeInterest } from "@/api/interest";
+import { findInterestButtons } from "@/extract/interest";
+import { openInterestModal } from "@/modules/subject-page/interest";
 import type {
   HeroCallbacks,
   InterestFormState,
   InterestState,
   ModalCallbacks,
-} from "../types";
+} from "@/types";
+
 import { createAccountGate } from "./account-gate";
 import type { AccountGate } from "./account-gate";
 
-type InterestResult = { ok: boolean; error?: string };
+type InterestResult = {
+  ok: boolean;
+  error?: string;
+};
 
 type InterestMarkingAdapters = {
   accountGate?: AccountGate;
@@ -83,25 +87,25 @@ const buildInterestMarkingCallbacks = (
   const openModal = adapters.openModal ?? openInterestModal;
 
   return {
-    onCollectClick: () => {
+    handleCollectClick: () => {
       if (!accountGate.requireLogin("标记看过")) {
         return;
       }
       interestBtns.collect?.click();
     },
-    onOpenInterest: (state) => {
+    handleOpenInterest: (state) => {
       if (!accountGate.requireLogin("标记这部作品")) {
         return;
       }
       openModal(state, buildModalCallbacks(subjectId, modalAdapters));
     },
-    onWatchingClick: () => {
+    handleWatchingClick: () => {
       if (!accountGate.requireLogin("标记在看")) {
         return;
       }
       interestBtns.do?.click();
     },
-    onWishClick: () => {
+    handleWishClick: () => {
       if (!accountGate.requireLogin("标记想看")) {
         return;
       }

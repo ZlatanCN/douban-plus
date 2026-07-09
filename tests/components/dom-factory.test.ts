@@ -3,63 +3,62 @@
 
 import { describe, it, expect } from "vitest";
 
-import { el, renderStars } from "../../src/components";
-import { renderStarRating } from "../../src/components/dom-factory";
+import { el, renderStars, renderStarRating } from "@/components/dom-factory";
 
 /* ── el() — Tag creation ─────────────────────────────────── */
 
 describe("el(tag)", () => {
   it("creates a div element", () => {
     const node = el("div");
-    expect(node instanceof HTMLDivElement).toBe(true);
+    expect(node instanceof HTMLDivElement).toBeTruthy();
     expect(node.tagName).toBe("DIV");
   });
 
   it("creates a button element", () => {
     const node = el("button");
-    expect(node instanceof HTMLButtonElement).toBe(true);
+    expect(node instanceof HTMLButtonElement).toBeTruthy();
     expect(node.tagName).toBe("BUTTON");
   });
 
   it("creates an anchor element", () => {
     const node = el("a");
-    expect(node instanceof HTMLAnchorElement).toBe(true);
+    expect(node instanceof HTMLAnchorElement).toBeTruthy();
     expect(node.tagName).toBe("A");
   });
 
   it("creates an img element", () => {
     const node = el("img");
-    expect(node instanceof HTMLImageElement).toBe(true);
+    expect(node instanceof HTMLImageElement).toBeTruthy();
     expect(node.tagName).toBe("IMG");
   });
 
   it("creates an h1 element", () => {
     const node = el("h1");
-    expect(node instanceof HTMLHeadingElement).toBe(true);
+    expect(node instanceof HTMLHeadingElement).toBeTruthy();
     expect(node.tagName).toBe("H1");
   });
 
   it("creates a span element", () => {
     const node = el("span");
-    expect(node instanceof HTMLSpanElement).toBe(true);
+    expect(node instanceof HTMLSpanElement).toBeTruthy();
     expect(node.tagName).toBe("SPAN");
   });
 
   it("creates a p element", () => {
     const node = el("p");
-    expect(node instanceof HTMLParagraphElement).toBe(true);
+    expect(node instanceof HTMLParagraphElement).toBeTruthy();
     expect(node.tagName).toBe("P");
   });
 
   it("creates a section element", () => {
     const node = el("section");
-    expect(node instanceof HTMLElement).toBe(true);
+    expect(node instanceof HTMLElement).toBeTruthy();
     expect(node.tagName).toBe("SECTION");
   });
 
   it("creates a nav element", () => {
     const node = el("nav");
-    expect(node instanceof HTMLElement).toBe(true);
+    expect(node instanceof HTMLElement).toBeTruthy();
     expect(node.tagName).toBe("NAV");
   });
 });
@@ -157,7 +156,7 @@ describe("el(tag, attrs) — attributes", () => {
     };
     const node = el("button", { onclick: handler });
     node.click();
-    expect(called).toBe(true);
+    expect(called).toBeTruthy();
   });
 
   it("attaches an onclick handler with the event argument", () => {
@@ -347,6 +346,7 @@ describe("renderStars(score, opts?) — outOfFive=true", () => {
   it("score=3 renders 3 full, 2 empty (no half stars)", () => {
     /* out = 3 → i=1-3: FULL; i=4: 3 < 3.25 → EMPTY */
     const stars = renderStars(3, { outOfFive: true });
+    expect(stars.children).toHaveLength(5);
     for (let i = 0; i < 3; i += 1) {
       assertStarKind(stars, i, "full");
     }
@@ -357,6 +357,7 @@ describe("renderStars(score, opts?) — outOfFive=true", () => {
 
   it("score=0 renders 5 empty stars", () => {
     const stars = renderStars(0, { outOfFive: true });
+    expect(stars.children).toHaveLength(5);
     for (let i = 0; i < 5; i += 1) {
       assertStarKind(stars, i, "empty");
     }
@@ -376,7 +377,7 @@ describe("renderStars(score, opts?) — options", () => {
 
   it("returns an HTMLElement", () => {
     const stars = renderStars(5, { outOfFive: true });
-    expect(stars instanceof HTMLElement).toBe(true);
+    expect(stars instanceof HTMLElement).toBeTruthy();
     expect(stars.tagName).toBe("SPAN");
   });
 });
@@ -397,10 +398,10 @@ describe("renderStarRating(starEls, rating)", () => {
     const els = makeStarEls();
     renderStarRating(els, 3);
     for (let i = 0; i < 3; i += 1) {
-      expect(els[i].classList.contains("is-full")).toBe(true);
+      expect(els[i].classList.contains("is-full")).toBeTruthy();
     }
     for (let i = 3; i < 5; i += 1) {
-      expect(els[i].classList.contains("is-full")).toBe(false);
+      expect(els[i].classList.contains("is-full")).toBeFalsy();
     }
   });
 
@@ -408,7 +409,7 @@ describe("renderStarRating(starEls, rating)", () => {
     const els = makeStarEls();
     renderStarRating(els, 0);
     for (let i = 0; i < 5; i += 1) {
-      expect(els[i].classList.contains("is-full")).toBe(false);
+      expect(els[i].classList.contains("is-full")).toBeFalsy();
     }
   });
 
@@ -416,7 +417,7 @@ describe("renderStarRating(starEls, rating)", () => {
     const els = makeStarEls();
     renderStarRating(els, 5);
     for (let i = 0; i < 5; i += 1) {
-      expect(els[i].classList.contains("is-full")).toBe(true);
+      expect(els[i].classList.contains("is-full")).toBeTruthy();
     }
   });
 

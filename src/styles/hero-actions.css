@@ -1,0 +1,100 @@
+.atv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 26px;
+}
+.atv-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 22px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 999px;
+  transition:
+    transform 200ms ease,
+    background 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease;
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.atv-btn-primary {
+  color: #fff;
+  background: var(--atv-accent);
+  box-shadow: 0 8px 24px var(--atv-accent-glow);
+}
+.atv-btn-primary:hover {
+  background: var(--atv-accent-bright);
+  transform: translateY(-1px);
+}
+.atv-btn-secondary {
+  color: var(--atv-text-primary);
+  background: var(--atv-bg-elevated);
+  border: 1px solid var(--atv-border-medium);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.atv-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-1px);
+}
+.atv-btn.is-active {
+  color: #fff;
+  background: var(--atv-accent);
+  border-color: transparent;
+  box-shadow: 0 6px 20px var(--atv-accent-glow);
+}
+
+.atv-hero-summary {
+  margin-top: 16px;
+}
+.atv-hero-teaser {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  max-width: 660px;
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--atv-text-secondary);
+  word-break: break-word;
+  white-space: pre-wrap;
+  overflow: hidden;
+}
+.atv-hero-teaser.is-clamped {
+  -webkit-line-clamp: 3;
+}
+.atv-hero-more {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--atv-accent-bright);
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.atv-hero-more:hover {
+  color: var(--atv-accent);
+}
+.atv-hero-more svg {
+  transition: transform 220ms ease;
+}
+.atv-hero-more.is-open svg {
+  transform: rotate(180deg);
+}

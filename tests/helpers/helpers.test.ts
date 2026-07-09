@@ -6,14 +6,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import {
-  buildDoc,
-  createTestDoc,
-  mockLocation,
-  mockCookie,
-  installMockGM,
-  cleanupMockGM,
-} from "./index";
+import { buildDoc, createTestDoc, mockCookie, mockLocation } from "./doc";
+import { cleanupMockGM, installMockGM } from "./gm";
 
 const MINIMAL_HTML = `<!DOCTYPE html>
 <html>
@@ -25,7 +19,7 @@ const MINIMAL_HTML = `<!DOCTYPE html>
 </body>
 </html>`;
 
-describe("buildDoc", () => {
+describe(buildDoc, () => {
   it("parses an HTML string into a Document", () => {
     const doc = buildDoc(MINIMAL_HTML);
     expect(doc).toBeDefined();
@@ -44,12 +38,12 @@ describe("buildDoc", () => {
   });
 });
 
-describe("createTestDoc", () => {
+describe(createTestDoc, () => {
   it("returns a document and cleanup function", () => {
     const { cleanup, doc } = createTestDoc(MINIMAL_HTML);
     expect(doc).toBeDefined();
     expect(doc.querySelector).toBeDefined();
-    expect(typeof cleanup).toBe("function");
+    expect(cleanup).toBeTypeOf("function");
     cleanup();
   });
 
@@ -71,7 +65,7 @@ describe("createTestDoc", () => {
   });
 });
 
-describe("mockLocation", () => {
+describe(mockLocation, () => {
   it("changes pathname on a built document", () => {
     const doc = buildDoc(MINIMAL_HTML);
     const restore = mockLocation(doc, "/custom/path/");
@@ -80,7 +74,7 @@ describe("mockLocation", () => {
   });
 });
 
-describe("mockCookie", () => {
+describe(mockCookie, () => {
   it("sets cookie on a document", () => {
     const doc = buildDoc(MINIMAL_HTML);
     const restore = mockCookie(doc, "ck=test123;");
@@ -91,7 +85,7 @@ describe("mockCookie", () => {
   it("returns a cleanup function", () => {
     const doc = buildDoc(MINIMAL_HTML);
     const restore = mockCookie(doc, "ck=test;");
-    expect(typeof restore).toBe("function");
+    expect(restore).toBeTypeOf("function");
     restore();
   });
 });
@@ -107,12 +101,12 @@ describe("installMockGM / cleanupMockGM", () => {
 
   it("installs GM_xmlhttpRequest on globalThis", () => {
     installMockGM();
-    expect(typeof globalThis.GM_xmlhttpRequest).toBe("function");
+    expect(globalThis.GM_xmlhttpRequest).toBeTypeOf("function");
   });
 
   it("installMockGM returns a vi.fn() mock", () => {
     const mock = installMockGM();
-    expect(vi.isMockFunction(mock)).toBe(true);
+    expect(vi.isMockFunction(mock)).toBeTruthy();
   });
 
   it("cleanupMockGM removes GM_xmlhttpRequest", () => {
@@ -132,14 +126,12 @@ describe("fixtures are readable", () => {
     "logged-out.html",
   ];
 
-  for (const file of fixtureFiles) {
-    it(`reads ${file}`, () => {
-      const content = readFileSync(
-        `${import.meta.dirname}/../fixtures/${file}`,
-        "utf-8"
-      );
-      expect(content.length).toBeGreaterThan(100);
-      expect(content.toLowerCase()).toContain("doctype");
-    });
-  }
+  it.each(fixtureFiles)("reads %s", (file) => {
+    const content = readFileSync(
+      `${import.meta.dirname}/../fixtures/${file}`,
+      "utf-8"
+    );
+    expect(content.length).toBeGreaterThan(100);
+    expect(content.toLowerCase()).toContain("doctype");
+  });
 });

@@ -3,17 +3,19 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { postVote } from "../../src/api/comment";
+import { postVote } from "@/api/comment";
 
-const mockGmPost = vi.hoisted(() => vi.fn());
-const mockGetCk = vi.hoisted(() => vi.fn());
+const mockGmPost = vi.hoisted(() =>
+  vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
+);
+const mockGetCk = vi.hoisted(() => vi.fn<() => string>());
 
-vi.mock("../../src/utils/request", () => ({
+vi.mock(import("../../src/utils/request"), () => ({
   getCk: mockGetCk,
   gmPost: mockGmPost,
 }));
 
-describe("postVote", () => {
+describe(postVote, () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
@@ -24,7 +26,7 @@ describe("postVote", () => {
 
     const result = await postVote("123");
 
-    expect(result).toEqual({ count: 5, ok: true });
+    expect(result).toStrictEqual({ count: 5, ok: true });
     expect(mockGmPost).toHaveBeenCalledWith(
       "https://movie.douban.com/j/comment/vote",
       "id=123&ck=ck123",
@@ -37,7 +39,7 @@ describe("postVote", () => {
 
     const result = await postVote("123");
 
-    expect(result).toEqual({ ok: false });
+    expect(result).toStrictEqual({ ok: false });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 
@@ -47,7 +49,7 @@ describe("postVote", () => {
 
     const result = await postVote("123");
 
-    expect(result).toEqual({ ok: false });
+    expect(result).toStrictEqual({ ok: false });
   });
 
   it("returns { ok: false } and logs warning when gmPost rejects", async () => {
@@ -57,7 +59,7 @@ describe("postVote", () => {
 
     const result = await postVote("123");
 
-    expect(result).toEqual({ ok: false });
+    expect(result).toStrictEqual({ ok: false });
     warnSpy.mockRestore();
   });
 
@@ -120,8 +122,8 @@ describe("postVote", () => {
 
     const result = await postVote("123");
 
-    expect(result).toEqual({ ok: false });
-    expect(warnSpy).toHaveBeenCalled();
+    expect(result).toStrictEqual({ ok: false });
+    expect(warnSpy).toHaveBeenCalledOnce();
     warnSpy.mockRestore();
   });
 });

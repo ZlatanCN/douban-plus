@@ -1,3 +1,4 @@
+import preact from "@preact/preset-vite";
 import { defineConfig } from "vite";
 import monkey from "vite-plugin-monkey";
 
@@ -7,6 +8,7 @@ export default defineConfig({
     minify: false,
   },
   plugins: [
+    preact(),
     monkey({
       build: {
         autoGrant: true,
@@ -48,4 +50,9 @@ export default defineConfig({
       },
     }),
   ],
+  resolve: {
+    alias: {
+      "@": new URL("src", import.meta.url).pathname,
+    },
+  },
 });

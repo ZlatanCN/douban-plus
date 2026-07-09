@@ -1,10 +1,10 @@
 /* ── Social Extractors ─────────────────────────────────── */
 /* User comments and related recommendations.              */
 
-import { RE_ALLSTAR, RE_NON_DIGIT } from "../constants";
-import type { Comment, Recommendation } from "../types";
-import { $, $$, safeText } from "../utils/dom";
-import { upgradePoster } from "../utils/upgrade";
+import { RE_ALLSTAR, RE_NON_DIGIT } from "@/constants";
+import type { Comment, Recommendation } from "@/types";
+import { $, $$, safeText } from "@/utils/dom";
+import { upgradePoster } from "@/utils/upgrade";
 
 /**
  * Extract related recommendations from `.recommendations-bd`.
@@ -42,7 +42,7 @@ const extractRating = (
   const rm = (ratingEl.className || "").match(RE_ALLSTAR);
   return {
     ratingWord: ratingEl.getAttribute("title") || "",
-    stars: rm ? Number.parseInt(rm[1], 10) / 10 : 0,
+    stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0,
   };
 };
 
@@ -55,7 +55,7 @@ const extractVotes = (item: HTMLElement): number => {
   const votesEl =
     $<HTMLElement>(".vote-count", item) ?? $<HTMLElement>(".votes", item);
   return votesEl
-    ? Number.parseInt(safeText(votesEl).replace(RE_NON_DIGIT, ""), 10) || 0
+    ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0
     : 0;
 };
 

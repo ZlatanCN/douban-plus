@@ -1,7 +1,7 @@
 /* ── Rating Resolution Seam Types ──────────────────────── */
 
-import type { FetchImdbResult } from "../api/imdb";
-import type { McRating, RtRating } from "../types";
+import type { FetchImdbResult } from "@/api/imdb";
+import type { McRating, RtRating } from "@/types";
 
 /** All identifiers available for rating resolution.
  *  Every resolver reads from this context — no resolver touches the DOM

@@ -4,40 +4,12 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-import { applyCommentAvatars } from "../../src/components/avatar-dom";
-import type { Comment } from "../../src/types";
+import { applyCommentAvatars } from "@/components/avatar-dom";
+import type { Comment } from "@/types";
 
 /* ── Mock Image: trigger load synchronously via stub RAF ── */
 
 const mockImageLoad = vi.fn<(img: HTMLImageElement) => void>();
-
-beforeEach(() => {
-  vi.stubGlobal(
-    "Image",
-    vi.fn(() => {
-      const img = document.createElement("img");
-      setTimeout(() => {
-        img.dispatchEvent(new Event("load"));
-        mockImageLoad(img);
-      }, 0);
-      return img;
-    })
-  );
-
-  /* eslint-disable promise/prefer-await-to-callbacks — RAF is callback-based */
-  vi.spyOn(window, "requestAnimationFrame").mockImplementation(
-    (cb: FrameRequestCallback): number => {
-      cb(0);
-      return 0;
-    }
-  );
-  /* eslint-enable promise/prefer-await-to-callbacks */
-});
-
-afterEach(() => {
-  vi.restoreAllMocks();
-  document.body.innerHTML = "";
-});
 
 /* ── Factory helpers ─────────────────────────────────────── */
 
@@ -65,9 +37,36 @@ const setupDom = (cid: string): void => {
   );
 };
 
-/* ── Tests ───────────────────────────────────────────────── */
-
 describe("applyCommentAvatars(urlMap, comments)", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "Image",
+      vi.fn<() => HTMLImageElement>(() => {
+        const img = document.createElement("img");
+        setTimeout(() => {
+          img.dispatchEvent(new Event("load"));
+          mockImageLoad(img);
+        }, 0);
+        return img;
+      })
+    );
+
+    /* eslint-disable promise/prefer-await-to-callbacks — RAF is callback-based */
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+      (cb: FrameRequestCallback): number => {
+        cb(0);
+        return 0;
+      }
+    );
+    /* eslint-enable promise/prefer-await-to-callbacks */
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    document.body.innerHTML = "";
+  });
+
+  /* ── Tests ───────────────────────────────────────────────── */
   /* ── t1: Assigns comment.avatar ──────────────────────── */
 
   it("sets comment.avatar from the urlMap entry (t1)", () => {
@@ -137,8 +136,8 @@ describe("applyCommentAvatars(urlMap, comments)", () => {
       '.atv-comment-overlay-avatar[data-cid="1"]'
     ) as HTMLElement;
 
-    expect(cardEl.classList.contains("atv-avatar-loaded")).toBe(true);
-    expect(overlayEl.classList.contains("atv-avatar-loaded")).toBe(true);
+    expect(cardEl.classList.contains("atv-avatar-loaded")).toBeTruthy();
+    expect(overlayEl.classList.contains("atv-avatar-loaded")).toBeTruthy();
   });
 
   /* ── t5: No-op when link not in map ─────────────────── */
