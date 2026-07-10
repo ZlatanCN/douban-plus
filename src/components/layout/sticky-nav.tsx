@@ -3,11 +3,12 @@ import { useEffect, useState } from "preact/hooks";
 import type { NavSection, TitleInfo } from "@/types";
 
 type StickyNavProps = {
+  doc?: Document;
   sections: NavSection[];
   title: Pick<TitleInfo, "full" | "primary">;
 };
 
-const StickyNav = ({ sections, title }: StickyNavProps) => {
+const StickyNav = ({ doc = document, sections, title }: StickyNavProps) => {
   const [activeSectionId, setActiveSectionId] = useState("");
   const [visible, setVisible] = useState(false);
 
@@ -24,7 +25,7 @@ const StickyNav = ({ sections, title }: StickyNavProps) => {
         let activeId = "";
         let bestScore = -Infinity;
         for (const section of sections) {
-          const element = document.querySelector(`#${section.id}`);
+          const element = doc.querySelector(`#${section.id}`);
           if (!element) {
             continue;
           }
@@ -45,13 +46,13 @@ const StickyNav = ({ sections, title }: StickyNavProps) => {
       { threshold: [0, 0.25, 0.5] }
     );
     for (const section of sections) {
-      const element = document.querySelector(`#${section.id}`);
+      const element = doc.querySelector(`#${section.id}`);
       if (element) {
         observer.observe(element);
       }
     }
     return () => observer.disconnect();
-  }, [sections]);
+  }, [doc, sections]);
 
   return (
     <nav class={`atv-stickynav${visible ? " is-visible" : ""}`}>
@@ -64,7 +65,7 @@ const StickyNav = ({ sections, title }: StickyNavProps) => {
             key={section.id}
             onClick={(event) => {
               event.preventDefault();
-              document
+              doc
                 .querySelector(`#${section.id}`)
                 ?.scrollIntoView({ behavior: "smooth", block: "start" });
             }}

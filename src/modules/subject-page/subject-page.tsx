@@ -138,11 +138,12 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
     },
   };
 
-  useEffect(() => watchSeries(setSeries), []);
+  useEffect(() => watchSeries(setSeries, deps.doc), [deps.doc]);
 
   return (
     <>
       <StickyNav
+        doc={deps.doc}
         sections={computeNavSections({ ...data, series })}
         title={data.title}
       />
@@ -156,7 +157,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       <StreamingSection streaming={data.streaming} />
       <SeriesSection
         items={series}
-        moreLink={deps.seriesMoreLink ?? extractSeriesMoreLink()}
+        moreLink={deps.seriesMoreLink ?? extractSeriesMoreLink(deps.doc)}
       />
       <CastSection celebrities={data.celebrities} />
       <PhotosSection

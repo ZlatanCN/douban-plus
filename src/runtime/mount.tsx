@@ -56,6 +56,7 @@ const mountSubjectPage = (doc: Document = document): void => {
       deps={{
         canReviewVote: () => true,
         canVote: () => true,
+        doc,
         handleReviewVote: (rid: string, type: "useful" | "useless") =>
           postReviewVote(rid, type, data.subjectId),
         handleVote: (cid: string) => postVote(cid, data.subjectId),

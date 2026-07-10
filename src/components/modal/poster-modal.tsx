@@ -1,6 +1,5 @@
 import { useModalClose } from "@/components/modal/modal-close-context";
 
-import { openImperativeModal } from "./imperative-modal";
 import { ModalCloseButton } from "./modal-close-button";
 import { ModalShell } from "./modal-shell";
 
@@ -37,11 +36,4 @@ const PosterModal = ({ alt, onClose, src }: PosterModalProps) => (
   </ModalShell>
 );
 
-const openPosterModal = (src: string, alt: string): void => {
-  openImperativeModal({
-    content: (close) => <PosterModal alt={alt} onClose={close} src={src} />,
-    id: MODAL_ID,
-  });
-};
-
-export { PosterModal, openPosterModal };
+export { PosterModal };

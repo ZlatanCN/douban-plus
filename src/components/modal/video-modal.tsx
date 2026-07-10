@@ -3,7 +3,6 @@ import { useEffect, useState } from "preact/hooks";
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { Trailer } from "@/types";
 
-import { openImperativeModal } from "./imperative-modal";
 import { ModalCloseButton } from "./modal-close-button";
 import { ModalShell } from "./modal-shell";
 
@@ -120,11 +119,4 @@ const VideoModal = ({ onClose, trailer }: VideoModalProps) => (
   </ModalShell>
 );
 
-const openVideoModal = (trailer: Trailer): void => {
-  openImperativeModal({
-    content: (close) => <VideoModal onClose={close} trailer={trailer} />,
-    id: MODAL_ID,
-  });
-};
-
-export { VideoModal, openVideoModal };
+export { VideoModal };

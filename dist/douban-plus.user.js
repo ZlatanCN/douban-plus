@@ -945,7 +945,7 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var StickyNav = ({ sections, title }) => {
+	var StickyNav = ({ doc = document, sections, title }) => {
 		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
 		h(() => {
@@ -959,7 +959,7 @@ input::placeholder {
 				let activeId = "";
 				let bestScore = -Infinity;
 				for (const section of sections) {
-					const element = document.querySelector(`#${section.id}`);
+					const element = doc.querySelector(`#${section.id}`);
 					if (!element) continue;
 					const rect = element.getBoundingClientRect();
 					const visibleTop = Math.max(rect.top, 56);
@@ -977,11 +977,11 @@ input::placeholder {
 				.5
 			] });
 			for (const section of sections) {
-				const element = document.querySelector(`#${section.id}`);
+				const element = doc.querySelector(`#${section.id}`);
 				if (element) observer.observe(element);
 			}
 			return () => observer.disconnect();
-		}, [sections]);
+		}, [doc, sections]);
 		return u("nav", {
 			class: `atv-stickynav${visible ? " is-visible" : ""}`,
 			children: [u("div", {
@@ -994,7 +994,7 @@ input::placeholder {
 					href: `#${section.id}`,
 					onClick: (event) => {
 						event.preventDefault();
-						document.querySelector(`#${section.id}`)?.scrollIntoView({
+						doc.querySelector(`#${section.id}`)?.scrollIntoView({
 							behavior: "smooth",
 							block: "start"
 						});
@@ -1034,43 +1034,6 @@ input::placeholder {
 			event.preventDefault();
 			first.focus();
 		}
-	};
-	var activeModals = new Map();
-	var removeOrphanedModal = (id) => {
-		const existing = document.querySelector(`#${id}`);
-		const host = existing?.parentElement;
-		if (host) {
-			R(null, host);
-			host.remove();
-			return;
-		}
-		existing?.remove();
-	};
-	var openImperativeModal = (options) => {
-		const trackedModal = activeModals.get(options.id);
-		const activeModal = trackedModal?.host.isConnected ? trackedModal : void 0;
-		if (trackedModal && !activeModal) activeModals.delete(options.id);
-		const previousFocus = activeModal?.previousFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-		activeModal?.close(false);
-		removeOrphanedModal(options.id);
-		const host = document.createElement("div");
-		document.body.append(host);
-		let closed = false;
-		const close = (restoreFocus) => {
-			if (closed) return;
-			closed = true;
-			options.onClose?.();
-			R(null, host);
-			host.remove();
-			activeModals.delete(options.id);
-			if (restoreFocus && previousFocus?.isConnected) previousFocus.focus();
-		};
-		activeModals.set(options.id, {
-			close,
-			host,
-			previousFocus
-		});
-		R(options.content(() => close(true)), host);
 	};
 	var HtmlContent = ({ children, className, html, ...rest }) => u("div", {
 		class: className,
@@ -1993,173 +1956,10 @@ input::placeholder {
 	var proxyInterestAction = (doc, status) => {
 		findInterestButtons(doc)[status]?.click();
 	};
-	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
-	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
-	var maxAttempts = 24;
-	var trustedHosts = new Set(["accounts.douban.com"]);
-	var loginTriggerSelector = [
-		".a_show_login",
-		".j.a_show_login",
-		"a[href*='accounts/login']",
-		"a[href*='douban.com/accounts/login']",
-		"a[href*='register']",
-		"a[href*='douban.com/register']"
-	].join(", ");
-	var clearNativeLoginMasks = () => {
-		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
-	};
-	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
-	var isTrustedLoginIframe = (iframe) => {
-		const source = iframe.getAttribute("src");
-		if (!source || source === "about:blank") return true;
-		try {
-			const url = new URL(source, window.location.href);
-			return trustedHosts.has(url.hostname) && url.pathname.startsWith("/passport/login");
-		} catch {
-			return false;
-		}
-	};
-	var prepareNativeLoginIframe = (dialog) => {
-		const iframe = dialog.querySelector("iframe");
-		if (!iframe || !isTrustedLoginIframe(iframe)) return {
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。",
-			ok: false
-		};
-		iframe.title = "豆瓣登录";
-		iframe.referrerPolicy = "strict-origin-when-cross-origin";
-		iframe.removeAttribute("width");
-		iframe.removeAttribute("height");
-		iframe.removeAttribute("frameborder");
-		iframe.removeAttribute("scrolling");
-		iframe.removeAttribute("style");
-		iframe.classList.add("atv-login-modal-iframe");
-		iframe.remove();
-		dialog.remove();
-		return {
-			iframe,
-			ok: true
-		};
-	};
-	var triggerNativeLoginDialog = () => {
-		const triggers = [...document.querySelectorAll(loginTriggerSelector)];
-		(triggers.find((node) => node.offsetParent !== null) ?? triggers[0])?.click();
-	};
-	var mountNativeLoginFrame = (host, onError, attempt = 0) => {
-		clearNativeLoginMasks();
-		const dialog = findNativeLoginDialog();
-		if (dialog) {
-			const result = prepareNativeLoginIframe(dialog);
-			if (!result.ok) {
-				onError(result.message);
-				return;
-			}
-			host.replaceChildren(result.iframe);
-			onError("");
-			requestAnimationFrame(() => result.iframe.focus());
-			return;
-		}
-		if (attempt === 0) {
-			triggerNativeLoginDialog();
-			clearNativeLoginMasks();
-		}
-		if (attempt < maxAttempts) {
-			window.setTimeout(() => {
-				mountNativeLoginFrame(host, onError, attempt + 1);
-			}, 100);
-			return;
-		}
-		onError("无法载入豆瓣登录组件，请刷新页面后重试。");
-	};
-	var LoginModalContent = ({ action, busy, hostRef, status }) => {
-		const handleClose = useModalClose();
-		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
-			u(ModalCloseButton, {
-				ariaLabel: "关闭登录弹窗",
-				className: "atv-login-modal-close",
-				onClick: handleClose,
-				size: 18
-			}),
-			u("h2", {
-				class: "atv-login-modal-title",
-				id: "atv-login-modal-title",
-				children: "登录豆瓣后继续"
-			}),
-			u("p", {
-				class: "atv-login-modal-desc",
-				id: "atv-login-modal-desc",
-				children: `登录后才能${action}。`
-			}),
-			u("p", {
-				"aria-live": "polite",
-				class: "atv-login-modal-status",
-				hidden: !status,
-				children: status
-			}),
-			u("div", {
-				"aria-busy": busy ? "true" : "false",
-				class: "atv-login-modal-native",
-				ref: hostRef
-			})
-		] });
-	};
-	var LoginModal = ({ action, onClose }) => {
-		const hostRef = A(null);
-		const [status, setStatus] = d("正在载入豆瓣登录组件…");
-		const [busy, setBusy] = d(true);
-		h(() => {
-			const host = hostRef.current;
-			if (!host) return;
-			mountNativeLoginFrame(host, (message) => {
-				setStatus(message);
-				setBusy(false);
-			});
-		}, []);
-		h(() => {
-			const timer = setInterval(() => {
-				if (!hostRef.current?.querySelector("iframe")) return;
-				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
-					clearInterval(timer);
-					onClose();
-					window.location.reload();
-				}
-			}, 300);
-			return () => clearInterval(timer);
-		}, [onClose]);
-		return u(ModalShell, {
-			ariaDescribedBy: "atv-login-modal-desc",
-			ariaLabelledBy: "atv-login-modal-title",
-			className: "atv-login-modal",
-			id: "atv-login-modal",
-			onClose,
-			surfaceClassName: "atv-login-modal-inner",
-			children: u(LoginModalContent, {
-				action,
-				busy,
-				hostRef,
-				status
-			})
-		});
-	};
-	var openLoginModal = (options) => {
-		options.returnUrl;
-		clearNativeLoginMasks();
-		openImperativeModal({
-			content: (close) => u(LoginModal, {
-				action: options.action,
-				onClose: close
-			}),
-			id: "atv-login-modal",
-			onClose: clearNativeLoginMasks
-		});
-	};
 	var createAccountGate = (options) => {
-		const openPrompt = options.openPrompt ?? ((action) => {
-			openLoginModal({ action });
-		});
 		const requireLogin = (action) => {
 			if (options.loggedIn) return true;
-			openPrompt(action);
+			options.openPrompt?.(action);
 			return false;
 		};
 		return { requireLogin };
@@ -3715,6 +3515,154 @@ input::placeholder {
 			state
 		})
 	});
+	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
+	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
+	var maxAttempts = 24;
+	var trustedHosts = new Set(["accounts.douban.com"]);
+	var loginTriggerSelector = [
+		".a_show_login",
+		".j.a_show_login",
+		"a[href*='accounts/login']",
+		"a[href*='douban.com/accounts/login']",
+		"a[href*='register']",
+		"a[href*='douban.com/register']"
+	].join(", ");
+	var clearNativeLoginMasks = () => {
+		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
+	};
+	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
+	var isTrustedLoginIframe = (iframe) => {
+		const source = iframe.getAttribute("src");
+		if (!source || source === "about:blank") return true;
+		try {
+			const url = new URL(source, window.location.href);
+			return trustedHosts.has(url.hostname) && url.pathname.startsWith("/passport/login");
+		} catch {
+			return false;
+		}
+	};
+	var prepareNativeLoginIframe = (dialog) => {
+		const iframe = dialog.querySelector("iframe");
+		if (!iframe || !isTrustedLoginIframe(iframe)) return {
+			message: "无法载入豆瓣登录组件，请刷新页面后重试。",
+			ok: false
+		};
+		iframe.title = "豆瓣登录";
+		iframe.referrerPolicy = "strict-origin-when-cross-origin";
+		iframe.removeAttribute("width");
+		iframe.removeAttribute("height");
+		iframe.removeAttribute("frameborder");
+		iframe.removeAttribute("scrolling");
+		iframe.removeAttribute("style");
+		iframe.classList.add("atv-login-modal-iframe");
+		iframe.remove();
+		dialog.remove();
+		return {
+			iframe,
+			ok: true
+		};
+	};
+	var triggerNativeLoginDialog = () => {
+		const triggers = [...document.querySelectorAll(loginTriggerSelector)];
+		(triggers.find((node) => node.offsetParent !== null) ?? triggers[0])?.click();
+	};
+	var mountNativeLoginFrame = (host, onError, attempt = 0) => {
+		clearNativeLoginMasks();
+		const dialog = findNativeLoginDialog();
+		if (dialog) {
+			const result = prepareNativeLoginIframe(dialog);
+			if (!result.ok) {
+				onError(result.message);
+				return;
+			}
+			host.replaceChildren(result.iframe);
+			onError("");
+			requestAnimationFrame(() => result.iframe.focus());
+			return;
+		}
+		if (attempt === 0) {
+			triggerNativeLoginDialog();
+			clearNativeLoginMasks();
+		}
+		if (attempt < maxAttempts) {
+			window.setTimeout(() => {
+				mountNativeLoginFrame(host, onError, attempt + 1);
+			}, 100);
+			return;
+		}
+		onError("无法载入豆瓣登录组件，请刷新页面后重试。");
+	};
+	var LoginModalContent = ({ action, busy, hostRef, status }) => {
+		const handleClose = useModalClose();
+		return u(S, { children: [
+			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
+			u(ModalCloseButton, {
+				ariaLabel: "关闭登录弹窗",
+				className: "atv-login-modal-close",
+				onClick: handleClose,
+				size: 18
+			}),
+			u("h2", {
+				class: "atv-login-modal-title",
+				id: "atv-login-modal-title",
+				children: "登录豆瓣后继续"
+			}),
+			u("p", {
+				class: "atv-login-modal-desc",
+				id: "atv-login-modal-desc",
+				children: `登录后才能${action}。`
+			}),
+			u("p", {
+				"aria-live": "polite",
+				class: "atv-login-modal-status",
+				hidden: !status,
+				children: status
+			}),
+			u("div", {
+				"aria-busy": busy ? "true" : "false",
+				class: "atv-login-modal-native",
+				ref: hostRef
+			})
+		] });
+	};
+	var LoginModal = ({ action, onClose }) => {
+		const hostRef = A(null);
+		const [status, setStatus] = d("正在载入豆瓣登录组件…");
+		const [busy, setBusy] = d(true);
+		h(() => {
+			const host = hostRef.current;
+			if (!host) return;
+			mountNativeLoginFrame(host, (message) => {
+				setStatus(message);
+				setBusy(false);
+			});
+		}, []);
+		h(() => {
+			const timer = setInterval(() => {
+				if (!hostRef.current?.querySelector("iframe")) return;
+				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
+					clearInterval(timer);
+					onClose();
+					window.location.reload();
+				}
+			}, 300);
+			return () => clearInterval(timer);
+		}, [onClose]);
+		return u(ModalShell, {
+			ariaDescribedBy: "atv-login-modal-desc",
+			ariaLabelledBy: "atv-login-modal-title",
+			className: "atv-login-modal",
+			id: "atv-login-modal",
+			onClose,
+			surfaceClassName: "atv-login-modal-inner",
+			children: u(LoginModalContent, {
+				action,
+				busy,
+				hostRef,
+				status
+			})
+		});
+	};
 	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
 		id: "atv-cast",
 		title: "演职员",
@@ -4577,9 +4525,10 @@ input::placeholder {
 				deps.heroCallbacks.handleWishClick();
 			}
 		};
-		h(() => watchSeries(setSeries), []);
+		h(() => watchSeries(setSeries, deps.doc), [deps.doc]);
 		return u(S, { children: [
 			u(StickyNav, {
+				doc: deps.doc,
 				sections: computeNavSections({
 					...data,
 					series
@@ -4598,7 +4547,7 @@ input::placeholder {
 			u(StreamingSection, { streaming: data.streaming }),
 			u(SeriesSection, {
 				items: series,
-				moreLink: deps.seriesMoreLink ?? extractSeriesMoreLink()
+				moreLink: deps.seriesMoreLink ?? extractSeriesMoreLink(deps.doc)
 			}),
 			u(CastSection, { celebrities: data.celebrities }),
 			u(PhotosSection, {
@@ -5135,6 +5084,7 @@ input::placeholder {
 			deps: {
 				canReviewVote: () => true,
 				canVote: () => true,
+				doc,
 				handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
 				handleVote: (cid) => postVote(cid, data.subjectId),
 				heroCallbacks: buildHeroCallbacks(data.subjectId, doc, data.interest.loggedIn),
