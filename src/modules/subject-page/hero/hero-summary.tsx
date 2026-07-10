@@ -3,12 +3,15 @@ import { useEffect, useRef, useState } from "preact/hooks";
 import { IconChevron } from "@/components/common/icons";
 
 type HeroSummaryProps = {
+  expandNativeSummary?: () => Promise<string | null>;
   text: string;
 };
 
-const HeroSummary = ({ text }: HeroSummaryProps) => {
+const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
   const teaserRef = useRef<HTMLParagraphElement>(null);
+  const previousTextRef = useRef(text);
   const [expanded, setExpanded] = useState(false);
+  const [summary, setSummary] = useState(text);
   const [showToggle, setShowToggle] = useState(true);
 
   useEffect(() => {
@@ -20,17 +23,37 @@ const HeroSummary = ({ text }: HeroSummaryProps) => {
     });
   }, [text]);
 
+  useEffect(() => {
+    if (previousTextRef.current !== text) {
+      previousTextRef.current = text;
+      setExpanded(false);
+      setSummary(text);
+    }
+  }, [text]);
+
+  const toggle = async (): Promise<void> => {
+    if (expanded) {
+      setExpanded(false);
+      return;
+    }
+    const expandedText = await expandNativeSummary?.();
+    if (expandedText) {
+      setSummary(expandedText);
+    }
+    setExpanded(true);
+  };
+
   return (
     <div class="atv-hero-summary">
       <p
         class={`atv-hero-teaser${expanded ? "" : " is-clamped"}`}
         ref={teaserRef}
       >
-        {text}
+        {summary}
       </p>
       <button
         class={`atv-hero-more${expanded ? " is-open" : ""}`}
-        onClick={() => setExpanded((value) => !value)}
+        onClick={() => void toggle()}
         style={{ display: showToggle ? undefined : "none" }}
         type="button"
       >

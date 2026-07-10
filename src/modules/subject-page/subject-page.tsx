@@ -3,6 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { postInterest, removeInterest } from "@/api/interest";
 import { computeNavSections, StickyNav } from "@/components/layout";
 import { PosterModal, VideoModal } from "@/components/modal";
+import { expandNativeSummary } from "@/extract/rating";
 import { buildModalCallbacks } from "@/runtime/interest-marking";
 import { extractSeriesMoreLink, watchSeries } from "@/runtime/series-effect";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
@@ -150,6 +151,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       <Hero
         callbacks={heroCallbacks}
         data={toHeroData(data)}
+        expandNativeSummary={() => expandNativeSummary(deps.doc)}
         onOpenPoster={(src, alt) =>
           setActiveMediaModal({ alt, src, type: "poster" })
         }

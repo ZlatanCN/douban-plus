@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.1.1
+// @version      1.1.2
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -1820,6 +1820,55 @@ input::placeholder {
 	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
 	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
 	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
+		const score = raw ? Number(raw) : NaN;
+		if (!score || Number.isNaN(score) || score <= 0) return null;
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
+		return {
+			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
+			score
+		};
+	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
+		if (!summary) return null;
+		return normalizeSummaryText(summary.textContent || "") || null;
+	};
+	var expandNativeSummary = (doc = document) => {
+		const before = extractSummary(doc);
+		const trigger = doc.querySelector("a.a_show_full");
+		if (!trigger) return Promise.resolve(before);
+		trigger.click();
+		const after = extractSummary(doc);
+		if (after && after !== before) return Promise.resolve(after);
+		return new Promise((resolve) => {
+			const summary = doc.querySelector("span[property=\"v:summary\"]");
+			if (!summary) {
+				resolve(after);
+				return;
+			}
+			const observer = new MutationObserver(() => {
+				const expanded = extractSummary(doc);
+				if (expanded && expanded !== before) {
+					observer.disconnect();
+					resolve(expanded);
+				}
+			});
+			observer.observe(summary.parentElement ?? summary, {
+				characterData: true,
+				childList: true,
+				subtree: true
+			});
+			window.setTimeout(() => {
+				observer.disconnect();
+				resolve(extractSummary(doc));
+			}, 1500);
+		});
+	};
 	var matchInterestText = (text, s3Only = false) => {
 		if (text.includes("已看过")) return "collect";
 		if (text.includes("已想看")) return "wish";
@@ -3297,9 +3346,11 @@ input::placeholder {
 			}) : u(PosterPlaceholder, {})
 		});
 	};
-	var HeroSummary = ({ text }) => {
+	var HeroSummary = ({ expandNativeSummary, text }) => {
 		const teaserRef = A(null);
+		const previousTextRef = A(text);
 		const [expanded, setExpanded] = d(false);
+		const [summary, setSummary] = d(text);
 		const [showToggle, setShowToggle] = d(true);
 		h(() => {
 			requestAnimationFrame(() => {
@@ -3307,15 +3358,31 @@ input::placeholder {
 				if (teaser) setShowToggle(teaser.scrollHeight - teaser.clientHeight > 4);
 			});
 		}, [text]);
+		h(() => {
+			if (previousTextRef.current !== text) {
+				previousTextRef.current = text;
+				setExpanded(false);
+				setSummary(text);
+			}
+		}, [text]);
+		const toggle = async () => {
+			if (expanded) {
+				setExpanded(false);
+				return;
+			}
+			const expandedText = await expandNativeSummary?.();
+			if (expandedText) setSummary(expandedText);
+			setExpanded(true);
+		};
 		return u("div", {
 			class: "atv-hero-summary",
 			children: [u("p", {
 				class: `atv-hero-teaser${expanded ? "" : " is-clamped"}`,
 				ref: teaserRef,
-				children: text
+				children: summary
 			}), u("button", {
 				class: `atv-hero-more${expanded ? " is-open" : ""}`,
-				onClick: () => setExpanded((value) => !value),
+				onClick: () => void toggle(),
 				style: { display: showToggle ? void 0 : "none" },
 				type: "button",
 				children: [u("span", { children: expanded ? "收起" : "展开" }), u(IconChevron, {})]
@@ -3323,7 +3390,7 @@ input::placeholder {
 		});
 	};
 	var noop$1 = () => void 0;
-	var Hero = ({ callbacks, data, onOpenPoster = noop$1 }) => u("section", {
+	var Hero = ({ callbacks, data, expandNativeSummary, onOpenPoster = noop$1 }) => u("section", {
 		class: "atv-hero",
 		children: [
 			u(HeroBackground, {
@@ -3367,7 +3434,10 @@ input::placeholder {
 								callbacks,
 								state: data.interest
 							}),
-							data.summary ? u(HeroSummary, { text: data.summary }) : null
+							data.summary ? u(HeroSummary, {
+								expandNativeSummary,
+								text: data.summary
+							}) : null
 						]
 					})]
 				})
@@ -4538,6 +4608,7 @@ input::placeholder {
 			u(Hero, {
 				callbacks: heroCallbacks,
 				data: toHeroData(data),
+				expandNativeSummary: () => expandNativeSummary(deps.doc),
 				onOpenPoster: (src, alt) => setActiveMediaModal({
 					alt,
 					src,
@@ -4818,24 +4889,6 @@ input::placeholder {
 			trailerPageUrl: a.href
 		};
 	}).filter((t) => t.trailerPageUrl);
-	var RE_CRLF = /\r\n?/gu;
-	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
-	var extractRating$1 = (doc) => {
-		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
-		const score = raw ? Number(raw) : NaN;
-		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
-		return {
-			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
-			score
-		};
-	};
-	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
-	var extractSummary = (doc) => {
-		const summary = $("span[property=\"v:summary\"]", doc);
-		if (!summary) return null;
-		return normalizeSummaryText(summary.textContent || "") || null;
-	};
 	var extractReviewRating = (item) => {
 		let stars = 0;
 		let ratingWord = "";

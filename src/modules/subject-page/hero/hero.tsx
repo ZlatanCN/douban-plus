@@ -10,12 +10,18 @@ import { HeroSummary } from "./hero-summary";
 type HeroProps = {
   callbacks: HeroCallbacks;
   data: HeroData;
+  expandNativeSummary?: () => Promise<string | null>;
   onOpenPoster?: (src: string, alt: string) => void;
 };
 
 const noop = (): undefined => undefined;
 
-const Hero = ({ callbacks, data, onOpenPoster = noop }: HeroProps) => (
+const Hero = ({
+  callbacks,
+  data,
+  expandNativeSummary,
+  onOpenPoster = noop,
+}: HeroProps) => (
   <section class="atv-hero">
     <HeroBackground
       photos={data.photos}
@@ -46,7 +52,12 @@ const Hero = ({ callbacks, data, onOpenPoster = noop }: HeroProps) => (
             isTV={data.isTV}
           />
           <HeroActions callbacks={callbacks} state={data.interest} />
-          {data.summary ? <HeroSummary text={data.summary} /> : null}
+          {data.summary ? (
+            <HeroSummary
+              expandNativeSummary={expandNativeSummary}
+              text={data.summary}
+            />
+          ) : null}
         </div>
       </div>
     </div>
