@@ -4256,25 +4256,30 @@ input::placeholder {
 		}
 		return null;
 	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
 	var findInterestButtons = (doc) => {
 		const result = {
 			collect: null,
 			do: null,
 			wish: null
 		};
-		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-		const anchors = root ? $$("a", root) : [];
-		const scan = (list, doRe, wishRe, collectRe) => {
-			for (const a of list) {
-				const t = (a.textContent || "").trim();
-				if (!result.do && doRe.test(t)) result.do = a;
-				if (!result.wish && wishRe.test(t)) result.wish = a;
-				if (!result.collect && collectRe.test(t)) result.collect = a;
+		const scan = (anchors, doRe, wishRe, collectRe) => {
+			for (const anchor of anchors) {
+				const text = (anchor.textContent || "").trim();
+				if (!result.do && doRe.test(text)) result.do = anchor;
+				if (!result.wish && wishRe.test(text)) result.wish = anchor;
+				if (!result.collect && collectRe.test(text)) result.collect = anchor;
 			}
 		};
-		scan(anchors, RE_DO, RE_WISH, RE_COLLECT);
+		scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
 		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
 		return result;
+	};
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
 	};
 	var detectS3State = (root) => {
 		let status = "none";
@@ -4317,10 +4322,7 @@ input::placeholder {
 			if (text === "在看") hasWatching = true;
 			if (status !== "none") continue;
 			const s = matchInterestText(text);
-			if (s) {
-				const cls = `${a.className} ${a.parentElement?.className || ""}`;
-				if (RE_INTEREST_ACTIVE.test(cls)) status = s;
-			}
+			if (s && isInterestActive(a)) status = s;
 		}
 		return {
 			hasWatching,
@@ -4330,8 +4332,8 @@ input::placeholder {
 	var extractInterestState = (doc) => {
 		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
 		const loggedIn = !!ck;
-		const root = $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-		const anchors = root ? $$("a", root) : [];
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
 		if (!loggedIn) return {
 			ck,
 			comment: "",
@@ -4372,6 +4374,9 @@ input::placeholder {
 			tags: [],
 			usefulCount: ""
 		};
+	};
+	var proxyInterestAction = (doc, status) => {
+		findInterestButtons(doc)[status]?.click();
 	};
 	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
 		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
@@ -4916,7 +4921,7 @@ input::placeholder {
 		}
 	});
 	var buildInterestMarkingCallbacks = (subjectId, adapters = {}) => {
-		const interestBtns = findInterestButtons(adapters.doc ?? document);
+		const doc = adapters.doc ?? document;
 		const accountGate = adapters.accountGate ?? createAccountGate({ loggedIn: adapters.loggedIn ?? true });
 		const modalAdapters = {
 			post: adapters.post ?? postInterest,
@@ -4927,7 +4932,7 @@ input::placeholder {
 		return {
 			handleCollectClick: () => {
 				if (!accountGate.requireLogin("标记看过")) return;
-				interestBtns.collect?.click();
+				proxyInterestAction(doc, "collect");
 			},
 			handleOpenInterest: (state) => {
 				if (!accountGate.requireLogin("标记这部作品")) return;
@@ -4935,11 +4940,11 @@ input::placeholder {
 			},
 			handleWatchingClick: () => {
 				if (!accountGate.requireLogin("标记在看")) return;
-				interestBtns.do?.click();
+				proxyInterestAction(doc, "do");
 			},
 			handleWishClick: () => {
 				if (!accountGate.requireLogin("标记想看")) return;
-				interestBtns.wish?.click();
+				proxyInterestAction(doc, "wish");
 			}
 		};
 	};

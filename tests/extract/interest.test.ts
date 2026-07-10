@@ -1,13 +1,9 @@
 /* ── Interest State Extractor — Unit Tests ──────────────────────── */
-/* Tests extractInterestState, findInterestButtons, isInterestActive. */
+/* Tests the Subject interest module's read and proxy interfaces. */
 
-import { describe, it, expect } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import {
-  extractInterestState,
-  findInterestButtons,
-  isInterestActive,
-} from "@/extract/interest";
+import { extractInterestState, proxyInterestAction } from "@/extract/interest";
 
 import { buildDoc, mockCookie } from "../helpers/doc";
 
@@ -109,8 +105,8 @@ describe(extractInterestState, () => {
   });
 });
 
-describe(findInterestButtons, () => {
-  it("finds wish/collect/do buttons from #interest_sect_level", () => {
+describe(proxyInterestAction, () => {
+  it("proxy-clicks the requested original control", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
 <div id="interest_sect_level">
@@ -119,40 +115,41 @@ describe(findInterestButtons, () => {
   <a href="/do?action=collect">看过</a>
 </div>
 </body></html>`);
-    const result = findInterestButtons(doc);
-    expect(result.wish).not.toBeNull();
-    expect(result.do).not.toBeNull();
-    expect(result.collect).not.toBeNull();
+    const clicked: string[] = [];
+    for (const anchor of doc.querySelectorAll("a")) {
+      anchor.addEventListener("click", (event) => {
+        event.preventDefault();
+        clicked.push(anchor.textContent?.trim() ?? "");
+      });
+    }
+
+    proxyInterestAction(doc, "wish");
+    proxyInterestAction(doc, "do");
+    proxyInterestAction(doc, "collect");
+
+    expect(clicked).toStrictEqual(["想看", "在看", "看过"]);
   });
 
-  it("returns null buttons when no interest section", () => {
+  it("silently ignores an unavailable control", () => {
     const doc = buildDoc("<html><body><p>No interest</p></body></html>");
-    const result = findInterestButtons(doc);
-    expect(result.wish).toBeNull();
-    expect(result.collect).toBeNull();
+    expect(() => proxyInterestAction(doc, "wish")).not.toThrow();
   });
-});
 
-describe(isInterestActive, () => {
-  it("returns true when element or parent has active class", () => {
+  it("resolves the original control for every action", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
-<a class="done" href="/do?action=collect">看过</a>
+<div id="interest_sect_level"></div>
 </body></html>`);
-    const el = doc.querySelector("a");
-    expect(isInterestActive(el)).toBeTruthy();
-  });
+    proxyInterestAction(doc, "wish");
+    const root = doc.querySelector("#interest_sect_level");
+    const anchor = doc.createElement("a");
+    anchor.textContent = "想看";
+    const clicked = vi.fn<() => void>();
+    anchor.addEventListener("click", clicked);
+    root?.append(anchor);
 
-  it("returns false when no active class", () => {
-    const doc = buildDoc(`<!DOCTYPE html>
-<html><body>
-<a href="/do?action=wish">想看</a>
-</body></html>`);
-    const el = doc.querySelector("a");
-    expect(isInterestActive(el)).toBeFalsy();
-  });
+    proxyInterestAction(doc, "wish");
 
-  it("returns false for null element", () => {
-    expect(isInterestActive(null)).toBeFalsy();
+    expect(clicked).toHaveBeenCalledOnce();
   });
 });
