@@ -1,46 +1,59 @@
-import { useRef } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import { PlayIcon } from "@/components/common/icons";
 import { Section } from "@/components/layout/section";
-import { openPosterModal, openVideoModal } from "@/components/modal";
-import type { Photo, PhotosData } from "@/types";
+import type { Photo, PhotosData, Trailer } from "@/types";
 
 type PhotosSectionProps = {
   data: PhotosData;
+  onOpenPoster?: (src: string, alt: string) => void;
+  onOpenVideo?: (trailer: Trailer) => void;
 };
 
-const PhotoTile = ({ photo }: { photo: Photo }) => {
-  const tileRef = useRef<HTMLButtonElement>(null);
+const noop = (): undefined => undefined;
+
+const PhotoTile = ({
+  onOpenPoster,
+  photo,
+}: {
+  onOpenPoster: (src: string, alt: string) => void;
+  photo: Photo;
+}) => {
+  const primarySrc = photo.hdUrl || photo.thumbUrl;
+  const [displaySrc, setDisplaySrc] = useState(primarySrc);
+  const [isPortrait, setIsPortrait] = useState(false);
 
   return (
     <button
-      class="atv-photo-tile"
-      onClick={() => openPosterModal(photo.hdUrl || photo.thumbUrl, "剧照")}
-      ref={tileRef}
+      class={`atv-photo-tile${isPortrait ? " is-portrait" : ""}`}
+      onClick={() => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照")}
       type="button"
     >
       <img
         alt="剧照"
         loading="lazy"
-        onError={(event) => {
-          const img = event.currentTarget as HTMLImageElement;
-          if (photo.thumbUrl && img.src !== photo.thumbUrl) {
-            img.src = photo.thumbUrl;
+        onError={() => {
+          if (photo.thumbUrl && displaySrc !== photo.thumbUrl) {
+            setDisplaySrc(photo.thumbUrl);
           }
         }}
         onLoad={(event) => {
-          const img = event.currentTarget as HTMLImageElement;
+          const img = event.currentTarget;
           if (img.naturalHeight > img.naturalWidth) {
-            tileRef.current?.classList.add("is-portrait");
+            setIsPortrait(true);
           }
         }}
-        src={photo.hdUrl || photo.thumbUrl}
+        src={displaySrc}
       />
     </button>
   );
 };
 
-const PhotosSection = ({ data }: PhotosSectionProps) =>
+const PhotosSection = ({
+  data,
+  onOpenPoster = noop,
+  onOpenVideo = noop,
+}: PhotosSectionProps) =>
   data.photos.length || data.trailers.length ? (
     <Section
       id="atv-photos"
@@ -59,7 +72,7 @@ const PhotosSection = ({ data }: PhotosSectionProps) =>
           <button
             class="atv-photo-tile atv-trailer-tile"
             key={trailer.trailerPageUrl}
-            onClick={() => openVideoModal(trailer)}
+            onClick={() => onOpenVideo(trailer)}
             style={{
               backgroundImage: `url("${trailer.thumbUrl}")`,
               backgroundPosition: "center",
@@ -76,7 +89,11 @@ const PhotosSection = ({ data }: PhotosSectionProps) =>
           </button>
         ))}
         {data.photos.map((photo) => (
-          <PhotoTile key={photo.link} photo={photo} />
+          <PhotoTile
+            key={photo.link}
+            onOpenPoster={onOpenPoster}
+            photo={photo}
+          />
         ))}
       </div>
     </Section>

@@ -10,6 +10,46 @@ type ReviewContentState =
 const stripInlineStyles = (html: string): string =>
   html.replaceAll(/\sstyle="[^"]*"/giu, "");
 
+const allowedTags = new Set([
+  "a",
+  "b",
+  "blockquote",
+  "br",
+  "code",
+  "div",
+  "em",
+  "h1",
+  "h2",
+  "h3",
+  "li",
+  "ol",
+  "p",
+  "pre",
+  "span",
+  "strong",
+  "ul",
+]);
+
+const sanitizeReviewHtml = (html: string): string => {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const element of doc.body.querySelectorAll("*")) {
+    if (!allowedTags.has(element.tagName.toLowerCase())) {
+      element.replaceWith(...element.childNodes);
+      continue;
+    }
+    for (const attribute of element.attributes) {
+      const allowedHref =
+        element.tagName.toLowerCase() === "a" && attribute.name === "href";
+      const safeHref =
+        allowedHref && /^(?:https?:|\/|#)/iu.test(attribute.value.trim());
+      if (!safeHref) {
+        element.removeAttribute(attribute.name);
+      }
+    }
+  }
+  return doc.body.innerHTML;
+};
+
 const findNativeReviewContent = (rid: string): string | null => {
   const numericId = reviewNumericId(rid);
   const nativeItem = document.querySelector(`[id="${rid}"]`);
@@ -17,7 +57,9 @@ const findNativeReviewContent = (rid: string): string | null => {
     `#review_${numericId}_full .review-content`
   );
   const text = (fullContent?.textContent ?? "").trim();
-  return fullContent && text ? stripInlineStyles(fullContent.innerHTML) : null;
+  return fullContent && text
+    ? sanitizeReviewHtml(stripInlineStyles(fullContent.innerHTML))
+    : null;
 };
 
 const useReviewContent = (rid: string): ReviewContentState => {
@@ -57,7 +99,7 @@ const useReviewContent = (rid: string): ReviewContentState => {
           throw new Error("no content");
         }
         setState({
-          html: stripInlineStyles(content.innerHTML),
+          html: sanitizeReviewHtml(stripInlineStyles(content.innerHTML)),
           status: "loaded",
         });
       } catch {
@@ -76,5 +118,10 @@ const useReviewContent = (rid: string): ReviewContentState => {
   return state;
 };
 
-export { findNativeReviewContent, stripInlineStyles, useReviewContent };
+export {
+  findNativeReviewContent,
+  sanitizeReviewHtml,
+  stripInlineStyles,
+  useReviewContent,
+};
 export type { ReviewContentState };

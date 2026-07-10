@@ -1,11 +1,5 @@
 /* ── Generic Types ─────────────────────────────────────── */
 
-/** A name + URL pair, used by streaming sources and links */
-type Link = {
-  name: string;
-  url: string;
-};
-
 /* ── Extract Return Types ─────────────────────────────── */
 
 /** Return type of extractTitle() */
@@ -322,7 +316,6 @@ export type {
   RtRating,
   InterestFormState,
   InterestState,
-  Link,
   ModalCallbacks,
   NavSection,
   Photo,

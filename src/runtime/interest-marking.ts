@@ -1,6 +1,5 @@
 import { postInterest, removeInterest } from "@/api/interest";
-import { findInterestButtons } from "@/extract/interest";
-import { openInterestModal } from "@/modules/subject-page/interest";
+import { proxyInterestAction } from "@/extract/interest";
 import type {
   HeroCallbacks,
   InterestFormState,
@@ -75,7 +74,6 @@ const buildInterestMarkingCallbacks = (
   adapters: InterestMarkingAdapters = {}
 ): HeroCallbacks => {
   const doc = adapters.doc ?? document;
-  const interestBtns = findInterestButtons(doc);
   const accountGate =
     adapters.accountGate ??
     createAccountGate({ loggedIn: adapters.loggedIn ?? true });
@@ -84,34 +82,34 @@ const buildInterestMarkingCallbacks = (
     reload: adapters.reload ?? reloadPage,
     remove: adapters.remove ?? removeInterest,
   };
-  const openModal = adapters.openModal ?? openInterestModal;
+  const { openModal } = adapters;
 
   return {
     handleCollectClick: () => {
       if (!accountGate.requireLogin("标记看过")) {
         return;
       }
-      interestBtns.collect?.click();
+      proxyInterestAction(doc, "collect");
     },
     handleOpenInterest: (state) => {
       if (!accountGate.requireLogin("标记这部作品")) {
         return;
       }
-      openModal(state, buildModalCallbacks(subjectId, modalAdapters));
+      openModal?.(state, buildModalCallbacks(subjectId, modalAdapters));
     },
     handleWatchingClick: () => {
       if (!accountGate.requireLogin("标记在看")) {
         return;
       }
-      interestBtns.do?.click();
+      proxyInterestAction(doc, "do");
     },
     handleWishClick: () => {
       if (!accountGate.requireLogin("标记想看")) {
         return;
       }
-      interestBtns.wish?.click();
+      proxyInterestAction(doc, "wish");
     },
   };
 };
 
-export { buildInterestMarkingCallbacks };
+export { buildInterestMarkingCallbacks, buildModalCallbacks };

@@ -150,7 +150,23 @@ describe(CommentsSection, () => {
     expect(card?.classList.contains("has-overflow")).toBeFalsy();
   });
 
-  it("adds has-overflow when scrollHeight exceeds clientHeight (overflow detected)", () => {
+  it("adds has-overflow when scrollHeight exceeds clientHeight (overflow detected)", async () => {
+    const scrollHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "scrollHeight"
+    );
+    const clientHeight = Object.getOwnPropertyDescriptor(
+      HTMLElement.prototype,
+      "clientHeight"
+    );
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => 300,
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 100,
+    });
     const root = renderIntoRoot(
       <CommentsSection
         comments={[makeComment({ cid: "c1", content: "A".repeat(500) })]}
@@ -160,31 +176,27 @@ describe(CommentsSection, () => {
       />
     );
 
-    const body = root.querySelector<HTMLElement>(".atv-comment-body-text");
-    expect(body).not.toBeNull();
-
-    const bodyEl = body as HTMLElement;
-    Object.defineProperty(bodyEl, "scrollHeight", {
-      configurable: true,
-      value: 300,
-    });
-    Object.defineProperty(bodyEl, "clientHeight", {
-      configurable: true,
-      value: 100,
-    });
-
-    render(
-      <CommentsSection
-        comments={[makeComment({ cid: "c1", content: "B".repeat(300) })]}
-        onOpen={vi.fn<() => void>()}
-        onVote={() => Promise.resolve({ ok: true })}
-        subjectId="1292052"
-      />,
-      root
-    );
-
+    await Promise.resolve();
     const card = root.querySelector<HTMLElement>(".atv-comment-card");
     expect(card?.classList.contains("has-overflow")).toBeTruthy();
+    if (scrollHeight) {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "scrollHeight",
+        scrollHeight
+      );
+    } else {
+      delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight;
+    }
+    if (clientHeight) {
+      Object.defineProperty(
+        HTMLElement.prototype,
+        "clientHeight",
+        clientHeight
+      );
+    } else {
+      delete (HTMLElement.prototype as { clientHeight?: number }).clientHeight;
+    }
   });
 
   it("calls onOpen on card body click only when card has overflow", async () => {
@@ -203,10 +215,31 @@ describe(CommentsSection, () => {
     await Promise.resolve();
     expect(onOpen).not.toHaveBeenCalled();
 
-    root.querySelector(".atv-comment-card")?.classList.add("has-overflow");
+    Object.defineProperty(HTMLElement.prototype, "scrollHeight", {
+      configurable: true,
+      get: () => 300,
+    });
+    Object.defineProperty(HTMLElement.prototype, "clientHeight", {
+      configurable: true,
+      get: () => 100,
+    });
+    render(
+      <CommentsSection
+        comments={[makeComment({ cid: "c1", content: "long" })]}
+        onOpen={onOpen}
+        onVote={() => Promise.resolve({ ok: true })}
+        subjectId={data.subjectId}
+      />,
+      root
+    );
+    await Promise.resolve();
     root.querySelector<HTMLElement>(".atv-comment-body")?.click();
     await Promise.resolve();
-    expect(onOpen).toHaveBeenCalledWith(data.comments[0]);
+    expect(onOpen).toHaveBeenCalledWith(
+      expect.objectContaining({ content: "long" })
+    );
+    delete (HTMLElement.prototype as { scrollHeight?: number }).scrollHeight;
+    delete (HTMLElement.prototype as { clientHeight?: number }).clientHeight;
   });
 
   it("does not optimistically vote when the account guard blocks", async () => {

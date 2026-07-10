@@ -94,6 +94,18 @@ const assertComments = async (ctx: AssertCtx): Promise<void> => {
   );
 };
 
+const evaluateStreamCard = (el: Element) => {
+  const htmlEl = el as HTMLElement;
+  const tag = el.tagName;
+  const href = tag === "A" ? (el as HTMLAnchorElement).href : "";
+  const nameEl = el.querySelector(".atv-stream-name");
+  const name = nameEl?.textContent?.trim() || "";
+  const isCombined = el.classList.contains("atv-stream-card--combined");
+  const provider = htmlEl.dataset.provider || "";
+  const label = isCombined ? provider : name;
+  return { href, isCombined, label, name, provider, tag };
+};
+
 const assertStreaming = async (ctx: AssertCtx): Promise<void> => {
   const { page, scenario } = ctx;
   const streamCards = await page.$$(`${ROOT_SEL} .atv-stream-card`);
@@ -106,35 +118,25 @@ const assertStreaming = async (ctx: AssertCtx): Promise<void> => {
     return;
   }
 
-  const firstStream = await streamCards[0].evaluate((el) => ({
-    href: el.tagName === "A" ? (el as HTMLAnchorElement).href : "",
-    name: el.textContent?.trim() || "",
-    tag: el.tagName,
-  }));
+  const firstStream = await streamCards[0].evaluate(evaluateStreamCard);
   const valid =
-    firstStream.name.length > 0 &&
     firstStream.tag === "A" &&
-    EXTERNAL_URL_REGEX.test(firstStream.href);
+    EXTERNAL_URL_REGEX.test(firstStream.href) &&
+    (firstStream.name.length > 0 || firstStream.isCombined);
   record(
     scenario.name,
-    `streaming cards rendered (${streamCards.length}, ${firstStream.tag} "${firstStream.name.slice(0, 10)}")`,
+    `streaming cards rendered (${streamCards.length}, ${firstStream.tag} "${firstStream.label.slice(0, 10)}")`,
     valid
   );
 
   const cardInfos = await Promise.all(
-    streamCards.map((card) =>
-      card.evaluate((el) => ({
-        href: el.tagName === "A" ? (el as HTMLAnchorElement).href : "",
-        name: el.textContent?.trim() || "",
-        tag: el.tagName,
-      }))
-    )
+    streamCards.map((card) => card.evaluate(evaluateStreamCard))
   );
   const allValid = cardInfos.every(
     (info) =>
-      info.name.length > 0 &&
       info.tag === "A" &&
-      EXTERNAL_URL_REGEX.test(info.href)
+      EXTERNAL_URL_REGEX.test(info.href) &&
+      (info.name.length > 0 || info.isCombined)
   );
   record(
     scenario.name,

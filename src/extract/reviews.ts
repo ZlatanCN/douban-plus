@@ -37,8 +37,9 @@ const extractReviewRating = (
 const extractReviewContent = (item: HTMLElement): string => {
   const shortContent = $<HTMLElement>(".review-short .short-content", item);
   if (shortContent) {
-    shortContent.querySelector("a.unfold")?.remove();
-    return safeText(shortContent)
+    const contentCopy = shortContent.cloneNode(true) as HTMLElement;
+    contentCopy.querySelector("a.unfold")?.remove();
+    return safeText(contentCopy)
       .replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "")
       .trim();
   }

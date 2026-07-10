@@ -58,7 +58,7 @@ const ReviewModalContent = ({
   return (
     <>
       <ModalCloseButton ariaLabel="关闭影评" onClick={handleClose} />
-      <div class="atv-modal-accent-bar atv-review-modal-accent" />
+      <div class="atv-modal-accent-bar" />
       <div class="atv-review-modal-header">
         <div
           class="atv-review-modal-title"

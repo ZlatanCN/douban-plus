@@ -93,7 +93,6 @@ const mountNativeLoginFrame = (
       return;
     }
     host.replaceChildren(result.iframe);
-    host.setAttribute("aria-busy", "false");
     onError("");
     requestAnimationFrame(() => result.iframe.focus());
     return;

@@ -2,16 +2,12 @@ import { render } from "preact";
 
 import { postVote } from "@/api/comment";
 import { postReviewVote } from "@/api/review";
-import { computeNavSections, StickyNav } from "@/components/layout";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { HeroCallbacks } from "@/types";
 
-import { createAccountGate } from "./account-gate";
-import { startAvatarEffect } from "./avatar-effect";
 import { extractDoubanData } from "./extract-data";
 import { buildInterestMarkingCallbacks } from "./interest-marking";
-import { extractSeriesMoreLink, watchSeries } from "./series-effect";
-import { startStickyReveal, trackActiveSection } from "./sticky-effect";
+import { extractSeriesMoreLink } from "./series-effect";
 
 const setSubjectTitle = (
   doc: Document,
@@ -52,19 +48,15 @@ const mountSubjectPage = (doc: Document = document): void => {
   }
 
   setSubjectTitle(doc, data);
-  const accountGate = createAccountGate({ loggedIn: data.interest.loggedIn });
-
   const root = doc.createElement("div");
   root.id = "atv-douban-root";
-  const stickyNav = doc.createElement("nav");
-  stickyNav.className = "atv-stickynav";
-
   render(
     <SubjectPage
       data={data}
       deps={{
-        canReviewVote: () => accountGate.requireLogin("给影评投票"),
-        canVote: () => accountGate.requireLogin("给短评点有用"),
+        canReviewVote: () => true,
+        canVote: () => true,
+        doc,
         handleReviewVote: (rid: string, type: "useful" | "useless") =>
           postReviewVote(rid, type, data.subjectId),
         handleVote: (cid: string) => postVote(cid, data.subjectId),
@@ -78,19 +70,7 @@ const mountSubjectPage = (doc: Document = document): void => {
     />,
     root
   );
-  render(
-    <StickyNav sections={computeNavSections(data)} title={data.title} />,
-    stickyNav
-  );
-
-  startAvatarEffect(data.comments);
-
   doc.body.insertBefore(root, doc.body.firstChild);
-  doc.body.append(stickyNav);
-
-  startStickyReveal(stickyNav);
-  trackActiveSection(stickyNav, doc);
-  watchSeries(root, stickyNav, doc);
 };
 
 export { buildHeroCallbacks, mountSubjectPage };

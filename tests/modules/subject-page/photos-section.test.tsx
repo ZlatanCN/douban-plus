@@ -73,4 +73,25 @@ describe(PhotosSection, () => {
     );
     expect(tiles[1]?.querySelector("img")?.getAttribute("alt")).toBe("剧照");
   });
+
+  it("renders image fallback and portrait styling from component state", async () => {
+    const root = renderIntoRoot(
+      <PhotosSection data={makeData({ photos: [makePhoto()] })} />
+    );
+    const image = root.querySelector<HTMLImageElement>(".atv-photo-tile img");
+    const tile = root.querySelector<HTMLElement>(".atv-photo-tile");
+
+    if (!image) {
+      throw new Error("Expected photo image");
+    }
+    Object.defineProperty(image, "naturalHeight", { value: 200 });
+    Object.defineProperty(image, "naturalWidth", { value: 100 });
+    image?.dispatchEvent(new Event("load", { bubbles: true }));
+    await Promise.resolve();
+    expect(tile?.classList.contains("is-portrait")).toBeTruthy();
+
+    image?.dispatchEvent(new Event("error", { bubbles: true }));
+    await Promise.resolve();
+    expect(image?.getAttribute("src")).toBe("https://example.com/thumb.jpg");
+  });
 });

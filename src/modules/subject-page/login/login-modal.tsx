@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { ModalCloseButton, ModalShell } from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
 
 import { mountNativeLoginFrame } from "./native-login-frame";
@@ -63,7 +63,6 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
     mountNativeLoginFrame(host, (message) => {
       setStatus(message);
       setBusy(false);
-      host.setAttribute("aria-busy", "false");
     });
   }, []);
 

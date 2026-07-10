@@ -70,6 +70,15 @@ describe(extractReviews, () => {
     expect(result[0].content).toBe("一部令人深思的经典之作");
   });
 
+  it("does not mutate the connected Douban document while normalizing content", () => {
+    const doc = buildDoc(
+      `<!DOCTYPE html><div id="reviews-wrapper"><div class="review-item" id="r1"><div class="main-hd"><a class="name">用户</a></div><div class="main-bd"><h2><a>标题</a></h2><div class="review-short"><div class="short-content">摘要<a class="unfold">展开</a></div></div></div></div></div>`
+    );
+
+    expect(extractReviews(doc)[0]?.content).toBe("摘要");
+    expect(doc.querySelector(".short-content .unfold")).not.toBeNull();
+  });
+
   it("skips items with empty title", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

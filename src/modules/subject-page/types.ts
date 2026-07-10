@@ -9,6 +9,7 @@ type CommentVoteCallback = (
 ) => Promise<{ ok: boolean; count?: number }>;
 
 type SubjectPageDeps = {
+  doc?: Document;
   canReviewVote?: AccountActionGuard;
   canVote?: AccountActionGuard;
   heroCallbacks: HeroCallbacks;

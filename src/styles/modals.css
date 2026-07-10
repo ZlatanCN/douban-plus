@@ -93,6 +93,33 @@
   display: block;
 }
 
+/* ---------- Video modal spinner ---------- */
+@keyframes atv-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.atv-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: #41be5d;
+  border-radius: 50%;
+  animation: atv-spin 0.8s linear infinite;
+}
+
+.atv-modal-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #fff;
+  font-size: 15px;
+}
+
 /* ---------- Footer spacer ---------- */
 .atv-footer-spacer {
   height: 64px;

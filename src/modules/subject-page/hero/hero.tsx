@@ -10,9 +10,12 @@ import { HeroSummary } from "./hero-summary";
 type HeroProps = {
   callbacks: HeroCallbacks;
   data: HeroData;
+  onOpenPoster?: (src: string, alt: string) => void;
 };
 
-const Hero = ({ callbacks, data }: HeroProps) => (
+const noop = (): undefined => undefined;
+
+const Hero = ({ callbacks, data, onOpenPoster = noop }: HeroProps) => (
   <section class="atv-hero">
     <HeroBackground
       photos={data.photos}
@@ -24,7 +27,11 @@ const Hero = ({ callbacks, data }: HeroProps) => (
     <div class="atv-hero-overlay-y" />
     <div class="atv-hero-inner-section">
       <div class="atv-hero-inner">
-        <HeroPoster poster={data.poster} title={data.title} />
+        <HeroPoster
+          onOpenPoster={onOpenPoster}
+          poster={data.poster}
+          title={data.title}
+        />
         <div class="atv-hero-info">
           <h1 class="atv-hero-title">
             {data.title.primary || data.title.full}

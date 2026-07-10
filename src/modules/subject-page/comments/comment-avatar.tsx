@@ -7,7 +7,7 @@ type CommentAvatarProps = {
 
 const CommentAvatar = ({ className, comment }: CommentAvatarProps) => (
   <div
-    class={className}
+    class={`${className}${comment.avatar ? " atv-avatar-loaded" : ""}`}
     data-cid={comment.cid || undefined}
     style={
       comment.avatar
