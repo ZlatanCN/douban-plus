@@ -1,6 +1,7 @@
 import { Section } from "@/components/layout/section";
 import type { AccountActionGuard, Comment } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
 import type { CommentVoteCallback } from "../types";
 import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
@@ -41,7 +42,7 @@ const CommentsSection = ({
             }
           : undefined
       }
-      title="热门短评"
+      title={getSubjectSectionCopy("comments").sectionTitle}
     >
       <div class="atv-comments">
         {comments.map((comment) => (

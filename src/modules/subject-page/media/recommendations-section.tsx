@@ -2,6 +2,8 @@ import { PosterImage } from "@/components/common/poster-image";
 import { Section } from "@/components/layout/section";
 import type { Recommendation } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
+
 type RecommendationsSectionProps = {
   recommendations: Recommendation[];
 };
@@ -10,7 +12,10 @@ const RecommendationsSection = ({
   recommendations,
 }: RecommendationsSectionProps) =>
   recommendations.length ? (
-    <Section id="atv-recs" title="相似作品">
+    <Section
+      id="atv-recs"
+      title={getSubjectSectionCopy("recommendations").sectionTitle}
+    >
       <div class="atv-recs">
         {recommendations.map((item) => {
           const content = (

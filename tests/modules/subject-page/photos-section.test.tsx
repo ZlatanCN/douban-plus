@@ -40,7 +40,7 @@ describe(PhotosSection, () => {
     const section = root.querySelector<HTMLElement>("#atv-photos");
 
     expect(section?.tagName).toBe("SECTION");
-    expect(section?.querySelector("h2")?.textContent).toBe("剧照");
+    expect(section?.querySelector("h2")?.textContent).toBe("影像");
   });
 
   it("renders all-photos link with href, target and rel", () => {

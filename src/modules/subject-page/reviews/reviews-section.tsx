@@ -1,6 +1,7 @@
 import { Section } from "@/components/layout/section";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
 import { ReviewCard } from "./review-card";
 import type { ReviewVoteState } from "./review-vote-state";
 
@@ -40,7 +41,9 @@ const ReviewsSection = ({
         href: `https://movie.douban.com/subject/${subjectId}/reviews`,
         text: "查看全部 →",
       }}
-      title={isTV ? "热门剧评" : "热门影评"}
+      title={
+        getSubjectSectionCopy(isTV ? "tvReviews" : "movieReviews").sectionTitle
+      }
     >
       <div class="atv-reviews">
         {reviews.map((review) => (

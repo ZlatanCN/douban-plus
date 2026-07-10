@@ -146,9 +146,12 @@ const S = {
   cast: { id: "atv-cast", label: "演职员" },
   comments: { id: "atv-comments", label: "短评" },
   info: { id: "atv-info", label: "详情" },
-  photos: { id: "atv-photos", label: "剧照" },
+  movieReviews: { id: "atv-reviews", label: "影评" },
+  photos: { id: "atv-photos", label: "影像" },
   recs: { id: "atv-recs", label: "相似作品" },
-  stream: { id: "atv-stream", label: "在哪儿看" },
+  series: { id: "atv-series", label: "同系列" },
+  stream: { id: "atv-stream", label: "观看平台" },
+  tvReviews: { id: "atv-reviews", label: "剧评" },
 } as const;
 
 /* ═══════════════════════════════════════════════════════════ */
@@ -234,6 +237,36 @@ describe(computeNavSections, () => {
     for (const section of result) {
       expect(section.label.length).toBeGreaterThan(0);
     }
+  });
+
+  it("uses relationship and media-type labels at the navigation seam", () => {
+    const review = {
+      avatar: "",
+      content: "Content",
+      id: "r1",
+      link: "",
+      name: "User",
+      ratingWord: "",
+      spoiler: false,
+      stars: 0,
+      time: "",
+      title: "Review",
+      usefulCount: 0,
+      uselessCount: 0,
+    };
+    const series = { link: "", poster: "", rating: "", title: "Season 1" };
+    const movieSections = computeNavSections(
+      makeDoubanData({ reviews: [review], series: [series] })
+    );
+    const tvSections = computeNavSections(
+      makeDoubanData({ isTV: true, reviews: [review], series: [series] })
+    );
+
+    expect([
+      movieSections.find((section) => section.id === "atv-series"),
+      movieSections.find((section) => section.id === "atv-reviews"),
+      tvSections.find((section) => section.id === "atv-reviews"),
+    ]).toStrictEqual([S.series, S.movieReviews, S.tvReviews]);
   });
 });
 
