@@ -117,7 +117,14 @@ describe("installMockGM / cleanupMockGM", () => {
 });
 
 describe("fixtures are readable", () => {
-  const fixtureFiles = ["movie-minimal.html", "no-poster.html"];
+  const fixtureFiles = [
+    "movie-minimal.html",
+    "movie-full.html",
+    "tv-full.html",
+    "no-poster.html",
+    "logged-in.html",
+    "logged-out.html",
+  ];
 
   it.each(fixtureFiles)("reads %s", (file) => {
     const content = readFileSync(

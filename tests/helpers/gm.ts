@@ -4,6 +4,27 @@
 import { vi } from "vitest";
 
 /**
+ * Default mock response factory — returns a simple JSON response.
+ * Uses `new Response()` to avoid structural mismatch with happy-dom's
+ * Response class (which has private fields).
+ */
+const createMockResponse = (overrides: Partial<Response> = {}): Response => {
+  const response = new Response(null, {
+    headers:
+      overrides.headers ?? new Headers({ "content-type": "application/json" }),
+    status: overrides.status ?? 200,
+    statusText: overrides.statusText ?? "OK",
+  });
+  return Object.defineProperties(response, {
+    clone: { value: overrides.clone ?? (() => createMockResponse(overrides)) },
+    ok: { value: overrides.ok ?? true },
+    redirected: { value: overrides.redirected ?? false },
+    type: { value: overrides.type ?? "basic" },
+    url: { value: overrides.url ?? "https://api.douban.com/" },
+  });
+};
+
+/**
  * Install a mock GM_xmlhttpRequest on globalThis.
  * The mock ignores most params and returns a successful empty response.
  *
@@ -35,4 +56,4 @@ const cleanupMockGM = (): void => {
   globalThis.GM_xmlhttpRequest = undefined;
 };
 
-export { cleanupMockGM, installMockGM };
+export { cleanupMockGM, createMockResponse, installMockGM };

@@ -73,7 +73,13 @@
   color: var(--atv-accent-bright);
   background: transparent;
 }
-
+.atv-stickynav-jumps a.is-active {
+  color: var(--atv-accent-bright);
+}
+.atv-stickynav-jumps a.is-active::after {
+  left: 0;
+  width: 100%;
+}
 @media (max-width: 768px) {
   .atv-stickynav-title {
     font-size: 14px;

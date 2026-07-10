@@ -36,7 +36,7 @@
 			else (document.head || document.documentElement).appendChild(document.createElement("style")).append(c);
 		})(t);
 	};
-	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgba(255, 255, 255, 0.06);\n  --atv-text-primary: #ffffff;\n  --atv-text-secondary: rgba(255, 255, 255, 0.72);\n  --atv-text-tertiary: rgba(255, 255, 255, 0.45);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgba(65, 190, 93, 0.35);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgba(255, 255, 255, 0.08);\n  --atv-border-medium: rgba(255, 255, 255, 0.16);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n}\n\nbody > #wrapper {\n  display: none !important;\n}\n\nbody {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\n#db-global-nav,\n#db-nav-movie {\n  display: none !important;\n}\n\n[id^=\"dale_\"],\n[class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  background: var(--atv-bg-primary);\n  opacity: 0;\n  animation: atv-fadein 480ms cubic-bezier(0.22, 1, 0.36, 1) 60ms forwards;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n\n@keyframes atv-rise {\n  from {\n    opacity: 0;\n    transform: translateY(14px);\n  }\n  to {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 9999;\n  box-sizing: border-box;\n  display: flex;\n  gap: 24px;\n  align-items: center;\n  justify-content: space-between;\n  height: 56px;\n  padding: 0 max(28px, 5vw);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  pointer-events: none;\n  background: rgba(10, 10, 12, 0.74);\n  border-bottom: 1px solid rgba(255, 255, 255, 0.06);\n  opacity: 0;\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  transform: translateY(-100%);\n  transition:\n    opacity 280ms ease,\n    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n  opacity: 1;\n  transform: none;\n}\n\n.atv-stickynav-title {\n  flex: 0 1 auto;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  color: #fff;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  font-size: 14px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.7);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  cursor: pointer;\n  transition: color 200ms ease;\n}\n\n.atv-stickynav-jumps a::after {\n  content: \"\";\n  position: absolute;\n  bottom: -4px;\n  left: 50%;\n  width: 0;\n  height: 2px;\n  background: var(--atv-accent);\n  border-radius: 1px;\n  transition:\n    width 250ms ease,\n    left 250ms ease;\n}\n\n.atv-stickynav-jumps a:hover {\n  color: var(--atv-accent-bright);\n  background: transparent;\n}\n\n.atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-jumps a.is-active::after {\n  left: 0;\n  width: 100%;\n}\n\n@media (max-width: 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  min-height: 75vh;\n  padding: 132px max(28px, 5vw) 56px;\n  overflow: visible;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -4;\n  height: 75vh;\n  overflow: hidden;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  inset: 0;\n  background-repeat: no-repeat;\n  background-position: center 30%;\n  background-size: cover;\n  transform: scale(1.04);\n  backface-visibility: hidden;\n  will-change: transform, opacity;\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  opacity: 0;\n  filter: saturate(1.08) brightness(0.88);\n  transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  opacity: 1;\n  animation: atv-kenburns 22s ease-out forwards;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1) translate(0, 0);\n  }\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd.is-loaded {\n    transform: scale(1.04);\n    animation: none;\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -3;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgba(0, 0, 0, 0.55) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -2;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgba(0, 0, 0, 0.96) 0%,\n    rgba(0, 0, 0, 0.82) 32%,\n    rgba(0, 0, 0, 0.5) 62%,\n    rgba(0, 0, 0, 0.35) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -1;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgba(0, 0, 0, 0.45) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  gap: 56px;\n  align-items: flex-start;\n  width: 100%;\n  max-width: 1100px;\n  margin: 0 auto;\n}\n\n.atv-poster-card {\n  display: flex;\n  flex: 0 0 auto;\n  width: 360px;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  border: none;\n  padding: 0;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-lg);\n  box-shadow:\n    0 24px 60px rgba(0, 0, 0, 0.6),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-poster-card:hover {\n  transform: scale(1.03);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  flex: 1 1 auto;\n  min-width: 0;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  line-height: 1.05;\n  color: #fff;\n  letter-spacing: -0.02em;\n  text-shadow:\n    0 2px 20px rgba(0, 0, 0, 0.7),\n    0 0 60px rgba(0, 0, 0, 0.3);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  color: var(--atv-text-secondary);\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 10px 14px;\n  align-items: center;\n  margin-bottom: 24px;\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-secondary);\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-secondary);\n  text-transform: none;\n  letter-spacing: 0.02em;\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0;\n  align-items: stretch;\n  width: fit-content;\n  min-width: 320px;\n  margin-bottom: 28px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: var(--atv-radius-md);\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  flex: 1;\n  display: grid;\n  grid-template-rows: 28px 44px 20px 1fr;\n  justify-items: center;\n  align-items: center;\n  padding: 16px 24px 14px;\n  text-align: center;\n  transition: background 200ms ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgba(255, 255, 255, 0.03);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity 200ms ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  line-height: 1;\n  letter-spacing: -0.03em;\n  color: var(--atv-text-primary);\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  width: 40px;\n  height: 4px;\n  border-radius: 2px;\n  background: rgba(255, 255, 255, 0.1);\n  overflow: hidden;\n  flex-shrink: 0;\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  line-height: 1;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  gap: 2px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  grid-template-columns: 1fr auto 1fr;\n  gap: 8px;\n  align-items: center;\n  width: 100%;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  line-height: 1;\n  letter-spacing: -0.03em;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgba(255, 107, 91, 0.85);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgba(255, 167, 38, 0.85);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row {\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n}\n\n.atv-rt-count-value {\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row {\n  grid-template-columns: 1fr 1fr;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgba(255, 255, 255, 0.12);\n  flex-shrink: 0;\n}\n\n@media (max-width: 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  font-size: 13px;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.03em;\n  padding: 10px 0;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-imdb.is-loading,\n.atv-rating-panel-rt.is-loading,\n.atv-rating-panel-mc.is-loading {\n  transition: opacity 400ms ease;\n}\n\n.atv-rating-panel-imdb.is-empty,\n.atv-rating-panel-rt.is-empty,\n.atv-rating-panel-mc.is-empty {\n  display: none;\n}\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: linear-gradient(\n    90deg,\n    rgba(255, 255, 255, 0.04) 25%,\n    rgba(255, 255, 255, 0.1) 50%,\n    rgba(255, 255, 255, 0.04) 75%\n  );\n  background-size: 200% 100%;\n  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;\n}\n\n@keyframes atv-ratings-shimmer {\n  0% {\n    background-position: 200% 0;\n  }\n  100% {\n    background-position: -200% 0;\n  }\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n  margin-bottom: 26px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  height: 44px;\n  padding: 0 22px;\n  border: none;\n  background: none;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  color: inherit;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    transform 200ms ease,\n    background 200ms ease,\n    box-shadow 200ms ease,\n    color 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-btn-primary {\n  color: #fff;\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n}\n\n.atv-btn-primary:hover {\n  background: var(--atv-accent-bright);\n  transform: translateY(-1px);\n}\n\n.atv-btn-secondary {\n  color: var(--atv-text-primary);\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-medium);\n  -webkit-backdrop-filter: blur(10px);\n  backdrop-filter: blur(10px);\n}\n\n.atv-btn-secondary:hover {\n  background: rgba(255, 255, 255, 0.12);\n  transform: translateY(-1px);\n}\n\n.atv-btn.is-active {\n  color: #fff;\n  background: var(--atv-accent);\n  border-color: transparent;\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  max-width: 660px;\n  margin: 0 0 12px;\n  font-size: 15px;\n  line-height: 1.75;\n  color: var(--atv-text-secondary);\n  word-break: break-word;\n  white-space: pre-wrap;\n  overflow: hidden;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  gap: 6px;\n  align-items: center;\n  padding: 0;\n  border: none;\n  background: none;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-accent-bright);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform 220ms ease;\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  scroll-margin-top: 64px;\n  animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  content: \"\";\n  background: var(--atv-accent);\n  border-radius: 2px;\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  gap: 16px;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  font-size: 14px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  transition: color 200ms ease;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-snap-type: x mandatory;\n  scroll-behavior: smooth;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-carousel {\n  scrollbar-width: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  background: #3a3a3c;\n  border-radius: 3px;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-carousel {\n  mask-image: linear-gradient(to right, #000 97%, transparent 100%);\n  -webkit-mask-image: linear-gradient(to right, #000 97%, transparent 100%);\n}\n\n.atv-series-card {\n  flex: 0 0 158px;\n  min-width: 0;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-series-card:hover {\n  transform: translateY(-4px);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-sm);\n  transition:\n    transform 400ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 400ms ease;\n}\n\n.atv-series-card:hover .atv-series-poster {\n  box-shadow:\n    0 16px 48px rgba(0, 0, 0, 0.6),\n    0 0 0 1px rgba(255, 255, 255, 0.06);\n  transform: scale(1.06);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  content: \"\";\n  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n  display: block;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  top: 8px;\n  right: 8px;\n  z-index: 1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 28px;\n  height: 22px;\n  padding: 0 7px;\n  font-size: 11px;\n  font-weight: 700;\n  line-height: 1;\n  color: #fff;\n  letter-spacing: 0.02em;\n  background: rgba(0, 0, 0, 0.65);\n  -webkit-backdrop-filter: blur(4px);\n  backdrop-filter: blur(4px);\n  border-radius: 20px;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    background 300ms ease;\n}\n\n.atv-series-card:hover .atv-series-badge {\n  background: rgba(0, 0, 0, 0.8);\n  transform: translateY(-1px) scale(1.05);\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 0;\n  height: 2px;\n  margin-top: 4px;\n  content: \"\";\n  background: var(--atv-accent);\n  border-radius: 1px;\n  opacity: 0;\n  transition:\n    width 400ms cubic-bezier(0.22, 1, 0.36, 1),\n    opacity 400ms ease;\n}\n\n.atv-series-card:hover .atv-series-info::after {\n  width: 100%;\n  opacity: 1;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.3;\n  color: var(--atv-text-primary);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  letter-spacing: 0.01em;\n  transition: color 300ms ease;\n}\n\n.atv-series-card:hover .atv-series-title {\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-carousel {\n  mask-image: linear-gradient(to right, #000 90%, transparent 100%);\n  -webkit-mask-image: linear-gradient(to right, #000 90%, transparent 100%);\n}\n\n.atv-cast-card {\n  flex: 0 0 160px;\n  min-width: 0;\n  text-align: center;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-cast-card:hover {\n  transform: translateY(-3px);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  transition:\n    transform 300ms ease,\n    border-color 300ms ease,\n    box-shadow 300ms ease,\n    filter 300ms ease;\n}\n\n.atv-cast-card:hover .atv-cast-avatar {\n  border-color: rgba(255, 255, 255, 0.2);\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);\n  filter: brightness(1.12);\n  transform: scale(1.05);\n}\n\n.atv-cast-name {\n  margin-top: 16px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  margin-top: 4px;\n  overflow: hidden;\n  -webkit-line-clamp: 2;\n  font-size: 13px;\n  font-weight: 400;\n  line-height: 1.35;\n  color: rgba(255, 255, 255, 0.55);\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  flex: 0 0 400px;\n  aspect-ratio: 16 / 9;\n  overflow: hidden;\n  border: none;\n  padding: 0;\n  cursor: pointer;\n  scroll-snap-align: start;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-md);\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    filter 300ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-photo-tile.is-portrait {\n  flex: 0 0 240px;\n  aspect-ratio: 3 / 4;\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-photo-tile:hover {\n  filter: brightness(1.1);\n  transform: scale(1.02);\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n  gap: 24px;\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  width: 100%;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-sm);\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 300ms ease;\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-rec-card:hover .atv-rec-poster {\n  box-shadow: 0 12px 40px var(--atv-accent-glow);\n  transform: scale(1.05);\n}\n\n.atv-rec-title {\n  margin-top: 12px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n  font-size: 15px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  grid-template-columns: 200px 1fr;\n  row-gap: 16px;\n  column-gap: 32px;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  font-size: 14px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.55);\n  text-transform: uppercase;\n  letter-spacing: 0.05em;\n}\n\n.atv-info-value {\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  word-break: break-word;\n}\n\n.atv-info-value a {\n  color: var(--atv-text-primary);\n  border-bottom: 1px solid var(--atv-border-medium);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-info-value a:hover {\n  color: var(--atv-accent-bright);\n  border-color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n  gap: 11px;\n  height: 52px;\n  max-width: 240px;\n  padding: 0 20px 0 14px;\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  font-family: inherit;\n  -webkit-tap-highlight-color: transparent;\n  cursor: pointer;\n  transition:\n    background 220ms ease,\n    border-color 220ms ease,\n    box-shadow 220ms ease,\n    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  border-radius: inherit;\n  pointer-events: none;\n  opacity: 0;\n  transition: opacity 220ms ease;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n}\n\n.atv-stream-card:not(.atv-stream-card--combined):hover::after {\n  opacity: 0.18;\n}\n\n.atv-stream-card:hover {\n  background: rgba(255, 255, 255, 0.09);\n  border-color: rgba(255, 255, 255, 0.18);\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.08),\n    0 12px 26px rgba(0, 0, 0, 0.24);\n  transform: translateY(-2px);\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card--combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card--combined svg {\n  display: block;\n  height: 32px;\n  width: auto;\n  max-width: 160px;\n  transition: filter 220ms ease;\n}\n\n.atv-stream-card--combined:hover svg {\n  filter: drop-shadow(\n    0 0 14px var(--atv-stream-brand, var(--atv-accent-bright))\n  );\n}\n\n.atv-stream-logo svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentColor;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  object-fit: contain;\n  flex: 0 0 auto;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 32px;\n  height: 32px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),\n    rgba(255, 255, 255, 0.05);\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.12),\n    0 8px 18px rgba(0, 0, 0, 0.18);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n  overflow: hidden;\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 100%;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  color: currentColor;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  transition: color 220ms ease;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n  gap: 18px;\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  border-radius: var(--atv-radius-md);\n  transition:\n    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),\n    border-color 350ms ease,\n    box-shadow 350ms ease;\n}\n\n.atv-comment-card:hover {\n  border-color: rgba(255, 255, 255, 0.12);\n  transform: translateY(-3px);\n  box-shadow:\n    0 8px 32px rgba(0, 0, 0, 0.3),\n    0 0 0 1px rgba(65, 190, 93, 0.04);\n}\n\n.atv-comment-top {\n  display: flex;\n  gap: 12px;\n  align-items: center;\n  margin-bottom: 14px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 36px;\n  height: 36px;\n  overflow: hidden;\n  font-size: 15px;\n  font-weight: 600;\n  color: #fff;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  border-radius: 50%;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease,\n    filter 260ms ease;\n}\n\n.atv-comment-card:hover .atv-comment-avatar {\n  border-color: rgba(255, 255, 255, 0.3);\n  filter: brightness(1.15);\n}\n\n.atv-comment-avatar.atv-avatar-loaded {\n  animation: atv-avatar-reveal 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;\n}\n\n@keyframes atv-avatar-reveal {\n  from {\n    filter: blur(6px) brightness(1.25);\n  }\n  to {\n    filter: blur(0) brightness(1);\n  }\n}\n\n.atv-comment-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  min-width: 0;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  color: var(--atv-text-primary);\n  background: none;\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  color: var(--atv-rating-gold);\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  flex: 1 1 auto;\n  margin: 0 0 14px;\n  border: none;\n  padding: 0;\n  width: 100%;\n  background: none;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  color: rgba(255, 255, 255, 0.85);\n  text-align: left;\n  cursor: pointer;\n  appearance: none;\n  -webkit-appearance: none;\n  word-break: break-word;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  -webkit-line-clamp: 4;\n  word-break: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  gap: 12px;\n  align-items: center;\n  justify-content: space-between;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  gap: 5px;\n  align-items: center;\n  padding: 4px 10px;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  background: none;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 100px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);\n}\n\n.atv-comment-votes:hover {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.04);\n  transform: scale(1.05);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.95);\n}\n\n.atv-comment-votes.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.25);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  gap: 6px;\n  align-items: center;\n}\n\n.atv-comment-expand {\n  display: none;\n  align-items: center;\n  justify-content: center;\n  width: 22px;\n  height: 22px;\n  padding: 0;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  background: rgba(0, 0, 0, 0.3);\n  font: inherit;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  border-radius: 50%;\n  backdrop-filter: blur(4px);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  color: var(--atv-accent);\n  border-color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.1);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.9);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 24px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  opacity: 0;\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-comment-overlay.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  overflow-y: auto;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 20px;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-comment-overlay.is-open .atv-comment-overlay-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  top: 16px;\n  right: 16px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n  color: rgba(255, 255, 255, 0.6);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  gap: 14px;\n  align-items: center;\n  padding: 28px 28px 0;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 44px;\n  height: 44px;\n  overflow: hidden;\n  font-size: 18px;\n  font-weight: 600;\n  color: #fff;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  border-radius: 50%;\n  border: 2px solid var(--atv-border-subtle);\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  min-width: 0;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  color: var(--atv-text-primary);\n  background: none;\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  gap: 2px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  font-size: 15px;\n  line-height: 1.75;\n  color: rgba(255, 255, 255, 0.85);\n  word-break: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  gap: 5px;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: rgba(255, 255, 255, 0.04);\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  border-radius: 100px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-comment-overlay-votes:hover {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.04);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.95);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.25);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 0;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.78);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(28px) saturate(1.15);\n  backdrop-filter: blur(28px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  object-fit: contain;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);\n  transform: scale(0.92);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open .atv-modal-img {\n  transform: scale(1);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 1;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  transform: scaleX(0);\n  transform-origin: center;\n  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.is-open .atv-modal-accent-bar {\n  transform: scaleX(1);\n}\n\n.atv-modal-close {\n  position: fixed;\n  top: 24px;\n  right: 24px;\n  z-index: 10001;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 44px;\n  height: 44px;\n  padding: 0;\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  background: rgba(255, 255, 255, 0.08);\n  color: #fff;\n  font: inherit;\n  cursor: pointer;\n  border-radius: 50%;\n  transition:\n    color 200ms ease,\n    background 200ms ease,\n    border-color 200ms ease;\n  touch-action: manipulation;\n  appearance: none;\n  -webkit-appearance: none;\n  -webkit-tap-highlight-color: transparent;\n}\n\n.atv-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.16);\n  border-color: rgba(255, 255, 255, 0.3);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgba(255, 255, 255, 0.15);\n  border-top-color: var(--atv-accent, #f5c518);\n  border-radius: 50%;\n  animation: atv-spin 800ms linear infinite;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  min-height: 100vh;\n  min-height: 100dvh;\n  margin: 0;\n  border: none;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  visibility: hidden;\n  overscroll-behavior: contain;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition:\n    visibility 0s linear 360ms,\n    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-login-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n  visibility: visible;\n  transition-delay: 0s;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  box-sizing: border-box;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  padding: 30px 22px 22px;\n  overflow: auto;\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  color: var(--atv-text-primary);\n  text-align: center;\n  background: var(--atv-bg-secondary);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  border-radius: 20px;\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.08),\n    0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n  scrollbar-width: none;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-login-modal.is-open .atv-login-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  top: 12px;\n  right: 12px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  color: var(--atv-text-primary);\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  font-size: 13px;\n  line-height: 1.55;\n  color: var(--atv-text-tertiary);\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  font-size: 12px;\n  line-height: 1.5;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  box-sizing: border-box;\n  width: 100%;\n  margin-top: 10px;\n  padding: 10px;\n  overflow: hidden;\n  border-radius: 16px;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n  background:\n    linear-gradient(\n      90deg,\n      transparent,\n      rgba(255, 255, 255, 0.055),\n      transparent\n    ),\n    rgba(255, 255, 255, 0.035);\n  background-size:\n    220% 100%,\n    auto;\n  animation: atv-login-native-loading 1400ms ease-in-out infinite;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  display: block !important;\n  box-sizing: border-box !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  margin: 0 auto !important;\n  overflow: hidden !important;\n  background: #fff !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  box-shadow: none !important;\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n@keyframes atv-login-native-loading {\n  from {\n    background-position:\n      160% 0,\n      0 0;\n  }\n  to {\n    background-position:\n      -60% 0,\n      0 0;\n  }\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 24px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-interest-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 380px;\n  max-height: 90vh;\n  overflow-y: auto;\n  background: var(--atv-bg-secondary);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  border-radius: 20px;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-interest-modal.is-open .atv-interest-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 20px 48px 0;\n}\n\n.atv-interest-modal-header__title {\n  font-size: 16px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  letter-spacing: 0.01em;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  top: 14px;\n  right: 14px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  background: rgba(255, 255, 255, 0.16);\n  border-color: rgba(255, 255, 255, 0.3);\n}\n\n.atv-interest-modal-body {\n  padding: 16px 20px 20px;\n}\n\n.atv-interest-modal-statuses {\n  display: flex;\n  gap: 0;\n  padding: 3px;\n  margin-bottom: 20px;\n  background: rgba(255, 255, 255, 0.06);\n  border-radius: 999px;\n}\n\n.atv-interest-modal-status {\n  flex: 1;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  height: 36px;\n  padding: 0 12px;\n  border: none;\n  background: transparent;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.01em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 6px;\n  justify-content: center;\n  margin-bottom: 24px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  padding: 0;\n  border: none;\n  background: none;\n  color: rgba(255, 255, 255, 0.2);\n  cursor: pointer;\n  transition:\n    color 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star:hover {\n  transform: scale(1.15);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 64px;\n  padding: 10px 14px;\n  margin-bottom: 16px;\n  font-size: 13px;\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  background: rgba(255, 255, 255, 0.04);\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 10px;\n  font-family: inherit;\n  resize: vertical;\n  transition:\n    border-color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  box-sizing: border-box;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  outline: none;\n  border-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.06);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 44px;\n  padding: 0 24px;\n  margin-bottom: 10px;\n  border: none;\n  background: var(--atv-accent);\n  font: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  color: #fff;\n  letter-spacing: 0.01em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    background 200ms ease,\n    transform 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-font-smoothing: antialiased;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 36px;\n  padding: 0 24px;\n  margin-bottom: 4px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: transparent;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-remove:hover {\n  color: var(--atv-text-secondary);\n  border-color: rgba(255, 255, 255, 0.15);\n  background: rgba(255, 255, 255, 0.04);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgba(255, 255, 255, 0.08);\n}\n\n.atv-interest-modal-error {\n  font-size: 12px;\n  font-weight: 500;\n  color: #ff453a;\n  text-align: center;\n  border-radius: 10px;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgba(255, 69, 58, 0.08);\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  width: 100%;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  font-size: 13px;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  flex-wrap: wrap;\n  font-size: 14px;\n  line-height: 1.6;\n  color: var(--atv-text-secondary);\n  font-style: italic;\n  padding: 6px 0 2px;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  font-size: 12px;\n  font-style: normal;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  flex: 0 0 400px;\n  aspect-ratio: 16 / 9;\n  overflow: hidden;\n  cursor: pointer;\n  scroll-snap-align: start;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-md);\n  background-size: cover;\n  background-position: center;\n  position: relative;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    filter 300ms ease;\n}\n\n.atv-trailer-tile:hover {\n  filter: brightness(1.1);\n  transform: scale(1.02);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(0, 0, 0, 0.12);\n  transition: background 300ms ease;\n}\n\n.atv-trailer-tile:hover .atv-trailer-play-overlay {\n  background: rgba(0, 0, 0, 0.2);\n}\n\n.atv-trailer-play-btn {\n  width: 56px;\n  height: 56px;\n  background: rgba(0, 0, 0, 0.6);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 300ms ease;\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  color: #fff;\n  margin-left: 3px;\n}\n\n.atv-trailer-tile:hover .atv-trailer-play-btn {\n  transform: scale(1.08);\n  box-shadow: 0 0 30px var(--atv-accent-glow);\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  background: rgba(0, 0, 0, 0.6);\n  font-size: 12px;\n  font-weight: 500;\n  color: #fff;\n  -webkit-backdrop-filter: blur(4px);\n  backdrop-filter: blur(4px);\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  background: #000;\n  -webkit-backdrop-filter: none;\n  backdrop-filter: none;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);\n  transform: scale(0.92);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open .atv-modal-video {\n  transform: scale(1);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n  gap: 20px;\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  border-radius: var(--atv-radius-md);\n  cursor: pointer;\n  font: inherit;\n  color: inherit;\n  text-align: left;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),\n    border-color 350ms ease,\n    box-shadow 350ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  inset: 0;\n  z-index: 0;\n  padding: 0;\n  cursor: pointer;\n  background: transparent;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:hover {\n  border-color: rgba(255, 255, 255, 0.12);\n  transform: translateY(-3px);\n  box-shadow:\n    0 8px 32px rgba(0, 0, 0, 0.3),\n    0 0 0 1px rgba(65, 190, 93, 0.04);\n}\n\n.atv-review-card:active {\n  transform: translateY(0);\n  box-shadow: none;\n}\n\n.atv-review-card:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n  border-color: rgba(65, 190, 93, 0.45);\n  box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-bottom: 12px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  width: 36px;\n  height: 36px;\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-size: cover;\n  background-position: center;\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 14px;\n  font-weight: 600;\n  color: #fff;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-review-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 3px;\n  min-width: 0;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  pointer-events: auto;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.35;\n  letter-spacing: -0.01em;\n  color: #f0f0f0;\n  margin-bottom: 8px;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  font-size: 14px;\n  line-height: 1.7;\n  color: rgba(255, 255, 255, 0.72);\n  display: -webkit-box;\n  -webkit-line-clamp: 4;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  margin-bottom: 14px;\n  flex: 1;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px;\n  padding-top: 14px;\n  border-top: 1px solid rgba(255, 255, 255, 0.05);\n  pointer-events: none;\n}\n\n.atv-review-time {\n  font-size: 12px;\n  font-weight: 400;\n  color: rgba(255, 255, 255, 0.35);\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  opacity: 0;\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-accent);\n  letter-spacing: 0.04em;\n  pointer-events: none;\n  transition:\n    opacity 300ms ease,\n    transform 300ms ease;\n  transform: translateX(-3px);\n}\n\n.atv-review-card:hover .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgba(65, 190, 93, 0.45);\n  box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  gap: 6px;\n  margin-left: auto;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  gap: 5px;\n  padding: 5px 12px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: rgba(255, 255, 255, 0.03);\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.55);\n  border-radius: 100px;\n  cursor: pointer;\n  line-height: 1;\n  transition:\n    color 250ms ease,\n    background 250ms ease,\n    border-color 250ms ease;\n  white-space: nowrap;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  background: rgba(255, 69, 58, 0.06);\n  border-color: #ff453a;\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.06);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  color: #ff453a;\n  border-color: rgba(255, 69, 58, 0.22);\n  background: rgba(255, 69, 58, 0.06);\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 48px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-review-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  top: 16px;\n  right: 16px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  overflow-y: auto;\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  padding: 48px 56px 32px;\n  scrollbar-width: thin;\n  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-review-modal.is-open .atv-review-modal-scroll {\n  transform: scale(1) translateY(0);\n}\n\n.atv-review-modal-header {\n  margin-bottom: 16px;\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgba(255, 255, 255, 0.05);\n}\n\n.atv-review-modal-title {\n  font-size: 24px;\n  font-weight: 600;\n  line-height: 1.32;\n  letter-spacing: -0.01em;\n  color: #f0f0f0;\n  margin-bottom: 4px;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-top: 4px;\n}\n\n.atv-review-modal-avatar {\n  width: 28px;\n  height: 28px;\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-size: cover;\n  background-position: center;\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 12px;\n  font-weight: 600;\n  color: #fff;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  gap: 4px;\n  font-size: 13px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgba(255, 255, 255, 0.82);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  font-size: 20px;\n  font-weight: 600;\n  margin-bottom: 16px;\n  line-height: 1.4;\n  color: #f0f0f0;\n}\n\n.atv-review-modal-body h2 a {\n  color: inherit;\n  background: transparent;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  color: var(--atv-accent);\n  background: transparent;\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  margin: 20px 0;\n  padding: 16px 20px;\n  border-left: 3px solid var(--atv-accent);\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  background: rgba(255, 255, 255, 0.03);\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  font-style: normal;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  margin-left: 0;\n  border-left-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.06);\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  float: left;\n  margin: 8px 24px 8px 0;\n  max-width: 50%;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  float: right;\n  margin: 8px 0 8px 24px;\n  max-width: 50%;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  height: auto;\n  max-width: 100%;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  font-size: 13px;\n  font-weight: 400;\n  line-height: 1.6;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  font-style: italic;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  color: var(--atv-accent);\n  text-decoration: none;\n  background: transparent;\n  border-bottom: 1px solid rgba(65, 190, 93, 0.25);\n  transition:\n    border-color 200ms ease,\n    color 200ms ease;\n  word-break: break-word;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  color: var(--atv-accent-bright);\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-primary);\n  margin: 28px 0 12px;\n}\n\n.atv-review-modal-body h4 {\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-primary);\n  margin: 24px 0 10px;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-secondary);\n  margin: 20px 0 8px;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n  height: 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  margin: 0 0 16px;\n  padding-left: 24px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  font-weight: 700;\n  color: rgba(255, 255, 255, 0.92);\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  font-size: 0.85em;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-underline-offset: 2px;\n  text-decoration-thickness: 1px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  text-decoration: line-through;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  padding: 2px 6px;\n  background: rgba(255, 255, 255, 0.06);\n  border-radius: 4px;\n  word-break: break-word;\n}\n\n.atv-review-modal-body pre {\n  background: rgba(0, 0, 0, 0.4);\n  border: 1px solid var(--atv-border-subtle);\n  padding: 16px 20px;\n  border-radius: var(--atv-radius-sm);\n  overflow-x: auto;\n  -webkit-overflow-scrolling: touch;\n  line-height: 1.6;\n  margin: 0 0 20px;\n}\n\n.atv-review-modal-body pre code {\n  background: none;\n  padding: 0;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  border-collapse: collapse;\n  margin: 20px 0;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  font-weight: 600;\n  text-align: left;\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n  margin-bottom: 12px;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  font-size: 14px;\n  font-weight: 500;\n  color: var(--atv-accent);\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-top: 28px;\n  padding-top: 20px;\n  border-top: 1px solid rgba(255, 255, 255, 0.04);\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  font-size: 13px;\n  color: rgba(255, 255, 255, 0.5);\n  background: transparent;\n  text-decoration: none;\n  transition: color 200ms ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  color: rgba(255, 255, 255, 0.5);\n  background: transparent;\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  color: var(--atv-accent);\n  background: transparent;\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  content: \"\";\n  background: linear-gradient(\n    90deg,\n    rgba(255, 255, 255, 0.04) 25%,\n    rgba(255, 255, 255, 0.1) 50%,\n    rgba(255, 255, 255, 0.04) 75%\n  );\n  background-size: 200% 100%;\n  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  gap: 14px;\n  align-items: center;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  min-height: 34px;\n  padding: 0 18px;\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  background: rgba(255, 255, 255, 0.04);\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.08);\n  border-color: rgba(65, 190, 93, 0.35);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (max-width: 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n  .atv-hero-inner {\n    flex-direction: column;\n    gap: 28px;\n    align-items: flex-start;\n  }\n  .atv-poster-card {\n    width: 220px;\n  }\n  .atv-section {\n    padding: 44px 24px;\n  }\n  .atv-info-grid {\n    grid-template-columns: 160px 1fr;\n    column-gap: 24px;\n  }\n}\n\n@media (max-width: 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n  .atv-poster-card {\n    width: 180px;\n  }\n  .atv-section {\n    padding: 36px 20px;\n  }\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n  .atv-info-label {\n    padding-top: 12px;\n  }\n  .atv-recs {\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n    gap: 18px;\n  }\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n  .atv-photo-tile {\n    flex-basis: 280px;\n  }\n  .atv-photo-tile.is-portrait {\n    flex-basis: 170px;\n  }\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n  .atv-rating-panel {\n    min-width: 0;\n  }\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n  .atv-review-modal-scroll {\n    padding: 24px 18px 22px;\n    max-width: 100vw;\n    max-height: 92vh;\n    border-radius: 20px 20px 0 0;\n  }\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n  .atv-review-modal-body blockquote {\n    margin: 16px 0;\n    padding: 12px 14px;\n  }\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    float: none;\n    max-width: 100%;\n    margin: 16px 0;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    transform: none;\n    filter: none;\n  }\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    transform: none;\n    box-shadow: none;\n  }\n  .atv-modal-video {\n    transition: none;\n  }\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n  .atv-comment-avatar.atv-avatar-loaded {\n    animation: none;\n  }\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    transform: none;\n    transition: none;\n    box-shadow: none;\n  }\n  .atv-review-modal-scroll {\n    transition: none;\n    transform: none;\n  }\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n  .atv-review-modal {\n    transition: none;\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n  .atv-review-modal-body.is-skeleton::before,\n  .atv-review-modal-body.is-skeleton::after {\n    animation: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n  .atv-login-modal-native[aria-busy=\"true\"] {\n    animation: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transition: none;\n    transform: scaleX(1);\n  }\n}\n\n@media (max-width: 768px) {\n  .atv-trailer-tile {\n    flex-basis: 280px;\n  }\n}\n";
+	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgba(255, 255, 255, 0.06);\n  --atv-text-primary: #ffffff;\n  --atv-text-secondary: rgba(255, 255, 255, 0.72);\n  --atv-text-tertiary: rgba(255, 255, 255, 0.45);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgba(65, 190, 93, 0.35);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgba(255, 255, 255, 0.08);\n  --atv-border-medium: rgba(255, 255, 255, 0.16);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n}\n\nbody > #wrapper {\n  display: none !important;\n}\n\nbody {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\n#db-global-nav,\n#db-nav-movie {\n  display: none !important;\n}\n\n[id^=\"dale_\"],\n[class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  background: var(--atv-bg-primary);\n  opacity: 0;\n  animation: atv-fadein 480ms cubic-bezier(0.22, 1, 0.36, 1) 60ms forwards;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n\n@keyframes atv-rise {\n  from {\n    opacity: 0;\n    transform: translateY(14px);\n  }\n  to {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 9999;\n  box-sizing: border-box;\n  display: flex;\n  gap: 24px;\n  align-items: center;\n  justify-content: space-between;\n  height: 56px;\n  padding: 0 max(28px, 5vw);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  pointer-events: none;\n  background: rgba(10, 10, 12, 0.74);\n  border-bottom: 1px solid rgba(255, 255, 255, 0.06);\n  opacity: 0;\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  transform: translateY(-100%);\n  transition:\n    opacity 280ms ease,\n    transform 280ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n  opacity: 1;\n  transform: none;\n}\n\n.atv-stickynav-title {\n  flex: 0 1 auto;\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  color: #fff;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  font-size: 14px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.7);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  cursor: pointer;\n  transition: color 200ms ease;\n}\n\n.atv-stickynav-jumps a::after {\n  content: \"\";\n  position: absolute;\n  bottom: -4px;\n  left: 50%;\n  width: 0;\n  height: 2px;\n  background: var(--atv-accent);\n  border-radius: 1px;\n  transition:\n    width 250ms ease,\n    left 250ms ease;\n}\n\n.atv-stickynav-jumps a:hover {\n  color: var(--atv-accent-bright);\n  background: transparent;\n}\n\n.atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-jumps a.is-active::after {\n  left: 0;\n  width: 100%;\n}\n\n@media (max-width: 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  min-height: 75vh;\n  padding: 132px max(28px, 5vw) 56px;\n  overflow: visible;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -4;\n  height: 75vh;\n  overflow: hidden;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  inset: 0;\n  background-repeat: no-repeat;\n  background-position: center 30%;\n  background-size: cover;\n  transform: scale(1.04);\n  backface-visibility: hidden;\n  will-change: transform, opacity;\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  opacity: 0;\n  filter: saturate(1.08) brightness(0.88);\n  transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  opacity: 1;\n  animation: atv-kenburns 22s ease-out forwards;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1) translate(0, 0);\n  }\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd.is-loaded {\n    transform: scale(1.04);\n    animation: none;\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -3;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgba(0, 0, 0, 0.55) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -2;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgba(0, 0, 0, 0.96) 0%,\n    rgba(0, 0, 0, 0.82) 32%,\n    rgba(0, 0, 0, 0.5) 62%,\n    rgba(0, 0, 0, 0.35) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: -1;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgba(0, 0, 0, 0.45) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  gap: 56px;\n  align-items: flex-start;\n  width: 100%;\n  max-width: 1100px;\n  margin: 0 auto;\n}\n\n.atv-poster-card {\n  display: flex;\n  flex: 0 0 auto;\n  width: 360px;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  border: none;\n  padding: 0;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-lg);\n  box-shadow:\n    0 24px 60px rgba(0, 0, 0, 0.6),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-poster-card:hover {\n  transform: scale(1.03);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  flex: 1 1 auto;\n  min-width: 0;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  line-height: 1.05;\n  color: #fff;\n  letter-spacing: -0.02em;\n  text-shadow:\n    0 2px 20px rgba(0, 0, 0, 0.7),\n    0 0 60px rgba(0, 0, 0, 0.3);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  color: var(--atv-text-secondary);\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 10px 14px;\n  align-items: center;\n  margin-bottom: 24px;\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-secondary);\n  text-transform: uppercase;\n  letter-spacing: 0.06em;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-secondary);\n  text-transform: none;\n  letter-spacing: 0.02em;\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 0;\n  align-items: stretch;\n  width: fit-content;\n  min-width: 320px;\n  margin-bottom: 28px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: var(--atv-radius-md);\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  flex: 1;\n  display: grid;\n  grid-template-rows: 28px 44px 20px 1fr;\n  justify-items: center;\n  align-items: center;\n  padding: 16px 24px 14px;\n  text-align: center;\n  transition: background 200ms ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgba(255, 255, 255, 0.03);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity 200ms ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  line-height: 1;\n  letter-spacing: -0.03em;\n  color: var(--atv-text-primary);\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  width: 40px;\n  height: 4px;\n  border-radius: 2px;\n  background: rgba(255, 255, 255, 0.1);\n  overflow: hidden;\n  flex-shrink: 0;\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  line-height: 1;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  gap: 2px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  grid-template-columns: 1fr auto 1fr;\n  gap: 8px;\n  align-items: center;\n  width: 100%;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  line-height: 1;\n  letter-spacing: -0.03em;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgba(255, 107, 91, 0.85);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgba(255, 167, 38, 0.85);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row {\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n}\n\n.atv-rt-count-value {\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row {\n  grid-template-columns: 1fr 1fr;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgba(255, 255, 255, 0.12);\n  flex-shrink: 0;\n}\n\n@media (max-width: 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  font-size: 13px;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.03em;\n  padding: 10px 0;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-imdb.is-loading,\n.atv-rating-panel-rt.is-loading,\n.atv-rating-panel-mc.is-loading {\n  transition: opacity 400ms ease;\n}\n\n.atv-rating-panel-imdb.is-empty,\n.atv-rating-panel-rt.is-empty,\n.atv-rating-panel-mc.is-empty {\n  display: none;\n}\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: linear-gradient(\n    90deg,\n    rgba(255, 255, 255, 0.04) 25%,\n    rgba(255, 255, 255, 0.1) 50%,\n    rgba(255, 255, 255, 0.04) 75%\n  );\n  background-size: 200% 100%;\n  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;\n}\n\n@keyframes atv-ratings-shimmer {\n  0% {\n    background-position: 200% 0;\n  }\n  100% {\n    background-position: -200% 0;\n  }\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n  margin-bottom: 26px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  align-items: center;\n  gap: 8px;\n  height: 44px;\n  padding: 0 22px;\n  border: none;\n  background: none;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  color: inherit;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    transform 200ms ease,\n    background 200ms ease,\n    box-shadow 200ms ease,\n    color 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-btn-primary {\n  color: #fff;\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n}\n\n.atv-btn-primary:hover {\n  background: var(--atv-accent-bright);\n  transform: translateY(-1px);\n}\n\n.atv-btn-secondary {\n  color: var(--atv-text-primary);\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-medium);\n  -webkit-backdrop-filter: blur(10px);\n  backdrop-filter: blur(10px);\n}\n\n.atv-btn-secondary:hover {\n  background: rgba(255, 255, 255, 0.12);\n  transform: translateY(-1px);\n}\n\n.atv-btn.is-active {\n  color: #fff;\n  background: var(--atv-accent);\n  border-color: transparent;\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  max-width: 660px;\n  margin: 0 0 12px;\n  font-size: 15px;\n  line-height: 1.75;\n  color: var(--atv-text-secondary);\n  word-break: break-word;\n  white-space: pre-wrap;\n  overflow: hidden;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  gap: 6px;\n  align-items: center;\n  padding: 0;\n  border: none;\n  background: none;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-accent-bright);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform 220ms ease;\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  scroll-margin-top: 64px;\n  animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  content: \"\";\n  background: var(--atv-accent);\n  border-radius: 2px;\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  gap: 16px;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  font-size: 14px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n  transition: color 200ms ease;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-snap-type: x mandatory;\n  scroll-behavior: smooth;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-carousel {\n  scrollbar-width: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  background: #3a3a3c;\n  border-radius: 3px;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-carousel {\n  mask-image: linear-gradient(to right, #000 97%, transparent 100%);\n  -webkit-mask-image: linear-gradient(to right, #000 97%, transparent 100%);\n}\n\n.atv-series-card {\n  flex: 0 0 158px;\n  min-width: 0;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-series-card:hover {\n  transform: translateY(-4px);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  width: 100%;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-sm);\n  transition:\n    transform 400ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 400ms ease;\n}\n\n.atv-series-card:hover .atv-series-poster {\n  box-shadow:\n    0 16px 48px rgba(0, 0, 0, 0.6),\n    0 0 0 1px rgba(255, 255, 255, 0.06);\n  transform: scale(1.06);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  content: \"\";\n  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, transparent 100%);\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n  display: block;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  top: 8px;\n  right: 8px;\n  z-index: 1;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 28px;\n  height: 22px;\n  padding: 0 7px;\n  font-size: 11px;\n  font-weight: 700;\n  line-height: 1;\n  color: #fff;\n  letter-spacing: 0.02em;\n  background: rgba(0, 0, 0, 0.65);\n  -webkit-backdrop-filter: blur(4px);\n  backdrop-filter: blur(4px);\n  border-radius: 20px;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    background 300ms ease;\n}\n\n.atv-series-card:hover .atv-series-badge {\n  background: rgba(0, 0, 0, 0.8);\n  transform: translateY(-1px) scale(1.05);\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 0;\n  height: 2px;\n  margin-top: 4px;\n  content: \"\";\n  background: var(--atv-accent);\n  border-radius: 1px;\n  opacity: 0;\n  transition:\n    width 400ms cubic-bezier(0.22, 1, 0.36, 1),\n    opacity 400ms ease;\n}\n\n.atv-series-card:hover .atv-series-info::after {\n  width: 100%;\n  opacity: 1;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.3;\n  color: var(--atv-text-primary);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  letter-spacing: 0.01em;\n  transition: color 300ms ease;\n}\n\n.atv-series-card:hover .atv-series-title {\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-carousel {\n  mask-image: linear-gradient(to right, #000 90%, transparent 100%);\n  -webkit-mask-image: linear-gradient(to right, #000 90%, transparent 100%);\n}\n\n.atv-cast-card {\n  flex: 0 0 160px;\n  min-width: 0;\n  text-align: center;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform 300ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-cast-card:hover {\n  transform: translateY(-3px);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  transition:\n    transform 300ms ease,\n    border-color 300ms ease,\n    box-shadow 300ms ease,\n    filter 300ms ease;\n}\n\n.atv-cast-card:hover .atv-cast-avatar {\n  border-color: rgba(255, 255, 255, 0.2);\n  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);\n  filter: brightness(1.12);\n  transform: scale(1.05);\n}\n\n.atv-cast-name {\n  margin-top: 16px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  margin-top: 4px;\n  overflow: hidden;\n  -webkit-line-clamp: 2;\n  font-size: 13px;\n  font-weight: 400;\n  line-height: 1.35;\n  color: rgba(255, 255, 255, 0.55);\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  flex: 0 0 400px;\n  aspect-ratio: 16 / 9;\n  overflow: hidden;\n  border: none;\n  padding: 0;\n  cursor: pointer;\n  scroll-snap-align: start;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-md);\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    filter 300ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-photo-tile.is-portrait {\n  flex: 0 0 240px;\n  aspect-ratio: 3 / 4;\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-photo-tile:hover {\n  filter: brightness(1.1);\n  transform: scale(1.02);\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n  gap: 24px;\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  width: 100%;\n  aspect-ratio: 2 / 3;\n  overflow: hidden;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-sm);\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 300ms ease;\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-rec-card:hover .atv-rec-poster {\n  box-shadow: 0 12px 40px var(--atv-accent-glow);\n  transform: scale(1.05);\n}\n\n.atv-rec-title {\n  margin-top: 12px;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 2;\n  font-size: 15px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  grid-template-columns: 200px 1fr;\n  row-gap: 16px;\n  column-gap: 32px;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  font-size: 14px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.55);\n  text-transform: uppercase;\n  letter-spacing: 0.05em;\n}\n\n.atv-info-value {\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  word-break: break-word;\n}\n\n.atv-info-value a {\n  color: var(--atv-text-primary);\n  border-bottom: 1px solid var(--atv-border-medium);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-info-value a:hover {\n  color: var(--atv-accent-bright);\n  border-color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n  gap: 11px;\n  height: 52px;\n  max-width: 240px;\n  padding: 0 20px 0 14px;\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  border: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  font-family: inherit;\n  -webkit-tap-highlight-color: transparent;\n  cursor: pointer;\n  transition:\n    background 220ms ease,\n    border-color 220ms ease,\n    box-shadow 220ms ease,\n    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  content: \"\";\n  position: absolute;\n  inset: 0;\n  border-radius: inherit;\n  pointer-events: none;\n  opacity: 0;\n  transition: opacity 220ms ease;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n}\n\n.atv-stream-card:not(.atv-stream-card--combined):hover::after {\n  opacity: 0.18;\n}\n\n.atv-stream-card:hover {\n  background: rgba(255, 255, 255, 0.09);\n  border-color: rgba(255, 255, 255, 0.18);\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.08),\n    0 12px 26px rgba(0, 0, 0, 0.24);\n  transform: translateY(-2px);\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card--combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card--combined svg {\n  display: block;\n  height: 32px;\n  width: auto;\n  max-width: 160px;\n  transition: filter 220ms ease;\n}\n\n.atv-stream-card--combined:hover svg {\n  filter: drop-shadow(\n    0 0 14px var(--atv-stream-brand, var(--atv-accent-bright))\n  );\n}\n\n.atv-stream-logo svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentColor;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  object-fit: contain;\n  flex: 0 0 auto;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 32px;\n  height: 32px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0)),\n    rgba(255, 255, 255, 0.05);\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.12),\n    0 8px 18px rgba(0, 0, 0, 0.18);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n  overflow: hidden;\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 100%;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  color: currentColor;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  min-width: 0;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n  transition: color 220ms ease;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n  gap: 18px;\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  border-radius: var(--atv-radius-md);\n  transition:\n    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),\n    border-color 350ms ease,\n    box-shadow 350ms ease;\n}\n\n.atv-comment-card:hover {\n  border-color: rgba(255, 255, 255, 0.12);\n  transform: translateY(-3px);\n  box-shadow:\n    0 8px 32px rgba(0, 0, 0, 0.3),\n    0 0 0 1px rgba(65, 190, 93, 0.04);\n}\n\n.atv-comment-top {\n  display: flex;\n  gap: 12px;\n  align-items: center;\n  margin-bottom: 14px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 36px;\n  height: 36px;\n  overflow: hidden;\n  font-size: 15px;\n  font-weight: 600;\n  color: #fff;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  border-radius: 50%;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease,\n    filter 260ms ease;\n}\n\n.atv-comment-card:hover .atv-comment-avatar {\n  border-color: rgba(255, 255, 255, 0.3);\n  filter: brightness(1.15);\n}\n\n.atv-comment-avatar.atv-avatar-loaded {\n  animation: atv-avatar-reveal 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;\n}\n\n@keyframes atv-avatar-reveal {\n  from {\n    filter: blur(6px) brightness(1.25);\n  }\n  to {\n    filter: blur(0) brightness(1);\n  }\n}\n\n.atv-comment-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  min-width: 0;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  color: var(--atv-text-primary);\n  background: none;\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  color: var(--atv-rating-gold);\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  flex: 1 1 auto;\n  margin: 0 0 14px;\n  border: none;\n  padding: 0;\n  width: 100%;\n  background: none;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  color: rgba(255, 255, 255, 0.85);\n  text-align: left;\n  cursor: pointer;\n  appearance: none;\n  -webkit-appearance: none;\n  word-break: break-word;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  -webkit-line-clamp: 4;\n  word-break: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  gap: 12px;\n  align-items: center;\n  justify-content: space-between;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  gap: 5px;\n  align-items: center;\n  padding: 4px 10px;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  background: none;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 100px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);\n}\n\n.atv-comment-votes:hover {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.04);\n  transform: scale(1.05);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.95);\n}\n\n.atv-comment-votes.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.25);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  gap: 6px;\n  align-items: center;\n}\n\n.atv-comment-expand {\n  display: none;\n  align-items: center;\n  justify-content: center;\n  width: 22px;\n  height: 22px;\n  padding: 0;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  background: rgba(0, 0, 0, 0.3);\n  font: inherit;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  border-radius: 50%;\n  backdrop-filter: blur(4px);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  color: var(--atv-accent);\n  border-color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.1);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.9);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 24px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  opacity: 0;\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-comment-overlay.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  overflow-y: auto;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 20px;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-comment-overlay.is-open .atv-comment-overlay-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  top: 16px;\n  right: 16px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n  color: rgba(255, 255, 255, 0.6);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  gap: 14px;\n  align-items: center;\n  padding: 28px 28px 0;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  width: 44px;\n  height: 44px;\n  overflow: hidden;\n  font-size: 18px;\n  font-weight: 600;\n  color: #fff;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  border-radius: 50%;\n  border: 2px solid var(--atv-border-subtle);\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n  min-width: 0;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  font-size: 16px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  color: var(--atv-text-primary);\n  background: none;\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  gap: 2px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  font-size: 15px;\n  line-height: 1.75;\n  color: rgba(255, 255, 255, 0.85);\n  word-break: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  gap: 5px;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: rgba(255, 255, 255, 0.04);\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  border-radius: 100px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-comment-overlay-votes:hover {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.04);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.95);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.25);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 0;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.78);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(28px) saturate(1.15);\n  backdrop-filter: blur(28px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  object-fit: contain;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);\n  transform: scale(0.92);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open .atv-modal-img {\n  transform: scale(1);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  top: 0;\n  right: 0;\n  left: 0;\n  z-index: 1;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  transform: scaleX(0);\n  transform-origin: center;\n  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.is-open .atv-modal-accent-bar {\n  transform: scaleX(1);\n}\n\n.atv-modal-close {\n  position: fixed;\n  top: 24px;\n  right: 24px;\n  z-index: 10001;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 44px;\n  height: 44px;\n  padding: 0;\n  border: 1px solid rgba(255, 255, 255, 0.18);\n  background: rgba(255, 255, 255, 0.08);\n  color: #fff;\n  font: inherit;\n  cursor: pointer;\n  border-radius: 50%;\n  transition:\n    color 200ms ease,\n    background 200ms ease,\n    border-color 200ms ease;\n  touch-action: manipulation;\n  appearance: none;\n  -webkit-appearance: none;\n  -webkit-tap-highlight-color: transparent;\n}\n\n.atv-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.16);\n  border-color: rgba(255, 255, 255, 0.3);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgba(255, 255, 255, 0.2);\n  border-top-color: #41be5d;\n  border-radius: 50%;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 16px;\n  color: #fff;\n  font-size: 15px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  min-height: 100vh;\n  min-height: 100dvh;\n  margin: 0;\n  border: none;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  visibility: hidden;\n  overscroll-behavior: contain;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition:\n    visibility 0s linear 360ms,\n    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-login-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n  visibility: visible;\n  transition-delay: 0s;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  box-sizing: border-box;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  padding: 30px 22px 22px;\n  overflow: auto;\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  color: var(--atv-text-primary);\n  text-align: center;\n  background: var(--atv-bg-secondary);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  border-radius: 20px;\n  box-shadow:\n    inset 0 1px 0 rgba(255, 255, 255, 0.08),\n    0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n  scrollbar-width: none;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-login-modal.is-open .atv-login-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  top: 12px;\n  right: 12px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  color: var(--atv-text-primary);\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  font-size: 13px;\n  line-height: 1.55;\n  color: var(--atv-text-tertiary);\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  font-size: 12px;\n  line-height: 1.5;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  box-sizing: border-box;\n  width: 100%;\n  margin-top: 10px;\n  padding: 10px;\n  overflow: hidden;\n  border-radius: 16px;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n  background:\n    linear-gradient(\n      90deg,\n      transparent,\n      rgba(255, 255, 255, 0.055),\n      transparent\n    ),\n    rgba(255, 255, 255, 0.035);\n  background-size:\n    220% 100%,\n    auto;\n  animation: atv-login-native-loading 1400ms ease-in-out infinite;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  display: block !important;\n  box-sizing: border-box !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  margin: 0 auto !important;\n  overflow: hidden !important;\n  background: #fff !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  box-shadow: none !important;\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n@keyframes atv-login-native-loading {\n  from {\n    background-position:\n      160% 0,\n      0 0;\n  }\n  to {\n    background-position:\n      -60% 0,\n      0 0;\n  }\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 24px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-interest-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 380px;\n  max-height: 90vh;\n  overflow-y: auto;\n  background: var(--atv-bg-secondary);\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  border-radius: 20px;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-interest-modal.is-open .atv-interest-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 20px 48px 0;\n}\n\n.atv-interest-modal-header__title {\n  font-size: 16px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  letter-spacing: 0.01em;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  top: 14px;\n  right: 14px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  background: rgba(255, 255, 255, 0.16);\n  border-color: rgba(255, 255, 255, 0.3);\n}\n\n.atv-interest-modal-body {\n  padding: 16px 20px 20px;\n}\n\n.atv-interest-modal-statuses {\n  display: flex;\n  gap: 0;\n  padding: 3px;\n  margin-bottom: 20px;\n  background: rgba(255, 255, 255, 0.06);\n  border-radius: 999px;\n}\n\n.atv-interest-modal-status {\n  flex: 1;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  height: 36px;\n  padding: 0 12px;\n  border: none;\n  background: transparent;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.01em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 6px;\n  justify-content: center;\n  margin-bottom: 24px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  padding: 0;\n  border: none;\n  background: none;\n  color: rgba(255, 255, 255, 0.2);\n  cursor: pointer;\n  transition:\n    color 200ms ease,\n    transform 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star:hover {\n  transform: scale(1.15);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 64px;\n  padding: 10px 14px;\n  margin-bottom: 16px;\n  font-size: 13px;\n  line-height: 1.5;\n  color: var(--atv-text-primary);\n  background: rgba(255, 255, 255, 0.04);\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  border-radius: 10px;\n  font-family: inherit;\n  resize: vertical;\n  transition:\n    border-color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  box-sizing: border-box;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  outline: none;\n  border-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.06);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 44px;\n  padding: 0 24px;\n  margin-bottom: 10px;\n  border: none;\n  background: var(--atv-accent);\n  font: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  color: #fff;\n  letter-spacing: 0.01em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    background 200ms ease,\n    transform 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  -webkit-font-smoothing: antialiased;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100%;\n  height: 36px;\n  padding: 0 24px;\n  margin-bottom: 4px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: transparent;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n  -webkit-tap-highlight-color: transparent;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-interest-modal-remove:hover {\n  color: var(--atv-text-secondary);\n  border-color: rgba(255, 255, 255, 0.15);\n  background: rgba(255, 255, 255, 0.04);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgba(255, 255, 255, 0.08);\n}\n\n.atv-interest-modal-error {\n  font-size: 12px;\n  font-weight: 500;\n  color: #ff453a;\n  text-align: center;\n  border-radius: 10px;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgba(255, 69, 58, 0.08);\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n  width: 100%;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  font-size: 13px;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  flex-wrap: wrap;\n  font-size: 14px;\n  line-height: 1.6;\n  color: var(--atv-text-secondary);\n  font-style: italic;\n  padding: 6px 0 2px;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  font-size: 12px;\n  font-style: normal;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  flex: 0 0 400px;\n  aspect-ratio: 16 / 9;\n  overflow: hidden;\n  cursor: pointer;\n  scroll-snap-align: start;\n  background: var(--atv-bg-tertiary);\n  border-radius: var(--atv-radius-md);\n  background-size: cover;\n  background-position: center;\n  position: relative;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    filter 300ms ease;\n}\n\n.atv-trailer-tile:hover {\n  filter: brightness(1.1);\n  transform: scale(1.02);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  inset: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgba(0, 0, 0, 0.12);\n  transition: background 300ms ease;\n}\n\n.atv-trailer-tile:hover .atv-trailer-play-overlay {\n  background: rgba(0, 0, 0, 0.2);\n}\n\n.atv-trailer-play-btn {\n  width: 56px;\n  height: 56px;\n  background: rgba(0, 0, 0, 0.6);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition:\n    transform 300ms cubic-bezier(0.22, 1, 0.36, 1),\n    box-shadow 300ms ease;\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  color: #fff;\n  margin-left: 3px;\n}\n\n.atv-trailer-tile:hover .atv-trailer-play-btn {\n  transform: scale(1.08);\n  box-shadow: 0 0 30px var(--atv-accent-glow);\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  background: rgba(0, 0, 0, 0.6);\n  font-size: 12px;\n  font-weight: 500;\n  color: #fff;\n  -webkit-backdrop-filter: blur(4px);\n  backdrop-filter: blur(4px);\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  background: #000;\n  -webkit-backdrop-filter: none;\n  backdrop-filter: none;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.75);\n  transform: scale(0.92);\n  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-modal-overlay.is-open .atv-modal-video {\n  transform: scale(1);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n  gap: 20px;\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.06);\n  border-radius: var(--atv-radius-md);\n  cursor: pointer;\n  font: inherit;\n  color: inherit;\n  text-align: left;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),\n    border-color 350ms ease,\n    box-shadow 350ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  inset: 0;\n  z-index: 0;\n  padding: 0;\n  cursor: pointer;\n  background: transparent;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:hover {\n  border-color: rgba(255, 255, 255, 0.12);\n  transform: translateY(-3px);\n  box-shadow:\n    0 8px 32px rgba(0, 0, 0, 0.3),\n    0 0 0 1px rgba(65, 190, 93, 0.04);\n}\n\n.atv-review-card:active {\n  transform: translateY(0);\n  box-shadow: none;\n}\n\n.atv-review-card:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n  border-color: rgba(65, 190, 93, 0.45);\n  box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-bottom: 12px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  width: 36px;\n  height: 36px;\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-size: cover;\n  background-position: center;\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 14px;\n  font-weight: 600;\n  color: #fff;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-review-meta {\n  display: flex;\n  flex-direction: column;\n  gap: 3px;\n  min-width: 0;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  pointer-events: auto;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.35;\n  letter-spacing: -0.01em;\n  color: #f0f0f0;\n  margin-bottom: 8px;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  font-size: 14px;\n  line-height: 1.7;\n  color: rgba(255, 255, 255, 0.72);\n  display: -webkit-box;\n  -webkit-line-clamp: 4;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  margin-bottom: 14px;\n  flex: 1;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 8px;\n  padding-top: 14px;\n  border-top: 1px solid rgba(255, 255, 255, 0.05);\n  pointer-events: none;\n}\n\n.atv-review-time {\n  font-size: 12px;\n  font-weight: 400;\n  color: rgba(255, 255, 255, 0.35);\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  opacity: 0;\n  font-size: 11px;\n  font-weight: 500;\n  color: var(--atv-accent);\n  letter-spacing: 0.04em;\n  pointer-events: none;\n  transition:\n    opacity 300ms ease,\n    transform 300ms ease;\n  transform: translateX(-3px);\n}\n\n.atv-review-card:hover .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgba(65, 190, 93, 0.45);\n  box-shadow: 0 0 0 5px rgba(65, 190, 93, 0.12);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  gap: 6px;\n  margin-left: auto;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  gap: 5px;\n  padding: 5px 12px;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  background: rgba(255, 255, 255, 0.03);\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  color: rgba(255, 255, 255, 0.55);\n  border-radius: 100px;\n  cursor: pointer;\n  line-height: 1;\n  transition:\n    color 250ms ease,\n    background 250ms ease,\n    border-color 250ms ease;\n  white-space: nowrap;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.06);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgba(65, 190, 93, 0.75);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  background: rgba(255, 69, 58, 0.06);\n  border-color: #ff453a;\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  color: var(--atv-accent);\n  border-color: rgba(65, 190, 93, 0.2);\n  background: rgba(65, 190, 93, 0.06);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  color: #ff453a;\n  border-color: rgba(255, 69, 58, 0.22);\n  background: rgba(255, 69, 58, 0.06);\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  inset: 0;\n  z-index: 10000;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 100vw;\n  height: 100vh;\n  margin: 0;\n  padding: 48px;\n  border: none;\n  pointer-events: none;\n  background: rgba(0, 0, 0, 0.72);\n  opacity: 0;\n  -webkit-backdrop-filter: blur(24px) saturate(1.15);\n  backdrop-filter: blur(24px) saturate(1.15);\n  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-review-modal.is-open {\n  pointer-events: auto;\n  opacity: 1;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  top: 16px;\n  right: 16px;\n  z-index: 2;\n  width: 32px;\n  height: 32px;\n  color: rgba(255, 255, 255, 0.6);\n  background: rgba(255, 255, 255, 0.06);\n  border-color: rgba(255, 255, 255, 0.1);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  color: #fff;\n  background: rgba(255, 255, 255, 0.12);\n  border-color: rgba(255, 255, 255, 0.2);\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  overflow-y: auto;\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  border: 1px solid rgba(255, 255, 255, 0.08);\n  padding: 48px 56px 32px;\n  scrollbar-width: thin;\n  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;\n  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);\n  transform: scale(0.92) translateY(8px);\n  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n.atv-review-modal.is-open .atv-review-modal-scroll {\n  transform: scale(1) translateY(0);\n}\n\n.atv-review-modal-header {\n  margin-bottom: 16px;\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgba(255, 255, 255, 0.05);\n}\n\n.atv-review-modal-title {\n  font-size: 24px;\n  font-weight: 600;\n  line-height: 1.32;\n  letter-spacing: -0.01em;\n  color: #f0f0f0;\n  margin-bottom: 4px;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-top: 4px;\n}\n\n.atv-review-modal-avatar {\n  width: 28px;\n  height: 28px;\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-size: cover;\n  background-position: center;\n  flex-shrink: 0;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  font-size: 12px;\n  font-weight: 600;\n  color: #fff;\n  border: 1.5px solid rgba(255, 255, 255, 0.06);\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  gap: 4px;\n  font-size: 13px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgba(255, 255, 255, 0.82);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  font-size: 20px;\n  font-weight: 600;\n  margin-bottom: 16px;\n  line-height: 1.4;\n  color: #f0f0f0;\n}\n\n.atv-review-modal-body h2 a {\n  color: inherit;\n  background: transparent;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  color: var(--atv-accent);\n  background: transparent;\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  margin: 20px 0;\n  padding: 16px 20px;\n  border-left: 3px solid var(--atv-accent);\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  background: rgba(255, 255, 255, 0.03);\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  font-style: normal;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  margin-left: 0;\n  border-left-color: rgba(255, 255, 255, 0.2);\n  background: rgba(255, 255, 255, 0.06);\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  float: left;\n  margin: 8px 24px 8px 0;\n  max-width: 50%;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  float: right;\n  margin: 8px 0 8px 24px;\n  max-width: 50%;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  height: auto;\n  max-width: 100%;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  font-size: 13px;\n  font-weight: 400;\n  line-height: 1.6;\n  color: var(--atv-text-tertiary);\n  letter-spacing: 0.02em;\n  font-style: italic;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  color: var(--atv-accent);\n  text-decoration: none;\n  background: transparent;\n  border-bottom: 1px solid rgba(65, 190, 93, 0.25);\n  transition:\n    border-color 200ms ease,\n    color 200ms ease;\n  word-break: break-word;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  color: var(--atv-accent-bright);\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-primary);\n  margin: 28px 0 12px;\n}\n\n.atv-review-modal-body h4 {\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-primary);\n  margin: 24px 0 10px;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n  color: var(--atv-text-secondary);\n  margin: 20px 0 8px;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n  height: 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  margin: 0 0 16px;\n  padding-left: 24px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  font-weight: 700;\n  color: rgba(255, 255, 255, 0.92);\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  font-size: 0.85em;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-underline-offset: 2px;\n  text-decoration-thickness: 1px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  text-decoration: line-through;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  padding: 2px 6px;\n  background: rgba(255, 255, 255, 0.06);\n  border-radius: 4px;\n  word-break: break-word;\n}\n\n.atv-review-modal-body pre {\n  background: rgba(0, 0, 0, 0.4);\n  border: 1px solid var(--atv-border-subtle);\n  padding: 16px 20px;\n  border-radius: var(--atv-radius-sm);\n  overflow-x: auto;\n  -webkit-overflow-scrolling: touch;\n  line-height: 1.6;\n  margin: 0 0 20px;\n}\n\n.atv-review-modal-body pre code {\n  background: none;\n  padding: 0;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  border-collapse: collapse;\n  margin: 20px 0;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  font-weight: 600;\n  text-align: left;\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgba(255, 255, 255, 0.82);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n  margin-bottom: 12px;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  gap: 10px;\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  font-size: 14px;\n  font-weight: 500;\n  color: var(--atv-accent);\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  margin-top: 28px;\n  padding-top: 20px;\n  border-top: 1px solid rgba(255, 255, 255, 0.04);\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  font-size: 13px;\n  color: rgba(255, 255, 255, 0.5);\n  background: transparent;\n  text-decoration: none;\n  transition: color 200ms ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  color: rgba(255, 255, 255, 0.5);\n  background: transparent;\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  color: var(--atv-accent);\n  background: transparent;\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  gap: 2px;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  content: \"\";\n  background: linear-gradient(\n    90deg,\n    rgba(255, 255, 255, 0.04) 25%,\n    rgba(255, 255, 255, 0.1) 50%,\n    rgba(255, 255, 255, 0.04) 75%\n  );\n  background-size: 200% 100%;\n  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  gap: 14px;\n  align-items: center;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  min-height: 34px;\n  padding: 0 18px;\n  border: 1px solid rgba(255, 255, 255, 0.1);\n  background: rgba(255, 255, 255, 0.04);\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  border-radius: 999px;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n  appearance: none;\n  -webkit-appearance: none;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  color: var(--atv-accent);\n  background: rgba(65, 190, 93, 0.08);\n  border-color: rgba(65, 190, 93, 0.35);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (max-width: 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n  .atv-hero-inner {\n    flex-direction: column;\n    gap: 28px;\n    align-items: flex-start;\n  }\n  .atv-poster-card {\n    width: 220px;\n  }\n  .atv-section {\n    padding: 44px 24px;\n  }\n  .atv-info-grid {\n    grid-template-columns: 160px 1fr;\n    column-gap: 24px;\n  }\n}\n\n@media (max-width: 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n  .atv-poster-card {\n    width: 180px;\n  }\n  .atv-section {\n    padding: 36px 20px;\n  }\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n  .atv-info-label {\n    padding-top: 12px;\n  }\n  .atv-recs {\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n    gap: 18px;\n  }\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n  .atv-photo-tile {\n    flex-basis: 280px;\n  }\n  .atv-photo-tile.is-portrait {\n    flex-basis: 170px;\n  }\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n  .atv-rating-panel {\n    min-width: 0;\n  }\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n  .atv-review-modal-scroll {\n    padding: 24px 18px 22px;\n    max-width: 100vw;\n    max-height: 92vh;\n    border-radius: 20px 20px 0 0;\n  }\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n  .atv-review-modal-body blockquote {\n    margin: 16px 0;\n    padding: 12px 14px;\n  }\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    float: none;\n    max-width: 100%;\n    margin: 16px 0;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    transform: none;\n    filter: none;\n  }\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    transform: none;\n    box-shadow: none;\n  }\n  .atv-modal-video {\n    transition: none;\n  }\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n  .atv-comment-avatar.atv-avatar-loaded {\n    animation: none;\n  }\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    transform: none;\n    transition: none;\n    box-shadow: none;\n  }\n  .atv-review-modal-scroll {\n    transition: none;\n    transform: none;\n  }\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n  .atv-review-modal {\n    transition: none;\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n  .atv-review-modal-body.is-skeleton::before,\n  .atv-review-modal-body.is-skeleton::after {\n    animation: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n  .atv-login-modal-native[aria-busy=\"true\"] {\n    animation: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transition: none;\n    transform: scaleX(1);\n  }\n}\n\n@media (max-width: 768px) {\n  .atv-trailer-tile {\n    flex-basis: 280px;\n  }\n}\n";
 	var LOGIN_FRAME_STYLE_ID = "atv-login-frame-theme";
 	var LOGIN_FRAME_CSS = `
 :root {
@@ -832,6 +832,58 @@ input::placeholder {
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
+	var API_INTEREST = "https://movie.douban.com/j/subject";
+	var API_REMOVE = "https://movie.douban.com/subject";
+	var postInterest = async (subjectId, interest, options) => {
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({
+			ck,
+			comment: options?.comment ?? "",
+			foldcollect: "F",
+			interest,
+			private: "",
+			rating: typeof options?.rating === "number" ? String(options.rating) : "",
+			tags: options?.tags?.join(",") ?? ""
+		});
+		try {
+			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			const data = JSON.parse(text);
+			if (data.r === 0) return { ok: true };
+			return {
+				error: data.msg || "操作失败",
+				ok: false
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] postInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var removeInterest = async (subjectId, currentStatus) => {
+		if (currentStatus === "none") return { ok: true };
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({ ck });
+		try {
+			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			return { ok: true };
+		} catch (error) {
+			console.warn("[ATV-Douban] removeInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
 	var computeNavSections = (data) => {
 		const sections = [];
 		if (data.streaming.length > 0) sections.push({
@@ -894,6 +946,7 @@ input::placeholder {
 		return l$1.vnode && l$1.vnode(l), l;
 	}
 	var StickyNav = ({ sections, title }) => {
+		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
 		h(() => {
 			const updateVisibility = () => setVisible(window.scrollY > 300);
@@ -901,6 +954,34 @@ input::placeholder {
 			updateVisibility();
 			return () => window.removeEventListener("scroll", updateVisibility);
 		}, []);
+		h(() => {
+			const observer = new IntersectionObserver(() => {
+				let activeId = "";
+				let bestScore = -Infinity;
+				for (const section of sections) {
+					const element = document.querySelector(`#${section.id}`);
+					if (!element) continue;
+					const rect = element.getBoundingClientRect();
+					const visibleTop = Math.max(rect.top, 56);
+					const visibleBottom = Math.min(rect.bottom, window.innerHeight * .55);
+					const score = Math.max(0, visibleBottom - visibleTop);
+					if (score > bestScore) {
+						activeId = section.id;
+						bestScore = score;
+					}
+				}
+				setActiveSectionId(activeId);
+			}, { threshold: [
+				0,
+				.25,
+				.5
+			] });
+			for (const section of sections) {
+				const element = document.querySelector(`#${section.id}`);
+				if (element) observer.observe(element);
+			}
+			return () => observer.disconnect();
+		}, [sections]);
 		return u("nav", {
 			class: `atv-stickynav${visible ? " is-visible" : ""}`,
 			children: [u("div", {
@@ -909,6 +990,7 @@ input::placeholder {
 			}), u("div", {
 				class: "atv-stickynav-jumps",
 				children: sections.map((section) => u("a", {
+					class: activeSectionId === section.id ? "is-active" : void 0,
 					href: `#${section.id}`,
 					onClick: (event) => {
 						event.preventDefault();
@@ -1745,9 +1827,390 @@ input::placeholder {
 		surfaceClassName: "atv-modal-surface",
 		children: u(VideoModalContent, { trailer })
 	});
+	var RE_SLASH_SEP = /\s*\/\s*/gu;
+	var RE_WS_GLOBAL = /\s+/gu;
+	var RE_COLON_WS = /[:：\s]/gu;
+	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_WS = /\s+/u;
+	var RE_YEAR = /(?<year>\d{4})/u;
+	var RE_NON_DIGIT = /\D/gu;
+	var RE_HSPACE = /[ \t]+/gu;
+	var RE_NL_MULTI = /\n{3,}/gu;
+	var RE_IMDB_ID = /(?<id>tt\d+)/u;
+	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
+	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
+	var RE_HTTP = /^https?:\/\//u;
+	var RE_ONLINE_VIDEO = /online-video/u;
+	var RE_WISH = /想看/u;
+	var RE_DO = /在看/u;
+	var RE_COLLECT = /看过/u;
+	var RE_WISH_EXACT = /^想看$/u;
+	var RE_DO_EXACT = /^在看$/u;
+	var RE_COLLECT_EXACT = /^看过$/u;
+	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
+	var RE_IMDB_LINK = /^tt\d+$/u;
+	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
+	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
+	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
 	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
 	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
 	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		}
+		return null;
+	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
+	var findInterestButtons = (doc) => {
+		const result = {
+			collect: null,
+			do: null,
+			wish: null
+		};
+		const scan = (anchors, doRe, wishRe, collectRe) => {
+			for (const anchor of anchors) {
+				const text = (anchor.textContent || "").trim();
+				if (!result.do && doRe.test(text)) result.do = anchor;
+				if (!result.wish && wishRe.test(text)) result.wish = anchor;
+				if (!result.collect && collectRe.test(text)) result.collect = anchor;
+			}
+		};
+		scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
+		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
+		return result;
+	};
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
+	};
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchInterestText((el.textContent || "").trim(), true);
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
+			comment = comment.trim();
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchInterestText(text);
+			if (s && isInterestActive(a)) status = s;
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: [],
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
+	var proxyInterestAction = (doc, status) => {
+		findInterestButtons(doc)[status]?.click();
+	};
+	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
+	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
+	var maxAttempts = 24;
+	var trustedHosts = new Set(["accounts.douban.com"]);
+	var loginTriggerSelector = [
+		".a_show_login",
+		".j.a_show_login",
+		"a[href*='accounts/login']",
+		"a[href*='douban.com/accounts/login']",
+		"a[href*='register']",
+		"a[href*='douban.com/register']"
+	].join(", ");
+	var clearNativeLoginMasks = () => {
+		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
+	};
+	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
+	var isTrustedLoginIframe = (iframe) => {
+		const source = iframe.getAttribute("src");
+		if (!source || source === "about:blank") return true;
+		try {
+			const url = new URL(source, window.location.href);
+			return trustedHosts.has(url.hostname) && url.pathname.startsWith("/passport/login");
+		} catch {
+			return false;
+		}
+	};
+	var prepareNativeLoginIframe = (dialog) => {
+		const iframe = dialog.querySelector("iframe");
+		if (!iframe || !isTrustedLoginIframe(iframe)) return {
+			message: "无法载入豆瓣登录组件，请刷新页面后重试。",
+			ok: false
+		};
+		iframe.title = "豆瓣登录";
+		iframe.referrerPolicy = "strict-origin-when-cross-origin";
+		iframe.removeAttribute("width");
+		iframe.removeAttribute("height");
+		iframe.removeAttribute("frameborder");
+		iframe.removeAttribute("scrolling");
+		iframe.removeAttribute("style");
+		iframe.classList.add("atv-login-modal-iframe");
+		iframe.remove();
+		dialog.remove();
+		return {
+			iframe,
+			ok: true
+		};
+	};
+	var triggerNativeLoginDialog = () => {
+		const triggers = [...document.querySelectorAll(loginTriggerSelector)];
+		(triggers.find((node) => node.offsetParent !== null) ?? triggers[0])?.click();
+	};
+	var mountNativeLoginFrame = (host, onError, attempt = 0) => {
+		clearNativeLoginMasks();
+		const dialog = findNativeLoginDialog();
+		if (dialog) {
+			const result = prepareNativeLoginIframe(dialog);
+			if (!result.ok) {
+				onError(result.message);
+				return;
+			}
+			host.replaceChildren(result.iframe);
+			onError("");
+			requestAnimationFrame(() => result.iframe.focus());
+			return;
+		}
+		if (attempt === 0) {
+			triggerNativeLoginDialog();
+			clearNativeLoginMasks();
+		}
+		if (attempt < maxAttempts) {
+			window.setTimeout(() => {
+				mountNativeLoginFrame(host, onError, attempt + 1);
+			}, 100);
+			return;
+		}
+		onError("无法载入豆瓣登录组件，请刷新页面后重试。");
+	};
+	var LoginModalContent = ({ action, busy, hostRef, status }) => {
+		const handleClose = useModalClose();
+		return u(S, { children: [
+			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
+			u(ModalCloseButton, {
+				ariaLabel: "关闭登录弹窗",
+				className: "atv-login-modal-close",
+				onClick: handleClose,
+				size: 18
+			}),
+			u("h2", {
+				class: "atv-login-modal-title",
+				id: "atv-login-modal-title",
+				children: "登录豆瓣后继续"
+			}),
+			u("p", {
+				class: "atv-login-modal-desc",
+				id: "atv-login-modal-desc",
+				children: `登录后才能${action}。`
+			}),
+			u("p", {
+				"aria-live": "polite",
+				class: "atv-login-modal-status",
+				hidden: !status,
+				children: status
+			}),
+			u("div", {
+				"aria-busy": busy ? "true" : "false",
+				class: "atv-login-modal-native",
+				ref: hostRef
+			})
+		] });
+	};
+	var LoginModal = ({ action, onClose }) => {
+		const hostRef = A(null);
+		const [status, setStatus] = d("正在载入豆瓣登录组件…");
+		const [busy, setBusy] = d(true);
+		h(() => {
+			const host = hostRef.current;
+			if (!host) return;
+			mountNativeLoginFrame(host, (message) => {
+				setStatus(message);
+				setBusy(false);
+			});
+		}, []);
+		h(() => {
+			const timer = setInterval(() => {
+				if (!hostRef.current?.querySelector("iframe")) return;
+				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
+					clearInterval(timer);
+					onClose();
+					window.location.reload();
+				}
+			}, 300);
+			return () => clearInterval(timer);
+		}, [onClose]);
+		return u(ModalShell, {
+			ariaDescribedBy: "atv-login-modal-desc",
+			ariaLabelledBy: "atv-login-modal-title",
+			className: "atv-login-modal",
+			id: "atv-login-modal",
+			onClose,
+			surfaceClassName: "atv-login-modal-inner",
+			children: u(LoginModalContent, {
+				action,
+				busy,
+				hostRef,
+				status
+			})
+		});
+	};
+	var openLoginModal = (options) => {
+		options.returnUrl;
+		clearNativeLoginMasks();
+		openImperativeModal({
+			content: (close) => u(LoginModal, {
+				action: options.action,
+				onClose: close
+			}),
+			id: "atv-login-modal",
+			onClose: clearNativeLoginMasks
+		});
+	};
+	var createAccountGate = (options) => {
+		const openPrompt = options.openPrompt ?? ((action) => {
+			openLoginModal({ action });
+		});
+		const requireLogin = (action) => {
+			if (options.loggedIn) return true;
+			openPrompt(action);
+			return false;
+		};
+		return { requireLogin };
+	};
+	var reloadPage = () => {
+		location.reload();
+	};
+	var saveOptionsFromForm = (form) => ({
+		comment: form.comment,
+		rating: form.rating > 0 ? form.rating : void 0
+	});
+	var buildModalCallbacks = (subjectId, adapters) => ({
+		onRemove: async (status) => {
+			const result = await adapters.remove(subjectId, status);
+			if (result.ok) adapters.reload();
+			return result;
+		},
+		onSave: async (form) => {
+			const result = await adapters.post(subjectId, form.status, saveOptionsFromForm(form));
+			if (result.ok) adapters.reload();
+			return result;
+		}
+	});
+	var buildInterestMarkingCallbacks = (subjectId, adapters = {}) => {
+		const doc = adapters.doc ?? document;
+		const accountGate = adapters.accountGate ?? createAccountGate({ loggedIn: adapters.loggedIn ?? true });
+		const modalAdapters = {
+			post: adapters.post ?? postInterest,
+			reload: adapters.reload ?? reloadPage,
+			remove: adapters.remove ?? removeInterest
+		};
+		const { openModal } = adapters;
+		return {
+			handleCollectClick: () => {
+				if (!accountGate.requireLogin("标记看过")) return;
+				proxyInterestAction(doc, "collect");
+			},
+			handleOpenInterest: (state) => {
+				if (!accountGate.requireLogin("标记这部作品")) return;
+				openModal?.(state, buildModalCallbacks(subjectId, modalAdapters));
+			},
+			handleWatchingClick: () => {
+				if (!accountGate.requireLogin("标记在看")) return;
+				proxyInterestAction(doc, "do");
+			},
+			handleWishClick: () => {
+				if (!accountGate.requireLogin("标记想看")) return;
+				proxyInterestAction(doc, "wish");
+			}
+		};
+	};
 	var CN_DIGIT = {
 		一: 1,
 		七: 7,
@@ -1854,7 +2317,7 @@ input::placeholder {
 		children: starComponents(score, outOfFive).map((Icon, index) => u(Icon, {}, index))
 	});
 	var CommentAvatar = ({ className, comment }) => u("div", {
-		class: className,
+		class: `${className}${comment.avatar ? " atv-avatar-loaded" : ""}`,
 		"data-cid": comment.cid || void 0,
 		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
 		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
@@ -2195,33 +2658,6 @@ input::placeholder {
 		}, [comments]);
 		return urls;
 	};
-	var RE_SLASH_SEP = /\s*\/\s*/gu;
-	var RE_WS_GLOBAL = /\s+/gu;
-	var RE_COLON_WS = /[:：\s]/gu;
-	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
-	var RE_WS = /\s+/u;
-	var RE_YEAR = /(?<year>\d{4})/u;
-	var RE_NON_DIGIT = /\D/gu;
-	var RE_HSPACE = /[ \t]+/gu;
-	var RE_NL_MULTI = /\n{3,}/gu;
-	var RE_IMDB_ID = /(?<id>tt\d+)/u;
-	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
-	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
-	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
-	var RE_HTTP = /^https?:\/\//u;
-	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_WISH = /想看/u;
-	var RE_DO = /在看/u;
-	var RE_COLLECT = /看过/u;
-	var RE_WISH_EXACT = /^想看$/u;
-	var RE_DO_EXACT = /^在看$/u;
-	var RE_COLLECT_EXACT = /^看过$/u;
-	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
-	var RE_IMDB_LINK = /^tt\d+$/u;
-	var RE_SEASON_SUFFIX = /\d$/u;
-	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
-	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
-	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
 	var textValue = (text) => u("div", {
 		class: "atv-info-value",
 		children: text
@@ -3138,154 +3574,147 @@ input::placeholder {
 			})
 		]
 	});
-	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
-	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
-	var maxAttempts = 24;
-	var trustedHosts = new Set(["accounts.douban.com"]);
-	var loginTriggerSelector = [
-		".a_show_login",
-		".j.a_show_login",
-		"a[href*='accounts/login']",
-		"a[href*='douban.com/accounts/login']",
-		"a[href*='register']",
-		"a[href*='douban.com/register']"
-	].join(", ");
-	var clearNativeLoginMasks = () => {
-		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
-	};
-	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
-	var isTrustedLoginIframe = (iframe) => {
-		const source = iframe.getAttribute("src");
-		if (!source || source === "about:blank") return true;
-		try {
-			const url = new URL(source, window.location.href);
-			return trustedHosts.has(url.hostname) && url.pathname.startsWith("/passport/login");
-		} catch {
-			return false;
+	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
+		class: "atv-interest-modal-stars",
+		children: Array.from({ length: 5 }, (_, index) => {
+			const value = index + 1;
+			const full = value <= rating;
+			return u("button", {
+				class: `atv-interest-modal-star${full ? " is-full" : ""}`,
+				disabled,
+				onClick: () => {
+					if (!disabled) onChange(value);
+				},
+				type: "button",
+				children: full ? u(IconStarFull, {}) : u(IconStarEmpty, {})
+			}, index);
+		})
+	});
+	var statusEntries = (hasWatching) => [
+		{
+			label: "想看",
+			value: "wish"
+		},
+		...hasWatching ? [{
+			label: "在看",
+			value: "do"
+		}] : [],
+		{
+			label: "看过",
+			value: "collect"
 		}
-	};
-	var prepareNativeLoginIframe = (dialog) => {
-		const iframe = dialog.querySelector("iframe");
-		if (!iframe || !isTrustedLoginIframe(iframe)) return {
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。",
-			ok: false
-		};
-		iframe.title = "豆瓣登录";
-		iframe.referrerPolicy = "strict-origin-when-cross-origin";
-		iframe.removeAttribute("width");
-		iframe.removeAttribute("height");
-		iframe.removeAttribute("frameborder");
-		iframe.removeAttribute("scrolling");
-		iframe.removeAttribute("style");
-		iframe.classList.add("atv-login-modal-iframe");
-		iframe.remove();
-		dialog.remove();
-		return {
-			iframe,
-			ok: true
-		};
-	};
-	var triggerNativeLoginDialog = () => {
-		const triggers = [...document.querySelectorAll(loginTriggerSelector)];
-		(triggers.find((node) => node.offsetParent !== null) ?? triggers[0])?.click();
-	};
-	var mountNativeLoginFrame = (host, onError, attempt = 0) => {
-		clearNativeLoginMasks();
-		const dialog = findNativeLoginDialog();
-		if (dialog) {
-			const result = prepareNativeLoginIframe(dialog);
-			if (!result.ok) {
-				onError(result.message);
+	];
+	var initialStatus = (state) => state.marked && state.status !== "none" ? state.status : "wish";
+	var InterestFormContent = ({ callbacks, state }) => {
+		const handleClose = useModalClose();
+		const [status, setStatus] = d(initialStatus(state));
+		const [rating, setRating] = d(state.rating || 0);
+		const [comment, setComment] = d(state.comment || "");
+		const [loading, setLoading] = d(false);
+		const [error, setError] = d("");
+		const titlePrefix = state.marked ? "修改" : "标记";
+		const save = async () => {
+			if (loading) return;
+			setLoading(true);
+			setError("");
+			const result = await callbacks.onSave({
+				comment: comment.trim(),
+				rating,
+				status
+			});
+			if (result.ok) {
+				handleClose();
 				return;
 			}
-			host.replaceChildren(result.iframe);
-			onError("");
-			requestAnimationFrame(() => result.iframe.focus());
-			return;
-		}
-		if (attempt === 0) {
-			triggerNativeLoginDialog();
-			clearNativeLoginMasks();
-		}
-		if (attempt < maxAttempts) {
-			window.setTimeout(() => {
-				mountNativeLoginFrame(host, onError, attempt + 1);
-			}, 100);
-			return;
-		}
-		onError("无法载入豆瓣登录组件，请刷新页面后重试。");
-	};
-	var LoginModalContent = ({ action, busy, hostRef, status }) => {
-		const handleClose = useModalClose();
+			setError(result.error || "操作失败");
+			setLoading(false);
+		};
+		const remove = async () => {
+			if (loading) return;
+			setLoading(true);
+			setError("");
+			const result = await callbacks.onRemove(state.status);
+			if (result.ok) {
+				handleClose();
+				return;
+			}
+			setError(result.error || "取消标记失败");
+			setLoading(false);
+		};
 		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
-			u(ModalCloseButton, {
-				ariaLabel: "关闭登录弹窗",
-				className: "atv-login-modal-close",
-				onClick: handleClose,
-				size: 18
-			}),
-			u("h2", {
-				class: "atv-login-modal-title",
-				id: "atv-login-modal-title",
-				children: "登录豆瓣后继续"
-			}),
-			u("p", {
-				class: "atv-login-modal-desc",
-				id: "atv-login-modal-desc",
-				children: `登录后才能${action}。`
-			}),
-			u("p", {
-				"aria-live": "polite",
-				class: "atv-login-modal-status",
-				hidden: !status,
-				children: status
+			u("div", { class: "atv-modal-accent-bar atv-interest-modal-accent" }),
+			u("div", {
+				class: "atv-interest-modal-header",
+				children: [u("span", {
+					class: "atv-interest-modal-header__title",
+					id: "atv-interest-modal-title",
+					children: `${titlePrefix}${INTEREST_LABELS[status]}`
+				}), u(ModalCloseButton, {
+					ariaLabel: "关闭标记弹窗",
+					className: "atv-interest-modal-close",
+					onClick: handleClose
+				})]
 			}),
 			u("div", {
-				"aria-busy": busy ? "true" : "false",
-				class: "atv-login-modal-native",
-				ref: hostRef
+				class: "atv-interest-modal-body",
+				children: [
+					u("div", {
+						class: "atv-interest-modal-statuses",
+						children: statusEntries(state.hasWatching).map((entry) => u("button", {
+							class: `atv-interest-modal-status${entry.value === status ? " is-active" : ""}`,
+							"data-value": entry.value,
+							disabled: loading,
+							onClick: () => setStatus(entry.value),
+							type: "button",
+							children: entry.label
+						}, entry.value))
+					}),
+					u(StarRatingInput, {
+						disabled: loading,
+						onChange: setRating,
+						rating
+					}),
+					u("textarea", {
+						class: "atv-interest-modal-comment",
+						maxLength: 350,
+						onInput: (event) => setComment(event.currentTarget.value),
+						placeholder: "写一段短评…",
+						rows: 3,
+						value: comment
+					}),
+					u("button", {
+						class: "atv-interest-modal-submit",
+						disabled: loading,
+						onClick: () => void save(),
+						type: "button",
+						children: loading ? "保存中..." : "保存"
+					}),
+					state.marked ? u("button", {
+						class: "atv-interest-modal-remove",
+						disabled: loading,
+						onClick: () => void remove(),
+						type: "button",
+						children: "取消标记"
+					}) : null,
+					u("div", {
+						class: "atv-interest-modal-error",
+						children: error
+					})
+				]
 			})
 		] });
 	};
-	var LoginModal = ({ action, onClose }) => {
-		const hostRef = A(null);
-		const [status, setStatus] = d("正在载入豆瓣登录组件…");
-		const [busy, setBusy] = d(true);
-		h(() => {
-			const host = hostRef.current;
-			if (!host) return;
-			mountNativeLoginFrame(host, (message) => {
-				setStatus(message);
-				setBusy(false);
-			});
-		}, []);
-		h(() => {
-			const timer = setInterval(() => {
-				if (!hostRef.current?.querySelector("iframe")) return;
-				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
-					clearInterval(timer);
-					onClose();
-					window.location.reload();
-				}
-			}, 300);
-			return () => clearInterval(timer);
-		}, [onClose]);
-		return u(ModalShell, {
-			ariaDescribedBy: "atv-login-modal-desc",
-			ariaLabelledBy: "atv-login-modal-title",
-			className: "atv-login-modal",
-			id: "atv-login-modal",
-			onClose,
-			surfaceClassName: "atv-login-modal-inner",
-			children: u(LoginModalContent, {
-				action,
-				busy,
-				hostRef,
-				status
-			})
-		});
-	};
+	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
+		ariaLabelledBy: "atv-interest-modal-title",
+		className: "atv-interest-modal",
+		id: "atv-interest-modal",
+		onClose,
+		surfaceClassName: "atv-interest-modal-inner",
+		children: u(InterestFormContent, {
+			callbacks,
+			state
+		})
+	});
 	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
 		id: "atv-cast",
 		title: "演职员",
@@ -4094,6 +4523,8 @@ input::placeholder {
 		const [activeReview, setActiveReview] = d(null);
 		const [activeMediaModal, setActiveMediaModal] = d(null);
 		const [loginAction, setLoginAction] = d(null);
+		const [activeInterest, setActiveInterest] = d(data.interest);
+		const [interestOpen, setInterestOpen] = d(false);
 		const [series, setSeries] = d(data.series);
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
 		const avatarUrls = useAvatarUrls(data.comments);
@@ -4114,6 +4545,38 @@ input::placeholder {
 			}
 			return deps.canReviewVote?.() ?? true;
 		};
+		const heroCallbacks = {
+			...deps.heroCallbacks,
+			handleCollectClick: () => {
+				if (!data.interest.loggedIn) {
+					setLoginAction("标记看过");
+					return;
+				}
+				deps.heroCallbacks.handleCollectClick();
+			},
+			handleOpenInterest: (state) => {
+				if (!data.interest.loggedIn) {
+					setLoginAction("标记这部作品");
+					return;
+				}
+				setActiveInterest(state);
+				setInterestOpen(true);
+			},
+			handleWatchingClick: () => {
+				if (!data.interest.loggedIn) {
+					setLoginAction("标记在看");
+					return;
+				}
+				deps.heroCallbacks.handleWatchingClick();
+			},
+			handleWishClick: () => {
+				if (!data.interest.loggedIn) {
+					setLoginAction("标记想看");
+					return;
+				}
+				deps.heroCallbacks.handleWishClick();
+			}
+		};
 		h(() => watchSeries(setSeries), []);
 		return u(S, { children: [
 			u(StickyNav, {
@@ -4124,7 +4587,7 @@ input::placeholder {
 				title: data.title
 			}),
 			u(Hero, {
-				callbacks: deps.heroCallbacks,
+				callbacks: heroCallbacks,
 				data: toHeroData(data),
 				onOpenPoster: (src, alt) => setActiveMediaModal({
 					alt,
@@ -4212,6 +4675,15 @@ input::placeholder {
 			loginAction ? u(LoginModal, {
 				action: loginAction,
 				onClose: () => setLoginAction(null)
+			}) : null,
+			interestOpen ? u(InterestForm, {
+				callbacks: buildModalCallbacks(data.subjectId, {
+					post: postInterest,
+					reload: () => location.reload(),
+					remove: removeInterest
+				}),
+				onClose: () => setInterestOpen(false),
+				state: activeInterest
 			}) : null
 		] });
 	};
@@ -4362,142 +4834,6 @@ input::placeholder {
 			out.imdb = m ? m[1] : raw;
 		}
 		return out;
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
-	};
-	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
-	var findInterestButtons = (doc) => {
-		const result = {
-			collect: null,
-			do: null,
-			wish: null
-		};
-		const scan = (anchors, doRe, wishRe, collectRe) => {
-			for (const anchor of anchors) {
-				const text = (anchor.textContent || "").trim();
-				if (!result.do && doRe.test(text)) result.do = anchor;
-				if (!result.wish && wishRe.test(text)) result.wish = anchor;
-				if (!result.collect && collectRe.test(text)) result.collect = anchor;
-			}
-		};
-		scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
-		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
-		return result;
-	};
-	var isInterestActive = (anchor) => {
-		if (!anchor) return false;
-		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-		return RE_INTEREST_ACTIVE.test(classes);
-	};
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
-			comment = comment.trim();
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
-		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchInterestText(text);
-			if (s && isInterestActive(a)) status = s;
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = findInterestRoot(doc);
-		const anchors = findInterestAnchors(doc, root);
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: [],
-				usefulCount: s3.usefulCount
-			};
-		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
-		};
-	};
-	var proxyInterestAction = (doc, status) => {
-		findInterestButtons(doc)[status]?.click();
 	};
 	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
 		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
@@ -4767,279 +5103,6 @@ input::placeholder {
 			title: extractTitle(doc),
 			trailers: extractTrailers(doc),
 			year: extractYear(doc)
-		};
-	};
-	var API_INTEREST = "https://movie.douban.com/j/subject";
-	var API_REMOVE = "https://movie.douban.com/subject";
-	var postInterest = async (subjectId, interest, options) => {
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({
-			ck,
-			comment: options?.comment ?? "",
-			foldcollect: "F",
-			interest,
-			private: "",
-			rating: typeof options?.rating === "number" ? String(options.rating) : "",
-			tags: options?.tags?.join(",") ?? ""
-		});
-		try {
-			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			const data = JSON.parse(text);
-			if (data.r === 0) return { ok: true };
-			return {
-				error: data.msg || "操作失败",
-				ok: false
-			};
-		} catch (error) {
-			console.warn("[ATV-Douban] postInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var removeInterest = async (subjectId, currentStatus) => {
-		if (currentStatus === "none") return { ok: true };
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({ ck });
-		try {
-			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			return { ok: true };
-		} catch (error) {
-			console.warn("[ATV-Douban] removeInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
-		class: "atv-interest-modal-stars",
-		children: Array.from({ length: 5 }, (_, index) => {
-			const value = index + 1;
-			const full = value <= rating;
-			return u("button", {
-				class: `atv-interest-modal-star${full ? " is-full" : ""}`,
-				disabled,
-				onClick: () => {
-					if (!disabled) onChange(value);
-				},
-				type: "button",
-				children: full ? u(IconStarFull, {}) : u(IconStarEmpty, {})
-			}, index);
-		})
-	});
-	var statusEntries = (hasWatching) => [
-		{
-			label: "想看",
-			value: "wish"
-		},
-		...hasWatching ? [{
-			label: "在看",
-			value: "do"
-		}] : [],
-		{
-			label: "看过",
-			value: "collect"
-		}
-	];
-	var initialStatus = (state) => state.marked && state.status !== "none" ? state.status : "wish";
-	var InterestFormContent = ({ callbacks, state }) => {
-		const handleClose = useModalClose();
-		const [status, setStatus] = d(initialStatus(state));
-		const [rating, setRating] = d(state.rating || 0);
-		const [comment, setComment] = d(state.comment || "");
-		const [loading, setLoading] = d(false);
-		const [error, setError] = d("");
-		const titlePrefix = state.marked ? "修改" : "标记";
-		const save = async () => {
-			if (loading) return;
-			setLoading(true);
-			setError("");
-			const result = await callbacks.onSave({
-				comment: comment.trim(),
-				rating,
-				status
-			});
-			if (result.ok) {
-				handleClose();
-				return;
-			}
-			setError(result.error || "操作失败");
-			setLoading(false);
-		};
-		const remove = async () => {
-			if (loading) return;
-			setLoading(true);
-			setError("");
-			const result = await callbacks.onRemove(state.status);
-			if (result.ok) {
-				handleClose();
-				return;
-			}
-			setError(result.error || "取消标记失败");
-			setLoading(false);
-		};
-		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-interest-modal-accent" }),
-			u("div", {
-				class: "atv-interest-modal-header",
-				children: [u("span", {
-					class: "atv-interest-modal-header__title",
-					id: "atv-interest-modal-title",
-					children: `${titlePrefix}${INTEREST_LABELS[status]}`
-				}), u(ModalCloseButton, {
-					ariaLabel: "关闭标记弹窗",
-					className: "atv-interest-modal-close",
-					onClick: handleClose
-				})]
-			}),
-			u("div", {
-				class: "atv-interest-modal-body",
-				children: [
-					u("div", {
-						class: "atv-interest-modal-statuses",
-						children: statusEntries(state.hasWatching).map((entry) => u("button", {
-							class: `atv-interest-modal-status${entry.value === status ? " is-active" : ""}`,
-							"data-value": entry.value,
-							disabled: loading,
-							onClick: () => setStatus(entry.value),
-							type: "button",
-							children: entry.label
-						}, entry.value))
-					}),
-					u(StarRatingInput, {
-						disabled: loading,
-						onChange: setRating,
-						rating
-					}),
-					u("textarea", {
-						class: "atv-interest-modal-comment",
-						maxLength: 350,
-						onInput: (event) => setComment(event.currentTarget.value),
-						placeholder: "写一段短评…",
-						rows: 3,
-						value: comment
-					}),
-					u("button", {
-						class: "atv-interest-modal-submit",
-						disabled: loading,
-						onClick: () => void save(),
-						type: "button",
-						children: loading ? "保存中..." : "保存"
-					}),
-					state.marked ? u("button", {
-						class: "atv-interest-modal-remove",
-						disabled: loading,
-						onClick: () => void remove(),
-						type: "button",
-						children: "取消标记"
-					}) : null,
-					u("div", {
-						class: "atv-interest-modal-error",
-						children: error
-					})
-				]
-			})
-		] });
-	};
-	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
-		ariaLabelledBy: "atv-interest-modal-title",
-		className: "atv-interest-modal",
-		id: "atv-interest-modal",
-		onClose,
-		surfaceClassName: "atv-interest-modal-inner",
-		children: u(InterestFormContent, {
-			callbacks,
-			state
-		})
-	});
-	var openInterestModal = (state, callbacks) => {
-		openImperativeModal({
-			content: (close) => u(InterestForm, {
-				callbacks,
-				onClose: close,
-				state
-			}),
-			id: "atv-interest-modal"
-		});
-	};
-	var openLoginModal = (options) => {
-		options.returnUrl;
-		clearNativeLoginMasks();
-		openImperativeModal({
-			content: (close) => u(LoginModal, {
-				action: options.action,
-				onClose: close
-			}),
-			id: "atv-login-modal",
-			onClose: clearNativeLoginMasks
-		});
-	};
-	var createAccountGate = (options) => {
-		const openPrompt = options.openPrompt ?? ((action) => {
-			openLoginModal({ action });
-		});
-		const requireLogin = (action) => {
-			if (options.loggedIn) return true;
-			openPrompt(action);
-			return false;
-		};
-		return { requireLogin };
-	};
-	var reloadPage = () => {
-		location.reload();
-	};
-	var saveOptionsFromForm = (form) => ({
-		comment: form.comment,
-		rating: form.rating > 0 ? form.rating : void 0
-	});
-	var buildModalCallbacks = (subjectId, adapters) => ({
-		onRemove: async (status) => {
-			const result = await adapters.remove(subjectId, status);
-			if (result.ok) adapters.reload();
-			return result;
-		},
-		onSave: async (form) => {
-			const result = await adapters.post(subjectId, form.status, saveOptionsFromForm(form));
-			if (result.ok) adapters.reload();
-			return result;
-		}
-	});
-	var buildInterestMarkingCallbacks = (subjectId, adapters = {}) => {
-		const doc = adapters.doc ?? document;
-		const accountGate = adapters.accountGate ?? createAccountGate({ loggedIn: adapters.loggedIn ?? true });
-		const modalAdapters = {
-			post: adapters.post ?? postInterest,
-			reload: adapters.reload ?? reloadPage,
-			remove: adapters.remove ?? removeInterest
-		};
-		const openModal = adapters.openModal ?? openInterestModal;
-		return {
-			handleCollectClick: () => {
-				if (!accountGate.requireLogin("标记看过")) return;
-				proxyInterestAction(doc, "collect");
-			},
-			handleOpenInterest: (state) => {
-				if (!accountGate.requireLogin("标记这部作品")) return;
-				openModal(state, buildModalCallbacks(subjectId, modalAdapters));
-			},
-			handleWatchingClick: () => {
-				if (!accountGate.requireLogin("标记在看")) return;
-				proxyInterestAction(doc, "do");
-			},
-			handleWishClick: () => {
-				if (!accountGate.requireLogin("标记想看")) return;
-				proxyInterestAction(doc, "wish");
-			}
 		};
 	};
 	var setSubjectTitle = (doc, data) => {

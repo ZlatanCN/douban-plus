@@ -217,3 +217,4 @@ const resolveStreamingProvider = (
 };
 
 export { decodeStreamingHref, resolveStreamingProvider };
+export type { ResolvedStreamingProvider, StreamingProviderKey };

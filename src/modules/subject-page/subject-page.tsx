@@ -1,7 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
 
+import { postInterest, removeInterest } from "@/api/interest";
 import { computeNavSections, StickyNav } from "@/components/layout";
 import { PosterModal, VideoModal } from "@/components/modal";
+import { buildModalCallbacks } from "@/runtime/interest-marking";
 import { extractSeriesMoreLink, watchSeries } from "@/runtime/series-effect";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
@@ -16,6 +18,7 @@ import type { CommentVoteState } from "./comments/comment-vote-state";
 import { useAvatarUrls } from "./comments/use-avatar-urls";
 import { DetailsSection } from "./details";
 import { Hero } from "./hero";
+import { InterestForm } from "./interest/interest-form";
 import { LoginModal } from "./login/login-modal";
 import {
   CastSection,
@@ -80,6 +83,8 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
   const [activeMediaModal, setActiveMediaModal] =
     useState<ActiveMediaModal>(null);
   const [loginAction, setLoginAction] = useState<string | null>(null);
+  const [activeInterest, setActiveInterest] = useState(data.interest);
+  const [interestOpen, setInterestOpen] = useState(false);
   const [series, setSeries] = useState(data.series);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
   const avatarUrls = useAvatarUrls(data.comments);
@@ -100,6 +105,38 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
     }
     return deps.canReviewVote?.() ?? true;
   };
+  const heroCallbacks = {
+    ...deps.heroCallbacks,
+    handleCollectClick: () => {
+      if (!data.interest.loggedIn) {
+        setLoginAction("标记看过");
+        return;
+      }
+      deps.heroCallbacks.handleCollectClick();
+    },
+    handleOpenInterest: (state: typeof data.interest) => {
+      if (!data.interest.loggedIn) {
+        setLoginAction("标记这部作品");
+        return;
+      }
+      setActiveInterest(state);
+      setInterestOpen(true);
+    },
+    handleWatchingClick: () => {
+      if (!data.interest.loggedIn) {
+        setLoginAction("标记在看");
+        return;
+      }
+      deps.heroCallbacks.handleWatchingClick();
+    },
+    handleWishClick: () => {
+      if (!data.interest.loggedIn) {
+        setLoginAction("标记想看");
+        return;
+      }
+      deps.heroCallbacks.handleWishClick();
+    },
+  };
 
   useEffect(() => watchSeries(setSeries), []);
 
@@ -110,7 +147,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         title={data.title}
       />
       <Hero
-        callbacks={deps.heroCallbacks}
+        callbacks={heroCallbacks}
         data={toHeroData(data)}
         onOpenPoster={(src, alt) =>
           setActiveMediaModal({ alt, src, type: "poster" })
@@ -200,6 +237,17 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       ) : null}
       {loginAction ? (
         <LoginModal action={loginAction} onClose={() => setLoginAction(null)} />
+      ) : null}
+      {interestOpen ? (
+        <InterestForm
+          callbacks={buildModalCallbacks(data.subjectId, {
+            post: postInterest,
+            reload: () => location.reload(),
+            remove: removeInterest,
+          })}
+          onClose={() => setInterestOpen(false)}
+          state={activeInterest}
+        />
       ) : null}
     </>
   );

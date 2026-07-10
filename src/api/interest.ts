@@ -76,3 +76,4 @@ const removeInterest = async (
 };
 
 export { postInterest, removeInterest };
+export type { InterestResult };
