@@ -1,15 +1,21 @@
 import { useState } from "preact/hooks";
 
 import { PosterPlaceholder } from "@/components/common/poster-placeholder";
-import { openPosterModal } from "@/components/modal";
 import type { TitleInfo } from "@/types";
 
 type HeroPosterProps = {
+  onOpenPoster?: (src: string, alt: string) => void;
   poster: string | null;
   title: TitleInfo;
 };
 
-const HeroPoster = ({ poster, title }: HeroPosterProps) => {
+const noop = (): undefined => undefined;
+
+const HeroPoster = ({
+  onOpenPoster = noop,
+  poster,
+  title,
+}: HeroPosterProps) => {
   const [failed, setFailed] = useState(false);
 
   return (
@@ -17,7 +23,7 @@ const HeroPoster = ({ poster, title }: HeroPosterProps) => {
       class="atv-poster-card"
       onClick={() => {
         if (poster) {
-          openPosterModal(poster, title.primary || "");
+          onOpenPoster(poster, title.primary || "");
         }
       }}
       type="button"

@@ -8,7 +8,6 @@ import { ModalCloseButton } from "./modal-close-button";
 import { ModalShell } from "./modal-shell";
 
 const MODAL_ID = "atv-video-modal";
-const SPINNER_STYLE_ID = "atv-vs";
 const REDIRECT_DELAY_MS = 1500;
 const TOAST_DURATION_MS = 3000;
 
@@ -21,17 +20,6 @@ type VideoState =
   | { status: "loading" }
   | { embedUrl: string; status: "loaded" }
   | { status: "error" };
-
-const ensureVideoStyle = (): void => {
-  if (document.querySelector(`#${SPINNER_STYLE_ID}`)) {
-    return;
-  }
-  const style = document.createElement("style");
-  style.id = SPINNER_STYLE_ID;
-  style.textContent =
-    "@keyframes atv-spin{to{transform:rotate(360deg)}}.atv-modal-loading{display:flex;flex-direction:column;align-items:center;gap:16px;color:#fff;font-size:15px}.atv-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#41be5d;border-radius:50%;animation:atv-spin .8s linear infinite}";
-  document.head.append(style);
-};
 
 const extractEmbedUrl = (html: string): string => {
   const ldMatch = html.match(
@@ -133,11 +121,10 @@ const VideoModal = ({ onClose, trailer }: VideoModalProps) => (
 );
 
 const openVideoModal = (trailer: Trailer): void => {
-  ensureVideoStyle();
   openImperativeModal({
     content: (close) => <VideoModal onClose={close} trailer={trailer} />,
     id: MODAL_ID,
   });
 };
 
-export { openVideoModal };
+export { VideoModal, openVideoModal };

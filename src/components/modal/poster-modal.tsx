@@ -44,4 +44,4 @@ const openPosterModal = (src: string, alt: string): void => {
   });
 };
 
-export { openPosterModal };
+export { PosterModal, openPosterModal };

@@ -10,7 +10,7 @@ import { StickyNav } from "@/components/layout/sticky-nav";
 import { buildHeroCallbacks, watchSeries } from "@/main";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { SubjectPageDeps } from "@/modules/subject-page/types";
-import type { DoubanData, InfoBlock, InterestState } from "@/types";
+import type { DoubanData, InfoBlock, InterestState, SeriesItem } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */
@@ -403,23 +403,12 @@ describe(watchSeries, () => {
     document.body.innerHTML = "";
   });
 
-  it("builds series section when .items-swiper appears late in #series-items (t20)", async () => {
+  it("reports series data when .items-swiper appears late in #series-items (t20)", async () => {
     document.body.innerHTML = `
       <div id="series-items"></div>
-      <div id="atv-douban-root">
-        <section class="atv-hero-section"></section>
-        <div class="atv-footer-spacer"></div>
-      </div>
-      <nav class="atv-stickynav">
-        <div class="atv-stickynav-title">Title</div>
-        <div class="atv-stickynav-jumps"></div>
-      </nav>
     `;
-
-    const root = document.querySelector("#atv-douban-root") as HTMLElement;
-    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
-
-    watchSeries(root, nav);
+    const onSeries = vi.fn<(items: SeriesItem[]) => void>();
+    watchSeries(onSeries);
 
     const container = document.querySelector("#series-items") as HTMLElement;
     container.innerHTML = `
@@ -435,41 +424,21 @@ describe(watchSeries, () => {
       </div>
     `;
 
-    await vi.waitFor(() => {
-      expect(root.querySelector("#atv-series")).not.toBeNull();
-    });
-
-    const seriesSection = root.querySelector("#atv-series") as HTMLElement;
-    expect(seriesSection.classList.contains("atv-section")).toBeTruthy();
-
-    const cards = root.querySelectorAll(".atv-series-card");
-    expect(cards).toHaveLength(2);
-
-    const navLink = nav.querySelector('a[href="#atv-series"]');
-    expect(navLink).not.toBeNull();
-    expect(navLink?.textContent).toBe("同系列");
+    await vi.waitFor(() =>
+      expect(onSeries).toHaveBeenCalledWith(expect.any(Array))
+    );
+    expect(onSeries.mock.calls.at(-1)?.[0]).toHaveLength(2);
   });
 
-  it("does not set up observer when .items-swiper already exists (t21)", () => {
+  it("reports existing series immediately (t21)", () => {
     document.body.innerHTML = `
       <div id="series-items">
         <div class="items-swiper"><div class="items-swiper-item"></div></div>
       </div>
-      <div id="atv-douban-root">
-        <section class="atv-hero-section"></section>
-      </div>
-      <nav class="atv-stickynav">
-        <div class="atv-stickynav-jumps"></div>
-      </nav>
     `;
-
-    const root = document.querySelector("#atv-douban-root") as HTMLElement;
-    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
-
-    const spy = vi.spyOn(window, "MutationObserver");
-    watchSeries(root, nav);
-    expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
+    const onSeries = vi.fn<(items: SeriesItem[]) => void>();
+    watchSeries(onSeries);
+    expect(onSeries).toHaveBeenCalledWith([]);
   });
 
   it("does nothing when #series-items is absent from page (t22)", () => {
@@ -482,11 +451,8 @@ describe(watchSeries, () => {
       </nav>
     `;
 
-    const root = document.querySelector("#atv-douban-root") as HTMLElement;
-    const nav = document.querySelector(".atv-stickynav") as HTMLElement;
-
     const spy = vi.spyOn(window, "MutationObserver");
-    watchSeries(root, nav);
+    watchSeries(vi.fn<(items: SeriesItem[]) => void>());
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

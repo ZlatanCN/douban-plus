@@ -242,13 +242,13 @@ describe("openVideoModal(trailer)", () => {
     expect(modal?.getAttribute("aria-label")).toBe(TRAILER.title);
   });
 
-  it("injects style element for spinner animations only once", () => {
+  it("keeps spinner styling in the static modal stylesheet", () => {
     openVideoModal(TRAILER);
     openVideoModal(TRAILER);
 
     const styles = document.querySelectorAll("#atv-vs");
-    expect(styles).toHaveLength(1);
-    expect(styles[0] instanceof HTMLStyleElement).toBeTruthy();
+    expect(styles).toHaveLength(0);
+    expect(modalCss).toContain("@keyframes atv-spin");
   });
 
   it("replaces existing video modal on second call", () => {

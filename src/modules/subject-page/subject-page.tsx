@@ -1,6 +1,9 @@
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
-import type { Comment, DoubanData, HeroData, Review } from "@/types";
+import { computeNavSections, StickyNav } from "@/components/layout";
+import { PosterModal, VideoModal } from "@/components/modal";
+import { extractSeriesMoreLink, watchSeries } from "@/runtime/series-effect";
+import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
 import { CommentModal } from "./comments/comment-modal";
@@ -10,8 +13,10 @@ import {
   initialCommentVoteState,
 } from "./comments/comment-vote-state";
 import type { CommentVoteState } from "./comments/comment-vote-state";
+import { useAvatarUrls } from "./comments/use-avatar-urls";
 import { DetailsSection } from "./details";
 import { Hero } from "./hero";
+import { LoginModal } from "./login/login-modal";
 import {
   CastSection,
   PhotosSection,
@@ -36,6 +41,11 @@ type SubjectPageProps = {
   data: DoubanData;
   deps: SubjectPageDeps;
 };
+
+type ActiveMediaModal =
+  | { alt: string; src: string; type: "poster" }
+  | { trailer: Trailer; type: "video" }
+  | null;
 
 const toHeroData = (data: DoubanData): HeroData => ({
   imdbId: data.info.imdb || null,
@@ -67,16 +77,50 @@ const reviewVoteStrategy = {
 const SubjectPage = ({ data, deps }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
+  const [activeMediaModal, setActiveMediaModal] =
+    useState<ActiveMediaModal>(null);
+  const [loginAction, setLoginAction] = useState<string | null>(null);
+  const [series, setSeries] = useState(data.series);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
+  const avatarUrls = useAvatarUrls(data.comments);
   const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
+  const canVote = (): boolean => {
+    if (!data.interest.loggedIn) {
+      setLoginAction("给短评点有用");
+      return false;
+    }
+    return deps.canVote?.() ?? true;
+  };
+  const canReviewVote = (): boolean => {
+    if (!data.interest.loggedIn) {
+      setLoginAction("给影评投票");
+      return false;
+    }
+    return deps.canReviewVote?.() ?? true;
+  };
+
+  useEffect(() => watchSeries(setSeries), []);
 
   return (
     <>
-      <Hero callbacks={deps.heroCallbacks} data={toHeroData(data)} />
+      <StickyNav
+        sections={computeNavSections({ ...data, series })}
+        title={data.title}
+      />
+      <Hero
+        callbacks={deps.heroCallbacks}
+        data={toHeroData(data)}
+        onOpenPoster={(src, alt) =>
+          setActiveMediaModal({ alt, src, type: "poster" })
+        }
+      />
       <StreamingSection streaming={data.streaming} />
-      <SeriesSection items={data.series} moreLink={deps.seriesMoreLink} />
+      <SeriesSection
+        items={series}
+        moreLink={deps.seriesMoreLink ?? extractSeriesMoreLink()}
+      />
       <CastSection celebrities={data.celebrities} />
       <PhotosSection
         data={{
@@ -84,9 +128,16 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
           subjectId: data.subjectId,
           trailers: data.trailers,
         }}
+        onOpenPoster={(src, alt) =>
+          setActiveMediaModal({ alt, src, type: "poster" })
+        }
+        onOpenVideo={(trailer) =>
+          setActiveMediaModal({ trailer, type: "video" })
+        }
       />
       <CommentsSection
-        canVote={deps.canVote}
+        avatarUrls={avatarUrls}
+        canVote={canVote}
         comments={commentVotes.mergeVoteStates(data.comments)}
         getVoteState={commentVotes.getVoteState}
         onOpen={setActiveComment}
@@ -95,7 +146,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         subjectId={data.subjectId}
       />
       <ReviewsSection
-        canVote={deps.canReviewVote}
+        canVote={canReviewVote}
         getVoteState={reviewVotes.getVoteState}
         isTV={data.isTV}
         onOpen={setActiveReview}
@@ -113,8 +164,11 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       {/* Modals rendered outside sections to avoid ancestor transform containment */}
       {activeComment ? (
         <CommentModal
-          canVote={deps.canVote}
-          comment={commentVotes.mergeVoteState(activeComment)}
+          canVote={canVote}
+          comment={{
+            ...commentVotes.mergeVoteState(activeComment),
+            avatar: avatarUrls.get(activeComment.link) || activeComment.avatar,
+          }}
           onClose={() => setActiveComment(null)}
           onVoteStateChange={handleCommentVoteStateChange}
           onVote={deps.handleVote}
@@ -123,13 +177,29 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       ) : null}
       {activeReview ? (
         <ReviewModal
-          canVote={deps.canReviewVote}
+          canVote={canReviewVote}
           onClose={() => setActiveReview(null)}
           onVoteStateChange={handleReviewVoteStateChange}
           onVote={deps.handleReviewVote}
           review={reviewVotes.mergeVoteState(activeReview)}
           voteState={reviewVotes.getVoteState(activeReview)}
         />
+      ) : null}
+      {activeMediaModal?.type === "poster" ? (
+        <PosterModal
+          alt={activeMediaModal.alt}
+          onClose={() => setActiveMediaModal(null)}
+          src={activeMediaModal.src}
+        />
+      ) : null}
+      {activeMediaModal?.type === "video" ? (
+        <VideoModal
+          onClose={() => setActiveMediaModal(null)}
+          trailer={activeMediaModal.trailer}
+        />
+      ) : null}
+      {loginAction ? (
+        <LoginModal action={loginAction} onClose={() => setLoginAction(null)} />
       ) : null}
     </>
   );

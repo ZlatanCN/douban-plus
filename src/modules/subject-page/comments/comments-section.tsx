@@ -1,5 +1,3 @@
-import { useEffect, useRef } from "preact/hooks";
-
 import { Section } from "@/components/layout/section";
 import type { AccountActionGuard, Comment } from "@/types";
 
@@ -8,6 +6,7 @@ import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentsSectionProps = {
+  avatarUrls?: Map<string, string>;
   canVote?: AccountActionGuard;
   comments: Comment[];
   getVoteState?: (comment: Comment) => CommentVoteState;
@@ -18,6 +17,7 @@ type CommentsSectionProps = {
 };
 
 const CommentsSection = ({
+  avatarUrls,
   canVote,
   comments,
   getVoteState,
@@ -26,22 +26,6 @@ const CommentsSection = ({
   onVote,
   subjectId,
 }: CommentsSectionProps) => {
-  const gridRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    requestAnimationFrame(() => {
-      const cards =
-        gridRef.current?.querySelectorAll<HTMLElement>(".atv-comment-card") ??
-        [];
-      for (const card of cards) {
-        const body = card.querySelector<HTMLElement>(".atv-comment-body-text");
-        if (body && body.scrollHeight > body.clientHeight) {
-          card.classList.add("has-overflow");
-        }
-      }
-    });
-  }, [comments]);
-
   if (!comments.length) {
     return null;
   }
@@ -59,11 +43,14 @@ const CommentsSection = ({
       }
       title="热门短评"
     >
-      <div class="atv-comments" ref={gridRef}>
+      <div class="atv-comments">
         {comments.map((comment) => (
           <CommentCard
+            comment={{
+              ...comment,
+              avatar: avatarUrls?.get(comment.link) || comment.avatar,
+            }}
             canVote={canVote}
-            comment={comment}
             key={comment.cid}
             onOpen={onOpen}
             onVoteStateChange={onVoteStateChange}

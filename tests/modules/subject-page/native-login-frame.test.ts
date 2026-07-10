@@ -84,6 +84,6 @@ describe("native login frame", () => {
     // the component's loading state.
     expect(onError).toHaveBeenCalledWith("");
     expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
-    expect(host.getAttribute("aria-busy")).toBe("false");
+    expect(host.getAttribute("aria-busy")).toBeNull();
   });
 });
