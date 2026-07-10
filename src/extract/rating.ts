@@ -56,47 +56,43 @@ const extractSummary = (doc: Document): string | null => {
   return txt || null;
 };
 
+const extractVisibleSummary = (doc: Document): string | null => {
+  const container = doc.querySelector("#link-report-intra");
+  if (!container) {
+    return extractSummary(doc);
+  }
+  const visible = [...container.children].find(
+    (child) =>
+      child instanceof HTMLElement &&
+      !child.classList.contains("pl") &&
+      child.style.display !== "none"
+  );
+  const text = normalizeSummaryText(visible?.textContent || "").replace(
+    /\s*\(展开全部\)\s*$/u,
+    ""
+  );
+  return text || extractSummary(doc);
+};
+
 const expandNativeSummary = (
   doc: Document = document
 ): Promise<string | null> => {
-  const before = extractSummary(doc);
+  const before = extractVisibleSummary(doc);
   const trigger = doc.querySelector<HTMLAnchorElement>("a.a_show_full");
   if (!trigger) {
     return Promise.resolve(before);
   }
 
   trigger.click();
-  const after = extractSummary(doc);
-  if (after && after !== before) {
-    return Promise.resolve(after);
-  }
-
-  // eslint-disable-next-line promise/avoid-new -- MutationObserver resolves only after Douban replaces the host summary node.
-  return new Promise((resolve) => {
-    const summary = doc.querySelector('span[property="v:summary"]');
-    if (!summary) {
-      resolve(after);
-      return;
-    }
-    const observer = new MutationObserver(() => {
-      const expanded = extractSummary(doc);
-      if (expanded && expanded !== before) {
-        observer.disconnect();
-        resolve(expanded);
-      }
-    });
-    observer.observe(summary.parentElement ?? summary, {
-      characterData: true,
-      childList: true,
-      subtree: true,
-    });
-    window.setTimeout(() => {
-      observer.disconnect();
-      resolve(extractSummary(doc));
-    }, 1500);
-  });
+  const after = extractVisibleSummary(doc);
+  return Promise.resolve(after || before);
 };
 
 /* ── Exports ──────────────────────────────────────────── */
 
-export { expandNativeSummary, extractRating, extractSummary };
+export {
+  expandNativeSummary,
+  extractRating,
+  extractSummary,
+  extractVisibleSummary,
+};

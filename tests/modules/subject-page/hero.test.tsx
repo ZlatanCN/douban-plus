@@ -289,4 +289,24 @@ describe(HeroSummary, () => {
 
     expect(expandNativeSummary).toHaveBeenCalledOnce();
   });
+
+  it("removes the clamp before an asynchronous native response resolves", async () => {
+    const el = renderSingle(
+      <HeroSummary
+        expandNativeSummary={() =>
+          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
+          new Promise<string>((resolve) => {
+            void resolve;
+          })
+        }
+        text="截断的简介"
+      />
+    );
+
+    el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
+    await Promise.resolve();
+    expect(el.querySelector(".atv-hero-teaser")?.classList).not.toContain(
+      "is-clamped"
+    );
+  });
 });

@@ -1838,36 +1838,18 @@ input::placeholder {
 		if (!summary) return null;
 		return normalizeSummaryText(summary.textContent || "") || null;
 	};
+	var extractVisibleSummary = (doc) => {
+		const container = doc.querySelector("#link-report-intra");
+		if (!container) return extractSummary(doc);
+		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
+	};
 	var expandNativeSummary = (doc = document) => {
-		const before = extractSummary(doc);
+		const before = extractVisibleSummary(doc);
 		const trigger = doc.querySelector("a.a_show_full");
 		if (!trigger) return Promise.resolve(before);
 		trigger.click();
-		const after = extractSummary(doc);
-		if (after && after !== before) return Promise.resolve(after);
-		return new Promise((resolve) => {
-			const summary = doc.querySelector("span[property=\"v:summary\"]");
-			if (!summary) {
-				resolve(after);
-				return;
-			}
-			const observer = new MutationObserver(() => {
-				const expanded = extractSummary(doc);
-				if (expanded && expanded !== before) {
-					observer.disconnect();
-					resolve(expanded);
-				}
-			});
-			observer.observe(summary.parentElement ?? summary, {
-				characterData: true,
-				childList: true,
-				subtree: true
-			});
-			window.setTimeout(() => {
-				observer.disconnect();
-				resolve(extractSummary(doc));
-			}, 1500);
-		});
+		const after = extractVisibleSummary(doc);
+		return Promise.resolve(after || before);
 	};
 	var matchInterestText = (text, s3Only = false) => {
 		if (text.includes("已看过")) return "collect";
@@ -3370,9 +3352,9 @@ input::placeholder {
 				setExpanded(false);
 				return;
 			}
+			setExpanded(true);
 			const expandedText = await expandNativeSummary?.();
 			if (expandedText) setSummary(expandedText);
-			setExpanded(true);
 		};
 		return u("div", {
 			class: "atv-hero-summary",

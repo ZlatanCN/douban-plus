@@ -135,14 +135,18 @@ describe(extractSummary, () => {
 describe(expandNativeSummary, () => {
   it("clicks Douban's native expand trigger and returns the replacement text", async () => {
     const doc = buildDoc(`<!DOCTYPE html><body>
-      <span property="v:summary">截断内容</span>
-      <a class="j a_show_full" href="javascript:void(0)">(展开全部)</a>
+      <div id="link-report-intra">
+        <span class="short"><span property="v:summary">截断内容</span><a class="j a_show_full" href="javascript:void(0)">(展开全部)</a></span>
+        <span class="all hidden" style="display:none">完整的豆瓣剧情简介</span>
+      </div>
     </body>`);
-    const summary = doc.querySelector<HTMLElement>('[property="v:summary"]');
+    const short = doc.querySelector<HTMLElement>(".short");
+    const full = doc.querySelector<HTMLElement>(".all");
     const trigger = doc.querySelector<HTMLAnchorElement>("a.a_show_full");
     trigger?.addEventListener("click", () => {
-      if (summary) {
-        summary.textContent = "完整的豆瓣剧情简介";
+      if (short && full) {
+        short.style.display = "none";
+        full.style.display = "inline";
       }
     });
 

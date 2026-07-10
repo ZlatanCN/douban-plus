@@ -36,11 +36,11 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
       setExpanded(false);
       return;
     }
+    setExpanded(true);
     const expandedText = await expandNativeSummary?.();
     if (expandedText) {
       setSummary(expandedText);
     }
-    setExpanded(true);
   };
 
   return (
