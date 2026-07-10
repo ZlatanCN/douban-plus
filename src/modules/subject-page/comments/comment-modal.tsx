@@ -33,7 +33,7 @@ const CommentModalContent = ({
   const handleClose = useModalClose();
   return (
     <>
-      <div class="atv-modal-accent-bar atv-comment-overlay-accent" />
+      <div class="atv-modal-accent-bar" />
       <ModalCloseButton
         ariaLabel="关闭短评"
         className="atv-comment-overlay-close"

@@ -1004,37 +1004,6 @@ input::placeholder {
 			})]
 		});
 	};
-	var focusableSelector = [
-		"button:not([disabled])",
-		"iframe",
-		"a[href]",
-		"input:not([disabled])",
-		"select:not([disabled])",
-		"textarea:not([disabled])",
-		"[tabindex]:not([tabindex='-1'])"
-	].join(", ");
-	var focusableElements = (root) => [...root.querySelectorAll(focusableSelector)].filter((node) => !node.hasAttribute("disabled") && node.getAttribute("aria-hidden") !== "true");
-	var trapFocus = (event, root) => {
-		if (event.key !== "Tab") return;
-		const focusable = focusableElements(root);
-		if (!focusable.length) {
-			event.preventDefault();
-			root.focus();
-			return;
-		}
-		const [first] = focusable;
-		const last = focusable.at(-1);
-		const active = document.activeElement;
-		if (event.shiftKey && active === first) {
-			event.preventDefault();
-			last?.focus();
-			return;
-		}
-		if (!event.shiftKey && active === last) {
-			event.preventDefault();
-			first.focus();
-		}
-	};
 	var HtmlContent = ({ children, className, html, ...rest }) => u("div", {
 		class: className,
 		dangerouslySetInnerHTML: html ? { __html: html } : void 0,
@@ -1605,6 +1574,37 @@ input::placeholder {
 			type: "button",
 			children: u(IconClose, { size })
 		});
+	};
+	var focusableSelector = [
+		"button:not([disabled])",
+		"iframe",
+		"a[href]",
+		"input:not([disabled])",
+		"select:not([disabled])",
+		"textarea:not([disabled])",
+		"[tabindex]:not([tabindex='-1'])"
+	].join(", ");
+	var focusableElements = (root) => [...root.querySelectorAll(focusableSelector)].filter((node) => !node.hasAttribute("disabled") && node.getAttribute("aria-hidden") !== "true");
+	var trapFocus = (event, root) => {
+		if (event.key !== "Tab") return;
+		const focusable = focusableElements(root);
+		if (!focusable.length) {
+			event.preventDefault();
+			root.focus();
+			return;
+		}
+		const [first] = focusable;
+		const last = focusable.at(-1);
+		const active = document.activeElement;
+		if (event.shiftKey && active === first) {
+			event.preventDefault();
+			last?.focus();
+			return;
+		}
+		if (!event.shiftKey && active === last) {
+			event.preventDefault();
+			first.focus();
+		}
 	};
 	var ModalCloseContext = X(null);
 	var useModalClose = () => {
@@ -2288,7 +2288,7 @@ input::placeholder {
 	var CommentModalContent = ({ canVote, comment, onVoteStateChange, onVote, voteState }) => {
 		const handleClose = useModalClose();
 		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-comment-overlay-accent" }),
+			u("div", { class: "atv-modal-accent-bar" }),
 			u(ModalCloseButton, {
 				ariaLabel: "关闭短评",
 				className: "atv-comment-overlay-close",
@@ -3442,7 +3442,7 @@ input::placeholder {
 			setLoading(false);
 		};
 		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-interest-modal-accent" }),
+			u("div", { class: "atv-modal-accent-bar" }),
 			u("div", {
 				class: "atv-interest-modal-header",
 				children: [u("span", {
@@ -4335,7 +4335,7 @@ input::placeholder {
 				ariaLabel: "关闭影评",
 				onClick: handleClose
 			}),
-			u("div", { class: "atv-modal-accent-bar atv-review-modal-accent" }),
+			u("div", { class: "atv-modal-accent-bar" }),
 			u("div", {
 				class: "atv-review-modal-header",
 				children: [
