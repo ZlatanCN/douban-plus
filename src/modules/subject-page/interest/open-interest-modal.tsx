@@ -1,5 +1,4 @@
-import { render } from "preact";
-
+import { openImperativeModal } from "@/components/modal";
 import type { InterestState, ModalCallbacks } from "@/types";
 
 import { InterestForm } from "./interest-form";
@@ -8,20 +7,12 @@ const openInterestModal = (
   state: InterestState,
   callbacks: ModalCallbacks
 ): void => {
-  document.querySelector("#atv-interest-modal")?.remove();
-
-  const host = document.createElement("div");
-  document.body.append(host);
-
-  const close = (): void => {
-    render(null, host);
-    host.remove();
-  };
-
-  render(
-    <InterestForm callbacks={callbacks} onClose={close} state={state} />,
-    host
-  );
+  openImperativeModal({
+    content: (close) => (
+      <InterestForm callbacks={callbacks} onClose={close} state={state} />
+    ),
+    id: "atv-interest-modal",
+  });
 };
 
 export { openInterestModal };

@@ -1698,6 +1698,43 @@ input::placeholder {
 			first.focus();
 		}
 	};
+	var activeModals = new Map();
+	var removeOrphanedModal = (id) => {
+		const existing = document.querySelector(`#${id}`);
+		const host = existing?.parentElement;
+		if (host) {
+			R(null, host);
+			host.remove();
+			return;
+		}
+		existing?.remove();
+	};
+	var openImperativeModal = (options) => {
+		const trackedModal = activeModals.get(options.id);
+		const activeModal = trackedModal?.host.isConnected ? trackedModal : void 0;
+		if (trackedModal && !activeModal) activeModals.delete(options.id);
+		const previousFocus = activeModal?.previousFocus ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+		activeModal?.close(false);
+		removeOrphanedModal(options.id);
+		const host = document.createElement("div");
+		document.body.append(host);
+		let closed = false;
+		const close = (restoreFocus) => {
+			if (closed) return;
+			closed = true;
+			options.onClose?.();
+			R(null, host);
+			host.remove();
+			activeModals.delete(options.id);
+			if (restoreFocus && previousFocus?.isConnected) previousFocus.focus();
+		};
+		activeModals.set(options.id, {
+			close,
+			host,
+			previousFocus
+		});
+		R(options.content(() => close(true)), host);
+	};
 	var ModalCloseButton = ({ ariaLabel, className = "atv-modal-close", onClick, size = 22 }) => {
 		return u$1("button", {
 			"aria-label": ariaLabel,
@@ -1785,14 +1822,6 @@ input::placeholder {
 		});
 	};
 	var MODAL_ID$1 = "atv-poster-modal";
-	var removeExistingPosterModal = () => {
-		const existing = document.querySelector(`#${MODAL_ID$1}`);
-		const host = existing?.parentElement;
-		if (host) {
-			R(null, host);
-			host.remove();
-		} else existing?.remove();
-	};
 	var PosterModalContent = ({ alt, src }) => {
 		return u$1(S, { children: [u$1(ModalCloseButton, {
 			ariaLabel: "关闭海报",
@@ -1815,20 +1844,14 @@ input::placeholder {
 		})
 	});
 	var openPosterModal = (src, alt) => {
-		removeExistingPosterModal();
-		const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-		const host = document.createElement("div");
-		document.body.append(host);
-		const close = () => {
-			R(null, host);
-			host.remove();
-			if (previousFocus?.isConnected) previousFocus.focus();
-		};
-		R(u$1(PosterModal, {
-			alt,
-			onClose: close,
-			src
-		}), host);
+		openImperativeModal({
+			content: (close) => u$1(PosterModal, {
+				alt,
+				onClose: close,
+				src
+			}),
+			id: MODAL_ID$1
+		});
 	};
 	var MODAL_ID = "atv-video-modal";
 	var SPINNER_STYLE_ID = "atv-vs";
@@ -1840,14 +1863,6 @@ input::placeholder {
 		style.id = SPINNER_STYLE_ID;
 		style.textContent = "@keyframes atv-spin{to{transform:rotate(360deg)}}.atv-modal-loading{display:flex;flex-direction:column;align-items:center;gap:16px;color:#fff;font-size:15px}.atv-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#41be5d;border-radius:50%;animation:atv-spin .8s linear infinite}";
 		document.head.append(style);
-	};
-	var removeExistingVideoModal = () => {
-		const existing = document.querySelector(`#${MODAL_ID}`);
-		const host = existing?.parentElement;
-		if (host) {
-			R(null, host);
-			host.remove();
-		} else existing?.remove();
 	};
 	var extractEmbedUrl = (html) => {
 		const ldMatch = html.match(/<script type="application\/ld\+json">(?<json>[\s\S]*?)<\/script>/u);
@@ -1933,19 +1948,13 @@ input::placeholder {
 	});
 	var openVideoModal = (trailer) => {
 		ensureVideoStyle();
-		removeExistingVideoModal();
-		const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-		const host = document.createElement("div");
-		document.body.append(host);
-		const close = () => {
-			R(null, host);
-			host.remove();
-			if (previousFocus?.isConnected) previousFocus.focus();
-		};
-		R(u$1(VideoModal, {
-			onClose: close,
-			trailer
-		}), host);
+		openImperativeModal({
+			content: (close) => u$1(VideoModal, {
+				onClose: close,
+				trailer
+			}),
+			id: MODAL_ID
+		});
 	};
 	var CommentModalContent = ({ canVote, comment, onVoteStateChange, onVote, voteState }) => {
 		const handleClose = useModalClose();
@@ -3982,21 +3991,15 @@ input::placeholder {
 	};
 	var openLoginModal = (options) => {
 		options.returnUrl;
-		document.querySelector("#atv-login-modal")?.remove();
 		clearNativeLoginMasks();
-		const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-		const host = document.createElement("div");
-		document.body.append(host);
-		const close = () => {
-			clearNativeLoginMasks();
-			R(null, host);
-			host.remove();
-			if (previousFocus?.isConnected) previousFocus.focus();
-		};
-		R(u$1(LoginModal, {
-			action: options.action,
-			onClose: close
-		}), host);
+		openImperativeModal({
+			content: (close) => u$1(LoginModal, {
+				action: options.action,
+				onClose: close
+			}),
+			id: "atv-login-modal",
+			onClose: clearNativeLoginMasks
+		});
 	};
 	var createAccountGate = (options) => {
 		const openPrompt = options.openPrompt ?? ((action) => {
@@ -4884,18 +4887,14 @@ input::placeholder {
 		})
 	});
 	var openInterestModal = (state, callbacks) => {
-		document.querySelector("#atv-interest-modal")?.remove();
-		const host = document.createElement("div");
-		document.body.append(host);
-		const close = () => {
-			R(null, host);
-			host.remove();
-		};
-		R(u$1(InterestForm, {
-			callbacks,
-			onClose: close,
-			state
-		}), host);
+		openImperativeModal({
+			content: (close) => u$1(InterestForm, {
+				callbacks,
+				onClose: close,
+				state
+			}),
+			id: "atv-interest-modal"
+		});
 	};
 	var reloadPage = () => {
 		location.reload();

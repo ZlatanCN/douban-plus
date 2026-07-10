@@ -1,4 +1,4 @@
-import { render } from "preact";
+import { openImperativeModal } from "@/components/modal";
 
 import { LoginModal } from "./login-modal";
 import { clearNativeLoginMasks } from "./native-login-frame";
@@ -11,26 +11,12 @@ type LoginModalOptions = {
 const openLoginModal = (options: LoginModalOptions): void => {
   void options.returnUrl;
 
-  document.querySelector("#atv-login-modal")?.remove();
   clearNativeLoginMasks();
-
-  const previousFocus =
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
-  const host = document.createElement("div");
-  document.body.append(host);
-
-  const close = (): void => {
-    clearNativeLoginMasks();
-    render(null, host);
-    host.remove();
-    if (previousFocus?.isConnected) {
-      previousFocus.focus();
-    }
-  };
-
-  render(<LoginModal action={options.action} onClose={close} />, host);
+  openImperativeModal({
+    content: (close) => <LoginModal action={options.action} onClose={close} />,
+    id: "atv-login-modal",
+    onClose: clearNativeLoginMasks,
+  });
 };
 
 export { openLoginModal };

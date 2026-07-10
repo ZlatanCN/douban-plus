@@ -1,9 +1,9 @@
-import { render } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { Trailer } from "@/types";
 
+import { openImperativeModal } from "./imperative-modal";
 import { ModalCloseButton } from "./modal-close-button";
 import { ModalShell } from "./modal-shell";
 
@@ -31,17 +31,6 @@ const ensureVideoStyle = (): void => {
   style.textContent =
     "@keyframes atv-spin{to{transform:rotate(360deg)}}.atv-modal-loading{display:flex;flex-direction:column;align-items:center;gap:16px;color:#fff;font-size:15px}.atv-spinner{width:32px;height:32px;border:3px solid rgba(255,255,255,.2);border-top-color:#41be5d;border-radius:50%;animation:atv-spin .8s linear infinite}";
   document.head.append(style);
-};
-
-const removeExistingVideoModal = (): void => {
-  const existing = document.querySelector(`#${MODAL_ID}`);
-  const host = existing?.parentElement;
-  if (host) {
-    render(null, host);
-    host.remove();
-  } else {
-    existing?.remove();
-  }
 };
 
 const extractEmbedUrl = (html: string): string => {
@@ -145,24 +134,10 @@ const VideoModal = ({ onClose, trailer }: VideoModalProps) => (
 
 const openVideoModal = (trailer: Trailer): void => {
   ensureVideoStyle();
-  removeExistingVideoModal();
-
-  const previousFocus =
-    document.activeElement instanceof HTMLElement
-      ? document.activeElement
-      : null;
-  const host = document.createElement("div");
-  document.body.append(host);
-
-  const close = (): void => {
-    render(null, host);
-    host.remove();
-    if (previousFocus?.isConnected) {
-      previousFocus.focus();
-    }
-  };
-
-  render(<VideoModal onClose={close} trailer={trailer} />, host);
+  openImperativeModal({
+    content: (close) => <VideoModal onClose={close} trailer={trailer} />,
+    id: MODAL_ID,
+  });
 };
 
 export { openVideoModal };
