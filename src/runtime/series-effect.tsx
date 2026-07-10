@@ -3,8 +3,6 @@ import { render } from "preact";
 import { extractSeries } from "@/extract/series";
 import { SeriesSection } from "@/modules/subject-page/media";
 
-import { el } from "../components/dom-factory";
-
 const extractSeriesMoreLink = (
   doc: Document = document
 ): { href: string; text: string } | undefined => {
@@ -50,7 +48,9 @@ const insertSeriesSection = (
     return;
   }
 
-  const link = el("a", { href: "#atv-series", text: "同系列" });
+  const link = doc.createElement("a");
+  link.href = "#atv-series";
+  link.textContent = "同系列";
   link.addEventListener("click", (event) => {
     event.preventDefault();
     doc

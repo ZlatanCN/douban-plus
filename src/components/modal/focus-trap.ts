@@ -43,4 +43,4 @@ const trapFocus = (event: KeyboardEvent, root: HTMLElement): void => {
   }
 };
 
-export { focusableElements, focusableSelector, trapFocus };
+export { trapFocus };

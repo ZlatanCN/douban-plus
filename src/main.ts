@@ -22,5 +22,5 @@ if (isDoubanLoginFrame()) {
   mountSubjectPageWhenReady();
 }
 
-export { buildHeroCallbacks } from "./runtime/hero-callbacks";
+export { buildHeroCallbacks } from "./runtime/mount";
 export { watchSeries } from "./runtime/series-effect";

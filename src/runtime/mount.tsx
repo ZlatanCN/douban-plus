@@ -4,11 +4,12 @@ import { postVote } from "@/api/comment";
 import { postReviewVote } from "@/api/review";
 import { computeNavSections, StickyNav } from "@/components/layout";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
+import type { HeroCallbacks } from "@/types";
 
 import { createAccountGate } from "./account-gate";
 import { startAvatarEffect } from "./avatar-effect";
 import { extractDoubanData } from "./extract-data";
-import { buildHeroCallbacks } from "./hero-callbacks";
+import { buildInterestMarkingCallbacks } from "./interest-marking";
 import { extractSeriesMoreLink, watchSeries } from "./series-effect";
 import { startStickyReveal, trackActiveSection } from "./sticky-effect";
 
@@ -21,6 +22,12 @@ const setSubjectTitle = (
     (data.year ? ` (${data.year})` : "")
   } · 豆瓣`;
 };
+
+const buildHeroCallbacks = (
+  subjectId: string,
+  doc: Document = document,
+  loggedIn = true
+): HeroCallbacks => buildInterestMarkingCallbacks(subjectId, { doc, loggedIn });
 
 const mountSubjectPage = (doc: Document = document): void => {
   if (doc.querySelector("#atv-douban-root")) {
@@ -86,4 +93,4 @@ const mountSubjectPage = (doc: Document = document): void => {
   watchSeries(root, stickyNav, doc);
 };
 
-export { mountSubjectPage };
+export { buildHeroCallbacks, mountSubjectPage };

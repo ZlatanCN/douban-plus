@@ -59,4 +59,4 @@ const useVoteState = <Item, State>(
 };
 
 export { useVoteState };
-export type { VoteStateOptions, VoteStateStrategy };
+export type { VoteStateStrategy };

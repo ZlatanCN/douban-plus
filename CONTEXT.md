@@ -48,19 +48,16 @@ src/
     rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
-  scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
   runtime/             — subject page runtime module (deepened 2026-07-08)
     mount.tsx            — external runtime interface: extract → render Preact → start effects
     extract-data.ts      — assembles DoubanData from extract modules
     account-gate.ts      — account-gated action guard and login prompt trigger
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
-    hero-callbacks.ts    — compatibility facade for hero action callbacks
     avatar-effect.ts     — comment avatar fetch/apply effect
     series-effect.ts     — late-loading series observer and nav insertion
     sticky-effect.ts     — sticky nav reveal + active-section tracking
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
-  content/             — content script entry (injected into Douban page)
 ```
 
 ### Rating resolution strategy
@@ -129,27 +126,25 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
-   - `components/dom-factory.ts` still exists for non-modal DOM runtime code such as section headers and late series nav insertion. Do not reintroduce modal behavior there.
-
-5. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
+   5. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
    - External rating resolution now lives inside the Preact `ratings` module through `useExternalRatings`
    - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
 
-6. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
+5. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
    - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the `HeroCallbacks` shape so the page UI does not learn modal/API details
    - The module localizes original Douban button proxy-clicking, modal save/remove callbacks, API result handling, and successful page reload
-   - `src/runtime/hero-callbacks.ts` remains as a compatibility facade exporting `buildHeroCallbacks`
+   - `src/runtime/mount.tsx` defines `buildHeroCallbacks` as a thin wrapper that delegates to `buildInterestMarkingCallbacks` internally; `src/main.ts` re-exports it for the userscript header
    - Tests inject adapters at the module seam instead of mocking global `location.reload()` or reaching through the modal implementation
 
-7. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
+6. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
    - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-8. **Account-gated actions (2026-07-08)** — Account writes share `src/runtime/account-gate.ts` and `src/modules/subject-page/login/`:
+7. **Account-gated actions (2026-07-08)** — Account writes share `src/runtime/account-gate.ts` and `src/modules/subject-page/login/`:
    - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
    - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
    - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin

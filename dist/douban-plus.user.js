@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.1.0
+// @version      1.1.1
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -750,26 +750,6 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var Section = ({ children, id, moreLink, title }) => u$1("section", {
-		class: "atv-section",
-		id,
-		children: [moreLink ? u$1("div", {
-			class: "atv-section-h-row",
-			children: [u$1("h2", {
-				class: "atv-section-h",
-				children: title
-			}), u$1("a", {
-				class: "atv-section-more",
-				href: moreLink.href,
-				rel: "noopener",
-				target: "_blank",
-				children: moreLink.text
-			})]
-		}) : u$1("h2", {
-			class: "atv-section-h",
-			children: title
-		}), children]
-	});
 	var StickyNav = ({ sections, title }) => u$1(S, { children: [u$1("div", {
 		class: "atv-stickynav-title",
 		children: title.primary || title.full
@@ -926,11 +906,25 @@ input::placeholder {
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
-	var CommentAvatar = ({ className, comment }) => u$1("div", {
-		class: className,
-		"data-cid": comment.cid || void 0,
-		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
-		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
+	var Section = ({ children, id, moreLink, title }) => u$1("section", {
+		class: "atv-section",
+		id,
+		children: [moreLink ? u$1("div", {
+			class: "atv-section-h-row",
+			children: [u$1("h2", {
+				class: "atv-section-h",
+				children: title
+			}), u$1("a", {
+				class: "atv-section-more",
+				href: moreLink.href,
+				rel: "noopener",
+				target: "_blank",
+				children: moreLink.text
+			})]
+		}) : u$1("h2", {
+			class: "atv-section-h",
+			children: title
+		}), children]
 	});
 	var HtmlContent = ({ children, className, html, ...rest }) => {
 		const setRef = (el) => {
@@ -1512,6 +1506,12 @@ input::placeholder {
 		class: className,
 		children: starComponents(score, outOfFive).map((Icon, index) => u$1(Icon, {}, index))
 	});
+	var CommentAvatar = ({ className, comment }) => u$1("div", {
+		class: className,
+		"data-cid": comment.cid || void 0,
+		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
+		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
+	});
 	var commentVoteKey = (comment) => comment.cid || comment.link;
 	var initialCommentVoteState = (comment) => ({
 		count: comment.votes,
@@ -1634,6 +1634,39 @@ input::placeholder {
 			})
 		]
 	});
+	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
+		const gridRef = A(null);
+		h(() => {
+			requestAnimationFrame(() => {
+				const cards = gridRef.current?.querySelectorAll(".atv-comment-card") ?? [];
+				for (const card of cards) {
+					const body = card.querySelector(".atv-comment-body-text");
+					if (body && body.scrollHeight > body.clientHeight) card.classList.add("has-overflow");
+				}
+			});
+		}, [comments]);
+		if (!comments.length) return null;
+		return u$1(Section, {
+			id: "atv-comments",
+			moreLink: subjectId ? {
+				href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
+				text: "查看全部 →"
+			} : void 0,
+			title: "热门短评",
+			children: u$1("div", {
+				class: "atv-comments",
+				ref: gridRef,
+				children: comments.map((comment) => u$1(CommentCard, {
+					canVote,
+					comment,
+					onOpen,
+					onVoteStateChange,
+					onVote,
+					voteState: getVoteState?.(comment)
+				}, comment.cid))
+			})
+		});
+	};
 	var focusableSelector = [
 		"button:not([disabled])",
 		"iframe",
@@ -1982,39 +2015,6 @@ input::placeholder {
 			voteState
 		})
 	});
-	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
-		const gridRef = A(null);
-		h(() => {
-			requestAnimationFrame(() => {
-				const cards = gridRef.current?.querySelectorAll(".atv-comment-card") ?? [];
-				for (const card of cards) {
-					const body = card.querySelector(".atv-comment-body-text");
-					if (body && body.scrollHeight > body.clientHeight) card.classList.add("has-overflow");
-				}
-			});
-		}, [comments]);
-		if (!comments.length) return null;
-		return u$1(Section, {
-			id: "atv-comments",
-			moreLink: subjectId ? {
-				href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
-				text: "查看全部 →"
-			} : void 0,
-			title: "热门短评",
-			children: u$1("div", {
-				class: "atv-comments",
-				ref: gridRef,
-				children: comments.map((comment) => u$1(CommentCard, {
-					canVote,
-					comment,
-					onOpen,
-					onVoteStateChange,
-					onVote,
-					voteState: getVoteState?.(comment)
-				}, comment.cid))
-			})
-		});
-	};
 	var RE_SLASH_SEP = /\s*\/\s*/gu;
 	var RE_WS_GLOBAL = /\s+/gu;
 	var RE_COLON_WS = /[:：\s]/gu;
@@ -3536,6 +3536,28 @@ input::placeholder {
 			})]
 		});
 	};
+	var ReviewsSection = ({ canVote, getVoteState, isTV, onOpen, onVoteStateChange, onVote, reviews, subjectId }) => {
+		if (!reviews.length) return null;
+		return u$1(Section, {
+			id: "atv-reviews",
+			moreLink: {
+				href: `https://movie.douban.com/subject/${subjectId}/reviews`,
+				text: "查看全部 →"
+			},
+			title: isTV ? "热门剧评" : "热门影评",
+			children: u$1("div", {
+				class: "atv-reviews",
+				children: reviews.map((review) => u$1(ReviewCard, {
+					canVote,
+					onOpen,
+					onVote,
+					onVoteStateChange,
+					review,
+					voteState: getVoteState?.(review)
+				}, review.id))
+			})
+		});
+	};
 	var stripInlineStyles = (html) => html.replaceAll(/\sstyle="[^"]*"/giu, "");
 	var findNativeReviewContent = (rid) => {
 		const numericId = reviewNumericId(rid);
@@ -3697,28 +3719,6 @@ input::placeholder {
 			voteState
 		})
 	});
-	var ReviewsSection = ({ canVote, getVoteState, isTV, onOpen, onVoteStateChange, onVote, reviews, subjectId }) => {
-		if (!reviews.length) return null;
-		return u$1(Section, {
-			id: "atv-reviews",
-			moreLink: {
-				href: `https://movie.douban.com/subject/${subjectId}/reviews`,
-				text: "查看全部 →"
-			},
-			title: isTV ? "热门剧评" : "热门影评",
-			children: u$1("div", {
-				class: "atv-reviews",
-				children: reviews.map((review) => u$1(ReviewCard, {
-					canVote,
-					onOpen,
-					onVote,
-					onVoteStateChange,
-					review,
-					voteState: getVoteState?.(review)
-				}, review.id))
-			})
-		});
-	};
 	var toInitialStates = (items, strategy) => Object.fromEntries(items.map((item) => [strategy.key(item), strategy.initial(item)]));
 	var useVoteState = (items, strategy) => {
 		const [states, setStates] = d(() => toInitialStates(items, strategy));
@@ -4944,41 +4944,6 @@ input::placeholder {
 			}
 		};
 	};
-	var buildHeroCallbacks = (subjectId, doc = document, loggedIn = true) => buildInterestMarkingCallbacks(subjectId, {
-		doc,
-		loggedIn
-	});
-	var strAttrs = [
-		["id", "id"],
-		["textContent", "textContent"],
-		["text", "textContent"],
-		["href", "href"],
-		["src", "src"],
-		["alt", "alt"],
-		["target", "target"],
-		["rel", "rel"],
-		["type", "type"]
-	];
-	var el = (tag, attrs, children) => {
-		const node = document.createElement(tag);
-		if (attrs) {
-			const cls = attrs.className ?? attrs.class;
-			if (cls) node.className = Array.isArray(cls) ? cls.join(" ") : cls;
-			for (const [key, attr] of strAttrs) {
-				const val = attrs[key];
-				if (val) if (attr === "id") node.id = val;
-				else if (attr === "textContent") node.textContent = val;
-				else node.setAttribute(attr, val);
-			}
-			if (attrs.html) node.innerHTML = attrs.html;
-			if (attrs.attrs) for (const k of Object.keys(attrs.attrs)) node.setAttribute(k, attrs.attrs[k]);
-			if (attrs.style) for (const k of Object.keys(attrs.style)) node.style.setProperty(k, attrs.style[k]);
-			if (attrs.onclick) node.addEventListener("click", attrs.onclick);
-		}
-		if (children) for (const child of children) if (typeof child === "string") node.append(document.createTextNode(child));
-		else node.append(child);
-		return node;
-	};
 	var extractSeriesMoreLink = (doc = document) => {
 		const linkEl = doc.querySelector("#series-items .items-swiper-title .pl a");
 		if (!linkEl) return;
@@ -5002,10 +4967,9 @@ input::placeholder {
 		else if (root.firstElementChild) root.firstElementChild.after(series);
 		const wrap = stickyNav.querySelector(".atv-stickynav-jumps");
 		if (!wrap || wrap.querySelector("a[href=\"#atv-series\"]")) return;
-		const link = el("a", {
-			href: "#atv-series",
-			text: "同系列"
-		});
+		const link = doc.createElement("a");
+		link.href = "#atv-series";
+		link.textContent = "同系列";
 		link.addEventListener("click", (event) => {
 			event.preventDefault();
 			doc.querySelector("#atv-series")?.scrollIntoView({
@@ -5077,6 +5041,10 @@ input::placeholder {
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
 	};
+	var buildHeroCallbacks = (subjectId, doc = document, loggedIn = true) => buildInterestMarkingCallbacks(subjectId, {
+		doc,
+		loggedIn
+	});
 	var mountSubjectPage = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
 		if (!doc.querySelector("#content h1")) {
