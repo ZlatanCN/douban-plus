@@ -3,7 +3,11 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractRating, extractSummary } from "@/extract/rating";
+import {
+  expandNativeSummary,
+  extractRating,
+  extractSummary,
+} from "@/extract/rating";
 
 import { buildDoc } from "../helpers/doc";
 
@@ -125,5 +129,27 @@ describe(extractSummary, () => {
   <span property="v:summary"></span>
 </body></html>`);
     expect(extractSummary(doc)).toBeNull();
+  });
+});
+
+describe(expandNativeSummary, () => {
+  it("clicks Douban's native expand trigger and returns the replacement text", async () => {
+    const doc = buildDoc(`<!DOCTYPE html><body>
+      <div id="link-report-intra">
+        <span class="short"><span property="v:summary">截断内容</span><a class="j a_show_full" href="javascript:void(0)">(展开全部)</a></span>
+        <span class="all hidden" style="display:none">完整的豆瓣剧情简介</span>
+      </div>
+    </body>`);
+    const short = doc.querySelector<HTMLElement>(".short");
+    const full = doc.querySelector<HTMLElement>(".all");
+    const trigger = doc.querySelector<HTMLAnchorElement>("a.a_show_full");
+    trigger?.addEventListener("click", () => {
+      if (short && full) {
+        short.style.display = "none";
+        full.style.display = "inline";
+      }
+    });
+
+    await expect(expandNativeSummary(doc)).resolves.toBe("完整的豆瓣剧情简介");
   });
 });

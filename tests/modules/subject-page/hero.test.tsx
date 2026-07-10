@@ -7,6 +7,7 @@ import {
   HeroBackground,
   pickStill,
 } from "@/modules/subject-page/hero/hero-background";
+import { HeroSummary } from "@/modules/subject-page/hero/hero-summary";
 import type { HeroCallbacks, HeroData, InterestState, Photo } from "@/types";
 
 import { renderSingle } from "../../helpers/render";
@@ -264,5 +265,48 @@ describe(Hero, () => {
     ).toContain("年度最佳");
     el.querySelector<HTMLButtonElement>(".atv-interest-badge")?.click();
     expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest);
+  });
+});
+
+describe(HeroSummary, () => {
+  it("replaces the teaser with the native expanded summary", async () => {
+    const expandNativeSummary = vi
+      .fn<() => Promise<string>>()
+      .mockResolvedValue("完整的豆瓣剧情简介");
+    const el = renderSingle(
+      <HeroSummary
+        expandNativeSummary={expandNativeSummary}
+        text="截断的简介"
+      />
+    );
+
+    el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
+    await waitUntil(() =>
+      expect(el.querySelector(".atv-hero-teaser")?.textContent).toBe(
+        "完整的豆瓣剧情简介"
+      )
+    );
+
+    expect(expandNativeSummary).toHaveBeenCalledOnce();
+  });
+
+  it("removes the clamp before an asynchronous native response resolves", async () => {
+    const el = renderSingle(
+      <HeroSummary
+        expandNativeSummary={() =>
+          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
+          new Promise<string>((resolve) => {
+            void resolve;
+          })
+        }
+        text="截断的简介"
+      />
+    );
+
+    el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
+    await Promise.resolve();
+    expect(el.querySelector(".atv-hero-teaser")?.classList).not.toContain(
+      "is-clamped"
+    );
   });
 });
