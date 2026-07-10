@@ -135,7 +135,7 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
 5. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
    - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the `HeroCallbacks` shape so the page UI does not learn modal/API details
    - The module localizes original Douban button proxy-clicking, modal save/remove callbacks, API result handling, and successful page reload
-   - `src/runtime/mount.tsx` re-exports `buildHeroCallbacks` from the interest-marking module for external callers
+   - `src/runtime/mount.tsx` defines `buildHeroCallbacks` as a thin wrapper that delegates to `buildInterestMarkingCallbacks` internally; `src/main.ts` re-exports it for the userscript header
    - Tests inject adapters at the module seam instead of mocking global `location.reload()` or reaching through the modal implementation
 
 6. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
