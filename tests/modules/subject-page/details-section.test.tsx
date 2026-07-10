@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  DetailsSection,
-  collectDetailRows,
-} from "@/modules/subject-page/details";
+import { DetailsSection } from "@/modules/subject-page/details";
+import { collectDetailRows } from "@/modules/subject-page/details/details-section";
 import type { DetailsData, InfoBlock } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";

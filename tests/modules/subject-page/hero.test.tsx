@@ -2,7 +2,11 @@ import { setTimeout as delay } from "node:timers/promises";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { Hero, HeroBackground, pickStill } from "@/modules/subject-page/hero";
+import { Hero } from "@/modules/subject-page/hero";
+import {
+  HeroBackground,
+  pickStill,
+} from "@/modules/subject-page/hero/hero-background";
 import type { HeroCallbacks, HeroData, InterestState, Photo } from "@/types";
 
 import { renderSingle } from "../../helpers/render";

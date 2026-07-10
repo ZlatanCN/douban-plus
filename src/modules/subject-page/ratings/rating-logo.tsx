@@ -22,5 +22,5 @@ const RatingLogo = ({ name }: RatingLogoProps) => (
   <div class="atv-rating-panel-logo">{LOGO_MAP[name]}</div>
 );
 
-export { RatingLogo, LOGO_MAP };
+export { RatingLogo };
 export type { RatingLogoProps };

@@ -1,10 +1,5 @@
 export { CastSection } from "./cast-section";
-export type { CastSectionProps } from "./cast-section";
-export { PhotoTile, PhotosSection } from "./photos-section";
-export type { PhotosSectionProps } from "./photos-section";
+export { PhotosSection } from "./photos-section";
 export { RecommendationsSection } from "./recommendations-section";
-export type { RecommendationsSectionProps } from "./recommendations-section";
-export { SeriesSection, subjectPath } from "./series-section";
-export type { SeriesSectionProps } from "./series-section";
+export { SeriesSection } from "./series-section";
 export { StreamingSection } from "./streaming-section";
-export type { StreamingSectionProps } from "./streaming-section";

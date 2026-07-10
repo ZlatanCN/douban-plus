@@ -36,5 +36,5 @@ const Stars = ({
   </span>
 );
 
-export { Stars, starComponents as starSvgs };
+export { Stars };
 export type { StarsProps };

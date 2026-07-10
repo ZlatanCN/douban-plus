@@ -115,4 +115,3 @@ const buildInterestMarkingCallbacks = (
 };
 
 export { buildInterestMarkingCallbacks };
-export type { InterestMarkingAdapters };
