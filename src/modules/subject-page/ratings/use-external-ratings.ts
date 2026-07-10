@@ -35,4 +35,3 @@ const useExternalRatings = (
 };
 
 export { useExternalRatings };
-export type { ExternalRatings };

@@ -58,5 +58,5 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
     </Section>
   ) : null;
 
-export { SeriesSection, subjectPath };
+export { SeriesSection };
 export type { SeriesSectionProps };

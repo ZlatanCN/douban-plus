@@ -8,6 +8,7 @@ type StickyNavProps = {
 };
 
 const StickyNav = ({ sections, title }: StickyNavProps) => {
+  const [activeSectionId, setActiveSectionId] = useState("");
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -17,12 +18,48 @@ const StickyNav = ({ sections, title }: StickyNavProps) => {
     return () => window.removeEventListener("scroll", updateVisibility);
   }, []);
 
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      () => {
+        let activeId = "";
+        let bestScore = -Infinity;
+        for (const section of sections) {
+          const element = document.querySelector(`#${section.id}`);
+          if (!element) {
+            continue;
+          }
+          const rect = element.getBoundingClientRect();
+          const visibleTop = Math.max(rect.top, 56);
+          const visibleBottom = Math.min(
+            rect.bottom,
+            window.innerHeight * 0.55
+          );
+          const score = Math.max(0, visibleBottom - visibleTop);
+          if (score > bestScore) {
+            activeId = section.id;
+            bestScore = score;
+          }
+        }
+        setActiveSectionId(activeId);
+      },
+      { threshold: [0, 0.25, 0.5] }
+    );
+    for (const section of sections) {
+      const element = document.querySelector(`#${section.id}`);
+      if (element) {
+        observer.observe(element);
+      }
+    }
+    return () => observer.disconnect();
+  }, [sections]);
+
   return (
     <nav class={`atv-stickynav${visible ? " is-visible" : ""}`}>
       <div class="atv-stickynav-title">{title.primary || title.full}</div>
       <div class="atv-stickynav-jumps">
         {sections.map((section) => (
           <a
+            class={activeSectionId === section.id ? "is-active" : undefined}
             href={`#${section.id}`}
             key={section.id}
             onClick={(event) => {

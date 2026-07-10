@@ -34,4 +34,3 @@ const postVote = async (
 };
 
 export { postVote };
-export type { VoteResult };
