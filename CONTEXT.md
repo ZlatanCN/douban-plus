@@ -48,7 +48,6 @@ src/
     rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
-  scrapers/            — data scrapers (one per external source: IMDb, MC, RT, streaming)
   runtime/             — subject page runtime module (deepened 2026-07-08)
     mount.tsx            — external runtime interface: extract → render Preact → start effects
     extract-data.ts      — assembles DoubanData from extract modules
@@ -60,7 +59,6 @@ src/
     series-effect.ts     — late-loading series observer and nav insertion
     sticky-effect.ts     — sticky nav reveal + active-section tracking
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
-  content/             — content script entry (injected into Douban page)
 ```
 
 ### Rating resolution strategy

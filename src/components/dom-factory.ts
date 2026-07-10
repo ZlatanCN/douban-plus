@@ -1,5 +1,3 @@
-import { ICON_STAR_EMPTY, ICON_STAR_FULL, ICON_STAR_HALF } from "@/constants";
-
 type ElementAttrs = {
   className?: string | string[];
   class?: string | string[];
@@ -111,37 +109,4 @@ const el = <K extends keyof ElementTagMap>(
   return node as ElementTagMap[K];
 };
 
-const renderStars = (
-  score: number,
-  opts?: { className?: string; outOfFive?: boolean }
-): HTMLElement => {
-  const o = opts || {};
-  const wrap = el("span", { className: o.className || "atv-rating-stars" });
-  const out = o.outOfFive ? score : score / 2;
-  for (let i = 1; i <= 5; i += 1) {
-    let svg: string;
-    if (out >= i - 0.25) {
-      svg = ICON_STAR_FULL;
-    } else if (out >= i - 0.75) {
-      svg = ICON_STAR_HALF;
-    } else {
-      svg = ICON_STAR_EMPTY;
-    }
-    wrap.append(el("span", { html: svg }));
-  }
-  return wrap;
-};
-
-/**
- * Update existing star elements in-place (used by interest modal).
- * Sets innerHTML and .is-full class on each element.
- */
-const renderStarRating = (starEls: HTMLSpanElement[], rating: number): void => {
-  for (let idx = 0; idx < 5; idx += 1) {
-    const full = idx < rating;
-    starEls[idx].innerHTML = full ? ICON_STAR_FULL : ICON_STAR_EMPTY;
-    starEls[idx].classList.toggle("is-full", full);
-  }
-};
-
-export { el, renderStars, renderStarRating };
+export { el };
