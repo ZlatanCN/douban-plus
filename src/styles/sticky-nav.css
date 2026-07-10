@@ -50,11 +50,13 @@
   position: relative;
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.7);
   letter-spacing: 0.02em;
   white-space: nowrap;
   cursor: pointer;
   transition: color 200ms ease;
+}
+#atv-douban-root .atv-stickynav-jumps a {
+  color: rgba(255, 255, 255, 0.7);
 }
 .atv-stickynav-jumps a::after {
   content: "";
@@ -69,11 +71,11 @@
     width 250ms ease,
     left 250ms ease;
 }
-.atv-stickynav-jumps a:hover {
+#atv-douban-root .atv-stickynav-jumps a:hover {
   color: var(--atv-accent-bright);
   background: transparent;
 }
-.atv-stickynav-jumps a.is-active {
+#atv-douban-root .atv-stickynav-jumps a.is-active {
   color: var(--atv-accent-bright);
 }
 .atv-stickynav-jumps a.is-active::after {

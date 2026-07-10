@@ -2,6 +2,8 @@ import { PosterImage } from "@/components/common/poster-image";
 import { Section } from "@/components/layout/section";
 import type { SeriesItem } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
+
 type SeriesSectionProps = {
   items: SeriesItem[];
   moreLink?: { href: string; text: string };
@@ -17,7 +19,11 @@ const subjectPath = (url: string): string => {
 
 const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
   items.length ? (
-    <Section id="atv-series" moreLink={moreLink} title="同系列作品">
+    <Section
+      id="atv-series"
+      moreLink={moreLink}
+      title={getSubjectSectionCopy("series").sectionTitle}
+    >
       <div class="atv-carousel atv-series-carousel">
         {items.map((item) => {
           const active =

@@ -1,13 +1,15 @@
 import { Section } from "@/components/layout/section";
 import type { Celebrity } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
+
 type CastSectionProps = {
   celebrities: Celebrity[];
 };
 
 const CastSection = ({ celebrities }: CastSectionProps) =>
   celebrities.length ? (
-    <Section id="atv-cast" title="演职员">
+    <Section id="atv-cast" title={getSubjectSectionCopy("cast").sectionTitle}>
       <div class="atv-carousel atv-cast-carousel">
         {celebrities.map((person) => {
           const content = (

@@ -5,6 +5,8 @@ import { Section } from "@/components/layout/section";
 import { RE_IMDB_LINK } from "@/constants";
 import type { Award, DetailsData, InfoBlock } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
+
 type DetailsSectionProps = {
   data: DetailsData;
 };
@@ -170,7 +172,10 @@ const DetailsSection = ({ data }: DetailsSectionProps) => {
   }
 
   return (
-    <Section id="atv-info" title="详细信息">
+    <Section
+      id="atv-info"
+      title={getSubjectSectionCopy("details").sectionTitle}
+    >
       <div class="atv-info-grid">
         {rows.map((row) => (
           <>

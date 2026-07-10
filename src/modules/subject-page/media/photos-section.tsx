@@ -4,6 +4,8 @@ import { PlayIcon } from "@/components/common/icons";
 import { Section } from "@/components/layout/section";
 import type { Photo, PhotosData, Trailer } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
+
 type PhotosSectionProps = {
   data: PhotosData;
   onOpenPoster?: (src: string, alt: string) => void;
@@ -65,7 +67,7 @@ const PhotosSection = ({
             }
           : undefined
       }
-      title="剧照"
+      title={getSubjectSectionCopy("media").sectionTitle}
     >
       <div class="atv-carousel atv-photos">
         {data.trailers.map((trailer) => (

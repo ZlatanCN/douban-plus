@@ -4,6 +4,7 @@ import { IconPlay } from "@/components/common/icons";
 import { Section } from "@/components/layout/section";
 import type { Streaming } from "@/types";
 
+import { getSubjectSectionCopy } from "../section-copy";
 import { resolveStreamingProvider } from "./streaming-provider";
 
 type StreamingSectionProps = {
@@ -35,7 +36,10 @@ const StreamingLogo = ({ fallbackLabel, Icon, imgSrc }: StreamingLogoProps) => {
 
 const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   streaming.length ? (
-    <Section id="atv-stream" title="播放源">
+    <Section
+      id="atv-stream"
+      title={getSubjectSectionCopy("streaming").sectionTitle}
+    >
       <div class="atv-stream-row">
         {streaming.map((item) => {
           const provider = resolveStreamingProvider(item);
