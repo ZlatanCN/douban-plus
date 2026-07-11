@@ -574,6 +574,162 @@ describe(SubjectPage, () => {
     });
   });
 
+  it("renders discussion metadata and collection entry points", () => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          allDiscussions: {
+            href: "https://www.douban.com/group/653616#topics",
+            total: 15_166,
+          },
+          startDiscussionHref: "https://www.douban.com/group/653616",
+          topics: [
+            {
+              activity: {
+                date: "2026-07-09",
+                dateTime: "2026-07-09T16:31:45",
+                raw: "2026-07-09 16:31:45",
+                time: "16:31",
+              },
+              author: {
+                href: "https://www.douban.com/people/127190935/",
+                name: "🍈",
+              },
+              href: "https://www.douban.com/group/topic/480926084/",
+              replies: 0,
+              title: "讨论主题",
+            },
+          ],
+        },
+      })
+    );
+    const author = root.querySelector<HTMLAnchorElement>(
+      ".atv-discussion-author"
+    );
+    const activityTime = root.querySelector<HTMLTimeElement>(
+      ".atv-discussion-activity time"
+    );
+    const startDiscussion = root.querySelector<HTMLAnchorElement>(
+      "#atv-discussions .atv-section-more"
+    );
+    const allDiscussions = root.querySelector<HTMLAnchorElement>(
+      ".atv-discussion-footer a"
+    );
+
+    expect({
+      activity: root.querySelector(".atv-discussion-activity")?.textContent,
+      allDiscussions: {
+        href: allDiscussions?.href,
+        rel: allDiscussions?.rel,
+        target: allDiscussions?.target,
+        text: allDiscussions?.textContent,
+      },
+      author: {
+        href: author?.href,
+        rel: author?.rel,
+        target: author?.target,
+        text: author?.textContent,
+      },
+      startDiscussion: {
+        href: startDiscussion?.href,
+        rel: startDiscussion?.rel,
+        target: startDiscussion?.target,
+        text: startDiscussion?.textContent,
+      },
+      time: {
+        dateTime: activityTime?.dateTime,
+        title: activityTime?.title,
+      },
+    }).toStrictEqual({
+      activity: "0 回应2026-07-0916:31",
+      allDiscussions: {
+        href: "https://www.douban.com/group/653616#topics",
+        rel: "noopener",
+        target: "_blank",
+        text: "查看全部 15,166 条讨论 →",
+      },
+      author: {
+        href: "https://www.douban.com/people/127190935/",
+        rel: "noopener",
+        target: "_blank",
+        text: "🍈",
+      },
+      startDiscussion: {
+        href: "https://www.douban.com/group/653616",
+        rel: "noopener",
+        target: "_blank",
+        text: "发起讨论 ↗",
+      },
+      time: {
+        dateTime: "2026-07-09T16:31:45",
+        title: "2026-07-09 16:31:45",
+      },
+    });
+  });
+
+  it("degrades optional discussion metadata and actions independently", () => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          allDiscussions: {
+            href: "https://www.douban.com/group/653616#topics",
+          },
+          topics: [
+            {
+              activity: { raw: "昨天" },
+              author: { name: "匿名" },
+              href: "https://www.douban.com/group/topic/480926084/",
+              title: "讨论主题",
+            },
+          ],
+        },
+      })
+    );
+    const author = root.querySelector(".atv-discussion-author");
+    const time = root.querySelector<HTMLTimeElement>(
+      ".atv-discussion-activity time"
+    );
+
+    expect({
+      activity: root.querySelector(".atv-discussion-activity")?.textContent,
+      author: { tag: author?.tagName, text: author?.textContent },
+      footer: root.querySelector(".atv-discussion-footer a")?.textContent,
+      replies: root.querySelector(".atv-discussion-replies"),
+      startDiscussion: root.querySelector("#atv-discussions .atv-section-more"),
+      time: { dateTime: time?.dateTime, text: time?.textContent },
+    }).toStrictEqual({
+      activity: "昨天",
+      author: { tag: "SPAN", text: "匿名" },
+      footer: "查看全部讨论 →",
+      replies: null,
+      startDiscussion: null,
+      time: { dateTime: "", text: "昨天" },
+    });
+  });
+
+  it("keeps the start-discussion action when the collection footer is absent", () => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          startDiscussionHref: "https://www.douban.com/group/653616",
+          topics: [
+            {
+              href: "https://www.douban.com/group/topic/480926084/",
+              title: "讨论主题",
+            },
+          ],
+        },
+      })
+    );
+
+    expect({
+      footer: root.querySelector(".atv-discussion-footer"),
+      startDiscussion: root.querySelector<HTMLAnchorElement>(
+        "#atv-discussions .atv-section-more"
+      )?.textContent,
+    }).toStrictEqual({ footer: null, startDiscussion: "发起讨论 ↗" });
+  });
+
   it("omits group discussions and their navigation when topics are empty", () => {
     const root = renderSubjectPage(makeDoubanData());
 

@@ -1,5 +1,6 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LoginModal } from "@/modules/subject-page/login/login-modal";
@@ -28,11 +29,12 @@ describe(LoginModal, () => {
     document.body.innerHTML = "";
     mockMountNativeLoginFrame.mockReset();
     mockMountNativeLoginFrame.mockImplementation(
-      (_host: HTMLElement, onReady: (message: string) => void): void => {
+      (_host: HTMLElement, onReady: (message: string) => void) => {
         // Simulate success: onReady("") clears the loading status.
         // Before the fix the callback was only called on error, not on
         // success — this tests that the component handles it correctly.
         onReady("");
+        return () => {};
       }
     );
 
@@ -67,7 +69,7 @@ describe(LoginModal, () => {
     // Override the mock: don't call onReady to simulate loading state.
     mockMountNativeLoginFrame.mockImplementation(
       // `_onReady` is deliberately unused to simulate pending load
-      (_host: HTMLElement, _onReady: (message: string) => void): void => {}
+      (_host: HTMLElement, _onReady: (message: string) => void) => () => {}
     );
 
     const onClose = vi.fn<() => void>();
@@ -78,5 +80,17 @@ describe(LoginModal, () => {
     expect(status).not.toBeNull();
     expect(status?.hidden).toBeFalsy();
     expect(status?.textContent).toBe("正在载入豆瓣登录组件…");
+  });
+
+  it("cancels the native login mount when the modal unmounts", async () => {
+    const stop = vi.fn<() => void>();
+    mockMountNativeLoginFrame.mockReturnValue(stop);
+    const onClose = vi.fn<() => void>();
+    const root = renderIntoRoot(<LoginModal action="测试" onClose={onClose} />);
+    await flushEffects();
+
+    render(null, root);
+
+    expect(stop).toHaveBeenCalledOnce();
   });
 });

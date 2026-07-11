@@ -163,11 +163,15 @@ Screenshots are part of the e2e contract. Each scenario owns exactly three scree
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
 7. **Account-gated actions (2026-07-08)** — Account writes share `src/runtime/account-gate.ts` and `src/modules/subject-page/login/`:
-   - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
-   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
-   - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin
-   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
-   - API modules still keep their `ck` checks as the final safety net
+
+- Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
+  - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
+  - `mountNativeLoginFrame` has three fallback layers: (1) find a recognized dialog wrapper via `nativeDialogSelector`, (2) search for a pre-rendered login iframe directly by `src` pattern, (3) trigger Douban's `.a_show_login` click handler and poll for the dialog. Layer 3 is the primary path on most Douban pages.
+  - `triggerNativeLoginDialog` restricts its search to `.a_show_login` and `.j.a_show_login` only (not generic `a[href*='register']` etc.) because ATV's own DOM also contains register links that would be clicked instead. Hidden elements (inside `#wrapper` with `display: none`) are intentionally included — `element.click()` fires JS event handlers regardless of CSS visibility, and Douban's `.a_show_login` handlers create the login dialog.
+  - When clicking an `<a>` trigger, a `once` `preventDefault` listener is attached first to prevent navigation away from ATV, then `click()` is called. This is safe because Douban's own handler also calls `preventDefault`.
+  - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin
+  - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
+  - API modules still keep their `ck` checks as the final safety net
 
 ### Data pipeline integrity — avatar split
 
