@@ -45,6 +45,29 @@ const DiscussionActivityTime = ({
     </time>
   );
 
+const DiscussionMetadata = ({
+  activity,
+  author,
+  replies,
+}: {
+  activity?: DiscussionActivity;
+  author?: DiscussionAuthor;
+  replies?: number;
+}) =>
+  author || replies !== undefined || activity ? (
+    <div class="atv-discussion-meta">
+      {author ? <DiscussionAuthorLink author={author} /> : null}
+      {replies !== undefined || activity ? (
+        <div class="atv-discussion-activity">
+          {replies === undefined ? null : (
+            <span class="atv-discussion-replies">{`${replies} 回应`}</span>
+          )}
+          {activity ? <DiscussionActivityTime activity={activity} /> : null}
+        </div>
+      ) : null}
+    </div>
+  ) : null;
+
 const formatDiscussionTotal = (total: number | undefined): string =>
   total === undefined
     ? "查看全部讨论 →"
@@ -73,20 +96,12 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
             />
             <div class="atv-discussion-copy">
               <h3 class="atv-discussion-title">{topic.title}</h3>
-              {topic.author ? (
-                <DiscussionAuthorLink author={topic.author} />
-              ) : null}
+              <DiscussionMetadata
+                activity={topic.activity}
+                author={topic.author}
+                replies={topic.replies}
+              />
             </div>
-            {topic.replies !== undefined || topic.activity ? (
-              <div class="atv-discussion-activity">
-                {topic.replies === undefined ? null : (
-                  <span class="atv-discussion-replies">{`${topic.replies} 回应`}</span>
-                )}
-                {topic.activity ? (
-                  <DiscussionActivityTime activity={topic.activity} />
-                ) : null}
-              </div>
-            ) : null}
             <span aria-hidden="true" class="atv-discussion-arrow">
               ↗
             </span>

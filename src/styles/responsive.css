@@ -187,6 +187,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .atv-section {
+    animation: none;
+  }
+
   .atv-trailer-tile,
   .atv-trailer-tile:hover {
     filter: none;
