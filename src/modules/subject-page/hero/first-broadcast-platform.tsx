@@ -51,7 +51,13 @@ const FirstBroadcastPlatform = ({
       class="atv-first-broadcast-platform"
       data-provider={brand?.key ?? "unknown"}
     >
-      <span class="atv-first-broadcast-platform-mark" aria-hidden="true">
+      <span
+        aria-hidden="true"
+        class={`atv-first-broadcast-platform-mark${
+          brand?.presentation === "wordmark" ? " is-wordmark" : ""
+        }`}
+        style={{ color: brand?.color ?? "#fff" }}
+      >
         {Icon ? <Icon /> : <IconBroadcast />}
       </span>
       <span class="atv-first-broadcast-platform-label">首播平台</span>

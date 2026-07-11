@@ -3,11 +3,14 @@ import type { ComponentType, JSX } from "preact";
 import {
   LogoAppleTv,
   LogoBilibiliCombined,
+  LogoDisneyPlus,
   LogoHbo,
   LogoHboMax,
+  LogoHulu,
   LogoIqiyiCombined,
   LogoNetflix,
   LogoParamountPlus,
+  LogoPrimeVideo,
   LogoTencentCombined,
   LogoTubi,
   LogoVimeo,
@@ -18,12 +21,15 @@ import {
 type PlatformBrandKey =
   | "apple-tv"
   | "bilibili"
+  | "disney-plus"
   | "hbo"
   | "hbo-max"
+  | "hulu"
   | "iqiyi"
   | "migu"
   | "netflix"
   | "paramount-plus"
+  | "prime-video"
   | "tencent-video"
   | "tubi"
   | "vimeo"
@@ -36,15 +42,32 @@ type PlatformBrand = {
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   key: PlatformBrandKey;
   label: string;
+  presentation?: "wordmark";
 };
 
 const PLATFORM_BRANDS: PlatformBrand[] = [
+  {
+    Icon: LogoDisneyPlus,
+    aliases: ["disney+", "disney plus", "disneyplus"],
+    color: "#F5F5F7",
+    key: "disney-plus",
+    label: "Disney+",
+    presentation: "wordmark",
+  },
   {
     Icon: LogoBilibiliCombined,
     aliases: ["哔哩哔哩", "bilibili", "b站", "b 站"],
     color: "#FF5588",
     key: "bilibili",
     label: "哔哩哔哩",
+  },
+  {
+    Icon: LogoPrimeVideo,
+    aliases: ["prime video", "primevideo"],
+    color: "#00A8E1",
+    key: "prime-video",
+    label: "Prime Video",
+    presentation: "wordmark",
   },
   {
     Icon: LogoIqiyiCombined,
@@ -72,6 +95,14 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#F04B23",
     key: "migu",
     label: "咪咕视频",
+  },
+  {
+    Icon: LogoHulu,
+    aliases: ["hulu"],
+    color: "#1CE783",
+    key: "hulu",
+    label: "Hulu",
+    presentation: "wordmark",
   },
   {
     Icon: LogoNetflix,

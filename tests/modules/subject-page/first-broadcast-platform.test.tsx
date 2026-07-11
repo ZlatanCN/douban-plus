@@ -30,4 +30,36 @@ describe(FirstBroadcastPlatform, () => {
     expect(root.querySelector("svg")).not.toBeNull();
     expect(root.textContent).toContain("Cinemax");
   });
+
+  it("uses the supplied Netflix symbol", () => {
+    const root = renderSingle(<FirstBroadcastPlatform platform="Netflix" />);
+
+    expect(root.dataset.provider).toBe("netflix");
+    expect(root.querySelector("svg")?.getAttribute("viewBox")).toBe(
+      "0 0 551.111 1000"
+    );
+  });
+
+  it("uses the curated brand color for a colorable logo", () => {
+    const root = renderSingle(<FirstBroadcastPlatform platform="Paramount+" />);
+
+    expect(
+      root.querySelector<HTMLElement>(".atv-first-broadcast-platform-mark")
+        ?.style.color
+    ).toBe("#0064FF");
+  });
+
+  it.each([
+    ["Hulu", "hulu", "0 0 251 83"],
+    ["Disney+", "disney-plus", "0 0 534 302"],
+    ["Prime Video", "prime-video", "0 0 800.3 246.3"],
+  ])("renders %s as a wide supplied wordmark", (platform, key, viewBox) => {
+    const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
+
+    expect(root.dataset.provider).toBe(key);
+    expect(
+      root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+    ).toContain("is-wordmark");
+    expect(root.querySelector("svg")?.getAttribute("viewBox")).toBe(viewBox);
+  });
 });

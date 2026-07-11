@@ -2,6 +2,7 @@
 /* Replacements for dangerouslySetInnerHTML-based icon rendering */
 
 import type { JSX, ComponentChildren } from "preact";
+import { useId } from "preact/hooks";
 
 const HtmlContent = ({
   children,
@@ -265,9 +266,113 @@ const PlayIcon = (props: IconProps) => (
   </svg>
 );
 
-const LogoNetflix = (props: IconProps) => (
-  <svg viewBox="0 0 24 24" aria-hidden="true" {...props}>
-    <path d="m5.398 0 8.348 23.602c2.346.059 4.856.398 4.856.398L10.113 0H5.398zm8.489 0v9.172l4.715 13.33V0h-4.715zM5.398 1.5V24c1.873-.225 2.81-.312 4.715-.398V14.83L5.398 1.5z" />
+const LogoNetflix = (props: IconProps) => {
+  const id = useId();
+  const leftGradient = `${id}-netflix-left`;
+  const rightGradient = `${id}-netflix-right`;
+  const leftFill = `${id}-netflix-left-fill`;
+  const rightFill = `${id}-netflix-right-fill`;
+
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 551.111 1000"
+      xmlnsXlink="http://www.w3.org/1999/xlink"
+      {...props}
+    >
+      <defs>
+        <linearGradient id={leftGradient}>
+          <stop offset="0" stop-color="#b1060f" />
+          <stop offset=".625" stop-color="#7b010c" />
+          <stop offset="1" stop-color="#b1060f" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient id={rightGradient}>
+          <stop offset="0" stop-color="#b1060f" />
+          <stop offset=".546" stop-color="#7b010c" />
+          <stop offset="1" stop-color="#e50914" stop-opacity="0" />
+        </linearGradient>
+        <linearGradient
+          id={leftFill}
+          gradientUnits="userSpaceOnUse"
+          x1="78.234"
+          x2="221.663"
+          xlinkHref={`#${rightGradient}`}
+          y1="423.767"
+          y2="365.092"
+        />
+        <linearGradient
+          id={rightFill}
+          gradientUnits="userSpaceOnUse"
+          x1="456.365"
+          x2="309.676"
+          xlinkHref={`#${leftGradient}`}
+          y1="521.56"
+          y2="583.495"
+        />
+      </defs>
+      <path
+        d="M-1.152-1.152 2.305 1002.67c73.273-14.111 130.892-12.569 195.924-18.44V0Z"
+        fill={`url(#${leftFill})`}
+      />
+      <path
+        d="M353.816 0h199.381l2.305 1000.365-202.839-33.422z"
+        fill={`url(#${rightFill})`}
+      />
+      <path
+        d="M1.152 0c4.61 11.525 345.749 981.925 345.749 981.925 56.056-.4 131.219 8.754 205.144 17.288L197.077 0Z"
+        fill="#e50914"
+      />
+    </svg>
+  );
+};
+
+const LogoHulu = (props: IconProps) => (
+  <svg aria-hidden="true" fill="none" viewBox="0 0 251 83" {...props}>
+    <path
+      d="M153.602 82.4612H173.519V0.015625H153.602V82.4612ZM118.632 58.9549C118.632 61.8498 116.201 64.2815 113.306 64.2815H101.726C98.8314 64.2815 96.3998 61.8498 96.3998 58.9549C96.3998 57.797 96.3998 25.722 96.3998 25.722H76.4831V60.5761C76.4831 74.8188 85.6309 82.3454 99.063 82.3454H118.516C130.906 82.3454 138.433 73.4292 138.433 60.5761V25.722H118.516C118.632 25.722 118.632 57.9128 118.632 58.9549ZM230.605 25.722C230.605 25.722 230.605 57.9128 230.605 58.9549C230.605 61.8498 228.174 64.2815 225.279 64.2815H213.699C210.805 64.2815 208.373 61.8498 208.373 58.9549C208.373 57.797 208.373 25.722 208.373 25.722H188.456V60.5761C188.456 74.8188 197.604 82.3454 211.036 82.3454H230.49C242.88 82.3454 250.406 73.4292 250.406 60.5761V25.722H230.605ZM39.7763 25.722C39.7763 25.722 29.4706 25.722 27.039 25.722C22.523 25.722 20.3229 26.8799 20.3229 26.8799V0.015625H0.40625V82.3454H20.2071V49.2282C20.2071 46.3334 22.6388 43.9017 25.5336 43.9017H37.1131C40.0079 43.9017 42.4396 46.3334 42.4396 49.2282V82.4612H62.3562V46.5649C62.3562 31.5117 52.2821 25.722 39.7763 25.722Z"
+      fill="#1CE783"
+    />
+  </svg>
+);
+
+const LogoDisneyPlus = (props: IconProps) => (
+  <svg aria-hidden="true" viewBox="0 0 534 302" {...props}>
+    <path
+      d="M476.8 150.3c-15.8-39-42.7-72.3-77.5-96.1-35.7-24.5-77.5-37.4-121-37.4-71.9 0-138.5 35.7-178.3 95.5-.4.6-.5 1.5-.3 2.2.3.8.8 1.3 1.6 1.6l5.6 1.9c1.4.5 3-.1 3.8-1.2 18.3-26.8 43-49.2 71.5-64.6 29.4-15.9 62.8-24.4 96.4-24.4 40.7 0 79.9 12 113.4 34.7 32.7 22.1 58.2 53 73.5 89.3.5 1.1 1.5 1.8 2.7 1.8h6.7c2 0 3.3-1.9 2.6-3.7Z"
+      fill="currentColor"
+    />
+    <text
+      fill="currentColor"
+      font-family="cursive"
+      font-size="118"
+      font-weight="700"
+      x="45"
+      y="242"
+    >
+      Disney+
+    </text>
+  </svg>
+);
+
+const LogoPrimeVideo = (props: IconProps) => (
+  <svg aria-hidden="true" viewBox="0 0 800.3 246.3" {...props}>
+    <text
+      fill="currentColor"
+      font-family="Arial, sans-serif"
+      font-size="128"
+      font-weight="700"
+      x="6"
+      y="142"
+    >
+      prime video
+    </text>
+    <path
+      d="M195 164c61 44 143 62 226 52 55-7 105-30 147-66"
+      fill="none"
+      stroke="#00A8E1"
+      stroke-linecap="round"
+      stroke-width="18"
+    />
   </svg>
 );
 
@@ -470,10 +575,13 @@ export {
   LogoHbo,
   LogoAppleTv,
   LogoHboMax,
+  LogoHulu,
+  LogoDisneyPlus,
   LogoTubi,
   LogoVimeo,
   LogoNetflix,
   LogoParamountPlus,
+  LogoPrimeVideo,
   LogoYouTube,
   LogoIqiyiCombined,
   LogoYoukuCombined,

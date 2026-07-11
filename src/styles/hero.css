@@ -233,6 +233,15 @@
   fill: currentcolor;
 }
 
+.atv-first-broadcast-platform-mark.is-wordmark {
+  width: 48px;
+}
+
+.atv-first-broadcast-platform-mark.is-wordmark svg {
+  width: 34px;
+  height: 16px;
+}
+
 .atv-first-broadcast-platform-label {
   color: var(--atv-text-tertiary);
   font-size: 11px;
