@@ -6,6 +6,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **Host integration boundary**: The narrow layer where douban-plus reads or interoperates with Douban's existing document and browser platform APIs. _Avoid_: imperative UI, DOM-builder
 
+**登录可读编辑元信息**: 仅在登录后的 Douban 条目编辑页可读取、但不要求当前用户拥有编辑权限的作品资料字段。_Avoid_: 编辑者专属资料、公开详情元信息
+
 **页面分区**: 详情页中可独立导航的一组相关内容，同时拥有导航标签和页面标题；两者表达同一内容类别，但允许信息密度不同。
 
 **导航标签**: Sticky nav 中指向页面分区的紧凑类别名称，可以省略“热门”“作品”“详细”等范围修饰词，但必须保留“同”等关系词以及“影评 / 剧评”等类型差异。 _Avoid_: 行动提示、营销文案、与页面标题语义不同的别名
@@ -13,6 +15,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 **页面标题**: 页面分区内容上方的描述性标题，可以在对应导航标签上增加“热门”“详细”“作品”等范围修饰词。 _Avoid_: 为追求逐字一致而牺牲上下文
 
 **观看平台**: 提供当前作品观看入口的第三方视频服务商，例如爱奇艺、腾讯视频或 Netflix。 _Avoid_: 播放源、在哪儿看、播放平台
+
+**首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 

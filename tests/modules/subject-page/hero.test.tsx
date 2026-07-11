@@ -224,6 +224,45 @@ describe(Hero, () => {
     );
   });
 
+  it("adds a first-broadcast attribution after the signed-in edit lookup", async () => {
+    mockRequest.mockClear();
+    mockRequest.mockResolvedValue(`
+      <div class="item basic">
+        <label for="p_142">电视台</label>
+        <input id="p_142" value="Apple TV+" readonly />
+      </div>
+    `);
+    const el = renderSingle(
+      <Hero
+        callbacks={makeCallbacks()}
+        data={makeHeroData({
+          interest: { ...defaultInterest, loggedIn: true },
+          subjectId: "36858672",
+        })}
+      />
+    );
+
+    await waitUntil(() =>
+      expect(
+        el.querySelector(".atv-first-broadcast-platform")?.textContent
+      ).toContain("Apple TV+")
+    );
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      "https://movie.douban.com/subject/36858672/edit",
+      location.href
+    );
+  });
+
+  it("does not request first-broadcast data for logged-out viewers", async () => {
+    mockRequest.mockClear();
+    renderSingle(<Hero callbacks={makeCallbacks()} data={makeHeroData()} />);
+
+    await Promise.resolve();
+
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
   it("routes logged-out actions to the login-gated callbacks", () => {
     const callbacks = makeCallbacks();
     const el = renderSingle(

@@ -200,6 +200,50 @@
   text-transform: uppercase;
 }
 
+.atv-hero-meta.has-first-broadcast-platform {
+  margin-bottom: 10px;
+}
+
+.atv-first-broadcast-platform {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 24px;
+  color: var(--atv-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  gap: 8px;
+  letter-spacing: 0.02em;
+}
+
+.atv-first-broadcast-platform-mark {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(255 255 255 / 13%);
+  border-radius: 7px;
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+}
+
+.atv-first-broadcast-platform-mark svg {
+  width: 16px;
+  height: 16px;
+  fill: currentcolor;
+}
+
+.atv-first-broadcast-platform-label {
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.atv-first-broadcast-platform-name {
+  color: var(--atv-text-primary);
+  font-weight: 600;
+}
+
 .atv-meta-dot {
   display: inline-flex;
   align-items: center;
