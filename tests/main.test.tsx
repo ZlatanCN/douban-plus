@@ -667,6 +667,59 @@ describe(SubjectPage, () => {
     });
   });
 
+  it("groups discussion metadata after its title without changing keyboard order", () => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          allDiscussions: {
+            href: "https://www.douban.com/group/653616#topics",
+          },
+          startDiscussionHref: "https://www.douban.com/group/653616",
+          topics: [
+            {
+              activity: {
+                date: "2026-07-09",
+                dateTime: "2026-07-09T16:31:45",
+                raw: "2026-07-09 16:31:45",
+                time: "16:31",
+              },
+              author: {
+                href: "https://www.douban.com/people/very-long-author-name/",
+                name: "一个很长很长很长很长很长很长很长很长的作者名字",
+              },
+              href: "https://www.douban.com/group/topic/480926084/",
+              replies: 64,
+              title:
+                "一个很长很长很长很长很长很长很长很长很长很长很长很长很长的讨论标题",
+            },
+          ],
+        },
+      })
+    );
+    const section = root.querySelector("#atv-discussions");
+    const metadata = section?.querySelector(".atv-discussion-meta");
+    const focusOrder = [
+      ...(section?.querySelectorAll<HTMLAnchorElement>("a") ?? []),
+    ].map((link) => link.getAttribute("aria-label") ?? link.textContent);
+
+    expect({
+      focusOrder,
+      metadata: metadata?.textContent,
+      title: section?.querySelector(".atv-discussion-title")?.textContent,
+    }).toStrictEqual({
+      focusOrder: [
+        "发起讨论 ↗",
+        "打开讨论：一个很长很长很长很长很长很长很长很长很长很长很长很长很长的讨论标题",
+        "一个很长很长很长很长很长很长很长很长的作者名字",
+        "查看全部讨论 →",
+      ],
+      metadata:
+        "一个很长很长很长很长很长很长很长很长的作者名字64 回应2026-07-0916:31",
+      title:
+        "一个很长很长很长很长很长很长很长很长很长很长很长很长很长的讨论标题",
+    });
+  });
+
   it("degrades optional discussion metadata and actions independently", () => {
     const root = renderSubjectPage(
       makeDoubanData({
