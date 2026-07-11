@@ -1,17 +1,17 @@
 :root {
-  --atv-bg-primary: #000000;
+  --atv-bg-primary: #000;
   --atv-bg-secondary: #1c1c1e;
   --atv-bg-tertiary: #2c2c2e;
-  --atv-bg-elevated: rgba(255, 255, 255, 0.06);
-  --atv-text-primary: #ffffff;
-  --atv-text-secondary: rgba(255, 255, 255, 0.72);
-  --atv-text-tertiary: rgba(255, 255, 255, 0.45);
+  --atv-bg-elevated: rgb(255 255 255 / 6%);
+  --atv-text-primary: #fff;
+  --atv-text-secondary: rgb(255 255 255 / 72%);
+  --atv-text-tertiary: rgb(255 255 255 / 45%);
   --atv-accent: #41be5d;
   --atv-accent-bright: #4cd97a;
-  --atv-accent-glow: rgba(65, 190, 93, 0.35);
+  --atv-accent-glow: rgb(65 190 93 / 35%);
   --atv-rating-gold: #ffb800;
-  --atv-border-subtle: rgba(255, 255, 255, 0.08);
-  --atv-border-medium: rgba(255, 255, 255, 0.16);
+  --atv-border-subtle: rgb(255 255 255 / 8%);
+  --atv-border-medium: rgb(255 255 255 / 16%);
   --atv-radius-sm: 8px;
   --atv-radius-md: 12px;
   --atv-radius-lg: 16px;

@@ -2,7 +2,7 @@ import type { JSX } from "preact";
 
 import { IconPopcorn, IconTomato } from "@/components/common/icons";
 import { Stars } from "@/components/common/stars";
-import type { ImdbRating as ImdbRatingData, McRating, RtRating } from "@/types";
+import type { ImdbRating, McRating, RtRating } from "@/types";
 
 import {
   isFresh,
@@ -14,7 +14,7 @@ import { RatingLogo } from "./rating-logo";
 
 type ExternalRatingProps =
   | {
-      rating: ImdbRatingData | null;
+      rating: ImdbRating | null;
       resolved: boolean;
       source: "imdb";
     }
@@ -35,7 +35,7 @@ const SOURCE_CLASS = {
   rt: "atv-rating-panel-rt",
 } as const satisfies Record<ExternalRatingProps["source"], string>;
 
-const renderImdbRating = (rating: ImdbRatingData): JSX.Element => (
+const renderImdbRating = (rating: ImdbRating): JSX.Element => (
   <>
     <div class="atv-rating-panel-score">{rating.score.toFixed(1)}</div>
     <Stars score={rating.score} />

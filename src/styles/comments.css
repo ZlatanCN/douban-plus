@@ -1,181 +1,203 @@
 /* ---------- Comments ---------- */
 .atv-comments {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
 }
+
 .atv-comment-card {
   display: flex;
   flex-direction: column;
   padding: 18px 20px;
-  background: #121214;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgb(255 255 255 / 6%);
   border-radius: var(--atv-radius-md);
+  background: #121214;
   transition:
     transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
     border-color 350ms ease,
     box-shadow 350ms ease;
 }
+
 .atv-comment-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-3px);
+  border-color: rgb(255 255 255 / 12%);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(65, 190, 93, 0.04);
+    0 8px 32px rgb(0 0 0 / 30%),
+    0 0 0 1px rgb(65 190 93 / 4%);
+  transform: translateY(-3px);
 }
+
 .atv-comment-top {
   display: flex;
-  gap: 12px;
   align-items: center;
   margin-bottom: 14px;
+  gap: 12px;
 }
+
 .atv-comment-avatar {
   display: flex;
+  overflow: hidden;
+  width: 36px;
+  height: 36px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  overflow: hidden;
-  font-size: 15px;
-  font-weight: 600;
-  color: #fff;
+  border: 1.5px solid rgb(255 255 255 / 6%);
+  border-radius: 50%;
   background-color: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  border-radius: 50%;
-  border: 1.5px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
   transition:
     border-color 260ms ease,
     box-shadow 260ms ease,
     filter 260ms ease;
 }
+
 .atv-comment-card:hover .atv-comment-avatar {
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgb(255 255 255 / 30%);
   filter: brightness(1.15);
 }
+
 .atv-comment-avatar.atv-avatar-loaded {
   animation: atv-avatar-reveal 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
 @keyframes atv-avatar-reveal {
   from {
     filter: blur(6px) brightness(1.25);
   }
+
   to {
     filter: blur(0) brightness(1);
   }
 }
+
 .atv-comment-meta {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 6px;
-  min-width: 0;
 }
+
 .atv-comment-author,
 a.atv-comment-author {
   overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--atv-text-primary);
   font-size: 14px;
   font-weight: 600;
-  color: var(--atv-text-primary);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 a.atv-comment-author:hover {
-  color: var(--atv-text-primary);
   background: none;
+  color: var(--atv-text-primary);
 }
+
 .atv-comment-stars {
   display: inline-flex;
-  gap: 2px;
   align-items: center;
   color: var(--atv-rating-gold);
+  gap: 2px;
 }
+
 .atv-comment-stars svg {
   display: block;
   width: 14px;
   height: 14px;
 }
+
 .atv-comment-body {
   position: relative;
   display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  margin: 0 0 14px;
-  border: none;
-  padding: 0;
   width: 100%;
+  flex: 1 1 auto;
+  flex-direction: column;
+  padding: 0;
+  border: none;
+  margin: 0 0 14px;
+  appearance: none;
   background: none;
+  color: rgb(255 255 255 / 85%);
+  cursor: pointer;
   font: inherit;
   font-size: 15px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
+  overflow-wrap: break-word;
   text-align: left;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  word-break: break-word;
 }
+
 .atv-comment-body-text {
   display: -webkit-box;
-  -webkit-box-orient: vertical;
   overflow: hidden;
+  -webkit-box-orient: vertical;
   -webkit-line-clamp: 4;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
+
 .atv-comment-foot {
   display: flex;
-  gap: 12px;
   align-items: center;
   justify-content: space-between;
+  color: var(--atv-text-tertiary);
   font-size: 12px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
+  gap: 12px;
   letter-spacing: 0.02em;
 }
+
 .atv-comment-votes {
   display: inline-flex;
-  gap: 5px;
   align-items: center;
   padding: 4px 10px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 100px;
+  background: none;
+  color: var(--atv-text-tertiary);
+  cursor: pointer;
   font-family: inherit;
   font-size: 12px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
+  gap: 5px;
   letter-spacing: 0.02em;
-  cursor: pointer;
-  background: none;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 100px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease,
     transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 .atv-comment-votes:hover {
+  border-color: rgb(65 190 93 / 20%);
+  background: rgb(65 190 93 / 4%);
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.2);
-  background: rgba(65, 190, 93, 0.04);
   transform: scale(1.05);
 }
+
 .atv-comment-votes:focus-visible {
-  outline: 2px solid rgba(65, 190, 93, 0.75);
+  outline: 2px solid rgb(65 190 93 / 75%);
   outline-offset: 3px;
 }
+
 .atv-comment-votes:active {
   transform: scale(0.95);
 }
+
 .atv-comment-votes.is-voted {
+  border-color: rgb(65 190 93 / 25%);
+  background: rgb(65 190 93 / 6%);
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.25);
-  background: rgba(65, 190, 93, 0.06);
 }
+
 .atv-comment-votes svg {
   display: block;
   width: 13px;
   height: 13px;
 }
+
 .atv-vote-count {
   font-variant-numeric: tabular-nums;
 }
@@ -183,42 +205,46 @@ a.atv-comment-author:hover {
 /* ---------- Comment Expand Overlay ---------- */
 .atv-comment-foot-right {
   display: flex;
-  gap: 6px;
   align-items: center;
+  gap: 6px;
 }
+
 .atv-comment-expand {
   display: none;
-  align-items: center;
-  justify-content: center;
   width: 22px;
   height: 22px;
+  align-items: center;
+  justify-content: center;
   padding: 0;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  background: rgba(0, 0, 0, 0.3);
-  font: inherit;
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 50%;
+  appearance: none;
+  backdrop-filter: blur(4px);
+  background: rgb(0 0 0 / 30%);
   color: var(--atv-text-tertiary);
   cursor: pointer;
-  border-radius: 50%;
-  backdrop-filter: blur(4px);
+  font: inherit;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease,
     transform 200ms ease;
-  appearance: none;
-  -webkit-appearance: none;
 }
+
 .atv-comment-card.has-overflow .atv-comment-expand {
   display: inline-flex;
 }
+
 .atv-comment-expand:hover {
-  color: var(--atv-accent);
   border-color: var(--atv-accent);
-  background: rgba(65, 190, 93, 0.1);
+  background: rgb(65 190 93 / 10%);
+  color: var(--atv-accent);
 }
+
 .atv-comment-expand:active {
   transform: scale(0.9);
 }
+
 .atv-comment-expand svg {
   display: block;
   width: 12px;
@@ -228,178 +254,199 @@ a.atv-comment-author:hover {
 /* ── Overlay ── */
 .atv-comment-overlay {
   position: fixed;
-  inset: 0;
   z-index: 10000;
   display: flex;
-  align-items: center;
-  justify-content: center;
   width: 100vw;
   height: 100vh;
-  margin: 0;
+  align-items: center;
+  justify-content: center;
   padding: 24px;
   border: none;
-  pointer-events: none;
-  background: rgba(0, 0, 0, 0.72);
+  margin: 0;
   -webkit-backdrop-filter: blur(24px) saturate(1.15);
   backdrop-filter: blur(24px) saturate(1.15);
+  background: rgb(0 0 0 / 72%);
+  inset: 0;
   opacity: 0;
+  pointer-events: none;
   transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .atv-comment-overlay.is-open {
-  pointer-events: auto;
   opacity: 1;
+  pointer-events: auto;
 }
+
 .atv-comment-overlay-inner {
   position: relative;
   width: 100%;
   max-width: 580px;
   max-height: 80vh;
-  overflow-y: auto;
-  background: #121214;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 20px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.55);
+  background: #121214;
+  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
+  overflow-y: auto;
   transform: scale(0.92) translateY(8px);
   transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+
 .atv-comment-overlay.is-open .atv-comment-overlay-inner {
   transform: scale(1) translateY(0);
 }
+
 .atv-modal-close.atv-comment-overlay-close {
   position: absolute;
+  z-index: 2;
   top: 16px;
   right: 16px;
-  z-index: 2;
   width: 32px;
   height: 32px;
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.6);
+  border-color: rgb(255 255 255 / 10%);
+  background: rgb(255 255 255 / 6%);
+  color: rgb(255 255 255 / 60%);
 }
+
 .atv-modal-close.atv-comment-overlay-close:hover {
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 12%);
   color: #fff;
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.2);
 }
+
 .atv-modal-close.atv-comment-overlay-close svg {
   width: 16px;
   height: 16px;
 }
+
 .atv-comment-overlay-top {
   display: flex;
-  gap: 14px;
   align-items: center;
   padding: 28px 28px 0;
+  gap: 14px;
 }
+
 .atv-comment-overlay-avatar {
   display: flex;
+  overflow: hidden;
+  width: 44px;
+  height: 44px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  overflow: hidden;
-  font-size: 18px;
-  font-weight: 600;
-  color: #fff;
+  border: 2px solid var(--atv-border-subtle);
+  border-radius: 50%;
   background-color: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  border-radius: 50%;
-  border: 2px solid var(--atv-border-subtle);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
   transition:
     border-color 260ms ease,
     box-shadow 260ms ease;
 }
+
 .atv-comment-overlay-meta {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: 6px;
-  min-width: 0;
 }
+
 .atv-comment-overlay-author,
 a.atv-comment-overlay-author {
   overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--atv-text-primary);
   font-size: 16px;
   font-weight: 600;
-  color: var(--atv-text-primary);
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 a.atv-comment-overlay-author:hover {
-  color: var(--atv-text-primary);
   background: none;
+  color: var(--atv-text-primary);
 }
+
 .atv-comment-overlay-stars {
   display: inline-flex;
-  gap: 2px;
   color: var(--atv-rating-gold);
+  gap: 2px;
 }
+
 .atv-comment-overlay-stars svg {
   display: block;
   width: 16px;
   height: 16px;
 }
+
 .atv-comment-overlay-body {
   padding: 20px 28px;
+  color: rgb(255 255 255 / 85%);
   font-size: 15px;
   line-height: 1.75;
-  color: rgba(255, 255, 255, 0.85);
-  word-break: break-word;
+  overflow-wrap: break-word;
   white-space: pre-wrap;
 }
+
 .atv-comment-overlay-foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 28px 28px;
 }
+
 .atv-comment-overlay-time {
+  color: var(--atv-text-tertiary);
   font-size: 13px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
 }
+
 .atv-comment-overlay-votes {
   display: inline-flex;
-  gap: 5px;
   align-items: center;
   padding: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 100px;
+  appearance: none;
+  background: rgb(255 255 255 / 4%);
+  color: var(--atv-text-tertiary);
+  cursor: pointer;
   font: inherit;
   font-size: 13px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
+  gap: 5px;
   letter-spacing: 0.02em;
-  cursor: pointer;
-  border-radius: 100px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease,
     transform 200ms ease;
-  appearance: none;
-  -webkit-appearance: none;
 }
+
 .atv-comment-overlay-votes:hover {
+  border-color: rgb(65 190 93 / 20%);
+  background: rgb(65 190 93 / 4%);
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.2);
-  background: rgba(65, 190, 93, 0.04);
 }
+
 .atv-comment-overlay-votes:focus-visible {
-  outline: 2px solid rgba(65, 190, 93, 0.75);
+  outline: 2px solid rgb(65 190 93 / 75%);
   outline-offset: 3px;
 }
+
 .atv-comment-overlay-votes:active {
   transform: scale(0.95);
 }
+
 .atv-comment-overlay-votes.is-voted {
+  border-color: rgb(65 190 93 / 25%);
+  background: rgb(65 190 93 / 6%);
   color: var(--atv-accent);
-  border-color: rgba(65, 190, 93, 0.25);
-  background: rgba(65, 190, 93, 0.06);
 }
+
 .atv-comment-overlay-votes svg {
   display: block;
   width: 14px;

@@ -1,48 +1,49 @@
 /* ── Ratings Panel ──────────────────────────────── */
+
 /* Unified card presenting Douban + IMDb + RT side by side */
 
 .atv-rating-panel {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0;
-  align-items: stretch;
   width: fit-content;
   min-width: 320px;
-  margin-bottom: 28px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
+  align-items: stretch;
+  border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--atv-radius-md);
+  margin-bottom: 28px;
+  gap: 0;
 }
 
 .atv-rating-panel-douban,
 .atv-rating-panel-imdb,
 .atv-rating-panel-rt,
 .atv-rating-panel-mc {
-  flex: 1;
   display: grid;
-  grid-template-rows: 28px 44px 20px 1fr;
-  justify-items: center;
-  align-items: center;
+  flex: 1;
   padding: 16px 24px 14px;
+  grid-template-rows: 28px 44px 20px 1fr;
+  place-items: center center;
   text-align: center;
   transition: background 200ms ease;
 }
+
 .atv-rating-panel-douban:hover,
 .atv-rating-panel-imdb:hover,
 .atv-rating-panel-rt:hover,
 .atv-rating-panel-mc:hover {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgb(255 255 255 / 3%);
 }
 
 .atv-rating-panel-douban {
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgb(255 255 255 / 6%);
 }
 
 .atv-rating-panel-imdb {
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgb(255 255 255 / 6%);
 }
 
 .atv-rating-panel-mc {
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgb(255 255 255 / 6%);
 }
 
 .atv-rating-panel-logo {
@@ -52,14 +53,17 @@
   opacity: 0.85;
   transition: opacity 200ms ease;
 }
+
 .atv-rating-panel-logo:hover {
   opacity: 1;
 }
+
 .atv-rating-panel-logo svg {
   display: block;
 }
 
 .atv-rating-panel .atv-rating-panel-score {
+  color: var(--atv-text-primary);
   font-family:
     "SF Pro Display",
     -apple-system,
@@ -68,9 +72,8 @@
     sans-serif;
   font-size: 38px;
   font-weight: 700;
-  line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--atv-text-primary);
+  line-height: 1;
 }
 
 /* ── MC Score color by range ────────────────────── */
@@ -78,9 +81,11 @@
 .atv-rating-panel-score.is-high {
   color: #3bb33b;
 }
+
 .atv-rating-panel-score.is-medium {
   color: #ffb800;
 }
+
 .atv-rating-panel-score.is-low {
   color: #fa320a;
 }
@@ -95,12 +100,12 @@
 
 .atv-mc-bar-track {
   display: inline-block;
+  overflow: hidden;
   width: 40px;
   height: 4px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.1);
-  overflow: hidden;
   flex-shrink: 0;
+  border-radius: 2px;
+  background: rgb(255 255 255 / 10%);
 }
 
 .atv-mc-bar-fill {
@@ -112,27 +117,30 @@
 .atv-mc-bar-fill.is-high {
   background: #3bb33b;
 }
+
 .atv-mc-bar-fill.is-medium {
   background: #ffb800;
 }
+
 .atv-mc-bar-fill.is-low {
   background: #fa320a;
 }
 
 .atv-mc-word-label {
+  color: var(--atv-text-tertiary);
   font-size: 11px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
-  white-space: nowrap;
   line-height: 1;
+  white-space: nowrap;
 }
 
 .atv-rating-stars {
   display: inline-flex;
-  gap: 2px;
   color: var(--atv-rating-gold);
+  gap: 2px;
 }
+
 .atv-rating-stars svg {
   display: block;
 }
@@ -143,10 +151,10 @@
 .atv-rt-label-row,
 .atv-rt-count-row {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  gap: 8px;
-  align-items: center;
   width: 100%;
+  align-items: center;
+  gap: 8px;
+  grid-template-columns: 1fr auto 1fr;
 }
 
 .atv-rt-score-value {
@@ -158,24 +166,27 @@
     sans-serif;
   font-size: 30px;
   font-weight: 700;
-  line-height: 1;
   letter-spacing: -0.03em;
+  line-height: 1;
 }
 
 .atv-rt-score-value.is-fresh {
   color: var(--atv-text-primary);
 }
+
 .atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {
-  color: rgba(255, 107, 91, 0.85);
+  color: rgb(255 107 91 / 85%);
 }
+
 .atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {
-  color: rgba(255, 167, 38, 0.85);
+  color: rgb(255 167 38 / 85%);
 }
 
 .atv-rt-score-row > .atv-rt-score-value:first-child {
   justify-self: center;
   text-align: right;
 }
+
 .atv-rt-score-row > .atv-rt-score-value:last-child {
   justify-self: center;
   text-align: left;
@@ -185,6 +196,7 @@
 
 .atv-rt-label-row {
   gap: 8px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .atv-rt-label-item {
@@ -196,12 +208,9 @@
 .atv-rt-label-row > .atv-rt-label-item:first-child {
   justify-self: center;
 }
+
 .atv-rt-label-row > .atv-rt-label-item:last-child {
   justify-self: center;
-}
-
-.atv-rt-label-row {
-  grid-template-columns: 1fr 1fr;
 }
 
 .atv-rt-score-icon {
@@ -211,6 +220,7 @@
   color: var(--atv-text-tertiary);
   opacity: 0.7;
 }
+
 .atv-rt-score-icon svg {
   display: block;
   width: 100%;
@@ -221,23 +231,26 @@
   color: #ff6b5b;
   opacity: 1;
 }
+
 .atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {
   color: #50b85e;
   opacity: 0.6;
 }
+
 .atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {
   color: #ffb800;
   opacity: 1;
 }
+
 .atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {
   color: #888;
   opacity: 0.6;
 }
 
 .atv-rt-score-label {
+  color: var(--atv-text-tertiary);
   font-size: 11px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -245,9 +258,9 @@
 /* ── Shared count text (Douban / IMDb) ──────────── */
 
 .atv-rating-panel-count {
+  color: var(--atv-text-tertiary);
   font-size: 12px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -256,40 +269,40 @@
 
 .atv-rt-count-row {
   gap: 8px;
+  grid-template-columns: 1fr 1fr;
 }
 
 .atv-rt-count-value {
+  color: var(--atv-text-tertiary);
   font-size: 12px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
+
 .atv-rt-count-row > .atv-rt-count-value:first-child {
   justify-self: center;
 }
+
 .atv-rt-count-row > .atv-rt-count-value:last-child {
   justify-self: center;
-}
-
-.atv-rt-count-row {
-  grid-template-columns: 1fr 1fr;
 }
 
 /* ── RT Divider ─────────────────────────────────── */
 
 .atv-rt-divider {
   width: 1px;
+  flex-shrink: 0;
   align-self: stretch;
   margin: 2px 0;
-  background: rgba(255, 255, 255, 0.12);
-  flex-shrink: 0;
+  background: rgb(255 255 255 / 12%);
 }
 
-@media (max-width: 768px) {
+@media (width <= 768px) {
   .atv-rating-panel .atv-rating-panel-score {
     font-size: 32px;
   }
+
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb,
   .atv-rating-panel-rt,
@@ -297,32 +310,38 @@
     padding: 12px 14px 10px;
     grid-template-rows: 24px 38px 18px 1fr;
   }
+
   .atv-rt-score-value {
     font-size: 26px;
   }
+
   .atv-rt-score-icon {
     width: 14px;
     height: 14px;
   }
+
   .atv-rt-score-label {
     font-size: 10px;
   }
+
   .atv-mc-bar-track {
     width: 32px;
   }
+
   .atv-mc-word-label {
     font-size: 10px;
   }
+
   .atv-rating-panel {
     min-width: 0;
   }
 }
 
 .atv-rating-empty {
-  font-size: 13px;
-  color: var(--atv-text-tertiary);
-  letter-spacing: 0.03em;
   padding: 10px 0;
+  color: var(--atv-text-tertiary);
+  font-size: 13px;
+  letter-spacing: 0.03em;
 }
 
 /* ── Skeleton (loading) ─────────────────────────── */
@@ -332,6 +351,7 @@
 .atv-rating-panel-mc.is-loading {
   transition: opacity 400ms ease;
 }
+
 .atv-rating-panel-imdb.is-empty,
 .atv-rating-panel-rt.is-empty,
 .atv-rating-panel-mc.is-empty {
@@ -342,20 +362,21 @@
   width: 120px;
   height: 22px;
   border-radius: 4px;
+  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgb(255 255 255 / 4%) 25%,
+    rgb(255 255 255 / 10%) 50%,
+    rgb(255 255 255 / 4%) 75%
   );
   background-size: 200% 100%;
-  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;
 }
 
 @keyframes atv-ratings-shimmer {
   0% {
     background-position: 200% 0;
   }
+
   100% {
     background-position: -200% 0;
   }

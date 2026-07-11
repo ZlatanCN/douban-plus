@@ -4,21 +4,22 @@
    Do not wrap these imports in @layer: this userscript runs inside Douban pages,
    and unlayered host author CSS would outrank layered ATV normal declarations. */
 
-@import "./styles/00-tokens.css";
-@import "./styles/01-base.css";
-@import "./styles/sticky-nav.css";
-@import "./styles/hero.css";
-@import "./styles/ratings.css";
-@import "./styles/hero-actions.css";
-@import "./styles/layout.css";
-@import "./styles/media.css";
-@import "./styles/details.css";
-@import "./styles/streaming.css";
-@import "./styles/comments.css";
-@import "./styles/modals.css";
-@import "./styles/login-modal.css";
-@import "./styles/interest.css";
-@import "./styles/media-playback.css";
-@import "./styles/reviews.css";
-@import "./styles/review-content.css";
-@import "./styles/responsive.css";
+@import url("./styles/00-tokens.css");
+@import url("./styles/01-base.css");
+@import url("./styles/sticky-nav.css");
+@import url("./styles/hero.css");
+@import url("./styles/ratings.css");
+@import url("./styles/hero-actions.css");
+@import url("./styles/layout.css");
+@import url("./styles/media.css");
+@import url("./styles/details.css");
+@import url("./styles/streaming.css");
+@import url("./styles/comments.css");
+@import url("./styles/modals.css");
+@import url("./styles/login-modal.css");
+@import url("./styles/interest.css");
+@import url("./styles/media-playback.css");
+@import url("./styles/reviews.css");
+@import url("./styles/discussions.css");
+@import url("./styles/review-content.css");
+@import url("./styles/responsive.css");

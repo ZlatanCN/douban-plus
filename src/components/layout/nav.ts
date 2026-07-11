@@ -41,6 +41,12 @@ const computeNavSections = (data: DoubanData): NavSection[] => {
         .navLabel,
     });
   }
+  if (data.discussions.topics.length > 0) {
+    sections.push({
+      id: "atv-discussions",
+      label: getSubjectSectionCopy("discussions").navLabel,
+    });
+  }
   if (data.recommendations.length > 0) {
     sections.push({
       id: "atv-recs",

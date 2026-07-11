@@ -1,33 +1,36 @@
 /* ---------- Info grid ---------- */
 .atv-info-grid {
   display: grid;
+  gap: 16px 32px;
   grid-template-columns: 200px 1fr;
-  row-gap: 16px;
-  column-gap: 32px;
 }
+
 .atv-info-label {
   padding-top: 2px;
+  color: rgb(255 255 255 / 55%);
   font-size: 14px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.55);
-  text-transform: uppercase;
   letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
+
 .atv-info-value {
+  color: var(--atv-text-primary);
   font-size: 15px;
   font-weight: 400;
   line-height: 1.5;
-  color: var(--atv-text-primary);
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
+
 .atv-info-value a {
-  color: var(--atv-text-primary);
   border-bottom: 1px solid var(--atv-border-medium);
+  color: var(--atv-text-primary);
   transition:
     color 200ms ease,
     border-color 200ms ease;
 }
+
 .atv-info-value a:hover {
-  color: var(--atv-accent-bright);
   border-color: var(--atv-accent-bright);
+  color: var(--atv-accent-bright);
 }

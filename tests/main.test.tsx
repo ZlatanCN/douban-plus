@@ -3,13 +3,14 @@
 /* src/main.ts.                                                  */
 
 import { render } from "preact";
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { computeNavSections } from "@/components/layout/nav";
 import { StickyNav } from "@/components/layout/sticky-nav";
-import { buildHeroCallbacks, watchSeries } from "@/main";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import { buildHeroCallbacks } from "@/runtime/mount";
+import { watchSeries } from "@/runtime/series-effect";
 import type { DoubanData, InfoBlock, InterestState, SeriesItem } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
@@ -61,6 +62,7 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
       votes: 10,
     },
   ],
+  discussions: { topics: [] },
   info: makeInfoBlock({
     country: "USA",
     director: [{ href: "", text: "Frank Darabont" }],
@@ -127,6 +129,7 @@ const renderSubjectPage = (
   const root = document.createElement("div");
   root.id = "atv-douban-root";
   render(<SubjectPage data={data} deps={deps} />, root);
+  onTestFinished(() => render(null, root));
   return root;
 };
 
@@ -137,6 +140,7 @@ const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
     <StickyNav sections={computeNavSections(data)} title={data.title} />,
     stickyNav
   );
+  onTestFinished(() => render(null, stickyNav));
   return stickyNav;
 };
 
@@ -500,5 +504,106 @@ describe(SubjectPage, () => {
   it("handles empty series gracefully — no series section (t34)", () => {
     const root = renderSubjectPage(makeDoubanData({ series: [] }));
     expect(root.querySelector("#atv-series")).toBeNull();
+  });
+
+  it("renders group discussions between reviews and similar works", () => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          topics: [
+            {
+              href: "https://www.douban.com/group/topic/480926084/",
+              title: "才开始追！乔佛里好恶心啊",
+            },
+          ],
+        },
+        reviews: [
+          {
+            avatar: "",
+            content: "一篇剧评",
+            id: "r1",
+            link: "",
+            name: "作者",
+            ratingWord: "",
+            spoiler: false,
+            stars: 0,
+            time: "",
+            title: "剧评标题",
+            usefulCount: 0,
+            uselessCount: 0,
+          },
+        ],
+      })
+    );
+    const topicLink = root.querySelector<HTMLAnchorElement>(
+      ".atv-discussion-topic-link"
+    );
+    const sectionOrder = [...root.querySelectorAll<HTMLElement>(".atv-section")]
+      .map((section) => section.id)
+      .filter((id) =>
+        ["atv-reviews", "atv-discussions", "atv-recs"].includes(id)
+      );
+    const navOrder = [
+      ...root.querySelectorAll<HTMLAnchorElement>(".atv-stickynav-jumps a"),
+    ]
+      .map((link) => link.textContent)
+      .filter((label) =>
+        ["影评", "小组讨论", "相似作品"].includes(label ?? "")
+      );
+
+    expect({
+      heading: root.querySelector("#atv-discussions h2")?.textContent,
+      navOrder,
+      sectionOrder,
+      topic: {
+        href: topicLink?.href,
+        label: topicLink?.getAttribute("aria-label"),
+        rel: topicLink?.rel,
+        target: topicLink?.target,
+      },
+    }).toStrictEqual({
+      heading: "小组讨论",
+      navOrder: ["影评", "小组讨论", "相似作品"],
+      sectionOrder: ["atv-reviews", "atv-discussions", "atv-recs"],
+      topic: {
+        href: "https://www.douban.com/group/topic/480926084/",
+        label: "打开讨论：才开始追！乔佛里好恶心啊",
+        rel: "noopener",
+        target: "_blank",
+      },
+    });
+  });
+
+  it("omits group discussions and their navigation when topics are empty", () => {
+    const root = renderSubjectPage(makeDoubanData());
+
+    expect({
+      nav: root.querySelector('a[href="#atv-discussions"]'),
+      section: root.querySelector("#atv-discussions"),
+    }).toStrictEqual({ nav: null, section: null });
+  });
+
+  it.each([
+    ["movie", false],
+    ["TV", true],
+  ])("renders group discussions for %s subjects", (_kind, isTV) => {
+    const root = renderSubjectPage(
+      makeDoubanData({
+        discussions: {
+          topics: [
+            {
+              href: "https://www.douban.com/group/topic/480926084/",
+              title: "讨论主题",
+            },
+          ],
+        },
+        isTV,
+      })
+    );
+
+    expect({
+      nav: root.querySelector('a[href="#atv-discussions"]')?.textContent,
+      section: root.querySelector("#atv-discussions h2")?.textContent,
+    }).toStrictEqual({ nav: "小组讨论", section: "小组讨论" });
   });
 });

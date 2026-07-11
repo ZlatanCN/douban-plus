@@ -50,7 +50,7 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
           return (
             <a
               class={`atv-stream-card${
-                provider.combinedSvg ? " atv-stream-card--combined" : ""
+                provider.combinedSvg ? " atv-stream-card-combined" : ""
               }`}
               data-provider={provider.key}
               href={item.href}
