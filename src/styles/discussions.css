@@ -1,20 +1,20 @@
 /* ---------- Group discussions ---------- */
 .atv-discussion-board {
   overflow: hidden;
-  background: #121214;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgb(255 255 255 / 7%);
   border-radius: var(--atv-radius-lg);
+  background: #121214;
 }
 
 .atv-discussion-row {
   position: relative;
-  isolation: isolate;
   display: flex;
+  overflow: hidden;
   min-height: 66px;
   align-items: center;
   padding: 18px 58px 18px 22px;
-  overflow: hidden;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  isolation: isolate;
 }
 
 .atv-discussion-row:last-child {
@@ -27,9 +27,9 @@
   bottom: 14px;
   left: 0;
   width: 3px;
-  content: "";
-  background: var(--atv-accent);
   border-radius: 0 3px 3px 0;
+  background: var(--atv-accent);
+  content: "";
   opacity: 0;
   transform: scaleY(0.35);
   transition:
@@ -39,9 +39,9 @@
 
 .atv-discussion-topic-link {
   position: absolute;
-  inset: 0;
   z-index: 1;
   border-radius: inherit;
+  inset: 0;
 }
 
 .atv-discussion-topic-link:focus-visible {
@@ -50,23 +50,23 @@
 }
 
 .atv-discussion-title {
-  margin: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
+  margin: 0;
+  color: rgb(255 255 255 / 90%);
   font-size: 16px;
   font-weight: 600;
-  line-height: 1.45;
-  color: rgba(255, 255, 255, 0.9);
   letter-spacing: -0.01em;
-  white-space: nowrap;
+  line-height: 1.45;
+  text-overflow: ellipsis;
   transition: color 180ms ease;
+  white-space: nowrap;
 }
 
 .atv-discussion-arrow {
   position: absolute;
   right: 22px;
-  font-size: 17px;
   color: var(--atv-accent-bright);
+  font-size: 17px;
   opacity: 0.35;
   transform: translate(-3px, 3px);
   transition:

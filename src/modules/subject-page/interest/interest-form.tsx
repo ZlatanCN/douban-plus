@@ -80,7 +80,7 @@ const InterestFormContent = ({
       <div class="atv-modal-accent-bar" />
       <div class="atv-interest-modal-header">
         <span
-          class="atv-interest-modal-header__title"
+          class="atv-interest-modal-header-title"
           id="atv-interest-modal-title"
         >
           {`${titlePrefix}${INTEREST_LABELS[status]}`}

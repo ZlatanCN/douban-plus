@@ -3,59 +3,66 @@
   margin: 24px 0;
   clear: both;
 }
+
 .atv-review-modal-body .image-container.image-float-left {
-  float: left;
+  max-width: 50%;
   margin: 8px 24px 8px 0;
-  max-width: 50%;
+  float: left;
 }
+
 .atv-review-modal-body .image-container.image-float-right {
-  float: right;
-  margin: 8px 0 8px 24px;
   max-width: 50%;
+  margin: 8px 0 8px 24px;
+  float: right;
 }
+
 .atv-review-modal-body .image-wrapper {
   overflow: hidden;
   border-radius: var(--atv-radius-sm);
   line-height: 0;
 }
+
 .atv-review-modal-body .image-wrapper img {
   display: block;
   width: auto;
-  height: auto;
   max-width: 100%;
+  height: auto;
   margin: 0 auto;
 }
+
 .atv-review-modal-body .image-caption-wrapper {
   margin-top: 8px;
   text-align: center;
 }
+
 .atv-review-modal-body .image-caption {
   display: inline-block;
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.6;
   color: var(--atv-text-tertiary);
-  letter-spacing: 0.02em;
+  font-size: 13px;
   font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
 }
 
 /* ── Review content links (Douban a.link / generic) ── */
 .atv-review-modal-body a:link,
 .atv-review-modal-body a:visited {
-  color: var(--atv-accent);
-  text-decoration: none;
+  border-bottom: 1px solid rgb(65 190 93 / 25%);
   background: transparent;
-  border-bottom: 1px solid rgba(65, 190, 93, 0.25);
+  color: var(--atv-accent);
+  overflow-wrap: break-word;
+  text-decoration: none;
   transition:
     border-color 200ms ease,
     color 200ms ease;
-  word-break: break-word;
 }
+
 .atv-review-modal-body a:hover,
 .atv-review-modal-body a:active {
-  color: var(--atv-accent-bright);
   border-bottom-color: var(--atv-accent-bright);
   background: transparent;
+  color: var(--atv-accent-bright);
 }
 
 /* ============================================
@@ -66,53 +73,59 @@
 
 /* --- Headings --- */
 .atv-review-modal-body h3 {
+  margin: 28px 0 12px;
+  color: var(--atv-text-primary);
   font-size: 18px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--atv-text-primary);
-  margin: 28px 0 12px;
 }
+
 .atv-review-modal-body h4 {
+  margin: 24px 0 10px;
+  color: var(--atv-text-primary);
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--atv-text-primary);
-  margin: 24px 0 10px;
 }
+
 .atv-review-modal-body h5,
 .atv-review-modal-body h6 {
+  margin: 20px 0 8px;
+  color: var(--atv-text-secondary);
   font-size: 14px;
   font-weight: 600;
   line-height: 1.4;
-  color: var(--atv-text-secondary);
-  margin: 20px 0 8px;
 }
 
 /* --- Horizontal Rule --- */
 .atv-review-modal-body hr {
+  height: 0;
   border: none;
   border-top: 1px solid var(--atv-border-subtle);
   margin: 28px 0;
-  height: 0;
 }
 
 /* --- Lists --- */
 .atv-review-modal-body ul,
 .atv-review-modal-body ol {
-  margin: 0 0 16px;
   padding-left: 24px;
+  margin: 0 0 16px;
   line-height: 1.7;
 }
+
 .atv-review-modal-body ul {
   list-style: disc;
 }
+
 .atv-review-modal-body ol {
   list-style: decimal;
 }
+
 .atv-review-modal-body li {
   margin-bottom: 6px;
   line-height: 1.7;
 }
+
 .atv-review-modal-body li:last-child {
   margin-bottom: 0;
 }
@@ -120,41 +133,50 @@
 /* --- Inline Text Semantics --- */
 .atv-review-modal-body strong,
 .atv-review-modal-body b {
+  color: rgb(255 255 255 / 92%);
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
 }
+
 .atv-review-modal-body em,
 .atv-review-modal-body i {
   font-style: italic;
 }
+
 .atv-review-modal-body small {
-  font-size: 0.85em;
   color: var(--atv-text-tertiary);
+  font-size: 0.85em;
 }
+
 .atv-review-modal-body q {
   font-style: italic;
 }
+
 .atv-review-modal-body q::before {
   content: "\201C";
 }
+
 .atv-review-modal-body q::after {
   content: "\201D";
 }
+
 .atv-review-modal-body u {
   text-decoration: underline;
-  text-underline-offset: 2px;
   text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
+
 .atv-review-modal-body s,
 .atv-review-modal-body del {
-  text-decoration: line-through;
   color: var(--atv-text-tertiary);
+  text-decoration: line-through;
 }
+
 .atv-review-modal-body sup {
   font-size: 0.75em;
   line-height: 1;
   vertical-align: super;
 }
+
 .atv-review-modal-body sub {
   font-size: 0.75em;
   line-height: 1;
@@ -163,28 +185,30 @@
 
 /* --- Code --- */
 .atv-review-modal-body code {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 6%);
   font-family:
     "SF Mono", Monaco, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas,
     monospace;
   font-size: 0.9em;
-  padding: 2px 6px;
-  background: rgba(255, 255, 255, 0.06);
-  border-radius: 4px;
-  word-break: break-word;
+  overflow-wrap: break-word;
 }
+
 .atv-review-modal-body pre {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--atv-border-subtle);
   padding: 16px 20px;
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-sm);
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  line-height: 1.6;
   margin: 0 0 20px;
+  background: rgb(0 0 0 / 40%);
+  line-height: 1.6;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: auto;
 }
+
 .atv-review-modal-body pre code {
-  background: none;
   padding: 0;
+  background: none;
   font-size: 14px;
   word-break: normal;
 }
@@ -192,25 +216,29 @@
 /* --- Tables --- */
 .atv-review-modal-body table {
   width: 100%;
-  border-collapse: collapse;
   margin: 20px 0;
+  border-collapse: collapse;
   line-height: 1.6;
 }
+
 .atv-review-modal-body thead {
   border-bottom: 2px solid var(--atv-border-medium);
 }
+
 .atv-review-modal-body th {
-  font-weight: 600;
-  text-align: left;
   padding: 10px 14px;
   color: var(--atv-text-primary);
+  font-weight: 600;
+  text-align: left;
   white-space: nowrap;
 }
+
 .atv-review-modal-body td {
   padding: 10px 14px;
   border-bottom: 1px solid var(--atv-border-subtle);
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(255 255 255 / 82%);
 }
+
 .atv-review-modal-body tbody tr:last-child td {
   border-bottom: none;
 }
@@ -219,101 +247,118 @@
 .atv-review-modal-body .review-content p,
 .atv-review-modal-body .review-content div,
 .atv-review-modal-body .review-content span {
-  color: rgba(255, 255, 255, 0.82);
+  color: rgb(255 255 255 / 82%);
 }
+
 .atv-review-modal-body .spoiler-tip {
+  margin-bottom: 12px;
   color: #ff9f0a;
   font-size: 13px;
   font-weight: 600;
-  margin-bottom: 12px;
 }
+
 .atv-review-modal-body .main-hd {
   display: flex;
   align-items: center;
-  gap: 10px;
   margin-bottom: 16px;
+  gap: 10px;
 }
+
 .atv-review-modal-body .main-hd a.name {
+  color: var(--atv-accent);
   font-size: 14px;
   font-weight: 500;
-  color: var(--atv-accent);
   text-decoration: none;
 }
+
 .atv-review-modal-body .main-hd a.name:hover {
   text-decoration: underline;
 }
+
 .atv-review-modal-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-top: 28px;
   padding-top: 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgb(255 255 255 / 4%);
+  margin-top: 28px;
 }
+
 .atv-review-modal-votes {
   display: flex;
   gap: 14px;
 }
+
 .atv-review-modal-link {
   display: flex;
   align-items: center;
 }
+
 #atv-douban-root .atv-review-modal-link-a {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
   background: transparent;
+  color: rgb(255 255 255 / 50%);
+  font-size: 13px;
   text-decoration: none;
   transition: color 200ms ease;
 }
+
 #atv-douban-root .atv-review-modal-link-a:link,
 #atv-douban-root .atv-review-modal-link-a:visited {
-  color: rgba(255, 255, 255, 0.5);
   background: transparent;
+  color: rgb(255 255 255 / 50%);
 }
+
 #atv-douban-root .atv-review-modal-link-a:hover,
 #atv-douban-root .atv-review-modal-link-a:active {
-  color: var(--atv-accent);
   background: transparent;
+  color: var(--atv-accent);
 }
+
 .atv-review-modal-stars {
   display: inline-flex;
-  gap: 2px;
   align-items: center;
   margin: 0 0 4px;
   color: var(--atv-rating-gold);
+  gap: 2px;
 }
+
 .atv-review-modal-stars svg {
   display: block;
   width: 14px;
   height: 14px;
 }
+
 .atv-review-modal-body.is-skeleton {
   position: relative;
   min-height: 140px;
   color: transparent;
 }
+
 .atv-review-modal-body.is-skeleton::before,
 .atv-review-modal-body.is-skeleton::after {
   display: block;
   height: 14px;
   border-radius: 4px;
-  content: "";
+  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 25%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 75%
+    rgb(255 255 255 / 4%) 25%,
+    rgb(255 255 255 / 10%) 50%,
+    rgb(255 255 255 / 4%) 75%
   );
   background-size: 200% 100%;
-  animation: atv-ratings-shimmer 1.6s ease-in-out infinite;
+  content: "";
 }
+
 .atv-review-modal-body.is-skeleton::before {
   width: 92%;
   margin-bottom: 14px;
 }
+
 .atv-review-modal-body.is-skeleton::after {
   width: 68%;
 }
+
 .atv-review-modal-body.is-error {
   display: flex;
   min-height: 140px;
@@ -322,42 +367,46 @@
   color: var(--atv-text-tertiary);
   text-align: center;
 }
+
 .atv-review-modal-error {
   display: flex;
   flex-direction: column;
-  gap: 14px;
   align-items: center;
+  gap: 14px;
 }
+
 .atv-review-modal-error p {
   margin: 0;
 }
+
 .atv-review-modal-retry {
   display: inline-flex;
+  min-height: 34px;
   align-items: center;
   justify-content: center;
-  min-height: 34px;
   padding: 0 18px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  appearance: none;
+  background: rgb(255 255 255 / 4%);
+  color: var(--atv-text-secondary);
+  cursor: pointer;
   font: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: var(--atv-text-secondary);
-  cursor: pointer;
-  border-radius: 999px;
   transition:
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease;
-  appearance: none;
-  -webkit-appearance: none;
 }
+
 .atv-review-modal-retry:hover,
 .atv-review-modal-retry:focus-visible {
+  border-color: rgb(65 190 93 / 35%);
+  background: rgb(65 190 93 / 8%);
   color: var(--atv-accent);
-  background: rgba(65, 190, 93, 0.08);
-  border-color: rgba(65, 190, 93, 0.35);
 }
+
 .atv-review-modal-retry:focus-visible,
 .atv-review-modal .atv-modal-close:focus-visible,
 #atv-douban-root .atv-review-modal-link-a:focus-visible {

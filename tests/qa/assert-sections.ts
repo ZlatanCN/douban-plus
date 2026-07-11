@@ -100,7 +100,7 @@ const evaluateStreamCard = (el: Element) => {
   const href = tag === "A" ? (el as HTMLAnchorElement).href : "";
   const nameEl = el.querySelector(".atv-stream-name");
   const name = nameEl?.textContent?.trim() || "";
-  const isCombined = el.classList.contains("atv-stream-card--combined");
+  const isCombined = el.classList.contains("atv-stream-card-combined");
   const provider = htmlEl.dataset.provider || "";
   const label = isCombined ? provider : name;
   return { href, isCombined, label, name, provider, tag };

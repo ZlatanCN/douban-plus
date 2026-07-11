@@ -3,12 +3,14 @@
   max-width: 1280px;
   padding: 52px max(28px, 5vw);
   margin: 0 auto;
-  scroll-margin-top: 64px;
   animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  scroll-margin-top: 64px;
 }
+
 .atv-section + .atv-section {
   padding-top: 0;
 }
+
 .atv-section-h {
   position: relative;
   display: flex;
@@ -19,36 +21,41 @@
   font-weight: 700;
   letter-spacing: -0.01em;
 }
+
 .atv-section-h::before {
   position: absolute;
   top: 50%;
   left: 0;
   width: 4px;
   height: 24px;
-  content: "";
-  background: var(--atv-accent);
   border-radius: 2px;
+  background: var(--atv-accent);
+  content: "";
   transform: translateY(-50%);
 }
+
 .atv-section-h-row {
   display: flex;
-  gap: 16px;
   align-items: baseline;
   justify-content: space-between;
   margin-bottom: 24px;
+  gap: 16px;
 }
+
 .atv-section-h-row .atv-section-h {
   margin-bottom: 0;
 }
+
 .atv-section-more {
   flex: 0 0 auto;
+  color: var(--atv-text-tertiary);
   font-size: 14px;
   font-weight: 500;
-  color: var(--atv-text-tertiary);
   letter-spacing: 0.02em;
-  white-space: nowrap;
   transition: color 200ms ease;
+  white-space: nowrap;
 }
+
 .atv-section-more:hover {
   color: var(--atv-accent-bright);
 }
@@ -56,41 +63,46 @@
 /* ---------- Carousel ---------- */
 .atv-carousel {
   display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
   padding: 4px 4px 16px;
   margin: 0 -4px;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
 }
+
 .atv-carousel::-webkit-scrollbar {
   display: none;
-}
-.atv-carousel {
-  scrollbar-width: none;
 }
 
 /* ---------- Page scrollbar ---------- */
 :root {
   color-scheme: dark;
 }
+
 ::-webkit-scrollbar {
   width: 5px;
   height: 5px;
 }
+
 ::-webkit-scrollbar-track {
   background: #1c1c1e;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #3a3a3c;
   border-radius: 3px;
+  background: #3a3a3c;
 }
+
 ::-webkit-scrollbar-thumb:hover {
   background: #48484a;
 }
+
 ::-webkit-scrollbar-corner {
   background: transparent;
 }
+
 * {
   scrollbar-color: #3a3a3c #1c1c1e;
   scrollbar-width: thin;

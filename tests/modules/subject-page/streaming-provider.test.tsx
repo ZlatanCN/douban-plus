@@ -96,7 +96,7 @@ describe(StreamingSection, () => {
     expect(root.querySelectorAll(".atv-stream-logo")).toHaveLength(0);
     expect(root.querySelector(".atv-stream-arrow")).toBeNull();
     for (const card of cards) {
-      expect(card.classList.contains("atv-stream-card--combined")).toBeTruthy();
+      expect(card.classList.contains("atv-stream-card-combined")).toBeTruthy();
       expect(card.querySelector("svg")).not.toBeNull();
     }
     expect(cards[0]?.dataset.provider).toBe("bilibili");
