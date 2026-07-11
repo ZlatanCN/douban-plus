@@ -263,6 +263,40 @@ describe(Hero, () => {
     expect(mockRequest).not.toHaveBeenCalled();
   });
 
+  it("reuses a first-broadcast lookup across a same-page Hero remount", async () => {
+    mockRequest.mockClear();
+    mockRequest.mockResolvedValue(`
+      <div class="item basic">
+        <label for="p_142">电视台</label>
+        <input id="p_142" value="HBO/HBO Max" readonly />
+      </div>
+    `);
+    const data = makeHeroData({
+      interest: { ...defaultInterest, loggedIn: true },
+      subjectId: "36666949",
+    });
+
+    const first = renderSingle(
+      <Hero callbacks={makeCallbacks()} data={data} />
+    );
+    await waitUntil(() =>
+      expect(
+        first.querySelector(".atv-first-broadcast-platform")
+      ).not.toBeNull()
+    );
+
+    const second = renderSingle(
+      <Hero callbacks={makeCallbacks()} data={data} />
+    );
+    await waitUntil(() =>
+      expect(
+        second.querySelector(".atv-first-broadcast-platform")
+      ).not.toBeNull()
+    );
+
+    expect(mockRequest).toHaveBeenCalledOnce();
+  });
+
   it("routes logged-out actions to the login-gated callbacks", () => {
     const callbacks = makeCallbacks();
     const el = renderSingle(

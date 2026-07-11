@@ -3280,35 +3280,117 @@ input::placeholder {
 	};
 	var PLATFORM_BRANDS = [
 		{
-			Icon: LogoAppleTv,
-			aliases: ["apple tv+", "apple tv"],
-			key: "apple-tv"
+			Icon: LogoBilibiliCombined,
+			aliases: [
+				"哔哩哔哩",
+				"bilibili",
+				"b站",
+				"b 站"
+			],
+			color: "#FF5588",
+			key: "bilibili",
+			label: "哔哩哔哩"
 		},
 		{
-			Icon: LogoHboMax,
-			aliases: ["hbo max", "max"],
-			key: "hbo-max"
+			Icon: LogoIqiyiCombined,
+			aliases: [
+				"爱奇艺",
+				"iqiyi",
+				"iQIYI"
+			],
+			color: "#00DC5A",
+			key: "iqiyi",
+			label: "爱奇艺"
 		},
 		{
-			Icon: LogoHbo,
-			aliases: ["hbo"],
-			key: "hbo"
+			Icon: LogoTencentCombined,
+			aliases: ["腾讯视频", "tencent video"],
+			color: "#00A2FF",
+			key: "tencent-video",
+			label: "腾讯视频"
+		},
+		{
+			Icon: LogoYoukuCombined,
+			aliases: ["优酷", "youku"],
+			color: "#00A6FF",
+			key: "youku",
+			label: "优酷"
+		},
+		{
+			aliases: [
+				"咪咕视频",
+				"咪咕",
+				"migu"
+			],
+			color: "#F04B23",
+			key: "migu",
+			label: "咪咕视频"
 		},
 		{
 			Icon: LogoNetflix,
 			aliases: ["netflix"],
-			key: "netflix"
+			color: "#E50914",
+			key: "netflix",
+			label: "Netflix"
+		},
+		{
+			Icon: LogoYouTube,
+			aliases: ["youtube", "youtube tv"],
+			color: "#FF0000",
+			key: "youtube",
+			label: "YouTube"
+		},
+		{
+			Icon: LogoAppleTv,
+			aliases: ["apple tv", "apple tv+"],
+			color: "#F5F5F7",
+			key: "apple-tv",
+			label: "Apple TV"
+		},
+		{
+			Icon: LogoHbo,
+			aliases: ["hbo"],
+			color: "#F5F5F7",
+			key: "hbo",
+			label: "HBO"
+		},
+		{
+			Icon: LogoHboMax,
+			aliases: ["hbo max", "max"],
+			color: "#8A7CFF",
+			key: "hbo-max",
+			label: "HBO Max"
 		},
 		{
 			Icon: LogoParamountPlus,
 			aliases: ["paramount+"],
-			key: "paramount-plus"
+			color: "#0064FF",
+			key: "paramount-plus",
+			label: "Paramount+"
+		},
+		{
+			Icon: LogoTubi,
+			aliases: ["tubi"],
+			color: "#7408FF",
+			key: "tubi",
+			label: "Tubi"
+		},
+		{
+			Icon: LogoVimeo,
+			aliases: ["vimeo"],
+			color: "#1AB7EA",
+			key: "vimeo",
+			label: "Vimeo"
 		}
 	];
-	var normalizePlatformName = (platform) => platform.toLowerCase().replaceAll(/\s+/gu, "");
-	var findPlatformBrand = (platform) => {
-		const normalizedPlatform = normalizePlatformName(platform);
-		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalizedPlatform.includes(normalizePlatformName(alias)))) ?? null;
+	var normalizePlatformName = (value) => value.toLowerCase().replaceAll(/\s+/gu, "");
+	var findPlatformBrandByExactName = (value) => {
+		const normalized = normalizePlatformName(value);
+		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalizePlatformName(alias) === normalized)) ?? null;
+	};
+	var findPlatformBrandByContainedName = (value) => {
+		const normalized = normalizePlatformName(value);
+		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalized.includes(normalizePlatformName(alias)))) ?? null;
 	};
 	var IconBroadcast = () => u("svg", {
 		"aria-hidden": "true",
@@ -3341,7 +3423,7 @@ input::placeholder {
 		]
 	});
 	var FirstBroadcastPlatform = ({ platform }) => {
-		const brand = findPlatformBrand(platform);
+		const brand = platform.split("/").map(findPlatformBrandByExactName).find((candidate) => candidate !== null) ?? null;
 		const Icon = brand?.Icon;
 		return u("div", {
 			"aria-label": `首播平台：${platform}`,
@@ -3585,7 +3667,7 @@ input::placeholder {
 	var extractFirstBroadcastPlatform = (doc) => {
 		const label = [...doc.querySelectorAll("label")].find((candidate) => candidate.textContent?.trim() === "电视台");
 		if (!label?.htmlFor) return null;
-		return (label.closest(".item")?.querySelector("input"))?.value.trim() || null;
+		return [...doc.querySelectorAll("input")].find((candidate) => candidate.id === label.htmlFor)?.value.trim() || null;
 	};
 	var fetchFirstBroadcastPlatform = async (subjectId, referer = location.href) => {
 		if (!subjectId) return null;
@@ -3596,6 +3678,24 @@ input::placeholder {
 			return null;
 		}
 	};
+	var platformCache = new Map();
+	var platformRequests = new Map();
+	var loadFirstBroadcastPlatform = (subjectId) => {
+		if (platformCache.has(subjectId)) return Promise.resolve(platformCache.get(subjectId) ?? null);
+		const inFlight = platformRequests.get(subjectId);
+		if (inFlight) return inFlight;
+		const request = (async () => {
+			try {
+				const platform = await fetchFirstBroadcastPlatform(subjectId);
+				platformCache.set(subjectId, platform);
+				return platform;
+			} finally {
+				platformRequests.delete(subjectId);
+			}
+		})();
+		platformRequests.set(subjectId, request);
+		return request;
+	};
 	var useFirstBroadcastPlatform = (subjectId, loggedIn) => {
 		const [platform, setPlatform] = d(null);
 		h(() => {
@@ -3605,7 +3705,7 @@ input::placeholder {
 			}
 			let active = true;
 			(async () => {
-				const value = await fetchFirstBroadcastPlatform(subjectId);
+				const value = await loadFirstBroadcastPlatform(subjectId);
 				if (active) setPlatform(value);
 			})();
 			return () => {
@@ -4177,129 +4277,27 @@ input::placeholder {
 		})
 	}) : null;
 	var UNKNOWN_PROVIDER_COLOR = "#41be5d";
-	var PROVIDERS = [
-		{
-			Icon: LogoBilibiliCombined,
-			aliases: [
-				"哔哩哔哩",
-				"bilibili",
-				"b站",
-				"b 站"
-			],
-			color: "#FF5588",
-			combinedSvg: true,
-			hosts: ["bilibili.com"],
-			key: "bilibili",
-			label: "哔哩哔哩"
-		},
-		{
-			Icon: LogoIqiyiCombined,
-			aliases: [
-				"爱奇艺",
-				"iqiyi",
-				"iQIYI"
-			],
-			color: "#00DC5A",
-			combinedSvg: true,
-			hosts: ["iqiyi.com"],
-			key: "iqiyi",
-			label: "爱奇艺"
-		},
-		{
-			Icon: LogoTencentCombined,
-			aliases: ["腾讯视频", "tencent video"],
-			color: "#00A2FF",
-			combinedSvg: true,
-			hosts: ["v.qq.com"],
-			key: "tencent-video",
-			label: "腾讯视频"
-		},
-		{
-			Icon: LogoYoukuCombined,
-			aliases: ["优酷", "youku"],
-			color: "#00A6FF",
-			combinedSvg: true,
-			hosts: ["youku.com"],
-			key: "youku",
-			label: "优酷"
-		},
-		{
-			aliases: [
-				"咪咕视频",
-				"咪咕",
-				"migu"
-			],
-			color: "#F04B23",
-			hosts: ["miguvideo.com", "migu.cn"],
-			key: "migu",
-			label: "咪咕视频"
-		},
-		{
-			Icon: LogoNetflix,
-			aliases: ["netflix"],
-			color: "#E50914",
-			hosts: ["netflix.com"],
-			key: "netflix",
-			label: "Netflix"
-		},
-		{
-			Icon: LogoYouTube,
-			aliases: ["youtube", "youtube tv"],
-			color: "#FF0000",
-			hosts: ["youtube.com", "youtu.be"],
-			key: "youtube",
-			label: "YouTube"
-		},
-		{
-			Icon: LogoAppleTv,
-			aliases: ["apple tv", "apple tv+"],
-			color: "#F5F5F7",
-			hosts: ["tv.apple.com"],
-			key: "apple-tv",
-			label: "Apple TV"
-		},
-		{
-			Icon: LogoHbo,
-			aliases: ["hbo"],
-			color: "#F5F5F7",
-			hosts: ["hbo.com"],
-			key: "hbo",
-			label: "HBO"
-		},
-		{
-			Icon: LogoHboMax,
-			aliases: ["hbo max", "max"],
-			color: "#8A7CFF",
-			hosts: ["max.com", "hbomax.com"],
-			key: "hbo-max",
-			label: "HBO Max"
-		},
-		{
-			Icon: LogoParamountPlus,
-			aliases: ["paramount+"],
-			color: "#0064FF",
-			hosts: ["paramountplus.com"],
-			key: "paramount-plus",
-			label: "Paramount+"
-		},
-		{
-			Icon: LogoTubi,
-			aliases: ["tubi"],
-			color: "#7408FF",
-			hosts: ["tubi.tv"],
-			key: "tubi",
-			label: "Tubi"
-		},
-		{
-			Icon: LogoVimeo,
-			aliases: ["vimeo"],
-			color: "#1AB7EA",
-			hosts: ["vimeo.com"],
-			key: "vimeo",
-			label: "Vimeo"
-		}
-	];
-	var normalizeText = (value) => value.toLowerCase().replaceAll(/\s+/gu, "");
+	var PROVIDER_HOSTS = {
+		"apple-tv": ["tv.apple.com"],
+		bilibili: ["bilibili.com"],
+		hbo: ["hbo.com"],
+		"hbo-max": ["max.com", "hbomax.com"],
+		iqiyi: ["iqiyi.com"],
+		migu: ["miguvideo.com", "migu.cn"],
+		netflix: ["netflix.com"],
+		"paramount-plus": ["paramountplus.com"],
+		"tencent-video": ["v.qq.com"],
+		tubi: ["tubi.tv"],
+		vimeo: ["vimeo.com"],
+		youku: ["youku.com"],
+		youtube: ["youtube.com", "youtu.be"]
+	};
+	var COMBINED_SVG_BRANDS = new Set([
+		"bilibili",
+		"iqiyi",
+		"tencent-video",
+		"youku"
+	]);
 	var decodeStreamingHref = (href) => {
 		try {
 			return new URL(href).searchParams.get("url") || href;
@@ -4307,27 +4305,24 @@ input::placeholder {
 			return href;
 		}
 	};
-	var hostMatches = (href, provider) => {
+	var hostMatches = (href, brand) => {
 		const decoded = decodeStreamingHref(href);
+		const hosts = PROVIDER_HOSTS[brand.key] ?? [];
 		try {
 			const host = new URL(decoded).hostname.replace(/^www\./u, "");
-			return provider.hosts.some((providerHost) => host.endsWith(providerHost));
+			return hosts.some((providerHost) => host.endsWith(providerHost));
 		} catch {
-			return provider.hosts.some((providerHost) => decoded.includes(providerHost));
+			return hosts.some((providerHost) => decoded.includes(providerHost));
 		}
 	};
-	var nameMatches = (name, provider) => {
-		const normalized = normalizeText(name);
-		return provider.aliases.some((alias) => normalized.includes(normalizeText(alias)));
-	};
 	var resolveStreamingProvider = (item) => {
-		const provider = PROVIDERS.find((candidate) => nameMatches(item.name, candidate) || hostMatches(item.href, candidate));
+		const provider = findPlatformBrandByContainedName(item.name) ?? PLATFORM_BRANDS.find((brand) => hostMatches(item.href, brand));
 		if (provider) {
-			const { Icon, color, key, label, combinedSvg } = provider;
+			const { Icon, color, key, label } = provider;
 			return {
 				Icon,
 				color,
-				combinedSvg,
+				combinedSvg: COMBINED_SVG_BRANDS.has(key) || void 0,
 				key,
 				label
 			};

@@ -10,6 +10,7 @@ describe(extractFirstBroadcastPlatform, () => {
       <fieldset>
         <div class="item basic">
           <label for="p_142">电视台</label>
+          <input name="tracking" type="hidden" value="not a platform" />
           <input id="p_142" name="p_142" value=" Apple TV+ " readonly />
         </div>
       </fieldset>

@@ -6,9 +6,9 @@ const extractFirstBroadcastPlatform = (doc: Document): string | null => {
     return null;
   }
 
-  const input = label
-    .closest(".item")
-    ?.querySelector<HTMLInputElement>("input");
+  const input = [...doc.querySelectorAll<HTMLInputElement>("input")].find(
+    (candidate) => candidate.id === label.htmlFor
+  );
   const platform = input?.value.trim();
   return platform || null;
 };

@@ -9,7 +9,7 @@ vi.mock(import("../../src/utils/request"), () => ({
 }));
 
 const { fetchFirstBroadcastPlatform } =
-  await import("../../src/api/first-broadcast-platform");
+  await import("@/api/first-broadcast-platform");
 
 const editForm = (platform: string): string => `
   <div class="item basic">

@@ -1,60 +1,6 @@
-import type { ComponentType, JSX } from "preact";
+import type { JSX } from "preact";
 
-import {
-  LogoAppleTv,
-  LogoHbo,
-  LogoHboMax,
-  LogoNetflix,
-  LogoParamountPlus,
-} from "@/components/common/icons";
-
-type PlatformBrand = {
-  aliases: string[];
-  Icon: ComponentType<JSX.IntrinsicElements["svg"]>;
-  key: string;
-};
-
-const PLATFORM_BRANDS: PlatformBrand[] = [
-  {
-    Icon: LogoAppleTv,
-    aliases: ["apple tv+", "apple tv"],
-    key: "apple-tv",
-  },
-  {
-    Icon: LogoHboMax,
-    aliases: ["hbo max", "max"],
-    key: "hbo-max",
-  },
-  {
-    Icon: LogoHbo,
-    aliases: ["hbo"],
-    key: "hbo",
-  },
-  {
-    Icon: LogoNetflix,
-    aliases: ["netflix"],
-    key: "netflix",
-  },
-  {
-    Icon: LogoParamountPlus,
-    aliases: ["paramount+"],
-    key: "paramount-plus",
-  },
-];
-
-const normalizePlatformName = (platform: string): string =>
-  platform.toLowerCase().replaceAll(/\s+/gu, "");
-
-const findPlatformBrand = (platform: string): PlatformBrand | null => {
-  const normalizedPlatform = normalizePlatformName(platform);
-  return (
-    PLATFORM_BRANDS.find((brand) =>
-      brand.aliases.some((alias) =>
-        normalizedPlatform.includes(normalizePlatformName(alias))
-      )
-    ) ?? null
-  );
-};
+import { findPlatformBrandByExactName } from "@/components/common/platform-brand";
 
 const IconBroadcast = () => (
   <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -92,7 +38,11 @@ type FirstBroadcastPlatformProps = {
 const FirstBroadcastPlatform = ({
   platform,
 }: FirstBroadcastPlatformProps): JSX.Element => {
-  const brand = findPlatformBrand(platform);
+  const brand =
+    platform
+      .split("/")
+      .map(findPlatformBrandByExactName)
+      .find((candidate) => candidate !== null) ?? null;
   const Icon = brand?.Icon;
 
   return (

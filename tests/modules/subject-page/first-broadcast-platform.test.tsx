@@ -24,10 +24,10 @@ describe(FirstBroadcastPlatform, () => {
   });
 
   it("keeps an unknown platform readable with a generic icon", () => {
-    const root = renderSingle(<FirstBroadcastPlatform platform="小众电视网" />);
+    const root = renderSingle(<FirstBroadcastPlatform platform="Cinemax" />);
 
     expect(root.dataset.provider).toBe("unknown");
     expect(root.querySelector("svg")).not.toBeNull();
-    expect(root.textContent).toContain("小众电视网");
+    expect(root.textContent).toContain("Cinemax");
   });
 });
