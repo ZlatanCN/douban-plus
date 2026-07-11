@@ -18,6 +18,7 @@ import {
 import type { CommentVoteState } from "./comments/comment-vote-state";
 import { useAvatarUrls } from "./comments/use-avatar-urls";
 import { DetailsSection } from "./details";
+import { DiscussionsSection } from "./discussions";
 import { Hero } from "./hero";
 import { InterestForm } from "./interest/interest-form";
 import { LoginModal } from "./login/login-modal";
@@ -195,6 +196,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         reviews={reviewVotes.mergeVoteStates(data.reviews)}
         subjectId={data.subjectId}
       />
+      <DiscussionsSection discussions={data.discussions} />
       <RecommendationsSection recommendations={data.recommendations} />
       <DetailsSection
         data={{ awards: data.awards, info: data.info, isTV: data.isTV }}

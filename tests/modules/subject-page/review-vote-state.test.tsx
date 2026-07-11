@@ -47,6 +47,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   awards: [],
   celebrities: [],
   comments: [],
+  discussions: { topics: [] },
   info: makeInfoBlock(),
   interest: {
     ck: "",

@@ -16,6 +16,10 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
+**小组讨论**: 与当前作品关联的豆瓣小组话题入口集合，增强页只展示话题摘要信息并跳转到豆瓣原生讨论页面。 _Avoid_: 短评、影评、在增强页内加载正文或回复
+
+**讨论回应数**: 小组话题已有回应的数量；原生回应单元格为空表示零回应，而单元格缺失或内容无法解析表示数量未知。
+
 ## Architecture
 
 GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject-page UI is moving to traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.

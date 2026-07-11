@@ -4,6 +4,7 @@ type SubjectSectionKey =
   | "cast"
   | "media"
   | "comments"
+  | "discussions"
   | "movieReviews"
   | "tvReviews"
   | "recommendations"
@@ -18,6 +19,7 @@ const SECTION_COPY: Record<SubjectSectionKey, SubjectSectionCopy> = {
   cast: { navLabel: "演职员", sectionTitle: "演职员" },
   comments: { navLabel: "短评", sectionTitle: "热门短评" },
   details: { navLabel: "详情", sectionTitle: "详细信息" },
+  discussions: { navLabel: "小组讨论", sectionTitle: "小组讨论" },
   media: { navLabel: "影像", sectionTitle: "影像" },
   movieReviews: { navLabel: "影评", sectionTitle: "热门影评" },
   recommendations: { navLabel: "相似作品", sectionTitle: "相似作品" },

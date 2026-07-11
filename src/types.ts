@@ -85,6 +85,17 @@ type Recommendation = {
   link: string;
 };
 
+/** A native Douban group topic associated with the current subject. */
+type DiscussionTopic = {
+  title: string;
+  href: string;
+};
+
+/** Group discussion summary extracted from the native subject page. */
+type DiscussionData = {
+  topics: DiscussionTopic[];
+};
+
 /** Return type of extractComments() */
 type Comment = {
   name: string;
@@ -170,6 +181,7 @@ type DoubanData = {
   trailers: Trailer[];
   recommendations: Recommendation[];
   comments: Comment[];
+  discussions: DiscussionData;
   reviews: Review[];
   awards: Award[];
   streaming: Streaming[];
@@ -307,6 +319,8 @@ export type {
   Comment,
   CommentsData,
   DetailsData,
+  DiscussionData,
+  DiscussionTopic,
   DoubanData,
   HeroCallbacks,
   HeroData,

@@ -5,6 +5,7 @@ import {
   extractTitle,
   extractYear,
 } from "@/extract/basic";
+import { extractDiscussions } from "@/extract/discussions";
 import { extractInfo } from "@/extract/info";
 import { extractInterestState } from "@/extract/interest";
 import {
@@ -30,6 +31,7 @@ const extractDoubanData = (doc: Document): DoubanData => {
     awards: extractAwards(doc),
     celebrities: extractCelebrities(doc),
     comments: extractComments(doc),
+    discussions: extractDiscussions(doc),
     info,
     interest: extractInterestState(doc),
     isTV,
