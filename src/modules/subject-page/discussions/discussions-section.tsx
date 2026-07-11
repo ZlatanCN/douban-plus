@@ -1,5 +1,9 @@
 import { Section } from "@/components/layout/section";
-import type { DiscussionData } from "@/types";
+import type {
+  DiscussionActivity,
+  DiscussionAuthor,
+  DiscussionData,
+} from "@/types";
 
 import { getSubjectSectionCopy } from "../section-copy";
 
@@ -7,10 +11,54 @@ type DiscussionsSectionProps = {
   discussions: DiscussionData;
 };
 
+const DiscussionAuthorLink = ({ author }: { author: DiscussionAuthor }) =>
+  author.href ? (
+    <a
+      class="atv-discussion-author"
+      href={author.href}
+      rel="noopener"
+      target="_blank"
+    >
+      {author.name}
+    </a>
+  ) : (
+    <span class="atv-discussion-author">{author.name}</span>
+  );
+
+const DiscussionActivityTime = ({
+  activity,
+}: {
+  activity: DiscussionActivity;
+}) =>
+  activity.date && activity.dateTime && activity.time ? (
+    <time
+      class="atv-discussion-time"
+      dateTime={activity.dateTime}
+      title={activity.raw}
+    >
+      <span>{activity.date}</span>
+      <span>{activity.time}</span>
+    </time>
+  ) : (
+    <time class="atv-discussion-time" title={activity.raw}>
+      {activity.raw}
+    </time>
+  );
+
+const formatDiscussionTotal = (total: number | undefined): string =>
+  total === undefined
+    ? "查看全部讨论 →"
+    : `查看全部 ${total.toLocaleString("en-US")} 条讨论 →`;
+
 const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
   discussions.topics.length ? (
     <Section
       id="atv-discussions"
+      moreLink={
+        discussions.startDiscussionHref
+          ? { href: discussions.startDiscussionHref, text: "发起讨论 ↗" }
+          : undefined
+      }
       title={getSubjectSectionCopy("discussions").sectionTitle}
     >
       <div class="atv-discussion-board">
@@ -23,13 +71,39 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
               rel="noopener"
               target="_blank"
             />
-            <h3 class="atv-discussion-title">{topic.title}</h3>
+            <div class="atv-discussion-copy">
+              <h3 class="atv-discussion-title">{topic.title}</h3>
+              {topic.author ? (
+                <DiscussionAuthorLink author={topic.author} />
+              ) : null}
+            </div>
+            {topic.replies !== undefined || topic.activity ? (
+              <div class="atv-discussion-activity">
+                {topic.replies === undefined ? null : (
+                  <span class="atv-discussion-replies">{`${topic.replies} 回应`}</span>
+                )}
+                {topic.activity ? (
+                  <DiscussionActivityTime activity={topic.activity} />
+                ) : null}
+              </div>
+            ) : null}
             <span aria-hidden="true" class="atv-discussion-arrow">
               ↗
             </span>
           </article>
         ))}
       </div>
+      {discussions.allDiscussions ? (
+        <footer class="atv-discussion-footer">
+          <a
+            href={discussions.allDiscussions.href}
+            rel="noopener"
+            target="_blank"
+          >
+            {formatDiscussionTotal(discussions.allDiscussions.total)}
+          </a>
+        </footer>
+      ) : null}
     </Section>
   ) : null;
 

@@ -87,13 +87,38 @@ type Recommendation = {
 
 /** A native Douban group topic associated with the current subject. */
 type DiscussionTopic = {
-  title: string;
   href: string;
+  title: string;
+  author?: DiscussionAuthor;
+  replies?: number;
+  activity?: DiscussionActivity;
+};
+
+/** A discussion author, with an optional safe profile destination. */
+type DiscussionAuthor = {
+  name: string;
+  href?: string;
+};
+
+/** Raw activity text plus the presentation-safe parts of a parsed timestamp. */
+type DiscussionActivity = {
+  raw: string;
+  date?: string;
+  dateTime?: string;
+  time?: string;
+};
+
+/** A native destination for the current subject's entire discussion collection. */
+type DiscussionCollectionLink = {
+  href: string;
+  total?: number;
 };
 
 /** Group discussion summary extracted from the native subject page. */
 type DiscussionData = {
   topics: DiscussionTopic[];
+  startDiscussionHref?: string;
+  allDiscussions?: DiscussionCollectionLink;
 };
 
 /** Return type of extractComments() */
@@ -319,6 +344,9 @@ export type {
   Comment,
   CommentsData,
   DetailsData,
+  DiscussionActivity,
+  DiscussionAuthor,
+  DiscussionCollectionLink,
   DiscussionData,
   DiscussionTopic,
   DoubanData,

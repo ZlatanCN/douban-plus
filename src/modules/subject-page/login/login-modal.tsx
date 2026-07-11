@@ -60,7 +60,7 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
       return;
     }
 
-    mountNativeLoginFrame(host, (message) => {
+    return mountNativeLoginFrame(host, (message) => {
       setStatus(message);
       setBusy(false);
     });
