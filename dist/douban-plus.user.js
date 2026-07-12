@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.2.4
+// @version      1.2.5
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -5347,38 +5347,35 @@ input::placeholder {
 		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
 		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
 	};
+	var linkHref = (link, path) => {
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
+	};
+	var extractLinkTotal = (link) => {
+		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
+		const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
+		return Number.isSafeInteger(total) ? total : void 0;
+	};
 	var extractAllDiscussions = (container) => {
 		const pLink = container.querySelector("p a");
-		if (pLink) {
-			const rawHref = pLink.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeDoubanHref(rawHref, COLLECTION_PATH) : "";
-			if (href) {
-				const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(pLink));
-				const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
-				return Number.isSafeInteger(total) ? {
-					href,
-					total
-				} : { href };
-			}
+		const pHref = linkHref(pLink, COLLECTION_PATH);
+		if (pHref) {
+			const total = extractLinkTotal(pLink);
+			return total === void 0 ? { href: pHref } : {
+				href: pHref,
+				total
+			};
 		}
-		const h2Link = container.querySelector("h2 .pl a");
-		if (h2Link) {
-			const rawHref = h2Link.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeDoubanHref(rawHref, DISCUSSION_COLLECTION_PATH) : "";
-			if (href) return { href };
-		}
+		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
+		if (h2Href) return { href: h2Href };
 		const listLink = container.querySelector(".mv-discussion-list a");
-		if (listLink) {
-			const rawHref = listLink.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeDoubanHref(rawHref, DISCUSSION_COLLECTION_PATH) : "";
-			if (href) {
-				const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(listLink));
-				const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
-				return Number.isSafeInteger(total) ? {
-					href,
-					total
-				} : { href };
-			}
+		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
+		if (listHref) {
+			const total = extractLinkTotal(listLink);
+			return total === void 0 ? { href: listHref } : {
+				href: listHref,
+				total
+			};
 		}
 	};
 	var findModDiscussion = (doc) => {
