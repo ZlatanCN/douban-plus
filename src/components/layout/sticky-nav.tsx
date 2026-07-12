@@ -102,9 +102,13 @@ const StickyNav = ({ doc = document, sections, title }: StickyNavProps) => {
             key={section.id}
             onClick={(event) => {
               event.preventDefault();
-              doc
-                .querySelector(`#${section.id}`)
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              const prefersReducedMotion = window.matchMedia(
+                "(prefers-reduced-motion: reduce)"
+              ).matches;
+              doc.querySelector(`#${section.id}`)?.scrollIntoView({
+                behavior: prefersReducedMotion ? "auto" : "smooth",
+                block: "start",
+              });
             }}
           >
             {section.label}

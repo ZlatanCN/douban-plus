@@ -37,7 +37,7 @@
   transform: scaleY(0.35);
   transition:
     opacity 180ms ease,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform 220ms var(--atv-ease-out);
 }
 
 .atv-discussion-topic-link {
@@ -166,10 +166,9 @@ a.atv-discussion-author:focus-visible {
   transform: translate(-3px, 3px);
   transition:
     opacity 180ms ease,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform 220ms var(--atv-ease-out);
 }
 
-.atv-discussion-row:hover::before,
 .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,
 .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {
   opacity: 1;
@@ -192,7 +191,6 @@ a.atv-discussion-author:focus-visible {
   color: var(--atv-accent-bright);
 }
 
-.atv-discussion-row:hover .atv-discussion-arrow,
 .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)
   .atv-discussion-arrow,
 .atv-discussion-row:has(.atv-discussion-author:focus-visible)

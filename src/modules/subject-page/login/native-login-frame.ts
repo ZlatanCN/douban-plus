@@ -3,6 +3,11 @@ type NativeLoginFrameResult =
   | { kind: "error"; message: string }
   | { kind: "pending" };
 type StopNativeLoginFrameMount = () => void;
+type NativeLoginFrameCallbacks = {
+  onError: (message: string) => void;
+  onLoad: () => void;
+  onMount: () => void;
+};
 
 const nativeDialogSelector =
   ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
@@ -54,16 +59,23 @@ const styleLoginIframe = (iframe: HTMLIFrameElement): void => {
 const mountIframe = (
   host: HTMLElement,
   iframe: HTMLIFrameElement,
-  onError: (message: string) => void,
+  callbacks: NativeLoginFrameCallbacks,
   isStopped: () => boolean
-): void => {
+): (() => void) => {
+  const onLoad = (): void => {
+    if (!isStopped()) {
+      callbacks.onLoad();
+    }
+  };
   host.replaceChildren(iframe);
-  onError("");
+  iframe.addEventListener("load", onLoad, { once: true });
+  callbacks.onMount();
   requestAnimationFrame(() => {
     if (!isStopped()) {
       iframe.focus();
     }
   });
+  return () => iframe.removeEventListener("load", onLoad);
 };
 
 const prepareNativeLoginIframe = (
@@ -142,16 +154,18 @@ const triggerNativeLoginDialog = (): void => {
 
 const mountNativeLoginFrame = (
   host: HTMLElement,
-  onError: (message: string) => void
+  callbacks: NativeLoginFrameCallbacks
 ): StopNativeLoginFrameMount => {
   let stopped = false;
   let retryTimer: number | undefined;
+  let stopIframeMount: (() => void) | undefined;
 
   const stop = (): void => {
     stopped = true;
     if (retryTimer !== undefined) {
       window.clearTimeout(retryTimer);
     }
+    stopIframeMount?.();
   };
 
   const attemptMount = (attempt: number): void => {
@@ -166,11 +180,16 @@ const mountNativeLoginFrame = (
     if (dialog) {
       const result = prepareNativeLoginIframe(dialog);
       if (result.kind === "ready") {
-        mountIframe(host, result.iframe, onError, () => stopped);
+        stopIframeMount = mountIframe(
+          host,
+          result.iframe,
+          callbacks,
+          () => stopped
+        );
         return;
       }
       if (result.kind === "error") {
-        onError(result.message);
+        callbacks.onError(result.message);
         return;
       }
     }
@@ -180,7 +199,12 @@ const mountNativeLoginFrame = (
     //    it before attempting to trigger a new dialog.
     const directIframe = findExistingLoginIframe();
     if (directIframe) {
-      mountIframe(host, directIframe, onError, () => stopped);
+      stopIframeMount = mountIframe(
+        host,
+        directIframe,
+        callbacks,
+        () => stopped
+      );
       return;
     }
 
@@ -201,7 +225,7 @@ const mountNativeLoginFrame = (
       return;
     }
 
-    onError("无法载入豆瓣登录组件，请刷新页面后重试。");
+    callbacks.onError("无法载入豆瓣登录组件，请刷新页面后重试。");
   };
 
   attemptMount(0);

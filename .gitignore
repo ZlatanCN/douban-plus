@@ -12,3 +12,4 @@ session-*.md
 .DS_Store
 */.DS_Store
 coverage
+plans/

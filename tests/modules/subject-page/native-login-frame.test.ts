@@ -83,17 +83,23 @@ describe("native login frame", () => {
     document.body.innerHTML =
       '<div class="dui-dialog-msk"></div><div class="account_pop dui-dialog"><iframe src="https://accounts.douban.com/passport/login_popup"></iframe></div>';
     const host = document.createElement("div");
-    const onError = vi.fn<() => void>();
+    const callbacks = {
+      onError: vi.fn<(message: string) => void>(),
+      onLoad: vi.fn<() => void>(),
+      onMount: vi.fn<() => void>(),
+    };
 
     clearNativeLoginMasks();
     expect(document.querySelector(".dui-dialog-msk")).toBeNull();
 
-    mountNativeLoginFrame(host, onError);
-    // mountNativeLoginFrame now calls onError("") on success to clear
-    // the component's loading state.
-    expect(onError).toHaveBeenCalledWith("");
+    mountNativeLoginFrame(host, callbacks);
+    expect(callbacks.onMount).toHaveBeenCalledOnce();
+    expect(callbacks.onLoad).not.toHaveBeenCalled();
     expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
-    expect(host.getAttribute("aria-busy")).toBeNull();
+
+    host.querySelector("iframe")?.dispatchEvent(new Event("load"));
+
+    expect(callbacks.onLoad).toHaveBeenCalledOnce();
   });
 
   it("waits for a native iframe to receive its trusted source", () => {
@@ -101,10 +107,14 @@ describe("native login frame", () => {
     document.body.innerHTML =
       '<div class="account_pop dui-dialog"><iframe></iframe></div>';
     const host = document.createElement("div");
-    const onError = vi.fn<(message: string) => void>();
+    const callbacks = {
+      onError: vi.fn<(message: string) => void>(),
+      onLoad: vi.fn<() => void>(),
+      onMount: vi.fn<() => void>(),
+    };
 
-    mountNativeLoginFrame(host, onError);
-    expect(onError).not.toHaveBeenCalled();
+    mountNativeLoginFrame(host, callbacks);
+    expect(callbacks.onError).not.toHaveBeenCalled();
 
     document
       .querySelector<HTMLIFrameElement>("iframe")
@@ -112,7 +122,7 @@ describe("native login frame", () => {
     vi.advanceTimersByTime(100);
 
     expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
-    expect(onError).toHaveBeenLastCalledWith("");
+    expect(callbacks.onMount).toHaveBeenCalledOnce();
   });
 
   it("lets a delegated native login handler run before cancelling navigation", () => {
@@ -129,26 +139,34 @@ describe("native login frame", () => {
     });
     document.addEventListener("click", nativeHandler);
     const host = document.createElement("div");
-    const onError = vi.fn<(message: string) => void>();
+    const callbacks = {
+      onError: vi.fn<(message: string) => void>(),
+      onLoad: vi.fn<() => void>(),
+      onMount: vi.fn<() => void>(),
+    };
 
-    mountNativeLoginFrame(host, onError);
+    mountNativeLoginFrame(host, callbacks);
     vi.advanceTimersByTime(100);
     document.removeEventListener("click", nativeHandler);
 
     expect(nativeHandler).toHaveBeenCalledOnce();
     expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
-    expect(onError).toHaveBeenLastCalledWith("");
+    expect(callbacks.onMount).toHaveBeenCalledOnce();
   });
 
   it("stops polling when the login modal closes", () => {
     vi.useFakeTimers();
     const host = document.createElement("div");
-    const onError = vi.fn<(message: string) => void>();
+    const callbacks = {
+      onError: vi.fn<(message: string) => void>(),
+      onLoad: vi.fn<() => void>(),
+      onMount: vi.fn<() => void>(),
+    };
 
-    const stop = mountNativeLoginFrame(host, onError);
+    const stop = mountNativeLoginFrame(host, callbacks);
     stop();
     vi.advanceTimersByTime(2500);
 
-    expect(onError).not.toHaveBeenCalled();
+    expect(callbacks.onError).not.toHaveBeenCalled();
   });
 });

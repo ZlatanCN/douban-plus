@@ -14,11 +14,13 @@ const LoginModalContent = ({
   action,
   busy,
   hostRef,
+  iframeReady,
   status,
 }: {
   action: string;
   busy: boolean;
   hostRef: { current: HTMLDivElement | null };
+  iframeReady: boolean;
   status: string;
 }) => {
   const handleClose = useModalClose();
@@ -42,7 +44,7 @@ const LoginModalContent = ({
       </p>
       <div
         aria-busy={busy ? "true" : "false"}
-        class="atv-login-modal-native"
+        class={`atv-login-modal-native${iframeReady ? " is-ready" : ""}`}
         ref={hostRef}
       />
     </>
@@ -53,6 +55,7 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState("正在载入豆瓣登录组件…");
   const [busy, setBusy] = useState(true);
+  const [iframeReady, setIframeReady] = useState(false);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -60,9 +63,19 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
       return;
     }
 
-    return mountNativeLoginFrame(host, (message) => {
-      setStatus(message);
-      setBusy(false);
+    return mountNativeLoginFrame(host, {
+      onError: (message) => {
+        setStatus(message);
+        setBusy(false);
+      },
+      onLoad: () => {
+        setIframeReady(true);
+        setStatus("");
+        setBusy(false);
+      },
+      onMount: () => {
+        setStatus("正在载入豆瓣登录组件…");
+      },
     });
   }, []);
 
@@ -98,6 +111,7 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
         action={action}
         busy={busy}
         hostRef={hostRef}
+        iframeReady={iframeReady}
         status={status}
       />
     </ModalShell>

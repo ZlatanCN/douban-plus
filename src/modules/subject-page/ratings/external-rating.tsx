@@ -1,4 +1,5 @@
 import type { JSX } from "preact";
+import { useEffect, useState } from "preact/hooks";
 
 import { IconPopcorn, IconTomato } from "@/components/common/icons";
 import { Stars } from "@/components/common/stars";
@@ -34,6 +35,8 @@ const SOURCE_CLASS = {
   metacritic: "atv-rating-panel-mc",
   rt: "atv-rating-panel-rt",
 } as const satisfies Record<ExternalRatingProps["source"], string>;
+
+const CONTENT_TRANSITION_MS = 200;
 
 const renderImdbRating = (rating: ImdbRating): JSX.Element => (
   <>
@@ -161,17 +164,42 @@ const renderExternalRatingContent = (
   return <div class="atv-rating-panel-skeleton" />;
 };
 
-const ExternalRating = (props: ExternalRatingProps) => (
-  <div
-    class={`${SOURCE_CLASS[props.source]} ${ratingStateClass(
-      Boolean(props.rating),
-      props.resolved
-    )}`}
-  >
-    <RatingLogo name={props.source} />
-    {renderExternalRatingContent(props)}
-  </div>
-);
+const ExternalRating = (props: ExternalRatingProps) => {
+  const shouldRender = !props.resolved || Boolean(props.rating);
+  const [rendered, setRendered] = useState(shouldRender);
+  const [exiting, setExiting] = useState(!shouldRender);
+
+  useEffect(() => {
+    if (shouldRender) {
+      setRendered(true);
+      setExiting(false);
+      return;
+    }
+
+    setExiting(true);
+    const timer = window.setTimeout(
+      () => setRendered(false),
+      CONTENT_TRANSITION_MS
+    );
+    return () => window.clearTimeout(timer);
+  }, [shouldRender]);
+
+  if (!rendered) {
+    return null;
+  }
+
+  return (
+    <div
+      class={`${SOURCE_CLASS[props.source]} ${ratingStateClass(
+        Boolean(props.rating),
+        props.resolved
+      )}${exiting ? " is-exiting" : ""}`}
+    >
+      <RatingLogo name={props.source} />
+      {renderExternalRatingContent(props)}
+    </div>
+  );
+};
 
 export { ExternalRating };
 export type { ExternalRatingProps };

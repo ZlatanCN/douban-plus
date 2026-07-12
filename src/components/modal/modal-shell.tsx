@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { trapFocus } from "./focus-trap";
 import { ModalCloseContext } from "./modal-close-context";
 
-const TRANSITION_DURATION_MS = 400;
+const CLOSE_FALLBACK_DURATION_MS = 500;
 
 type ModalShellProps = {
   ariaDescribedBy?: string;
@@ -32,6 +32,8 @@ const ModalShell = ({
   const [isOpen, setIsOpen] = useState(false);
   const [closing, setClosing] = useState(false);
   const realOnCloseRef = useRef(onClose);
+  const closeFallbackRef = useRef<number>();
+  const didFinishCloseRef = useRef(false);
 
   useEffect(() => {
     realOnCloseRef.current = onClose;
@@ -41,16 +43,50 @@ const ModalShell = ({
     requestAnimationFrame(() => setIsOpen(true));
   }, []);
 
+  const finishClose = useCallback((): void => {
+    if (didFinishCloseRef.current) {
+      return;
+    }
+    didFinishCloseRef.current = true;
+    if (closeFallbackRef.current !== undefined) {
+      window.clearTimeout(closeFallbackRef.current);
+    }
+    realOnCloseRef.current();
+  }, []);
+
   const handleClose = useCallback((): void => {
     if (closing) {
       return;
     }
+    didFinishCloseRef.current = false;
     setClosing(true);
     setIsOpen(false);
-    setTimeout(() => {
-      realOnCloseRef.current();
-    }, TRANSITION_DURATION_MS);
   }, [closing]);
+
+  useEffect(() => {
+    if (!closing) {
+      return;
+    }
+    const overlay = overlayRef.current;
+    const onTransitionEnd = (event: TransitionEvent): void => {
+      if (event.target === overlay && event.propertyName === "opacity") {
+        finishClose();
+      }
+    };
+
+    overlay?.addEventListener("transitionend", onTransitionEnd);
+    closeFallbackRef.current = window.setTimeout(
+      finishClose,
+      CLOSE_FALLBACK_DURATION_MS
+    );
+
+    return () => {
+      overlay?.removeEventListener("transitionend", onTransitionEnd);
+      if (closeFallbackRef.current !== undefined) {
+        window.clearTimeout(closeFallbackRef.current);
+      }
+    };
+  }, [closing, finishClose]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;

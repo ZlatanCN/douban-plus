@@ -1,0 +1,236 @@
+/* Cross-experience motion policy: pointer capability and motion preferences. */
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-btn-primary:hover {
+    background: var(--atv-accent-bright);
+    transform: translateY(-1px);
+  }
+
+  .atv-btn-secondary:hover {
+    background: rgb(255 255 255 / 12%);
+    transform: translateY(-1px);
+  }
+
+  .atv-poster-card:hover {
+    transform: scale(1.03);
+  }
+
+  .atv-comment-card:hover {
+    border-color: rgb(255 255 255 / 12%);
+    transform: translateY(-2px);
+  }
+
+  .atv-review-card:hover {
+    border-color: rgb(255 255 255 / 12%);
+    transform: translateY(-2px);
+  }
+
+  .atv-review-card:hover .atv-review-readmore {
+    opacity: 0.7;
+    transform: translateX(0);
+  }
+
+  .atv-stream-card:not(.atv-stream-card-combined):hover::after {
+    opacity: 0.18;
+  }
+
+  .atv-stream-card:hover {
+    border-color: rgb(255 255 255 / 18%);
+    background: rgb(255 255 255 / 9%);
+    transform: translateY(-2px);
+  }
+
+  .atv-interest-modal-star:hover {
+    transform: scale(1.15);
+  }
+
+  .atv-discussion-row:hover::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+
+  .atv-discussion-row:hover .atv-discussion-arrow {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.atv-hero-teaser-content {
+  display: block;
+  animation: atv-summary-content-in 200ms var(--atv-ease-out) both;
+}
+
+.atv-rating-panel-imdb.is-loaded,
+.atv-rating-panel-rt.is-loaded,
+.atv-rating-panel-mc.is-loaded {
+  animation: atv-rating-content-in 200ms var(--atv-ease-out) both;
+}
+
+.atv-rating-panel-imdb,
+.atv-rating-panel-rt,
+.atv-rating-panel-mc {
+  transition:
+    opacity 200ms var(--atv-ease-out),
+    transform 200ms var(--atv-ease-out);
+}
+
+.atv-rating-panel-imdb.is-exiting,
+.atv-rating-panel-rt.is-exiting,
+.atv-rating-panel-mc.is-exiting {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.atv-review-modal-body.is-loaded,
+.atv-review-modal-body.is-error {
+  animation: atv-review-content-in 200ms var(--atv-ease-out) both;
+}
+
+@keyframes atv-summary-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes atv-rating-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes atv-review-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes atv-content-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-carousel {
+    scroll-behavior: auto;
+  }
+
+  .atv-modal-img,
+  .atv-modal-video,
+  .atv-comment-overlay-inner,
+  .atv-interest-modal-inner {
+    transform: none;
+    transition: none;
+  }
+
+  .atv-review-modal,
+  .atv-modal-overlay,
+  .atv-comment-overlay,
+  .atv-interest-modal,
+  .atv-login-modal {
+    transition: opacity var(--atv-duration-overlay) ease;
+  }
+
+  .atv-login-modal {
+    transition:
+      visibility 0s linear 200ms,
+      opacity 200ms ease;
+  }
+
+  .atv-login-modal.is-open {
+    transition-delay: 0s, 0s;
+  }
+
+  .atv-rating-panel-skeleton {
+    animation: none;
+  }
+
+  .atv-review-modal-body.is-skeleton::before,
+  .atv-review-modal-body.is-skeleton::after,
+  .atv-login-modal-native[aria-busy="true"]::before,
+  .atv-spinner {
+    animation: none;
+  }
+
+  .atv-rating-panel-imdb.is-loaded,
+  .atv-rating-panel-rt.is-loaded,
+  .atv-rating-panel-mc.is-loaded,
+  .atv-review-modal-body.is-loaded,
+  .atv-review-modal-body.is-error,
+  .atv-hero-teaser-content {
+    animation: atv-content-fade 200ms ease both;
+    transform: none;
+  }
+
+  .atv-rating-panel-imdb.is-exiting,
+  .atv-rating-panel-rt.is-exiting,
+  .atv-rating-panel-mc.is-exiting {
+    transform: none;
+  }
+
+  .atv-modal-accent-bar {
+    opacity: 1;
+  }
+
+  .atv-btn-primary:hover,
+  .atv-btn-secondary:hover,
+  .atv-btn:active,
+  .atv-poster-card:hover,
+  .atv-comment-card:hover,
+  .atv-comment-votes:active,
+  .atv-comment-overlay-votes:active,
+  .atv-comment-expand:active,
+  .atv-review-card:hover,
+  .atv-review-card:hover .atv-review-readmore,
+  .atv-review-card:focus-visible .atv-review-readmore,
+  .atv-review-card:has(.atv-review-open-button:focus-visible)
+    .atv-review-readmore,
+  .atv-vote-btn:active,
+  .atv-stream-card:hover,
+  .atv-interest-modal-star:hover,
+  .atv-interest-modal-submit:active,
+  .atv-discussion-row:hover::before,
+  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,
+  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,
+  .atv-series-card:hover,
+  .atv-cast-card:hover,
+  .atv-photo-tile:hover,
+  .atv-rec-card:hover .atv-rec-poster,
+  .atv-trailer-tile:hover,
+  .atv-stickynav,
+  .atv-stickynav.is-visible,
+  .atv-hero-more.is-open svg {
+    transform: none;
+  }
+
+  .atv-interest-modal-status-indicator {
+    opacity: 0;
+    transform: none;
+  }
+
+  .atv-interest-modal-status.is-active {
+    background: rgb(255 255 255 / 12%);
+  }
+}

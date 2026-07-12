@@ -210,16 +210,8 @@
     transform: none;
   }
 
-  .atv-modal-video {
-    transition: none;
-  }
-
   .atv-modal-overlay.is-open .atv-modal-video {
     transform: none;
-  }
-
-  .atv-comment-avatar.atv-avatar-loaded {
-    animation: none;
   }
 
   .atv-review-card,

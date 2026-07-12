@@ -3,6 +3,15 @@
   cursor: pointer;
 }
 
+.atv-modal-overlay,
+.atv-comment-overlay,
+.atv-interest-modal,
+.atv-login-modal,
+.atv-review-modal {
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+
 .atv-modal-overlay {
   position: fixed;
   z-index: 10000;
@@ -14,13 +23,11 @@
   padding: 0;
   border: none;
   margin: 0;
-  -webkit-backdrop-filter: blur(28px) saturate(1.15);
-  backdrop-filter: blur(28px) saturate(1.15);
   background: rgb(0 0 0 / 78%);
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 400ms var(--atv-ease-out);
 }
 
 .atv-modal-overlay.is-open {
@@ -35,7 +42,7 @@
   box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
   object-fit: contain;
   transform: scale(0.92);
-  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 350ms var(--atv-ease-out);
 }
 
 .atv-modal-overlay.is-open .atv-modal-img {
@@ -56,12 +63,16 @@
     var(--atv-accent) 85%,
     transparent
   );
-  transform: scaleX(0);
+  opacity: 0;
+  transform: scaleX(0.97);
   transform-origin: center;
-  transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition:
+    opacity 400ms var(--atv-ease-out),
+    transform 400ms var(--atv-ease-out);
 }
 
 .is-open .atv-modal-accent-bar {
+  opacity: 1;
   transform: scaleX(1);
 }
 

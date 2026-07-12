@@ -16,7 +16,6 @@ dialog::backdrop {
     max(24px, env(safe-area-inset-left));
   border: none;
   margin: 0;
-  backdrop-filter: blur(24px) saturate(1.15);
   background: rgb(0 0 0 / 72%);
   inset: 0;
   opacity: 0;
@@ -24,7 +23,7 @@ dialog::backdrop {
   pointer-events: none;
   transition:
     visibility 0s linear 360ms,
-    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 360ms var(--atv-ease-out);
   visibility: hidden;
 }
 
@@ -55,7 +54,7 @@ dialog::backdrop {
   scrollbar-width: none;
   text-align: center;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 350ms var(--atv-ease-out);
 }
 
 .atv-login-modal-inner::-webkit-scrollbar {
@@ -124,23 +123,43 @@ dialog::backdrop {
   margin-top: 10px;
 }
 
-.atv-login-modal-native:empty {
-  min-height: 360px;
-}
-
-.atv-login-modal-native[aria-busy="true"] {
-  min-height: 360px;
-  animation: atv-login-native-loading 1400ms ease-in-out infinite;
+.atv-login-modal-native::before {
+  position: absolute;
+  z-index: 2;
+  border-radius: 10px;
   background:
     linear-gradient(90deg, transparent, rgb(255 255 255 / 5.5%), transparent),
     rgb(255 255 255 / 3.5%);
   background-size:
     220% 100%,
     auto;
+  content: "";
+  inset: 10px;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+
+.atv-login-modal-native:empty {
+  min-height: 360px;
+}
+
+.atv-login-modal-native[aria-busy="true"] {
+  min-height: 360px;
+}
+
+.atv-login-modal-native[aria-busy="true"]::before {
+  animation: atv-login-native-loading 1400ms linear infinite;
+}
+
+.atv-login-modal-native.is-ready::before {
+  opacity: 0;
 }
 
 .atv-login-modal-native > iframe,
 .atv-login-modal-iframe {
+  position: relative;
+  z-index: 1;
   display: block !important;
   overflow: hidden !important;
   width: 340px !important;
@@ -163,6 +182,12 @@ dialog::backdrop {
      invert(0.89) is the precise value calculated to hit the
      existing modal surface color while keeping text readable. */
   filter: invert(0.89) hue-rotate(180deg) !important;
+  opacity: 0;
+  transition: opacity 200ms ease;
+}
+
+.atv-login-modal-native.is-ready > iframe {
+  opacity: 1;
 }
 
 .atv-login-modal-close:focus-visible {

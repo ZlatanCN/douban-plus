@@ -21,9 +21,8 @@
   text-align: left;
   touch-action: manipulation;
   transition:
-    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 350ms ease,
-    box-shadow 350ms ease;
+    transform var(--atv-duration-hover) var(--atv-ease-out),
+    border-color var(--atv-duration-hover) ease;
 }
 
 .atv-review-open-button {
@@ -42,14 +41,6 @@
   position: relative;
   z-index: 1;
   display: contents;
-}
-
-.atv-review-card:hover {
-  border-color: rgb(255 255 255 / 12%);
-  box-shadow:
-    0 8px 32px rgb(0 0 0 / 30%),
-    0 0 0 1px rgb(65 190 93 / 4%);
-  transform: translateY(-3px);
 }
 
 .atv-review-card:active {
@@ -189,11 +180,6 @@
     transform 300ms ease;
 }
 
-.atv-review-card:hover .atv-review-readmore {
-  opacity: 0.7;
-  transform: translateX(0);
-}
-
 .atv-review-card:focus-visible .atv-review-readmore {
   opacity: 0.7;
   transform: translateX(0);
@@ -237,7 +223,8 @@
   transition:
     color 250ms ease,
     background 250ms ease,
-    border-color 250ms ease;
+    border-color 250ms ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
   white-space: nowrap;
 }
 
@@ -250,6 +237,10 @@
 .atv-vote-btn:focus-visible {
   outline: 2px solid rgb(65 190 93 / 75%);
   outline-offset: 3px;
+}
+
+.atv-vote-btn:active {
+  transform: scale(0.97);
 }
 
 .atv-vote-btn.is-lg {
@@ -300,12 +291,11 @@
   padding: 48px;
   border: none;
   margin: 0;
-  backdrop-filter: blur(24px) saturate(1.15);
   background: rgb(0 0 0 / 72%);
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 400ms var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open {
@@ -345,7 +335,7 @@
   scrollbar-color: rgb(255 255 255 / 12%) transparent;
   scrollbar-width: thin;
   transform: scale(0.92) translateY(8px);
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 400ms var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open .atv-review-modal-scroll {
