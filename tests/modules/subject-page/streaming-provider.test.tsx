@@ -16,6 +16,14 @@ const stream = (overrides: Partial<Streaming>): Streaming => ({
 });
 
 describe(resolveStreamingProvider, () => {
+  it("resolves AMC from its direct host", () => {
+    expect(
+      resolveStreamingProvider(
+        stream({ href: "https://www.amc.com/shows/example", name: "播放" })
+      ).key
+    ).toBe("amc");
+  });
+
   it("uses curated Simple Icons assets when a provider has one", () => {
     const provider = resolveStreamingProvider(
       stream({
@@ -99,7 +107,10 @@ describe(StreamingSection, () => {
       expect(card.classList.contains("atv-stream-card-combined")).toBeTruthy();
       expect(card.querySelector("svg")).not.toBeNull();
     }
-    expect(cards[0]?.dataset.provider).toBe("bilibili");
+    expect({
+      provider: cards[0]?.dataset.provider,
+      surface: cards[0]?.classList.contains("is-surface-dark"),
+    }).toStrictEqual({ provider: "bilibili", surface: true });
   });
 
   it("renders unknown provider icons with the fallback mark", () => {
@@ -138,6 +149,9 @@ describe(StreamingSection, () => {
     expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
     expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
       "is-intrinsic"
+    );
+    expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
+      "is-surface-paper"
     );
   });
 

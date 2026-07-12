@@ -37,7 +37,7 @@ const FirstBroadcastPlatform = ({
         aria-hidden="true"
         class={`atv-first-broadcast-platform-mark${
           brand.presentation === "wordmark" ? " is-wordmark" : ""
-        }${brand.colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"}`}
+        }${brand.colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${brand.surface}`}
         style={{
           color: brand.colorMode === "intrinsic" ? undefined : brand.color,
         }}

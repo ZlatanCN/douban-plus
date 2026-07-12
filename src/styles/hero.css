@@ -238,6 +238,12 @@
   height: 20px;
 }
 
+.atv-first-broadcast-platform-mark.is-surface-paper {
+  border-color: rgb(255 255 255 / 34%);
+  background: #d9dce3;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);
+}
+
 .atv-first-broadcast-platform.is-unknown {
   color: var(--atv-text-tertiary);
   font-size: 11px;

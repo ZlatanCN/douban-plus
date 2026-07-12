@@ -38,6 +38,18 @@ describe(FirstBroadcastPlatform, () => {
     );
   });
 
+  it("renders AMC as a catalog-colored release mark", () => {
+    const root = renderSingle(<FirstBroadcastPlatform platform="AMC" />);
+    const mark = root.querySelector<HTMLElement>(
+      ".atv-first-broadcast-platform-mark"
+    );
+
+    expect(root.dataset.provider).toBe("amc");
+    expect(mark?.classList).toContain("is-catalog");
+    expect(mark?.classList).toContain("is-surface-paper");
+    expect(mark?.style.color).toBe("#000000");
+  });
+
   it("uses the curated brand color for a colorable logo", () => {
     const root = renderSingle(<FirstBroadcastPlatform platform="Paramount+" />);
 
@@ -47,16 +59,26 @@ describe(FirstBroadcastPlatform, () => {
     ).toBe("#0064FF");
   });
 
-  it.each(["Hulu", "Prime Video"])(
-    "preserves %s artwork colors",
-    (platform) => {
-      const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
+  it.each(["Hulu"])("preserves %s artwork colors", (platform) => {
+    const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
 
-      expect(
-        root.querySelector(".atv-first-broadcast-platform-mark")?.classList
-      ).toContain("is-intrinsic");
-    }
-  );
+    expect(
+      root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+    ).toContain("is-intrinsic");
+    expect(
+      root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+    ).toContain("is-surface-dark");
+  });
+
+  it("puts Prime Video's dark artwork on the shared paper surface", () => {
+    const root = renderSingle(
+      <FirstBroadcastPlatform platform="Prime Video" />
+    );
+
+    expect(
+      root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+    ).toContain("is-surface-paper");
+  });
 
   it("uses the catalog color for Disney's monochrome artwork", () => {
     const root = renderSingle(<FirstBroadcastPlatform platform="Disney+" />);

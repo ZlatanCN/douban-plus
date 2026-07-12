@@ -16,6 +16,7 @@ type StreamingLogoProps = {
   fallbackLabel: string;
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   imgSrc?: string;
+  surface?: "dark" | "paper";
 };
 
 const StreamingLogo = ({
@@ -23,6 +24,7 @@ const StreamingLogo = ({
   fallbackLabel,
   Icon,
   imgSrc,
+  surface = "dark",
 }: StreamingLogoProps) => {
   if (imgSrc) {
     return <img alt="" class="atv-stream-vendor-icon" src={imgSrc} />;
@@ -30,7 +32,7 @@ const StreamingLogo = ({
   return (
     <span
       aria-hidden="true"
-      class={`atv-stream-logo${colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"}`}
+      class={`atv-stream-logo${colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${surface}`}
     >
       {Icon ? (
         <Icon />
@@ -60,7 +62,7 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
             <a
               class={`atv-stream-card${
                 provider.combinedSvg ? " atv-stream-card-combined" : ""
-              }`}
+              } is-surface-${provider.surface ?? "dark"}`}
               data-provider={provider.key}
               href={item.href}
               key={item.href}
@@ -79,6 +81,7 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
                     imgSrc={
                       provider.key === "unknown" ? item.iconUrl : undefined
                     }
+                    surface={provider.surface}
                   />
                   <span class="atv-stream-name">{item.name}</span>
                 </>

@@ -1,6 +1,7 @@
 import type { ComponentType, JSX } from "preact";
 
 import {
+  LogoAmc,
   LogoAppleTv,
   LogoBilibiliCombined,
   LogoDisneyPlus,
@@ -19,6 +20,7 @@ import {
 } from "./icons";
 
 type PlatformBrandKey =
+  | "amc"
   | "apple-tv"
   | "bilibili"
   | "disney-plus"
@@ -44,9 +46,18 @@ type PlatformBrand = {
   key: PlatformBrandKey;
   label: string;
   presentation?: "wordmark";
+  surface: "dark" | "paper";
 };
 
 const PLATFORM_BRANDS: PlatformBrand[] = [
+  {
+    Icon: LogoAmc,
+    aliases: ["amc"],
+    color: "#000000",
+    key: "amc",
+    label: "AMC",
+    surface: "paper",
+  },
   {
     Icon: LogoDisneyPlus,
     aliases: ["disney+", "disney plus", "disneyplus"],
@@ -54,6 +65,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     key: "disney-plus",
     label: "Disney+",
     presentation: "wordmark",
+    surface: "dark",
   },
   {
     Icon: LogoBilibiliCombined,
@@ -62,6 +74,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     colorMode: "intrinsic",
     key: "bilibili",
     label: "哔哩哔哩",
+    surface: "dark",
   },
   {
     Icon: LogoPrimeVideo,
@@ -71,6 +84,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     key: "prime-video",
     label: "Prime Video",
     presentation: "wordmark",
+    surface: "paper",
   },
   {
     Icon: LogoIqiyiCombined,
@@ -79,6 +93,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     colorMode: "intrinsic",
     key: "iqiyi",
     label: "爱奇艺",
+    surface: "dark",
   },
   {
     Icon: LogoTencentCombined,
@@ -87,6 +102,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     colorMode: "intrinsic",
     key: "tencent-video",
     label: "腾讯视频",
+    surface: "dark",
   },
   {
     Icon: LogoYoukuCombined,
@@ -95,12 +111,14 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     colorMode: "intrinsic",
     key: "youku",
     label: "优酷",
+    surface: "dark",
   },
   {
     aliases: ["咪咕视频", "咪咕", "migu"],
     color: "#F04B23",
     key: "migu",
     label: "咪咕视频",
+    surface: "dark",
   },
   {
     Icon: LogoHulu,
@@ -110,6 +128,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     key: "hulu",
     label: "Hulu",
     presentation: "wordmark",
+    surface: "dark",
   },
   {
     Icon: LogoNetflix,
@@ -118,6 +137,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     colorMode: "intrinsic",
     key: "netflix",
     label: "Netflix",
+    surface: "dark",
   },
   {
     Icon: LogoYouTube,
@@ -125,6 +145,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#FF0000",
     key: "youtube",
     label: "YouTube",
+    surface: "dark",
   },
   {
     Icon: LogoAppleTv,
@@ -132,6 +153,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#F5F5F7",
     key: "apple-tv",
     label: "Apple TV",
+    surface: "dark",
   },
   {
     Icon: LogoHbo,
@@ -139,6 +161,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#F5F5F7",
     key: "hbo",
     label: "HBO",
+    surface: "dark",
   },
   {
     Icon: LogoHboMax,
@@ -146,6 +169,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#8A7CFF",
     key: "hbo-max",
     label: "HBO Max",
+    surface: "dark",
   },
   {
     Icon: LogoParamountPlus,
@@ -153,6 +177,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#0064FF",
     key: "paramount-plus",
     label: "Paramount+",
+    surface: "dark",
   },
   {
     Icon: LogoTubi,
@@ -160,6 +185,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#7408FF",
     key: "tubi",
     label: "Tubi",
+    surface: "dark",
   },
   {
     Icon: LogoVimeo,
@@ -167,6 +193,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#1AB7EA",
     key: "vimeo",
     label: "Vimeo",
+    surface: "dark",
   },
 ];
 

@@ -15,6 +15,7 @@ type ProviderIconProps = SVGAttributes<SVGSVGElement>;
 
 type ResolvedStreamingProvider = {
   colorMode?: PlatformBrand["colorMode"];
+  surface?: PlatformBrand["surface"];
   key: StreamingProviderKey;
   label: string;
   color: string;
@@ -25,6 +26,7 @@ type ResolvedStreamingProvider = {
 const UNKNOWN_PROVIDER_COLOR = "#41be5d";
 
 const PROVIDER_HOSTS: Partial<Record<PlatformBrandKey, string[]>> = {
+  amc: ["amc.com"],
   "apple-tv": ["tv.apple.com"],
   bilibili: ["bilibili.com"],
   hbo: ["hbo.com"],
@@ -78,7 +80,7 @@ const resolveStreamingProvider = (
     PLATFORM_BRANDS.find((brand) => hostMatches(item.href, brand));
 
   if (provider) {
-    const { Icon, color, colorMode, key, label } = provider;
+    const { Icon, color, colorMode, key, label, surface } = provider;
     return {
       Icon,
       color,
@@ -86,6 +88,7 @@ const resolveStreamingProvider = (
       combinedSvg: COMBINED_SVG_BRANDS.has(key) || undefined,
       key,
       label,
+      surface,
     };
   }
 
