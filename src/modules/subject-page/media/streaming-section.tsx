@@ -78,9 +78,7 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
                     colorMode={provider.colorMode}
                     fallbackLabel={provider.label}
                     Icon={provider.Icon}
-                    imgSrc={
-                      provider.key === "unknown" ? item.iconUrl : undefined
-                    }
+                    imgSrc={provider.Icon ? undefined : item.iconUrl}
                     surface={provider.surface}
                   />
                   <span class="atv-stream-name">{item.name}</span>

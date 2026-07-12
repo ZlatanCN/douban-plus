@@ -155,7 +155,7 @@ describe(StreamingSection, () => {
     );
   });
 
-  it("uses a local fallback for a recognized provider without an SVG", () => {
+  it("uses the extracted Douban iconUrl for a recognized provider without an SVG", () => {
     const root = renderSingle(
       <StreamingSection
         streaming={[
@@ -168,9 +168,10 @@ describe(StreamingSection, () => {
       />
     );
 
-    expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
-    expect(root.querySelector(".atv-stream-logo-fallback")?.textContent).toBe(
-      "咪"
+    const icon = root.querySelector<HTMLImageElement>(
+      ".atv-stream-vendor-icon"
     );
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute("src")).toBe("https://example.com/migu.png");
   });
 });
