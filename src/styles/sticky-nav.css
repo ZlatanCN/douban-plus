@@ -12,9 +12,7 @@
   justify-content: space-between;
   padding: 0 max(28px, 5vw);
   border-bottom: 1px solid rgb(255 255 255 / 6%);
-  -webkit-backdrop-filter: saturate(180%) blur(24px);
-  backdrop-filter: saturate(180%) blur(24px);
-  background: rgb(10 10 12 / 74%);
+  background: rgb(10 10 12 / 95%);
   font-family:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
     "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
@@ -25,6 +23,15 @@
   transition:
     opacity 280ms ease,
     transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Frosted glass effect only when NOT actively scrolling — Apple-style.
+   The backdrop-filter forces per-frame compositing; dropping it during
+   scroll eliminates the main source of scroll jank. */
+.atv-stickynav.is-visible:not(.is-scrolling) {
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  background: rgb(10 10 12 / 74%);
 }
 
 .atv-stickynav.is-visible {

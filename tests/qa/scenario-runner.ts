@@ -19,6 +19,7 @@ import {
   assertRating,
   assertRecommendations,
   assertRoot,
+  assertScrollFlash,
   assertStickyNav,
   assertStreaming,
   assertSummaryTeaser,
@@ -129,6 +130,7 @@ const runAssertionPhases = async (ctx: AssertCtx): Promise<void> => {
   await assertIMDb(ctx);
   assertNoScriptErrors(ctx);
   await assertStickyNav(ctx);
+  await assertScrollFlash(ctx);
 
   await assertTVMeta(ctx);
   await assertStreaming(ctx);

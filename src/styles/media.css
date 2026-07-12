@@ -1,8 +1,4 @@
 /* ---------- Series ---------- */
-.atv-series-carousel {
-  mask-image: linear-gradient(to right, #000 97%, transparent 100%);
-}
-
 .atv-series-card {
   min-width: 0;
   flex: 0 0 158px;
@@ -139,10 +135,6 @@
 }
 
 /* ---------- Cast ---------- */
-.atv-cast-carousel {
-  mask-image: linear-gradient(to right, #000 90%, transparent 100%);
-}
-
 .atv-cast-card {
   min-width: 0;
   flex: 0 0 160px;

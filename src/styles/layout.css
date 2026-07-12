@@ -4,6 +4,8 @@
   padding: 52px max(28px, 5vw);
   margin: 0 auto;
   animation: atv-rise 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  contain-intrinsic-size: auto 400px;
+  content-visibility: auto;
   scroll-margin-top: 64px;
 }
 
@@ -71,6 +73,7 @@
   display: flex;
   padding: 4px 4px 16px;
   margin: 0 -4px;
+  contain: paint layout;
   gap: 16px;
   overflow-x: auto;
   scroll-behavior: smooth;
