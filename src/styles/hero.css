@@ -32,7 +32,6 @@
   background-size: cover;
   inset: 0;
   transform: scale(1.04);
-  will-change: transform, opacity;
 }
 
 .atv-hero-still.is-thumb {

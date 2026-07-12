@@ -112,6 +112,8 @@ The QA assertions are split by responsibility under `tests/qa/`:
 | `assert-interactions.ts` | inline expansion, comment overlay, voting, interest modal |
 | `assert-media.ts` | TV streaming popup, poster modal, trailer/video modal |
 | `assert-screenshots.ts` | screenshot lifecycle and screenshot-specific invariants |
+| `assert-scroll.ts` | scroll-flash regression: rapid scroll-up stacking order + will-change audit |
+| `assert-perf.ts` | per-page jank measurement: FPS monitor injection, slow/fast/micro/ nav-threshold / carousel / mobile scenarios |
 | `assert-helpers.ts` | shared helpers for warnings, failures, overlay cleanup |
 | `runner.ts` | external QA runner seam: launch browser, run scenarios, close browser, return exit code |
 | `scenario-runner.ts` | per-scenario orchestration: fresh context per attempt, userscript injection, assertion phases, retry/deadline |
@@ -119,6 +121,27 @@ The QA assertions are split by responsibility under `tests/qa/`:
 Warnings are categorized as `data-missing`, `auth-dependent`, or `browser-policy`. They do not fail CI by default. Interaction-blocked or product-uncertain behavior should be recorded as a failure, not downgraded to a warning.
 
 Screenshots are part of the e2e contract. Each scenario owns exactly three screenshots in `tests/screenshots/`: `hero`, `full`, and `mobile`. Before capture, the harness closes ATV overlays, removes external Douban login/backdrop overlays, restores the desktop viewport, and resets `scrollY` to `0`; the mobile capture also resets to the top after resizing. Stale screenshots for scenarios no longer in `SCENARIOS` are cleaned up before the run.
+
+### Standalone performance test runner
+
+`tests/perf-runner.ts` is a standalone performance and visual regression test that runs outside the QA harness:
+
+```
+npx tsx tests/perf-runner.ts
+```
+
+It tests **4 pages × 21 scenarios = 84 runs**, measuring FPS and jank via an injected `requestAnimationFrame` monitor:
+
+| Category | Scenarios |
+| --- | --- |
+| Baseline (8) | slow-scroll, fast-scroll, nav-threshold-x12, section-jump, carousel-scroll, vert+horiz-simult, micro-scroll-x20, mobile-scroll |
+| Direction & timing (5) | dir-reversal-x8, keyboard-pgdn-pgup, bottom-bounce-x6, inertia-decay, touch-flick-stop |
+| Page-state interference (4) | cold-scroll-immediate, tab-switch-resume, scroll+hover, fatigue-8s |
+| Extreme input (4) | wheel-spike, scroll-event-flood, resize+scroll, reduced-motion-scroll |
+
+Thresholds: avgFps ≥ 55 & jank ≤ 1% (PASS), jank ≤ 2.5% (WARN). The runner creates a headless Playwright Edge context, injects the built userscript (from `dist/douban-plus.user.js`), and measures per-scenario jank with a zero-dependency FPS monitor. Start with `pnpm run build` to ensure a fresh userscript build.
+
+The 21 scenarios are designed to isolate different performance dimensions: slow scrolling measures compositor jank, fast scrolling reveals layout storm, nav-threshold targets sticky-nav visibility transitions, micro-scroll targets scroll handler overhead, and extreme-input scenarios test resilience against rapid event delivery.
 
 `tests/qa.ts` is a thin CLI entry over `runQa()` (deepened 2026-07-08). The QA runner creates a fresh Playwright `BrowserContext` for every scenario attempt, so retries do not inherit cookies, storage, visited-link state, or mutated page state from a failed attempt. `runQa()` returns an exit code instead of exiting internally; only the CLI facade calls `process.exit()`.
 
