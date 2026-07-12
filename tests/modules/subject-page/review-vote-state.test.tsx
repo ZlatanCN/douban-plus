@@ -81,12 +81,6 @@ const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
   canReviewVote: () => true,
   handleReviewVote: () => Promise.resolve({ ok: true }),
   handleVote: () => Promise.resolve({ ok: true }),
-  heroCallbacks: {
-    handleCollectClick: () => {},
-    handleOpenInterest: () => {},
-    handleWatchingClick: () => {},
-    handleWishClick: () => {},
-  },
   ...overrides,
 });
 

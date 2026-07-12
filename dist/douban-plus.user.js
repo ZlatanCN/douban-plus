@@ -841,58 +841,6 @@ input::placeholder {
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
-	var API_INTEREST = "https://movie.douban.com/j/subject";
-	var API_REMOVE = "https://movie.douban.com/subject";
-	var postInterest = async (subjectId, interest, options) => {
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({
-			ck,
-			comment: options?.comment ?? "",
-			foldcollect: "F",
-			interest,
-			private: "",
-			rating: typeof options?.rating === "number" ? String(options.rating) : "",
-			tags: options?.tags?.join(",") ?? ""
-		});
-		try {
-			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			const data = JSON.parse(text);
-			if (data.r === 0) return { ok: true };
-			return {
-				error: data.msg || "操作失败",
-				ok: false
-			};
-		} catch (error) {
-			console.warn("[ATV-Douban] postInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var removeInterest = async (subjectId, currentStatus) => {
-		if (currentStatus === "none") return { ok: true };
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({ ck });
-		try {
-			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			return { ok: true };
-		} catch (error) {
-			console.warn("[ATV-Douban] removeInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
 	var SECTION_COPY = {
 		cast: {
 			navLabel: "演职员",
@@ -2076,12 +2024,6 @@ input::placeholder {
 	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
 	var RE_HTTP = /^https?:\/\//u;
 	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_WISH = /想看/u;
-	var RE_DO = /在看/u;
-	var RE_COLLECT = /看过/u;
-	var RE_WISH_EXACT = /^想看$/u;
-	var RE_DO_EXACT = /^在看$/u;
-	var RE_COLLECT_EXACT = /^看过$/u;
 	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
 	var RE_IMDB_LINK = /^tt\d+$/u;
 	var RE_SEASON_SUFFIX = /\d$/u;
@@ -2121,197 +2063,6 @@ input::placeholder {
 		trigger.click();
 		const after = extractVisibleSummary(doc);
 		return Promise.resolve(after || before);
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
-	};
-	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
-	var findInterestButtons = (doc) => {
-		const result = {
-			collect: null,
-			do: null,
-			wish: null
-		};
-		const scan = (anchors, doRe, wishRe, collectRe) => {
-			for (const anchor of anchors) {
-				const text = (anchor.textContent || "").trim();
-				if (!result.do && doRe.test(text)) result.do = anchor;
-				if (!result.wish && wishRe.test(text)) result.wish = anchor;
-				if (!result.collect && collectRe.test(text)) result.collect = anchor;
-			}
-		};
-		scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
-		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
-		return result;
-	};
-	var isInterestActive = (anchor) => {
-		if (!anchor) return false;
-		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-		return RE_INTEREST_ACTIVE.test(classes);
-	};
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
-			comment = comment.trim();
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
-		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchInterestText(text);
-			if (s && isInterestActive(a)) status = s;
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = findInterestRoot(doc);
-		const anchors = findInterestAnchors(doc, root);
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: [],
-				usefulCount: s3.usefulCount
-			};
-		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
-		};
-	};
-	var proxyInterestAction = (doc, status) => {
-		findInterestButtons(doc)[status]?.click();
-	};
-	var createAccountGate = (options) => {
-		const requireLogin = (action) => {
-			if (options.loggedIn) return true;
-			options.openPrompt?.(action);
-			return false;
-		};
-		return { requireLogin };
-	};
-	var reloadPage = () => {
-		location.reload();
-	};
-	var saveOptionsFromForm = (form) => ({
-		comment: form.comment,
-		rating: form.rating > 0 ? form.rating : void 0
-	});
-	var buildModalCallbacks = (subjectId, adapters) => ({
-		onRemove: async (status) => {
-			const result = await adapters.remove(subjectId, status);
-			if (result.ok) adapters.reload();
-			return result;
-		},
-		onSave: async (form) => {
-			const result = await adapters.post(subjectId, form.status, saveOptionsFromForm(form));
-			if (result.ok) adapters.reload();
-			return result;
-		}
-	});
-	var buildInterestMarkingCallbacks = (subjectId, adapters = {}) => {
-		const doc = adapters.doc ?? document;
-		const accountGate = adapters.accountGate ?? createAccountGate({ loggedIn: adapters.loggedIn ?? true });
-		const modalAdapters = {
-			post: adapters.post ?? postInterest,
-			reload: adapters.reload ?? reloadPage,
-			remove: adapters.remove ?? removeInterest
-		};
-		const { openModal } = adapters;
-		return {
-			handleCollectClick: () => {
-				if (!accountGate.requireLogin("标记看过")) return;
-				proxyInterestAction(doc, "collect");
-			},
-			handleOpenInterest: (state) => {
-				if (!accountGate.requireLogin("标记这部作品")) return;
-				openModal?.(state, buildModalCallbacks(subjectId, modalAdapters));
-			},
-			handleWatchingClick: () => {
-				if (!accountGate.requireLogin("标记在看")) return;
-				proxyInterestAction(doc, "do");
-			},
-			handleWishClick: () => {
-				if (!accountGate.requireLogin("标记想看")) return;
-				proxyInterestAction(doc, "wish");
-			}
-		};
 	};
 	var CN_DIGIT = {
 		一: 1,
@@ -3734,17 +3485,17 @@ input::placeholder {
 				u(InterestButton, {
 					className: "atv-btn atv-btn-primary",
 					label: "想看",
-					onClick: callbacks.handleWishClick
+					onClick: () => callbacks.handleOpenInterest(state, "标记想看")
 				}),
 				state.hasWatching ? u(InterestButton, {
 					className: "atv-btn atv-btn-secondary",
 					label: "在看",
-					onClick: callbacks.handleWatchingClick
+					onClick: () => callbacks.handleOpenInterest(state, "标记在看")
 				}) : null,
 				u(InterestButton, {
 					className: "atv-btn atv-btn-secondary",
 					label: "看过",
-					onClick: callbacks.handleCollectClick
+					onClick: () => callbacks.handleOpenInterest(state, "标记看过")
 				})
 			]
 		});
@@ -4053,6 +3804,58 @@ input::placeholder {
 			]
 		});
 	};
+	var API_INTEREST = "https://movie.douban.com/j/subject";
+	var API_REMOVE = "https://movie.douban.com/subject";
+	var postInterest = async (subjectId, interest, options) => {
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({
+			ck,
+			comment: options?.comment ?? "",
+			foldcollect: "F",
+			interest,
+			private: "",
+			rating: typeof options?.rating === "number" ? String(options.rating) : "",
+			tags: options?.tags?.join(",") ?? ""
+		});
+		try {
+			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			const data = JSON.parse(text);
+			if (data.r === 0) return { ok: true };
+			return {
+				error: data.msg || "操作失败",
+				ok: false
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] postInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var removeInterest = async (subjectId, currentStatus) => {
+		if (currentStatus === "none") return { ok: true };
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({ ck });
+		try {
+			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			return { ok: true };
+		} catch (error) {
+			console.warn("[ATV-Douban] removeInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
 		class: "atv-interest-modal-stars",
 		children: Array.from({ length: 5 }, (_, index) => {
@@ -4204,6 +4007,46 @@ input::placeholder {
 			state
 		})
 	});
+	var reloadPage = () => {
+		location.reload();
+	};
+	var saveOptionsFromForm = (form) => ({
+		comment: form.comment,
+		rating: form.rating > 0 ? form.rating : void 0
+	});
+	var useInterestMarking = ({ adapters = {}, loggedIn, onLoginRequired, subjectId }) => {
+		const [activeInterest, setActiveInterest] = d(null);
+		const post = adapters.post ?? postInterest;
+		const reload = adapters.reload ?? reloadPage;
+		const remove = adapters.remove ?? removeInterest;
+		const requireLogin = (action) => {
+			if (loggedIn) return true;
+			onLoginRequired(action);
+			return false;
+		};
+		return {
+			callbacks: { handleOpenInterest: (state, action = "标记这部作品") => {
+				if (!requireLogin(action)) return;
+				setActiveInterest(state);
+			} },
+			form: activeInterest ? u(InterestForm, {
+				callbacks: {
+					onRemove: async (status) => {
+						const result = await remove(subjectId, status);
+						if (result.ok) reload();
+						return result;
+					},
+					onSave: async (form) => {
+						const result = await post(subjectId, form.status, saveOptionsFromForm(form));
+						if (result.ok) reload();
+						return result;
+					}
+				},
+				onClose: () => setActiveInterest(null),
+				state: activeInterest
+			}) : null
+		};
+	};
 	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
 	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
 	var maxAttempts = 24;
@@ -5120,14 +4963,17 @@ input::placeholder {
 		const [activeReview, setActiveReview] = d(null);
 		const [activeMediaModal, setActiveMediaModal] = d(null);
 		const [loginAction, setLoginAction] = d(null);
-		const [activeInterest, setActiveInterest] = d(data.interest);
-		const [interestOpen, setInterestOpen] = d(false);
 		const [series, setSeries] = d(data.series);
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
 		const avatarUrls = useAvatarUrls(data.comments);
 		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
 		const handleCommentVoteStateChange = commentVotes.setVoteState;
 		const handleReviewVoteStateChange = reviewVotes.setVoteState;
+		const interestMarking = useInterestMarking({
+			loggedIn: data.interest.loggedIn,
+			onLoginRequired: setLoginAction,
+			subjectId: data.subjectId
+		});
 		const canVote = () => {
 			if (!data.interest.loggedIn) {
 				setLoginAction("给短评点有用");
@@ -5142,38 +4988,6 @@ input::placeholder {
 			}
 			return deps.canReviewVote?.() ?? true;
 		};
-		const heroCallbacks = {
-			...deps.heroCallbacks,
-			handleCollectClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记看过");
-					return;
-				}
-				deps.heroCallbacks.handleCollectClick();
-			},
-			handleOpenInterest: (state) => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记这部作品");
-					return;
-				}
-				setActiveInterest(state);
-				setInterestOpen(true);
-			},
-			handleWatchingClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记在看");
-					return;
-				}
-				deps.heroCallbacks.handleWatchingClick();
-			},
-			handleWishClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记想看");
-					return;
-				}
-				deps.heroCallbacks.handleWishClick();
-			}
-		};
 		h(() => watchSeries(setSeries, deps.doc), [deps.doc]);
 		return u(S, { children: [
 			u(StickyNav, {
@@ -5185,7 +4999,7 @@ input::placeholder {
 				title: data.title
 			}),
 			u(Hero, {
-				callbacks: heroCallbacks,
+				callbacks: interestMarking.callbacks,
 				data: toHeroData(data),
 				expandNativeSummary: () => expandNativeSummary(deps.doc),
 				onOpenPoster: (src, alt) => setActiveMediaModal({
@@ -5276,15 +5090,7 @@ input::placeholder {
 				action: loginAction,
 				onClose: () => setLoginAction(null)
 			}) : null,
-			interestOpen ? u(InterestForm, {
-				callbacks: buildModalCallbacks(data.subjectId, {
-					post: postInterest,
-					reload: () => location.reload(),
-					remove: removeInterest
-				}),
-				onClose: () => setInterestOpen(false),
-				state: activeInterest
-			}) : null
+			interestMarking.form
 		] });
 	};
 	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
@@ -5593,6 +5399,121 @@ input::placeholder {
 		}
 		return out;
 	};
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		}
+		return null;
+	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
+	};
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchInterestText((el.textContent || "").trim(), true);
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
+			comment = comment.trim();
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchInterestText(text);
+			if (s && isInterestActive(a)) status = s;
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: [],
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
 	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
 		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
 		const roleEl = $(".info .role", li);
@@ -5849,10 +5770,6 @@ input::placeholder {
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
 	};
-	var buildHeroCallbacks = (subjectId, doc = document, loggedIn = true) => buildInterestMarkingCallbacks(subjectId, {
-		doc,
-		loggedIn
-	});
 	var mountSubjectPage = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
 		if (!doc.querySelector("#content h1")) {
@@ -5879,7 +5796,6 @@ input::placeholder {
 				doc,
 				handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
 				handleVote: (cid) => postVote(cid, data.subjectId),
-				heroCallbacks: buildHeroCallbacks(data.subjectId, doc, data.interest.loggedIn),
 				seriesMoreLink: extractSeriesMoreLink(doc)
 			}
 		}), root);

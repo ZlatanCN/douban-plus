@@ -1,20 +1,6 @@
-import {
-  RE_COLLECT,
-  RE_COLLECT_EXACT,
-  RE_DO,
-  RE_DO_EXACT,
-  RE_INTEREST_ACTIVE,
-  RE_WISH,
-  RE_WISH_EXACT,
-} from "@/constants";
+import { RE_INTEREST_ACTIVE } from "@/constants";
 import type { InterestState } from "@/types";
 import { $, $$ } from "@/utils/dom";
-
-type InterestButtons = {
-  collect: HTMLAnchorElement | null;
-  do: HTMLAnchorElement | null;
-  wish: HTMLAnchorElement | null;
-};
 
 const matchInterestText = (
   text: string,
@@ -60,40 +46,6 @@ const findInterestAnchors = (
   root = findInterestRoot(doc)
 ): HTMLAnchorElement[] => (root ? $$<HTMLAnchorElement>("a", root) : []);
 
-const findInterestButtons = (doc: Document): InterestButtons => {
-  const result: InterestButtons = { collect: null, do: null, wish: null };
-  const scan = (
-    anchors: HTMLAnchorElement[],
-    doRe: RegExp,
-    wishRe: RegExp,
-    collectRe: RegExp
-  ): void => {
-    for (const anchor of anchors) {
-      const text = (anchor.textContent || "").trim();
-      if (!result.do && doRe.test(text)) {
-        result.do = anchor;
-      }
-      if (!result.wish && wishRe.test(text)) {
-        result.wish = anchor;
-      }
-      if (!result.collect && collectRe.test(text)) {
-        result.collect = anchor;
-      }
-    }
-  };
-
-  scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
-  if (!result.do || !result.wish || !result.collect) {
-    scan(
-      $$<HTMLAnchorElement>("#interest_sectl a", doc),
-      RE_DO_EXACT,
-      RE_WISH_EXACT,
-      RE_COLLECT_EXACT
-    );
-  }
-  return result;
-};
-
 const isInterestActive = (anchor: HTMLAnchorElement | null): boolean => {
   if (!anchor) {
     return false;
@@ -104,7 +56,6 @@ const isInterestActive = (anchor: HTMLAnchorElement | null): boolean => {
 
 export {
   findInterestAnchors,
-  findInterestButtons,
   findInterestRoot,
   isInterestActive,
   matchInterestText,

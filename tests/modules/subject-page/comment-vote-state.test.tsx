@@ -78,12 +78,6 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
 const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
   canVote: () => true,
   handleVote: () => Promise.resolve({ ok: true }),
-  heroCallbacks: {
-    handleCollectClick: () => {},
-    handleOpenInterest: () => {},
-    handleWatchingClick: () => {},
-    handleWishClick: () => {},
-  },
   ...overrides,
 });
 

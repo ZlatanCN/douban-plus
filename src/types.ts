@@ -244,10 +244,7 @@ type HeroData = {
 
 /** Callback seam for hero interest actions — replaces direct api/extract imports */
 type HeroCallbacks = {
-  handleWishClick: () => void;
-  handleWatchingClick: () => void;
-  handleCollectClick: () => void;
-  handleOpenInterest: (state: InterestState) => void;
+  handleOpenInterest: (state: InterestState, action?: string) => void;
 };
 
 /** Data slice for buildPhotos */

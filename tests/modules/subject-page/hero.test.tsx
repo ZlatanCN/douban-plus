@@ -68,10 +68,7 @@ const makeHeroData = (overrides?: Partial<HeroData>): HeroData => ({
 });
 
 const makeCallbacks = (): HeroCallbacks => ({
-  handleCollectClick: vi.fn<() => void>(),
   handleOpenInterest: vi.fn<(interest: InterestState) => void>(),
-  handleWatchingClick: vi.fn<() => void>(),
-  handleWishClick: vi.fn<() => void>(),
 });
 
 const imageInstances: HTMLImageElement[] = [];
@@ -297,7 +294,7 @@ describe(Hero, () => {
     expect(mockRequest).toHaveBeenCalledOnce();
   });
 
-  it("routes logged-out actions to the login-gated callbacks", () => {
+  it("routes logged-out actions to the interest callback with an action label", () => {
     const callbacks = makeCallbacks();
     const el = renderSingle(
       <Hero callbacks={callbacks} data={makeHeroData()} />
@@ -309,9 +306,16 @@ describe(Hero, () => {
     buttons[0]?.click();
     buttons[1]?.click();
 
-    expect(callbacks.handleWishClick).toHaveBeenCalledOnce();
-    expect(callbacks.handleCollectClick).toHaveBeenCalledOnce();
-    expect(callbacks.handleOpenInterest).not.toHaveBeenCalled();
+    expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
+      1,
+      defaultInterest,
+      "标记想看"
+    );
+    expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
+      2,
+      defaultInterest,
+      "标记看过"
+    );
   });
 
   it("renders marked interest state and opens the interest modal callback", () => {

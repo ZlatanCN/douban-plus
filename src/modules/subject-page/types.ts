@@ -1,8 +1,4 @@
-import type {
-  AccountActionGuard,
-  HeroCallbacks,
-  ReviewVoteCallback,
-} from "@/types";
+import type { AccountActionGuard, ReviewVoteCallback } from "@/types";
 
 type CommentVoteCallback = (
   cid: string
@@ -12,7 +8,6 @@ type SubjectPageDeps = {
   doc?: Document;
   canReviewVote?: AccountActionGuard;
   canVote?: AccountActionGuard;
-  heroCallbacks: HeroCallbacks;
   handleReviewVote?: ReviewVoteCallback;
   handleVote: CommentVoteCallback;
   seriesMoreLink?: { href: string; text: string };

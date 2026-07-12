@@ -1,9 +1,9 @@
 /* ── Interest State Extractor — Unit Tests ──────────────────────── */
-/* Tests the Subject interest module's read and proxy interfaces. */
+/* Tests the Subject interest module's read interface. */
 
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 
-import { extractInterestState, proxyInterestAction } from "@/extract/interest";
+import { extractInterestState } from "@/extract/interest";
 
 import { buildDoc, mockCookie } from "../helpers/doc";
 
@@ -102,54 +102,5 @@ describe(extractInterestState, () => {
     expect(result.loggedIn).toBeTruthy();
     expect(result.status).toBe("none");
     restore();
-  });
-});
-
-describe(proxyInterestAction, () => {
-  it("proxy-clicks the requested original control", () => {
-    const doc = buildDoc(`<!DOCTYPE html>
-<html><body>
-<div id="interest_sect_level">
-  <a href="/do?action=wish">想看</a>
-  <a href="/do?action=do">在看</a>
-  <a href="/do?action=collect">看过</a>
-</div>
-</body></html>`);
-    const clicked: string[] = [];
-    for (const anchor of doc.querySelectorAll("a")) {
-      anchor.addEventListener("click", (event) => {
-        event.preventDefault();
-        clicked.push(anchor.textContent?.trim() ?? "");
-      });
-    }
-
-    proxyInterestAction(doc, "wish");
-    proxyInterestAction(doc, "do");
-    proxyInterestAction(doc, "collect");
-
-    expect(clicked).toStrictEqual(["想看", "在看", "看过"]);
-  });
-
-  it("silently ignores an unavailable control", () => {
-    const doc = buildDoc("<html><body><p>No interest</p></body></html>");
-    expect(() => proxyInterestAction(doc, "wish")).not.toThrow();
-  });
-
-  it("resolves the original control for every action", () => {
-    const doc = buildDoc(`<!DOCTYPE html>
-<html><body>
-<div id="interest_sect_level"></div>
-</body></html>`);
-    proxyInterestAction(doc, "wish");
-    const root = doc.querySelector("#interest_sect_level");
-    const anchor = doc.createElement("a");
-    anchor.textContent = "想看";
-    const clicked = vi.fn<() => void>();
-    anchor.addEventListener("click", clicked);
-    root?.append(anchor);
-
-    proxyInterestAction(doc, "wish");
-
-    expect(clicked).toHaveBeenCalledOnce();
   });
 });

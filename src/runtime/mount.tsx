@@ -3,10 +3,8 @@ import { render } from "preact";
 import { postVote } from "@/api/comment";
 import { postReviewVote } from "@/api/review";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { HeroCallbacks } from "@/types";
 
 import { extractDoubanData } from "./extract-data";
-import { buildInterestMarkingCallbacks } from "./interest-marking";
 import { extractSeriesMoreLink } from "./series-effect";
 
 const setSubjectTitle = (
@@ -18,12 +16,6 @@ const setSubjectTitle = (
     (data.year ? ` (${data.year})` : "")
   } · 豆瓣`;
 };
-
-const buildHeroCallbacks = (
-  subjectId: string,
-  doc: Document = document,
-  loggedIn = true
-): HeroCallbacks => buildInterestMarkingCallbacks(subjectId, { doc, loggedIn });
 
 const mountSubjectPage = (doc: Document = document): void => {
   if (doc.querySelector("#atv-douban-root")) {
@@ -60,11 +52,6 @@ const mountSubjectPage = (doc: Document = document): void => {
         handleReviewVote: (rid: string, type: "useful" | "useless") =>
           postReviewVote(rid, type, data.subjectId),
         handleVote: (cid: string) => postVote(cid, data.subjectId),
-        heroCallbacks: buildHeroCallbacks(
-          data.subjectId,
-          doc,
-          data.interest.loggedIn
-        ),
         seriesMoreLink: extractSeriesMoreLink(doc),
       }}
     />,
@@ -73,4 +60,4 @@ const mountSubjectPage = (doc: Document = document): void => {
   doc.body.insertBefore(root, doc.body.firstChild);
 };
 
-export { buildHeroCallbacks, mountSubjectPage };
+export { mountSubjectPage };

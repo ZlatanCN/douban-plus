@@ -6,6 +6,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **Host integration boundary**: The narrow layer where douban-plus reads or interoperates with Douban's existing document and browser platform APIs. _Avoid_: imperative UI, DOM-builder
 
+**作品标记**: 登录用户对当前作品作出的“想看”“在看”或“看过”状态，以及随状态提交或移除的评分和短评。_Avoid_: 兴趣表单、原生按钮代理
+
 **登录可读编辑元信息**: 仅在登录后的 Douban 条目编辑页可读取、但不要求当前用户拥有编辑权限的作品资料字段。_Avoid_: 编辑者专属资料、公开详情元信息
 
 **页面分区**: 详情页中可独立导航的一组相关内容，同时拥有导航标签和页面标题；两者表达同一内容类别，但允许信息密度不同。
@@ -46,7 +48,7 @@ src/
       details/           — facts, IMDb link, awards
       comments/          — short-comment cards, modal, icon voting, shared vote state
       reviews/           — review cards, modal lifecycle, content loading, up/down vote state
-      interest/          — interest marking form and imperative opener
+      interest/          — complete 作品标记 flow: account gate, form, writes, and refresh
       login/             — ATV login modal shell + trusted Douban iframe host
       use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
   components/
@@ -73,9 +75,7 @@ src/
   runtime/             — subject page runtime module (deepened 2026-07-08)
     mount.tsx            — external runtime interface: extract → render Preact → start effects
     extract-data.ts      — assembles DoubanData from extract modules
-    account-gate.ts      — account-gated action guard and login prompt trigger
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
-    interest-marking.ts  — deep module for hero interest actions, modal save/remove flow, and original Douban button proxying
     avatar-effect.ts     — comment avatar fetch/apply effect
     series-effect.ts     — late-loading series observer and nav insertion
     sticky-effect.ts     — sticky nav reveal + active-section tracking
@@ -177,11 +177,11 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - External rating resolution now lives inside the Preact `ratings` module through `useExternalRatings`
    - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
 
-5. **Interest marking module (2026-07-08)** — `src/runtime/interest-marking.ts` owns the complete "想看 / 在看 / 看过" runtime flow:
-   - External seam is `buildInterestMarkingCallbacks(subjectId, adapters?)`, returning the `HeroCallbacks` shape so the page UI does not learn modal/API details
-   - The module localizes original Douban button proxy-clicking, modal save/remove callbacks, API result handling, and successful page reload
-   - `src/runtime/mount.tsx` defines `buildHeroCallbacks` as a thin wrapper that delegates to `buildInterestMarkingCallbacks` internally; `src/main.ts` re-exports it for the userscript header
-   - Tests inject adapters at the module seam instead of mocking global `location.reload()` or reaching through the modal implementation
+5. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
+   - External seam is `useInterestMarking({ subjectId, loggedIn, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes
+   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reload
+   - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
+   - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 
 6. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
@@ -189,7 +189,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-7. **Account-gated actions (2026-07-08)** — Account writes share `src/runtime/account-gate.ts` and `src/modules/subject-page/login/`:
+7. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
 
 - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call

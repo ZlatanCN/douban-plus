@@ -5,7 +5,6 @@ import type { InterestState } from "@/types";
 
 import {
   findInterestAnchors,
-  findInterestButtons,
   findInterestRoot,
   isInterestActive,
   matchInterestText,
@@ -159,17 +158,6 @@ const extractInterestState = (doc: Document): InterestState => {
   };
 };
 
-/**
- * Proxy a marking intent to Douban's original control.
- * DOM variants and unavailable controls are an implementation detail.
- */
-const proxyInterestAction = (
-  doc: Document,
-  status: Exclude<InterestState["status"], "none">
-): void => {
-  findInterestButtons(doc)[status]?.click();
-};
-
 /* ── Exports ────────────────────────────────────────── */
 
-export { extractInterestState, proxyInterestAction };
+export { extractInterestState };
