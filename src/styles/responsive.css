@@ -214,10 +214,6 @@
     transform: none;
   }
 
-  .atv-comment-avatar.atv-avatar-loaded {
-    animation: none;
-  }
-
   .atv-review-card,
   .atv-review-card:hover,
   .atv-review-card:active {

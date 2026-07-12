@@ -1,3 +1,4 @@
+import type { JSX } from "preact";
 import { useState } from "preact/hooks";
 
 import { ModalCloseButton, ModalShell } from "@/components/modal/index";
@@ -40,6 +41,10 @@ const InterestFormContent = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const titlePrefix = state.marked ? "修改" : "标记";
+  const statuses = statusEntries(state.hasWatching);
+  const activeStatusIndex = statuses.findIndex(
+    (entry) => entry.value === status
+  );
 
   const save = async (): Promise<void> => {
     if (loading) {
@@ -92,9 +97,19 @@ const InterestFormContent = ({
         />
       </div>
       <div class="atv-interest-modal-body">
-        <div class="atv-interest-modal-statuses">
-          {statusEntries(state.hasWatching).map((entry) => (
+        <div
+          class="atv-interest-modal-statuses"
+          style={
+            {
+              "--atv-interest-status-count": statuses.length,
+              "--atv-interest-status-index": activeStatusIndex,
+            } as JSX.CSSProperties
+          }
+        >
+          <div aria-hidden="true" class="atv-interest-modal-status-indicator" />
+          {statuses.map((entry) => (
             <button
+              aria-pressed={entry.value === status}
               class={`atv-interest-modal-status${
                 entry.value === status ? " is-active" : ""
               }`}

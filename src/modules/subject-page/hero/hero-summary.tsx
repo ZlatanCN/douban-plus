@@ -13,6 +13,7 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
   const [expanded, setExpanded] = useState(false);
   const [summary, setSummary] = useState(text);
   const [showToggle, setShowToggle] = useState(true);
+  const [summaryTransitionKey, setSummaryTransitionKey] = useState(0);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -28,15 +29,18 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
       previousTextRef.current = text;
       setExpanded(false);
       setSummary(text);
+      setSummaryTransitionKey((key) => key + 1);
     }
   }, [text]);
 
   const toggle = async (): Promise<void> => {
     if (expanded) {
       setExpanded(false);
+      setSummaryTransitionKey((key) => key + 1);
       return;
     }
     setExpanded(true);
+    setSummaryTransitionKey((key) => key + 1);
     const expandedText = await expandNativeSummary?.();
     if (expandedText) {
       setSummary(expandedText);
@@ -49,7 +53,10 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
         class={`atv-hero-teaser${expanded ? "" : " is-clamped"}`}
         ref={teaserRef}
       >
-        <span class="atv-hero-teaser-content" key={summary}>
+        <span
+          class="atv-hero-teaser-content"
+          key={`${summaryTransitionKey}-${summary}`}
+        >
           {summary}
         </span>
       </p>

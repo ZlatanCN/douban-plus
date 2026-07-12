@@ -23,10 +23,14 @@
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
-    transform var(--atv-duration-hover) ease,
+    transform var(--atv-duration-press) var(--atv-ease-out),
     background 200ms ease,
     box-shadow 200ms ease,
     color 200ms ease;
+}
+
+.atv-btn:active {
+  transform: scale(0.97);
 }
 
 .atv-btn-primary {

@@ -6,6 +6,8 @@
 }
 
 .atv-stream-card {
+  --atv-stream-brand: var(--atv-accent-bright);
+
   position: relative;
   display: inline-flex;
   max-width: 240px;
@@ -26,7 +28,6 @@
   transition:
     background 220ms ease,
     border-color 220ms ease,
-    box-shadow 220ms ease,
     transform 220ms var(--atv-ease-out);
 }
 

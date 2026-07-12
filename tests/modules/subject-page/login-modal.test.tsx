@@ -29,11 +29,9 @@ describe(LoginModal, () => {
     document.body.innerHTML = "";
     mockMountNativeLoginFrame.mockReset();
     mockMountNativeLoginFrame.mockImplementation(
-      (_host: HTMLElement, onReady: (message: string) => void) => {
-        // Simulate success: onReady("") clears the loading status.
-        // Before the fix the callback was only called on error, not on
-        // success — this tests that the component handles it correctly.
-        onReady("");
+      (_host: HTMLElement, callbacks) => {
+        callbacks.onMount();
+        callbacks.onLoad();
         return () => {};
       }
     );
@@ -52,24 +50,25 @@ describe(LoginModal, () => {
     vi.restoreAllMocks();
   });
 
-  it("clears loading status after mountNativeLoginFrame calls onReady('') on success", async () => {
+  it("clears loading status only after the native iframe loads", async () => {
     const onClose = vi.fn<() => void>();
     const root = renderIntoRoot(<LoginModal action="测试" onClose={onClose} />);
     await flushEffects();
 
-    // The mock fires onReady("") during mount, which triggers
-    // setStatus("") in the component → status gets hidden.
     const status = root.querySelector<HTMLElement>(".atv-login-modal-status");
     expect(status).not.toBeNull();
     expect(mockMountNativeLoginFrame).toHaveBeenCalledOnce();
     expect(status?.hidden).toBeTruthy();
+    expect(root.querySelector(".atv-login-modal-native")?.classList).toContain(
+      "is-ready"
+    );
   });
 
   it("shows loading status while iframe is being mounted", async () => {
     // Override the mock: don't call onReady to simulate loading state.
     mockMountNativeLoginFrame.mockImplementation(
-      // `_onReady` is deliberately unused to simulate pending load
-      (_host: HTMLElement, _onReady: (message: string) => void) => () => {}
+      // `callbacks` is deliberately unused to simulate pending load.
+      (_host: HTMLElement, _callbacks) => () => {}
     );
 
     const onClose = vi.fn<() => void>();

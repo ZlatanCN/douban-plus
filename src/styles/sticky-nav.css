@@ -85,6 +85,10 @@
   transition: transform var(--atv-duration-hover) ease;
 }
 
+.atv-stickynav.is-scrolling .atv-stickynav-jumps a::after {
+  transition: none;
+}
+
 #atv-douban-root .atv-stickynav-jumps a:hover {
   background: transparent;
   color: var(--atv-accent-bright);

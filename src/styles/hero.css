@@ -42,7 +42,7 @@
 .atv-hero-still.is-hd {
   filter: saturate(1.08) brightness(0.88);
   opacity: 0;
-  transition: opacity 700ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 300ms var(--atv-ease-out);
 }
 
 .atv-hero-still.is-hd.is-loaded {
@@ -67,6 +67,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .atv-hero-still.is-hd {
+    transition: opacity 200ms ease;
+  }
+
   .atv-hero-still.is-hd.is-loaded {
     animation: none;
     transform: scale(1.04);

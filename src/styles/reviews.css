@@ -21,9 +21,8 @@
   text-align: left;
   touch-action: manipulation;
   transition:
-    transform 350ms var(--atv-ease-out),
-    border-color 350ms ease,
-    box-shadow 350ms ease;
+    transform var(--atv-duration-hover) var(--atv-ease-out),
+    border-color var(--atv-duration-hover) ease;
 }
 
 .atv-review-open-button {
@@ -224,7 +223,8 @@
   transition:
     color 250ms ease,
     background 250ms ease,
-    border-color 250ms ease;
+    border-color 250ms ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
   white-space: nowrap;
 }
 
@@ -237,6 +237,10 @@
 .atv-vote-btn:focus-visible {
   outline: 2px solid rgb(65 190 93 / 75%);
   outline-offset: 3px;
+}
+
+.atv-vote-btn:active {
+  transform: scale(0.97);
 }
 
 .atv-vote-btn.is-lg {
@@ -287,7 +291,6 @@
   padding: 48px;
   border: none;
   margin: 0;
-  backdrop-filter: blur(24px) saturate(1.15);
   background: rgb(0 0 0 / 72%);
   inset: 0;
   opacity: 0;

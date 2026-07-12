@@ -3,6 +3,15 @@
   cursor: pointer;
 }
 
+.atv-modal-overlay,
+.atv-comment-overlay,
+.atv-interest-modal,
+.atv-login-modal,
+.atv-review-modal {
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+
 .atv-modal-overlay {
   position: fixed;
   z-index: 10000;
@@ -14,8 +23,6 @@
   padding: 0;
   border: none;
   margin: 0;
-  -webkit-backdrop-filter: blur(28px) saturate(1.15);
-  backdrop-filter: blur(28px) saturate(1.15);
   background: rgb(0 0 0 / 78%);
   inset: 0;
   opacity: 0;
