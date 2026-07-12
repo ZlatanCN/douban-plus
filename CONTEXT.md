@@ -20,9 +20,9 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
-**小组讨论**: 与当前作品关联的豆瓣小组话题入口集合，增强页只展示话题摘要信息并跳转到豆瓣原生讨论页面。 _Avoid_: 短评、影评、在增强页内加载正文或回复
+**小组讨论 / 讨论区**: 与当前作品关联的话题入口集合（来自"小组讨论"或"讨论区"两种 DOM 结构），增强页只展示话题摘要信息并跳转到豆瓣原生讨论页面；三种 DOM 变体（小组讨论 table + 讨论区 Type 1 `.mod .mv-discussion-list` + 讨论区 Type 2 `.section-discussion`）互斥出现，提取器自动检测。话题链接可能跨多个豆瓣子域名（小组话题使用 `www.douban.com/group/topic/`、条目讨论使用 `movie.douban.com/subject/…/discussion/`）；讨论提取器的 URL 安全验证允许任意 `*.douban.com` 子域名。 _Avoid_: 短评、影评、在增强页内加载正文或回复
 
-**讨论回应数**: 小组话题已有回应的数量；原生回应单元格为空表示零回应，而单元格缺失或内容无法解析表示数量未知。
+**讨论回应数**: 话题已有回应的数量；原生回应单元格留空表示零回应，而 `.mv-hot-discussion-list` 内的隐藏热门讨论行不会被计入，单元格缺失或内容无法解析表示数量未知。
 
 ## Architecture
 
