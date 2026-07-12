@@ -80,11 +80,18 @@
   );
 }
 
-.atv-stream-logo svg {
+.atv-stream-logo.is-catalog svg {
   display: block;
   width: 18px;
   height: 18px;
   fill: currentcolor;
+}
+
+.atv-stream-logo.is-intrinsic svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: initial;
 }
 
 .atv-stream-vendor-icon {
@@ -112,6 +119,11 @@
     inset 0 1px 0 rgb(255 255 255 / 12%),
     0 8px 18px rgb(0 0 0 / 18%);
   color: var(--atv-stream-brand, var(--atv-accent-bright));
+}
+
+.atv-stream-logo.is-intrinsic {
+  border-color: rgb(0 0 0 / 8%);
+  background: #f5f5f7;
 }
 
 .atv-stream-logo-fallback {

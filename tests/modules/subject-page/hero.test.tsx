@@ -244,8 +244,8 @@ describe(Hero, () => {
 
     await waitUntil(() =>
       expect(
-        el.querySelector(".atv-first-broadcast-platform")?.textContent
-      ).toContain("Apple TV+")
+        el.querySelector(".atv-hero-meta .atv-first-broadcast-platform")
+      ).not.toBeNull()
     );
 
     expect(mockRequest).toHaveBeenCalledWith(

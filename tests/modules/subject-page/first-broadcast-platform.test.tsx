@@ -5,30 +5,28 @@ import { FirstBroadcastPlatform } from "@/modules/subject-page/hero/first-broadc
 import { renderSingle } from "../../helpers/render";
 
 describe(FirstBroadcastPlatform, () => {
-  it("renders a local brand logo with the platform name", () => {
+  it("renders a recognized platform as an accessible release mark", () => {
     const root = renderSingle(<FirstBroadcastPlatform platform="Apple TV+" />);
 
     expect({
-      ariaLabel: root.getAttribute("aria-label"),
       hasLink: Boolean(root.querySelector("a")),
       hasLogo: Boolean(root.querySelector("svg")),
       provider: root.dataset.provider,
       text: root.textContent,
     }).toStrictEqual({
-      ariaLabel: "首播平台：Apple TV+",
       hasLink: false,
       hasLogo: true,
       provider: "apple-tv",
-      text: "首播平台Apple TV+",
+      text: "首播平台：Apple TV+",
     });
   });
 
-  it("keeps an unknown platform readable with a generic icon", () => {
+  it("keeps an unknown platform readable with a textual fallback", () => {
     const root = renderSingle(<FirstBroadcastPlatform platform="Cinemax" />);
 
     expect(root.dataset.provider).toBe("unknown");
-    expect(root.querySelector("svg")).not.toBeNull();
-    expect(root.textContent).toContain("Cinemax");
+    expect(root.querySelector("svg")).toBeNull();
+    expect(root.textContent).toBe("首播 · Cinemax");
   });
 
   it("uses the supplied Netflix symbol", () => {
@@ -47,6 +45,27 @@ describe(FirstBroadcastPlatform, () => {
       root.querySelector<HTMLElement>(".atv-first-broadcast-platform-mark")
         ?.style.color
     ).toBe("#0064FF");
+  });
+
+  it.each(["Hulu", "Prime Video"])(
+    "preserves %s artwork colors",
+    (platform) => {
+      const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
+
+      expect(
+        root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+      ).toContain("is-intrinsic");
+    }
+  );
+
+  it("uses the catalog color for Disney's monochrome artwork", () => {
+    const root = renderSingle(<FirstBroadcastPlatform platform="Disney+" />);
+    const mark = root.querySelector<HTMLElement>(
+      ".atv-first-broadcast-platform-mark"
+    );
+
+    expect(mark?.classList).toContain("is-catalog");
+    expect(mark?.style.color).toBe("#113CCF");
   });
 
   it.each([

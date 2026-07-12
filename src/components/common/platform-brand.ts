@@ -39,6 +39,7 @@ type PlatformBrandKey =
 type PlatformBrand = {
   aliases: string[];
   color: string;
+  colorMode?: "intrinsic" | "catalog";
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   key: PlatformBrandKey;
   label: string;
@@ -49,7 +50,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
   {
     Icon: LogoDisneyPlus,
     aliases: ["disney+", "disney plus", "disneyplus"],
-    color: "#F5F5F7",
+    color: "#113CCF",
     key: "disney-plus",
     label: "Disney+",
     presentation: "wordmark",
@@ -58,6 +59,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoBilibiliCombined,
     aliases: ["哔哩哔哩", "bilibili", "b站", "b 站"],
     color: "#FF5588",
+    colorMode: "intrinsic",
     key: "bilibili",
     label: "哔哩哔哩",
   },
@@ -65,6 +67,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoPrimeVideo,
     aliases: ["prime video", "primevideo"],
     color: "#00A8E1",
+    colorMode: "intrinsic",
     key: "prime-video",
     label: "Prime Video",
     presentation: "wordmark",
@@ -73,6 +76,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoIqiyiCombined,
     aliases: ["爱奇艺", "iqiyi", "iQIYI"],
     color: "#00DC5A",
+    colorMode: "intrinsic",
     key: "iqiyi",
     label: "爱奇艺",
   },
@@ -80,6 +84,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoTencentCombined,
     aliases: ["腾讯视频", "tencent video"],
     color: "#00A2FF",
+    colorMode: "intrinsic",
     key: "tencent-video",
     label: "腾讯视频",
   },
@@ -87,6 +92,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoYoukuCombined,
     aliases: ["优酷", "youku"],
     color: "#00A6FF",
+    colorMode: "intrinsic",
     key: "youku",
     label: "优酷",
   },
@@ -100,6 +106,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoHulu,
     aliases: ["hulu"],
     color: "#1CE783",
+    colorMode: "intrinsic",
     key: "hulu",
     label: "Hulu",
     presentation: "wordmark",
@@ -108,6 +115,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     Icon: LogoNetflix,
     aliases: ["netflix"],
     color: "#E50914",
+    colorMode: "intrinsic",
     key: "netflix",
     label: "Netflix",
   },

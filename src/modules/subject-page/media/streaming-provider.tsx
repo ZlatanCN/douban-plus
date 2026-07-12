@@ -14,6 +14,7 @@ type StreamingProviderKey = PlatformBrandKey | "unknown";
 type ProviderIconProps = SVGAttributes<SVGSVGElement>;
 
 type ResolvedStreamingProvider = {
+  colorMode?: PlatformBrand["colorMode"];
   key: StreamingProviderKey;
   label: string;
   color: string;
@@ -77,10 +78,11 @@ const resolveStreamingProvider = (
     PLATFORM_BRANDS.find((brand) => hostMatches(item.href, brand));
 
   if (provider) {
-    const { Icon, color, key, label } = provider;
+    const { Icon, color, colorMode, key, label } = provider;
     return {
       Icon,
       color,
+      colorMode,
       combinedSvg: COMBINED_SVG_BRANDS.has(key) || undefined,
       key,
       label,

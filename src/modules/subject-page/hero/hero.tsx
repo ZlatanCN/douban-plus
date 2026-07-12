@@ -54,14 +54,15 @@ const Hero = ({
               <div class="atv-hero-orig">{data.title.original}</div>
             ) : null}
             <HeroMeta
-              hasFirstBroadcastPlatform={Boolean(firstBroadcastPlatform)}
               info={data.info}
               isTV={data.isTV}
+              leading={
+                firstBroadcastPlatform ? (
+                  <FirstBroadcastPlatform platform={firstBroadcastPlatform} />
+                ) : null
+              }
               year={data.year}
             />
-            {firstBroadcastPlatform ? (
-              <FirstBroadcastPlatform platform={firstBroadcastPlatform} />
-            ) : null}
             <RatingPanel
               douban={data.rating}
               imdbId={data.imdbId}

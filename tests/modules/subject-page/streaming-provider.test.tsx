@@ -121,4 +121,42 @@ describe(StreamingSection, () => {
       "芒"
     );
   });
+
+  it("uses the curated icon for a recognized provider over its source image", () => {
+    const root = renderSingle(
+      <StreamingSection
+        streaming={[
+          stream({
+            href: "https://www.primevideo.com/detail/example",
+            iconUrl: "https://example.com/prime.png",
+            name: "Prime Video",
+          }),
+        ]}
+      />
+    );
+
+    expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
+    expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
+      "is-intrinsic"
+    );
+  });
+
+  it("uses a local fallback for a recognized provider without an SVG", () => {
+    const root = renderSingle(
+      <StreamingSection
+        streaming={[
+          stream({
+            href: "https://www.miguvideo.com/example",
+            iconUrl: "https://example.com/migu.png",
+            name: "咪咕视频",
+          }),
+        ]}
+      />
+    );
+
+    expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
+    expect(root.querySelector(".atv-stream-logo-fallback")?.textContent).toBe(
+      "咪"
+    );
+  });
 });
