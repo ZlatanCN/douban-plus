@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { computeNavSections } from "@/components/layout/nav";
 import { StickyNav } from "@/components/layout/sticky-nav";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import type { SubjectPageRuntime } from "@/modules/subject-page/types";
 import { watchSeries } from "@/runtime/series-effect";
 import type { DoubanData, InfoBlock, SeriesItem } from "@/types";
 
@@ -107,20 +107,42 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
   ...overrides,
 });
 
-/* ── SubjectPage deps helper ─────────────────────────────── */
+/* ── SubjectPage runtime helper ──────────────────────────── */
 
-const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
-  handleVote: () => Promise.resolve({ ok: true }),
+const makeRuntime = (
+  data: DoubanData,
+  overrides?: Partial<SubjectPageRuntime>
+): SubjectPageRuntime => ({
+  actions: {
+    expandNativeSummary: () => Promise.resolve(null),
+    handleCommentVote: () => Promise.resolve({ ok: true }),
+    handleReviewVote: () => Promise.resolve({ ok: true }),
+    interestMarking: {
+      post: () => Promise.resolve({ ok: false }),
+      reload: () => {},
+      remove: () => Promise.resolve({ ok: false }),
+    },
+  },
+  externalRatings: null,
+  firstBroadcastPlatform: null,
+  navigation: {
+    activeSectionId: "",
+    onJump: () => {},
+    scrolling: false,
+    sections: computeNavSections(data),
+    visible: false,
+  },
+  series: [],
   ...overrides,
 });
 
 const renderSubjectPage = (
   data: DoubanData = makeDoubanData(),
-  deps: SubjectPageDeps = makeDeps()
+  runtime: SubjectPageRuntime = makeRuntime(data)
 ): HTMLElement => {
   const root = document.createElement("div");
   root.id = "atv-douban-root";
-  render(<SubjectPage data={data} deps={deps} />, root);
+  render(<SubjectPage data={data} runtime={runtime} />, root);
   onTestFinished(() => render(null, root));
   return root;
 };
@@ -129,7 +151,11 @@ const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
   const stickyNav = document.createElement("nav");
   stickyNav.className = "atv-stickynav";
   render(
-    <StickyNav sections={computeNavSections(data)} title={data.title} />,
+    <StickyNav
+      onJump={() => {}}
+      sections={computeNavSections(data)}
+      title={data.title}
+    />,
     stickyNav
   );
   onTestFinished(() => render(null, stickyNav));

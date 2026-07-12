@@ -2,7 +2,7 @@ import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import type { SubjectPageRuntime } from "@/modules/subject-page/types";
 import type { DoubanData, InfoBlock, Review } from "@/types";
 
 vi.hoisted(() => {
@@ -77,20 +77,39 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   ...overrides,
 });
 
-const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
-  canReviewVote: () => true,
-  handleReviewVote: () => Promise.resolve({ ok: true }),
-  handleVote: () => Promise.resolve({ ok: true }),
-  ...overrides,
+const makeRuntime = (
+  voteReview: SubjectPageRuntime["actions"]["handleReviewVote"] = () =>
+    Promise.resolve({ ok: true })
+): SubjectPageRuntime => ({
+  actions: {
+    expandNativeSummary: () => Promise.resolve(null),
+    handleCommentVote: () => Promise.resolve({ ok: true }),
+    handleReviewVote: voteReview,
+    interestMarking: {
+      post: () => Promise.resolve({ ok: false }),
+      reload: () => {},
+      remove: () => Promise.resolve({ ok: false }),
+    },
+  },
+  externalRatings: null,
+  firstBroadcastPlatform: null,
+  navigation: {
+    activeSectionId: "",
+    onJump: () => {},
+    scrolling: false,
+    sections: [],
+    visible: false,
+  },
+  series: [],
 });
 
 const renderPage = (
   data: DoubanData = makeData(),
-  deps: SubjectPageDeps = makeDeps()
+  runtime: SubjectPageRuntime = makeRuntime()
 ): HTMLElement => {
   const root = document.createElement("div");
   root.id = "atv-douban-root";
-  render(<SubjectPage data={data} deps={deps} />, root);
+  render(<SubjectPage data={data} runtime={runtime} />, root);
   return root;
 };
 
@@ -128,10 +147,9 @@ describe("review vote state across cards and modals", () => {
   it("shows card vote state inside the modal after voting on a card", async () => {
     const root = renderPage(
       makeData(),
-      makeDeps({
-        handleReviewVote: () =>
-          Promise.resolve({ ok: true, usefulCount: 12, uselessCount: 1 }),
-      })
+      makeRuntime(() =>
+        Promise.resolve({ ok: true, usefulCount: 12, uselessCount: 1 })
+      )
     );
 
     root
@@ -151,10 +169,9 @@ describe("review vote state across cards and modals", () => {
   it("shows modal vote state on the card after closing the modal", async () => {
     const root = renderPage(
       makeData(),
-      makeDeps({
-        handleReviewVote: () =>
-          Promise.resolve({ ok: true, usefulCount: 5, uselessCount: 7 }),
-      })
+      makeRuntime(() =>
+        Promise.resolve({ ok: true, usefulCount: 5, uselessCount: 7 })
+      )
     );
     const modal = await openReviewModal(root);
 

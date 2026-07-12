@@ -1,11 +1,7 @@
 import { render } from "preact";
 
-import { postVote } from "@/api/comment";
-import { postReviewVote } from "@/api/review";
-import { SubjectPage } from "@/modules/subject-page/subject-page";
-
 import { extractDoubanData } from "./extract-data";
-import { extractSeriesMoreLink } from "./series-effect";
+import { SubjectPageRuntime } from "./subject-page-runtime";
 
 const setSubjectTitle = (
   doc: Document,
@@ -42,21 +38,7 @@ const mountSubjectPage = (doc: Document = document): void => {
   setSubjectTitle(doc, data);
   const root = doc.createElement("div");
   root.id = "atv-douban-root";
-  render(
-    <SubjectPage
-      data={data}
-      deps={{
-        canReviewVote: () => true,
-        canVote: () => true,
-        doc,
-        handleReviewVote: (rid: string, type: "useful" | "useless") =>
-          postReviewVote(rid, type, data.subjectId),
-        handleVote: (cid: string) => postVote(cid, data.subjectId),
-        seriesMoreLink: extractSeriesMoreLink(doc),
-      }}
-    />,
-    root
-  );
+  render(<SubjectPageRuntime data={data} doc={doc} />, root);
   doc.body.insertBefore(root, doc.body.firstChild);
 };
 

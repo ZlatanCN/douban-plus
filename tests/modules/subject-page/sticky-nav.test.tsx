@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { StickyNav } from "@/components/layout/sticky-nav";
 import type { StickyNavData } from "@/types";
@@ -18,9 +18,11 @@ const makeData = (overrides?: Partial<StickyNavData>): StickyNavData => ({
   ...overrides,
 });
 
+const noop = (): undefined => undefined;
+
 describe(StickyNav, () => {
   it("renders the title from data.title.primary", () => {
-    const root = renderIntoRoot(<StickyNav {...makeData()} />);
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
     expect(root.querySelector(".atv-stickynav-title")?.textContent).toBe(
       "肖申克的救赎"
     );
@@ -32,6 +34,7 @@ describe(StickyNav, () => {
         {...makeData({
           title: { full: "Fallback Title", primary: "" },
         })}
+        onJump={noop}
       />
     );
     expect(root.querySelector(".atv-stickynav-title")?.textContent).toBe(
@@ -40,7 +43,7 @@ describe(StickyNav, () => {
   });
 
   it("renders each section link with href and label", () => {
-    const root = renderIntoRoot(<StickyNav {...makeData()} />);
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
     const links = root.querySelectorAll<HTMLAnchorElement>(
       ".atv-stickynav-jumps a"
     );
@@ -52,7 +55,7 @@ describe(StickyNav, () => {
   });
 
   it("renders third section link with label and href", () => {
-    const root = renderIntoRoot(<StickyNav {...makeData()} />);
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
     const links = root.querySelectorAll<HTMLAnchorElement>(
       ".atv-stickynav-jumps a"
     );
@@ -61,15 +64,18 @@ describe(StickyNav, () => {
   });
 
   it("renders no section links when sections array is empty", () => {
-    const root = renderIntoRoot(<StickyNav {...makeData({ sections: [] })} />);
+    const root = renderIntoRoot(
+      <StickyNav {...makeData({ sections: [] })} onJump={noop} />
+    );
     expect(root.querySelectorAll(".atv-stickynav-jumps a")).toHaveLength(0);
     expect(root.querySelector(".atv-stickynav-title")?.textContent).toBe(
       "肖申克的救赎"
     );
   });
 
-  it("prevents default on jump link clicks", () => {
-    const root = renderIntoRoot(<StickyNav {...makeData()} />);
+  it("prevents default and forwards jump link clicks", () => {
+    const onJump = vi.fn<(sectionId: string) => void>();
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={onJump} />);
     const link = root.querySelector<HTMLAnchorElement>(
       ".atv-stickynav-jumps a"
     );
@@ -79,5 +85,6 @@ describe(StickyNav, () => {
     });
     link?.dispatchEvent(event);
     expect(event.defaultPrevented).toBeTruthy();
+    expect(onJump).toHaveBeenCalledWith("atv-cast");
   });
 });

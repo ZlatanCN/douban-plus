@@ -39,12 +39,16 @@ const makeState = (overrides?: Partial<InterestState>): InterestState => ({
   ...overrides,
 });
 
+const failPost = () => Promise.resolve({ ok: false });
+const noop = (): undefined => undefined;
+const failRemove = () => Promise.resolve({ ok: false });
+
 const InterestMarkingHarness = ({
   loggedIn = true,
   onLoginRequired = vi.fn<(action: string) => void>(),
-  post,
-  reload,
-  remove,
+  post = failPost,
+  reload = noop,
+  remove = failRemove,
   state = makeState(),
 }: InterestMarkingHarnessProps) => {
   const interestMarking = useInterestMarking({

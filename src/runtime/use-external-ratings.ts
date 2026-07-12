@@ -7,7 +7,8 @@ type ExternalRatings = Awaited<ReturnType<typeof resolveAll>>;
 
 const useExternalRatings = (
   imdbId: string | null,
-  isTV: boolean
+  isTV: boolean,
+  doc: Document
 ): ExternalRatings | null => {
   const [external, setExternal] = useState<ExternalRatings | null>(null);
 
@@ -19,7 +20,7 @@ const useExternalRatings = (
 
     let cancelled = false;
     const loadRatings = async (): Promise<void> => {
-      const ratings = await resolveAll(buildContext(imdbId, isTV, document));
+      const ratings = await resolveAll(buildContext(imdbId, isTV, doc));
       if (!cancelled) {
         setExternal(ratings);
       }
@@ -29,7 +30,7 @@ const useExternalRatings = (
     return () => {
       cancelled = true;
     };
-  }, [imdbId, isTV]);
+  }, [doc, imdbId, isTV]);
 
   return external;
 };

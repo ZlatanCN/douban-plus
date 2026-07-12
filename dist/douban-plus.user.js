@@ -609,85 +609,785 @@ input::placeholder {
 	}, C$1.prototype.render = S, i$2 = [], o$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n, l) {
 		return n.__v.__b - l.__v.__b;
 	}, H.__r = 0, f$2 = Math.random().toString(8), c$1 = "__d" + f$2, a$1 = "__a" + f$2, s$1 = /(PointerCapture)$|Capture$/i, h$1 = 0, p$1 = V(!1), v$1 = V(!0), y$1 = 0;
-	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
-	var delay = (ms) => new Promise((resolve) => {
-		setTimeout(resolve, ms);
-	});
-	var getXhr = () => {
-		const g = _GM_xmlhttpRequest;
-		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
-		return g;
-	};
-	var gmRequest = (method, url, referer, extraHeaders, data) => {
-		const headers = {
-			"Content-Type": "application/x-www-form-urlencoded",
-			...extraHeaders
+	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
+	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
+	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
+		const lis = $$("li", ul);
+		const orgEl = lis[0] ? $("a", lis[0]) : null;
+		const org = lis[0] ? safeText(lis[0]) : "";
+		const name = lis[1] ? safeText(lis[1]) : "";
+		const personEl = lis[2] ? $("a", lis[2]) : null;
+		const person = lis[2] ? safeText(lis[2]) : "";
+		return {
+			name,
+			org,
+			orgLink: orgEl ? orgEl.href : "",
+			person,
+			personLink: personEl ? personEl.href : ""
 		};
-		if (referer) headers.Referer = referer;
-		return new Promise((resolve, reject) => {
-			getXhr()({
-				data,
-				headers,
-				method,
-				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
-				onload: (r) => resolve(r.responseText),
-				url
+	}).filter((a) => a.org);
+	var RE_SLASH_SEP = /\s*\/\s*/gu;
+	var RE_WS_GLOBAL = /\s+/gu;
+	var RE_COLON_WS = /[:：\s]/gu;
+	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_WS = /\s+/u;
+	var RE_YEAR = /(?<year>\d{4})/u;
+	var RE_NON_DIGIT = /\D/gu;
+	var RE_HSPACE = /[ \t]+/gu;
+	var RE_NL_MULTI = /\n{3,}/gu;
+	var RE_IMDB_ID = /(?<id>tt\d+)/u;
+	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
+	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
+	var RE_HTTP = /^https?:\/\//u;
+	var RE_ONLINE_VIDEO = /online-video/u;
+	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
+	var RE_IMDB_LINK = /^tt\d+$/u;
+	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
+	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
+	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
+	var upgradePoster = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
+	};
+	var upgradePhoto = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	};
+	var extractTitle = (doc) => {
+		const h1 = $("#content h1", doc);
+		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
+		let primary = full;
+		let original = "";
+		const idx = full.search(RE_WS);
+		if (idx > 0) {
+			primary = full.slice(0, idx).trim();
+			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
+		}
+		return {
+			full,
+			original,
+			primary
+		};
+	};
+	var extractYear = (doc) => {
+		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
+		return m ? m[1] : "";
+	};
+	var extractPoster = (doc) => {
+		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
+		if (!img) return null;
+		return upgradePoster(img.src || img.dataset.src || "");
+	};
+	var extractSubjectId = (doc) => {
+		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
+		return m ? m[1] : "";
+	};
+	var MAX_DISCUSSION_TOPICS = 10;
+	var DOUBAN_ORIGIN = "https://www.douban.com/";
+	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
+	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
+	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
+	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
+	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
+	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
+	var isTrackingParameter = (fragment) => {
+		const [rawKey] = fragment.split("=", 1);
+		try {
+			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
+		} catch {
+			return false;
+		}
+	};
+	var removeTrackingParameter = (search) => {
+		if (!search) return "";
+		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
+		return remaining.length ? `?${remaining.join("&")}` : "";
+	};
+	var toSafeDoubanUrl = (rawHref) => {
+		try {
+			const url = new URL(rawHref, DOUBAN_ORIGIN);
+			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
+			return url;
+		} catch {
+			return;
+		}
+	};
+	var normalizeTopicHref = (rawHref) => {
+		const url = toSafeDoubanUrl(rawHref);
+		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
+		const search = removeTrackingParameter(url.search);
+		return `${url.origin}${url.pathname}${search}${url.hash}`;
+	};
+	var normalizeDoubanHref = (rawHref, path) => {
+		const url = toSafeDoubanUrl(rawHref);
+		return url && path.test(url.pathname) ? url.href : "";
+	};
+	var extractAuthor = (authorCell) => {
+		const link = authorCell?.querySelector("a");
+		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
+		if (!name) return;
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
+		return href ? {
+			href,
+			name
+		} : { name };
+	};
+	var extractReplies = (repliesCell) => {
+		if (!repliesCell) return;
+		const text = safeText(repliesCell);
+		if (!text) return 0;
+		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
+		if (match?.groups) return Number(match.groups.replies);
+		const bare = Number(text);
+		return Number.isSafeInteger(bare) ? bare : void 0;
+	};
+	var isValidDiscussionTimestamp = (dateTime) => {
+		const value = new Date(`${dateTime}Z`);
+		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
+	};
+	var extractActivity = (activityCell) => {
+		const raw = safeText(activityCell);
+		if (!raw) return;
+		const match = DISCUSSION_TIMESTAMP.exec(raw);
+		if (!match?.groups) return { raw };
+		const { date, seconds, time } = match.groups;
+		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
+		return isValidDiscussionTimestamp(dateTime) ? {
+			date,
+			dateTime,
+			raw,
+			time
+		} : { raw };
+	};
+	var extractTopics = (container) => {
+		const topics = [];
+		for (const row of $$("table tr", container)) {
+			if (row.closest(".mv-hot-discussion-list")) continue;
+			const link = row.cells[0]?.querySelector("a");
+			const title = safeText(link);
+			const rawHref = link?.getAttribute("href")?.trim() ?? "";
+			const href = rawHref ? normalizeTopicHref(rawHref) : "";
+			if (title && href) {
+				const author = extractAuthor(row.cells[1]);
+				const replies = extractReplies(row.cells[2]);
+				const activity = extractActivity(row.cells[3]);
+				topics.push({
+					...activity ? { activity } : {},
+					...author ? { author } : {},
+					href,
+					...replies === void 0 ? {} : { replies },
+					title
+				});
+				if (topics.length === MAX_DISCUSSION_TOPICS) break;
+			}
+		}
+		return topics;
+	};
+	var extractStartDiscussionHref = (container) => {
+		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
+	};
+	var linkHref = (link, path) => {
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
+	};
+	var extractLinkTotal = (link) => {
+		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
+		const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
+		return Number.isSafeInteger(total) ? total : void 0;
+	};
+	var extractAllDiscussions = (container) => {
+		const pLink = container.querySelector("p a");
+		const pHref = linkHref(pLink, COLLECTION_PATH);
+		if (pHref) {
+			const total = extractLinkTotal(pLink);
+			return total === void 0 ? { href: pHref } : {
+				href: pHref,
+				total
+			};
+		}
+		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
+		if (h2Href) return { href: h2Href };
+		const listLink = container.querySelector(".mv-discussion-list a");
+		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
+		if (listHref) {
+			const total = extractLinkTotal(listLink);
+			return total === void 0 ? { href: listHref } : {
+				href: listHref,
+				total
+			};
+		}
+	};
+	var findModDiscussion = (doc) => {
+		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
+		return null;
+	};
+	var extractFromContainer = (container) => {
+		const topics = extractTopics(container);
+		const startDiscussionHref = extractStartDiscussionHref(container);
+		const allDiscussions = extractAllDiscussions(container);
+		return {
+			...allDiscussions ? { allDiscussions } : {},
+			...startDiscussionHref ? { startDiscussionHref } : {},
+			topics
+		};
+	};
+	var extractDiscussions = (doc) => {
+		const primary = doc.querySelector(".section-discussion");
+		if (primary) return extractFromContainer(primary);
+		const mod = findModDiscussion(doc);
+		if (mod) return extractFromContainer(mod);
+		return { topics: [] };
+	};
+	var findLabel = (root, label) => {
+		if (!root) return null;
+		const spans = $$("span.pl", root);
+		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
+		return null;
+	};
+	var collectInfoTextAfter = (root, label, trim) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return "";
+		let out = "";
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 3) out += n.nodeValue;
+			else if (n.nodeType === 1) out += n.textContent || "";
+			n = n.nextSibling;
+		}
+		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
+		if (trim !== false) result = result.trim();
+		return result;
+	};
+	var collectLinksAfter = (root, label) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return [];
+		const out = [];
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 1) {
+				const el = n;
+				const anchors = el.tagName === "A" ? [el] : $$("a", el);
+				for (const a of anchors) {
+					const t = (a.textContent || "").trim();
+					if (t) out.push({
+						href: a.href || "",
+						text: t
+					});
+				}
+			}
+			n = n.nextSibling;
+		}
+		return out;
+	};
+	var extractInfo = (doc) => {
+		const info = $("#info", doc);
+		const out = {
+			aliases: "",
+			cast: [],
+			country: "",
+			director: [],
+			episodeRuntime: "",
+			episodes: "",
+			firstAired: "",
+			genres: [],
+			imdb: "",
+			language: "",
+			releaseDate: "",
+			runtime: "",
+			seasons: "",
+			writers: []
+		};
+		if (!info) return out;
+		out.director = collectLinksAfter(info, "导演");
+		out.writers = collectLinksAfter(info, "编剧");
+		const starringEls = $$("a[rel=\"v:starring\"]", info);
+		out.cast = starringEls.length ? starringEls.map((a) => ({
+			href: a.href || "",
+			text: (a.textContent || "").trim()
+		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
+		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
+		out.country = collectInfoTextAfter(info, "制片国家/地区");
+		out.language = collectInfoTextAfter(info, "语言");
+		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
+		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.firstAired = collectInfoTextAfter(info, "首播");
+		const runEls = $$("span[property=\"v:runtime\"]", info);
+		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.episodes = collectInfoTextAfter(info, "集数");
+		if (findLabel(info, "季数")) {
+			const sel = $("#season", info);
+			if (sel) {
+				const opt = sel.options[sel.selectedIndex];
+				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
+			} else out.seasons = collectInfoTextAfter(info, "季数");
+		}
+		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
+		out.aliases = collectInfoTextAfter(info, "又名");
+		if (findLabel(info, "IMDb")) {
+			const raw = collectInfoTextAfter(info, "IMDb");
+			const m = raw.match(RE_IMDB_ID);
+			out.imdb = m ? m[1] : raw;
+		}
+		return out;
+	};
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		}
+		return null;
+	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
+	};
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchInterestText((el.textContent || "").trim(), true);
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
+			comment = comment.trim();
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchInterestText(text);
+			if (s && isInterestActive(a)) status = s;
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: [],
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
+	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
+		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
+		const roleEl = $(".info .role", li);
+		const avatarEl = $(".avatar", li);
+		let avatar = "";
+		if (avatarEl) {
+			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
+			if (m) [, avatar] = m;
+		}
+		return {
+			avatar: encodeURI(avatar),
+			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
+			name: safeText(nameEl),
+			role: safeText(roleEl)
+		};
+	}).filter((c) => c.name);
+	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
+		const thumb = img.src || img.dataset.src || "";
+		const a = img.closest("a");
+		return {
+			hdUrl: upgradePhoto(thumb) || "",
+			link: a ? a.href : "",
+			thumbUrl: encodeURI(thumb)
+		};
+	}).filter((p) => p.thumbUrl);
+	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
+		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
+		const thumbUrl = m ? m[1] : "";
+		return {
+			thumbUrl: encodeURI(thumbUrl),
+			title: a.getAttribute("title") || "",
+			trailerPageUrl: a.href
+		};
+	}).filter((t) => t.trailerPageUrl);
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
+		const score = raw ? Number(raw) : NaN;
+		if (!score || Number.isNaN(score) || score <= 0) return null;
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
+		return {
+			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
+			score
+		};
+	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
+		if (!summary) return null;
+		return normalizeSummaryText(summary.textContent || "") || null;
+	};
+	var extractVisibleSummary = (doc) => {
+		const container = doc.querySelector("#link-report-intra");
+		if (!container) return extractSummary(doc);
+		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
+	};
+	var expandNativeSummary = (doc = document) => {
+		const before = extractVisibleSummary(doc);
+		const trigger = doc.querySelector("a.a_show_full");
+		if (!trigger) return Promise.resolve(before);
+		trigger.click();
+		const after = extractVisibleSummary(doc);
+		return Promise.resolve(after || before);
+	};
+	var extractReviewRating = (item) => {
+		let stars = 0;
+		let ratingWord = "";
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (ratingEl) {
+			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
+			ratingWord = ratingEl.getAttribute("title") || "";
+		}
+		if (stars === 0) {
+			const titleRating = $(".main-title-rating", item);
+			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
+		}
+		return {
+			ratingWord,
+			stars
+		};
+	};
+	var extractReviewContent = (item) => {
+		const shortContent = $(".review-short .short-content", item);
+		if (shortContent) {
+			const contentCopy = shortContent.cloneNode(true);
+			contentCopy.querySelector("a.unfold")?.remove();
+			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
+		}
+		const mainBd = $(".main-bd", item);
+		return mainBd ? safeText(mainBd) : "";
+	};
+	var extractReviewVotes = (item) => {
+		const action = $(".action", item);
+		if (!action) return {
+			usefulCount: 0,
+			uselessCount: 0
+		};
+		const upEl = $(".action-btn.up", action);
+		const downEl = $(".action-btn.down", action);
+		return {
+			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
+			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
+		};
+	};
+	var extractReviewItem = (item) => {
+		const title = safeText($(".main-bd h2 a", item));
+		if (!title) return null;
+		const nameLink = $(".main-hd a.name", item);
+		const name = safeText(nameLink);
+		if (!name) return null;
+		const avatarImg = $(".main-hd .avator img", item);
+		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
+		const { stars, ratingWord } = extractReviewRating(item);
+		const time = safeText($(".main-hd .main-meta", item));
+		const content = extractReviewContent(item);
+		const { usefulCount, uselessCount } = extractReviewVotes(item);
+		const spoiler = !!$(".spoiler-tip", item);
+		return {
+			avatar,
+			content,
+			id: item.id || "",
+			link: nameLink?.href ?? "",
+			name,
+			ratingWord,
+			spoiler,
+			stars,
+			time,
+			title,
+			usefulCount,
+			uselessCount
+		};
+	};
+	var extractReviews = (doc) => {
+		const items = $$("#reviews-wrapper .review-item", doc);
+		const out = [];
+		for (const item of items) {
+			const review = extractReviewItem(item);
+			if (review) out.push(review);
+		}
+		return out;
+	};
+	var CN_DIGIT = {
+		一: 1,
+		七: 7,
+		三: 3,
+		九: 9,
+		二: 2,
+		五: 5,
+		八: 8,
+		六: 6,
+		四: 4
+	};
+	var parseCnNum = (s) => {
+		const arabic = Math.trunc(Number(s));
+		if (!Number.isNaN(arabic)) return arabic;
+		const parts = s.split("十");
+		if (parts.length === 2) {
+			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
+			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
+			return tens * 10 + ones;
+		}
+		if (s === "十") return 10;
+		return CN_DIGIT[s] ?? 0;
+	};
+	var seasonNum = (title) => {
+		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
+		if (!m?.groups?.num) return 0;
+		return parseCnNum(m.groups.num);
+	};
+	var extractSeries = (doc) => {
+		const container = $("#series-items .items-swiper", doc);
+		if (!container) return [];
+		const seen = new Set();
+		const items = $$(".items-swiper-item", container);
+		const out = [];
+		for (const el of items) {
+			const linkEl = $(".items-swiper-item-pic a", el);
+			const imgEl = $(".items-swiper-item-pic a img", el);
+			const titleEl = $(".items-swiper-item-title a", el);
+			const ratingEl = $(".items-swiper-item-rating", el);
+			const link = linkEl ? linkEl.href : "";
+			if (!link || seen.has(link)) continue;
+			seen.add(link);
+			out.push({
+				link,
+				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
+				rating: safeText(ratingEl),
+				title: safeText(titleEl)
 			});
-		});
-	};
-	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
-	var RETRY_DELAYS = [
-		300,
-		800,
-		2e3
-	];
-	var gmPost = async (url, data, referer, extraHeaders) => {
-		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
-			return await gmPostOnce(url, data, referer, extraHeaders);
-		} catch (error) {
-			if (attempt < RETRY_DELAYS.length) {
-				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt], "ms —", error.message);
-				await delay(RETRY_DELAYS[attempt]);
-			} else throw error;
 		}
-		throw new Error("[GM] POST failed after all retries");
+		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
 	};
-	var gmGet = (url, referer) => gmRequest("GET", url, referer);
-	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-	var API_VOTE = "https://movie.douban.com/j/comment/vote";
-	var postVote = async (cid, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				count: data.count,
-				ok: true
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postVote error:", error);
-			return { ok: false };
-		}
+	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
+		const linkEl = $("dt a", dl);
+		const imgEl = $("dt a img", dl);
+		const titleEl = $("dd a", dl);
+		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
+		return {
+			link: linkEl ? linkEl.href : "",
+			poster: upgradePoster(rawPoster) || "",
+			title: safeText(titleEl)
+		};
+	}).filter((r) => r.title);
+	var extractRating = (item) => {
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (!ratingEl) return {
+			ratingWord: "",
+			stars: 0
+		};
+		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+		return {
+			ratingWord: ratingEl.getAttribute("title") || "",
+			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
+		};
 	};
-	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
-	var postReviewVote = async (rid, type, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				ok: true,
-				usefulCount: data.useful_count,
-				uselessCount: data.useless_count
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postReviewVote error:", error);
-			return { ok: false };
+	var extractTime = (item) => {
+		const timeEl = $(".comment-time", item);
+		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
+	};
+	var extractVotes = (item) => {
+		const votesEl = $(".vote-count", item) ?? $(".votes", item);
+		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
+	};
+	var extractAvatar = (item) => {
+		const img = $(".avatar img", item);
+		if (!img) return "";
+		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
+	};
+	var extractVoted = (item) => {
+		if (item.querySelector(".j.vote-comment")) return false;
+		const voteArea = $(".comment-vote", item);
+		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
+	};
+	var extractComments = (doc) => {
+		const items = $$("#hot-comments .comment-item", doc);
+		const out = [];
+		for (const item of items) {
+			const authorEl = $(".comment-info a", item);
+			const name = safeText(authorEl);
+			if (!name) continue;
+			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
+			if (!content) continue;
+			const { stars, ratingWord } = extractRating(item);
+			out.push({
+				avatar: extractAvatar(item),
+				cid: item.dataset.cid ?? "",
+				content,
+				link: authorEl?.href ?? "",
+				name,
+				ratingWord,
+				stars,
+				time: extractTime(item),
+				voted: extractVoted(item),
+				votes: extractVotes(item)
+			});
 		}
+		return out;
+	};
+	var isRealUrl = (h) => RE_HTTP.test(h || "");
+	var parsePlaySources = (doc) => {
+		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+		if (!srcScript) return {};
+		const txt = srcScript.textContent;
+		const map = {};
+		let m = RE_PLAY_SOURCES.exec(txt);
+		while (m) {
+			const [, sourceId] = m;
+			const playLink = m[2].replaceAll("&amp;", "&");
+			if (!map[sourceId]) map[sourceId] = playLink;
+			m = RE_PLAY_SOURCES.exec(txt);
+		}
+		return map;
+	};
+	var extractStreaming = (doc) => {
+		const seen = new Set();
+		const out = [];
+		const sourcesMap = parsePlaySources(doc);
+		const playBtns = $$("a.playBtn", doc);
+		for (const a of playBtns) {
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			let { href } = a;
+			if (!isRealUrl(href)) {
+				const sourceId = a.dataset.source;
+				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
+				else continue;
+			}
+			const iconUrl = a.dataset.pic || void 0;
+			out.push({
+				href,
+				iconUrl,
+				name
+			});
+		}
+		for (const a of $$("a", doc)) {
+			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			seen.add(name);
+			if (isRealUrl(a.href)) out.push({
+				href: a.href,
+				name
+			});
+		}
+		return out;
+	};
+	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
+	var extractDoubanData = (doc) => {
+		const info = extractInfo(doc);
+		const isTV = isTVInfo(info);
+		return {
+			awards: extractAwards(doc),
+			celebrities: extractCelebrities(doc),
+			comments: extractComments(doc),
+			discussions: extractDiscussions(doc),
+			info,
+			interest: extractInterestState(doc),
+			isTV,
+			photos: extractPhotos(doc),
+			poster: extractPoster(doc),
+			rating: extractRating$1(doc),
+			recommendations: extractRecommendations(doc),
+			reviews: extractReviews(doc),
+			series: extractSeries(doc),
+			streaming: extractStreaming(doc),
+			subjectId: extractSubjectId(doc),
+			summary: extractSummary(doc),
+			title: extractTitle(doc),
+			trailers: extractTrailers(doc),
+			year: extractYear(doc)
+		};
 	};
 	var t, r, u$1, i$1, o$1 = 0, f$1 = [], c = l$1, e = c.__b, a = c.__r, v = c.diffed, l = c.__c, m = c.unmount, p = c.__;
 	function s(n, t) {
@@ -841,6 +1541,138 @@ input::placeholder {
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
+	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
+	var delay = (ms) => new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+	var getXhr = () => {
+		const g = _GM_xmlhttpRequest;
+		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
+		return g;
+	};
+	var gmRequest = (method, url, referer, extraHeaders, data) => {
+		const headers = {
+			"Content-Type": "application/x-www-form-urlencoded",
+			...extraHeaders
+		};
+		if (referer) headers.Referer = referer;
+		return new Promise((resolve, reject) => {
+			getXhr()({
+				data,
+				headers,
+				method,
+				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
+				onload: (r) => resolve(r.responseText),
+				url
+			});
+		});
+	};
+	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
+	var RETRY_DELAYS = [
+		300,
+		800,
+		2e3
+	];
+	var gmPost = async (url, data, referer, extraHeaders) => {
+		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
+			return await gmPostOnce(url, data, referer, extraHeaders);
+		} catch (error) {
+			if (attempt < RETRY_DELAYS.length) {
+				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt], "ms —", error.message);
+				await delay(RETRY_DELAYS[attempt]);
+			} else throw error;
+		}
+		throw new Error("[GM] POST failed after all retries");
+	};
+	var gmGet = (url, referer) => gmRequest("GET", url, referer);
+	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+	var API_VOTE = "https://movie.douban.com/j/comment/vote";
+	var postVote = async (cid, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				count: data.count,
+				ok: true
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postVote error:", error);
+			return { ok: false };
+		}
+	};
+	var API_INTEREST = "https://movie.douban.com/j/subject";
+	var API_REMOVE = "https://movie.douban.com/subject";
+	var postInterest = async (subjectId, interest, options) => {
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({
+			ck,
+			comment: options?.comment ?? "",
+			foldcollect: "F",
+			interest,
+			private: "",
+			rating: typeof options?.rating === "number" ? String(options.rating) : "",
+			tags: options?.tags?.join(",") ?? ""
+		});
+		try {
+			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			const data = JSON.parse(text);
+			if (data.r === 0) return { ok: true };
+			return {
+				error: data.msg || "操作失败",
+				ok: false
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] postInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var removeInterest = async (subjectId, currentStatus) => {
+		if (currentStatus === "none") return { ok: true };
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({ ck });
+		try {
+			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			return { ok: true };
+		} catch (error) {
+			console.warn("[ATV-Douban] removeInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
+	var postReviewVote = async (rid, type, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				ok: true,
+				usefulCount: data.useful_count,
+				uselessCount: data.useless_count
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postReviewVote error:", error);
+			return { ok: false };
+		}
+	};
 	var SECTION_COPY = {
 		cast: {
 			navLabel: "演职员",
@@ -949,91 +1781,24 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var StickyNav = ({ doc = document, sections, title }) => {
-		const [activeSectionId, setActiveSectionId] = d("");
-		const [visible, setVisible] = d(false);
-		const [scrolling, setScrolling] = d(false);
-		const lastVisibleRef = A(false);
-		h(() => {
-			let scrollTimer;
-			const handleScroll = () => {
-				const isVisible = window.scrollY > 300;
-				if (isVisible !== lastVisibleRef.current) {
-					lastVisibleRef.current = isVisible;
-					setVisible(isVisible);
-				}
-				setScrolling(true);
-				clearTimeout(scrollTimer);
-				scrollTimer = setTimeout(() => setScrolling(false), 150);
-			};
-			window.addEventListener("scroll", handleScroll, { passive: true });
-			handleScroll();
-			return () => {
-				window.removeEventListener("scroll", handleScroll);
-				clearTimeout(scrollTimer);
-			};
-		}, []);
-		h(() => {
-			const els = new Map();
-			for (const section of sections) {
-				const el = doc.querySelector(`#${section.id}`);
-				if (el) els.set(section.id, el);
-			}
-			let pending = false;
-			const pick = () => {
-				let activeId = "";
-				let bestScore = -Infinity;
-				for (const section of sections) {
-					const el = els.get(section.id);
-					if (!el) continue;
-					const rect = el.getBoundingClientRect();
-					const visibleTop = Math.max(rect.top, 56);
-					const visibleBottom = Math.min(rect.bottom, window.innerHeight * .55);
-					const score = Math.max(0, visibleBottom - visibleTop);
-					if (score > bestScore) {
-						activeId = section.id;
-						bestScore = score;
-					}
-				}
-				setActiveSectionId(activeId);
-				pending = false;
-			};
-			const observer = new IntersectionObserver(() => {
-				if (pending) return;
-				pending = true;
-				requestAnimationFrame(pick);
-			}, { threshold: [
-				0,
-				.25,
-				.5
-			] });
-			for (const el of els.values()) observer.observe(el);
-			pick();
-			return () => observer.disconnect();
-		}, [doc, sections]);
-		return u("nav", {
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}`,
-			children: [u("div", {
-				class: "atv-stickynav-title",
-				children: title.primary || title.full
-			}), u("div", {
-				class: "atv-stickynav-jumps",
-				children: sections.map((section) => u("a", {
-					class: activeSectionId === section.id ? "is-active" : void 0,
-					href: `#${section.id}`,
-					onClick: (event) => {
-						event.preventDefault();
-						const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-						doc.querySelector(`#${section.id}`)?.scrollIntoView({
-							behavior: prefersReducedMotion ? "auto" : "smooth",
-							block: "start"
-						});
-					},
-					children: section.label
-				}, section.id))
-			})]
-		});
-	};
+	var StickyNav = ({ activeSectionId = "", onJump, scrolling = false, sections, title, visible = false }) => u("nav", {
+		class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}`,
+		children: [u("div", {
+			class: "atv-stickynav-title",
+			children: title.primary || title.full
+		}), u("div", {
+			class: "atv-stickynav-jumps",
+			children: sections.map((section) => u("a", {
+				class: activeSectionId === section.id ? "is-active" : void 0,
+				href: `#${section.id}`,
+				onClick: (event) => {
+					event.preventDefault();
+					onJump(section.id);
+				},
+				children: section.label
+			}, section.id))
+		})]
+	});
 	var HtmlContent = ({ children, className, html, ...rest }) => u("div", {
 		class: className,
 		dangerouslySetInnerHTML: html ? { __html: html } : void 0,
@@ -2009,133 +2774,6 @@ input::placeholder {
 		surfaceClassName: "atv-modal-surface",
 		children: u(VideoModalContent, { trailer })
 	});
-	var RE_SLASH_SEP = /\s*\/\s*/gu;
-	var RE_WS_GLOBAL = /\s+/gu;
-	var RE_COLON_WS = /[:：\s]/gu;
-	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
-	var RE_WS = /\s+/u;
-	var RE_YEAR = /(?<year>\d{4})/u;
-	var RE_NON_DIGIT = /\D/gu;
-	var RE_HSPACE = /[ \t]+/gu;
-	var RE_NL_MULTI = /\n{3,}/gu;
-	var RE_IMDB_ID = /(?<id>tt\d+)/u;
-	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
-	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
-	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
-	var RE_HTTP = /^https?:\/\//u;
-	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
-	var RE_IMDB_LINK = /^tt\d+$/u;
-	var RE_SEASON_SUFFIX = /\d$/u;
-	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
-	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
-	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
-	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
-	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
-	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
-	var RE_CRLF = /\r\n?/gu;
-	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
-	var extractRating$1 = (doc) => {
-		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
-		const score = raw ? Number(raw) : NaN;
-		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
-		return {
-			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
-			score
-		};
-	};
-	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
-	var extractSummary = (doc) => {
-		const summary = $("span[property=\"v:summary\"]", doc);
-		if (!summary) return null;
-		return normalizeSummaryText(summary.textContent || "") || null;
-	};
-	var extractVisibleSummary = (doc) => {
-		const container = doc.querySelector("#link-report-intra");
-		if (!container) return extractSummary(doc);
-		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
-	};
-	var expandNativeSummary = (doc = document) => {
-		const before = extractVisibleSummary(doc);
-		const trigger = doc.querySelector("a.a_show_full");
-		if (!trigger) return Promise.resolve(before);
-		trigger.click();
-		const after = extractVisibleSummary(doc);
-		return Promise.resolve(after || before);
-	};
-	var CN_DIGIT = {
-		一: 1,
-		七: 7,
-		三: 3,
-		九: 9,
-		二: 2,
-		五: 5,
-		八: 8,
-		六: 6,
-		四: 4
-	};
-	var parseCnNum = (s) => {
-		const arabic = Math.trunc(Number(s));
-		if (!Number.isNaN(arabic)) return arabic;
-		const parts = s.split("十");
-		if (parts.length === 2) {
-			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
-			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
-			return tens * 10 + ones;
-		}
-		if (s === "十") return 10;
-		return CN_DIGIT[s] ?? 0;
-	};
-	var seasonNum = (title) => {
-		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
-		if (!m?.groups?.num) return 0;
-		return parseCnNum(m.groups.num);
-	};
-	var extractSeries = (doc) => {
-		const container = $("#series-items .items-swiper", doc);
-		if (!container) return [];
-		const seen = new Set();
-		const items = $$(".items-swiper-item", container);
-		const out = [];
-		for (const el of items) {
-			const linkEl = $(".items-swiper-item-pic a", el);
-			const imgEl = $(".items-swiper-item-pic a img", el);
-			const titleEl = $(".items-swiper-item-title a", el);
-			const ratingEl = $(".items-swiper-item-rating", el);
-			const link = linkEl ? linkEl.href : "";
-			if (!link || seen.has(link)) continue;
-			seen.add(link);
-			out.push({
-				link,
-				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
-				rating: safeText(ratingEl),
-				title: safeText(titleEl)
-			});
-		}
-		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
-	};
-	var extractSeriesMoreLink = (doc = document) => {
-		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
-		return link ? {
-			href: link.href,
-			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
-		} : void 0;
-	};
-	var watchSeries = (onSeries, doc = document) => {
-		const container = doc.querySelector("#series-items");
-		if (!container) return () => void 0;
-		const update = () => {
-			if (container.querySelector(".items-swiper")) onSeries(extractSeries(doc));
-		};
-		update();
-		const observer = new MutationObserver(update);
-		observer.observe(container, {
-			childList: true,
-			subtree: true
-		});
-		return () => observer.disconnect();
-	};
 	var Section = ({ children, id, moreLink, title }) => u("section", {
 		class: "atv-section",
 		id,
@@ -2895,375 +3533,24 @@ input::placeholder {
 			children: [u(RatingLogo, { name: props.source }), renderExternalRatingContent(props)]
 		});
 	};
-	var extractEnglishSeriesName = (h1) => {
-		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
-		if (!m) return "";
-		return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
-	};
-	var extractSeasonFromH1 = (h1) => {
-		const cn = "一二三四五六七八九十";
-		const m = h1.match(/(?:Season|第)\s*(?<digit>\d+|[一二三四五六七八九十])/iu);
-		if (!m?.groups?.digit) return;
-		const d = m.groups.digit;
-		return /^\d+$/u.test(d) ? Math.trunc(Number(d)) : cn.indexOf(d) + 1;
-	};
-	var buildContext = (imdbId, isTV, doc) => {
-		const doubanH1 = doc.querySelector("#content h1")?.textContent?.trim() || "";
-		const englishTitle = doubanH1 ? extractEnglishSeriesName(doubanH1) : null;
-		const season = doubanH1 ? extractSeasonFromH1(doubanH1) : void 0;
-		const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
-		const year = isTV ? void 0 : yearMatch?.groups?.year ?? void 0;
-		return {
-			englishTitle: englishTitle || null,
-			imdbId,
-			isTV,
-			season,
-			year
-		};
-	};
-	var imdbCache = createCache("dp:imdb-cache", 720 * 60 * 60 * 1e3);
-	var GRAPHQL_QUERY = `query GetRating($id: ID!) {
-  title(id: $id) {
-    id
-    titleText { text }
-    ratingsSummary { aggregateRating voteCount }
-    series {
-      series {
-        id
-        titleText { text }
-      }
-    }
-  }
-}`;
-	var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
-  title(id: $id) {
-    episodes {
-      episodes(first: 50, filter: {includeSeasons: [$season]}) {
-        edges {
-          node {
-            ratingsSummary { aggregateRating voteCount }
-          }
-        }
-      }
-    }
-  }
-}`;
-	var extractTitleFields = (parsed) => {
-		if (parsed.errors) return null;
-		const title = parsed?.data?.title;
-		const seriesNested = title?.series?.series;
-		const seriesInfo = seriesNested?.id ? {
-			id: seriesNested.id,
-			titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? ""
-		} : null;
-		return {
-			aggregateRating: title?.ratingsSummary?.aggregateRating,
-			seriesInfo,
-			titleText: title?.titleText?.text ?? null,
-			voteCount: title?.ratingsSummary?.voteCount
-		};
-	};
-	var parseResponse = (json) => {
-		try {
-			return extractTitleFields(JSON.parse(json)) ?? { error: true };
-		} catch {
-			return { error: true };
-		}
-	};
-	var parseSeasonRating = (json) => {
-		try {
-			const edges = JSON.parse(json)?.data?.title?.episodes?.episodes?.edges;
-			if (!edges || edges.length === 0) return null;
-			let totalWeighted = 0;
-			let totalVotes = 0;
-			for (const edge of edges) {
-				const rs = edge?.node?.ratingsSummary;
-				if (rs && typeof rs.aggregateRating === "number" && typeof rs.voteCount === "number" && rs.voteCount > 0) {
-					totalWeighted += rs.aggregateRating * rs.voteCount;
-					totalVotes += rs.voteCount;
-				}
-			}
-			if (totalVotes === 0) return null;
-			return { rating: {
-				count: totalVotes,
-				score: Math.round(totalWeighted / totalVotes * 10) / 10
-			} };
-		} catch {
-			return null;
-		}
-	};
-	var seasonCacheKey = (seriesId, season) => `${seriesId}-s${String(season).padStart(2, "0")}`;
-	var fetchImdbRating = async (imdbId, season) => {
-		if (!imdbId) return {
-			rating: null,
-			title: null
-		};
-		const cached = imdbCache.get(imdbId);
-		if (cached) return {
-			rating: cached.rating,
-			title: cached.title
-		};
-		let json;
-		try {
-			json = await gmPost("https://graphql.imdb.com/", JSON.stringify({
-				query: GRAPHQL_QUERY,
-				variables: { id: imdbId }
-			}), "https://www.imdb.com/", { "Content-Type": "application/json" });
-		} catch (error) {
-			console.warn("[IMDB] fetch FAILED for", imdbId, error);
-			return {
-				rating: null,
-				title: null
-			};
-		}
-		const parsed = parseResponse(json);
-		if ("error" in parsed) return {
-			rating: null,
-			title: null
-		};
-		const { aggregateRating, voteCount, titleText, seriesInfo } = parsed;
-		const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
-		if (season && seriesIdForSeason) {
-			const sKey = seasonCacheKey(seriesIdForSeason, season);
-			const sCached = imdbCache.get(sKey);
-			if (sCached) return {
-				rating: sCached.rating,
-				title: sCached.title
-			};
-			try {
-				const seasonResult = parseSeasonRating(await gmPost("https://graphql.imdb.com/", JSON.stringify({
-					query: SEASON_EPISODES_QUERY,
-					variables: {
-						id: seriesIdForSeason,
-						season: String(season)
-					}
-				}), "https://www.imdb.com/", { "Content-Type": "application/json" }));
-				if (seasonResult) {
-					const title = seriesInfo?.titleText ?? titleText ?? "";
-					imdbCache.set(sKey, {
-						rating: seasonResult.rating,
-						title
-					});
-					return {
-						rating: seasonResult.rating,
-						title
-					};
-				}
-			} catch {
-				console.warn("[IMDB] season episodes query failed, falling back");
-			}
-		}
-		const effectiveRating = aggregateRating;
-		const effectiveCount = voteCount;
-		const effectiveTitle = titleText;
-		if (typeof effectiveRating === "number" && typeof effectiveCount === "number") {
-			const rating = {
-				count: effectiveCount,
-				score: effectiveRating
-			};
-			const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
-			imdbCache.set(imdbId, {
-				rating,
-				title
-			});
-			return {
-				rating,
-				title
-			};
-		}
-		return {
-			rating: null,
-			title: effectiveTitle
-		};
-	};
-	var toRatingSlug = (title, separator) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, separator).replaceAll(separator === "-" ? /^-|-$/gu : /^_|_$/gu, "");
-	var createRatingCacheKey = (slug, separator, season, year) => {
-		let key = slug;
-		if (year) key = `${key}${separator}${year}`;
-		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
-		return key;
-	};
-	var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async (title, isTV, season, year) => {
-		if (!title) return null;
-		const slug = toRatingSlug(title, slugSeparator);
-		if (!slug) return null;
-		const key = createRatingCacheKey(slug, slugSeparator, season, year);
-		const cached = cache.get(key);
-		if (cached) return cached;
-		for (const url of urls({
-			isTV: Boolean(isTV),
-			season,
-			slug,
-			year
-		})) try {
-			const rating = parse(await gmGet(url, referer));
-			if (rating) {
-				cache.set(key, rating);
-				return rating;
-			}
-		} catch {}
-		return null;
-	};
-	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
-	var parseMcPage = (html) => {
-		const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (!match?.groups?.json) return null;
-		try {
-			const rating = JSON.parse(match.groups.json.trim())?.aggregateRating;
-			if (rating?.ratingValue === null || rating?.reviewCount === null) return null;
-			const score = Math.trunc(Number(String(rating.ratingValue)));
-			const reviewCount = Math.trunc(Number(String(rating.reviewCount)));
-			if (Number.isNaN(score) || Number.isNaN(reviewCount)) return null;
-			return {
-				reviewCount,
-				score
-			};
-		} catch {
-			return null;
-		}
-	};
-	var fetchMcRating = createRatingFetcher({
-		cache: mcCache,
-		parse: parseMcPage,
-		referer: "https://www.metacritic.com/",
-		slugSeparator: "-",
-		urls: ({ isTV, season, slug, year }) => {
-			if (isTV) return season ? [`https://www.metacritic.com/tv/${slug}/season-${season}`, `https://www.metacritic.com/tv/${slug}`] : [`https://www.metacritic.com/tv/${slug}`];
-			return year ? [`https://www.metacritic.com/movie/${slug}-${year}`, `https://www.metacritic.com/movie/${slug}`] : [`https://www.metacritic.com/movie/${slug}`];
-		}
-	});
-	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
-	var parseData = (raw) => {
-		const data = JSON.parse(raw);
-		const criticsRaw = data.criticsScore?.score;
-		const audienceRaw = data.audienceScore?.score;
-		if (criticsRaw === void 0 || criticsRaw === null || audienceRaw === void 0 || audienceRaw === null) return null;
-		const criticsScore = typeof criticsRaw === "string" ? Math.trunc(Number(criticsRaw)) : criticsRaw;
-		const audienceScore = typeof audienceRaw === "string" ? Math.trunc(Number(audienceRaw)) : audienceRaw;
-		if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) return null;
-		return {
-			audienceCount: (data.audienceScore?.likedCount ?? 0) + (data.audienceScore?.notLikedCount ?? 0),
-			audienceScore,
-			criticsCount: data.criticsScore?.ratingCount ?? 0,
-			criticsScore
-		};
-	};
-	var parseMediaScorecard = (html) => {
-		const mc = html.match(/<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (!mc?.groups?.json) return null;
-		try {
-			return parseData(mc.groups.json.trim());
-		} catch {
-			return null;
-		}
-	};
-	var parseRtPage = (html) => {
-		const msRating = parseMediaScorecard(html);
-		if (msRating) return msRating;
-		const match = html.match(/<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-		if (match?.groups?.json) try {
-			return parseData(match.groups.json.trim());
-		} catch {}
-		return null;
-	};
-	var fetchRtRating = createRatingFetcher({
-		cache: rottenCache,
-		parse: parseRtPage,
-		referer: "https://www.rottentomatoes.com/",
-		slugSeparator: "_",
-		urls: ({ isTV, season, slug, year }) => {
-			if (isTV) return season ? [`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`, `https://www.rottentomatoes.com/tv/${slug}`] : [`https://www.rottentomatoes.com/tv/${slug}`];
-			return year ? [`https://www.rottentomatoes.com/m/${slug}_${year}`, `https://www.rottentomatoes.com/m/${slug}`] : [`https://www.rottentomatoes.com/m/${slug}`];
-		}
-	});
-	var createDefaultDeps = () => ({
-		fetchImdbRating,
-		fetchMcRating,
-		fetchRtRating
-	});
-	var fetchImdbFromContext = (ctx, deps) => {
-		if (!ctx.imdbId) return Promise.resolve(null);
-		return deps.fetchImdbRating(ctx.imdbId, ctx.season);
-	};
-	var fetchRtFromContext = (ctx, deps) => {
-		if (!ctx.englishTitle) return Promise.resolve(null);
-		return deps.fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
-	};
-	var fetchMcFromContext = (ctx, deps) => {
-		if (!ctx.englishTitle) return Promise.resolve(null);
-		return deps.fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
-	};
-	var resolveAll = async (ctx, deps) => {
-		const resolvedDeps = deps ?? createDefaultDeps();
-		if (ctx.englishTitle) {
-			const [imdb, rt, mc] = await Promise.allSettled([
-				fetchImdbFromContext(ctx, resolvedDeps),
-				fetchRtFromContext(ctx, resolvedDeps),
-				fetchMcFromContext(ctx, resolvedDeps)
-			]);
-			return {
-				imdb: imdb.status === "fulfilled" ? imdb.value : null,
-				mc: mc.status === "fulfilled" ? mc.value : null,
-				rt: rt.status === "fulfilled" ? rt.value : null
-			};
-		}
-		const imdbResult = ctx.imdbId ? await fetchImdbFromContext(ctx, resolvedDeps).catch(() => null) : null;
-		if (imdbResult?.title) {
-			const fallbackCtx = {
-				...ctx,
-				englishTitle: imdbResult.title
-			};
-			const [rt, mc] = await Promise.allSettled([fetchRtFromContext(fallbackCtx, resolvedDeps), fetchMcFromContext(fallbackCtx, resolvedDeps)]);
-			return {
-				imdb: imdbResult,
-				mc: mc.status === "fulfilled" ? mc.value : null,
-				rt: rt.status === "fulfilled" ? rt.value : null
-			};
-		}
-		return {
-			imdb: imdbResult,
-			mc: null,
-			rt: null
-		};
-	};
-	var useExternalRatings = (imdbId, isTV) => {
-		const [external, setExternal] = d(null);
-		h(() => {
-			if (!imdbId) {
-				setExternal(null);
-				return;
-			}
-			let cancelled = false;
-			const loadRatings = async () => {
-				const ratings = await resolveAll(buildContext(imdbId, isTV, document));
-				if (!cancelled) setExternal(ratings);
-			};
-			loadRatings();
-			return () => {
-				cancelled = true;
-			};
-		}, [imdbId, isTV]);
-		return external;
-	};
-	var RatingPanel = ({ douban, imdbId, isTV }) => {
-		const external = useExternalRatings(imdbId, isTV);
+	var RatingPanel = ({ douban, externalRatings, imdbId }) => {
 		if (!douban && !imdbId) return null;
-		const resolved = Boolean(external);
+		const resolved = Boolean(externalRatings);
 		return u("div", {
 			class: "atv-rating-panel",
 			children: [u(DoubanRating, { rating: douban }), imdbId ? u(S, { children: [
 				u(ExternalRating, {
-					rating: external?.imdb?.rating ?? null,
+					rating: externalRatings?.imdb?.rating ?? null,
 					resolved,
 					source: "imdb"
 				}),
 				u(ExternalRating, {
-					rating: external?.mc ?? null,
+					rating: externalRatings?.mc ?? null,
 					resolved,
 					source: "metacritic"
 				}),
 				u(ExternalRating, {
-					rating: external?.rt ?? null,
+					rating: externalRatings?.rt ?? null,
 					resolved,
 					source: "rt"
 				})
@@ -3695,167 +3982,62 @@ input::placeholder {
 			})]
 		});
 	};
-	var extractFirstBroadcastPlatform = (doc) => {
-		const label = [...doc.querySelectorAll("label")].find((candidate) => candidate.textContent?.trim() === "电视台");
-		if (!label?.htmlFor) return null;
-		return [...doc.querySelectorAll("input")].find((candidate) => candidate.id === label.htmlFor)?.value.trim() || null;
-	};
-	var fetchFirstBroadcastPlatform = async (subjectId, referer = location.href) => {
-		if (!subjectId) return null;
-		try {
-			const html = await gmGet(`https://movie.douban.com/subject/${encodeURIComponent(subjectId)}/edit`, referer);
-			return extractFirstBroadcastPlatform(new DOMParser().parseFromString(html, "text/html"));
-		} catch {
-			return null;
-		}
-	};
-	var platformCache = new Map();
-	var platformRequests = new Map();
-	var loadFirstBroadcastPlatform = (subjectId) => {
-		if (platformCache.has(subjectId)) return Promise.resolve(platformCache.get(subjectId) ?? null);
-		const inFlight = platformRequests.get(subjectId);
-		if (inFlight) return inFlight;
-		const request = (async () => {
-			try {
-				const platform = await fetchFirstBroadcastPlatform(subjectId);
-				platformCache.set(subjectId, platform);
-				return platform;
-			} finally {
-				platformRequests.delete(subjectId);
-			}
-		})();
-		platformRequests.set(subjectId, request);
-		return request;
-	};
-	var useFirstBroadcastPlatform = (subjectId, loggedIn) => {
-		const [platform, setPlatform] = d(null);
-		h(() => {
-			if (!loggedIn || !subjectId) {
-				setPlatform(null);
-				return;
-			}
-			let active = true;
-			(async () => {
-				const value = await loadFirstBroadcastPlatform(subjectId);
-				if (active) setPlatform(value);
-			})();
-			return () => {
-				active = false;
-			};
-		}, [loggedIn, subjectId]);
-		return platform;
-	};
 	var noop$1 = () => void 0;
-	var Hero = ({ callbacks, data, expandNativeSummary, onOpenPoster = noop$1 }) => {
-		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
-		return u("section", {
-			class: "atv-hero",
-			children: [
-				u(HeroBackground, {
-					photos: data.photos,
-					poster: data.poster,
-					subjectId: data.subjectId
-				}),
-				u("div", { class: "atv-hero-vignette" }),
-				u("div", { class: "atv-hero-overlay-x" }),
-				u("div", { class: "atv-hero-overlay-y" }),
-				u("div", {
-					class: "atv-hero-inner-section",
-					children: u("div", {
-						class: "atv-hero-inner",
-						children: [u(HeroPoster, {
-							onOpenPoster,
-							poster: data.poster,
-							title: data.title
-						}), u("div", {
-							class: "atv-hero-info",
-							children: [
-								u("h1", {
-									class: "atv-hero-title",
-									children: data.title.primary || data.title.full
-								}),
-								data.title.original ? u("div", {
-									class: "atv-hero-orig",
-									children: data.title.original
-								}) : null,
-								u(HeroMeta, {
-									info: data.info,
-									isTV: data.isTV,
-									leading: firstBroadcastPlatform ? u(FirstBroadcastPlatform, { platform: firstBroadcastPlatform }) : null,
-									year: data.year
-								}),
-								u(RatingPanel, {
-									douban: data.rating,
-									imdbId: data.imdbId,
-									isTV: data.isTV
-								}),
-								u(HeroActions, {
-									callbacks,
-									state: data.interest
-								}),
-								data.summary ? u(HeroSummary, {
-									expandNativeSummary,
-									text: data.summary
-								}) : null
-							]
-						})]
-					})
+	var Hero = ({ callbacks, data, expandNativeSummary, externalRatings = null, firstBroadcastPlatform = null, onOpenPoster = noop$1 }) => u("section", {
+		class: "atv-hero",
+		children: [
+			u(HeroBackground, {
+				photos: data.photos,
+				poster: data.poster,
+				subjectId: data.subjectId
+			}),
+			u("div", { class: "atv-hero-vignette" }),
+			u("div", { class: "atv-hero-overlay-x" }),
+			u("div", { class: "atv-hero-overlay-y" }),
+			u("div", {
+				class: "atv-hero-inner-section",
+				children: u("div", {
+					class: "atv-hero-inner",
+					children: [u(HeroPoster, {
+						onOpenPoster,
+						poster: data.poster,
+						title: data.title
+					}), u("div", {
+						class: "atv-hero-info",
+						children: [
+							u("h1", {
+								class: "atv-hero-title",
+								children: data.title.primary || data.title.full
+							}),
+							data.title.original ? u("div", {
+								class: "atv-hero-orig",
+								children: data.title.original
+							}) : null,
+							u(HeroMeta, {
+								info: data.info,
+								isTV: data.isTV,
+								leading: firstBroadcastPlatform ? u(FirstBroadcastPlatform, { platform: firstBroadcastPlatform }) : null,
+								year: data.year
+							}),
+							u(RatingPanel, {
+								douban: data.rating,
+								externalRatings,
+								imdbId: data.imdbId
+							}),
+							u(HeroActions, {
+								callbacks,
+								state: data.interest
+							}),
+							data.summary ? u(HeroSummary, {
+								expandNativeSummary,
+								text: data.summary
+							}) : null
+						]
+					})]
 				})
-			]
-		});
-	};
-	var API_INTEREST = "https://movie.douban.com/j/subject";
-	var API_REMOVE = "https://movie.douban.com/subject";
-	var postInterest = async (subjectId, interest, options) => {
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({
-			ck,
-			comment: options?.comment ?? "",
-			foldcollect: "F",
-			interest,
-			private: "",
-			rating: typeof options?.rating === "number" ? String(options.rating) : "",
-			tags: options?.tags?.join(",") ?? ""
-		});
-		try {
-			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			const data = JSON.parse(text);
-			if (data.r === 0) return { ok: true };
-			return {
-				error: data.msg || "操作失败",
-				ok: false
-			};
-		} catch (error) {
-			console.warn("[ATV-Douban] postInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var removeInterest = async (subjectId, currentStatus) => {
-		if (currentStatus === "none") return { ok: true };
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({ ck });
-		try {
-			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			return { ok: true };
-		} catch (error) {
-			console.warn("[ATV-Douban] removeInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
+			})
+		]
+	});
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
 		class: "atv-interest-modal-stars",
 		children: Array.from({ length: 5 }, (_, index) => {
@@ -4007,18 +4189,13 @@ input::placeholder {
 			state
 		})
 	});
-	var reloadPage = () => {
-		location.reload();
-	};
 	var saveOptionsFromForm = (form) => ({
 		comment: form.comment,
 		rating: form.rating > 0 ? form.rating : void 0
 	});
-	var useInterestMarking = ({ adapters = {}, loggedIn, onLoginRequired, subjectId }) => {
+	var useInterestMarking = ({ adapters, loggedIn, onLoginRequired, subjectId }) => {
 		const [activeInterest, setActiveInterest] = d(null);
-		const post = adapters.post ?? postInterest;
-		const reload = adapters.reload ?? reloadPage;
-		const remove = adapters.remove ?? removeInterest;
+		const { post, reload, remove } = adapters;
 		const requireLogin = (action) => {
 			if (loggedIn) return true;
 			onLoginRequired(action);
@@ -4958,18 +5135,18 @@ input::placeholder {
 		merge: reviewWithVoteState,
 		persist: persistReviewVoteState
 	};
-	var SubjectPage = ({ data, deps }) => {
+	var SubjectPage = ({ data, runtime }) => {
 		const [activeComment, setActiveComment] = d(null);
 		const [activeReview, setActiveReview] = d(null);
 		const [activeMediaModal, setActiveMediaModal] = d(null);
 		const [loginAction, setLoginAction] = d(null);
-		const [series, setSeries] = d(data.series);
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
 		const avatarUrls = useAvatarUrls(data.comments);
 		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
 		const handleCommentVoteStateChange = commentVotes.setVoteState;
 		const handleReviewVoteStateChange = reviewVotes.setVoteState;
 		const interestMarking = useInterestMarking({
+			adapters: runtime.actions.interestMarking,
 			loggedIn: data.interest.loggedIn,
 			onLoginRequired: setLoginAction,
 			subjectId: data.subjectId
@@ -4979,29 +5156,26 @@ input::placeholder {
 				setLoginAction("给短评点有用");
 				return false;
 			}
-			return deps.canVote?.() ?? true;
+			return true;
 		};
 		const canReviewVote = () => {
 			if (!data.interest.loggedIn) {
 				setLoginAction("给影评投票");
 				return false;
 			}
-			return deps.canReviewVote?.() ?? true;
+			return true;
 		};
-		h(() => watchSeries(setSeries, deps.doc), [deps.doc]);
 		return u(S, { children: [
 			u(StickyNav, {
-				doc: deps.doc,
-				sections: computeNavSections({
-					...data,
-					series
-				}),
+				...runtime.navigation,
 				title: data.title
 			}),
 			u(Hero, {
 				callbacks: interestMarking.callbacks,
 				data: toHeroData(data),
-				expandNativeSummary: () => expandNativeSummary(deps.doc),
+				expandNativeSummary: runtime.actions.expandNativeSummary,
+				externalRatings: runtime.externalRatings,
+				firstBroadcastPlatform: runtime.firstBroadcastPlatform,
 				onOpenPoster: (src, alt) => setActiveMediaModal({
 					alt,
 					src,
@@ -5010,8 +5184,8 @@ input::placeholder {
 			}),
 			u(StreamingSection, { streaming: data.streaming }),
 			u(SeriesSection, {
-				items: series,
-				moreLink: deps.seriesMoreLink ?? extractSeriesMoreLink(deps.doc)
+				items: runtime.series,
+				moreLink: runtime.seriesMoreLink
 			}),
 			u(CastSection, { celebrities: data.celebrities }),
 			u(PhotosSection, {
@@ -5037,7 +5211,7 @@ input::placeholder {
 				getVoteState: commentVotes.getVoteState,
 				onOpen: setActiveComment,
 				onVoteStateChange: handleCommentVoteStateChange,
-				onVote: deps.handleVote,
+				onVote: runtime.actions.handleCommentVote,
 				subjectId: data.subjectId
 			}),
 			u(ReviewsSection, {
@@ -5046,7 +5220,7 @@ input::placeholder {
 				isTV: data.isTV,
 				onOpen: setActiveReview,
 				onVoteStateChange: handleReviewVoteStateChange,
-				onVote: deps.handleReviewVote,
+				onVote: runtime.actions.handleReviewVote,
 				reviews: reviewVotes.mergeVoteStates(data.reviews),
 				subjectId: data.subjectId
 			}),
@@ -5066,14 +5240,14 @@ input::placeholder {
 				},
 				onClose: () => setActiveComment(null),
 				onVoteStateChange: handleCommentVoteStateChange,
-				onVote: deps.handleVote,
+				onVote: runtime.actions.handleCommentVote,
 				voteState: commentVotes.getVoteState(activeComment)
 			}) : null,
 			activeReview ? u(ReviewModal, {
 				canVote: canReviewVote,
 				onClose: () => setActiveReview(null),
 				onVoteStateChange: handleReviewVoteStateChange,
-				onVote: deps.handleReviewVote,
+				onVote: runtime.actions.handleReviewVote,
 				review: reviewVotes.mergeVoteState(activeReview),
 				voteState: reviewVotes.getVoteState(activeReview)
 			}) : null,
@@ -5093,679 +5267,541 @@ input::placeholder {
 			interestMarking.form
 		] });
 	};
-	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
-		const lis = $$("li", ul);
-		const orgEl = lis[0] ? $("a", lis[0]) : null;
-		const org = lis[0] ? safeText(lis[0]) : "";
-		const name = lis[1] ? safeText(lis[1]) : "";
-		const personEl = lis[2] ? $("a", lis[2]) : null;
-		const person = lis[2] ? safeText(lis[2]) : "";
-		return {
-			name,
-			org,
-			orgLink: orgEl ? orgEl.href : "",
-			person,
-			personLink: personEl ? personEl.href : ""
+	var extractSeriesMoreLink = (doc = document) => {
+		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
+		return link ? {
+			href: link.href,
+			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
+		} : void 0;
+	};
+	var watchSeries = (onSeries, doc = document) => {
+		const container = doc.querySelector("#series-items");
+		if (!container) return () => void 0;
+		const update = () => {
+			if (container.querySelector(".items-swiper")) onSeries(extractSeries(doc));
 		};
-	}).filter((a) => a.org);
-	var upgradePoster = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
+		update();
+		const observer = new MutationObserver(update);
+		observer.observe(container, {
+			childList: true,
+			subtree: true
+		});
+		return () => observer.disconnect();
 	};
-	var upgradePhoto = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	var extractEnglishSeriesName = (h1) => {
+		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
+		if (!m) return "";
+		return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
 	};
-	var extractTitle = (doc) => {
-		const h1 = $("#content h1", doc);
-		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
-		let primary = full;
-		let original = "";
-		const idx = full.search(RE_WS);
-		if (idx > 0) {
-			primary = full.slice(0, idx).trim();
-			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
-		}
+	var extractSeasonFromH1 = (h1) => {
+		const cn = "一二三四五六七八九十";
+		const m = h1.match(/(?:Season|第)\s*(?<digit>\d+|[一二三四五六七八九十])/iu);
+		if (!m?.groups?.digit) return;
+		const d = m.groups.digit;
+		return /^\d+$/u.test(d) ? Math.trunc(Number(d)) : cn.indexOf(d) + 1;
+	};
+	var buildContext = (imdbId, isTV, doc) => {
+		const doubanH1 = doc.querySelector("#content h1")?.textContent?.trim() || "";
+		const englishTitle = doubanH1 ? extractEnglishSeriesName(doubanH1) : null;
+		const season = doubanH1 ? extractSeasonFromH1(doubanH1) : void 0;
+		const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
+		const year = isTV ? void 0 : yearMatch?.groups?.year ?? void 0;
 		return {
-			full,
-			original,
-			primary
+			englishTitle: englishTitle || null,
+			imdbId,
+			isTV,
+			season,
+			year
 		};
 	};
-	var extractYear = (doc) => {
-		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
-		return m ? m[1] : "";
+	var imdbCache = createCache("dp:imdb-cache", 720 * 60 * 60 * 1e3);
+	var GRAPHQL_QUERY = `query GetRating($id: ID!) {
+  title(id: $id) {
+    id
+    titleText { text }
+    ratingsSummary { aggregateRating voteCount }
+    series {
+      series {
+        id
+        titleText { text }
+      }
+    }
+  }
+}`;
+	var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
+  title(id: $id) {
+    episodes {
+      episodes(first: 50, filter: {includeSeasons: [$season]}) {
+        edges {
+          node {
+            ratingsSummary { aggregateRating voteCount }
+          }
+        }
+      }
+    }
+  }
+}`;
+	var extractTitleFields = (parsed) => {
+		if (parsed.errors) return null;
+		const title = parsed?.data?.title;
+		const seriesNested = title?.series?.series;
+		const seriesInfo = seriesNested?.id ? {
+			id: seriesNested.id,
+			titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? ""
+		} : null;
+		return {
+			aggregateRating: title?.ratingsSummary?.aggregateRating,
+			seriesInfo,
+			titleText: title?.titleText?.text ?? null,
+			voteCount: title?.ratingsSummary?.voteCount
+		};
 	};
-	var extractPoster = (doc) => {
-		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
-		if (!img) return null;
-		return upgradePoster(img.src || img.dataset.src || "");
-	};
-	var extractSubjectId = (doc) => {
-		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
-		return m ? m[1] : "";
-	};
-	var MAX_DISCUSSION_TOPICS = 10;
-	var DOUBAN_ORIGIN = "https://www.douban.com/";
-	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
-	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
-	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
-	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
-	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
-	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
-	var isTrackingParameter = (fragment) => {
-		const [rawKey] = fragment.split("=", 1);
+	var parseResponse = (json) => {
 		try {
-			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
+			return extractTitleFields(JSON.parse(json)) ?? { error: true };
 		} catch {
-			return false;
+			return { error: true };
 		}
 	};
-	var removeTrackingParameter = (search) => {
-		if (!search) return "";
-		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
-		return remaining.length ? `?${remaining.join("&")}` : "";
-	};
-	var toSafeDoubanUrl = (rawHref) => {
+	var parseSeasonRating = (json) => {
 		try {
-			const url = new URL(rawHref, DOUBAN_ORIGIN);
-			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
-			return url;
-		} catch {
-			return;
-		}
-	};
-	var normalizeTopicHref = (rawHref) => {
-		const url = toSafeDoubanUrl(rawHref);
-		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
-		const search = removeTrackingParameter(url.search);
-		return `${url.origin}${url.pathname}${search}${url.hash}`;
-	};
-	var normalizeDoubanHref = (rawHref, path) => {
-		const url = toSafeDoubanUrl(rawHref);
-		return url && path.test(url.pathname) ? url.href : "";
-	};
-	var extractAuthor = (authorCell) => {
-		const link = authorCell?.querySelector("a");
-		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
-		if (!name) return;
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
-		return href ? {
-			href,
-			name
-		} : { name };
-	};
-	var extractReplies = (repliesCell) => {
-		if (!repliesCell) return;
-		const text = safeText(repliesCell);
-		if (!text) return 0;
-		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
-		if (match?.groups) return Number(match.groups.replies);
-		const bare = Number(text);
-		return Number.isSafeInteger(bare) ? bare : void 0;
-	};
-	var isValidDiscussionTimestamp = (dateTime) => {
-		const value = new Date(`${dateTime}Z`);
-		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
-	};
-	var extractActivity = (activityCell) => {
-		const raw = safeText(activityCell);
-		if (!raw) return;
-		const match = DISCUSSION_TIMESTAMP.exec(raw);
-		if (!match?.groups) return { raw };
-		const { date, seconds, time } = match.groups;
-		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
-		return isValidDiscussionTimestamp(dateTime) ? {
-			date,
-			dateTime,
-			raw,
-			time
-		} : { raw };
-	};
-	var extractTopics = (container) => {
-		const topics = [];
-		for (const row of $$("table tr", container)) {
-			if (row.closest(".mv-hot-discussion-list")) continue;
-			const link = row.cells[0]?.querySelector("a");
-			const title = safeText(link);
-			const rawHref = link?.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeTopicHref(rawHref) : "";
-			if (title && href) {
-				const author = extractAuthor(row.cells[1]);
-				const replies = extractReplies(row.cells[2]);
-				const activity = extractActivity(row.cells[3]);
-				topics.push({
-					...activity ? { activity } : {},
-					...author ? { author } : {},
-					href,
-					...replies === void 0 ? {} : { replies },
-					title
-				});
-				if (topics.length === MAX_DISCUSSION_TOPICS) break;
-			}
-		}
-		return topics;
-	};
-	var extractStartDiscussionHref = (container) => {
-		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
-	};
-	var linkHref = (link, path) => {
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
-	};
-	var extractLinkTotal = (link) => {
-		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
-		const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
-		return Number.isSafeInteger(total) ? total : void 0;
-	};
-	var extractAllDiscussions = (container) => {
-		const pLink = container.querySelector("p a");
-		const pHref = linkHref(pLink, COLLECTION_PATH);
-		if (pHref) {
-			const total = extractLinkTotal(pLink);
-			return total === void 0 ? { href: pHref } : {
-				href: pHref,
-				total
-			};
-		}
-		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
-		if (h2Href) return { href: h2Href };
-		const listLink = container.querySelector(".mv-discussion-list a");
-		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
-		if (listHref) {
-			const total = extractLinkTotal(listLink);
-			return total === void 0 ? { href: listHref } : {
-				href: listHref,
-				total
-			};
-		}
-	};
-	var findModDiscussion = (doc) => {
-		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
-		return null;
-	};
-	var extractFromContainer = (container) => {
-		const topics = extractTopics(container);
-		const startDiscussionHref = extractStartDiscussionHref(container);
-		const allDiscussions = extractAllDiscussions(container);
-		return {
-			...allDiscussions ? { allDiscussions } : {},
-			...startDiscussionHref ? { startDiscussionHref } : {},
-			topics
-		};
-	};
-	var extractDiscussions = (doc) => {
-		const primary = doc.querySelector(".section-discussion");
-		if (primary) return extractFromContainer(primary);
-		const mod = findModDiscussion(doc);
-		if (mod) return extractFromContainer(mod);
-		return { topics: [] };
-	};
-	var findLabel = (root, label) => {
-		if (!root) return null;
-		const spans = $$("span.pl", root);
-		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
-		return null;
-	};
-	var collectInfoTextAfter = (root, label, trim) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return "";
-		let out = "";
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 3) out += n.nodeValue;
-			else if (n.nodeType === 1) out += n.textContent || "";
-			n = n.nextSibling;
-		}
-		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
-		if (trim !== false) result = result.trim();
-		return result;
-	};
-	var collectLinksAfter = (root, label) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return [];
-		const out = [];
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 1) {
-				const el = n;
-				const anchors = el.tagName === "A" ? [el] : $$("a", el);
-				for (const a of anchors) {
-					const t = (a.textContent || "").trim();
-					if (t) out.push({
-						href: a.href || "",
-						text: t
-					});
+			const edges = JSON.parse(json)?.data?.title?.episodes?.episodes?.edges;
+			if (!edges || edges.length === 0) return null;
+			let totalWeighted = 0;
+			let totalVotes = 0;
+			for (const edge of edges) {
+				const rs = edge?.node?.ratingsSummary;
+				if (rs && typeof rs.aggregateRating === "number" && typeof rs.voteCount === "number" && rs.voteCount > 0) {
+					totalWeighted += rs.aggregateRating * rs.voteCount;
+					totalVotes += rs.voteCount;
 				}
 			}
-			n = n.nextSibling;
+			if (totalVotes === 0) return null;
+			return { rating: {
+				count: totalVotes,
+				score: Math.round(totalWeighted / totalVotes * 10) / 10
+			} };
+		} catch {
+			return null;
 		}
-		return out;
 	};
-	var extractInfo = (doc) => {
-		const info = $("#info", doc);
-		const out = {
-			aliases: "",
-			cast: [],
-			country: "",
-			director: [],
-			episodeRuntime: "",
-			episodes: "",
-			firstAired: "",
-			genres: [],
-			imdb: "",
-			language: "",
-			releaseDate: "",
-			runtime: "",
-			seasons: "",
-			writers: []
+	var seasonCacheKey = (seriesId, season) => `${seriesId}-s${String(season).padStart(2, "0")}`;
+	var fetchImdbRating = async (imdbId, season) => {
+		if (!imdbId) return {
+			rating: null,
+			title: null
 		};
-		if (!info) return out;
-		out.director = collectLinksAfter(info, "导演");
-		out.writers = collectLinksAfter(info, "编剧");
-		const starringEls = $$("a[rel=\"v:starring\"]", info);
-		out.cast = starringEls.length ? starringEls.map((a) => ({
-			href: a.href || "",
-			text: (a.textContent || "").trim()
-		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
-		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
-		out.country = collectInfoTextAfter(info, "制片国家/地区");
-		out.language = collectInfoTextAfter(info, "语言");
-		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
-		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.firstAired = collectInfoTextAfter(info, "首播");
-		const runEls = $$("span[property=\"v:runtime\"]", info);
-		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.episodes = collectInfoTextAfter(info, "集数");
-		if (findLabel(info, "季数")) {
-			const sel = $("#season", info);
-			if (sel) {
-				const opt = sel.options[sel.selectedIndex];
-				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
-			} else out.seasons = collectInfoTextAfter(info, "季数");
-		}
-		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
-		out.aliases = collectInfoTextAfter(info, "又名");
-		if (findLabel(info, "IMDb")) {
-			const raw = collectInfoTextAfter(info, "IMDb");
-			const m = raw.match(RE_IMDB_ID);
-			out.imdb = m ? m[1] : raw;
-		}
-		return out;
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
-	};
-	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
-	var isInterestActive = (anchor) => {
-		if (!anchor) return false;
-		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-		return RE_INTEREST_ACTIVE.test(classes);
-	};
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
-			comment = comment.trim();
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
+		const cached = imdbCache.get(imdbId);
+		if (cached) return {
+			rating: cached.rating,
+			title: cached.title
 		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchInterestText(text);
-			if (s && isInterestActive(a)) status = s;
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = findInterestRoot(doc);
-		const anchors = findInterestAnchors(doc, root);
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: [],
-				usefulCount: s3.usefulCount
+		let json;
+		try {
+			json = await gmPost("https://graphql.imdb.com/", JSON.stringify({
+				query: GRAPHQL_QUERY,
+				variables: { id: imdbId }
+			}), "https://www.imdb.com/", { "Content-Type": "application/json" });
+		} catch (error) {
+			console.warn("[IMDB] fetch FAILED for", imdbId, error);
+			return {
+				rating: null,
+				title: null
 			};
 		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
+		const parsed = parseResponse(json);
+		if ("error" in parsed) return {
+			rating: null,
+			title: null
 		};
-	};
-	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
-		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
-		const roleEl = $(".info .role", li);
-		const avatarEl = $(".avatar", li);
-		let avatar = "";
-		if (avatarEl) {
-			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
-			if (m) [, avatar] = m;
-		}
-		return {
-			avatar: encodeURI(avatar),
-			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
-			name: safeText(nameEl),
-			role: safeText(roleEl)
-		};
-	}).filter((c) => c.name);
-	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
-		const thumb = img.src || img.dataset.src || "";
-		const a = img.closest("a");
-		return {
-			hdUrl: upgradePhoto(thumb) || "",
-			link: a ? a.href : "",
-			thumbUrl: encodeURI(thumb)
-		};
-	}).filter((p) => p.thumbUrl);
-	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
-		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
-		const thumbUrl = m ? m[1] : "";
-		return {
-			thumbUrl: encodeURI(thumbUrl),
-			title: a.getAttribute("title") || "",
-			trailerPageUrl: a.href
-		};
-	}).filter((t) => t.trailerPageUrl);
-	var extractReviewRating = (item) => {
-		let stars = 0;
-		let ratingWord = "";
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (ratingEl) {
-			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
-			ratingWord = ratingEl.getAttribute("title") || "";
-		}
-		if (stars === 0) {
-			const titleRating = $(".main-title-rating", item);
-			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
-		}
-		return {
-			ratingWord,
-			stars
-		};
-	};
-	var extractReviewContent = (item) => {
-		const shortContent = $(".review-short .short-content", item);
-		if (shortContent) {
-			const contentCopy = shortContent.cloneNode(true);
-			contentCopy.querySelector("a.unfold")?.remove();
-			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
-		}
-		const mainBd = $(".main-bd", item);
-		return mainBd ? safeText(mainBd) : "";
-	};
-	var extractReviewVotes = (item) => {
-		const action = $(".action", item);
-		if (!action) return {
-			usefulCount: 0,
-			uselessCount: 0
-		};
-		const upEl = $(".action-btn.up", action);
-		const downEl = $(".action-btn.down", action);
-		return {
-			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
-			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
-		};
-	};
-	var extractReviewItem = (item) => {
-		const title = safeText($(".main-bd h2 a", item));
-		if (!title) return null;
-		const nameLink = $(".main-hd a.name", item);
-		const name = safeText(nameLink);
-		if (!name) return null;
-		const avatarImg = $(".main-hd .avator img", item);
-		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
-		const { stars, ratingWord } = extractReviewRating(item);
-		const time = safeText($(".main-hd .main-meta", item));
-		const content = extractReviewContent(item);
-		const { usefulCount, uselessCount } = extractReviewVotes(item);
-		const spoiler = !!$(".spoiler-tip", item);
-		return {
-			avatar,
-			content,
-			id: item.id || "",
-			link: nameLink?.href ?? "",
-			name,
-			ratingWord,
-			spoiler,
-			stars,
-			time,
-			title,
-			usefulCount,
-			uselessCount
-		};
-	};
-	var extractReviews = (doc) => {
-		const items = $$("#reviews-wrapper .review-item", doc);
-		const out = [];
-		for (const item of items) {
-			const review = extractReviewItem(item);
-			if (review) out.push(review);
-		}
-		return out;
-	};
-	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
-		const linkEl = $("dt a", dl);
-		const imgEl = $("dt a img", dl);
-		const titleEl = $("dd a", dl);
-		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
-		return {
-			link: linkEl ? linkEl.href : "",
-			poster: upgradePoster(rawPoster) || "",
-			title: safeText(titleEl)
-		};
-	}).filter((r) => r.title);
-	var extractRating = (item) => {
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (!ratingEl) return {
-			ratingWord: "",
-			stars: 0
-		};
-		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-		return {
-			ratingWord: ratingEl.getAttribute("title") || "",
-			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
-		};
-	};
-	var extractTime = (item) => {
-		const timeEl = $(".comment-time", item);
-		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
-	};
-	var extractVotes = (item) => {
-		const votesEl = $(".vote-count", item) ?? $(".votes", item);
-		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
-	};
-	var extractAvatar = (item) => {
-		const img = $(".avatar img", item);
-		if (!img) return "";
-		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
-	};
-	var extractVoted = (item) => {
-		if (item.querySelector(".j.vote-comment")) return false;
-		const voteArea = $(".comment-vote", item);
-		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
-	};
-	var extractComments = (doc) => {
-		const items = $$("#hot-comments .comment-item", doc);
-		const out = [];
-		for (const item of items) {
-			const authorEl = $(".comment-info a", item);
-			const name = safeText(authorEl);
-			if (!name) continue;
-			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
-			if (!content) continue;
-			const { stars, ratingWord } = extractRating(item);
-			out.push({
-				avatar: extractAvatar(item),
-				cid: item.dataset.cid ?? "",
-				content,
-				link: authorEl?.href ?? "",
-				name,
-				ratingWord,
-				stars,
-				time: extractTime(item),
-				voted: extractVoted(item),
-				votes: extractVotes(item)
-			});
-		}
-		return out;
-	};
-	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = (doc) => {
-		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
-		if (!srcScript) return {};
-		const txt = srcScript.textContent;
-		const map = {};
-		let m = RE_PLAY_SOURCES.exec(txt);
-		while (m) {
-			const [, sourceId] = m;
-			const playLink = m[2].replaceAll("&amp;", "&");
-			if (!map[sourceId]) map[sourceId] = playLink;
-			m = RE_PLAY_SOURCES.exec(txt);
-		}
-		return map;
-	};
-	var extractStreaming = (doc) => {
-		const seen = new Set();
-		const out = [];
-		const sourcesMap = parsePlaySources(doc);
-		const playBtns = $$("a.playBtn", doc);
-		for (const a of playBtns) {
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			let { href } = a;
-			if (!isRealUrl(href)) {
-				const sourceId = a.dataset.source;
-				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
-				else continue;
+		const { aggregateRating, voteCount, titleText, seriesInfo } = parsed;
+		const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
+		if (season && seriesIdForSeason) {
+			const sKey = seasonCacheKey(seriesIdForSeason, season);
+			const sCached = imdbCache.get(sKey);
+			if (sCached) return {
+				rating: sCached.rating,
+				title: sCached.title
+			};
+			try {
+				const seasonResult = parseSeasonRating(await gmPost("https://graphql.imdb.com/", JSON.stringify({
+					query: SEASON_EPISODES_QUERY,
+					variables: {
+						id: seriesIdForSeason,
+						season: String(season)
+					}
+				}), "https://www.imdb.com/", { "Content-Type": "application/json" }));
+				if (seasonResult) {
+					const title = seriesInfo?.titleText ?? titleText ?? "";
+					imdbCache.set(sKey, {
+						rating: seasonResult.rating,
+						title
+					});
+					return {
+						rating: seasonResult.rating,
+						title
+					};
+				}
+			} catch {
+				console.warn("[IMDB] season episodes query failed, falling back");
 			}
-			const iconUrl = a.dataset.pic || void 0;
-			out.push({
-				href,
-				iconUrl,
-				name
-			});
 		}
-		for (const a of $$("a", doc)) {
-			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			if (isRealUrl(a.href)) out.push({
-				href: a.href,
-				name
+		const effectiveRating = aggregateRating;
+		const effectiveCount = voteCount;
+		const effectiveTitle = titleText;
+		if (typeof effectiveRating === "number" && typeof effectiveCount === "number") {
+			const rating = {
+				count: effectiveCount,
+				score: effectiveRating
+			};
+			const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
+			imdbCache.set(imdbId, {
+				rating,
+				title
 			});
+			return {
+				rating,
+				title
+			};
 		}
-		return out;
-	};
-	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
-	var extractDoubanData = (doc) => {
-		const info = extractInfo(doc);
-		const isTV = isTVInfo(info);
 		return {
-			awards: extractAwards(doc),
-			celebrities: extractCelebrities(doc),
-			comments: extractComments(doc),
-			discussions: extractDiscussions(doc),
-			info,
-			interest: extractInterestState(doc),
-			isTV,
-			photos: extractPhotos(doc),
-			poster: extractPoster(doc),
-			rating: extractRating$1(doc),
-			recommendations: extractRecommendations(doc),
-			reviews: extractReviews(doc),
-			series: extractSeries(doc),
-			streaming: extractStreaming(doc),
-			subjectId: extractSubjectId(doc),
-			summary: extractSummary(doc),
-			title: extractTitle(doc),
-			trailers: extractTrailers(doc),
-			year: extractYear(doc)
+			rating: null,
+			title: effectiveTitle
 		};
+	};
+	var toRatingSlug = (title, separator) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, separator).replaceAll(separator === "-" ? /^-|-$/gu : /^_|_$/gu, "");
+	var createRatingCacheKey = (slug, separator, season, year) => {
+		let key = slug;
+		if (year) key = `${key}${separator}${year}`;
+		if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
+		return key;
+	};
+	var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async (title, isTV, season, year) => {
+		if (!title) return null;
+		const slug = toRatingSlug(title, slugSeparator);
+		if (!slug) return null;
+		const key = createRatingCacheKey(slug, slugSeparator, season, year);
+		const cached = cache.get(key);
+		if (cached) return cached;
+		for (const url of urls({
+			isTV: Boolean(isTV),
+			season,
+			slug,
+			year
+		})) try {
+			const rating = parse(await gmGet(url, referer));
+			if (rating) {
+				cache.set(key, rating);
+				return rating;
+			}
+		} catch {}
+		return null;
+	};
+	var mcCache = createCache("dp:metacritic-cache", 10080 * 60 * 1e3);
+	var parseMcPage = (html) => {
+		const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (!match?.groups?.json) return null;
+		try {
+			const rating = JSON.parse(match.groups.json.trim())?.aggregateRating;
+			if (rating?.ratingValue === null || rating?.reviewCount === null) return null;
+			const score = Math.trunc(Number(String(rating.ratingValue)));
+			const reviewCount = Math.trunc(Number(String(rating.reviewCount)));
+			if (Number.isNaN(score) || Number.isNaN(reviewCount)) return null;
+			return {
+				reviewCount,
+				score
+			};
+		} catch {
+			return null;
+		}
+	};
+	var fetchMcRating = createRatingFetcher({
+		cache: mcCache,
+		parse: parseMcPage,
+		referer: "https://www.metacritic.com/",
+		slugSeparator: "-",
+		urls: ({ isTV, season, slug, year }) => {
+			if (isTV) return season ? [`https://www.metacritic.com/tv/${slug}/season-${season}`, `https://www.metacritic.com/tv/${slug}`] : [`https://www.metacritic.com/tv/${slug}`];
+			return year ? [`https://www.metacritic.com/movie/${slug}-${year}`, `https://www.metacritic.com/movie/${slug}`] : [`https://www.metacritic.com/movie/${slug}`];
+		}
+	});
+	var rottenCache = createCache("dp:rotten-cache", 10080 * 60 * 1e3);
+	var parseData = (raw) => {
+		const data = JSON.parse(raw);
+		const criticsRaw = data.criticsScore?.score;
+		const audienceRaw = data.audienceScore?.score;
+		if (criticsRaw === void 0 || criticsRaw === null || audienceRaw === void 0 || audienceRaw === null) return null;
+		const criticsScore = typeof criticsRaw === "string" ? Math.trunc(Number(criticsRaw)) : criticsRaw;
+		const audienceScore = typeof audienceRaw === "string" ? Math.trunc(Number(audienceRaw)) : audienceRaw;
+		if (Number.isNaN(criticsScore) || Number.isNaN(audienceScore)) return null;
+		return {
+			audienceCount: (data.audienceScore?.likedCount ?? 0) + (data.audienceScore?.notLikedCount ?? 0),
+			audienceScore,
+			criticsCount: data.criticsScore?.ratingCount ?? 0,
+			criticsScore
+		};
+	};
+	var parseMediaScorecard = (html) => {
+		const mc = html.match(/<script[^>]*data-json="mediaScorecard"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (!mc?.groups?.json) return null;
+		try {
+			return parseData(mc.groups.json.trim());
+		} catch {
+			return null;
+		}
+	};
+	var parseRtPage = (html) => {
+		const msRating = parseMediaScorecard(html);
+		if (msRating) return msRating;
+		const match = html.match(/<script[^>]*type="application\/json"[^>]*data-json="reviewsData"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
+		if (match?.groups?.json) try {
+			return parseData(match.groups.json.trim());
+		} catch {}
+		return null;
+	};
+	var fetchRtRating = createRatingFetcher({
+		cache: rottenCache,
+		parse: parseRtPage,
+		referer: "https://www.rottentomatoes.com/",
+		slugSeparator: "_",
+		urls: ({ isTV, season, slug, year }) => {
+			if (isTV) return season ? [`https://www.rottentomatoes.com/tv/${slug}/s${String(season).padStart(2, "0")}`, `https://www.rottentomatoes.com/tv/${slug}`] : [`https://www.rottentomatoes.com/tv/${slug}`];
+			return year ? [`https://www.rottentomatoes.com/m/${slug}_${year}`, `https://www.rottentomatoes.com/m/${slug}`] : [`https://www.rottentomatoes.com/m/${slug}`];
+		}
+	});
+	var createDefaultDeps = () => ({
+		fetchImdbRating,
+		fetchMcRating,
+		fetchRtRating
+	});
+	var fetchImdbFromContext = (ctx, deps) => {
+		if (!ctx.imdbId) return Promise.resolve(null);
+		return deps.fetchImdbRating(ctx.imdbId, ctx.season);
+	};
+	var fetchRtFromContext = (ctx, deps) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return deps.fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
+	var fetchMcFromContext = (ctx, deps) => {
+		if (!ctx.englishTitle) return Promise.resolve(null);
+		return deps.fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
+	};
+	var resolveAll = async (ctx, deps) => {
+		const resolvedDeps = deps ?? createDefaultDeps();
+		if (ctx.englishTitle) {
+			const [imdb, rt, mc] = await Promise.allSettled([
+				fetchImdbFromContext(ctx, resolvedDeps),
+				fetchRtFromContext(ctx, resolvedDeps),
+				fetchMcFromContext(ctx, resolvedDeps)
+			]);
+			return {
+				imdb: imdb.status === "fulfilled" ? imdb.value : null,
+				mc: mc.status === "fulfilled" ? mc.value : null,
+				rt: rt.status === "fulfilled" ? rt.value : null
+			};
+		}
+		const imdbResult = ctx.imdbId ? await fetchImdbFromContext(ctx, resolvedDeps).catch(() => null) : null;
+		if (imdbResult?.title) {
+			const fallbackCtx = {
+				...ctx,
+				englishTitle: imdbResult.title
+			};
+			const [rt, mc] = await Promise.allSettled([fetchRtFromContext(fallbackCtx, resolvedDeps), fetchMcFromContext(fallbackCtx, resolvedDeps)]);
+			return {
+				imdb: imdbResult,
+				mc: mc.status === "fulfilled" ? mc.value : null,
+				rt: rt.status === "fulfilled" ? rt.value : null
+			};
+		}
+		return {
+			imdb: imdbResult,
+			mc: null,
+			rt: null
+		};
+	};
+	var useExternalRatings = (imdbId, isTV, doc) => {
+		const [external, setExternal] = d(null);
+		h(() => {
+			if (!imdbId) {
+				setExternal(null);
+				return;
+			}
+			let cancelled = false;
+			const loadRatings = async () => {
+				const ratings = await resolveAll(buildContext(imdbId, isTV, doc));
+				if (!cancelled) setExternal(ratings);
+			};
+			loadRatings();
+			return () => {
+				cancelled = true;
+			};
+		}, [
+			doc,
+			imdbId,
+			isTV
+		]);
+		return external;
+	};
+	var extractFirstBroadcastPlatform = (doc) => {
+		const label = [...doc.querySelectorAll("label")].find((candidate) => candidate.textContent?.trim() === "电视台");
+		if (!label?.htmlFor) return null;
+		return [...doc.querySelectorAll("input")].find((candidate) => candidate.id === label.htmlFor)?.value.trim() || null;
+	};
+	var fetchFirstBroadcastPlatform = async (subjectId, referer = location.href) => {
+		if (!subjectId) return null;
+		try {
+			const html = await gmGet(`https://movie.douban.com/subject/${encodeURIComponent(subjectId)}/edit`, referer);
+			return extractFirstBroadcastPlatform(new DOMParser().parseFromString(html, "text/html"));
+		} catch {
+			return null;
+		}
+	};
+	var platformCache = new Map();
+	var platformRequests = new Map();
+	var loadFirstBroadcastPlatform = (subjectId) => {
+		if (platformCache.has(subjectId)) return Promise.resolve(platformCache.get(subjectId) ?? null);
+		const inFlight = platformRequests.get(subjectId);
+		if (inFlight) return inFlight;
+		const request = (async () => {
+			try {
+				const platform = await fetchFirstBroadcastPlatform(subjectId);
+				platformCache.set(subjectId, platform);
+				return platform;
+			} finally {
+				platformRequests.delete(subjectId);
+			}
+		})();
+		platformRequests.set(subjectId, request);
+		return request;
+	};
+	var useFirstBroadcastPlatform = (subjectId, loggedIn) => {
+		const [platform, setPlatform] = d(null);
+		h(() => {
+			if (!loggedIn || !subjectId) {
+				setPlatform(null);
+				return;
+			}
+			let active = true;
+			(async () => {
+				const value = await loadFirstBroadcastPlatform(subjectId);
+				if (active) setPlatform(value);
+			})();
+			return () => {
+				active = false;
+			};
+		}, [loggedIn, subjectId]);
+		return platform;
+	};
+	var useStickyNavigation = (doc, sections) => {
+		const [activeSectionId, setActiveSectionId] = d("");
+		const [visible, setVisible] = d(false);
+		const [scrolling, setScrolling] = d(false);
+		const lastVisibleRef = A(false);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			let scrollTimer;
+			const handleScroll = () => {
+				const isVisible = view.scrollY > 300;
+				if (isVisible !== lastVisibleRef.current) {
+					lastVisibleRef.current = isVisible;
+					setVisible(isVisible);
+				}
+				setScrolling(true);
+				view.clearTimeout(scrollTimer);
+				scrollTimer = view.setTimeout(() => setScrolling(false), 150);
+			};
+			view.addEventListener("scroll", handleScroll, { passive: true });
+			handleScroll();
+			return () => {
+				view.removeEventListener("scroll", handleScroll);
+				view.clearTimeout(scrollTimer);
+			};
+		}, [doc]);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			const elements = new Map();
+			for (const section of sections) {
+				const element = doc.querySelector(`#${section.id}`);
+				if (element) elements.set(section.id, element);
+			}
+			let pending = false;
+			const pick = () => {
+				let activeId = "";
+				let bestScore = -Infinity;
+				for (const section of sections) {
+					const element = elements.get(section.id);
+					if (!element) continue;
+					const rect = element.getBoundingClientRect();
+					const visibleTop = Math.max(rect.top, 56);
+					const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
+					const score = Math.max(0, visibleBottom - visibleTop);
+					if (score > bestScore) {
+						activeId = section.id;
+						bestScore = score;
+					}
+				}
+				setActiveSectionId(activeId);
+				pending = false;
+			};
+			const observer = new view.IntersectionObserver(() => {
+				if (pending) return;
+				pending = true;
+				view.requestAnimationFrame(pick);
+			}, { threshold: [
+				0,
+				.25,
+				.5
+			] });
+			for (const element of elements.values()) observer.observe(element);
+			pick();
+			return () => observer.disconnect();
+		}, [doc, sections]);
+		return {
+			activeSectionId,
+			onJump: q((sectionId) => {
+				const prefersReducedMotion = (doc.defaultView ?? window).matchMedia("(prefers-reduced-motion: reduce)").matches;
+				doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+					behavior: prefersReducedMotion ? "auto" : "smooth",
+					block: "start"
+				});
+			}, [doc]),
+			scrolling,
+			sections,
+			visible
+		};
+	};
+	var reloadPage = () => {
+		location.reload();
+	};
+	var SubjectPageRuntime = ({ data, doc }) => {
+		const [series, setSeries] = d(data.series);
+		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
+		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
+		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
+			...data,
+			series
+		}), [data, series]));
+		h(() => watchSeries(setSeries, doc), [doc]);
+		return u(SubjectPage, {
+			data,
+			runtime: {
+				actions: {
+					expandNativeSummary: () => expandNativeSummary(doc),
+					handleCommentVote: (cid) => postVote(cid, data.subjectId),
+					handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
+					interestMarking: {
+						post: postInterest,
+						reload: reloadPage,
+						remove: removeInterest
+					}
+				},
+				externalRatings,
+				firstBroadcastPlatform,
+				navigation,
+				series,
+				seriesMoreLink: extractSeriesMoreLink(doc)
+			}
+		});
 	};
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
@@ -5788,16 +5824,9 @@ input::placeholder {
 		setSubjectTitle(doc, data);
 		const root = doc.createElement("div");
 		root.id = "atv-douban-root";
-		R(u(SubjectPage, {
+		R(u(SubjectPageRuntime, {
 			data,
-			deps: {
-				canReviewVote: () => true,
-				canVote: () => true,
-				doc,
-				handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
-				handleVote: (cid) => postVote(cid, data.subjectId),
-				seriesMoreLink: extractSeriesMoreLink(doc)
-			}
+			doc
 		}), root);
 		doc.body.insertBefore(root, doc.body.firstChild);
 	};

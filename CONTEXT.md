@@ -32,7 +32,7 @@ GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, a
 
 `src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject-page/` or shared Preact primitives under `src/components/`.
 
-External rating data flows through **extract → resolve → Preact render**. The `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. The active UI consumes those results in `src/modules/subject-page/ratings/use-external-ratings.ts`; there is no longer a DOM `apply.ts` bridge.
+External rating data flows through **extract → resolve → Preact render**. The `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. `src/runtime/use-external-ratings.ts` owns the runtime lifecycle; there is no DOM `apply.ts` bridge.
 
 ### Module layout
 
@@ -40,8 +40,8 @@ External rating data flows through **extract → resolve → Preact render**. Th
 src/
   modules/
     subject-page/      — active Preact page module and domain UI experiences
-      subject-page.tsx   — page composition seam; callers pass data + deps
-      types.ts           — subject-page dependency and callback contracts
+      subject-page.tsx   — pure page composition seam; runtime passes data + runtime value
+      types.ts           — subject-page runtime data and action contracts
       hero/              — hero background, poster, metadata, summary, actions
       ratings/           — Douban panel plus unified IMDb / Metacritic / Rotten Tomatoes external rating display
       media/             — streaming, series, cast, photos, recommendations
@@ -73,12 +73,13 @@ src/
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
   runtime/             — subject page runtime module (deepened 2026-07-08)
-    mount.tsx            — external runtime interface: extract → render Preact → start effects
+    mount.tsx            — external runtime interface: extract → render SubjectPageRuntime
+    subject-page-runtime.tsx — deep host integration module: lifecycle, requests, browser state → SubjectPage runtime value
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     avatar-effect.ts     — comment avatar fetch/apply effect
     series-effect.ts     — late-loading series observer and nav insertion
-    sticky-effect.ts     — sticky nav reveal + active-section tracking
+    use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
 ```
 
@@ -90,7 +91,7 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The Preact ratings module is the only consumer of resolved rating data; `useExternalRatings` loads the async results and `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
+`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The subject-page runtime module loads async results; `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
 
 ### Resolution seam tests (18 tests across 2 files)
 
@@ -148,7 +149,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 ### Current deep modules
 
 1. **Subject page Preact module (2026-07-08)** — `src/modules/subject-page/` owns the active UI:
-   - External seam is `SubjectPage({ data, deps })`; runtime passes extracted `DoubanData` and injected callbacks.
+   - External seam is `SubjectPage({ data, runtime })`; runtime passes extracted `DoubanData`, resolved host data, and user actions without leaking the Douban document.
    - Internal modules follow user-facing experiences: `hero`, `ratings`, `media`, `details`, `comments`, `reviews`, `interest`, and `login`.
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
@@ -174,7 +175,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    5. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
-   - External rating resolution now lives inside the Preact `ratings` module through `useExternalRatings`
+   - External rating resolution, first-broadcast lookup, late series observation, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`
    - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
 
 5. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
@@ -215,7 +216,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 ### Key design decisions
 
 - **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
-- **Deep subject-page seam**: Runtime calls `SubjectPage({ data, deps })`; module internals own layout, local UI state, modals, voting affordances, and rating panels.
+- **Deep subject-page seam**: Runtime calls `SubjectPageRuntime({ data, doc })`, which calls `SubjectPage({ data, runtime })`; Subject page internals own layout, local UI state, modals, voting affordances, and rating panels without touching the Douban document or network.
 - **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Shared modal visual tokens such as the accent bar and base close button styling live in `src/styles/modals.css`; experience files should keep only positioning or state-specific overrides.
 - **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.

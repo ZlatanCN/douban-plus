@@ -1,7 +1,6 @@
 import type { JSX } from "preact";
 import { useState } from "preact/hooks";
 
-import { postInterest, removeInterest } from "@/api/interest";
 import type {
   HeroCallbacks,
   InterestFormState,
@@ -17,20 +16,20 @@ type InterestResult = {
 };
 
 type InterestMarkingAdapters = {
-  post?: (
+  post: (
     subjectId: string,
     status: InterestFormState["status"],
     options?: { comment?: string; rating?: number }
   ) => Promise<InterestResult>;
-  reload?: () => void;
-  remove?: (
+  reload: () => void;
+  remove: (
     subjectId: string,
     status: InterestState["status"]
   ) => Promise<InterestResult>;
 };
 
 type UseInterestMarkingOptions = {
-  adapters?: InterestMarkingAdapters;
+  adapters: InterestMarkingAdapters;
   loggedIn: boolean;
   onLoginRequired: (action: string) => void;
   subjectId: string;
@@ -41,10 +40,6 @@ type InterestMarking = {
   form: JSX.Element | null;
 };
 
-const reloadPage = (): void => {
-  location.reload();
-};
-
 const saveOptionsFromForm = (
   form: InterestFormState
 ): { comment: string; rating?: number } => ({
@@ -53,7 +48,7 @@ const saveOptionsFromForm = (
 });
 
 const useInterestMarking = ({
-  adapters = {},
+  adapters,
   loggedIn,
   onLoginRequired,
   subjectId,
@@ -61,9 +56,7 @@ const useInterestMarking = ({
   const [activeInterest, setActiveInterest] = useState<InterestState | null>(
     null
   );
-  const post = adapters.post ?? postInterest;
-  const reload = adapters.reload ?? reloadPage;
-  const remove = adapters.remove ?? removeInterest;
+  const { post, reload, remove } = adapters;
 
   const requireLogin = (action: string): boolean => {
     if (loggedIn) {
