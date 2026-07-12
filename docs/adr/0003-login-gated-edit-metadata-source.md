@@ -1,0 +1,3 @@
+# Use the login-gated edit page only for first-broadcast platform data
+
+The public subject page may make one same-origin request to its corresponding edit page when the user is logged in, solely to retrieve the first-broadcast platform that the public page does not expose. This deliberately trades one extra request for that one new Hero attribution while preserving the existing public-page experience when the user is logged out, the session expires, or the edit page cannot be read; no edit permission is required. Existing public-page fields are neither filled nor overridden from the edit page. The request must not delay the initial render or create a loading placeholder; the attribution appears only after a successful response.

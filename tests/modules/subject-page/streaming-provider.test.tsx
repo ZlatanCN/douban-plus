@@ -16,6 +16,14 @@ const stream = (overrides: Partial<Streaming>): Streaming => ({
 });
 
 describe(resolveStreamingProvider, () => {
+  it("resolves AMC from its direct host", () => {
+    expect(
+      resolveStreamingProvider(
+        stream({ href: "https://www.amc.com/shows/example", name: "播放" })
+      ).key
+    ).toBe("amc");
+  });
+
   it("uses curated Simple Icons assets when a provider has one", () => {
     const provider = resolveStreamingProvider(
       stream({
@@ -99,7 +107,10 @@ describe(StreamingSection, () => {
       expect(card.classList.contains("atv-stream-card-combined")).toBeTruthy();
       expect(card.querySelector("svg")).not.toBeNull();
     }
-    expect(cards[0]?.dataset.provider).toBe("bilibili");
+    expect({
+      provider: cards[0]?.dataset.provider,
+      surface: cards[0]?.classList.contains("is-surface-dark"),
+    }).toStrictEqual({ provider: "bilibili", surface: true });
   });
 
   it("renders unknown provider icons with the fallback mark", () => {
@@ -120,5 +131,47 @@ describe(StreamingSection, () => {
     expect(card?.querySelector(".atv-stream-logo-fallback")?.textContent).toBe(
       "芒"
     );
+  });
+
+  it("uses the curated icon for a recognized provider over its source image", () => {
+    const root = renderSingle(
+      <StreamingSection
+        streaming={[
+          stream({
+            href: "https://www.primevideo.com/detail/example",
+            iconUrl: "https://example.com/prime.png",
+            name: "Prime Video",
+          }),
+        ]}
+      />
+    );
+
+    expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
+    expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
+      "is-intrinsic"
+    );
+    expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
+      "is-surface-paper"
+    );
+  });
+
+  it("uses the extracted Douban iconUrl for a recognized provider without an SVG", () => {
+    const root = renderSingle(
+      <StreamingSection
+        streaming={[
+          stream({
+            href: "https://www.miguvideo.com/example",
+            iconUrl: "https://example.com/migu.png",
+            name: "咪咕视频",
+          }),
+        ]}
+      />
+    );
+
+    const icon = root.querySelector<HTMLImageElement>(
+      ".atv-stream-vendor-icon"
+    );
+    expect(icon).not.toBeNull();
+    expect(icon?.getAttribute("src")).toBe("https://example.com/migu.png");
   });
 });

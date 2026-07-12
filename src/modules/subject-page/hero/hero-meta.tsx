@@ -1,3 +1,5 @@
+import type { ComponentChildren } from "preact";
+
 import { RE_SEASON_SUFFIX } from "@/constants";
 import type { InfoBlock } from "@/types";
 
@@ -7,10 +9,11 @@ type HeroMetaProps = {
     "country" | "episodeRuntime" | "episodes" | "genres" | "runtime" | "seasons"
   >;
   isTV: boolean;
+  leading?: ComponentChildren;
   year: string;
 };
 
-const HeroMeta = ({ info, isTV, year }: HeroMetaProps) => {
+const HeroMeta = ({ info, isTV, leading, year }: HeroMetaProps) => {
   const metaParts: string[] = [];
 
   if (year) {
@@ -42,6 +45,7 @@ const HeroMeta = ({ info, isTV, year }: HeroMetaProps) => {
 
   return (
     <div class="atv-hero-meta">
+      {leading}
       {metaParts.map((part) => (
         <span class="atv-meta-dot" key={part}>
           {part}

@@ -224,6 +224,79 @@ describe(Hero, () => {
     );
   });
 
+  it("adds a first-broadcast attribution after the signed-in edit lookup", async () => {
+    mockRequest.mockClear();
+    mockRequest.mockResolvedValue(`
+      <div class="item basic">
+        <label for="p_142">电视台</label>
+        <input id="p_142" value="Apple TV+" readonly />
+      </div>
+    `);
+    const el = renderSingle(
+      <Hero
+        callbacks={makeCallbacks()}
+        data={makeHeroData({
+          interest: { ...defaultInterest, loggedIn: true },
+          subjectId: "36858672",
+        })}
+      />
+    );
+
+    await waitUntil(() =>
+      expect(
+        el.querySelector(".atv-hero-meta .atv-first-broadcast-platform")
+      ).not.toBeNull()
+    );
+
+    expect(mockRequest).toHaveBeenCalledWith(
+      "https://movie.douban.com/subject/36858672/edit",
+      location.href
+    );
+  });
+
+  it("does not request first-broadcast data for logged-out viewers", async () => {
+    mockRequest.mockClear();
+    renderSingle(<Hero callbacks={makeCallbacks()} data={makeHeroData()} />);
+
+    await Promise.resolve();
+
+    expect(mockRequest).not.toHaveBeenCalled();
+  });
+
+  it("reuses a first-broadcast lookup across a same-page Hero remount", async () => {
+    mockRequest.mockClear();
+    mockRequest.mockResolvedValue(`
+      <div class="item basic">
+        <label for="p_142">电视台</label>
+        <input id="p_142" value="HBO/HBO Max" readonly />
+      </div>
+    `);
+    const data = makeHeroData({
+      interest: { ...defaultInterest, loggedIn: true },
+      subjectId: "36666949",
+    });
+
+    const first = renderSingle(
+      <Hero callbacks={makeCallbacks()} data={data} />
+    );
+    await waitUntil(() =>
+      expect(
+        first.querySelector(".atv-first-broadcast-platform")
+      ).not.toBeNull()
+    );
+
+    const second = renderSingle(
+      <Hero callbacks={makeCallbacks()} data={data} />
+    );
+    await waitUntil(() =>
+      expect(
+        second.querySelector(".atv-first-broadcast-platform")
+      ).not.toBeNull()
+    );
+
+    expect(mockRequest).toHaveBeenCalledOnce();
+  });
+
   it("routes logged-out actions to the login-gated callbacks", () => {
     const callbacks = makeCallbacks();
     const el = renderSingle(

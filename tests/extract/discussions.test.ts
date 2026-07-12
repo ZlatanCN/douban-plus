@@ -280,4 +280,276 @@ describe(extractDiscussions, () => {
 
     expect(extractDiscussions(doc)).toStrictEqual({ topics: [] });
   });
+
+  /* ── 讨论区 Type 2: .section-discussion with <h2>讨论区</h2> ─── */
+
+  it("extracts topics from 讨论区 Type 2 (.section-discussion, 讨论区 heading)", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <div class="section-discussion">
+    <div class="mod-hd">
+      <a class="comment_btn" href="/subject/1866479/discussion/create"><span>添加新讨论</span></a>
+      <h2>讨论区 · · · · · ·</h2>
+    </div>
+    <table class="olt"><tbody>
+      <tr>
+        <td class="pl"><a href="/subject/1866479/discussion/637822546/">《复仇者联盟》故事详情</a></td>
+        <td class="pl"><span>来自</span><a href="/people/2081423/">Jack</a></td>
+        <td class="pl"><span></span></td>
+        <td class="pl"><span>2025-12-23 13:44:29</span></td>
+      </tr>
+      <tr>
+        <td class="pl"><a href="/subject/1866479/discussion/637943690/">发现了和魔戒的联动！</a></td>
+        <td class="pl"><span>来自</span><a href="/people/141050347/">阿彩</a></td>
+        <td class="pl"><span></span></td>
+        <td class="pl"><span>2025-12-12 20:33:08</span></td>
+      </tr>
+    </tbody></table>
+    <p class="pl" align="right">
+      <a href="/subject/1866479/discussion/">去这部影片的讨论区（全部381条）</a>
+    </p>
+  </div>
+</body></html>`);
+
+    expect(extractDiscussions(doc)).toStrictEqual({
+      allDiscussions: {
+        href: "https://www.douban.com/subject/1866479/discussion/",
+        total: 381,
+      },
+      startDiscussionHref:
+        "https://www.douban.com/subject/1866479/discussion/create",
+      topics: [
+        {
+          activity: {
+            date: "2025-12-23",
+            dateTime: "2025-12-23T13:44:29",
+            raw: "2025-12-23 13:44:29",
+            time: "13:44",
+          },
+          author: {
+            href: "https://www.douban.com/people/2081423/",
+            name: "Jack",
+          },
+          href: "https://www.douban.com/subject/1866479/discussion/637822546/",
+          replies: 0,
+          title: "《复仇者联盟》故事详情",
+        },
+        {
+          activity: {
+            date: "2025-12-12",
+            dateTime: "2025-12-12T20:33:08",
+            raw: "2025-12-12 20:33:08",
+            time: "20:33",
+          },
+          author: {
+            href: "https://www.douban.com/people/141050347/",
+            name: "阿彩",
+          },
+          href: "https://www.douban.com/subject/1866479/discussion/637943690/",
+          replies: 0,
+          title: "发现了和魔戒的联动！",
+        },
+      ],
+    });
+  });
+
+  it("normalizes discussion-area topic and collection URLs when the page has no base URL", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <div class="section-discussion">
+    <table class="olt"><tbody>
+      <tr>
+        <td><a href="https://www.douban.com/subject/1866479/discussion/637822546/?_spm_id=tracking">故事详情</a></td>
+        <td></td><td></td><td></td>
+      </tr>
+    </tbody></table>
+    <p><a href="//www.douban.com/subject/1866479/discussion/">全部381条</a></p>
+  </div>
+</body></html>`);
+
+    expect(extractDiscussions(doc)).toStrictEqual({
+      allDiscussions: {
+        href: "https://www.douban.com/subject/1866479/discussion/",
+        total: 381,
+      },
+      topics: [
+        {
+          href: "https://www.douban.com/subject/1866479/discussion/637822546/",
+          replies: 0,
+          title: "故事详情",
+        },
+      ],
+    });
+  });
+
+  /* ── 讨论区 Type 1: <div class="mod"> with .mv-discussion-list ─── */
+
+  it("extracts topics from 讨论区 Type 1 (div.mod with mv-discussion-list)", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <div class="mod">
+    <div class="hd-ops">
+      <a class="comment_btn" href="https://www.douban.com/subject/2149047/discussion/create" rel="nofollow"><span>发起新的讨论</span></a>
+    </div>
+    <h2>
+      <i>讨论区</i> · · · · · ·
+      <span class="pl">(<a href="https://www.douban.com/subject/2149047/discussion/">全部</a>)</span>
+    </h2>
+    <div class="bd">
+      <div class="mv-discussion-nav">
+        <a href="/subject/2149047/discussion/" class="on">最新</a>
+        <a href="/subject/2149047/discussion/?sort=vote">热门</a>
+        <a href="/subject/2149047/discussion/?ep_num=1" data-epid="26158">1集</a>
+      </div>
+      <div class="mv-discussion-list discussion-list">
+        <table>
+          <thead>
+            <tr><td>讨论</td><td>作者</td><td>回应</td><td>最后回应</td></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="title"><a href="/subject/2149047/discussion/637915615/" title="Joan她们在茶水间讨论的那本禁书是什么？">[第3集] Joan她们在茶水间讨论的那本禁书是什么？</a></td>
+              <td><a href="https://www.douban.com/people/1374868/">约翰泥石流</a></td>
+              <td class="reply-num">3</td>
+              <td class="time">2026-07-03 11:54</td>
+            </tr>
+            <tr>
+              <td class="title"><a href="/subject/2149047/discussion/615333789/" title="有没有人觉得Don和马男波杰克很像">有没有人觉得Don和马男波杰克很像</a></td>
+              <td><a href="https://www.douban.com/people/138847848/">吉尔伽美什</a></td>
+              <td class="reply-num">8</td>
+              <td class="time">2026-06-20 12:20</td>
+            </tr>
+            <tr>
+              <td class="title"><a href="/subject/2149047/discussion/638003853/" title="萨瓦尔多是gay吗">萨瓦尔多是gay吗</a></td>
+              <td><a href="https://www.douban.com/people/272481202/">咸的正好</a></td>
+              <td class="reply-num">1</td>
+              <td class="time">2026-06-12 14:55</td>
+            </tr>
+          </tbody>
+        </table>
+        <a href="https://www.douban.com/subject/2149047/discussion/">&gt; 全部讨论220条</a>
+      </div>
+      <div class="mv-hot-discussion-list hide">
+        <table><tbody>
+          <tr><td class="title"><a href="/subject/2149047/discussion/1327961/">Don Draper 是个伪君子</a></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+</body></html>`);
+
+    expect(extractDiscussions(doc)).toStrictEqual({
+      allDiscussions: {
+        href: "https://www.douban.com/subject/2149047/discussion/",
+      },
+      startDiscussionHref:
+        "https://www.douban.com/subject/2149047/discussion/create",
+      topics: [
+        {
+          activity: {
+            date: "2026-07-03",
+            dateTime: "2026-07-03T11:54",
+            raw: "2026-07-03 11:54",
+            time: "11:54",
+          },
+          author: {
+            href: "https://www.douban.com/people/1374868/",
+            name: "约翰泥石流",
+          },
+          href: "https://www.douban.com/subject/2149047/discussion/637915615/",
+          replies: 3,
+          title: "[第3集] Joan她们在茶水间讨论的那本禁书是什么？",
+        },
+        {
+          activity: {
+            date: "2026-06-20",
+            dateTime: "2026-06-20T12:20",
+            raw: "2026-06-20 12:20",
+            time: "12:20",
+          },
+          author: {
+            href: "https://www.douban.com/people/138847848/",
+            name: "吉尔伽美什",
+          },
+          href: "https://www.douban.com/subject/2149047/discussion/615333789/",
+          replies: 8,
+          title: "有没有人觉得Don和马男波杰克很像",
+        },
+        {
+          activity: {
+            date: "2026-06-12",
+            dateTime: "2026-06-12T14:55",
+            raw: "2026-06-12 14:55",
+            time: "14:55",
+          },
+          author: {
+            href: "https://www.douban.com/people/272481202/",
+            name: "咸的正好",
+          },
+          href: "https://www.douban.com/subject/2149047/discussion/638003853/",
+          replies: 1,
+          title: "萨瓦尔多是gay吗",
+        },
+      ],
+    });
+  });
+
+  it("does not extract hidden hot-discussion table and handles bare reply numbers", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <div class="mod">
+    <div class="mv-discussion-list discussion-list">
+      <table><tbody>
+        <tr>
+          <td class="title"><a href="/subject/2149047/discussion/637915615/">话题</a></td>
+          <td><a href="/people/1/">作者</a></td>
+          <td class="reply-num"></td>
+          <td class="time">2026-07-03 11:54</td>
+        </tr>
+      </tbody></table>
+    </div>
+  </div>
+</body></html>`);
+
+    expect(extractDiscussions(doc)).toStrictEqual({
+      topics: [
+        {
+          activity: {
+            date: "2026-07-03",
+            dateTime: "2026-07-03T11:54",
+            raw: "2026-07-03 11:54",
+            time: "11:54",
+          },
+          author: {
+            href: "https://www.douban.com/people/1/",
+            name: "作者",
+          },
+          href: "https://www.douban.com/subject/2149047/discussion/637915615/",
+          replies: 0,
+          title: "话题",
+        },
+      ],
+    });
+  });
+
+  it("prefers .section-discussion over .mod when both containers exist", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+  <div class="section-discussion">
+    <table class="olt"><tbody>
+      <tr><td><a href="/group/topic/1/">小组话题</a></td></tr>
+    </tbody></table>
+  </div>
+  <div class="mod">
+    <div class="mv-discussion-list"><table><tbody>
+      <tr><td><a href="/subject/1/discussion/1/">讨论区话题</a></td></tr>
+    </tbody></table></div>
+  </div>
+</body></html>`);
+
+    expect(extractDiscussions(doc).topics).toHaveLength(1);
+    expect(extractDiscussions(doc).topics[0]?.href).toBe(
+      "https://www.douban.com/group/topic/1/"
+    );
+  });
 });
