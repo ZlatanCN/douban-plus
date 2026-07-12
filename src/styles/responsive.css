@@ -210,10 +210,6 @@
     transform: none;
   }
 
-  .atv-modal-video {
-    transition: none;
-  }
-
   .atv-modal-overlay.is-open .atv-modal-video {
     transform: none;
   }

@@ -346,18 +346,6 @@
 
 /* ── Skeleton (loading) ─────────────────────────── */
 
-.atv-rating-panel-imdb.is-loading,
-.atv-rating-panel-rt.is-loading,
-.atv-rating-panel-mc.is-loading {
-  transition: opacity 400ms ease;
-}
-
-.atv-rating-panel-imdb.is-empty,
-.atv-rating-panel-rt.is-empty,
-.atv-rating-panel-mc.is-empty {
-  display: none;
-}
-
 .atv-rating-panel-skeleton {
   width: 120px;
   height: 22px;

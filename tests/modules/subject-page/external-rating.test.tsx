@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { ExternalRating } from "@/modules/subject-page/ratings/external-rating";
 import type { ImdbRating as ImdbRatingData, McRating, RtRating } from "@/types";
 
-import { renderSingle } from "../../helpers/render";
+import { renderIntoRoot, renderSingle } from "../../helpers/render";
 
 const makeImdbRating = (
   overrides?: Partial<ImdbRatingData>
@@ -38,14 +38,12 @@ describe(ExternalRating, () => {
     expect(loading.querySelector(".atv-rating-panel-skeleton")).not.toBeNull();
   });
 
-  it("renders shared empty state for external sources", () => {
-    const empty = renderSingle(
+  it("omits an external source that resolves without a rating", () => {
+    const root = renderIntoRoot(
       <ExternalRating rating={null} resolved source="metacritic" />
     );
 
-    expect(empty.classList.contains("atv-rating-panel-mc")).toBeTruthy();
-    expect(empty.classList.contains("is-empty")).toBeTruthy();
-    expect(empty.querySelector(".atv-rating-panel-skeleton")).toBeNull();
+    expect(root.firstElementChild).toBeNull();
   });
 
   it("renders IMDb score, stars, count and logo when loaded", () => {

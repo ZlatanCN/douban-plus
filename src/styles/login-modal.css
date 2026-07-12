@@ -24,7 +24,7 @@ dialog::backdrop {
   pointer-events: none;
   transition:
     visibility 0s linear 360ms,
-    opacity 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    opacity 360ms var(--atv-ease-out);
   visibility: hidden;
 }
 
@@ -55,7 +55,7 @@ dialog::backdrop {
   scrollbar-width: none;
   text-align: center;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 350ms var(--atv-ease-out);
 }
 
 .atv-login-modal-inner::-webkit-scrollbar {

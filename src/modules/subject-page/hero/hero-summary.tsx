@@ -49,7 +49,9 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
         class={`atv-hero-teaser${expanded ? "" : " is-clamped"}`}
         ref={teaserRef}
       >
-        {summary}
+        <span class="atv-hero-teaser-content" key={summary}>
+          {summary}
+        </span>
       </p>
       <button
         class={`atv-hero-more${expanded ? " is-open" : ""}`}

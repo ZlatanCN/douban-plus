@@ -23,7 +23,7 @@
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
-    transform 200ms ease,
+    transform var(--atv-duration-hover) ease,
     background 200ms ease,
     box-shadow 200ms ease,
     color 200ms ease;
@@ -35,21 +35,11 @@
   color: #fff;
 }
 
-.atv-btn-primary:hover {
-  background: var(--atv-accent-bright);
-  transform: translateY(-1px);
-}
-
 .atv-btn-secondary {
   border: 1px solid var(--atv-border-medium);
   backdrop-filter: blur(10px);
   background: var(--atv-bg-elevated);
   color: var(--atv-text-primary);
-}
-
-.atv-btn-secondary:hover {
-  background: rgb(255 255 255 / 12%);
-  transform: translateY(-1px);
 }
 
 .atv-btn.is-active {

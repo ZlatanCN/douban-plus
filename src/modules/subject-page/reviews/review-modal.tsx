@@ -26,7 +26,7 @@ const bodyClassName = (
   status: ReturnType<typeof useReviewContent>["status"]
 ) => {
   if (status === "loaded") {
-    return "atv-review-modal-body";
+    return "atv-review-modal-body is-loaded";
   }
   if (status === "error") {
     return "atv-review-modal-body is-error";

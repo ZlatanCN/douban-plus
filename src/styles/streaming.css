@@ -27,7 +27,7 @@
     background 220ms ease,
     border-color 220ms ease,
     box-shadow 220ms ease,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform 220ms var(--atv-ease-out);
 }
 
 /* Center-glow overlay — subtle brand bloom from card center */
@@ -46,19 +46,6 @@
   transition: opacity 220ms ease;
 }
 
-.atv-stream-card:not(.atv-stream-card-combined):hover::after {
-  opacity: 0.18;
-}
-
-.atv-stream-card:hover {
-  border-color: rgb(255 255 255 / 18%);
-  background: rgb(255 255 255 / 9%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 8%),
-    0 12px 26px rgb(0 0 0 / 24%);
-  transform: translateY(-2px);
-}
-
 /* ── Combined SVG cards ── */
 .atv-stream-card-combined {
   height: 52px;
@@ -71,13 +58,6 @@
   width: auto;
   max-width: 160px;
   height: 32px;
-  transition: filter 220ms ease;
-}
-
-.atv-stream-card-combined:hover svg {
-  filter: drop-shadow(
-    0 0 14px var(--atv-stream-brand, var(--atv-accent-bright))
-  );
 }
 
 .atv-stream-logo.is-catalog svg {

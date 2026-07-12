@@ -13,17 +13,9 @@
   border-radius: var(--atv-radius-md);
   background: #121214;
   transition:
-    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 350ms var(--atv-ease-out),
     border-color 350ms ease,
     box-shadow 350ms ease;
-}
-
-.atv-comment-card:hover {
-  border-color: rgb(255 255 255 / 12%);
-  box-shadow:
-    0 8px 32px rgb(0 0 0 / 30%),
-    0 0 0 1px rgb(65 190 93 / 4%);
-  transform: translateY(-3px);
 }
 
 .atv-comment-top {
@@ -56,13 +48,8 @@
     filter 260ms ease;
 }
 
-.atv-comment-card:hover .atv-comment-avatar {
-  border-color: rgb(255 255 255 / 30%);
-  filter: brightness(1.15);
-}
-
 .atv-comment-avatar.atv-avatar-loaded {
-  animation: atv-avatar-reveal 400ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation: atv-avatar-reveal 400ms var(--atv-ease-out) forwards;
 }
 
 @keyframes atv-avatar-reveal {
@@ -167,14 +154,13 @@ a.atv-comment-author:hover {
     color 200ms ease,
     border-color 200ms ease,
     background 200ms ease,
-    transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform var(--atv-duration-press) var(--atv-ease-out);
 }
 
 .atv-comment-votes:hover {
   border-color: rgb(65 190 93 / 20%);
   background: rgb(65 190 93 / 4%);
   color: var(--atv-accent);
-  transform: scale(1.05);
 }
 
 .atv-comment-votes:focus-visible {
@@ -183,7 +169,7 @@ a.atv-comment-author:hover {
 }
 
 .atv-comment-votes:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
 
 .atv-comment-votes.is-voted {
@@ -269,7 +255,7 @@ a.atv-comment-author:hover {
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 400ms var(--atv-ease-out);
 }
 
 .atv-comment-overlay.is-open {
@@ -288,7 +274,7 @@ a.atv-comment-author:hover {
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 350ms var(--atv-ease-out);
 }
 
 .atv-comment-overlay.is-open .atv-comment-overlay-inner {
@@ -438,8 +424,9 @@ a.atv-comment-overlay-author:hover {
 }
 
 .atv-comment-overlay-votes:active {
-  transform: scale(0.95);
+  transform: scale(0.97);
 }
+
 
 .atv-comment-overlay-votes.is-voted {
   border-color: rgb(65 190 93 / 25%);

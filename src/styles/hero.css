@@ -142,11 +142,7 @@
   box-shadow:
     0 24px 60px rgb(0 0 0 / 60%),
     0 0 0 1px var(--atv-border-subtle) inset;
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.atv-poster-card:hover {
-  transform: scale(1.03);
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
 }
 
 .atv-poster-card img {

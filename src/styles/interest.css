@@ -15,7 +15,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 400ms var(--atv-ease-out);
 }
 
 .atv-interest-modal.is-open {
@@ -34,7 +34,7 @@
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 350ms var(--atv-ease-out);
 }
 
 .atv-interest-modal.is-open .atv-interest-modal-inner {
@@ -150,10 +150,6 @@
   color: var(--atv-rating-gold);
 }
 
-.atv-interest-modal-star:hover {
-  transform: scale(1.15);
-}
-
 .atv-interest-modal-star svg {
   display: block;
   width: 100%;
@@ -223,6 +219,7 @@
 .atv-interest-modal-submit:active {
   transform: scale(0.97);
 }
+
 
 .atv-interest-modal-submit:disabled {
   cursor: not-allowed;

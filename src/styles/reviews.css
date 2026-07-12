@@ -21,7 +21,7 @@
   text-align: left;
   touch-action: manipulation;
   transition:
-    transform 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 350ms var(--atv-ease-out),
     border-color 350ms ease,
     box-shadow 350ms ease;
 }
@@ -42,14 +42,6 @@
   position: relative;
   z-index: 1;
   display: contents;
-}
-
-.atv-review-card:hover {
-  border-color: rgb(255 255 255 / 12%);
-  box-shadow:
-    0 8px 32px rgb(0 0 0 / 30%),
-    0 0 0 1px rgb(65 190 93 / 4%);
-  transform: translateY(-3px);
 }
 
 .atv-review-card:active {
@@ -189,11 +181,6 @@
     transform 300ms ease;
 }
 
-.atv-review-card:hover .atv-review-readmore {
-  opacity: 0.7;
-  transform: translateX(0);
-}
-
 .atv-review-card:focus-visible .atv-review-readmore {
   opacity: 0.7;
   transform: translateX(0);
@@ -305,7 +292,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: opacity 400ms var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open {
@@ -345,7 +332,7 @@
   scrollbar-color: rgb(255 255 255 / 12%) transparent;
   scrollbar-width: thin;
   transform: scale(0.92) translateY(8px);
-  transition: transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 400ms var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open .atv-review-modal-scroll {
