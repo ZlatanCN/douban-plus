@@ -4,10 +4,21 @@ import { ModalCloseButton, ModalShell } from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
 
 import { mountNativeLoginFrame } from "./native-login-frame";
+import type { NativeLoginAdoptionState } from "./native-login-frame";
 
 type LoginModalProps = {
   action: string;
   onClose: () => void;
+};
+
+const statusForLoginState = (state: NativeLoginAdoptionState): string => {
+  if (state.kind === "error") {
+    return state.message;
+  }
+  if (state.kind === "loading" || state.kind === "mounted") {
+    return "正在载入豆瓣登录组件…";
+  }
+  return "";
 };
 
 const LoginModalContent = ({
@@ -53,9 +64,12 @@ const LoginModalContent = ({
 
 const LoginModal = ({ action, onClose }: LoginModalProps) => {
   const hostRef = useRef<HTMLDivElement>(null);
-  const [status, setStatus] = useState("正在载入豆瓣登录组件…");
-  const [busy, setBusy] = useState(true);
-  const [iframeReady, setIframeReady] = useState(false);
+  const [state, setState] = useState<NativeLoginAdoptionState>({
+    kind: "loading",
+  });
+  const busy = state.kind === "loading" || state.kind === "mounted";
+  const iframeReady = state.kind === "ready";
+  const status = statusForLoginState(state);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -63,40 +77,8 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
       return;
     }
 
-    return mountNativeLoginFrame(host, {
-      onError: (message) => {
-        setStatus(message);
-        setBusy(false);
-      },
-      onLoad: () => {
-        setIframeReady(true);
-        setStatus("");
-        setBusy(false);
-      },
-      onMount: () => {
-        setStatus("正在载入豆瓣登录组件…");
-      },
-    });
+    return mountNativeLoginFrame(host, setState);
   }, []);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const hasIframe = hostRef.current?.querySelector("iframe");
-      if (!hasIframe) {
-        return;
-      }
-      const hasSession = document.cookie
-        .split(";")
-        .some((cookie) => cookie.trim().startsWith("ck="));
-      if (hasSession) {
-        clearInterval(timer);
-        onClose();
-        window.location.reload();
-      }
-    }, 300);
-
-    return () => clearInterval(timer);
-  }, [onClose]);
 
   return (
     <ModalShell

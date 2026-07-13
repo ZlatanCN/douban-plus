@@ -4226,8 +4226,9 @@ input::placeholder {
 	};
 	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
 	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
-	var maxAttempts = 24;
+	var nativeLoginError = "无法载入豆瓣登录组件，请刷新页面后重试。";
 	var trustedLoginOrigin = "https://accounts.douban.com";
+	var maxAttempts = 24;
 	var clearNativeLoginMasks = () => {
 		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
 	};
@@ -4252,29 +4253,17 @@ input::placeholder {
 		iframe.removeAttribute("style");
 		iframe.classList.add("atv-login-modal-iframe");
 	};
-	var mountIframe = (host, iframe, callbacks, isStopped) => {
-		const onLoad = () => {
-			if (!isStopped()) callbacks.onLoad();
-		};
-		host.replaceChildren(iframe);
-		iframe.addEventListener("load", onLoad, { once: true });
-		callbacks.onMount();
-		requestAnimationFrame(() => {
-			if (!isStopped()) iframe.focus();
-		});
-		return () => iframe.removeEventListener("load", onLoad);
-	};
 	var prepareNativeLoginIframe = (dialog) => {
 		const iframe = dialog.querySelector("iframe");
 		if (!iframe) return {
 			kind: "error",
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。"
+			message: nativeLoginError
 		};
 		const source = iframe.getAttribute("src");
 		if (!source || source === "about:blank") return { kind: "pending" };
 		if (!isTrustedLoginIframe(iframe)) return {
 			kind: "error",
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。"
+			message: nativeLoginError
 		};
 		styleLoginIframe(iframe);
 		iframe.remove();
@@ -4292,8 +4281,34 @@ input::placeholder {
 		}
 		return null;
 	};
-	var preventNavigation = (e) => {
-		if (e.target instanceof HTMLAnchorElement) e.preventDefault();
+	var hasAuthenticatedSession = () => document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="));
+	var mountIframe = (host, iframe, onStateChange, isStopped) => {
+		let authenticated = false;
+		const sessionTimer = { current: void 0 };
+		const onLoad = () => {
+			if (!isStopped() && !authenticated) onStateChange({ kind: "ready" });
+		};
+		const checkSession = () => {
+			if (isStopped() || authenticated || !hasAuthenticatedSession()) return;
+			authenticated = true;
+			if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
+			onStateChange({ kind: "authenticated" });
+			window.location.reload();
+		};
+		host.replaceChildren(iframe);
+		iframe.addEventListener("load", onLoad, { once: true });
+		onStateChange({ kind: "mounted" });
+		sessionTimer.current = window.setInterval(checkSession, 300);
+		requestAnimationFrame(() => {
+			if (!isStopped()) iframe.focus();
+		});
+		return () => {
+			iframe.removeEventListener("load", onLoad);
+			if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
+		};
+	};
+	var preventNavigation = (event) => {
+		if (event.target instanceof HTMLAnchorElement) event.preventDefault();
 	};
 	var triggerNativeLoginDialog = () => {
 		const triggers = [...document.querySelectorAll(".a_show_login, .j.a_show_login")];
@@ -4302,7 +4317,7 @@ input::placeholder {
 		document.addEventListener("click", preventNavigation, { once: true });
 		trigger.click();
 	};
-	var mountNativeLoginFrame = (host, callbacks) => {
+	var mountNativeLoginFrame = (host, onStateChange) => {
 		let stopped = false;
 		let retryTimer;
 		let stopIframeMount;
@@ -4311,6 +4326,9 @@ input::placeholder {
 			if (retryTimer !== void 0) window.clearTimeout(retryTimer);
 			stopIframeMount?.();
 		};
+		const mount = (iframe) => {
+			stopIframeMount = mountIframe(host, iframe, onStateChange, () => stopped);
+		};
 		const attemptMount = (attempt) => {
 			if (stopped) return;
 			clearNativeLoginMasks();
@@ -4318,17 +4336,17 @@ input::placeholder {
 			if (dialog) {
 				const result = prepareNativeLoginIframe(dialog);
 				if (result.kind === "ready") {
-					stopIframeMount = mountIframe(host, result.iframe, callbacks, () => stopped);
+					mount(result.iframe);
 					return;
 				}
 				if (result.kind === "error") {
-					callbacks.onError(result.message);
+					onStateChange(result);
 					return;
 				}
 			}
 			const directIframe = findExistingLoginIframe();
 			if (directIframe) {
-				stopIframeMount = mountIframe(host, directIframe, callbacks, () => stopped);
+				mount(directIframe);
 				return;
 			}
 			if (attempt === 0) {
@@ -4342,10 +4360,19 @@ input::placeholder {
 				}, 100);
 				return;
 			}
-			callbacks.onError("无法载入豆瓣登录组件，请刷新页面后重试。");
+			onStateChange({
+				kind: "error",
+				message: nativeLoginError
+			});
 		};
+		onStateChange({ kind: "loading" });
 		attemptMount(0);
 		return stop;
+	};
+	var statusForLoginState = (state) => {
+		if (state.kind === "error") return state.message;
+		if (state.kind === "loading" || state.kind === "mounted") return "正在载入豆瓣登录组件…";
+		return "";
 	};
 	var LoginModalContent = ({ action, busy, hostRef, iframeReady, status }) => {
 		const handleClose = useModalClose();
@@ -4382,38 +4409,15 @@ input::placeholder {
 	};
 	var LoginModal = ({ action, onClose }) => {
 		const hostRef = A(null);
-		const [status, setStatus] = d("正在载入豆瓣登录组件…");
-		const [busy, setBusy] = d(true);
-		const [iframeReady, setIframeReady] = d(false);
+		const [state, setState] = d({ kind: "loading" });
+		const busy = state.kind === "loading" || state.kind === "mounted";
+		const iframeReady = state.kind === "ready";
+		const status = statusForLoginState(state);
 		h(() => {
 			const host = hostRef.current;
 			if (!host) return;
-			return mountNativeLoginFrame(host, {
-				onError: (message) => {
-					setStatus(message);
-					setBusy(false);
-				},
-				onLoad: () => {
-					setIframeReady(true);
-					setStatus("");
-					setBusy(false);
-				},
-				onMount: () => {
-					setStatus("正在载入豆瓣登录组件…");
-				}
-			});
+			return mountNativeLoginFrame(host, setState);
 		}, []);
-		h(() => {
-			const timer = setInterval(() => {
-				if (!hostRef.current?.querySelector("iframe")) return;
-				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
-					clearInterval(timer);
-					onClose();
-					window.location.reload();
-				}
-			}, 300);
-			return () => clearInterval(timer);
-		}, [onClose]);
 		return u(ModalShell, {
 			ariaDescribedBy: "atv-login-modal-desc",
 			ariaLabelledBy: "atv-login-modal-title",
@@ -4905,18 +4909,38 @@ input::placeholder {
 		"b",
 		"blockquote",
 		"br",
+		"cite",
 		"code",
+		"del",
 		"div",
 		"em",
+		"footer",
 		"h1",
 		"h2",
 		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"hr",
+		"img",
 		"li",
 		"ol",
 		"p",
 		"pre",
+		"q",
+		"s",
+		"small",
 		"span",
 		"strong",
+		"sub",
+		"sup",
+		"table",
+		"tbody",
+		"td",
+		"th",
+		"thead",
+		"tr",
+		"u",
 		"ul"
 	]);
 	var dangerousTags = new Set([
@@ -4927,6 +4951,17 @@ input::placeholder {
 		"object",
 		"script",
 		"style"
+	]);
+	var allowedImgAttrs = new Set([
+		"src",
+		"alt",
+		"width",
+		"height"
+	]);
+	var allowedTableCellAttrs = new Set([
+		"colspan",
+		"rowspan",
+		"scope"
 	]);
 	var sanitizeReviewHtml = (html) => {
 		const doc = new DOMParser().parseFromString(html, "text/html");
@@ -4939,13 +4974,20 @@ input::placeholder {
 				element.replaceWith(...element.childNodes);
 				continue;
 			}
-			for (const attribute of element.attributes) if (!(element.tagName.toLowerCase() === "a" && attribute.name === "href" && /^(?:https?:|\/|#)/iu.test(attribute.value.trim()))) element.removeAttribute(attribute.name);
+			for (const attribute of element.attributes) {
+				const tagName = element.tagName.toLowerCase();
+				const safeHref = tagName === "a" && attribute.name === "href" && /^(?:https?:|\/|#)/iu.test(attribute.value.trim());
+				const allowedImgAttr = tagName === "img" && allowedImgAttrs.has(attribute.name);
+				const allowedTableCellAttr = (tagName === "th" || tagName === "td") && allowedTableCellAttrs.has(attribute.name);
+				const allowedClass = attribute.name === "class";
+				if (!safeHref && !allowedImgAttr && !allowedTableCellAttr && !allowedClass) element.removeAttribute(attribute.name);
+			}
 		}
 		return doc.body.innerHTML;
 	};
 	var readNativeReviewContent = (rid) => {
 		const numericId = reviewNumericId(rid);
-		const fullContent = document.querySelector(`#${rid}`)?.querySelector(`#review_${numericId}_full .review-content`);
+		const fullContent = document.querySelector(`[id="${rid}"]`)?.querySelector(`#review_${numericId}_full .review-content`);
 		const text = (fullContent?.textContent ?? "").trim();
 		return fullContent && text ? sanitizeReviewHtml(fullContent.innerHTML) : null;
 	};
