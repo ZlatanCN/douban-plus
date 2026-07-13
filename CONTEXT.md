@@ -62,6 +62,7 @@ src/
   extract/             — DOM data extraction
     index.ts            — barrel
     title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
+    streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
     context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1

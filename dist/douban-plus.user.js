@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.2.7
+// @version      1.2.8
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -1314,8 +1314,8 @@ input::placeholder {
 		}
 		return out;
 	};
-	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = (doc) => {
+	var isRealUrl = (href) => RE_HTTP.test(href);
+	var parseLegacyPlaySources = (doc) => {
 		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
 		if (!srcScript) return {};
 		const txt = srcScript.textContent;
@@ -1332,18 +1332,19 @@ input::placeholder {
 	var extractStreaming = (doc) => {
 		const seen = new Set();
 		const out = [];
-		const sourcesMap = parsePlaySources(doc);
+		const sourcesMap = parseLegacyPlaySources(doc);
 		const playBtns = $$("a.playBtn", doc);
 		for (const a of playBtns) {
 			const name = (a.dataset.cn || a.textContent || "").trim();
 			if (!name || seen.has(name)) continue;
-			seen.add(name);
 			let { href } = a;
 			if (!isRealUrl(href)) {
 				const sourceId = a.dataset.source;
-				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
-				else continue;
+				const mappedHref = sourceId ? sourcesMap[sourceId] : void 0;
+				if (!mappedHref || !isRealUrl(mappedHref)) continue;
+				href = mappedHref;
 			}
+			seen.add(name);
 			const iconUrl = a.dataset.pic || void 0;
 			out.push({
 				href,
@@ -1354,9 +1355,9 @@ input::placeholder {
 		for (const a of $$("a", doc)) {
 			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
 			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
+			if (!name || seen.has(name) || !isRealUrl(a.href)) continue;
 			seen.add(name);
-			if (isRealUrl(a.href)) out.push({
+			out.push({
 				href: a.href,
 				name
 			});

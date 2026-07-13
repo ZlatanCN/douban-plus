@@ -10,7 +10,7 @@ import {
 import type { Streaming } from "@/types";
 import { $$ } from "@/utils/dom";
 
-const isRealUrl = (h: string) => RE_HTTP.test(h || "");
+const isRealUrl = (href: string): boolean => RE_HTTP.test(href);
 
 /**
  * Parse inline `<script>` blocks for TV play source data.
@@ -19,7 +19,7 @@ const isRealUrl = (h: string) => RE_HTTP.test(h || "");
  * CRITICAL: Regex logic must remain character-for-character — this was
  * a hard-fixed TV streaming feature.
  */
-const parsePlaySources = (doc: Document): Record<string, string> => {
+const parseLegacyPlaySources = (doc: Document): Record<string, string> => {
   const scripts = $$("script:not([src])", doc);
   const srcScript = scripts.find((s) =>
     RE_SOURCES_SCRIPT.test(s.textContent || "")
@@ -47,12 +47,12 @@ const parsePlaySources = (doc: Document): Record<string, string> => {
  * Strategy:
  * 1. Look for `a.playBtn` elements (primary method)
  * 2. Fall back to `<a>` links matching `online-video` in href
- * 3. For TV pages, fall back to `parsePlaySources()` for inline data
+ * 3. For TV pages, resolve legacy inline play-source data
  */
 const extractStreaming = (doc: Document): Streaming[] => {
   const seen = new Set<string>();
   const out: Streaming[] = [];
-  const sourcesMap = parsePlaySources(doc);
+  const sourcesMap = parseLegacyPlaySources(doc);
 
   const playBtns = $$<HTMLAnchorElement>("a.playBtn", doc);
   for (const a of playBtns) {
@@ -60,16 +60,16 @@ const extractStreaming = (doc: Document): Streaming[] => {
     if (!name || seen.has(name)) {
       continue;
     }
-    seen.add(name);
     let { href } = a;
     if (!isRealUrl(href)) {
       const sourceId = a.dataset.source;
-      if (sourceId && sourcesMap[sourceId]) {
-        href = sourcesMap[sourceId];
-      } else {
+      const mappedHref = sourceId ? sourcesMap[sourceId] : undefined;
+      if (!mappedHref || !isRealUrl(mappedHref)) {
         continue;
       }
+      href = mappedHref;
     }
+    seen.add(name);
     const iconUrl = a.dataset.pic || undefined;
     out.push({ href, iconUrl, name });
   }
@@ -79,17 +79,15 @@ const extractStreaming = (doc: Document): Streaming[] => {
       continue;
     }
     const name = (a.dataset.cn || a.textContent || "").trim();
-    if (!name || seen.has(name)) {
+    if (!name || seen.has(name) || !isRealUrl(a.href)) {
       continue;
     }
     seen.add(name);
-    if (isRealUrl(a.href)) {
-      out.push({ href: a.href, name });
-    }
+    out.push({ href: a.href, name });
   }
   return out;
 };
 
 /* ── Exports ────────────────────────────────────────── */
 
-export { extractStreaming, parsePlaySources };
+export { extractStreaming };
