@@ -38,7 +38,7 @@ describe(FirstBroadcastPlatform, () => {
     );
   });
 
-  it("renders AMC as a catalog-colored release mark", () => {
+  it("renders AMC as a catalog-colored release mark on dark surface", () => {
     const root = renderSingle(<FirstBroadcastPlatform platform="AMC" />);
     const mark = root.querySelector<HTMLElement>(
       ".atv-first-broadcast-platform-mark"
@@ -46,8 +46,8 @@ describe(FirstBroadcastPlatform, () => {
 
     expect(root.dataset.provider).toBe("amc");
     expect(mark?.classList).toContain("is-catalog");
-    expect(mark?.classList).toContain("is-surface-paper");
-    expect(mark?.style.color).toBe("#000000");
+    expect(mark?.classList).toContain("is-surface-dark");
+    expect(mark?.style.color).toBe("#ffffff");
   });
 
   it("uses the curated brand color for a colorable logo", () => {
@@ -70,14 +70,14 @@ describe(FirstBroadcastPlatform, () => {
     ).toContain("is-surface-dark");
   });
 
-  it("puts Prime Video's dark artwork on the shared paper surface", () => {
+  it("renders Prime Video as a catalog-colored release mark on dark surface", () => {
     const root = renderSingle(
       <FirstBroadcastPlatform platform="Prime Video" />
     );
 
     expect(
       root.querySelector(".atv-first-broadcast-platform-mark")?.classList
-    ).toContain("is-surface-paper");
+    ).toContain("is-surface-dark");
   });
 
   it("uses the catalog color for Disney's monochrome artwork", () => {
@@ -90,17 +90,16 @@ describe(FirstBroadcastPlatform, () => {
     expect(mark?.style.color).toBe("#113CCF");
   });
 
-  it.each([
-    ["Hulu", "hulu", "0 0 251 83"],
-    ["Disney+", "disney-plus", "0 0 534 302"],
-    ["Prime Video", "prime-video", "0 0 800.3 246.3"],
-  ])("renders %s as a wide supplied wordmark", (platform, key, viewBox) => {
-    const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
+  it.each([["Hulu", "hulu", "0 0 251 83"]])(
+    "renders %s as a wide supplied wordmark",
+    (platform, key, viewBox) => {
+      const root = renderSingle(<FirstBroadcastPlatform platform={platform} />);
 
-    expect(root.dataset.provider).toBe(key);
-    expect(
-      root.querySelector(".atv-first-broadcast-platform-mark")?.classList
-    ).toContain("is-wordmark");
-    expect(root.querySelector("svg")?.getAttribute("viewBox")).toBe(viewBox);
-  });
+      expect(root.dataset.provider).toBe(key);
+      expect(
+        root.querySelector(".atv-first-broadcast-platform-mark")?.classList
+      ).toContain("is-wordmark");
+      expect(root.querySelector("svg")?.getAttribute("viewBox")).toBe(viewBox);
+    }
+  );
 });

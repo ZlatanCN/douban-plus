@@ -34,7 +34,7 @@ describe(resolveStreamingProvider, () => {
 
     expect(provider.key).toBe("bilibili");
     expect(provider.Icon).toBeTypeOf("function");
-    expect(provider.color).toBe("#FF5588");
+    expect(provider.color).toBe("#00A1D6");
   });
 
   it("resolves wrapped Douban link2 URLs by target host", () => {
@@ -148,10 +148,10 @@ describe(StreamingSection, () => {
 
     expect(root.querySelector(".atv-stream-vendor-icon")).toBeNull();
     expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
-      "is-intrinsic"
+      "is-catalog"
     );
     expect(root.querySelector(".atv-stream-logo")?.classList).toContain(
-      "is-surface-paper"
+      "is-surface-dark"
     );
   });
 

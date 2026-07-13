@@ -14,7 +14,7 @@ const FirstBroadcastPlatform = ({
       .split("/")
       .map(findPlatformBrandByExactName)
       .find((candidate) => candidate !== null) ?? null;
-  const Icon = brand?.Icon;
+  const Icon = brand?.heroIcon ?? brand?.Icon;
 
   if (!brand || !Icon) {
     return (
