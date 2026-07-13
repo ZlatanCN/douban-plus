@@ -123,6 +123,7 @@ const makeRuntime = (
       remove: () => Promise.resolve({ ok: false }),
     },
   },
+  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -146,6 +147,36 @@ const renderSubjectPage = (
   onTestFinished(() => render(null, root));
   return root;
 };
+
+describe("Subject page runtime value", () => {
+  it("renders a runtime-supplied comment avatar without acquiring host data", () => {
+    const profileLink = "https://www.douban.com/people/page-avatar/";
+    const avatarUrl = "https://example.com/page-avatar.jpg";
+    const data = makeDoubanData({
+      comments: [
+        {
+          ...makeDoubanData().comments[0],
+          avatar: "",
+          cid: "page-avatar",
+          link: profileLink,
+        },
+      ],
+    });
+
+    const root = renderSubjectPage(
+      data,
+      makeRuntime(data, { avatarUrls: new Map([[profileLink, avatarUrl]]) })
+    );
+
+    expect(
+      root
+        .querySelector<HTMLElement>(
+          "[data-cid='page-avatar'] .atv-comment-avatar"
+        )
+        ?.getAttribute("style")
+    ).toContain(avatarUrl);
+  });
+});
 
 const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
   const stickyNav = document.createElement("nav");

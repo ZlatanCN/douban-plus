@@ -89,6 +89,7 @@ const makeRuntime = (
       remove: () => Promise.resolve({ ok: false }),
     },
   },
+  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {

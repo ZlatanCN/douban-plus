@@ -3044,111 +3044,6 @@ input::placeholder {
 			voteState
 		})
 	});
-	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
-		const load = () => {
-			try {
-				const raw = localStorage.getItem(storageKey);
-				if (!raw) return new Map();
-				const parsed = JSON.parse(raw);
-				return new Map(parsed);
-			} catch {
-				return new Map();
-			}
-		};
-		const persist = (entries) => {
-			try {
-				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
-			} catch {}
-		};
-		return {
-			get(key) {
-				const entries = load();
-				const entry = entries.get(key);
-				if (!entry) return;
-				if (Date.now() > entry.expiresAt) {
-					entries.delete(key);
-					persist(entries);
-					return;
-				}
-				return entry.value;
-			},
-			set(key, value) {
-				const entries = load();
-				entries.set(key, {
-					expiresAt: Date.now() + ttlMs,
-					value
-				});
-				persist(entries);
-			}
-		};
-	};
-	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
-	var AVATAR_SELECTORS = [
-		"#profile .pic img",
-		".user-face",
-		"img[src*='/icon/']"
-	];
-	var extractProfileAvatar = (html) => {
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		for (const sel of AVATAR_SELECTORS) {
-			const img = doc.querySelector(sel);
-			if (!img) continue;
-			const src = img.src || img.dataset.src || img.dataset.original || "";
-			if (src) return src;
-		}
-		return "";
-	};
-	var fetchAvatarUrls = async (links) => {
-		if (links.length === 0) return new Map();
-		const result = new Map();
-		const missing = [];
-		for (const link of links) {
-			const cached = avatarCache.get(link);
-			if (cached) result.set(link, cached);
-			else missing.push(link);
-		}
-		if (missing.length === 0) return result;
-		const fetchResults = await Promise.allSettled(missing.map(async (link) => {
-			try {
-				return {
-					link,
-					url: extractProfileAvatar(await gmGet(link, location.href))
-				};
-			} catch {
-				return {
-					link,
-					url: ""
-				};
-			}
-		}));
-		for (const fetchResult of fetchResults) if (fetchResult.status === "fulfilled") {
-			const { link, url } = fetchResult.value;
-			if (url) avatarCache.set(link, url);
-			result.set(link, url);
-		}
-		return result;
-	};
-	var useAvatarUrls = (comments) => {
-		const [urls, setUrls] = d(() => new Map());
-		h(() => {
-			let active = true;
-			const links = comments.map((comment) => comment.link).filter(Boolean);
-			if (links.length === 0) {
-				setUrls(new Map());
-				return () => {
-					active = false;
-				};
-			}
-			(async () => {
-				const nextUrls = await fetchAvatarUrls(links);
-				if (active) setUrls(nextUrls);
-			})();
-			return () => {
-				active = false;
-			};
-		}, [comments]);
-		return urls;
-	};
 	var textValue = (text) => u("div", {
 		class: "atv-info-value",
 		children: text
@@ -4716,6 +4611,44 @@ input::placeholder {
 	}) : null;
 	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
 	var reviewDisplayName = (name) => name.trim() || "匿名用户";
+	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
+		const load = () => {
+			try {
+				const raw = localStorage.getItem(storageKey);
+				if (!raw) return new Map();
+				const parsed = JSON.parse(raw);
+				return new Map(parsed);
+			} catch {
+				return new Map();
+			}
+		};
+		const persist = (entries) => {
+			try {
+				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
+			} catch {}
+		};
+		return {
+			get(key) {
+				const entries = load();
+				const entry = entries.get(key);
+				if (!entry) return;
+				if (Date.now() > entry.expiresAt) {
+					entries.delete(key);
+					persist(entries);
+					return;
+				}
+				return entry.value;
+			},
+			set(key, value) {
+				const entries = load();
+				entries.set(key, {
+					expiresAt: Date.now() + ttlMs,
+					value
+				});
+				persist(entries);
+			}
+		};
+	};
 	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);
 	var reviewVoteKey = (review) => reviewNumericId(review.id);
 	var voteDirection = (value) => {
@@ -5205,7 +5138,7 @@ input::placeholder {
 		const [activeMediaModal, setActiveMediaModal] = d(null);
 		const [loginAction, setLoginAction] = d(null);
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
-		const avatarUrls = useAvatarUrls(data.comments);
+		const { avatarUrls } = runtime;
 		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
 		const handleCommentVoteStateChange = commentVotes.setVoteState;
 		const handleReviewVoteStateChange = reviewVotes.setVoteState;
@@ -5351,6 +5284,72 @@ input::placeholder {
 			subtree: true
 		});
 		return () => observer.disconnect();
+	};
+	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
+	var avatarSelectors = [
+		"#profile .pic img",
+		".user-face",
+		"img[src*='/icon/']"
+	];
+	var extractProfileAvatar = (html) => {
+		const profile = new DOMParser().parseFromString(html, "text/html");
+		for (const selector of avatarSelectors) {
+			const image = profile.querySelector(selector);
+			if (!image) continue;
+			const source = image.src || image.dataset.src || image.dataset.original || "";
+			if (source) return source;
+		}
+		return "";
+	};
+	var profileLinks = (comments) => [...new Set(comments.flatMap(({ link }) => link ? [link] : []))];
+	var fetchAvatarUrls = async (links, referrer) => {
+		const urls = new Map();
+		const missing = [];
+		for (const link of links) {
+			const cached = avatarCache.get(link);
+			if (cached) urls.set(link, cached);
+			else missing.push(link);
+		}
+		if (missing.length === 0) return urls;
+		const fetched = await Promise.all(missing.map(async (link) => {
+			try {
+				return {
+					link,
+					url: extractProfileAvatar(await gmGet(link, referrer))
+				};
+			} catch {
+				return {
+					link,
+					url: ""
+				};
+			}
+		}));
+		for (const { link, url } of fetched) {
+			if (url) avatarCache.set(link, url);
+			urls.set(link, url);
+		}
+		return urls;
+	};
+	var useAvatarUrls = (comments, doc) => {
+		const [urls, setUrls] = d(() => new Map());
+		h(() => {
+			let active = true;
+			const links = profileLinks(comments);
+			if (links.length === 0) {
+				setUrls(new Map());
+				return () => {
+					active = false;
+				};
+			}
+			(async () => {
+				const nextUrls = await fetchAvatarUrls(links, doc.location.href);
+				if (active) setUrls(nextUrls);
+			})();
+			return () => {
+				active = false;
+			};
+		}, [comments, doc]);
+		return urls;
 	};
 	var extractEnglishSeriesName = (h1) => {
 		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
@@ -5839,6 +5838,7 @@ input::placeholder {
 	};
 	var SubjectPageRuntime = ({ data, doc }) => {
 		const [series, setSeries] = d(data.series);
+		const avatarUrls = useAvatarUrls(data.comments, doc);
 		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
 		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
@@ -5859,6 +5859,7 @@ input::placeholder {
 						remove: removeInterest
 					}
 				},
+				avatarUrls,
 				externalRatings,
 				firstBroadcastPlatform,
 				navigation,

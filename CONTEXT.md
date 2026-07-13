@@ -67,7 +67,6 @@ src/
     context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
     orchestrate.ts      — resolveAll(ctx, deps?): guards identifiers, calls fetch adapters, parallel-first strategy with Promise.allSettled
   api/                 — data fetching & scraping interfaces
-    avatar.ts            — fetchAvatarUrls(): pure data pipeline, fetch + parse + cache, no DOM (cleaned 2026-07-06)
     comment.ts           — postVote() for comment voting via GM POST
     interest.ts          — postInterest/removeInterest for interest marking
     imdb.ts              — fetchImdbRating() via IMDB GraphQL API
@@ -79,7 +78,7 @@ src/
     subject-page-runtime.tsx — deep host integration module: lifecycle, requests, browser state → SubjectPage runtime value
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
-    avatar-effect.ts     — comment avatar fetch/apply effect
+    use-avatar-urls.ts   — Preact hook: profile lookup, parsing, cache and cancellation → resolved avatar URLs
     series-effect.ts     — late-loading series observer and nav insertion
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
@@ -160,10 +159,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The shared keyed owner-state plumbing lives in `use-vote-state.ts`; comment vote behavior is modeled in `comments/comment-vote-state.ts`, and review useful/useless behavior plus persistence is modeled in `reviews/review-vote-state.ts`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
 
-2. **Avatar data pipeline split (2026-07-06)** — `src/api/avatar.ts` was the only module crossing the data-fetching/DOM-construction boundary. Split into two clean modules:
-   - `api/avatar.ts` — pure data pipeline: `fetchAvatarUrls(links)` returns `Map<link, url>` with read-through cache, parallel fetch via `Promise.allSettled`, no DOM access
-   - `components/avatar-dom.ts` — DOM mutation: `applyCommentAvatars(urlMap, comments)` sets `comment.avatar`, preloads images, applies `backgroundImage` with RAF retry
-   - `runtime/avatar-effect.ts` orchestrates `await pipeline → apply to DOM`
+2. **Comment avatar runtime hook (2026-07-13)** — `runtime/use-avatar-urls.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, and resolved avatar URLs. `SubjectPageRuntime` supplies the resulting `Map<link, url>` through the `SubjectPage` runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, document, or network lifecycle leaks through the page-composition seam.
 
 3. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
    - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
@@ -204,17 +200,9 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
   - API modules still keep their `ck` checks as the final safety net
 
-### Data pipeline integrity — avatar split
+### Comment avatar host integration
 
-`src/api/avatar.ts` was the only module crossing the data/DOM boundary. Split on 2026-07-06:
-
-| Layer | File | Export | Responsibility | DOM-free? |
-| --- | --- | --- | --- | --- |
-| Data pipeline | `api/avatar.ts` | `fetchAvatarUrls(links)` | Cache read-through → fetch → parse → cache → return Map | ✅ |
-| DOM mutation | `components/avatar-dom.ts` | `applyCommentAvatars(urlMap, comments)` | Preload images, RAF-retry querySelector, set backgroundImage | ❌ (DOM-only) |
-| Orchestration | `runtime/avatar-effect.ts` | `startAvatarEffect(comments)` | `await pipeline → apply to DOM` | — |
-
-6 data tests (no DOM needed) + 8 DOM tests (happy-dom) = 14 total, replacing 3 cache-only tests.
+`runtime/use-avatar-urls.ts` is the explicit host integration owner for comment avatars while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns `Map<link, url>` to `SubjectPageRuntime`. The page-composition seam receives the resolved Map and never starts requests or reads browser globals. Runtime tests cover profile lookup through the rendered page; Subject-page tests pass resolved Maps directly.
 
 ### Key design decisions
 

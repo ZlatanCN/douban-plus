@@ -12,7 +12,6 @@ import {
   initialCommentVoteState,
 } from "./comments/comment-vote-state";
 import type { CommentVoteState } from "./comments/comment-vote-state";
-import { useAvatarUrls } from "./comments/use-avatar-urls";
 import { DetailsSection } from "./details";
 import { DiscussionsSection } from "./discussions";
 import { Hero } from "./hero";
@@ -82,7 +81,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
     useState<ActiveMediaModal>(null);
   const [loginAction, setLoginAction] = useState<string | null>(null);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
-  const avatarUrls = useAvatarUrls(data.comments);
+  const { avatarUrls } = runtime;
   const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;

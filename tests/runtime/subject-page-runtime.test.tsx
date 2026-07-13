@@ -71,6 +71,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
 describe("Subject page runtime", () => {
   afterEach(() => {
     document.body.innerHTML = "";
+    mockRequest.mockReset();
     vi.unstubAllGlobals();
   });
 
@@ -81,6 +82,70 @@ describe("Subject page runtime", () => {
 
     expect(root.querySelector(".atv-hero")).not.toBeNull();
     expect(root.querySelector(".atv-footer-spacer")).not.toBeNull();
+  });
+
+  it("resolves and deduplicates comment profile avatars through the runtime", async () => {
+    const profileLink = "https://www.douban.com/people/runtime-avatar/";
+    const avatarUrl = "https://example.com/runtime-avatar.jpg";
+    mockRequest.mockResolvedValue(`
+      <div id="profile"><div class="pic"><img src="${avatarUrl}" /></div></div>
+    `);
+    const root = renderIntoRoot(
+      <SubjectPageRuntime
+        data={makeData({
+          comments: [
+            {
+              avatar: "",
+              cid: "runtime-avatar",
+              content: "头像来自 runtime",
+              link: profileLink,
+              name: "Runtime viewer",
+              ratingWord: "推荐",
+              stars: 4,
+              time: "2026-07-13",
+              voted: false,
+              votes: 1,
+            },
+            {
+              avatar: "",
+              cid: "runtime-avatar-duplicate",
+              content: "同一个 profile",
+              link: profileLink,
+              name: "Runtime viewer again",
+              ratingWord: "推荐",
+              stars: 4,
+              time: "2026-07-13",
+              voted: false,
+              votes: 2,
+            },
+          ],
+        })}
+        doc={document}
+      />
+    );
+
+    await vi.waitFor(() =>
+      expect([
+        root
+          .querySelector<HTMLElement>(
+            "[data-cid='runtime-avatar'] .atv-comment-avatar"
+          )
+          ?.getAttribute("style"),
+        root
+          .querySelector<HTMLElement>(
+            "[data-cid='runtime-avatar-duplicate'] .atv-comment-avatar"
+          )
+          ?.getAttribute("style"),
+      ]).toStrictEqual([
+        `background-image: url("${avatarUrl}");`,
+        `background-image: url("${avatarUrl}");`,
+      ])
+    );
+
+    expect(mockRequest).toHaveBeenCalledExactlyOnceWith(
+      profileLink,
+      document.location.href
+    );
   });
 
   it("loads first-broadcast data through the runtime for a signed-in viewer", async () => {
