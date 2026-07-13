@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewsSection } from "@/modules/subject-page/reviews";
+import { ReviewModal } from "@/modules/subject-page/reviews/review-modal";
 import type { Review, ReviewData } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
@@ -299,5 +300,21 @@ describe(ReviewsSection, () => {
     expect(onVote).toHaveBeenCalledWith("1", "useful");
     expect(up?.classList.contains("is-voted")).toBeTruthy();
     expect(up?.textContent).toContain("12");
+  });
+
+  it("renders the stable review-content failure state in the modal", async () => {
+    const root = renderIntoRoot(
+      <ReviewModal onClose={vi.fn<() => void>()} review={makeReview()} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-review-modal-body")?.classList).toContain(
+        "is-error"
+      )
+    );
+
+    expect(
+      root.querySelector(".atv-review-modal-error")?.textContent
+    ).toContain("影评内容暂时加载失败");
   });
 });

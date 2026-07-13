@@ -4900,7 +4900,6 @@ input::placeholder {
 			})
 		});
 	};
-	var stripInlineStyles = (html) => html.replaceAll(/\sstyle="[^"]*"/giu, "");
 	var allowedTags = new Set([
 		"a",
 		"b",
@@ -4920,9 +4919,22 @@ input::placeholder {
 		"strong",
 		"ul"
 	]);
+	var dangerousTags = new Set([
+		"embed",
+		"iframe",
+		"link",
+		"meta",
+		"object",
+		"script",
+		"style"
+	]);
 	var sanitizeReviewHtml = (html) => {
 		const doc = new DOMParser().parseFromString(html, "text/html");
 		for (const element of doc.body.querySelectorAll("*")) {
+			if (dangerousTags.has(element.tagName.toLowerCase())) {
+				element.remove();
+				continue;
+			}
 			if (!allowedTags.has(element.tagName.toLowerCase())) {
 				element.replaceWith(...element.childNodes);
 				continue;
@@ -4931,15 +4943,23 @@ input::placeholder {
 		}
 		return doc.body.innerHTML;
 	};
-	var findNativeReviewContent = (rid) => {
+	var readNativeReviewContent = (rid) => {
 		const numericId = reviewNumericId(rid);
-		const fullContent = document.querySelector(`[id="${rid}"]`)?.querySelector(`#review_${numericId}_full .review-content`);
+		const fullContent = document.querySelector(`#${rid}`)?.querySelector(`#review_${numericId}_full .review-content`);
 		const text = (fullContent?.textContent ?? "").trim();
-		return fullContent && text ? sanitizeReviewHtml(stripInlineStyles(fullContent.innerHTML)) : null;
+		return fullContent && text ? sanitizeReviewHtml(fullContent.innerHTML) : null;
+	};
+	var fetchReviewContent = async (rid) => {
+		const numericId = reviewNumericId(rid);
+		const response = await fetch(`https://movie.douban.com/review/${numericId}/`);
+		if (!response.ok) return null;
+		const html = await response.text();
+		const content = new DOMParser().parseFromString(html, "text/html").querySelector(".review-content");
+		return content ? sanitizeReviewHtml(content.innerHTML) : null;
 	};
 	var useReviewContent = (rid) => {
 		const [state, setState] = d(() => {
-			const nativeHtml = findNativeReviewContent(rid);
+			const nativeHtml = readNativeReviewContent(rid);
 			return nativeHtml ? {
 				html: nativeHtml,
 				status: "loaded"
@@ -4949,7 +4969,7 @@ input::placeholder {
 			};
 		});
 		h(() => {
-			const nativeHtml = findNativeReviewContent(rid);
+			const nativeHtml = readNativeReviewContent(rid);
 			if (nativeHtml) {
 				setState({
 					html: nativeHtml,
@@ -4958,21 +4978,23 @@ input::placeholder {
 				return;
 			}
 			let cancelled = false;
-			const numericId = reviewNumericId(rid);
 			setState({
 				html: null,
 				status: "loading"
 			});
 			const loadReview = async () => {
 				try {
-					const response = await fetch(`https://movie.douban.com/review/${numericId}/`);
-					if (!response.ok) throw new Error(String(response.status));
-					const html = await response.text();
+					const html = await fetchReviewContent(rid);
 					if (cancelled) return;
-					const content = new DOMParser().parseFromString(html, "text/html").querySelector(".review-content");
-					if (!content) throw new Error("no content");
+					if (!html) {
+						setState({
+							html: null,
+							status: "error"
+						});
+						return;
+					}
 					setState({
-						html: sanitizeReviewHtml(stripInlineStyles(content.innerHTML)),
+						html,
 						status: "loaded"
 					});
 				} catch {

@@ -7,42 +7,88 @@ type ReviewContentState =
   | { html: null; status: "error" }
   | { html: string; status: "loaded" };
 
-const stripInlineStyles = (html: string): string =>
-  html.replaceAll(/\sstyle="[^"]*"/giu, "");
-
 const allowedTags = new Set([
   "a",
   "b",
   "blockquote",
   "br",
+  "cite",
   "code",
+  "del",
   "div",
   "em",
+  "footer",
   "h1",
   "h2",
   "h3",
+  "h4",
+  "h5",
+  "h6",
+  "hr",
+  "img",
   "li",
   "ol",
   "p",
   "pre",
+  "q",
+  "s",
+  "small",
   "span",
   "strong",
+  "sub",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "th",
+  "thead",
+  "tr",
+  "u",
   "ul",
 ]);
+
+const dangerousTags = new Set([
+  "embed",
+  "iframe",
+  "link",
+  "meta",
+  "object",
+  "script",
+  "style",
+]);
+
+const allowedImgAttrs = new Set(["src", "alt", "width", "height"]);
+
+const allowedTableCellAttrs = new Set(["colspan", "rowspan", "scope"]);
 
 const sanitizeReviewHtml = (html: string): string => {
   const doc = new DOMParser().parseFromString(html, "text/html");
   for (const element of doc.body.querySelectorAll("*")) {
+    if (dangerousTags.has(element.tagName.toLowerCase())) {
+      element.remove();
+      continue;
+    }
     if (!allowedTags.has(element.tagName.toLowerCase())) {
       element.replaceWith(...element.childNodes);
       continue;
     }
     for (const attribute of element.attributes) {
-      const allowedHref =
-        element.tagName.toLowerCase() === "a" && attribute.name === "href";
+      const tagName = element.tagName.toLowerCase();
+      const allowedHref = tagName === "a" && attribute.name === "href";
       const safeHref =
         allowedHref && /^(?:https?:|\/|#)/iu.test(attribute.value.trim());
-      if (!safeHref) {
+      const allowedImgAttr =
+        tagName === "img" && allowedImgAttrs.has(attribute.name);
+      const allowedTableCellAttr =
+        (tagName === "th" || tagName === "td") &&
+        allowedTableCellAttrs.has(attribute.name);
+      const allowedClass = attribute.name === "class";
+      if (
+        !safeHref &&
+        !allowedImgAttr &&
+        !allowedTableCellAttr &&
+        !allowedClass
+      ) {
         element.removeAttribute(attribute.name);
       }
     }
@@ -50,58 +96,57 @@ const sanitizeReviewHtml = (html: string): string => {
   return doc.body.innerHTML;
 };
 
-const findNativeReviewContent = (rid: string): string | null => {
+const readNativeReviewContent = (rid: string): string | null => {
   const numericId = reviewNumericId(rid);
   const nativeItem = document.querySelector(`[id="${rid}"]`);
   const fullContent = nativeItem?.querySelector<HTMLElement>(
     `#review_${numericId}_full .review-content`
   );
   const text = (fullContent?.textContent ?? "").trim();
-  return fullContent && text
-    ? sanitizeReviewHtml(stripInlineStyles(fullContent.innerHTML))
-    : null;
+  return fullContent && text ? sanitizeReviewHtml(fullContent.innerHTML) : null;
+};
+
+const fetchReviewContent = async (rid: string): Promise<string | null> => {
+  const numericId = reviewNumericId(rid);
+  const response = await fetch(`https://movie.douban.com/review/${numericId}/`);
+  if (!response.ok) {
+    return null;
+  }
+  const html = await response.text();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const content = doc.querySelector<HTMLElement>(".review-content");
+  return content ? sanitizeReviewHtml(content.innerHTML) : null;
 };
 
 const useReviewContent = (rid: string): ReviewContentState => {
   const [state, setState] = useState<ReviewContentState>(() => {
-    const nativeHtml = findNativeReviewContent(rid);
+    const nativeHtml = readNativeReviewContent(rid);
     return nativeHtml
       ? { html: nativeHtml, status: "loaded" }
       : { html: null, status: "loading" };
   });
 
   useEffect(() => {
-    const nativeHtml = findNativeReviewContent(rid);
+    const nativeHtml = readNativeReviewContent(rid);
     if (nativeHtml) {
       setState({ html: nativeHtml, status: "loaded" });
       return;
     }
 
     let cancelled = false;
-    const numericId = reviewNumericId(rid);
     setState({ html: null, status: "loading" });
 
     const loadReview = async (): Promise<void> => {
       try {
-        const response = await fetch(
-          `https://movie.douban.com/review/${numericId}/`
-        );
-        if (!response.ok) {
-          throw new Error(String(response.status));
-        }
-        const html = await response.text();
+        const html = await fetchReviewContent(rid);
         if (cancelled) {
           return;
         }
-        const doc = new DOMParser().parseFromString(html, "text/html");
-        const content = doc.querySelector<HTMLElement>(".review-content");
-        if (!content) {
-          throw new Error("no content");
+        if (!html) {
+          setState({ html: null, status: "error" });
+          return;
         }
-        setState({
-          html: sanitizeReviewHtml(stripInlineStyles(content.innerHTML)),
-          status: "loaded",
-        });
+        setState({ html, status: "loaded" });
       } catch {
         if (!cancelled) {
           setState({ html: null, status: "error" });
@@ -118,10 +163,5 @@ const useReviewContent = (rid: string): ReviewContentState => {
   return state;
 };
 
-export {
-  findNativeReviewContent,
-  sanitizeReviewHtml,
-  stripInlineStyles,
-  useReviewContent,
-};
+export { useReviewContent };
 export type { ReviewContentState };
