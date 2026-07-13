@@ -1,39 +1,77 @@
 import type { ComponentType, JSX } from "preact";
 
 import {
+  LogoAbc,
   LogoAmc,
   LogoAppleTv,
+  LogoBbc,
+  LogoBilibili,
   LogoBilibiliCombined,
+  LogoCbs,
+  LogoCctv,
+  LogoChannel4,
+  LogoCw,
+  LogoDiscoveryPlus,
   LogoDisneyPlus,
+  LogoFox,
+  LogoFx,
   LogoHbo,
   LogoHboMax,
   LogoHulu,
+  LogoIqiyi,
   LogoIqiyiCombined,
+  LogoItvx,
+  LogoNbc,
+  LogoNhk,
+  LogoShowtime,
+  LogoSbs,
+  LogoTencentCombined,
+  LogoTencentTv,
+  LogoTvn,
+  LogoUsa,
   LogoNetflix,
   LogoParamountPlus,
+  LogoPeacock,
   LogoPrimeVideo,
-  LogoTencentCombined,
   LogoTubi,
   LogoVimeo,
+  LogoYouku,
   LogoYoukuCombined,
   LogoYouTube,
 } from "./icons";
 
 type PlatformBrandKey =
+  | "abc"
   | "amc"
   | "apple-tv"
+  | "bbc"
   | "bilibili"
+  | "cbs"
+  | "cctv"
+  | "channel-4"
+  | "cw"
+  | "discovery-plus"
   | "disney-plus"
+  | "fox"
+  | "fx"
   | "hbo"
   | "hbo-max"
   | "hulu"
   | "iqiyi"
+  | "itvx"
   | "migu"
+  | "nbc"
+  | "nhk"
   | "netflix"
   | "paramount-plus"
+  | "peacock"
   | "prime-video"
+  | "sbs"
+  | "showtime"
   | "tencent-video"
   | "tubi"
+  | "tvn"
+  | "usa"
   | "vimeo"
   | "youku"
   | "youtube";
@@ -43,6 +81,7 @@ type PlatformBrand = {
   color: string;
   colorMode?: "intrinsic" | "catalog";
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
+  heroIcon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   key: PlatformBrandKey;
   label: string;
   presentation?: "wordmark";
@@ -51,12 +90,34 @@ type PlatformBrand = {
 
 const PLATFORM_BRANDS: PlatformBrand[] = [
   {
+    Icon: LogoAbc,
+    aliases: [
+      "abc",
+      "abc电视台",
+      "abc 电视台",
+      "american broadcasting company",
+    ],
+    color: "#07111E",
+    key: "abc",
+    label: "ABC",
+    surface: "dark",
+  },
+  {
     Icon: LogoAmc,
     aliases: ["amc"],
-    color: "#000000",
+    color: "#ffffff",
     key: "amc",
     label: "AMC",
-    surface: "paper",
+    surface: "dark",
+  },
+  {
+    Icon: LogoDiscoveryPlus,
+    aliases: ["discovery+", "discovery plus", "discoveryplus"],
+    color: "#34A65C",
+    colorMode: "intrinsic",
+    key: "discovery-plus",
+    label: "Discovery+",
+    surface: "dark",
   },
   {
     Icon: LogoDisneyPlus,
@@ -64,42 +125,52 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#113CCF",
     key: "disney-plus",
     label: "Disney+",
-    presentation: "wordmark",
     surface: "dark",
   },
   {
     Icon: LogoBilibiliCombined,
     aliases: ["哔哩哔哩", "bilibili", "b站", "b 站"],
-    color: "#FF5588",
+    color: "#00A1D6",
     colorMode: "intrinsic",
+    heroIcon: LogoBilibili,
     key: "bilibili",
     label: "哔哩哔哩",
     surface: "dark",
   },
   {
+    Icon: LogoBbc,
+    aliases: ["bbc", "bbc电视台", "bbc 电视台"],
+    color: "#ffffff",
+    key: "bbc",
+    label: "BBC",
+    presentation: "wordmark",
+    surface: "dark",
+  },
+  {
     Icon: LogoPrimeVideo,
     aliases: ["prime video", "primevideo"],
-    color: "#00A8E1",
-    colorMode: "intrinsic",
+    color: "#0779ff",
     key: "prime-video",
     label: "Prime Video",
-    presentation: "wordmark",
-    surface: "paper",
+    surface: "dark",
   },
   {
     Icon: LogoIqiyiCombined,
     aliases: ["爱奇艺", "iqiyi", "iQIYI"],
     color: "#00DC5A",
     colorMode: "intrinsic",
+    heroIcon: LogoIqiyi,
     key: "iqiyi",
     label: "爱奇艺",
+    presentation: "wordmark",
     surface: "dark",
   },
   {
     Icon: LogoTencentCombined,
-    aliases: ["腾讯视频", "tencent video"],
+    aliases: ["腾讯视频", "tencent video", "tencent tv", "wetv"],
     color: "#00A2FF",
     colorMode: "intrinsic",
+    heroIcon: LogoTencentTv,
     key: "tencent-video",
     label: "腾讯视频",
     surface: "dark",
@@ -109,15 +180,9 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     aliases: ["优酷", "youku"],
     color: "#00A6FF",
     colorMode: "intrinsic",
+    heroIcon: LogoYouku,
     key: "youku",
     label: "优酷",
-    surface: "dark",
-  },
-  {
-    aliases: ["咪咕视频", "咪咕", "migu"],
-    color: "#F04B23",
-    key: "migu",
-    label: "咪咕视频",
     surface: "dark",
   },
   {
@@ -128,6 +193,15 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     key: "hulu",
     label: "Hulu",
     presentation: "wordmark",
+    surface: "dark",
+  },
+  {
+    Icon: LogoNbc,
+    aliases: ["nbc"],
+    color: "#6e55dc",
+    colorMode: "intrinsic",
+    key: "nbc",
+    label: "NBC",
     surface: "dark",
   },
   {
@@ -173,7 +247,7 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
   },
   {
     Icon: LogoParamountPlus,
-    aliases: ["paramount+"],
+    aliases: ["paramount+", "Paramount Network"],
     color: "#0064FF",
     key: "paramount-plus",
     label: "Paramount+",
@@ -193,6 +267,113 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     color: "#1AB7EA",
     key: "vimeo",
     label: "Vimeo",
+    surface: "dark",
+  },
+  {
+    Icon: LogoCbs,
+    aliases: ["cbs"],
+    color: "#033963",
+    key: "cbs",
+    label: "CBS",
+    surface: "dark",
+  },
+  {
+    Icon: LogoCctv,
+    aliases: ["cctv", "中国中央电视台", "央视", "中央电视台"],
+    color: "#E80413",
+    colorMode: "intrinsic",
+    key: "cctv",
+    label: "CCTV",
+    presentation: "wordmark",
+    surface: "dark",
+  },
+  {
+    Icon: LogoFox,
+    aliases: ["fox"],
+    color: "#FF5027",
+    colorMode: "intrinsic",
+    key: "fox",
+    label: "FOX",
+    surface: "dark",
+  },
+  {
+    Icon: LogoFx,
+    aliases: ["fx"],
+    color: "#ffffff",
+    key: "fx",
+    label: "FX",
+    surface: "dark",
+  },
+  {
+    Icon: LogoShowtime,
+    aliases: ["showtime", "sho"],
+    color: "#B10000",
+    key: "showtime",
+    label: "Showtime",
+    surface: "dark",
+  },
+  {
+    Icon: LogoPeacock,
+    aliases: ["peacock", "peacock tv"],
+    color: "#0066FF",
+    key: "peacock",
+    label: "Peacock",
+    surface: "dark",
+  },
+  {
+    Icon: LogoCw,
+    aliases: ["cw", "the cw"],
+    color: "#ff4500",
+    key: "cw",
+    label: "The CW",
+    surface: "dark",
+  },
+  {
+    Icon: LogoItvx,
+    aliases: ["itv", "itvx", "itv x"],
+    color: "#DEEB52",
+    key: "itvx",
+    label: "ITVX",
+    surface: "dark",
+  },
+  {
+    Icon: LogoChannel4,
+    aliases: ["channel 4", "channel4", "ch4"],
+    color: "#AAFF89",
+    key: "channel-4",
+    label: "Channel 4",
+    surface: "dark",
+  },
+  {
+    Icon: LogoSbs,
+    aliases: ["sbs", "sbs korea", "서울방송"],
+    color: "#005293",
+    key: "sbs",
+    label: "SBS",
+    surface: "dark",
+  },
+  {
+    Icon: LogoTvn,
+    aliases: ["tvn", "tv n"],
+    color: "#E80328",
+    key: "tvn",
+    label: "tvN",
+    surface: "dark",
+  },
+  {
+    Icon: LogoNhk,
+    aliases: ["nhk", "日本放送協会"],
+    color: "#808080",
+    key: "nhk",
+    label: "NHK",
+    surface: "dark",
+  },
+  {
+    Icon: LogoUsa,
+    aliases: ["usa", "usa network"],
+    color: "#f83837",
+    key: "usa",
+    label: "USA",
     surface: "dark",
   },
 ];

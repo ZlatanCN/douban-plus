@@ -18,7 +18,7 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **观看平台**: 提供当前作品观看入口的第三方视频服务商，例如爱奇艺、腾讯视频或 Netflix。 _Avoid_: 播放源、在哪儿看、播放平台
 
-**首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
+**首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+、CBS、CCTV、FOX、FX、Showtime；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
@@ -218,3 +218,4 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.
 - **Bottom exports**: All exports are declared at the bottom of each file via a single `export { ... }` block. Never use `export const` or `export function` inline. This makes the module's public API immediately visible at a glance.
 - **`@/` import alias**: `@/` maps to `src/`. Use `@/components/foo` instead of `../../../components/foo` for imports that go up 2+ levels. Short relative imports (`./foo`, `../bar`) can stay relative. Configured in `tsconfig.json` (paths), `vite.config.ts` (resolve.alias), and `vitest.config.ts` (resolve.alias).
+- **Platform brand dual-icon pattern**: `PlatformBrand` supports an optional `heroIcon` for the first-broadcast display, separate from the default `Icon` used by the streaming provider. Hero area reads `brand.heroIcon ?? brand.Icon`; streaming provider always uses `brand.Icon`. Set both when a platform needs a symbol/wordmark for the hero and a combined (text+logo) icon for the watch-provider list. Currently used by: tencent-video, iqiyi, youku, bilibili.

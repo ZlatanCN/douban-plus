@@ -33,7 +33,6 @@ const PROVIDER_HOSTS: Partial<Record<PlatformBrandKey, string[]>> = {
   "hbo-max": ["max.com", "hbomax.com"],
   hulu: ["hulu.com"],
   iqiyi: ["iqiyi.com"],
-  migu: ["miguvideo.com", "migu.cn"],
   netflix: ["netflix.com"],
   "paramount-plus": ["paramountplus.com"],
   "prime-video": ["primevideo.com", "amazon.com"],
