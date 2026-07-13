@@ -5,11 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LoginModal } from "@/modules/subject-page/login/login-modal";
 import { mountNativeLoginFrame } from "@/modules/subject-page/login/native-login-frame";
+import type { NativeLoginAdoptionState } from "@/modules/subject-page/login/native-login-frame";
 
 import { renderIntoRoot } from "../../helpers/render";
 
-// Mock mountNativeLoginFrame to isolate the component's state management
-// from the real function's complex polling/DOM interactions.
 vi.mock(
   import("../../../src/modules/subject-page/login/native-login-frame"),
   () => ({
@@ -29,9 +28,9 @@ describe(LoginModal, () => {
     document.body.innerHTML = "";
     mockMountNativeLoginFrame.mockReset();
     mockMountNativeLoginFrame.mockImplementation(
-      (_host: HTMLElement, callbacks) => {
-        callbacks.onMount();
-        callbacks.onLoad();
+      (_host: HTMLElement, onStateChange) => {
+        onStateChange({ kind: "mounted" });
+        onStateChange({ kind: "ready" });
         return () => {};
       }
     );
@@ -50,7 +49,7 @@ describe(LoginModal, () => {
     vi.restoreAllMocks();
   });
 
-  it("clears loading status only after the native iframe loads", async () => {
+  it("clears loading status only after the adoption lifecycle is ready", async () => {
     const onClose = vi.fn<() => void>();
     const root = renderIntoRoot(<LoginModal action="测试" onClose={onClose} />);
     await flushEffects();
@@ -64,13 +63,10 @@ describe(LoginModal, () => {
     );
   });
 
-  it("shows loading status while iframe is being mounted", async () => {
-    // Override the mock: don't call onReady to simulate loading state.
+  it("shows loading status until the lifecycle reports progress", async () => {
     mockMountNativeLoginFrame.mockImplementation(
-      // `callbacks` is deliberately unused to simulate pending load.
-      (_host: HTMLElement, _callbacks) => () => {}
+      (_host: HTMLElement, _onStateChange) => () => {}
     );
-
     const onClose = vi.fn<() => void>();
     const root = renderIntoRoot(<LoginModal action="测试" onClose={onClose} />);
     await flushEffects();
@@ -81,7 +77,31 @@ describe(LoginModal, () => {
     expect(status?.textContent).toBe("正在载入豆瓣登录组件…");
   });
 
-  it("cancels the native login mount when the modal unmounts", async () => {
+  it("renders a lifecycle failure without knowing its host implementation", async () => {
+    mockMountNativeLoginFrame.mockImplementation(
+      (_host: HTMLElement, onStateChange) => {
+        const failure: NativeLoginAdoptionState = {
+          kind: "error",
+          message: "无法载入豆瓣登录组件，请刷新页面后重试。",
+        };
+        onStateChange(failure);
+        return () => {};
+      }
+    );
+    const onClose = vi.fn<() => void>();
+    const root = renderIntoRoot(<LoginModal action="测试" onClose={onClose} />);
+    await flushEffects();
+
+    const status = root.querySelector<HTMLElement>(".atv-login-modal-status");
+    expect(status?.textContent).toBe(
+      "无法载入豆瓣登录组件，请刷新页面后重试。"
+    );
+    expect(
+      root.querySelector(".atv-login-modal-native")?.getAttribute("aria-busy")
+    ).toBe("false");
+  });
+
+  it("cancels the adoption lifecycle when the modal unmounts", async () => {
     const stop = vi.fn<() => void>();
     mockMountNativeLoginFrame.mockReturnValue(stop);
     const onClose = vi.fn<() => void>();

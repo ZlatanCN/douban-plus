@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.2.7
+// @version      1.2.8
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -609,85 +609,786 @@ input::placeholder {
 	}, C$1.prototype.render = S, i$2 = [], o$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n, l) {
 		return n.__v.__b - l.__v.__b;
 	}, H.__r = 0, f$2 = Math.random().toString(8), c$1 = "__d" + f$2, a$1 = "__a" + f$2, s$1 = /(PointerCapture)$|Capture$/i, h$1 = 0, p$1 = V(!1), v$1 = V(!0), y$1 = 0;
-	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
-	var delay = (ms) => new Promise((resolve) => {
-		setTimeout(resolve, ms);
-	});
-	var getXhr = () => {
-		const g = _GM_xmlhttpRequest;
-		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
-		return g;
-	};
-	var gmRequest = (method, url, referer, extraHeaders, data) => {
-		const headers = {
-			"Content-Type": "application/x-www-form-urlencoded",
-			...extraHeaders
+	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
+	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
+	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
+		const lis = $$("li", ul);
+		const orgEl = lis[0] ? $("a", lis[0]) : null;
+		const org = lis[0] ? safeText(lis[0]) : "";
+		const name = lis[1] ? safeText(lis[1]) : "";
+		const personEl = lis[2] ? $("a", lis[2]) : null;
+		const person = lis[2] ? safeText(lis[2]) : "";
+		return {
+			name,
+			org,
+			orgLink: orgEl ? orgEl.href : "",
+			person,
+			personLink: personEl ? personEl.href : ""
 		};
-		if (referer) headers.Referer = referer;
-		return new Promise((resolve, reject) => {
-			getXhr()({
-				data,
-				headers,
-				method,
-				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
-				onload: (r) => resolve(r.responseText),
-				url
+	}).filter((a) => a.org);
+	var RE_SLASH_SEP = /\s*\/\s*/gu;
+	var RE_WS_GLOBAL = /\s+/gu;
+	var RE_COLON_WS = /[:：\s]/gu;
+	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_WS = /\s+/u;
+	var RE_YEAR = /(?<year>\d{4})/u;
+	var RE_NON_DIGIT = /\D/gu;
+	var RE_HSPACE = /[ \t]+/gu;
+	var RE_NL_MULTI = /\n{3,}/gu;
+	var RE_IMDB_ID = /(?<id>tt\d+)/u;
+	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
+	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
+	var RE_HTTP = /^https?:\/\//u;
+	var RE_ONLINE_VIDEO = /online-video/u;
+	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
+	var RE_IMDB_LINK = /^tt\d+$/u;
+	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
+	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
+	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
+	var upgradePoster = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
+	};
+	var upgradePhoto = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	};
+	var extractTitle = (doc) => {
+		const h1 = $("#content h1", doc);
+		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
+		let primary = full;
+		let original = "";
+		const idx = full.search(RE_WS);
+		if (idx > 0) {
+			primary = full.slice(0, idx).trim();
+			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
+		}
+		return {
+			full,
+			original,
+			primary
+		};
+	};
+	var extractYear = (doc) => {
+		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
+		return m ? m[1] : "";
+	};
+	var extractPoster = (doc) => {
+		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
+		if (!img) return null;
+		return upgradePoster(img.src || img.dataset.src || "");
+	};
+	var extractSubjectId = (doc) => {
+		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
+		return m ? m[1] : "";
+	};
+	var MAX_DISCUSSION_TOPICS = 10;
+	var DOUBAN_ORIGIN = "https://www.douban.com/";
+	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
+	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
+	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
+	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
+	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
+	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
+	var isTrackingParameter = (fragment) => {
+		const [rawKey] = fragment.split("=", 1);
+		try {
+			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
+		} catch {
+			return false;
+		}
+	};
+	var removeTrackingParameter = (search) => {
+		if (!search) return "";
+		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
+		return remaining.length ? `?${remaining.join("&")}` : "";
+	};
+	var toSafeDoubanUrl = (rawHref) => {
+		try {
+			const url = new URL(rawHref, DOUBAN_ORIGIN);
+			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
+			return url;
+		} catch {
+			return;
+		}
+	};
+	var normalizeTopicHref = (rawHref) => {
+		const url = toSafeDoubanUrl(rawHref);
+		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
+		const search = removeTrackingParameter(url.search);
+		return `${url.origin}${url.pathname}${search}${url.hash}`;
+	};
+	var normalizeDoubanHref = (rawHref, path) => {
+		const url = toSafeDoubanUrl(rawHref);
+		return url && path.test(url.pathname) ? url.href : "";
+	};
+	var extractAuthor = (authorCell) => {
+		const link = authorCell?.querySelector("a");
+		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
+		if (!name) return;
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
+		return href ? {
+			href,
+			name
+		} : { name };
+	};
+	var extractReplies = (repliesCell) => {
+		if (!repliesCell) return;
+		const text = safeText(repliesCell);
+		if (!text) return 0;
+		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
+		if (match?.groups) return Number(match.groups.replies);
+		const bare = Number(text);
+		return Number.isSafeInteger(bare) ? bare : void 0;
+	};
+	var isValidDiscussionTimestamp = (dateTime) => {
+		const value = new Date(`${dateTime}Z`);
+		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
+	};
+	var extractActivity = (activityCell) => {
+		const raw = safeText(activityCell);
+		if (!raw) return;
+		const match = DISCUSSION_TIMESTAMP.exec(raw);
+		if (!match?.groups) return { raw };
+		const { date, seconds, time } = match.groups;
+		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
+		return isValidDiscussionTimestamp(dateTime) ? {
+			date,
+			dateTime,
+			raw,
+			time
+		} : { raw };
+	};
+	var extractTopics = (container) => {
+		const topics = [];
+		for (const row of $$("table tr", container)) {
+			if (row.closest(".mv-hot-discussion-list")) continue;
+			const link = row.cells[0]?.querySelector("a");
+			const title = safeText(link);
+			const rawHref = link?.getAttribute("href")?.trim() ?? "";
+			const href = rawHref ? normalizeTopicHref(rawHref) : "";
+			if (title && href) {
+				const author = extractAuthor(row.cells[1]);
+				const replies = extractReplies(row.cells[2]);
+				const activity = extractActivity(row.cells[3]);
+				topics.push({
+					...activity ? { activity } : {},
+					...author ? { author } : {},
+					href,
+					...replies === void 0 ? {} : { replies },
+					title
+				});
+				if (topics.length === MAX_DISCUSSION_TOPICS) break;
+			}
+		}
+		return topics;
+	};
+	var extractStartDiscussionHref = (container) => {
+		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
+	};
+	var linkHref = (link, path) => {
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
+	};
+	var extractLinkTotal = (link) => {
+		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
+		const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
+		return Number.isSafeInteger(total) ? total : void 0;
+	};
+	var extractAllDiscussions = (container) => {
+		const pLink = container.querySelector("p a");
+		const pHref = linkHref(pLink, COLLECTION_PATH);
+		if (pHref) {
+			const total = extractLinkTotal(pLink);
+			return total === void 0 ? { href: pHref } : {
+				href: pHref,
+				total
+			};
+		}
+		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
+		if (h2Href) return { href: h2Href };
+		const listLink = container.querySelector(".mv-discussion-list a");
+		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
+		if (listHref) {
+			const total = extractLinkTotal(listLink);
+			return total === void 0 ? { href: listHref } : {
+				href: listHref,
+				total
+			};
+		}
+	};
+	var findModDiscussion = (doc) => {
+		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
+		return null;
+	};
+	var extractFromContainer = (container) => {
+		const topics = extractTopics(container);
+		const startDiscussionHref = extractStartDiscussionHref(container);
+		const allDiscussions = extractAllDiscussions(container);
+		return {
+			...allDiscussions ? { allDiscussions } : {},
+			...startDiscussionHref ? { startDiscussionHref } : {},
+			topics
+		};
+	};
+	var extractDiscussions = (doc) => {
+		const primary = doc.querySelector(".section-discussion");
+		if (primary) return extractFromContainer(primary);
+		const mod = findModDiscussion(doc);
+		if (mod) return extractFromContainer(mod);
+		return { topics: [] };
+	};
+	var findLabel = (root, label) => {
+		if (!root) return null;
+		const spans = $$("span.pl", root);
+		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
+		return null;
+	};
+	var collectInfoTextAfter = (root, label, trim) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return "";
+		let out = "";
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 3) out += n.nodeValue;
+			else if (n.nodeType === 1) out += n.textContent || "";
+			n = n.nextSibling;
+		}
+		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
+		if (trim !== false) result = result.trim();
+		return result;
+	};
+	var collectLinksAfter = (root, label) => {
+		const labelEl = findLabel(root, label);
+		if (!labelEl) return [];
+		const out = [];
+		let n = labelEl.nextSibling;
+		while (n) {
+			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
+			if (n.nodeType === 1 && n.tagName === "BR") break;
+			if (n.nodeType === 1) {
+				const el = n;
+				const anchors = el.tagName === "A" ? [el] : $$("a", el);
+				for (const a of anchors) {
+					const t = (a.textContent || "").trim();
+					if (t) out.push({
+						href: a.href || "",
+						text: t
+					});
+				}
+			}
+			n = n.nextSibling;
+		}
+		return out;
+	};
+	var extractInfo = (doc) => {
+		const info = $("#info", doc);
+		const out = {
+			aliases: "",
+			cast: [],
+			country: "",
+			director: [],
+			episodeRuntime: "",
+			episodes: "",
+			firstAired: "",
+			genres: [],
+			imdb: "",
+			language: "",
+			releaseDate: "",
+			runtime: "",
+			seasons: "",
+			writers: []
+		};
+		if (!info) return out;
+		out.director = collectLinksAfter(info, "导演");
+		out.writers = collectLinksAfter(info, "编剧");
+		const starringEls = $$("a[rel=\"v:starring\"]", info);
+		out.cast = starringEls.length ? starringEls.map((a) => ({
+			href: a.href || "",
+			text: (a.textContent || "").trim()
+		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
+		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
+		out.country = collectInfoTextAfter(info, "制片国家/地区");
+		out.language = collectInfoTextAfter(info, "语言");
+		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
+		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.firstAired = collectInfoTextAfter(info, "首播");
+		const runEls = $$("span[property=\"v:runtime\"]", info);
+		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.episodes = collectInfoTextAfter(info, "集数");
+		if (findLabel(info, "季数")) {
+			const sel = $("#season", info);
+			if (sel) {
+				const opt = sel.options[sel.selectedIndex];
+				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
+			} else out.seasons = collectInfoTextAfter(info, "季数");
+		}
+		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
+		out.aliases = collectInfoTextAfter(info, "又名");
+		if (findLabel(info, "IMDb")) {
+			const raw = collectInfoTextAfter(info, "IMDb");
+			const m = raw.match(RE_IMDB_ID);
+			out.imdb = m ? m[1] : raw;
+		}
+		return out;
+	};
+	var matchInterestText = (text, s3Only = false) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		if (!s3Only) {
+			if (/^看过$/u.test(text)) return "collect";
+			if (/^想看$/u.test(text)) return "wish";
+			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		}
+		return null;
+	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
+	};
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchInterestText((el.textContent || "").trim(), true);
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
+			comment = comment.trim();
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchInterestText(text);
+			if (s && isInterestActive(a)) status = s;
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: [],
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
+	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
+		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
+		const roleEl = $(".info .role", li);
+		const avatarEl = $(".avatar", li);
+		let avatar = "";
+		if (avatarEl) {
+			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
+			if (m) [, avatar] = m;
+		}
+		return {
+			avatar: encodeURI(avatar),
+			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
+			name: safeText(nameEl),
+			role: safeText(roleEl)
+		};
+	}).filter((c) => c.name);
+	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
+		const thumb = img.src || img.dataset.src || "";
+		const a = img.closest("a");
+		return {
+			hdUrl: upgradePhoto(thumb) || "",
+			link: a ? a.href : "",
+			thumbUrl: encodeURI(thumb)
+		};
+	}).filter((p) => p.thumbUrl);
+	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
+		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
+		const thumbUrl = m ? m[1] : "";
+		return {
+			thumbUrl: encodeURI(thumbUrl),
+			title: a.getAttribute("title") || "",
+			trailerPageUrl: a.href
+		};
+	}).filter((t) => t.trailerPageUrl);
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
+		const score = raw ? Number(raw) : NaN;
+		if (!score || Number.isNaN(score) || score <= 0) return null;
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
+		return {
+			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
+			score
+		};
+	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
+		if (!summary) return null;
+		return normalizeSummaryText(summary.textContent || "") || null;
+	};
+	var extractVisibleSummary = (doc) => {
+		const container = doc.querySelector("#link-report-intra");
+		if (!container) return extractSummary(doc);
+		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
+	};
+	var expandNativeSummary = (doc = document) => {
+		const before = extractVisibleSummary(doc);
+		const trigger = doc.querySelector("a.a_show_full");
+		if (!trigger) return Promise.resolve(before);
+		trigger.click();
+		const after = extractVisibleSummary(doc);
+		return Promise.resolve(after || before);
+	};
+	var extractReviewRating = (item) => {
+		let stars = 0;
+		let ratingWord = "";
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (ratingEl) {
+			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
+			ratingWord = ratingEl.getAttribute("title") || "";
+		}
+		if (stars === 0) {
+			const titleRating = $(".main-title-rating", item);
+			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
+		}
+		return {
+			ratingWord,
+			stars
+		};
+	};
+	var extractReviewContent = (item) => {
+		const shortContent = $(".review-short .short-content", item);
+		if (shortContent) {
+			const contentCopy = shortContent.cloneNode(true);
+			contentCopy.querySelector("a.unfold")?.remove();
+			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
+		}
+		const mainBd = $(".main-bd", item);
+		return mainBd ? safeText(mainBd) : "";
+	};
+	var extractReviewVotes = (item) => {
+		const action = $(".action", item);
+		if (!action) return {
+			usefulCount: 0,
+			uselessCount: 0
+		};
+		const upEl = $(".action-btn.up", action);
+		const downEl = $(".action-btn.down", action);
+		return {
+			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
+			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
+		};
+	};
+	var extractReviewItem = (item) => {
+		const title = safeText($(".main-bd h2 a", item));
+		if (!title) return null;
+		const nameLink = $(".main-hd a.name", item);
+		const name = safeText(nameLink);
+		if (!name) return null;
+		const avatarImg = $(".main-hd .avator img", item);
+		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
+		const { stars, ratingWord } = extractReviewRating(item);
+		const time = safeText($(".main-hd .main-meta", item));
+		const content = extractReviewContent(item);
+		const { usefulCount, uselessCount } = extractReviewVotes(item);
+		const spoiler = !!$(".spoiler-tip", item);
+		return {
+			avatar,
+			content,
+			id: item.id || "",
+			link: nameLink?.href ?? "",
+			name,
+			ratingWord,
+			spoiler,
+			stars,
+			time,
+			title,
+			usefulCount,
+			uselessCount
+		};
+	};
+	var extractReviews = (doc) => {
+		const items = $$("#reviews-wrapper .review-item", doc);
+		const out = [];
+		for (const item of items) {
+			const review = extractReviewItem(item);
+			if (review) out.push(review);
+		}
+		return out;
+	};
+	var CN_DIGIT = {
+		一: 1,
+		七: 7,
+		三: 3,
+		九: 9,
+		二: 2,
+		五: 5,
+		八: 8,
+		六: 6,
+		四: 4
+	};
+	var parseCnNum = (s) => {
+		const arabic = Math.trunc(Number(s));
+		if (!Number.isNaN(arabic)) return arabic;
+		const parts = s.split("十");
+		if (parts.length === 2) {
+			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
+			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
+			return tens * 10 + ones;
+		}
+		if (s === "十") return 10;
+		return CN_DIGIT[s] ?? 0;
+	};
+	var seasonNum = (title) => {
+		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
+		if (!m?.groups?.num) return 0;
+		return parseCnNum(m.groups.num);
+	};
+	var extractSeries = (doc) => {
+		const container = $("#series-items .items-swiper", doc);
+		if (!container) return [];
+		const seen = new Set();
+		const items = $$(".items-swiper-item", container);
+		const out = [];
+		for (const el of items) {
+			const linkEl = $(".items-swiper-item-pic a", el);
+			const imgEl = $(".items-swiper-item-pic a img", el);
+			const titleEl = $(".items-swiper-item-title a", el);
+			const ratingEl = $(".items-swiper-item-rating", el);
+			const link = linkEl ? linkEl.href : "";
+			if (!link || seen.has(link)) continue;
+			seen.add(link);
+			out.push({
+				link,
+				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
+				rating: safeText(ratingEl),
+				title: safeText(titleEl)
 			});
-		});
-	};
-	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
-	var RETRY_DELAYS = [
-		300,
-		800,
-		2e3
-	];
-	var gmPost = async (url, data, referer, extraHeaders) => {
-		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
-			return await gmPostOnce(url, data, referer, extraHeaders);
-		} catch (error) {
-			if (attempt < RETRY_DELAYS.length) {
-				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt], "ms —", error.message);
-				await delay(RETRY_DELAYS[attempt]);
-			} else throw error;
 		}
-		throw new Error("[GM] POST failed after all retries");
+		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
 	};
-	var gmGet = (url, referer) => gmRequest("GET", url, referer);
-	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-	var API_VOTE = "https://movie.douban.com/j/comment/vote";
-	var postVote = async (cid, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				count: data.count,
-				ok: true
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postVote error:", error);
-			return { ok: false };
-		}
+	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
+		const linkEl = $("dt a", dl);
+		const imgEl = $("dt a img", dl);
+		const titleEl = $("dd a", dl);
+		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
+		return {
+			link: linkEl ? linkEl.href : "",
+			poster: upgradePoster(rawPoster) || "",
+			title: safeText(titleEl)
+		};
+	}).filter((r) => r.title);
+	var extractRating = (item) => {
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (!ratingEl) return {
+			ratingWord: "",
+			stars: 0
+		};
+		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+		return {
+			ratingWord: ratingEl.getAttribute("title") || "",
+			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
+		};
 	};
-	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
-	var postReviewVote = async (rid, type, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				ok: true,
-				usefulCount: data.useful_count,
-				uselessCount: data.useless_count
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postReviewVote error:", error);
-			return { ok: false };
+	var extractTime = (item) => {
+		const timeEl = $(".comment-time", item);
+		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
+	};
+	var extractVotes = (item) => {
+		const votesEl = $(".vote-count", item) ?? $(".votes", item);
+		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
+	};
+	var extractAvatar = (item) => {
+		const img = $(".avatar img", item);
+		if (!img) return "";
+		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
+	};
+	var extractVoted = (item) => {
+		if (item.querySelector(".j.vote-comment")) return false;
+		const voteArea = $(".comment-vote", item);
+		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
+	};
+	var extractComments = (doc) => {
+		const items = $$("#hot-comments .comment-item", doc);
+		const out = [];
+		for (const item of items) {
+			const authorEl = $(".comment-info a", item);
+			const name = safeText(authorEl);
+			if (!name) continue;
+			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
+			if (!content) continue;
+			const { stars, ratingWord } = extractRating(item);
+			out.push({
+				avatar: extractAvatar(item),
+				cid: item.dataset.cid ?? "",
+				content,
+				link: authorEl?.href ?? "",
+				name,
+				ratingWord,
+				stars,
+				time: extractTime(item),
+				voted: extractVoted(item),
+				votes: extractVotes(item)
+			});
 		}
+		return out;
+	};
+	var isRealUrl = (href) => RE_HTTP.test(href);
+	var parseLegacyPlaySources = (doc) => {
+		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+		if (!srcScript) return {};
+		const txt = srcScript.textContent;
+		const map = {};
+		let m = RE_PLAY_SOURCES.exec(txt);
+		while (m) {
+			const [, sourceId] = m;
+			const playLink = m[2].replaceAll("&amp;", "&");
+			if (!map[sourceId]) map[sourceId] = playLink;
+			m = RE_PLAY_SOURCES.exec(txt);
+		}
+		return map;
+	};
+	var extractStreaming = (doc) => {
+		const seen = new Set();
+		const out = [];
+		const sourcesMap = parseLegacyPlaySources(doc);
+		const playBtns = $$("a.playBtn", doc);
+		for (const a of playBtns) {
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			let { href } = a;
+			if (!isRealUrl(href)) {
+				const sourceId = a.dataset.source;
+				const mappedHref = sourceId ? sourcesMap[sourceId] : void 0;
+				if (!mappedHref || !isRealUrl(mappedHref)) continue;
+				href = mappedHref;
+			}
+			seen.add(name);
+			const iconUrl = a.dataset.pic || void 0;
+			out.push({
+				href,
+				iconUrl,
+				name
+			});
+		}
+		for (const a of $$("a", doc)) {
+			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name) || !isRealUrl(a.href)) continue;
+			seen.add(name);
+			out.push({
+				href: a.href,
+				name
+			});
+		}
+		return out;
+	};
+	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
+	var extractDoubanData = (doc) => {
+		const info = extractInfo(doc);
+		const isTV = isTVInfo(info);
+		return {
+			awards: extractAwards(doc),
+			celebrities: extractCelebrities(doc),
+			comments: extractComments(doc),
+			discussions: extractDiscussions(doc),
+			info,
+			interest: extractInterestState(doc),
+			isTV,
+			photos: extractPhotos(doc),
+			poster: extractPoster(doc),
+			rating: extractRating$1(doc),
+			recommendations: extractRecommendations(doc),
+			reviews: extractReviews(doc),
+			series: extractSeries(doc),
+			streaming: extractStreaming(doc),
+			subjectId: extractSubjectId(doc),
+			summary: extractSummary(doc),
+			title: extractTitle(doc),
+			trailers: extractTrailers(doc),
+			year: extractYear(doc)
+		};
 	};
 	var t, r, u$1, i$1, o$1 = 0, f$1 = [], c = l$1, e = c.__b, a = c.__r, v = c.diffed, l = c.__c, m = c.unmount, p = c.__;
 	function s(n, t) {
@@ -841,6 +1542,68 @@ input::placeholder {
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
+	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
+	var delay = (ms) => new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+	var getXhr = () => {
+		const g = _GM_xmlhttpRequest;
+		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
+		return g;
+	};
+	var gmRequest = (method, url, referer, extraHeaders, data) => {
+		const headers = {
+			"Content-Type": "application/x-www-form-urlencoded",
+			...extraHeaders
+		};
+		if (referer) headers.Referer = referer;
+		return new Promise((resolve, reject) => {
+			getXhr()({
+				data,
+				headers,
+				method,
+				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
+				onload: (r) => resolve(r.responseText),
+				url
+			});
+		});
+	};
+	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
+	var RETRY_DELAYS = [
+		300,
+		800,
+		2e3
+	];
+	var gmPost = async (url, data, referer, extraHeaders) => {
+		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
+			return await gmPostOnce(url, data, referer, extraHeaders);
+		} catch (error) {
+			if (attempt < RETRY_DELAYS.length) {
+				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt], "ms —", error.message);
+				await delay(RETRY_DELAYS[attempt]);
+			} else throw error;
+		}
+		throw new Error("[GM] POST failed after all retries");
+	};
+	var gmGet = (url, referer) => gmRequest("GET", url, referer);
+	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+	var API_VOTE = "https://movie.douban.com/j/comment/vote";
+	var postVote = async (cid, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				count: data.count,
+				ok: true
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postVote error:", error);
+			return { ok: false };
+		}
+	};
 	var API_INTEREST = "https://movie.douban.com/j/subject";
 	var API_REMOVE = "https://movie.douban.com/subject";
 	var postInterest = async (subjectId, interest, options) => {
@@ -891,6 +1654,24 @@ input::placeholder {
 				error: String(error),
 				ok: false
 			};
+		}
+	};
+	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
+	var postReviewVote = async (rid, type, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				ok: true,
+				usefulCount: data.useful_count,
+				uselessCount: data.useless_count
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postReviewVote error:", error);
+			return { ok: false };
 		}
 	};
 	var SECTION_COPY = {
@@ -1001,91 +1782,24 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var StickyNav = ({ doc = document, sections, title }) => {
-		const [activeSectionId, setActiveSectionId] = d("");
-		const [visible, setVisible] = d(false);
-		const [scrolling, setScrolling] = d(false);
-		const lastVisibleRef = A(false);
-		h(() => {
-			let scrollTimer;
-			const handleScroll = () => {
-				const isVisible = window.scrollY > 300;
-				if (isVisible !== lastVisibleRef.current) {
-					lastVisibleRef.current = isVisible;
-					setVisible(isVisible);
-				}
-				setScrolling(true);
-				clearTimeout(scrollTimer);
-				scrollTimer = setTimeout(() => setScrolling(false), 150);
-			};
-			window.addEventListener("scroll", handleScroll, { passive: true });
-			handleScroll();
-			return () => {
-				window.removeEventListener("scroll", handleScroll);
-				clearTimeout(scrollTimer);
-			};
-		}, []);
-		h(() => {
-			const els = new Map();
-			for (const section of sections) {
-				const el = doc.querySelector(`#${section.id}`);
-				if (el) els.set(section.id, el);
-			}
-			let pending = false;
-			const pick = () => {
-				let activeId = "";
-				let bestScore = -Infinity;
-				for (const section of sections) {
-					const el = els.get(section.id);
-					if (!el) continue;
-					const rect = el.getBoundingClientRect();
-					const visibleTop = Math.max(rect.top, 56);
-					const visibleBottom = Math.min(rect.bottom, window.innerHeight * .55);
-					const score = Math.max(0, visibleBottom - visibleTop);
-					if (score > bestScore) {
-						activeId = section.id;
-						bestScore = score;
-					}
-				}
-				setActiveSectionId(activeId);
-				pending = false;
-			};
-			const observer = new IntersectionObserver(() => {
-				if (pending) return;
-				pending = true;
-				requestAnimationFrame(pick);
-			}, { threshold: [
-				0,
-				.25,
-				.5
-			] });
-			for (const el of els.values()) observer.observe(el);
-			pick();
-			return () => observer.disconnect();
-		}, [doc, sections]);
-		return u("nav", {
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}`,
-			children: [u("div", {
-				class: "atv-stickynav-title",
-				children: title.primary || title.full
-			}), u("div", {
-				class: "atv-stickynav-jumps",
-				children: sections.map((section) => u("a", {
-					class: activeSectionId === section.id ? "is-active" : void 0,
-					href: `#${section.id}`,
-					onClick: (event) => {
-						event.preventDefault();
-						const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-						doc.querySelector(`#${section.id}`)?.scrollIntoView({
-							behavior: prefersReducedMotion ? "auto" : "smooth",
-							block: "start"
-						});
-					},
-					children: section.label
-				}, section.id))
-			})]
-		});
-	};
+	var StickyNav = ({ activeSectionId = "", onJump, scrolling = false, sections, title, visible = false }) => u("nav", {
+		class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}`,
+		children: [u("div", {
+			class: "atv-stickynav-title",
+			children: title.primary || title.full
+		}), u("div", {
+			class: "atv-stickynav-jumps",
+			children: sections.map((section) => u("a", {
+				class: activeSectionId === section.id ? "is-active" : void 0,
+				href: `#${section.id}`,
+				onClick: (event) => {
+					event.preventDefault();
+					onJump(section.id);
+				},
+				children: section.label
+			}, section.id))
+		})]
+	});
 	var HtmlContent = ({ children, className, html, ...rest }) => u("div", {
 		class: className,
 		dangerouslySetInnerHTML: html ? { __html: html } : void 0,
@@ -1977,413 +2691,128 @@ input::placeholder {
 		})
 	});
 	var MODAL_ID = "atv-video-modal";
-	var REDIRECT_DELAY_MS = 1500;
-	var TOAST_DURATION_MS = 3e3;
-	var extractEmbedUrl = (html) => {
-		const ldMatch = html.match(/<script type="application\/ld\+json">(?<json>[\s\S]*?)<\/script>/u);
-		if (!ldMatch?.groups) throw new Error("no ld+json");
-		const data = JSON.parse(ldMatch.groups.json);
-		const embedUrl = data?.embedUrl ?? data?.video?.embedUrl ?? null;
-		if (typeof embedUrl !== "string" || !embedUrl) throw new Error("no embedUrl");
-		return embedUrl;
-	};
-	var VideoModalContent = ({ trailer }) => {
+	var VideoModalContent = ({ acquisition }) => {
 		const close = useModalClose();
-		const [state, setState] = d({ status: "loading" });
-		const [showToast, setShowToast] = d(false);
 		h(() => {
-			let active = true;
-			(async () => {
-				try {
-					const embedUrl = extractEmbedUrl(await (await fetch(trailer.trailerPageUrl)).text());
-					if (active) setState({
-						embedUrl,
-						status: "loaded"
-					});
-				} catch {
-					if (active) {
-						setState({ status: "error" });
-						setShowToast(true);
-					}
-				}
-			})();
-			return () => {
-				active = false;
-			};
-		}, [trailer.trailerPageUrl]);
-		h(() => {
-			if (state.status !== "error") return;
-			const redirectTimer = window.setTimeout(() => {
-				window.open(trailer.trailerPageUrl, "_blank");
-				close();
-			}, REDIRECT_DELAY_MS);
-			const toastTimer = window.setTimeout(() => {
-				setShowToast(false);
-			}, TOAST_DURATION_MS);
-			return () => {
-				window.clearTimeout(redirectTimer);
-				window.clearTimeout(toastTimer);
-			};
-		}, [
-			close,
-			state.status,
-			trailer.trailerPageUrl
-		]);
+			if (acquisition.status === "fallback") close();
+		}, [acquisition.status, close]);
 		return u(S, { children: [u(ModalCloseButton, {
 			ariaLabel: "关闭视频",
 			onClick: close
 		}), u("div", {
 			class: "atv-modal-video-content",
 			children: [
-				state.status === "loading" ? u("div", {
+				acquisition.status === "loading" ? u("div", {
 					class: "atv-modal-loading",
 					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
 				}) : null,
-				state.status === "loaded" ? u("video", {
+				acquisition.status === "loaded" ? u("video", {
 					autoplay: true,
 					class: "atv-modal-video",
 					controls: true,
 					playsinline: true,
-					src: state.embedUrl
+					src: acquisition.embedUrl
 				}) : null,
-				showToast ? u("div", {
+				acquisition.status === "failed" ? u("div", {
 					class: "atv-modal-toast",
 					children: "视频加载失败"
 				}) : null
 			]
 		})] });
 	};
-	var VideoModal = ({ onClose, trailer }) => u(ModalShell, {
+	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
 		ariaLabel: trailer.title || "视频预览",
 		className: "atv-modal-overlay is-video",
 		id: MODAL_ID,
 		onClose,
 		surfaceClassName: "atv-modal-surface",
-		children: u(VideoModalContent, { trailer })
+		children: u(VideoModalContent, { acquisition })
 	});
-	var RE_SLASH_SEP = /\s*\/\s*/gu;
-	var RE_WS_GLOBAL = /\s+/gu;
-	var RE_COLON_WS = /[:：\s]/gu;
-	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
-	var RE_WS = /\s+/u;
-	var RE_YEAR = /(?<year>\d{4})/u;
-	var RE_NON_DIGIT = /\D/gu;
-	var RE_HSPACE = /[ \t]+/gu;
-	var RE_NL_MULTI = /\n{3,}/gu;
-	var RE_IMDB_ID = /(?<id>tt\d+)/u;
-	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
-	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
-	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
-	var RE_HTTP = /^https?:\/\//u;
-	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_WISH = /想看/u;
-	var RE_DO = /在看/u;
-	var RE_COLLECT = /看过/u;
-	var RE_WISH_EXACT = /^想看$/u;
-	var RE_DO_EXACT = /^在看$/u;
-	var RE_COLLECT_EXACT = /^看过$/u;
-	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
-	var RE_IMDB_LINK = /^tt\d+$/u;
-	var RE_SEASON_SUFFIX = /\d$/u;
-	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
-	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
-	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
-	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
-	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
-	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
-	var RE_CRLF = /\r\n?/gu;
-	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
-	var extractRating$1 = (doc) => {
-		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
-		const score = raw ? Number(raw) : NaN;
-		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
-		return {
-			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
-			score
-		};
-	};
-	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
-	var extractSummary = (doc) => {
-		const summary = $("span[property=\"v:summary\"]", doc);
-		if (!summary) return null;
-		return normalizeSummaryText(summary.textContent || "") || null;
-	};
-	var extractVisibleSummary = (doc) => {
-		const container = doc.querySelector("#link-report-intra");
-		if (!container) return extractSummary(doc);
-		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
-	};
-	var expandNativeSummary = (doc = document) => {
-		const before = extractVisibleSummary(doc);
-		const trigger = doc.querySelector("a.a_show_full");
-		if (!trigger) return Promise.resolve(before);
-		trigger.click();
-		const after = extractVisibleSummary(doc);
-		return Promise.resolve(after || before);
-	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
+	var FALLBACK_DELAY_MS = 1500;
+	var isRecord = (value) => typeof value === "object" && value !== null;
+	var safeEmbedUrl = (value) => {
+		if (typeof value !== "string" || !value) return null;
+		try {
+			const url = new URL(value, window.location.href);
+			return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+		} catch {
+			return null;
 		}
+	};
+	var findEmbedUrl = (value) => {
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				const embedUrl = findEmbedUrl(item);
+				if (embedUrl) return embedUrl;
+			}
+			return null;
+		}
+		if (!isRecord(value)) return null;
+		return safeEmbedUrl(value.embedUrl) ?? findEmbedUrl(value.video) ?? findEmbedUrl(value["@graph"]);
+	};
+	var extractEmbedUrl = (html) => {
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		for (const script of doc.querySelectorAll("script[type=\"application/ld+json\"]")) try {
+			const embedUrl = findEmbedUrl(JSON.parse(script.textContent ?? ""));
+			if (embedUrl) return embedUrl;
+		} catch {}
 		return null;
 	};
-	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
-	var findInterestButtons = (doc) => {
-		const result = {
-			collect: null,
-			do: null,
-			wish: null
-		};
-		const scan = (anchors, doRe, wishRe, collectRe) => {
-			for (const anchor of anchors) {
-				const text = (anchor.textContent || "").trim();
-				if (!result.do && doRe.test(text)) result.do = anchor;
-				if (!result.wish && wishRe.test(text)) result.wish = anchor;
-				if (!result.collect && collectRe.test(text)) result.collect = anchor;
-			}
-		};
-		scan(findInterestAnchors(doc), RE_DO, RE_WISH, RE_COLLECT);
-		if (!result.do || !result.wish || !result.collect) scan($$("#interest_sectl a", doc), RE_DO_EXACT, RE_WISH_EXACT, RE_COLLECT_EXACT);
-		return result;
+	var loadEmbedUrl = async (trailerPageUrl, signal) => {
+		const response = await fetch(trailerPageUrl, { signal });
+		if (!response.ok) throw new Error("trailer page request failed");
+		const embedUrl = extractEmbedUrl(await response.text());
+		if (!embedUrl) throw new Error("trailer page has no safe embed URL");
+		return embedUrl;
 	};
-	var isInterestActive = (anchor) => {
-		if (!anchor) return false;
-		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-		return RE_INTEREST_ACTIVE.test(classes);
-	};
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentEl = root.querySelector(".j.a_stars > span:not(.mr10):not(#rating)");
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			for (const node of commentEl.childNodes) if (node.nodeType === Node.TEXT_NODE) comment += node.textContent || "";
-			comment = comment.trim();
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
-		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchInterestText(text);
-			if (s && isInterestActive(a)) status = s;
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = findInterestRoot(doc);
-		const anchors = findInterestAnchors(doc, root);
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: [],
-				usefulCount: s3.usefulCount
-			};
-		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
-		};
-	};
-	var proxyInterestAction = (doc, status) => {
-		findInterestButtons(doc)[status]?.click();
-	};
-	var createAccountGate = (options) => {
-		const requireLogin = (action) => {
-			if (options.loggedIn) return true;
-			options.openPrompt?.(action);
-			return false;
-		};
-		return { requireLogin };
-	};
-	var reloadPage = () => {
-		location.reload();
-	};
-	var saveOptionsFromForm = (form) => ({
-		comment: form.comment,
-		rating: form.rating > 0 ? form.rating : void 0
-	});
-	var buildModalCallbacks = (subjectId, adapters) => ({
-		onRemove: async (status) => {
-			const result = await adapters.remove(subjectId, status);
-			if (result.ok) adapters.reload();
-			return result;
-		},
-		onSave: async (form) => {
-			const result = await adapters.post(subjectId, form.status, saveOptionsFromForm(form));
-			if (result.ok) adapters.reload();
-			return result;
-		}
-	});
-	var buildInterestMarkingCallbacks = (subjectId, adapters = {}) => {
-		const doc = adapters.doc ?? document;
-		const accountGate = adapters.accountGate ?? createAccountGate({ loggedIn: adapters.loggedIn ?? true });
-		const modalAdapters = {
-			post: adapters.post ?? postInterest,
-			reload: adapters.reload ?? reloadPage,
-			remove: adapters.remove ?? removeInterest
-		};
-		const { openModal } = adapters;
-		return {
-			handleCollectClick: () => {
-				if (!accountGate.requireLogin("标记看过")) return;
-				proxyInterestAction(doc, "collect");
-			},
-			handleOpenInterest: (state) => {
-				if (!accountGate.requireLogin("标记这部作品")) return;
-				openModal?.(state, buildModalCallbacks(subjectId, modalAdapters));
-			},
-			handleWatchingClick: () => {
-				if (!accountGate.requireLogin("标记在看")) return;
-				proxyInterestAction(doc, "do");
-			},
-			handleWishClick: () => {
-				if (!accountGate.requireLogin("标记想看")) return;
-				proxyInterestAction(doc, "wish");
-			}
-		};
-	};
-	var CN_DIGIT = {
-		一: 1,
-		七: 7,
-		三: 3,
-		九: 9,
-		二: 2,
-		五: 5,
-		八: 8,
-		六: 6,
-		四: 4
-	};
-	var parseCnNum = (s) => {
-		const arabic = Math.trunc(Number(s));
-		if (!Number.isNaN(arabic)) return arabic;
-		const parts = s.split("十");
-		if (parts.length === 2) {
-			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
-			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
-			return tens * 10 + ones;
-		}
-		if (s === "十") return 10;
-		return CN_DIGIT[s] ?? 0;
-	};
-	var seasonNum = (title) => {
-		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
-		if (!m?.groups?.num) return 0;
-		return parseCnNum(m.groups.num);
-	};
-	var extractSeries = (doc) => {
-		const container = $("#series-items .items-swiper", doc);
-		if (!container) return [];
-		const seen = new Set();
-		const items = $$(".items-swiper-item", container);
-		const out = [];
-		for (const el of items) {
-			const linkEl = $(".items-swiper-item-pic a", el);
-			const imgEl = $(".items-swiper-item-pic a img", el);
-			const titleEl = $(".items-swiper-item-title a", el);
-			const ratingEl = $(".items-swiper-item-rating", el);
-			const link = linkEl ? linkEl.href : "";
-			if (!link || seen.has(link)) continue;
-			seen.add(link);
-			out.push({
-				link,
-				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
-				rating: safeText(ratingEl),
-				title: safeText(titleEl)
-			});
-		}
-		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
-	};
-	var extractSeriesMoreLink = (doc = document) => {
-		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
-		return link ? {
-			href: link.href,
-			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
-		} : void 0;
-	};
-	var watchSeries = (onSeries, doc = document) => {
-		const container = doc.querySelector("#series-items");
-		if (!container) return () => void 0;
-		const update = () => {
-			if (container.querySelector(".items-swiper")) onSeries(extractSeries(doc));
-		};
-		update();
-		const observer = new MutationObserver(update);
-		observer.observe(container, {
-			childList: true,
-			subtree: true
+	var useTrailerAcquisition = (trailer) => {
+		const [record, setRecord] = d({
+			result: { status: "loading" },
+			trailerPageUrl: null
 		});
-		return () => observer.disconnect();
+		const trailerPageUrl = trailer?.trailerPageUrl;
+		h(() => {
+			if (!trailerPageUrl) return;
+			const controller = new AbortController();
+			setRecord({
+				result: { status: "loading" },
+				trailerPageUrl
+			});
+			(async () => {
+				try {
+					const embedUrl = await loadEmbedUrl(trailerPageUrl, controller.signal);
+					if (!controller.signal.aborted) setRecord({
+						result: {
+							embedUrl,
+							status: "loaded"
+						},
+						trailerPageUrl
+					});
+				} catch {
+					if (!controller.signal.aborted) setRecord({
+						result: { status: "failed" },
+						trailerPageUrl
+					});
+				}
+			})();
+			return () => controller.abort();
+		}, [trailerPageUrl]);
+		h(() => {
+			if (!trailerPageUrl || record.trailerPageUrl !== trailerPageUrl || record.result.status !== "failed") return;
+			const fallbackTimer = window.setTimeout(() => {
+				window.open(trailerPageUrl, "_blank", "noopener");
+				setRecord({
+					result: { status: "fallback" },
+					trailerPageUrl
+				});
+			}, FALLBACK_DELAY_MS);
+			return () => window.clearTimeout(fallbackTimer);
+		}, [
+			record.result.status,
+			record.trailerPageUrl,
+			trailerPageUrl
+		]);
+		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
 	};
 	var Section = ({ children, id, moreLink, title }) => u("section", {
 		class: "atv-section",
@@ -2655,111 +3084,6 @@ input::placeholder {
 			voteState
 		})
 	});
-	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
-		const load = () => {
-			try {
-				const raw = localStorage.getItem(storageKey);
-				if (!raw) return new Map();
-				const parsed = JSON.parse(raw);
-				return new Map(parsed);
-			} catch {
-				return new Map();
-			}
-		};
-		const persist = (entries) => {
-			try {
-				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
-			} catch {}
-		};
-		return {
-			get(key) {
-				const entries = load();
-				const entry = entries.get(key);
-				if (!entry) return;
-				if (Date.now() > entry.expiresAt) {
-					entries.delete(key);
-					persist(entries);
-					return;
-				}
-				return entry.value;
-			},
-			set(key, value) {
-				const entries = load();
-				entries.set(key, {
-					expiresAt: Date.now() + ttlMs,
-					value
-				});
-				persist(entries);
-			}
-		};
-	};
-	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
-	var AVATAR_SELECTORS = [
-		"#profile .pic img",
-		".user-face",
-		"img[src*='/icon/']"
-	];
-	var extractProfileAvatar = (html) => {
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		for (const sel of AVATAR_SELECTORS) {
-			const img = doc.querySelector(sel);
-			if (!img) continue;
-			const src = img.src || img.dataset.src || img.dataset.original || "";
-			if (src) return src;
-		}
-		return "";
-	};
-	var fetchAvatarUrls = async (links) => {
-		if (links.length === 0) return new Map();
-		const result = new Map();
-		const missing = [];
-		for (const link of links) {
-			const cached = avatarCache.get(link);
-			if (cached) result.set(link, cached);
-			else missing.push(link);
-		}
-		if (missing.length === 0) return result;
-		const fetchResults = await Promise.allSettled(missing.map(async (link) => {
-			try {
-				return {
-					link,
-					url: extractProfileAvatar(await gmGet(link, location.href))
-				};
-			} catch {
-				return {
-					link,
-					url: ""
-				};
-			}
-		}));
-		for (const fetchResult of fetchResults) if (fetchResult.status === "fulfilled") {
-			const { link, url } = fetchResult.value;
-			if (url) avatarCache.set(link, url);
-			result.set(link, url);
-		}
-		return result;
-	};
-	var useAvatarUrls = (comments) => {
-		const [urls, setUrls] = d(() => new Map());
-		h(() => {
-			let active = true;
-			const links = comments.map((comment) => comment.link).filter(Boolean);
-			if (links.length === 0) {
-				setUrls(new Map());
-				return () => {
-					active = false;
-				};
-			}
-			(async () => {
-				const nextUrls = await fetchAvatarUrls(links);
-				if (active) setUrls(nextUrls);
-			})();
-			return () => {
-				active = false;
-			};
-		}, [comments]);
-		return urls;
-	};
 	var textValue = (text) => u("div", {
 		class: "atv-info-value",
 		children: text
@@ -3144,6 +3468,1937 @@ input::placeholder {
 			children: [u(RatingLogo, { name: props.source }), renderExternalRatingContent(props)]
 		});
 	};
+	var RatingPanel = ({ douban, externalRatings, imdbId }) => {
+		if (!douban && !imdbId) return null;
+		const resolved = Boolean(externalRatings);
+		return u("div", {
+			class: "atv-rating-panel",
+			children: [u(DoubanRating, { rating: douban }), imdbId ? u(S, { children: [
+				u(ExternalRating, {
+					rating: externalRatings?.imdb?.rating ?? null,
+					resolved,
+					source: "imdb"
+				}),
+				u(ExternalRating, {
+					rating: externalRatings?.mc ?? null,
+					resolved,
+					source: "metacritic"
+				}),
+				u(ExternalRating, {
+					rating: externalRatings?.rt ?? null,
+					resolved,
+					source: "rt"
+				})
+			] }) : null]
+		});
+	};
+	var PLATFORM_BRANDS = [
+		{
+			Icon: LogoAmc,
+			aliases: ["amc"],
+			color: "#000000",
+			key: "amc",
+			label: "AMC",
+			surface: "paper"
+		},
+		{
+			Icon: LogoDisneyPlus,
+			aliases: [
+				"disney+",
+				"disney plus",
+				"disneyplus"
+			],
+			color: "#113CCF",
+			key: "disney-plus",
+			label: "Disney+",
+			presentation: "wordmark",
+			surface: "dark"
+		},
+		{
+			Icon: LogoBilibiliCombined,
+			aliases: [
+				"哔哩哔哩",
+				"bilibili",
+				"b站",
+				"b 站"
+			],
+			color: "#FF5588",
+			colorMode: "intrinsic",
+			key: "bilibili",
+			label: "哔哩哔哩",
+			surface: "dark"
+		},
+		{
+			Icon: LogoPrimeVideo,
+			aliases: ["prime video", "primevideo"],
+			color: "#00A8E1",
+			colorMode: "intrinsic",
+			key: "prime-video",
+			label: "Prime Video",
+			presentation: "wordmark",
+			surface: "paper"
+		},
+		{
+			Icon: LogoIqiyiCombined,
+			aliases: [
+				"爱奇艺",
+				"iqiyi",
+				"iQIYI"
+			],
+			color: "#00DC5A",
+			colorMode: "intrinsic",
+			key: "iqiyi",
+			label: "爱奇艺",
+			surface: "dark"
+		},
+		{
+			Icon: LogoTencentCombined,
+			aliases: ["腾讯视频", "tencent video"],
+			color: "#00A2FF",
+			colorMode: "intrinsic",
+			key: "tencent-video",
+			label: "腾讯视频",
+			surface: "dark"
+		},
+		{
+			Icon: LogoYoukuCombined,
+			aliases: ["优酷", "youku"],
+			color: "#00A6FF",
+			colorMode: "intrinsic",
+			key: "youku",
+			label: "优酷",
+			surface: "dark"
+		},
+		{
+			aliases: [
+				"咪咕视频",
+				"咪咕",
+				"migu"
+			],
+			color: "#F04B23",
+			key: "migu",
+			label: "咪咕视频",
+			surface: "dark"
+		},
+		{
+			Icon: LogoHulu,
+			aliases: ["hulu"],
+			color: "#1CE783",
+			colorMode: "intrinsic",
+			key: "hulu",
+			label: "Hulu",
+			presentation: "wordmark",
+			surface: "dark"
+		},
+		{
+			Icon: LogoNetflix,
+			aliases: ["netflix"],
+			color: "#E50914",
+			colorMode: "intrinsic",
+			key: "netflix",
+			label: "Netflix",
+			surface: "dark"
+		},
+		{
+			Icon: LogoYouTube,
+			aliases: ["youtube", "youtube tv"],
+			color: "#FF0000",
+			key: "youtube",
+			label: "YouTube",
+			surface: "dark"
+		},
+		{
+			Icon: LogoAppleTv,
+			aliases: ["apple tv", "apple tv+"],
+			color: "#F5F5F7",
+			key: "apple-tv",
+			label: "Apple TV",
+			surface: "dark"
+		},
+		{
+			Icon: LogoHbo,
+			aliases: ["hbo"],
+			color: "#F5F5F7",
+			key: "hbo",
+			label: "HBO",
+			surface: "dark"
+		},
+		{
+			Icon: LogoHboMax,
+			aliases: ["hbo max", "max"],
+			color: "#8A7CFF",
+			key: "hbo-max",
+			label: "HBO Max",
+			surface: "dark"
+		},
+		{
+			Icon: LogoParamountPlus,
+			aliases: ["paramount+"],
+			color: "#0064FF",
+			key: "paramount-plus",
+			label: "Paramount+",
+			surface: "dark"
+		},
+		{
+			Icon: LogoTubi,
+			aliases: ["tubi"],
+			color: "#7408FF",
+			key: "tubi",
+			label: "Tubi",
+			surface: "dark"
+		},
+		{
+			Icon: LogoVimeo,
+			aliases: ["vimeo"],
+			color: "#1AB7EA",
+			key: "vimeo",
+			label: "Vimeo",
+			surface: "dark"
+		}
+	];
+	var normalizePlatformName = (value) => value.toLowerCase().replaceAll(/\s+/gu, "");
+	var findPlatformBrandByExactName = (value) => {
+		const normalized = normalizePlatformName(value);
+		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalizePlatformName(alias) === normalized)) ?? null;
+	};
+	var findPlatformBrandByContainedName = (value) => {
+		const normalized = normalizePlatformName(value);
+		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalized.includes(normalizePlatformName(alias)))) ?? null;
+	};
+	var FirstBroadcastPlatform = ({ platform }) => {
+		const brand = platform.split("/").map(findPlatformBrandByExactName).find((candidate) => candidate !== null) ?? null;
+		const Icon = brand?.Icon;
+		if (!brand || !Icon) return u("span", {
+			"aria-label": `首播平台：${platform}`,
+			class: "atv-first-broadcast-platform is-unknown",
+			"data-provider": "unknown",
+			children: ["首播 · ", platform]
+		});
+		return u("span", {
+			class: "atv-first-broadcast-platform",
+			"data-provider": brand?.key ?? "unknown",
+			children: [u("span", {
+				"aria-hidden": "true",
+				class: `atv-first-broadcast-platform-mark${brand.presentation === "wordmark" ? " is-wordmark" : ""}${brand.colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${brand.surface}`,
+				style: { color: brand.colorMode === "intrinsic" ? void 0 : brand.color },
+				children: u(Icon, {})
+			}), u("span", {
+				class: "atv-screen-reader-only",
+				children: ["首播平台：", platform]
+			})]
+		});
+	};
+	var INTEREST_LABELS = {
+		collect: "看过",
+		do: "在看",
+		none: "未标记",
+		wish: "想看"
+	};
+	var InterestButton = ({ className, label, onClick }) => u("button", {
+		class: className,
+		onClick,
+		type: "button",
+		children: [u("span", { children: label === "想看" ? u(IconPlay, {}) : u(IconCheck, {}) }), u("span", { children: label })]
+	});
+	var HeroActions = ({ callbacks, state }) => {
+		if (!state.loggedIn) return u("div", {
+			class: "atv-actions",
+			children: [
+				u(InterestButton, {
+					className: "atv-btn atv-btn-primary",
+					label: "想看",
+					onClick: () => callbacks.handleOpenInterest(state, "标记想看")
+				}),
+				state.hasWatching ? u(InterestButton, {
+					className: "atv-btn atv-btn-secondary",
+					label: "在看",
+					onClick: () => callbacks.handleOpenInterest(state, "标记在看")
+				}) : null,
+				u(InterestButton, {
+					className: "atv-btn atv-btn-secondary",
+					label: "看过",
+					onClick: () => callbacks.handleOpenInterest(state, "标记看过")
+				})
+			]
+		});
+		if (!state.marked) return u("div", {
+			class: "atv-actions",
+			children: [
+				u(InterestButton, {
+					className: "atv-btn atv-btn-primary",
+					label: "想看",
+					onClick: () => callbacks.handleOpenInterest(state)
+				}),
+				state.hasWatching ? u(InterestButton, {
+					className: "atv-btn atv-btn-secondary",
+					label: "在看",
+					onClick: () => callbacks.handleOpenInterest(state)
+				}) : null,
+				u(InterestButton, {
+					className: "atv-btn atv-btn-secondary",
+					label: "看过",
+					onClick: () => callbacks.handleOpenInterest(state)
+				})
+			]
+		});
+		const label = INTEREST_LABELS[state.status];
+		return u("div", {
+			class: "atv-actions",
+			children: u("div", {
+				class: "atv-interest-panel",
+				children: [u("div", {
+					class: "atv-interest-panel-header",
+					children: [
+						u("button", {
+							class: "atv-btn atv-btn-primary is-active atv-interest-badge",
+							onClick: () => callbacks.handleOpenInterest(state),
+							type: "button",
+							children: [u("span", { children: u(IconCheck, {}) }), u("span", { children: label })]
+						}),
+						state.rating > 0 ? u("span", {
+							class: "atv-interest-panel-stars",
+							children: Array.from({ length: 5 }, (_, index) => index < state.rating ? u(IconStarFull, {}, index) : u(IconStarEmpty, {}, index))
+						}) : null,
+						state.date ? u("span", {
+							class: "atv-interest-panel-date",
+							children: state.date
+						}) : null
+					]
+				}), state.comment ? u("div", {
+					class: "atv-interest-panel-comment",
+					children: [u("span", { children: `"${state.comment}"` }), state.usefulCount ? u("span", {
+						class: "atv-useful-badge",
+						children: [u(IconThumb, {}), u("span", { children: state.usefulCount.replaceAll(/\D/gu, "") })]
+					}) : null]
+				}) : null]
+			})
+		});
+	};
+	var hashStr = (str) => {
+		let h = 0;
+		for (let i = 0; i < str.length; i += 1) h = (h * 31 + (str.codePointAt(i) ?? 0)) % 1000000007;
+		return h;
+	};
+	var pickStill = (photos, seed) => {
+		if (!photos.length) return null;
+		return photos[hashStr(String(seed || "")) % photos.length];
+	};
+	var backgroundStyle = (still, poster) => {
+		if (still?.hdUrl || poster) return {};
+		return { background: "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)" };
+	};
+	var stillBackground = (still, hdLoaded) => u(S, { children: [u("div", {
+		class: "atv-hero-still is-thumb",
+		style: { backgroundImage: `url("${still.thumbUrl || still.hdUrl}")` }
+	}), u("div", {
+		"aria-hidden": "true",
+		class: `atv-hero-still is-hd${hdLoaded ? " is-loaded" : ""}`,
+		style: { backgroundImage: hdLoaded ? `url("${still.hdUrl || still.thumbUrl}")` : void 0 }
+	})] });
+	var posterBackground = (poster) => u("div", {
+		class: "atv-hero-still is-poster",
+		style: { backgroundImage: `url("${poster}")` }
+	});
+	var HeroBackground = ({ photos, poster, subjectId }) => {
+		const still = pickStill(photos, subjectId);
+		const [hdLoaded, setHdLoaded] = d(false);
+		h(() => {
+			setHdLoaded(false);
+			if (!still?.hdUrl) return;
+			const loader = new Image();
+			loader.addEventListener("load", () => requestAnimationFrame(() => setHdLoaded(true)), { once: true });
+			loader.addEventListener("error", () => {
+				if (still.thumbUrl && still.thumbUrl !== still.hdUrl) requestAnimationFrame(() => setHdLoaded(true));
+			}, { once: true });
+			loader.src = still.hdUrl;
+		}, [still?.hdUrl, still?.thumbUrl]);
+		return u("div", {
+			class: "atv-hero-bg",
+			style: backgroundStyle(still, poster),
+			children: [still?.hdUrl ? stillBackground(still, hdLoaded) : null, !still?.hdUrl && poster ? posterBackground(poster) : null]
+		});
+	};
+	var HeroMeta = ({ info, isTV, leading, year }) => {
+		const metaParts = [];
+		if (year) metaParts.push(year);
+		if (isTV) {
+			const episodeParts = [];
+			if (info.seasons) episodeParts.push(info.seasons + (RE_SEASON_SUFFIX.test(info.seasons) ? "季" : ""));
+			if (info.episodes) episodeParts.push(info.episodes + (RE_SEASON_SUFFIX.test(info.episodes) ? "集" : ""));
+			if (episodeParts.length) metaParts.push(episodeParts.join(" · "));
+			else if (info.episodeRuntime) metaParts.push(info.episodeRuntime);
+		} else if (info.runtime) metaParts.push(info.runtime);
+		if (info.country) metaParts.push(info.country);
+		return u("div", {
+			class: "atv-hero-meta",
+			children: [
+				leading,
+				metaParts.map((part) => u("span", {
+					class: "atv-meta-dot",
+					children: part
+				}, part)),
+				info.genres.length ? u("span", {
+					class: "atv-meta-chips",
+					children: info.genres.map((genre) => u("span", {
+						class: "atv-chip",
+						children: genre
+					}, genre))
+				}) : null
+			]
+		});
+	};
+	var PosterPlaceholder = () => u("div", {
+		class: "atv-poster-placeholder",
+		children: u(IconFilmPlaceholder, {})
+	});
+	var noop$2 = () => void 0;
+	var HeroPoster = ({ onOpenPoster = noop$2, poster, title }) => {
+		const [failed, setFailed] = d(false);
+		return u("button", {
+			class: "atv-poster-card",
+			onClick: () => {
+				if (poster) onOpenPoster(poster, title.primary || "");
+			},
+			type: "button",
+			children: poster && !failed ? u("img", {
+				alt: title.primary || "",
+				onError: () => setFailed(true),
+				src: poster
+			}) : u(PosterPlaceholder, {})
+		});
+	};
+	var HeroSummary = ({ expandNativeSummary, text }) => {
+		const teaserRef = A(null);
+		const previousTextRef = A(text);
+		const [expanded, setExpanded] = d(false);
+		const [summary, setSummary] = d(text);
+		const [showToggle, setShowToggle] = d(true);
+		const [summaryTransitionKey, setSummaryTransitionKey] = d(0);
+		h(() => {
+			requestAnimationFrame(() => {
+				const teaser = teaserRef.current;
+				if (teaser) setShowToggle(teaser.scrollHeight - teaser.clientHeight > 4);
+			});
+		}, [text]);
+		h(() => {
+			if (previousTextRef.current !== text) {
+				previousTextRef.current = text;
+				setExpanded(false);
+				setSummary(text);
+				setSummaryTransitionKey((key) => key + 1);
+			}
+		}, [text]);
+		const toggle = async () => {
+			if (expanded) {
+				setExpanded(false);
+				setSummaryTransitionKey((key) => key + 1);
+				return;
+			}
+			setExpanded(true);
+			setSummaryTransitionKey((key) => key + 1);
+			const expandedText = await expandNativeSummary?.();
+			if (expandedText) setSummary(expandedText);
+		};
+		return u("div", {
+			class: "atv-hero-summary",
+			children: [u("p", {
+				class: `atv-hero-teaser${expanded ? "" : " is-clamped"}`,
+				ref: teaserRef,
+				children: u("span", {
+					class: "atv-hero-teaser-content",
+					children: summary
+				}, `${summaryTransitionKey}-${summary}`)
+			}), u("button", {
+				class: `atv-hero-more${expanded ? " is-open" : ""}`,
+				onClick: () => void toggle(),
+				style: { display: showToggle ? void 0 : "none" },
+				type: "button",
+				children: [u("span", { children: expanded ? "收起" : "展开" }), u(IconChevron, {})]
+			})]
+		});
+	};
+	var noop$1 = () => void 0;
+	var Hero = ({ callbacks, data, expandNativeSummary, externalRatings = null, firstBroadcastPlatform = null, onOpenPoster = noop$1 }) => u("section", {
+		class: "atv-hero",
+		children: [
+			u(HeroBackground, {
+				photos: data.photos,
+				poster: data.poster,
+				subjectId: data.subjectId
+			}),
+			u("div", { class: "atv-hero-vignette" }),
+			u("div", { class: "atv-hero-overlay-x" }),
+			u("div", { class: "atv-hero-overlay-y" }),
+			u("div", {
+				class: "atv-hero-inner-section",
+				children: u("div", {
+					class: "atv-hero-inner",
+					children: [u(HeroPoster, {
+						onOpenPoster,
+						poster: data.poster,
+						title: data.title
+					}), u("div", {
+						class: "atv-hero-info",
+						children: [
+							u("h1", {
+								class: "atv-hero-title",
+								children: data.title.primary || data.title.full
+							}),
+							data.title.original ? u("div", {
+								class: "atv-hero-orig",
+								children: data.title.original
+							}) : null,
+							u(HeroMeta, {
+								info: data.info,
+								isTV: data.isTV,
+								leading: firstBroadcastPlatform ? u(FirstBroadcastPlatform, { platform: firstBroadcastPlatform }) : null,
+								year: data.year
+							}),
+							u(RatingPanel, {
+								douban: data.rating,
+								externalRatings,
+								imdbId: data.imdbId
+							}),
+							u(HeroActions, {
+								callbacks,
+								state: data.interest
+							}),
+							data.summary ? u(HeroSummary, {
+								expandNativeSummary,
+								text: data.summary
+							}) : null
+						]
+					})]
+				})
+			})
+		]
+	});
+	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
+		class: "atv-interest-modal-stars",
+		children: Array.from({ length: 5 }, (_, index) => {
+			const value = index + 1;
+			const full = value <= rating;
+			return u("button", {
+				class: `atv-interest-modal-star${full ? " is-full" : ""}`,
+				disabled,
+				onClick: () => {
+					if (!disabled) onChange(value);
+				},
+				type: "button",
+				children: full ? u(IconStarFull, {}) : u(IconStarEmpty, {})
+			}, index);
+		})
+	});
+	var statusEntries = (hasWatching) => [
+		{
+			label: "想看",
+			value: "wish"
+		},
+		...hasWatching ? [{
+			label: "在看",
+			value: "do"
+		}] : [],
+		{
+			label: "看过",
+			value: "collect"
+		}
+	];
+	var initialStatus = (state) => state.marked && state.status !== "none" ? state.status : "wish";
+	var InterestFormContent = ({ callbacks, state }) => {
+		const handleClose = useModalClose();
+		const [status, setStatus] = d(initialStatus(state));
+		const [rating, setRating] = d(state.rating || 0);
+		const [comment, setComment] = d(state.comment || "");
+		const [loading, setLoading] = d(false);
+		const [error, setError] = d("");
+		const titlePrefix = state.marked ? "修改" : "标记";
+		const statuses = statusEntries(state.hasWatching);
+		const activeStatusIndex = statuses.findIndex((entry) => entry.value === status);
+		const save = async () => {
+			if (loading) return;
+			setLoading(true);
+			setError("");
+			const result = await callbacks.onSave({
+				comment: comment.trim(),
+				rating,
+				status
+			});
+			if (result.ok) {
+				handleClose();
+				return;
+			}
+			setError(result.error || "操作失败");
+			setLoading(false);
+		};
+		const remove = async () => {
+			if (loading) return;
+			setLoading(true);
+			setError("");
+			const result = await callbacks.onRemove(state.status);
+			if (result.ok) {
+				handleClose();
+				return;
+			}
+			setError(result.error || "取消标记失败");
+			setLoading(false);
+		};
+		return u(S, { children: [
+			u("div", { class: "atv-modal-accent-bar" }),
+			u("div", {
+				class: "atv-interest-modal-header",
+				children: [u("span", {
+					class: "atv-interest-modal-header-title",
+					id: "atv-interest-modal-title",
+					children: `${titlePrefix}${INTEREST_LABELS[status]}`
+				}), u(ModalCloseButton, {
+					ariaLabel: "关闭标记弹窗",
+					className: "atv-interest-modal-close",
+					onClick: handleClose
+				})]
+			}),
+			u("div", {
+				class: "atv-interest-modal-body",
+				children: [
+					u("div", {
+						class: "atv-interest-modal-statuses",
+						style: {
+							"--atv-interest-status-count": statuses.length,
+							"--atv-interest-status-index": activeStatusIndex
+						},
+						children: [u("div", {
+							"aria-hidden": "true",
+							class: "atv-interest-modal-status-indicator"
+						}), statuses.map((entry) => u("button", {
+							"aria-pressed": entry.value === status,
+							class: `atv-interest-modal-status${entry.value === status ? " is-active" : ""}`,
+							"data-value": entry.value,
+							disabled: loading,
+							onClick: () => setStatus(entry.value),
+							type: "button",
+							children: entry.label
+						}, entry.value))]
+					}),
+					u(StarRatingInput, {
+						disabled: loading,
+						onChange: setRating,
+						rating
+					}),
+					u("textarea", {
+						class: "atv-interest-modal-comment",
+						maxLength: 350,
+						onInput: (event) => setComment(event.currentTarget.value),
+						placeholder: "写一段短评…",
+						rows: 3,
+						value: comment
+					}),
+					u("button", {
+						class: "atv-interest-modal-submit",
+						disabled: loading,
+						onClick: () => void save(),
+						type: "button",
+						children: loading ? "保存中..." : "保存"
+					}),
+					state.marked ? u("button", {
+						class: "atv-interest-modal-remove",
+						disabled: loading,
+						onClick: () => void remove(),
+						type: "button",
+						children: "取消标记"
+					}) : null,
+					u("div", {
+						class: "atv-interest-modal-error",
+						children: error
+					})
+				]
+			})
+		] });
+	};
+	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
+		ariaLabelledBy: "atv-interest-modal-title",
+		className: "atv-interest-modal",
+		id: "atv-interest-modal",
+		onClose,
+		surfaceClassName: "atv-interest-modal-inner",
+		children: u(InterestFormContent, {
+			callbacks,
+			state
+		})
+	});
+	var saveOptionsFromForm = (form) => ({
+		comment: form.comment,
+		rating: form.rating > 0 ? form.rating : void 0
+	});
+	var useInterestMarking = ({ adapters, loggedIn, onLoginRequired, subjectId }) => {
+		const [activeInterest, setActiveInterest] = d(null);
+		const { post, reload, remove } = adapters;
+		const requireLogin = (action) => {
+			if (loggedIn) return true;
+			onLoginRequired(action);
+			return false;
+		};
+		return {
+			callbacks: { handleOpenInterest: (state, action = "标记这部作品") => {
+				if (!requireLogin(action)) return;
+				setActiveInterest(state);
+			} },
+			form: activeInterest ? u(InterestForm, {
+				callbacks: {
+					onRemove: async (status) => {
+						const result = await remove(subjectId, status);
+						if (result.ok) reload();
+						return result;
+					},
+					onSave: async (form) => {
+						const result = await post(subjectId, form.status, saveOptionsFromForm(form));
+						if (result.ok) reload();
+						return result;
+					}
+				},
+				onClose: () => setActiveInterest(null),
+				state: activeInterest
+			}) : null
+		};
+	};
+	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
+	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
+	var nativeLoginError = "无法载入豆瓣登录组件，请刷新页面后重试。";
+	var trustedLoginOrigin = "https://accounts.douban.com";
+	var maxAttempts = 24;
+	var clearNativeLoginMasks = () => {
+		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
+	};
+	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
+	var isTrustedLoginIframe = (iframe) => {
+		const source = iframe.getAttribute("src");
+		if (!source) return false;
+		try {
+			const url = new URL(source, window.location.href);
+			return url.origin === trustedLoginOrigin && !url.username && !url.password && url.pathname.startsWith("/passport/login");
+		} catch {
+			return false;
+		}
+	};
+	var styleLoginIframe = (iframe) => {
+		iframe.title = "豆瓣登录";
+		iframe.referrerPolicy = "strict-origin-when-cross-origin";
+		iframe.removeAttribute("width");
+		iframe.removeAttribute("height");
+		iframe.removeAttribute("frameborder");
+		iframe.removeAttribute("scrolling");
+		iframe.removeAttribute("style");
+		iframe.classList.add("atv-login-modal-iframe");
+	};
+	var prepareNativeLoginIframe = (dialog) => {
+		const iframe = dialog.querySelector("iframe");
+		if (!iframe) return {
+			kind: "error",
+			message: nativeLoginError
+		};
+		const source = iframe.getAttribute("src");
+		if (!source || source === "about:blank") return { kind: "pending" };
+		if (!isTrustedLoginIframe(iframe)) return {
+			kind: "error",
+			message: nativeLoginError
+		};
+		styleLoginIframe(iframe);
+		iframe.remove();
+		dialog.remove();
+		return {
+			iframe,
+			kind: "ready"
+		};
+	};
+	var findExistingLoginIframe = () => {
+		for (const iframe of document.querySelectorAll("iframe[src*='passport/login']")) if (isTrustedLoginIframe(iframe)) {
+			styleLoginIframe(iframe);
+			iframe.remove();
+			return iframe;
+		}
+		return null;
+	};
+	var hasAuthenticatedSession = () => document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="));
+	var mountIframe = (host, iframe, onStateChange, isStopped) => {
+		let authenticated = false;
+		const sessionTimer = { current: void 0 };
+		const onLoad = () => {
+			if (!isStopped() && !authenticated) onStateChange({ kind: "ready" });
+		};
+		const checkSession = () => {
+			if (isStopped() || authenticated || !hasAuthenticatedSession()) return;
+			authenticated = true;
+			if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
+			onStateChange({ kind: "authenticated" });
+			window.location.reload();
+		};
+		host.replaceChildren(iframe);
+		iframe.addEventListener("load", onLoad, { once: true });
+		onStateChange({ kind: "mounted" });
+		sessionTimer.current = window.setInterval(checkSession, 300);
+		requestAnimationFrame(() => {
+			if (!isStopped()) iframe.focus();
+		});
+		return () => {
+			iframe.removeEventListener("load", onLoad);
+			if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
+		};
+	};
+	var preventNavigation = (event) => {
+		if (event.target instanceof HTMLAnchorElement) event.preventDefault();
+	};
+	var triggerNativeLoginDialog = () => {
+		const triggers = [...document.querySelectorAll(".a_show_login, .j.a_show_login")];
+		const trigger = triggers.find((node) => node.offsetParent !== null) ?? triggers[0];
+		if (!trigger) return;
+		document.addEventListener("click", preventNavigation, { once: true });
+		trigger.click();
+	};
+	var mountNativeLoginFrame = (host, onStateChange) => {
+		let stopped = false;
+		let retryTimer;
+		let stopIframeMount;
+		const stop = () => {
+			stopped = true;
+			if (retryTimer !== void 0) window.clearTimeout(retryTimer);
+			stopIframeMount?.();
+		};
+		const mount = (iframe) => {
+			stopIframeMount = mountIframe(host, iframe, onStateChange, () => stopped);
+		};
+		const attemptMount = (attempt) => {
+			if (stopped) return;
+			clearNativeLoginMasks();
+			const dialog = findNativeLoginDialog();
+			if (dialog) {
+				const result = prepareNativeLoginIframe(dialog);
+				if (result.kind === "ready") {
+					mount(result.iframe);
+					return;
+				}
+				if (result.kind === "error") {
+					onStateChange(result);
+					return;
+				}
+			}
+			const directIframe = findExistingLoginIframe();
+			if (directIframe) {
+				mount(directIframe);
+				return;
+			}
+			if (attempt === 0) {
+				triggerNativeLoginDialog();
+				clearNativeLoginMasks();
+			}
+			if (attempt < maxAttempts) {
+				retryTimer = window.setTimeout(() => {
+					retryTimer = void 0;
+					attemptMount(attempt + 1);
+				}, 100);
+				return;
+			}
+			onStateChange({
+				kind: "error",
+				message: nativeLoginError
+			});
+		};
+		onStateChange({ kind: "loading" });
+		attemptMount(0);
+		return stop;
+	};
+	var statusForLoginState = (state) => {
+		if (state.kind === "error") return state.message;
+		if (state.kind === "loading" || state.kind === "mounted") return "正在载入豆瓣登录组件…";
+		return "";
+	};
+	var LoginModalContent = ({ action, busy, hostRef, iframeReady, status }) => {
+		const handleClose = useModalClose();
+		return u(S, { children: [
+			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
+			u(ModalCloseButton, {
+				ariaLabel: "关闭登录弹窗",
+				className: "atv-login-modal-close",
+				onClick: handleClose,
+				size: 18
+			}),
+			u("h2", {
+				class: "atv-login-modal-title",
+				id: "atv-login-modal-title",
+				children: "登录豆瓣后继续"
+			}),
+			u("p", {
+				class: "atv-login-modal-desc",
+				id: "atv-login-modal-desc",
+				children: `登录后才能${action}。`
+			}),
+			u("p", {
+				"aria-live": "polite",
+				class: "atv-login-modal-status",
+				hidden: !status,
+				children: status
+			}),
+			u("div", {
+				"aria-busy": busy ? "true" : "false",
+				class: `atv-login-modal-native${iframeReady ? " is-ready" : ""}`,
+				ref: hostRef
+			})
+		] });
+	};
+	var LoginModal = ({ action, onClose }) => {
+		const hostRef = A(null);
+		const [state, setState] = d({ kind: "loading" });
+		const busy = state.kind === "loading" || state.kind === "mounted";
+		const iframeReady = state.kind === "ready";
+		const status = statusForLoginState(state);
+		h(() => {
+			const host = hostRef.current;
+			if (!host) return;
+			return mountNativeLoginFrame(host, setState);
+		}, []);
+		return u(ModalShell, {
+			ariaDescribedBy: "atv-login-modal-desc",
+			ariaLabelledBy: "atv-login-modal-title",
+			className: "atv-login-modal",
+			id: "atv-login-modal",
+			onClose,
+			surfaceClassName: "atv-login-modal-inner",
+			children: u(LoginModalContent, {
+				action,
+				busy,
+				hostRef,
+				iframeReady,
+				status
+			})
+		});
+	};
+	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
+		id: "atv-cast",
+		title: getSubjectSectionCopy("cast").sectionTitle,
+		children: u("div", {
+			class: "atv-carousel atv-cast-carousel",
+			children: celebrities.map((person) => {
+				const content = u(S, { children: [
+					u("div", {
+						class: "atv-cast-avatar",
+						style: person.avatar ? { backgroundImage: `url("${person.avatar}")` } : void 0
+					}),
+					u("div", {
+						class: "atv-cast-name",
+						children: person.name
+					}),
+					person.role ? u("div", {
+						class: "atv-cast-role",
+						children: person.role
+					}) : null
+				] });
+				return person.link ? u("a", {
+					class: "atv-cast-card",
+					href: person.link,
+					rel: "noopener",
+					target: "_blank",
+					children: content
+				}, person.link) : u("div", {
+					class: "atv-cast-card",
+					children: content
+				}, person.name);
+			})
+		})
+	}) : null;
+	var noop = () => void 0;
+	var PhotoTile = ({ onOpenPoster, photo }) => {
+		const [displaySrc, setDisplaySrc] = d(photo.hdUrl || photo.thumbUrl);
+		const [isPortrait, setIsPortrait] = d(false);
+		return u("button", {
+			class: `atv-photo-tile${isPortrait ? " is-portrait" : ""}`,
+			onClick: () => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照"),
+			type: "button",
+			children: u("img", {
+				alt: "剧照",
+				loading: "lazy",
+				onError: () => {
+					if (photo.thumbUrl && displaySrc !== photo.thumbUrl) setDisplaySrc(photo.thumbUrl);
+				},
+				onLoad: (event) => {
+					const img = event.currentTarget;
+					if (img.naturalHeight > img.naturalWidth) setIsPortrait(true);
+				},
+				src: displaySrc
+			})
+		});
+	};
+	var PhotosSection = ({ data, onOpenPoster = noop, onOpenVideo = noop }) => data.photos.length || data.trailers.length ? u(Section, {
+		id: "atv-photos",
+		moreLink: data.subjectId ? {
+			href: `https://movie.douban.com/subject/${data.subjectId}/all_photos`,
+			text: "查看全部 →"
+		} : void 0,
+		title: getSubjectSectionCopy("media").sectionTitle,
+		children: u("div", {
+			class: "atv-carousel atv-photos",
+			children: [data.trailers.map((trailer) => u("button", {
+				class: "atv-photo-tile atv-trailer-tile",
+				onClick: () => onOpenVideo(trailer),
+				style: {
+					backgroundImage: `url("${trailer.thumbUrl}")`,
+					backgroundPosition: "center",
+					backgroundSize: "cover"
+				},
+				type: "button",
+				children: [u("div", {
+					class: "atv-trailer-play-overlay",
+					children: u("div", {
+						class: "atv-trailer-play-btn",
+						children: u(PlayIcon, {})
+					})
+				}), u("span", {
+					class: "atv-trailer-label",
+					children: trailer.title || "预告片"
+				})]
+			}, trailer.trailerPageUrl)), data.photos.map((photo) => u(PhotoTile, {
+				onOpenPoster,
+				photo
+			}, photo.link))]
+		})
+	}) : null;
+	var PosterImage = ({ alt, className, poster }) => {
+		const [failed, setFailed] = d(false);
+		if (!poster || failed) return u(PosterPlaceholder, {});
+		return u("img", {
+			alt,
+			class: className,
+			loading: "lazy",
+			onError: () => setFailed(true),
+			src: poster
+		});
+	};
+	var RecommendationsSection = ({ recommendations }) => recommendations.length ? u(Section, {
+		id: "atv-recs",
+		title: getSubjectSectionCopy("recommendations").sectionTitle,
+		children: u("div", {
+			class: "atv-recs",
+			children: recommendations.map((item) => {
+				const content = u(S, { children: [u("div", {
+					class: "atv-rec-poster",
+					children: u(PosterImage, {
+						alt: item.title,
+						poster: item.poster
+					})
+				}), u("div", {
+					class: "atv-rec-title",
+					children: item.title
+				})] });
+				return item.link ? u("a", {
+					class: "atv-rec-card",
+					href: item.link,
+					rel: "noopener",
+					target: "_blank",
+					children: content
+				}, item.link) : u("div", {
+					class: "atv-rec-card",
+					children: content
+				}, item.title);
+			})
+		})
+	}) : null;
+	var subjectPath = (url) => {
+		try {
+			return new URL(url).pathname;
+		} catch {
+			return "";
+		}
+	};
+	var SeriesSection = ({ items, moreLink }) => items.length ? u(Section, {
+		id: "atv-series",
+		moreLink,
+		title: getSubjectSectionCopy("series").sectionTitle,
+		children: u("div", {
+			class: "atv-carousel atv-series-carousel",
+			children: items.map((item) => {
+				const className = `atv-series-card${item.link && subjectPath(item.link) === window.location.pathname ? " is-active" : ""}`;
+				const key = item.link || item.title;
+				const content = u(S, { children: [u("div", {
+					class: "atv-series-poster",
+					children: [u(PosterImage, {
+						alt: item.title,
+						poster: item.poster
+					}), item.rating ? u("span", {
+						class: "atv-series-badge",
+						children: item.rating
+					}) : null]
+				}), u("div", {
+					class: "atv-series-info",
+					children: u("span", {
+						class: "atv-series-title",
+						children: item.title
+					})
+				})] });
+				return item.link ? u("a", {
+					class: className,
+					href: item.link,
+					rel: "noopener",
+					target: "_blank",
+					children: content
+				}, key) : u("div", {
+					class: className,
+					children: content
+				}, key);
+			})
+		})
+	}) : null;
+	var UNKNOWN_PROVIDER_COLOR = "#41be5d";
+	var PROVIDER_HOSTS = {
+		amc: ["amc.com"],
+		"apple-tv": ["tv.apple.com"],
+		bilibili: ["bilibili.com"],
+		hbo: ["hbo.com"],
+		"hbo-max": ["max.com", "hbomax.com"],
+		hulu: ["hulu.com"],
+		iqiyi: ["iqiyi.com"],
+		migu: ["miguvideo.com", "migu.cn"],
+		netflix: ["netflix.com"],
+		"paramount-plus": ["paramountplus.com"],
+		"prime-video": ["primevideo.com", "amazon.com"],
+		"tencent-video": ["v.qq.com"],
+		tubi: ["tubi.tv"],
+		vimeo: ["vimeo.com"],
+		youku: ["youku.com"],
+		youtube: ["youtube.com", "youtu.be"]
+	};
+	var COMBINED_SVG_BRANDS = new Set([
+		"bilibili",
+		"iqiyi",
+		"tencent-video",
+		"youku"
+	]);
+	var decodeStreamingHref = (href) => {
+		try {
+			return new URL(href).searchParams.get("url") || href;
+		} catch {
+			return href;
+		}
+	};
+	var hostMatches = (href, brand) => {
+		const decoded = decodeStreamingHref(href);
+		const hosts = PROVIDER_HOSTS[brand.key] ?? [];
+		try {
+			const host = new URL(decoded).hostname.replace(/^www\./u, "");
+			return hosts.some((providerHost) => host.endsWith(providerHost));
+		} catch {
+			return hosts.some((providerHost) => decoded.includes(providerHost));
+		}
+	};
+	var resolveStreamingProvider = (item) => {
+		const provider = findPlatformBrandByContainedName(item.name) ?? PLATFORM_BRANDS.find((brand) => hostMatches(item.href, brand));
+		if (provider) {
+			const { Icon, color, colorMode, key, label, surface } = provider;
+			return {
+				Icon,
+				color,
+				colorMode,
+				combinedSvg: COMBINED_SVG_BRANDS.has(key) || void 0,
+				key,
+				label,
+				surface
+			};
+		}
+		return {
+			color: UNKNOWN_PROVIDER_COLOR,
+			key: "unknown",
+			label: item.name
+		};
+	};
+	var StreamingLogo = ({ colorMode, fallbackLabel, Icon, imgSrc, surface = "dark" }) => {
+		if (imgSrc) return u("img", {
+			alt: "",
+			class: "atv-stream-vendor-icon",
+			src: imgSrc
+		});
+		return u("span", {
+			"aria-hidden": "true",
+			class: `atv-stream-logo${colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${surface}`,
+			children: Icon ? u(Icon, {}) : u("span", {
+				class: "atv-stream-logo-fallback",
+				children: fallbackLabel.trim().at(0) || u(IconPlay, {})
+			})
+		});
+	};
+	var StreamingSection = ({ streaming }) => streaming.length ? u(Section, {
+		id: "atv-stream",
+		title: getSubjectSectionCopy("streaming").sectionTitle,
+		children: u("div", {
+			class: "atv-stream-row",
+			children: streaming.map((item) => {
+				const provider = resolveStreamingProvider(item);
+				const style = { "--atv-stream-brand": provider.color };
+				return u("a", {
+					class: `atv-stream-card${provider.combinedSvg ? " atv-stream-card-combined" : ""} is-surface-${provider.surface ?? "dark"}`,
+					"data-provider": provider.key,
+					href: item.href,
+					rel: "noopener",
+					style,
+					target: "_blank",
+					children: provider.combinedSvg && provider.Icon ? u(provider.Icon, {}) : u(S, { children: [u(StreamingLogo, {
+						colorMode: provider.colorMode,
+						fallbackLabel: provider.label,
+						Icon: provider.Icon,
+						imgSrc: provider.Icon ? void 0 : item.iconUrl,
+						surface: provider.surface
+					}), u("span", {
+						class: "atv-stream-name",
+						children: item.name
+					})] })
+				}, item.href);
+			})
+		})
+	}) : null;
+	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
+	var reviewDisplayName = (name) => name.trim() || "匿名用户";
+	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
+		const load = () => {
+			try {
+				const raw = localStorage.getItem(storageKey);
+				if (!raw) return new Map();
+				const parsed = JSON.parse(raw);
+				return new Map(parsed);
+			} catch {
+				return new Map();
+			}
+		};
+		const persist = (entries) => {
+			try {
+				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
+			} catch {}
+		};
+		return {
+			get(key) {
+				const entries = load();
+				const entry = entries.get(key);
+				if (!entry) return;
+				if (Date.now() > entry.expiresAt) {
+					entries.delete(key);
+					persist(entries);
+					return;
+				}
+				return entry.value;
+			},
+			set(key, value) {
+				const entries = load();
+				entries.set(key, {
+					expiresAt: Date.now() + ttlMs,
+					value
+				});
+				persist(entries);
+			}
+		};
+	};
+	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);
+	var reviewVoteKey = (review) => reviewNumericId(review.id);
+	var voteDirection = (value) => {
+		const type = typeof value === "string" ? value : value?.type;
+		if (type === "useful" || type === "up") return "useful";
+		if (type === "useless" || type === "down") return "useless";
+		return null;
+	};
+	var initialReviewVoteState = (review) => {
+		const cached = reviewVoteCache.get(reviewVoteKey(review));
+		return {
+			usefulCount: typeof cached === "object" && typeof cached.usefulCount === "number" ? cached.usefulCount : review.usefulCount ?? 0,
+			uselessCount: typeof cached === "object" && typeof cached.uselessCount === "number" ? cached.uselessCount : review.uselessCount ?? 0,
+			voted: voteDirection(cached)
+		};
+	};
+	var optimisticReviewVoteState = (state, type) => ({
+		usefulCount: state.usefulCount + (type === "useful" ? 1 : 0),
+		uselessCount: state.uselessCount + (type === "useless" ? 1 : 0),
+		voted: type
+	});
+	var resolvedReviewVoteState = (current, type, result) => ({
+		usefulCount: result.usefulCount ?? current.usefulCount,
+		uselessCount: result.uselessCount ?? current.uselessCount,
+		voted: type
+	});
+	var persistReviewVoteState = (review, state) => {
+		if (!state.voted) return;
+		reviewVoteCache.set(reviewVoteKey(review), {
+			type: state.voted,
+			usefulCount: state.usefulCount,
+			uselessCount: state.uselessCount
+		});
+	};
+	var reviewWithVoteState = (review, state) => ({
+		...review,
+		usefulCount: state.usefulCount,
+		uselessCount: state.uselessCount
+	});
+	var ReviewVoteButtons = ({ canVote, onStateChange, onVote, review, size = "normal", state }) => {
+		const [localState, setLocalState] = d(() => initialReviewVoteState(review));
+		const [loading, setLoading] = d(false);
+		const voteState = state ?? localState;
+		const setVoteState = (nextState, options) => {
+			if (onStateChange) onStateChange(review, nextState, options);
+			else {
+				setLocalState(nextState);
+				if (options?.persist) persistReviewVoteState(review, nextState);
+			}
+		};
+		const vote = async (type) => {
+			if (loading || voteState.voted === type || !onVote) return;
+			if (canVote && !canVote()) return;
+			const previous = voteState;
+			setLoading(true);
+			setVoteState(optimisticReviewVoteState(voteState, type));
+			const result = await onVote(reviewNumericId(review.id), type);
+			if (result.ok) setVoteState(resolvedReviewVoteState(voteState, type, result), { persist: true });
+			else setVoteState(previous);
+			setLoading(false);
+		};
+		const sizeClass = size === "large" ? " is-lg" : "";
+		return u(S, { children: [u("button", {
+			"aria-label": `有用，${voteState.usefulCount} 人觉得有用`,
+			"aria-pressed": voteState.voted === "useful",
+			class: `atv-vote-btn up${voteState.voted === "useful" ? " is-voted" : ""}${sizeClass}`,
+			disabled: !onVote || loading || voteState.voted === "useful",
+			onClick: (event) => {
+				event.stopPropagation();
+				vote("useful");
+			},
+			type: "button",
+			children: [u(IconVoteTriangle, {}), u("span", {
+				class: "atv-vote-count",
+				children: voteState.usefulCount
+			})]
+		}), u("button", {
+			"aria-label": `没用，${voteState.uselessCount} 人觉得没用`,
+			"aria-pressed": voteState.voted === "useless",
+			class: `atv-vote-btn down${voteState.voted === "useless" ? " is-voted" : ""}${sizeClass}`,
+			disabled: !onVote || loading || voteState.voted === "useless",
+			onClick: (event) => {
+				event.stopPropagation();
+				vote("useless");
+			},
+			type: "button",
+			children: [u(IconVoteTriangle, {}), u("span", {
+				class: "atv-vote-count",
+				children: voteState.uselessCount
+			})]
+		})] });
+	};
+	var ReviewCard = ({ canVote, onOpen, onVote, onVoteStateChange, review, voteState }) => {
+		const displayName = reviewDisplayName(review.name);
+		return u("article", {
+			class: "atv-review-card",
+			"data-rid": review.id || void 0,
+			children: [u("button", {
+				"aria-label": `展开阅读：${review.title}`,
+				class: "atv-review-open-button",
+				onClick: () => onOpen(review),
+				type: "button"
+			}), u("div", {
+				class: "atv-review-content",
+				children: [
+					u("div", {
+						class: "atv-review-top",
+						children: [u("div", {
+							class: "atv-review-avatar",
+							style: review.avatar ? { backgroundImage: `url("${review.avatar}")` } : void 0,
+							children: review.avatar ? null : displayName.slice(0, 1).toUpperCase()
+						}), u("div", {
+							class: "atv-review-meta",
+							children: [review.link ? u("a", {
+								class: "atv-review-author",
+								href: review.link,
+								onClick: (event) => event.stopPropagation(),
+								rel: "noopener",
+								target: "_blank",
+								children: displayName
+							}) : u("div", {
+								class: "atv-review-author",
+								children: displayName
+							}), review.stars > 0 ? u(Stars, {
+								className: "atv-review-stars",
+								outOfFive: true,
+								score: review.stars
+							}) : null]
+						})]
+					}),
+					u("div", {
+						class: "atv-review-title",
+						children: review.title
+					}),
+					u("div", {
+						class: "atv-review-excerpt",
+						children: review.content
+					}),
+					u("div", {
+						class: "atv-review-foot",
+						children: [
+							u("span", {
+								class: "atv-review-time",
+								children: review.time || ""
+							}),
+							u("span", {
+								class: "atv-review-readmore",
+								children: "展开阅读"
+							}),
+							u("div", {
+								class: "atv-review-actions",
+								"data-rid": review.id || void 0,
+								children: u(ReviewVoteButtons, {
+									canVote,
+									onStateChange: onVoteStateChange,
+									onVote,
+									review,
+									state: voteState
+								})
+							})
+						]
+					})
+				]
+			})]
+		});
+	};
+	var ReviewsSection = ({ canVote, getVoteState, isTV, onOpen, onVoteStateChange, onVote, reviews, subjectId }) => {
+		if (!reviews.length) return null;
+		return u(Section, {
+			id: "atv-reviews",
+			moreLink: {
+				href: `https://movie.douban.com/subject/${subjectId}/reviews`,
+				text: "查看全部 →"
+			},
+			title: getSubjectSectionCopy(isTV ? "tvReviews" : "movieReviews").sectionTitle,
+			children: u("div", {
+				class: "atv-reviews",
+				children: reviews.map((review) => u(ReviewCard, {
+					canVote,
+					onOpen,
+					onVote,
+					onVoteStateChange,
+					review,
+					voteState: getVoteState?.(review)
+				}, review.id))
+			})
+		});
+	};
+	var allowedTags = new Set([
+		"a",
+		"b",
+		"blockquote",
+		"br",
+		"cite",
+		"code",
+		"del",
+		"div",
+		"em",
+		"footer",
+		"h1",
+		"h2",
+		"h3",
+		"h4",
+		"h5",
+		"h6",
+		"hr",
+		"img",
+		"li",
+		"ol",
+		"p",
+		"pre",
+		"q",
+		"s",
+		"small",
+		"span",
+		"strong",
+		"sub",
+		"sup",
+		"table",
+		"tbody",
+		"td",
+		"th",
+		"thead",
+		"tr",
+		"u",
+		"ul"
+	]);
+	var dangerousTags = new Set([
+		"embed",
+		"iframe",
+		"link",
+		"meta",
+		"object",
+		"script",
+		"style"
+	]);
+	var allowedImgAttrs = new Set([
+		"src",
+		"alt",
+		"width",
+		"height"
+	]);
+	var allowedTableCellAttrs = new Set([
+		"colspan",
+		"rowspan",
+		"scope"
+	]);
+	var sanitizeReviewHtml = (html) => {
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		for (const element of doc.body.querySelectorAll("*")) {
+			if (dangerousTags.has(element.tagName.toLowerCase())) {
+				element.remove();
+				continue;
+			}
+			if (!allowedTags.has(element.tagName.toLowerCase())) {
+				element.replaceWith(...element.childNodes);
+				continue;
+			}
+			for (const attribute of element.attributes) {
+				const tagName = element.tagName.toLowerCase();
+				const safeHref = tagName === "a" && attribute.name === "href" && /^(?:https?:|\/|#)/iu.test(attribute.value.trim());
+				const allowedImgAttr = tagName === "img" && allowedImgAttrs.has(attribute.name);
+				const allowedTableCellAttr = (tagName === "th" || tagName === "td") && allowedTableCellAttrs.has(attribute.name);
+				const allowedClass = attribute.name === "class";
+				if (!safeHref && !allowedImgAttr && !allowedTableCellAttr && !allowedClass) element.removeAttribute(attribute.name);
+			}
+		}
+		return doc.body.innerHTML;
+	};
+	var readNativeReviewContent = (rid) => {
+		const numericId = reviewNumericId(rid);
+		const fullContent = document.querySelector(`[id="${rid}"]`)?.querySelector(`#review_${numericId}_full .review-content`);
+		const text = (fullContent?.textContent ?? "").trim();
+		return fullContent && text ? sanitizeReviewHtml(fullContent.innerHTML) : null;
+	};
+	var fetchReviewContent = async (rid) => {
+		const numericId = reviewNumericId(rid);
+		const response = await fetch(`https://movie.douban.com/review/${numericId}/`);
+		if (!response.ok) return null;
+		const html = await response.text();
+		const content = new DOMParser().parseFromString(html, "text/html").querySelector(".review-content");
+		return content ? sanitizeReviewHtml(content.innerHTML) : null;
+	};
+	var useReviewContent = (rid) => {
+		const [state, setState] = d(() => {
+			const nativeHtml = readNativeReviewContent(rid);
+			return nativeHtml ? {
+				html: nativeHtml,
+				status: "loaded"
+			} : {
+				html: null,
+				status: "loading"
+			};
+		});
+		h(() => {
+			const nativeHtml = readNativeReviewContent(rid);
+			if (nativeHtml) {
+				setState({
+					html: nativeHtml,
+					status: "loaded"
+				});
+				return;
+			}
+			let cancelled = false;
+			setState({
+				html: null,
+				status: "loading"
+			});
+			const loadReview = async () => {
+				try {
+					const html = await fetchReviewContent(rid);
+					if (cancelled) return;
+					if (!html) {
+						setState({
+							html: null,
+							status: "error"
+						});
+						return;
+					}
+					setState({
+						html,
+						status: "loaded"
+					});
+				} catch {
+					if (!cancelled) setState({
+						html: null,
+						status: "error"
+					});
+				}
+			};
+			loadReview();
+			return () => {
+				cancelled = true;
+			};
+		}, [rid]);
+		return state;
+	};
+	var bodyClassName = (status) => {
+		if (status === "loaded") return "atv-review-modal-body is-loaded";
+		if (status === "error") return "atv-review-modal-body is-error";
+		return "atv-review-modal-body is-skeleton";
+	};
+	var ReviewModalContent = ({ canVote, onVoteStateChange, onVote, review, voteState }) => {
+		const handleClose = useModalClose();
+		const content = useReviewContent(review.id);
+		const displayName = reviewDisplayName(review.name);
+		const numericId = reviewNumericId(review.id);
+		return u(S, { children: [
+			u(ModalCloseButton, {
+				ariaLabel: "关闭影评",
+				onClick: handleClose
+			}),
+			u("div", { class: "atv-modal-accent-bar" }),
+			u("div", {
+				class: "atv-review-modal-header",
+				children: [
+					u("div", {
+						class: "atv-review-modal-title",
+						id: "atv-review-modal-title",
+						tabindex: -1,
+						children: review.title
+					}),
+					review.stars > 0 ? u(Stars, {
+						className: "atv-review-modal-stars",
+						outOfFive: true,
+						score: review.stars
+					}) : null,
+					u("div", {
+						class: "atv-review-modal-byline",
+						children: [u("div", {
+							class: "atv-review-modal-avatar",
+							style: review.avatar ? { backgroundImage: `url("${review.avatar}")` } : void 0,
+							children: review.avatar ? null : displayName.slice(0, 1).toUpperCase()
+						}), u("div", {
+							class: "atv-review-modal-byline-text",
+							children: [u("span", {
+								class: "atv-review-modal-byline-name",
+								children: displayName
+							}), review.time ? u("span", {
+								class: "atv-review-modal-byline-time",
+								children: ["· ", review.time]
+							}) : null]
+						})]
+					})
+				]
+			}),
+			u(HtmlContent, {
+				"aria-busy": content.status === "loading" ? "true" : "false",
+				"aria-live": "polite",
+				class: bodyClassName(content.status),
+				html: content.html || void 0,
+				children: [content.status === "loading" ? "加载中" : null, content.status === "error" ? u("div", {
+					class: "atv-review-modal-error",
+					children: u("p", { children: "影评内容暂时加载失败" })
+				}) : null]
+			}),
+			u("div", {
+				class: "atv-review-modal-footer",
+				children: [u("div", {
+					class: "atv-review-modal-votes",
+					children: u("div", {
+						class: "atv-review-actions",
+						"data-rid": review.id || void 0,
+						children: u(ReviewVoteButtons, {
+							canVote,
+							onStateChange: onVoteStateChange,
+							onVote,
+							review,
+							size: "large",
+							state: voteState
+						})
+					})
+				}), u("div", {
+					class: "atv-review-modal-link",
+					children: u("a", {
+						class: "atv-review-modal-link-a",
+						href: `https://movie.douban.com/review/${numericId}/`,
+						rel: "noopener",
+						target: "_blank",
+						children: "查看豆瓣原文 →"
+					})
+				})]
+			})
+		] });
+	};
+	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
+		ariaLabelledBy: "atv-review-modal-title",
+		className: "atv-review-modal",
+		id: "atv-review-modal",
+		onClose,
+		surfaceClassName: "atv-review-modal-scroll",
+		children: u(ReviewModalContent, {
+			canVote,
+			onVote,
+			onVoteStateChange,
+			review,
+			voteState
+		})
+	});
+	var toInitialStates = (items, strategy) => Object.fromEntries(items.map((item) => [strategy.key(item), strategy.initial(item)]));
+	var useVoteState = (items, strategy) => {
+		const [states, setStates] = d(() => toInitialStates(items, strategy));
+		const getVoteState = (item) => states[strategy.key(item)] ?? strategy.initial(item);
+		const setVoteState = (item, state, options) => {
+			setStates((current) => ({
+				...current,
+				[strategy.key(item)]: state
+			}));
+			if (options?.persist) strategy.persist?.(item, state);
+		};
+		const mergeVoteState = (item) => strategy.merge(item, getVoteState(item));
+		const mergeVoteStates = (nextItems) => nextItems.map(mergeVoteState);
+		return {
+			getVoteState,
+			mergeVoteState,
+			mergeVoteStates,
+			setVoteState
+		};
+	};
+	var toHeroData = (data) => ({
+		imdbId: data.info.imdb || null,
+		info: data.info,
+		interest: data.interest,
+		isTV: data.isTV,
+		photos: data.photos,
+		poster: data.poster,
+		rating: data.rating,
+		subjectId: data.subjectId,
+		summary: data.summary,
+		title: data.title,
+		year: data.year
+	});
+	var commentVoteStrategy = {
+		initial: initialCommentVoteState,
+		key: commentVoteKey,
+		merge: commentWithVoteState
+	};
+	var reviewVoteStrategy = {
+		initial: initialReviewVoteState,
+		key: reviewVoteKey,
+		merge: reviewWithVoteState,
+		persist: persistReviewVoteState
+	};
+	var TrailerModal = ({ onClose, trailer }) => {
+		return u(VideoModal, {
+			acquisition: useTrailerAcquisition(trailer),
+			onClose,
+			trailer
+		});
+	};
+	var SubjectPage = ({ data, runtime }) => {
+		const [activeComment, setActiveComment] = d(null);
+		const [activeReview, setActiveReview] = d(null);
+		const [activeMediaModal, setActiveMediaModal] = d(null);
+		const closeMediaModal = q(() => setActiveMediaModal(null), []);
+		const [loginAction, setLoginAction] = d(null);
+		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
+		const { avatarUrls } = runtime;
+		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
+		const handleCommentVoteStateChange = commentVotes.setVoteState;
+		const handleReviewVoteStateChange = reviewVotes.setVoteState;
+		const interestMarking = useInterestMarking({
+			adapters: runtime.actions.interestMarking,
+			loggedIn: data.interest.loggedIn,
+			onLoginRequired: setLoginAction,
+			subjectId: data.subjectId
+		});
+		const canVote = () => {
+			if (!data.interest.loggedIn) {
+				setLoginAction("给短评点有用");
+				return false;
+			}
+			return true;
+		};
+		const canReviewVote = () => {
+			if (!data.interest.loggedIn) {
+				setLoginAction("给影评投票");
+				return false;
+			}
+			return true;
+		};
+		return u(S, { children: [
+			u(StickyNav, {
+				...runtime.navigation,
+				title: data.title
+			}),
+			u(Hero, {
+				callbacks: interestMarking.callbacks,
+				data: toHeroData(data),
+				expandNativeSummary: runtime.actions.expandNativeSummary,
+				externalRatings: runtime.externalRatings,
+				firstBroadcastPlatform: runtime.firstBroadcastPlatform,
+				onOpenPoster: (src, alt) => setActiveMediaModal({
+					alt,
+					src,
+					type: "poster"
+				})
+			}),
+			u(StreamingSection, { streaming: data.streaming }),
+			u(SeriesSection, {
+				items: runtime.series,
+				moreLink: runtime.seriesMoreLink
+			}),
+			u(CastSection, { celebrities: data.celebrities }),
+			u(PhotosSection, {
+				data: {
+					photos: data.photos,
+					subjectId: data.subjectId,
+					trailers: data.trailers
+				},
+				onOpenPoster: (src, alt) => setActiveMediaModal({
+					alt,
+					src,
+					type: "poster"
+				}),
+				onOpenVideo: (trailer) => setActiveMediaModal({
+					trailer,
+					type: "video"
+				})
+			}),
+			u(CommentsSection, {
+				avatarUrls,
+				canVote,
+				comments: commentVotes.mergeVoteStates(data.comments),
+				getVoteState: commentVotes.getVoteState,
+				onOpen: setActiveComment,
+				onVoteStateChange: handleCommentVoteStateChange,
+				onVote: runtime.actions.handleCommentVote,
+				subjectId: data.subjectId
+			}),
+			u(ReviewsSection, {
+				canVote: canReviewVote,
+				getVoteState: reviewVotes.getVoteState,
+				isTV: data.isTV,
+				onOpen: setActiveReview,
+				onVoteStateChange: handleReviewVoteStateChange,
+				onVote: runtime.actions.handleReviewVote,
+				reviews: reviewVotes.mergeVoteStates(data.reviews),
+				subjectId: data.subjectId
+			}),
+			u(DiscussionsSection, { discussions: data.discussions }),
+			u(RecommendationsSection, { recommendations: data.recommendations }),
+			u(DetailsSection, { data: {
+				awards: data.awards,
+				info: data.info,
+				isTV: data.isTV
+			} }),
+			u("div", { class: "atv-footer-spacer" }),
+			activeComment ? u(CommentModal, {
+				canVote,
+				comment: {
+					...commentVotes.mergeVoteState(activeComment),
+					avatar: avatarUrls.get(activeComment.link) || activeComment.avatar
+				},
+				onClose: () => setActiveComment(null),
+				onVoteStateChange: handleCommentVoteStateChange,
+				onVote: runtime.actions.handleCommentVote,
+				voteState: commentVotes.getVoteState(activeComment)
+			}) : null,
+			activeReview ? u(ReviewModal, {
+				canVote: canReviewVote,
+				onClose: () => setActiveReview(null),
+				onVoteStateChange: handleReviewVoteStateChange,
+				onVote: runtime.actions.handleReviewVote,
+				review: reviewVotes.mergeVoteState(activeReview),
+				voteState: reviewVotes.getVoteState(activeReview)
+			}) : null,
+			activeMediaModal?.type === "poster" ? u(PosterModal, {
+				alt: activeMediaModal.alt,
+				onClose: closeMediaModal,
+				src: activeMediaModal.src
+			}) : null,
+			activeMediaModal?.type === "video" ? u(TrailerModal, {
+				onClose: closeMediaModal,
+				trailer: activeMediaModal.trailer
+			}) : null,
+			loginAction ? u(LoginModal, {
+				action: loginAction,
+				onClose: () => setLoginAction(null)
+			}) : null,
+			interestMarking.form
+		] });
+	};
+	var extractSeriesMoreLink = (doc = document) => {
+		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
+		return link ? {
+			href: link.href,
+			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
+		} : void 0;
+	};
+	var watchSeries = (onSeries, doc = document) => {
+		const container = doc.querySelector("#series-items");
+		if (!container) return () => void 0;
+		const update = () => {
+			if (container.querySelector(".items-swiper")) onSeries(extractSeries(doc));
+		};
+		update();
+		const observer = new MutationObserver(update);
+		observer.observe(container, {
+			childList: true,
+			subtree: true
+		});
+		return () => observer.disconnect();
+	};
+	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
+	var avatarSelectors = [
+		"#profile .pic img",
+		".user-face",
+		"img[src*='/icon/']"
+	];
+	var extractProfileAvatar = (html) => {
+		const profile = new DOMParser().parseFromString(html, "text/html");
+		for (const selector of avatarSelectors) {
+			const image = profile.querySelector(selector);
+			if (!image) continue;
+			const source = image.src || image.dataset.src || image.dataset.original || "";
+			if (source) return source;
+		}
+		return "";
+	};
+	var profileLinks = (comments) => [...new Set(comments.flatMap(({ link }) => link ? [link] : []))];
+	var fetchAvatarUrls = async (links, referrer) => {
+		const urls = new Map();
+		const missing = [];
+		for (const link of links) {
+			const cached = avatarCache.get(link);
+			if (cached) urls.set(link, cached);
+			else missing.push(link);
+		}
+		if (missing.length === 0) return urls;
+		const fetched = await Promise.all(missing.map(async (link) => {
+			try {
+				return {
+					link,
+					url: extractProfileAvatar(await gmGet(link, referrer))
+				};
+			} catch {
+				return {
+					link,
+					url: ""
+				};
+			}
+		}));
+		for (const { link, url } of fetched) {
+			if (url) avatarCache.set(link, url);
+			urls.set(link, url);
+		}
+		return urls;
+	};
+	var useAvatarUrls = (comments, doc) => {
+		const [urls, setUrls] = d(() => new Map());
+		h(() => {
+			let active = true;
+			const links = profileLinks(comments);
+			if (links.length === 0) {
+				setUrls(new Map());
+				return () => {
+					active = false;
+				};
+			}
+			(async () => {
+				const nextUrls = await fetchAvatarUrls(links, doc.location.href);
+				if (active) setUrls(nextUrls);
+			})();
+			return () => {
+				active = false;
+			};
+		}, [comments, doc]);
+		return urls;
+	};
 	var extractEnglishSeriesName = (h1) => {
 		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
 		if (!m) return "";
@@ -3475,7 +5730,7 @@ input::placeholder {
 			rt: null
 		};
 	};
-	var useExternalRatings = (imdbId, isTV) => {
+	var useExternalRatings = (imdbId, isTV, doc) => {
 		const [external, setExternal] = d(null);
 		h(() => {
 			if (!imdbId) {
@@ -3484,465 +5739,19 @@ input::placeholder {
 			}
 			let cancelled = false;
 			const loadRatings = async () => {
-				const ratings = await resolveAll(buildContext(imdbId, isTV, document));
+				const ratings = await resolveAll(buildContext(imdbId, isTV, doc));
 				if (!cancelled) setExternal(ratings);
 			};
 			loadRatings();
 			return () => {
 				cancelled = true;
 			};
-		}, [imdbId, isTV]);
+		}, [
+			doc,
+			imdbId,
+			isTV
+		]);
 		return external;
-	};
-	var RatingPanel = ({ douban, imdbId, isTV }) => {
-		const external = useExternalRatings(imdbId, isTV);
-		if (!douban && !imdbId) return null;
-		const resolved = Boolean(external);
-		return u("div", {
-			class: "atv-rating-panel",
-			children: [u(DoubanRating, { rating: douban }), imdbId ? u(S, { children: [
-				u(ExternalRating, {
-					rating: external?.imdb?.rating ?? null,
-					resolved,
-					source: "imdb"
-				}),
-				u(ExternalRating, {
-					rating: external?.mc ?? null,
-					resolved,
-					source: "metacritic"
-				}),
-				u(ExternalRating, {
-					rating: external?.rt ?? null,
-					resolved,
-					source: "rt"
-				})
-			] }) : null]
-		});
-	};
-	var PLATFORM_BRANDS = [
-		{
-			Icon: LogoAmc,
-			aliases: ["amc"],
-			color: "#000000",
-			key: "amc",
-			label: "AMC",
-			surface: "paper"
-		},
-		{
-			Icon: LogoDisneyPlus,
-			aliases: [
-				"disney+",
-				"disney plus",
-				"disneyplus"
-			],
-			color: "#113CCF",
-			key: "disney-plus",
-			label: "Disney+",
-			presentation: "wordmark",
-			surface: "dark"
-		},
-		{
-			Icon: LogoBilibiliCombined,
-			aliases: [
-				"哔哩哔哩",
-				"bilibili",
-				"b站",
-				"b 站"
-			],
-			color: "#FF5588",
-			colorMode: "intrinsic",
-			key: "bilibili",
-			label: "哔哩哔哩",
-			surface: "dark"
-		},
-		{
-			Icon: LogoPrimeVideo,
-			aliases: ["prime video", "primevideo"],
-			color: "#00A8E1",
-			colorMode: "intrinsic",
-			key: "prime-video",
-			label: "Prime Video",
-			presentation: "wordmark",
-			surface: "paper"
-		},
-		{
-			Icon: LogoIqiyiCombined,
-			aliases: [
-				"爱奇艺",
-				"iqiyi",
-				"iQIYI"
-			],
-			color: "#00DC5A",
-			colorMode: "intrinsic",
-			key: "iqiyi",
-			label: "爱奇艺",
-			surface: "dark"
-		},
-		{
-			Icon: LogoTencentCombined,
-			aliases: ["腾讯视频", "tencent video"],
-			color: "#00A2FF",
-			colorMode: "intrinsic",
-			key: "tencent-video",
-			label: "腾讯视频",
-			surface: "dark"
-		},
-		{
-			Icon: LogoYoukuCombined,
-			aliases: ["优酷", "youku"],
-			color: "#00A6FF",
-			colorMode: "intrinsic",
-			key: "youku",
-			label: "优酷",
-			surface: "dark"
-		},
-		{
-			aliases: [
-				"咪咕视频",
-				"咪咕",
-				"migu"
-			],
-			color: "#F04B23",
-			key: "migu",
-			label: "咪咕视频",
-			surface: "dark"
-		},
-		{
-			Icon: LogoHulu,
-			aliases: ["hulu"],
-			color: "#1CE783",
-			colorMode: "intrinsic",
-			key: "hulu",
-			label: "Hulu",
-			presentation: "wordmark",
-			surface: "dark"
-		},
-		{
-			Icon: LogoNetflix,
-			aliases: ["netflix"],
-			color: "#E50914",
-			colorMode: "intrinsic",
-			key: "netflix",
-			label: "Netflix",
-			surface: "dark"
-		},
-		{
-			Icon: LogoYouTube,
-			aliases: ["youtube", "youtube tv"],
-			color: "#FF0000",
-			key: "youtube",
-			label: "YouTube",
-			surface: "dark"
-		},
-		{
-			Icon: LogoAppleTv,
-			aliases: ["apple tv", "apple tv+"],
-			color: "#F5F5F7",
-			key: "apple-tv",
-			label: "Apple TV",
-			surface: "dark"
-		},
-		{
-			Icon: LogoHbo,
-			aliases: ["hbo"],
-			color: "#F5F5F7",
-			key: "hbo",
-			label: "HBO",
-			surface: "dark"
-		},
-		{
-			Icon: LogoHboMax,
-			aliases: ["hbo max", "max"],
-			color: "#8A7CFF",
-			key: "hbo-max",
-			label: "HBO Max",
-			surface: "dark"
-		},
-		{
-			Icon: LogoParamountPlus,
-			aliases: ["paramount+"],
-			color: "#0064FF",
-			key: "paramount-plus",
-			label: "Paramount+",
-			surface: "dark"
-		},
-		{
-			Icon: LogoTubi,
-			aliases: ["tubi"],
-			color: "#7408FF",
-			key: "tubi",
-			label: "Tubi",
-			surface: "dark"
-		},
-		{
-			Icon: LogoVimeo,
-			aliases: ["vimeo"],
-			color: "#1AB7EA",
-			key: "vimeo",
-			label: "Vimeo",
-			surface: "dark"
-		}
-	];
-	var normalizePlatformName = (value) => value.toLowerCase().replaceAll(/\s+/gu, "");
-	var findPlatformBrandByExactName = (value) => {
-		const normalized = normalizePlatformName(value);
-		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalizePlatformName(alias) === normalized)) ?? null;
-	};
-	var findPlatformBrandByContainedName = (value) => {
-		const normalized = normalizePlatformName(value);
-		return PLATFORM_BRANDS.find((brand) => brand.aliases.some((alias) => normalized.includes(normalizePlatformName(alias)))) ?? null;
-	};
-	var FirstBroadcastPlatform = ({ platform }) => {
-		const brand = platform.split("/").map(findPlatformBrandByExactName).find((candidate) => candidate !== null) ?? null;
-		const Icon = brand?.Icon;
-		if (!brand || !Icon) return u("span", {
-			"aria-label": `首播平台：${platform}`,
-			class: "atv-first-broadcast-platform is-unknown",
-			"data-provider": "unknown",
-			children: ["首播 · ", platform]
-		});
-		return u("span", {
-			class: "atv-first-broadcast-platform",
-			"data-provider": brand?.key ?? "unknown",
-			children: [u("span", {
-				"aria-hidden": "true",
-				class: `atv-first-broadcast-platform-mark${brand.presentation === "wordmark" ? " is-wordmark" : ""}${brand.colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${brand.surface}`,
-				style: { color: brand.colorMode === "intrinsic" ? void 0 : brand.color },
-				children: u(Icon, {})
-			}), u("span", {
-				class: "atv-screen-reader-only",
-				children: ["首播平台：", platform]
-			})]
-		});
-	};
-	var INTEREST_LABELS = {
-		collect: "看过",
-		do: "在看",
-		none: "未标记",
-		wish: "想看"
-	};
-	var InterestButton = ({ className, label, onClick }) => u("button", {
-		class: className,
-		onClick,
-		type: "button",
-		children: [u("span", { children: label === "想看" ? u(IconPlay, {}) : u(IconCheck, {}) }), u("span", { children: label })]
-	});
-	var HeroActions = ({ callbacks, state }) => {
-		if (!state.loggedIn) return u("div", {
-			class: "atv-actions",
-			children: [
-				u(InterestButton, {
-					className: "atv-btn atv-btn-primary",
-					label: "想看",
-					onClick: callbacks.handleWishClick
-				}),
-				state.hasWatching ? u(InterestButton, {
-					className: "atv-btn atv-btn-secondary",
-					label: "在看",
-					onClick: callbacks.handleWatchingClick
-				}) : null,
-				u(InterestButton, {
-					className: "atv-btn atv-btn-secondary",
-					label: "看过",
-					onClick: callbacks.handleCollectClick
-				})
-			]
-		});
-		if (!state.marked) return u("div", {
-			class: "atv-actions",
-			children: [
-				u(InterestButton, {
-					className: "atv-btn atv-btn-primary",
-					label: "想看",
-					onClick: () => callbacks.handleOpenInterest(state)
-				}),
-				state.hasWatching ? u(InterestButton, {
-					className: "atv-btn atv-btn-secondary",
-					label: "在看",
-					onClick: () => callbacks.handleOpenInterest(state)
-				}) : null,
-				u(InterestButton, {
-					className: "atv-btn atv-btn-secondary",
-					label: "看过",
-					onClick: () => callbacks.handleOpenInterest(state)
-				})
-			]
-		});
-		const label = INTEREST_LABELS[state.status];
-		return u("div", {
-			class: "atv-actions",
-			children: u("div", {
-				class: "atv-interest-panel",
-				children: [u("div", {
-					class: "atv-interest-panel-header",
-					children: [
-						u("button", {
-							class: "atv-btn atv-btn-primary is-active atv-interest-badge",
-							onClick: () => callbacks.handleOpenInterest(state),
-							type: "button",
-							children: [u("span", { children: u(IconCheck, {}) }), u("span", { children: label })]
-						}),
-						state.rating > 0 ? u("span", {
-							class: "atv-interest-panel-stars",
-							children: Array.from({ length: 5 }, (_, index) => index < state.rating ? u(IconStarFull, {}, index) : u(IconStarEmpty, {}, index))
-						}) : null,
-						state.date ? u("span", {
-							class: "atv-interest-panel-date",
-							children: state.date
-						}) : null
-					]
-				}), state.comment ? u("div", {
-					class: "atv-interest-panel-comment",
-					children: [u("span", { children: `"${state.comment}"` }), state.usefulCount ? u("span", {
-						class: "atv-useful-badge",
-						children: [u(IconThumb, {}), u("span", { children: state.usefulCount.replaceAll(/\D/gu, "") })]
-					}) : null]
-				}) : null]
-			})
-		});
-	};
-	var hashStr = (str) => {
-		let h = 0;
-		for (let i = 0; i < str.length; i += 1) h = (h * 31 + (str.codePointAt(i) ?? 0)) % 1000000007;
-		return h;
-	};
-	var pickStill = (photos, seed) => {
-		if (!photos.length) return null;
-		return photos[hashStr(String(seed || "")) % photos.length];
-	};
-	var backgroundStyle = (still, poster) => {
-		if (still?.hdUrl || poster) return {};
-		return { background: "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)" };
-	};
-	var stillBackground = (still, hdLoaded) => u(S, { children: [u("div", {
-		class: "atv-hero-still is-thumb",
-		style: { backgroundImage: `url("${still.thumbUrl || still.hdUrl}")` }
-	}), u("div", {
-		"aria-hidden": "true",
-		class: `atv-hero-still is-hd${hdLoaded ? " is-loaded" : ""}`,
-		style: { backgroundImage: hdLoaded ? `url("${still.hdUrl || still.thumbUrl}")` : void 0 }
-	})] });
-	var posterBackground = (poster) => u("div", {
-		class: "atv-hero-still is-poster",
-		style: { backgroundImage: `url("${poster}")` }
-	});
-	var HeroBackground = ({ photos, poster, subjectId }) => {
-		const still = pickStill(photos, subjectId);
-		const [hdLoaded, setHdLoaded] = d(false);
-		h(() => {
-			setHdLoaded(false);
-			if (!still?.hdUrl) return;
-			const loader = new Image();
-			loader.addEventListener("load", () => requestAnimationFrame(() => setHdLoaded(true)), { once: true });
-			loader.addEventListener("error", () => {
-				if (still.thumbUrl && still.thumbUrl !== still.hdUrl) requestAnimationFrame(() => setHdLoaded(true));
-			}, { once: true });
-			loader.src = still.hdUrl;
-		}, [still?.hdUrl, still?.thumbUrl]);
-		return u("div", {
-			class: "atv-hero-bg",
-			style: backgroundStyle(still, poster),
-			children: [still?.hdUrl ? stillBackground(still, hdLoaded) : null, !still?.hdUrl && poster ? posterBackground(poster) : null]
-		});
-	};
-	var HeroMeta = ({ info, isTV, leading, year }) => {
-		const metaParts = [];
-		if (year) metaParts.push(year);
-		if (isTV) {
-			const episodeParts = [];
-			if (info.seasons) episodeParts.push(info.seasons + (RE_SEASON_SUFFIX.test(info.seasons) ? "季" : ""));
-			if (info.episodes) episodeParts.push(info.episodes + (RE_SEASON_SUFFIX.test(info.episodes) ? "集" : ""));
-			if (episodeParts.length) metaParts.push(episodeParts.join(" · "));
-			else if (info.episodeRuntime) metaParts.push(info.episodeRuntime);
-		} else if (info.runtime) metaParts.push(info.runtime);
-		if (info.country) metaParts.push(info.country);
-		return u("div", {
-			class: "atv-hero-meta",
-			children: [
-				leading,
-				metaParts.map((part) => u("span", {
-					class: "atv-meta-dot",
-					children: part
-				}, part)),
-				info.genres.length ? u("span", {
-					class: "atv-meta-chips",
-					children: info.genres.map((genre) => u("span", {
-						class: "atv-chip",
-						children: genre
-					}, genre))
-				}) : null
-			]
-		});
-	};
-	var PosterPlaceholder = () => u("div", {
-		class: "atv-poster-placeholder",
-		children: u(IconFilmPlaceholder, {})
-	});
-	var noop$2 = () => void 0;
-	var HeroPoster = ({ onOpenPoster = noop$2, poster, title }) => {
-		const [failed, setFailed] = d(false);
-		return u("button", {
-			class: "atv-poster-card",
-			onClick: () => {
-				if (poster) onOpenPoster(poster, title.primary || "");
-			},
-			type: "button",
-			children: poster && !failed ? u("img", {
-				alt: title.primary || "",
-				onError: () => setFailed(true),
-				src: poster
-			}) : u(PosterPlaceholder, {})
-		});
-	};
-	var HeroSummary = ({ expandNativeSummary, text }) => {
-		const teaserRef = A(null);
-		const previousTextRef = A(text);
-		const [expanded, setExpanded] = d(false);
-		const [summary, setSummary] = d(text);
-		const [showToggle, setShowToggle] = d(true);
-		const [summaryTransitionKey, setSummaryTransitionKey] = d(0);
-		h(() => {
-			requestAnimationFrame(() => {
-				const teaser = teaserRef.current;
-				if (teaser) setShowToggle(teaser.scrollHeight - teaser.clientHeight > 4);
-			});
-		}, [text]);
-		h(() => {
-			if (previousTextRef.current !== text) {
-				previousTextRef.current = text;
-				setExpanded(false);
-				setSummary(text);
-				setSummaryTransitionKey((key) => key + 1);
-			}
-		}, [text]);
-		const toggle = async () => {
-			if (expanded) {
-				setExpanded(false);
-				setSummaryTransitionKey((key) => key + 1);
-				return;
-			}
-			setExpanded(true);
-			setSummaryTransitionKey((key) => key + 1);
-			const expandedText = await expandNativeSummary?.();
-			if (expandedText) setSummary(expandedText);
-		};
-		return u("div", {
-			class: "atv-hero-summary",
-			children: [u("p", {
-				class: `atv-hero-teaser${expanded ? "" : " is-clamped"}`,
-				ref: teaserRef,
-				children: u("span", {
-					class: "atv-hero-teaser-content",
-					children: summary
-				}, `${summaryTransitionKey}-${summary}`)
-			}), u("button", {
-				class: `atv-hero-more${expanded ? " is-open" : ""}`,
-				onClick: () => void toggle(),
-				style: { display: showToggle ? void 0 : "none" },
-				type: "button",
-				children: [u("span", { children: expanded ? "收起" : "展开" }), u(IconChevron, {})]
-			})]
-		});
 	};
 	var extractFirstBroadcastPlatform = (doc) => {
 		const label = [...doc.querySelectorAll("label")].find((candidate) => candidate.textContent?.trim() === "电视台");
@@ -3994,1865 +5803,122 @@ input::placeholder {
 		}, [loggedIn, subjectId]);
 		return platform;
 	};
-	var noop$1 = () => void 0;
-	var Hero = ({ callbacks, data, expandNativeSummary, onOpenPoster = noop$1 }) => {
-		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
-		return u("section", {
-			class: "atv-hero",
-			children: [
-				u(HeroBackground, {
-					photos: data.photos,
-					poster: data.poster,
-					subjectId: data.subjectId
-				}),
-				u("div", { class: "atv-hero-vignette" }),
-				u("div", { class: "atv-hero-overlay-x" }),
-				u("div", { class: "atv-hero-overlay-y" }),
-				u("div", {
-					class: "atv-hero-inner-section",
-					children: u("div", {
-						class: "atv-hero-inner",
-						children: [u(HeroPoster, {
-							onOpenPoster,
-							poster: data.poster,
-							title: data.title
-						}), u("div", {
-							class: "atv-hero-info",
-							children: [
-								u("h1", {
-									class: "atv-hero-title",
-									children: data.title.primary || data.title.full
-								}),
-								data.title.original ? u("div", {
-									class: "atv-hero-orig",
-									children: data.title.original
-								}) : null,
-								u(HeroMeta, {
-									info: data.info,
-									isTV: data.isTV,
-									leading: firstBroadcastPlatform ? u(FirstBroadcastPlatform, { platform: firstBroadcastPlatform }) : null,
-									year: data.year
-								}),
-								u(RatingPanel, {
-									douban: data.rating,
-									imdbId: data.imdbId,
-									isTV: data.isTV
-								}),
-								u(HeroActions, {
-									callbacks,
-									state: data.interest
-								}),
-								data.summary ? u(HeroSummary, {
-									expandNativeSummary,
-									text: data.summary
-								}) : null
-							]
-						})]
-					})
-				})
-			]
-		});
-	};
-	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
-		class: "atv-interest-modal-stars",
-		children: Array.from({ length: 5 }, (_, index) => {
-			const value = index + 1;
-			const full = value <= rating;
-			return u("button", {
-				class: `atv-interest-modal-star${full ? " is-full" : ""}`,
-				disabled,
-				onClick: () => {
-					if (!disabled) onChange(value);
-				},
-				type: "button",
-				children: full ? u(IconStarFull, {}) : u(IconStarEmpty, {})
-			}, index);
-		})
-	});
-	var statusEntries = (hasWatching) => [
-		{
-			label: "想看",
-			value: "wish"
-		},
-		...hasWatching ? [{
-			label: "在看",
-			value: "do"
-		}] : [],
-		{
-			label: "看过",
-			value: "collect"
-		}
-	];
-	var initialStatus = (state) => state.marked && state.status !== "none" ? state.status : "wish";
-	var InterestFormContent = ({ callbacks, state }) => {
-		const handleClose = useModalClose();
-		const [status, setStatus] = d(initialStatus(state));
-		const [rating, setRating] = d(state.rating || 0);
-		const [comment, setComment] = d(state.comment || "");
-		const [loading, setLoading] = d(false);
-		const [error, setError] = d("");
-		const titlePrefix = state.marked ? "修改" : "标记";
-		const statuses = statusEntries(state.hasWatching);
-		const activeStatusIndex = statuses.findIndex((entry) => entry.value === status);
-		const save = async () => {
-			if (loading) return;
-			setLoading(true);
-			setError("");
-			const result = await callbacks.onSave({
-				comment: comment.trim(),
-				rating,
-				status
-			});
-			if (result.ok) {
-				handleClose();
-				return;
-			}
-			setError(result.error || "操作失败");
-			setLoading(false);
-		};
-		const remove = async () => {
-			if (loading) return;
-			setLoading(true);
-			setError("");
-			const result = await callbacks.onRemove(state.status);
-			if (result.ok) {
-				handleClose();
-				return;
-			}
-			setError(result.error || "取消标记失败");
-			setLoading(false);
-		};
-		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar" }),
-			u("div", {
-				class: "atv-interest-modal-header",
-				children: [u("span", {
-					class: "atv-interest-modal-header-title",
-					id: "atv-interest-modal-title",
-					children: `${titlePrefix}${INTEREST_LABELS[status]}`
-				}), u(ModalCloseButton, {
-					ariaLabel: "关闭标记弹窗",
-					className: "atv-interest-modal-close",
-					onClick: handleClose
-				})]
-			}),
-			u("div", {
-				class: "atv-interest-modal-body",
-				children: [
-					u("div", {
-						class: "atv-interest-modal-statuses",
-						style: {
-							"--atv-interest-status-count": statuses.length,
-							"--atv-interest-status-index": activeStatusIndex
-						},
-						children: [u("div", {
-							"aria-hidden": "true",
-							class: "atv-interest-modal-status-indicator"
-						}), statuses.map((entry) => u("button", {
-							"aria-pressed": entry.value === status,
-							class: `atv-interest-modal-status${entry.value === status ? " is-active" : ""}`,
-							"data-value": entry.value,
-							disabled: loading,
-							onClick: () => setStatus(entry.value),
-							type: "button",
-							children: entry.label
-						}, entry.value))]
-					}),
-					u(StarRatingInput, {
-						disabled: loading,
-						onChange: setRating,
-						rating
-					}),
-					u("textarea", {
-						class: "atv-interest-modal-comment",
-						maxLength: 350,
-						onInput: (event) => setComment(event.currentTarget.value),
-						placeholder: "写一段短评…",
-						rows: 3,
-						value: comment
-					}),
-					u("button", {
-						class: "atv-interest-modal-submit",
-						disabled: loading,
-						onClick: () => void save(),
-						type: "button",
-						children: loading ? "保存中..." : "保存"
-					}),
-					state.marked ? u("button", {
-						class: "atv-interest-modal-remove",
-						disabled: loading,
-						onClick: () => void remove(),
-						type: "button",
-						children: "取消标记"
-					}) : null,
-					u("div", {
-						class: "atv-interest-modal-error",
-						children: error
-					})
-				]
-			})
-		] });
-	};
-	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
-		ariaLabelledBy: "atv-interest-modal-title",
-		className: "atv-interest-modal",
-		id: "atv-interest-modal",
-		onClose,
-		surfaceClassName: "atv-interest-modal-inner",
-		children: u(InterestFormContent, {
-			callbacks,
-			state
-		})
-	});
-	var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
-	var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
-	var maxAttempts = 24;
-	var trustedLoginOrigin = "https://accounts.douban.com";
-	var clearNativeLoginMasks = () => {
-		for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
-	};
-	var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
-	var isTrustedLoginIframe = (iframe) => {
-		const source = iframe.getAttribute("src");
-		if (!source) return false;
-		try {
-			const url = new URL(source, window.location.href);
-			return url.origin === trustedLoginOrigin && !url.username && !url.password && url.pathname.startsWith("/passport/login");
-		} catch {
-			return false;
-		}
-	};
-	var styleLoginIframe = (iframe) => {
-		iframe.title = "豆瓣登录";
-		iframe.referrerPolicy = "strict-origin-when-cross-origin";
-		iframe.removeAttribute("width");
-		iframe.removeAttribute("height");
-		iframe.removeAttribute("frameborder");
-		iframe.removeAttribute("scrolling");
-		iframe.removeAttribute("style");
-		iframe.classList.add("atv-login-modal-iframe");
-	};
-	var mountIframe = (host, iframe, callbacks, isStopped) => {
-		const onLoad = () => {
-			if (!isStopped()) callbacks.onLoad();
-		};
-		host.replaceChildren(iframe);
-		iframe.addEventListener("load", onLoad, { once: true });
-		callbacks.onMount();
-		requestAnimationFrame(() => {
-			if (!isStopped()) iframe.focus();
-		});
-		return () => iframe.removeEventListener("load", onLoad);
-	};
-	var prepareNativeLoginIframe = (dialog) => {
-		const iframe = dialog.querySelector("iframe");
-		if (!iframe) return {
-			kind: "error",
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。"
-		};
-		const source = iframe.getAttribute("src");
-		if (!source || source === "about:blank") return { kind: "pending" };
-		if (!isTrustedLoginIframe(iframe)) return {
-			kind: "error",
-			message: "无法载入豆瓣登录组件，请刷新页面后重试。"
-		};
-		styleLoginIframe(iframe);
-		iframe.remove();
-		dialog.remove();
-		return {
-			iframe,
-			kind: "ready"
-		};
-	};
-	var findExistingLoginIframe = () => {
-		for (const iframe of document.querySelectorAll("iframe[src*='passport/login']")) if (isTrustedLoginIframe(iframe)) {
-			styleLoginIframe(iframe);
-			iframe.remove();
-			return iframe;
-		}
-		return null;
-	};
-	var preventNavigation = (e) => {
-		if (e.target instanceof HTMLAnchorElement) e.preventDefault();
-	};
-	var triggerNativeLoginDialog = () => {
-		const triggers = [...document.querySelectorAll(".a_show_login, .j.a_show_login")];
-		const trigger = triggers.find((node) => node.offsetParent !== null) ?? triggers[0];
-		if (!trigger) return;
-		document.addEventListener("click", preventNavigation, { once: true });
-		trigger.click();
-	};
-	var mountNativeLoginFrame = (host, callbacks) => {
-		let stopped = false;
-		let retryTimer;
-		let stopIframeMount;
-		const stop = () => {
-			stopped = true;
-			if (retryTimer !== void 0) window.clearTimeout(retryTimer);
-			stopIframeMount?.();
-		};
-		const attemptMount = (attempt) => {
-			if (stopped) return;
-			clearNativeLoginMasks();
-			const dialog = findNativeLoginDialog();
-			if (dialog) {
-				const result = prepareNativeLoginIframe(dialog);
-				if (result.kind === "ready") {
-					stopIframeMount = mountIframe(host, result.iframe, callbacks, () => stopped);
-					return;
-				}
-				if (result.kind === "error") {
-					callbacks.onError(result.message);
-					return;
-				}
-			}
-			const directIframe = findExistingLoginIframe();
-			if (directIframe) {
-				stopIframeMount = mountIframe(host, directIframe, callbacks, () => stopped);
-				return;
-			}
-			if (attempt === 0) {
-				triggerNativeLoginDialog();
-				clearNativeLoginMasks();
-			}
-			if (attempt < maxAttempts) {
-				retryTimer = window.setTimeout(() => {
-					retryTimer = void 0;
-					attemptMount(attempt + 1);
-				}, 100);
-				return;
-			}
-			callbacks.onError("无法载入豆瓣登录组件，请刷新页面后重试。");
-		};
-		attemptMount(0);
-		return stop;
-	};
-	var LoginModalContent = ({ action, busy, hostRef, iframeReady, status }) => {
-		const handleClose = useModalClose();
-		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar atv-login-modal-accent" }),
-			u(ModalCloseButton, {
-				ariaLabel: "关闭登录弹窗",
-				className: "atv-login-modal-close",
-				onClick: handleClose,
-				size: 18
-			}),
-			u("h2", {
-				class: "atv-login-modal-title",
-				id: "atv-login-modal-title",
-				children: "登录豆瓣后继续"
-			}),
-			u("p", {
-				class: "atv-login-modal-desc",
-				id: "atv-login-modal-desc",
-				children: `登录后才能${action}。`
-			}),
-			u("p", {
-				"aria-live": "polite",
-				class: "atv-login-modal-status",
-				hidden: !status,
-				children: status
-			}),
-			u("div", {
-				"aria-busy": busy ? "true" : "false",
-				class: `atv-login-modal-native${iframeReady ? " is-ready" : ""}`,
-				ref: hostRef
-			})
-		] });
-	};
-	var LoginModal = ({ action, onClose }) => {
-		const hostRef = A(null);
-		const [status, setStatus] = d("正在载入豆瓣登录组件…");
-		const [busy, setBusy] = d(true);
-		const [iframeReady, setIframeReady] = d(false);
+	var useStickyNavigation = (doc, sections) => {
+		const [activeSectionId, setActiveSectionId] = d("");
+		const [visible, setVisible] = d(false);
+		const [scrolling, setScrolling] = d(false);
+		const lastVisibleRef = A(false);
 		h(() => {
-			const host = hostRef.current;
-			if (!host) return;
-			return mountNativeLoginFrame(host, {
-				onError: (message) => {
-					setStatus(message);
-					setBusy(false);
-				},
-				onLoad: () => {
-					setIframeReady(true);
-					setStatus("");
-					setBusy(false);
-				},
-				onMount: () => {
-					setStatus("正在载入豆瓣登录组件…");
+			const view = doc.defaultView ?? window;
+			let scrollTimer;
+			const handleScroll = () => {
+				const isVisible = view.scrollY > 300;
+				if (isVisible !== lastVisibleRef.current) {
+					lastVisibleRef.current = isVisible;
+					setVisible(isVisible);
 				}
-			});
-		}, []);
-		h(() => {
-			const timer = setInterval(() => {
-				if (!hostRef.current?.querySelector("iframe")) return;
-				if (document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="))) {
-					clearInterval(timer);
-					onClose();
-					window.location.reload();
-				}
-			}, 300);
-			return () => clearInterval(timer);
-		}, [onClose]);
-		return u(ModalShell, {
-			ariaDescribedBy: "atv-login-modal-desc",
-			ariaLabelledBy: "atv-login-modal-title",
-			className: "atv-login-modal",
-			id: "atv-login-modal",
-			onClose,
-			surfaceClassName: "atv-login-modal-inner",
-			children: u(LoginModalContent, {
-				action,
-				busy,
-				hostRef,
-				iframeReady,
-				status
-			})
-		});
-	};
-	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
-		id: "atv-cast",
-		title: getSubjectSectionCopy("cast").sectionTitle,
-		children: u("div", {
-			class: "atv-carousel atv-cast-carousel",
-			children: celebrities.map((person) => {
-				const content = u(S, { children: [
-					u("div", {
-						class: "atv-cast-avatar",
-						style: person.avatar ? { backgroundImage: `url("${person.avatar}")` } : void 0
-					}),
-					u("div", {
-						class: "atv-cast-name",
-						children: person.name
-					}),
-					person.role ? u("div", {
-						class: "atv-cast-role",
-						children: person.role
-					}) : null
-				] });
-				return person.link ? u("a", {
-					class: "atv-cast-card",
-					href: person.link,
-					rel: "noopener",
-					target: "_blank",
-					children: content
-				}, person.link) : u("div", {
-					class: "atv-cast-card",
-					children: content
-				}, person.name);
-			})
-		})
-	}) : null;
-	var noop = () => void 0;
-	var PhotoTile = ({ onOpenPoster, photo }) => {
-		const [displaySrc, setDisplaySrc] = d(photo.hdUrl || photo.thumbUrl);
-		const [isPortrait, setIsPortrait] = d(false);
-		return u("button", {
-			class: `atv-photo-tile${isPortrait ? " is-portrait" : ""}`,
-			onClick: () => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照"),
-			type: "button",
-			children: u("img", {
-				alt: "剧照",
-				loading: "lazy",
-				onError: () => {
-					if (photo.thumbUrl && displaySrc !== photo.thumbUrl) setDisplaySrc(photo.thumbUrl);
-				},
-				onLoad: (event) => {
-					const img = event.currentTarget;
-					if (img.naturalHeight > img.naturalWidth) setIsPortrait(true);
-				},
-				src: displaySrc
-			})
-		});
-	};
-	var PhotosSection = ({ data, onOpenPoster = noop, onOpenVideo = noop }) => data.photos.length || data.trailers.length ? u(Section, {
-		id: "atv-photos",
-		moreLink: data.subjectId ? {
-			href: `https://movie.douban.com/subject/${data.subjectId}/all_photos`,
-			text: "查看全部 →"
-		} : void 0,
-		title: getSubjectSectionCopy("media").sectionTitle,
-		children: u("div", {
-			class: "atv-carousel atv-photos",
-			children: [data.trailers.map((trailer) => u("button", {
-				class: "atv-photo-tile atv-trailer-tile",
-				onClick: () => onOpenVideo(trailer),
-				style: {
-					backgroundImage: `url("${trailer.thumbUrl}")`,
-					backgroundPosition: "center",
-					backgroundSize: "cover"
-				},
-				type: "button",
-				children: [u("div", {
-					class: "atv-trailer-play-overlay",
-					children: u("div", {
-						class: "atv-trailer-play-btn",
-						children: u(PlayIcon, {})
-					})
-				}), u("span", {
-					class: "atv-trailer-label",
-					children: trailer.title || "预告片"
-				})]
-			}, trailer.trailerPageUrl)), data.photos.map((photo) => u(PhotoTile, {
-				onOpenPoster,
-				photo
-			}, photo.link))]
-		})
-	}) : null;
-	var PosterImage = ({ alt, className, poster }) => {
-		const [failed, setFailed] = d(false);
-		if (!poster || failed) return u(PosterPlaceholder, {});
-		return u("img", {
-			alt,
-			class: className,
-			loading: "lazy",
-			onError: () => setFailed(true),
-			src: poster
-		});
-	};
-	var RecommendationsSection = ({ recommendations }) => recommendations.length ? u(Section, {
-		id: "atv-recs",
-		title: getSubjectSectionCopy("recommendations").sectionTitle,
-		children: u("div", {
-			class: "atv-recs",
-			children: recommendations.map((item) => {
-				const content = u(S, { children: [u("div", {
-					class: "atv-rec-poster",
-					children: u(PosterImage, {
-						alt: item.title,
-						poster: item.poster
-					})
-				}), u("div", {
-					class: "atv-rec-title",
-					children: item.title
-				})] });
-				return item.link ? u("a", {
-					class: "atv-rec-card",
-					href: item.link,
-					rel: "noopener",
-					target: "_blank",
-					children: content
-				}, item.link) : u("div", {
-					class: "atv-rec-card",
-					children: content
-				}, item.title);
-			})
-		})
-	}) : null;
-	var subjectPath = (url) => {
-		try {
-			return new URL(url).pathname;
-		} catch {
-			return "";
-		}
-	};
-	var SeriesSection = ({ items, moreLink }) => items.length ? u(Section, {
-		id: "atv-series",
-		moreLink,
-		title: getSubjectSectionCopy("series").sectionTitle,
-		children: u("div", {
-			class: "atv-carousel atv-series-carousel",
-			children: items.map((item) => {
-				const className = `atv-series-card${item.link && subjectPath(item.link) === window.location.pathname ? " is-active" : ""}`;
-				const key = item.link || item.title;
-				const content = u(S, { children: [u("div", {
-					class: "atv-series-poster",
-					children: [u(PosterImage, {
-						alt: item.title,
-						poster: item.poster
-					}), item.rating ? u("span", {
-						class: "atv-series-badge",
-						children: item.rating
-					}) : null]
-				}), u("div", {
-					class: "atv-series-info",
-					children: u("span", {
-						class: "atv-series-title",
-						children: item.title
-					})
-				})] });
-				return item.link ? u("a", {
-					class: className,
-					href: item.link,
-					rel: "noopener",
-					target: "_blank",
-					children: content
-				}, key) : u("div", {
-					class: className,
-					children: content
-				}, key);
-			})
-		})
-	}) : null;
-	var UNKNOWN_PROVIDER_COLOR = "#41be5d";
-	var PROVIDER_HOSTS = {
-		amc: ["amc.com"],
-		"apple-tv": ["tv.apple.com"],
-		bilibili: ["bilibili.com"],
-		hbo: ["hbo.com"],
-		"hbo-max": ["max.com", "hbomax.com"],
-		hulu: ["hulu.com"],
-		iqiyi: ["iqiyi.com"],
-		migu: ["miguvideo.com", "migu.cn"],
-		netflix: ["netflix.com"],
-		"paramount-plus": ["paramountplus.com"],
-		"prime-video": ["primevideo.com", "amazon.com"],
-		"tencent-video": ["v.qq.com"],
-		tubi: ["tubi.tv"],
-		vimeo: ["vimeo.com"],
-		youku: ["youku.com"],
-		youtube: ["youtube.com", "youtu.be"]
-	};
-	var COMBINED_SVG_BRANDS = new Set([
-		"bilibili",
-		"iqiyi",
-		"tencent-video",
-		"youku"
-	]);
-	var decodeStreamingHref = (href) => {
-		try {
-			return new URL(href).searchParams.get("url") || href;
-		} catch {
-			return href;
-		}
-	};
-	var hostMatches = (href, brand) => {
-		const decoded = decodeStreamingHref(href);
-		const hosts = PROVIDER_HOSTS[brand.key] ?? [];
-		try {
-			const host = new URL(decoded).hostname.replace(/^www\./u, "");
-			return hosts.some((providerHost) => host.endsWith(providerHost));
-		} catch {
-			return hosts.some((providerHost) => decoded.includes(providerHost));
-		}
-	};
-	var resolveStreamingProvider = (item) => {
-		const provider = findPlatformBrandByContainedName(item.name) ?? PLATFORM_BRANDS.find((brand) => hostMatches(item.href, brand));
-		if (provider) {
-			const { Icon, color, colorMode, key, label, surface } = provider;
-			return {
-				Icon,
-				color,
-				colorMode,
-				combinedSvg: COMBINED_SVG_BRANDS.has(key) || void 0,
-				key,
-				label,
-				surface
+				setScrolling(true);
+				view.clearTimeout(scrollTimer);
+				scrollTimer = view.setTimeout(() => setScrolling(false), 150);
 			};
-		}
-		return {
-			color: UNKNOWN_PROVIDER_COLOR,
-			key: "unknown",
-			label: item.name
-		};
-	};
-	var StreamingLogo = ({ colorMode, fallbackLabel, Icon, imgSrc, surface = "dark" }) => {
-		if (imgSrc) return u("img", {
-			alt: "",
-			class: "atv-stream-vendor-icon",
-			src: imgSrc
-		});
-		return u("span", {
-			"aria-hidden": "true",
-			class: `atv-stream-logo${colorMode === "intrinsic" ? " is-intrinsic" : " is-catalog"} is-surface-${surface}`,
-			children: Icon ? u(Icon, {}) : u("span", {
-				class: "atv-stream-logo-fallback",
-				children: fallbackLabel.trim().at(0) || u(IconPlay, {})
-			})
-		});
-	};
-	var StreamingSection = ({ streaming }) => streaming.length ? u(Section, {
-		id: "atv-stream",
-		title: getSubjectSectionCopy("streaming").sectionTitle,
-		children: u("div", {
-			class: "atv-stream-row",
-			children: streaming.map((item) => {
-				const provider = resolveStreamingProvider(item);
-				const style = { "--atv-stream-brand": provider.color };
-				return u("a", {
-					class: `atv-stream-card${provider.combinedSvg ? " atv-stream-card-combined" : ""} is-surface-${provider.surface ?? "dark"}`,
-					"data-provider": provider.key,
-					href: item.href,
-					rel: "noopener",
-					style,
-					target: "_blank",
-					children: provider.combinedSvg && provider.Icon ? u(provider.Icon, {}) : u(S, { children: [u(StreamingLogo, {
-						colorMode: provider.colorMode,
-						fallbackLabel: provider.label,
-						Icon: provider.Icon,
-						imgSrc: provider.Icon ? void 0 : item.iconUrl,
-						surface: provider.surface
-					}), u("span", {
-						class: "atv-stream-name",
-						children: item.name
-					})] })
-				}, item.href);
-			})
-		})
-	}) : null;
-	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
-	var reviewDisplayName = (name) => name.trim() || "匿名用户";
-	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);
-	var reviewVoteKey = (review) => reviewNumericId(review.id);
-	var voteDirection = (value) => {
-		const type = typeof value === "string" ? value : value?.type;
-		if (type === "useful" || type === "up") return "useful";
-		if (type === "useless" || type === "down") return "useless";
-		return null;
-	};
-	var initialReviewVoteState = (review) => {
-		const cached = reviewVoteCache.get(reviewVoteKey(review));
-		return {
-			usefulCount: typeof cached === "object" && typeof cached.usefulCount === "number" ? cached.usefulCount : review.usefulCount ?? 0,
-			uselessCount: typeof cached === "object" && typeof cached.uselessCount === "number" ? cached.uselessCount : review.uselessCount ?? 0,
-			voted: voteDirection(cached)
-		};
-	};
-	var optimisticReviewVoteState = (state, type) => ({
-		usefulCount: state.usefulCount + (type === "useful" ? 1 : 0),
-		uselessCount: state.uselessCount + (type === "useless" ? 1 : 0),
-		voted: type
-	});
-	var resolvedReviewVoteState = (current, type, result) => ({
-		usefulCount: result.usefulCount ?? current.usefulCount,
-		uselessCount: result.uselessCount ?? current.uselessCount,
-		voted: type
-	});
-	var persistReviewVoteState = (review, state) => {
-		if (!state.voted) return;
-		reviewVoteCache.set(reviewVoteKey(review), {
-			type: state.voted,
-			usefulCount: state.usefulCount,
-			uselessCount: state.uselessCount
-		});
-	};
-	var reviewWithVoteState = (review, state) => ({
-		...review,
-		usefulCount: state.usefulCount,
-		uselessCount: state.uselessCount
-	});
-	var ReviewVoteButtons = ({ canVote, onStateChange, onVote, review, size = "normal", state }) => {
-		const [localState, setLocalState] = d(() => initialReviewVoteState(review));
-		const [loading, setLoading] = d(false);
-		const voteState = state ?? localState;
-		const setVoteState = (nextState, options) => {
-			if (onStateChange) onStateChange(review, nextState, options);
-			else {
-				setLocalState(nextState);
-				if (options?.persist) persistReviewVoteState(review, nextState);
-			}
-		};
-		const vote = async (type) => {
-			if (loading || voteState.voted === type || !onVote) return;
-			if (canVote && !canVote()) return;
-			const previous = voteState;
-			setLoading(true);
-			setVoteState(optimisticReviewVoteState(voteState, type));
-			const result = await onVote(reviewNumericId(review.id), type);
-			if (result.ok) setVoteState(resolvedReviewVoteState(voteState, type, result), { persist: true });
-			else setVoteState(previous);
-			setLoading(false);
-		};
-		const sizeClass = size === "large" ? " is-lg" : "";
-		return u(S, { children: [u("button", {
-			"aria-label": `有用，${voteState.usefulCount} 人觉得有用`,
-			"aria-pressed": voteState.voted === "useful",
-			class: `atv-vote-btn up${voteState.voted === "useful" ? " is-voted" : ""}${sizeClass}`,
-			disabled: !onVote || loading || voteState.voted === "useful",
-			onClick: (event) => {
-				event.stopPropagation();
-				vote("useful");
-			},
-			type: "button",
-			children: [u(IconVoteTriangle, {}), u("span", {
-				class: "atv-vote-count",
-				children: voteState.usefulCount
-			})]
-		}), u("button", {
-			"aria-label": `没用，${voteState.uselessCount} 人觉得没用`,
-			"aria-pressed": voteState.voted === "useless",
-			class: `atv-vote-btn down${voteState.voted === "useless" ? " is-voted" : ""}${sizeClass}`,
-			disabled: !onVote || loading || voteState.voted === "useless",
-			onClick: (event) => {
-				event.stopPropagation();
-				vote("useless");
-			},
-			type: "button",
-			children: [u(IconVoteTriangle, {}), u("span", {
-				class: "atv-vote-count",
-				children: voteState.uselessCount
-			})]
-		})] });
-	};
-	var ReviewCard = ({ canVote, onOpen, onVote, onVoteStateChange, review, voteState }) => {
-		const displayName = reviewDisplayName(review.name);
-		return u("article", {
-			class: "atv-review-card",
-			"data-rid": review.id || void 0,
-			children: [u("button", {
-				"aria-label": `展开阅读：${review.title}`,
-				class: "atv-review-open-button",
-				onClick: () => onOpen(review),
-				type: "button"
-			}), u("div", {
-				class: "atv-review-content",
-				children: [
-					u("div", {
-						class: "atv-review-top",
-						children: [u("div", {
-							class: "atv-review-avatar",
-							style: review.avatar ? { backgroundImage: `url("${review.avatar}")` } : void 0,
-							children: review.avatar ? null : displayName.slice(0, 1).toUpperCase()
-						}), u("div", {
-							class: "atv-review-meta",
-							children: [review.link ? u("a", {
-								class: "atv-review-author",
-								href: review.link,
-								onClick: (event) => event.stopPropagation(),
-								rel: "noopener",
-								target: "_blank",
-								children: displayName
-							}) : u("div", {
-								class: "atv-review-author",
-								children: displayName
-							}), review.stars > 0 ? u(Stars, {
-								className: "atv-review-stars",
-								outOfFive: true,
-								score: review.stars
-							}) : null]
-						})]
-					}),
-					u("div", {
-						class: "atv-review-title",
-						children: review.title
-					}),
-					u("div", {
-						class: "atv-review-excerpt",
-						children: review.content
-					}),
-					u("div", {
-						class: "atv-review-foot",
-						children: [
-							u("span", {
-								class: "atv-review-time",
-								children: review.time || ""
-							}),
-							u("span", {
-								class: "atv-review-readmore",
-								children: "展开阅读"
-							}),
-							u("div", {
-								class: "atv-review-actions",
-								"data-rid": review.id || void 0,
-								children: u(ReviewVoteButtons, {
-									canVote,
-									onStateChange: onVoteStateChange,
-									onVote,
-									review,
-									state: voteState
-								})
-							})
-						]
-					})
-				]
-			})]
-		});
-	};
-	var ReviewsSection = ({ canVote, getVoteState, isTV, onOpen, onVoteStateChange, onVote, reviews, subjectId }) => {
-		if (!reviews.length) return null;
-		return u(Section, {
-			id: "atv-reviews",
-			moreLink: {
-				href: `https://movie.douban.com/subject/${subjectId}/reviews`,
-				text: "查看全部 →"
-			},
-			title: getSubjectSectionCopy(isTV ? "tvReviews" : "movieReviews").sectionTitle,
-			children: u("div", {
-				class: "atv-reviews",
-				children: reviews.map((review) => u(ReviewCard, {
-					canVote,
-					onOpen,
-					onVote,
-					onVoteStateChange,
-					review,
-					voteState: getVoteState?.(review)
-				}, review.id))
-			})
-		});
-	};
-	var stripInlineStyles = (html) => html.replaceAll(/\sstyle="[^"]*"/giu, "");
-	var allowedTags = new Set([
-		"a",
-		"b",
-		"blockquote",
-		"br",
-		"code",
-		"div",
-		"em",
-		"h1",
-		"h2",
-		"h3",
-		"li",
-		"ol",
-		"p",
-		"pre",
-		"span",
-		"strong",
-		"ul"
-	]);
-	var sanitizeReviewHtml = (html) => {
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		for (const element of doc.body.querySelectorAll("*")) {
-			if (!allowedTags.has(element.tagName.toLowerCase())) {
-				element.replaceWith(...element.childNodes);
-				continue;
-			}
-			for (const attribute of element.attributes) if (!(element.tagName.toLowerCase() === "a" && attribute.name === "href" && /^(?:https?:|\/|#)/iu.test(attribute.value.trim()))) element.removeAttribute(attribute.name);
-		}
-		return doc.body.innerHTML;
-	};
-	var findNativeReviewContent = (rid) => {
-		const numericId = reviewNumericId(rid);
-		const fullContent = document.querySelector(`[id="${rid}"]`)?.querySelector(`#review_${numericId}_full .review-content`);
-		const text = (fullContent?.textContent ?? "").trim();
-		return fullContent && text ? sanitizeReviewHtml(stripInlineStyles(fullContent.innerHTML)) : null;
-	};
-	var useReviewContent = (rid) => {
-		const [state, setState] = d(() => {
-			const nativeHtml = findNativeReviewContent(rid);
-			return nativeHtml ? {
-				html: nativeHtml,
-				status: "loaded"
-			} : {
-				html: null,
-				status: "loading"
-			};
-		});
-		h(() => {
-			const nativeHtml = findNativeReviewContent(rid);
-			if (nativeHtml) {
-				setState({
-					html: nativeHtml,
-					status: "loaded"
-				});
-				return;
-			}
-			let cancelled = false;
-			const numericId = reviewNumericId(rid);
-			setState({
-				html: null,
-				status: "loading"
-			});
-			const loadReview = async () => {
-				try {
-					const response = await fetch(`https://movie.douban.com/review/${numericId}/`);
-					if (!response.ok) throw new Error(String(response.status));
-					const html = await response.text();
-					if (cancelled) return;
-					const content = new DOMParser().parseFromString(html, "text/html").querySelector(".review-content");
-					if (!content) throw new Error("no content");
-					setState({
-						html: sanitizeReviewHtml(stripInlineStyles(content.innerHTML)),
-						status: "loaded"
-					});
-				} catch {
-					if (!cancelled) setState({
-						html: null,
-						status: "error"
-					});
-				}
-			};
-			loadReview();
+			view.addEventListener("scroll", handleScroll, { passive: true });
+			handleScroll();
 			return () => {
-				cancelled = true;
+				view.removeEventListener("scroll", handleScroll);
+				view.clearTimeout(scrollTimer);
 			};
-		}, [rid]);
-		return state;
-	};
-	var bodyClassName = (status) => {
-		if (status === "loaded") return "atv-review-modal-body is-loaded";
-		if (status === "error") return "atv-review-modal-body is-error";
-		return "atv-review-modal-body is-skeleton";
-	};
-	var ReviewModalContent = ({ canVote, onVoteStateChange, onVote, review, voteState }) => {
-		const handleClose = useModalClose();
-		const content = useReviewContent(review.id);
-		const displayName = reviewDisplayName(review.name);
-		const numericId = reviewNumericId(review.id);
-		return u(S, { children: [
-			u(ModalCloseButton, {
-				ariaLabel: "关闭影评",
-				onClick: handleClose
-			}),
-			u("div", { class: "atv-modal-accent-bar" }),
-			u("div", {
-				class: "atv-review-modal-header",
-				children: [
-					u("div", {
-						class: "atv-review-modal-title",
-						id: "atv-review-modal-title",
-						tabindex: -1,
-						children: review.title
-					}),
-					review.stars > 0 ? u(Stars, {
-						className: "atv-review-modal-stars",
-						outOfFive: true,
-						score: review.stars
-					}) : null,
-					u("div", {
-						class: "atv-review-modal-byline",
-						children: [u("div", {
-							class: "atv-review-modal-avatar",
-							style: review.avatar ? { backgroundImage: `url("${review.avatar}")` } : void 0,
-							children: review.avatar ? null : displayName.slice(0, 1).toUpperCase()
-						}), u("div", {
-							class: "atv-review-modal-byline-text",
-							children: [u("span", {
-								class: "atv-review-modal-byline-name",
-								children: displayName
-							}), review.time ? u("span", {
-								class: "atv-review-modal-byline-time",
-								children: ["· ", review.time]
-							}) : null]
-						})]
-					})
-				]
-			}),
-			u(HtmlContent, {
-				"aria-busy": content.status === "loading" ? "true" : "false",
-				"aria-live": "polite",
-				class: bodyClassName(content.status),
-				html: content.html || void 0,
-				children: [content.status === "loading" ? "加载中" : null, content.status === "error" ? u("div", {
-					class: "atv-review-modal-error",
-					children: u("p", { children: "影评内容暂时加载失败" })
-				}) : null]
-			}),
-			u("div", {
-				class: "atv-review-modal-footer",
-				children: [u("div", {
-					class: "atv-review-modal-votes",
-					children: u("div", {
-						class: "atv-review-actions",
-						"data-rid": review.id || void 0,
-						children: u(ReviewVoteButtons, {
-							canVote,
-							onStateChange: onVoteStateChange,
-							onVote,
-							review,
-							size: "large",
-							state: voteState
-						})
-					})
-				}), u("div", {
-					class: "atv-review-modal-link",
-					children: u("a", {
-						class: "atv-review-modal-link-a",
-						href: `https://movie.douban.com/review/${numericId}/`,
-						rel: "noopener",
-						target: "_blank",
-						children: "查看豆瓣原文 →"
-					})
-				})]
-			})
-		] });
-	};
-	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
-		ariaLabelledBy: "atv-review-modal-title",
-		className: "atv-review-modal",
-		id: "atv-review-modal",
-		onClose,
-		surfaceClassName: "atv-review-modal-scroll",
-		children: u(ReviewModalContent, {
-			canVote,
-			onVote,
-			onVoteStateChange,
-			review,
-			voteState
-		})
-	});
-	var toInitialStates = (items, strategy) => Object.fromEntries(items.map((item) => [strategy.key(item), strategy.initial(item)]));
-	var useVoteState = (items, strategy) => {
-		const [states, setStates] = d(() => toInitialStates(items, strategy));
-		const getVoteState = (item) => states[strategy.key(item)] ?? strategy.initial(item);
-		const setVoteState = (item, state, options) => {
-			setStates((current) => ({
-				...current,
-				[strategy.key(item)]: state
-			}));
-			if (options?.persist) strategy.persist?.(item, state);
-		};
-		const mergeVoteState = (item) => strategy.merge(item, getVoteState(item));
-		const mergeVoteStates = (nextItems) => nextItems.map(mergeVoteState);
-		return {
-			getVoteState,
-			mergeVoteState,
-			mergeVoteStates,
-			setVoteState
-		};
-	};
-	var toHeroData = (data) => ({
-		imdbId: data.info.imdb || null,
-		info: data.info,
-		interest: data.interest,
-		isTV: data.isTV,
-		photos: data.photos,
-		poster: data.poster,
-		rating: data.rating,
-		subjectId: data.subjectId,
-		summary: data.summary,
-		title: data.title,
-		year: data.year
-	});
-	var commentVoteStrategy = {
-		initial: initialCommentVoteState,
-		key: commentVoteKey,
-		merge: commentWithVoteState
-	};
-	var reviewVoteStrategy = {
-		initial: initialReviewVoteState,
-		key: reviewVoteKey,
-		merge: reviewWithVoteState,
-		persist: persistReviewVoteState
-	};
-	var SubjectPage = ({ data, deps }) => {
-		const [activeComment, setActiveComment] = d(null);
-		const [activeReview, setActiveReview] = d(null);
-		const [activeMediaModal, setActiveMediaModal] = d(null);
-		const [loginAction, setLoginAction] = d(null);
-		const [activeInterest, setActiveInterest] = d(data.interest);
-		const [interestOpen, setInterestOpen] = d(false);
-		const [series, setSeries] = d(data.series);
-		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
-		const avatarUrls = useAvatarUrls(data.comments);
-		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
-		const handleCommentVoteStateChange = commentVotes.setVoteState;
-		const handleReviewVoteStateChange = reviewVotes.setVoteState;
-		const canVote = () => {
-			if (!data.interest.loggedIn) {
-				setLoginAction("给短评点有用");
-				return false;
+		}, [doc]);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			const elements = new Map();
+			for (const section of sections) {
+				const element = doc.querySelector(`#${section.id}`);
+				if (element) elements.set(section.id, element);
 			}
-			return deps.canVote?.() ?? true;
-		};
-		const canReviewVote = () => {
-			if (!data.interest.loggedIn) {
-				setLoginAction("给影评投票");
-				return false;
-			}
-			return deps.canReviewVote?.() ?? true;
-		};
-		const heroCallbacks = {
-			...deps.heroCallbacks,
-			handleCollectClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记看过");
-					return;
+			let pending = false;
+			const pick = () => {
+				let activeId = "";
+				let bestScore = -Infinity;
+				for (const section of sections) {
+					const element = elements.get(section.id);
+					if (!element) continue;
+					const rect = element.getBoundingClientRect();
+					const visibleTop = Math.max(rect.top, 56);
+					const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
+					const score = Math.max(0, visibleBottom - visibleTop);
+					if (score > bestScore) {
+						activeId = section.id;
+						bestScore = score;
+					}
 				}
-				deps.heroCallbacks.handleCollectClick();
-			},
-			handleOpenInterest: (state) => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记这部作品");
-					return;
-				}
-				setActiveInterest(state);
-				setInterestOpen(true);
-			},
-			handleWatchingClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记在看");
-					return;
-				}
-				deps.heroCallbacks.handleWatchingClick();
-			},
-			handleWishClick: () => {
-				if (!data.interest.loggedIn) {
-					setLoginAction("标记想看");
-					return;
-				}
-				deps.heroCallbacks.handleWishClick();
-			}
-		};
-		h(() => watchSeries(setSeries, deps.doc), [deps.doc]);
-		return u(S, { children: [
-			u(StickyNav, {
-				doc: deps.doc,
-				sections: computeNavSections({
-					...data,
-					series
-				}),
-				title: data.title
-			}),
-			u(Hero, {
-				callbacks: heroCallbacks,
-				data: toHeroData(data),
-				expandNativeSummary: () => expandNativeSummary(deps.doc),
-				onOpenPoster: (src, alt) => setActiveMediaModal({
-					alt,
-					src,
-					type: "poster"
-				})
-			}),
-			u(StreamingSection, { streaming: data.streaming }),
-			u(SeriesSection, {
-				items: series,
-				moreLink: deps.seriesMoreLink ?? extractSeriesMoreLink(deps.doc)
-			}),
-			u(CastSection, { celebrities: data.celebrities }),
-			u(PhotosSection, {
-				data: {
-					photos: data.photos,
-					subjectId: data.subjectId,
-					trailers: data.trailers
-				},
-				onOpenPoster: (src, alt) => setActiveMediaModal({
-					alt,
-					src,
-					type: "poster"
-				}),
-				onOpenVideo: (trailer) => setActiveMediaModal({
-					trailer,
-					type: "video"
-				})
-			}),
-			u(CommentsSection, {
-				avatarUrls,
-				canVote,
-				comments: commentVotes.mergeVoteStates(data.comments),
-				getVoteState: commentVotes.getVoteState,
-				onOpen: setActiveComment,
-				onVoteStateChange: handleCommentVoteStateChange,
-				onVote: deps.handleVote,
-				subjectId: data.subjectId
-			}),
-			u(ReviewsSection, {
-				canVote: canReviewVote,
-				getVoteState: reviewVotes.getVoteState,
-				isTV: data.isTV,
-				onOpen: setActiveReview,
-				onVoteStateChange: handleReviewVoteStateChange,
-				onVote: deps.handleReviewVote,
-				reviews: reviewVotes.mergeVoteStates(data.reviews),
-				subjectId: data.subjectId
-			}),
-			u(DiscussionsSection, { discussions: data.discussions }),
-			u(RecommendationsSection, { recommendations: data.recommendations }),
-			u(DetailsSection, { data: {
-				awards: data.awards,
-				info: data.info,
-				isTV: data.isTV
-			} }),
-			u("div", { class: "atv-footer-spacer" }),
-			activeComment ? u(CommentModal, {
-				canVote,
-				comment: {
-					...commentVotes.mergeVoteState(activeComment),
-					avatar: avatarUrls.get(activeComment.link) || activeComment.avatar
-				},
-				onClose: () => setActiveComment(null),
-				onVoteStateChange: handleCommentVoteStateChange,
-				onVote: deps.handleVote,
-				voteState: commentVotes.getVoteState(activeComment)
-			}) : null,
-			activeReview ? u(ReviewModal, {
-				canVote: canReviewVote,
-				onClose: () => setActiveReview(null),
-				onVoteStateChange: handleReviewVoteStateChange,
-				onVote: deps.handleReviewVote,
-				review: reviewVotes.mergeVoteState(activeReview),
-				voteState: reviewVotes.getVoteState(activeReview)
-			}) : null,
-			activeMediaModal?.type === "poster" ? u(PosterModal, {
-				alt: activeMediaModal.alt,
-				onClose: () => setActiveMediaModal(null),
-				src: activeMediaModal.src
-			}) : null,
-			activeMediaModal?.type === "video" ? u(VideoModal, {
-				onClose: () => setActiveMediaModal(null),
-				trailer: activeMediaModal.trailer
-			}) : null,
-			loginAction ? u(LoginModal, {
-				action: loginAction,
-				onClose: () => setLoginAction(null)
-			}) : null,
-			interestOpen ? u(InterestForm, {
-				callbacks: buildModalCallbacks(data.subjectId, {
-					post: postInterest,
-					reload: () => location.reload(),
-					remove: removeInterest
-				}),
-				onClose: () => setInterestOpen(false),
-				state: activeInterest
-			}) : null
-		] });
-	};
-	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
-		const lis = $$("li", ul);
-		const orgEl = lis[0] ? $("a", lis[0]) : null;
-		const org = lis[0] ? safeText(lis[0]) : "";
-		const name = lis[1] ? safeText(lis[1]) : "";
-		const personEl = lis[2] ? $("a", lis[2]) : null;
-		const person = lis[2] ? safeText(lis[2]) : "";
+				setActiveSectionId(activeId);
+				pending = false;
+			};
+			const observer = new view.IntersectionObserver(() => {
+				if (pending) return;
+				pending = true;
+				view.requestAnimationFrame(pick);
+			}, { threshold: [
+				0,
+				.25,
+				.5
+			] });
+			for (const element of elements.values()) observer.observe(element);
+			pick();
+			return () => observer.disconnect();
+		}, [doc, sections]);
 		return {
-			name,
-			org,
-			orgLink: orgEl ? orgEl.href : "",
-			person,
-			personLink: personEl ? personEl.href : ""
-		};
-	}).filter((a) => a.org);
-	var upgradePoster = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
-	};
-	var upgradePhoto = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
-	};
-	var extractTitle = (doc) => {
-		const h1 = $("#content h1", doc);
-		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
-		let primary = full;
-		let original = "";
-		const idx = full.search(RE_WS);
-		if (idx > 0) {
-			primary = full.slice(0, idx).trim();
-			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
-		}
-		return {
-			full,
-			original,
-			primary
-		};
-	};
-	var extractYear = (doc) => {
-		const m = safeText($("#content h1 .year", doc)).match(RE_YEAR);
-		return m ? m[1] : "";
-	};
-	var extractPoster = (doc) => {
-		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
-		if (!img) return null;
-		return upgradePoster(img.src || img.dataset.src || "");
-	};
-	var extractSubjectId = (doc) => {
-		const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
-		return m ? m[1] : "";
-	};
-	var MAX_DISCUSSION_TOPICS = 10;
-	var DOUBAN_ORIGIN = "https://www.douban.com/";
-	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
-	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
-	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
-	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
-	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
-	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
-	var isTrackingParameter = (fragment) => {
-		const [rawKey] = fragment.split("=", 1);
-		try {
-			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
-		} catch {
-			return false;
-		}
-	};
-	var removeTrackingParameter = (search) => {
-		if (!search) return "";
-		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
-		return remaining.length ? `?${remaining.join("&")}` : "";
-	};
-	var toSafeDoubanUrl = (rawHref) => {
-		try {
-			const url = new URL(rawHref, DOUBAN_ORIGIN);
-			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
-			return url;
-		} catch {
-			return;
-		}
-	};
-	var normalizeTopicHref = (rawHref) => {
-		const url = toSafeDoubanUrl(rawHref);
-		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
-		const search = removeTrackingParameter(url.search);
-		return `${url.origin}${url.pathname}${search}${url.hash}`;
-	};
-	var normalizeDoubanHref = (rawHref, path) => {
-		const url = toSafeDoubanUrl(rawHref);
-		return url && path.test(url.pathname) ? url.href : "";
-	};
-	var extractAuthor = (authorCell) => {
-		const link = authorCell?.querySelector("a");
-		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
-		if (!name) return;
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
-		return href ? {
-			href,
-			name
-		} : { name };
-	};
-	var extractReplies = (repliesCell) => {
-		if (!repliesCell) return;
-		const text = safeText(repliesCell);
-		if (!text) return 0;
-		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
-		if (match?.groups) return Number(match.groups.replies);
-		const bare = Number(text);
-		return Number.isSafeInteger(bare) ? bare : void 0;
-	};
-	var isValidDiscussionTimestamp = (dateTime) => {
-		const value = new Date(`${dateTime}Z`);
-		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
-	};
-	var extractActivity = (activityCell) => {
-		const raw = safeText(activityCell);
-		if (!raw) return;
-		const match = DISCUSSION_TIMESTAMP.exec(raw);
-		if (!match?.groups) return { raw };
-		const { date, seconds, time } = match.groups;
-		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
-		return isValidDiscussionTimestamp(dateTime) ? {
-			date,
-			dateTime,
-			raw,
-			time
-		} : { raw };
-	};
-	var extractTopics = (container) => {
-		const topics = [];
-		for (const row of $$("table tr", container)) {
-			if (row.closest(".mv-hot-discussion-list")) continue;
-			const link = row.cells[0]?.querySelector("a");
-			const title = safeText(link);
-			const rawHref = link?.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeTopicHref(rawHref) : "";
-			if (title && href) {
-				const author = extractAuthor(row.cells[1]);
-				const replies = extractReplies(row.cells[2]);
-				const activity = extractActivity(row.cells[3]);
-				topics.push({
-					...activity ? { activity } : {},
-					...author ? { author } : {},
-					href,
-					...replies === void 0 ? {} : { replies },
-					title
+			activeSectionId,
+			onJump: q((sectionId) => {
+				const prefersReducedMotion = (doc.defaultView ?? window).matchMedia("(prefers-reduced-motion: reduce)").matches;
+				doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+					behavior: prefersReducedMotion ? "auto" : "smooth",
+					block: "start"
 				});
-				if (topics.length === MAX_DISCUSSION_TOPICS) break;
+			}, [doc]),
+			scrolling,
+			sections,
+			visible
+		};
+	};
+	var reloadPage = () => {
+		location.reload();
+	};
+	var SubjectPageRuntime = ({ data, doc }) => {
+		const [series, setSeries] = d(data.series);
+		const avatarUrls = useAvatarUrls(data.comments, doc);
+		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
+		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
+		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
+			...data,
+			series
+		}), [data, series]));
+		h(() => watchSeries(setSeries, doc), [doc]);
+		return u(SubjectPage, {
+			data,
+			runtime: {
+				actions: {
+					expandNativeSummary: () => expandNativeSummary(doc),
+					handleCommentVote: (cid) => postVote(cid, data.subjectId),
+					handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
+					interestMarking: {
+						post: postInterest,
+						reload: reloadPage,
+						remove: removeInterest
+					}
+				},
+				avatarUrls,
+				externalRatings,
+				firstBroadcastPlatform,
+				navigation,
+				series,
+				seriesMoreLink: extractSeriesMoreLink(doc)
 			}
-		}
-		return topics;
-	};
-	var extractStartDiscussionHref = (container) => {
-		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
-	};
-	var linkHref = (link, path) => {
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
-	};
-	var extractLinkTotal = (link) => {
-		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
-		const total = totalMatch?.groups ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
-		return Number.isSafeInteger(total) ? total : void 0;
-	};
-	var extractAllDiscussions = (container) => {
-		const pLink = container.querySelector("p a");
-		const pHref = linkHref(pLink, COLLECTION_PATH);
-		if (pHref) {
-			const total = extractLinkTotal(pLink);
-			return total === void 0 ? { href: pHref } : {
-				href: pHref,
-				total
-			};
-		}
-		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
-		if (h2Href) return { href: h2Href };
-		const listLink = container.querySelector(".mv-discussion-list a");
-		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
-		if (listHref) {
-			const total = extractLinkTotal(listLink);
-			return total === void 0 ? { href: listHref } : {
-				href: listHref,
-				total
-			};
-		}
-	};
-	var findModDiscussion = (doc) => {
-		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
-		return null;
-	};
-	var extractFromContainer = (container) => {
-		const topics = extractTopics(container);
-		const startDiscussionHref = extractStartDiscussionHref(container);
-		const allDiscussions = extractAllDiscussions(container);
-		return {
-			...allDiscussions ? { allDiscussions } : {},
-			...startDiscussionHref ? { startDiscussionHref } : {},
-			topics
-		};
-	};
-	var extractDiscussions = (doc) => {
-		const primary = doc.querySelector(".section-discussion");
-		if (primary) return extractFromContainer(primary);
-		const mod = findModDiscussion(doc);
-		if (mod) return extractFromContainer(mod);
-		return { topics: [] };
-	};
-	var findLabel = (root, label) => {
-		if (!root) return null;
-		const spans = $$("span.pl", root);
-		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
-		return null;
-	};
-	var collectInfoTextAfter = (root, label, trim) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return "";
-		let out = "";
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 3) out += n.nodeValue;
-			else if (n.nodeType === 1) out += n.textContent || "";
-			n = n.nextSibling;
-		}
-		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
-		if (trim !== false) result = result.trim();
-		return result;
-	};
-	var collectLinksAfter = (root, label) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return [];
-		const out = [];
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 1) {
-				const el = n;
-				const anchors = el.tagName === "A" ? [el] : $$("a", el);
-				for (const a of anchors) {
-					const t = (a.textContent || "").trim();
-					if (t) out.push({
-						href: a.href || "",
-						text: t
-					});
-				}
-			}
-			n = n.nextSibling;
-		}
-		return out;
-	};
-	var extractInfo = (doc) => {
-		const info = $("#info", doc);
-		const out = {
-			aliases: "",
-			cast: [],
-			country: "",
-			director: [],
-			episodeRuntime: "",
-			episodes: "",
-			firstAired: "",
-			genres: [],
-			imdb: "",
-			language: "",
-			releaseDate: "",
-			runtime: "",
-			seasons: "",
-			writers: []
-		};
-		if (!info) return out;
-		out.director = collectLinksAfter(info, "导演");
-		out.writers = collectLinksAfter(info, "编剧");
-		const starringEls = $$("a[rel=\"v:starring\"]", info);
-		out.cast = starringEls.length ? starringEls.map((a) => ({
-			href: a.href || "",
-			text: (a.textContent || "").trim()
-		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
-		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
-		out.country = collectInfoTextAfter(info, "制片国家/地区");
-		out.language = collectInfoTextAfter(info, "语言");
-		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
-		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.firstAired = collectInfoTextAfter(info, "首播");
-		const runEls = $$("span[property=\"v:runtime\"]", info);
-		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.episodes = collectInfoTextAfter(info, "集数");
-		if (findLabel(info, "季数")) {
-			const sel = $("#season", info);
-			if (sel) {
-				const opt = sel.options[sel.selectedIndex];
-				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
-			} else out.seasons = collectInfoTextAfter(info, "季数");
-		}
-		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
-		out.aliases = collectInfoTextAfter(info, "又名");
-		if (findLabel(info, "IMDb")) {
-			const raw = collectInfoTextAfter(info, "IMDb");
-			const m = raw.match(RE_IMDB_ID);
-			out.imdb = m ? m[1] : raw;
-		}
-		return out;
-	};
-	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
-		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
-		const roleEl = $(".info .role", li);
-		const avatarEl = $(".avatar", li);
-		let avatar = "";
-		if (avatarEl) {
-			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
-			if (m) [, avatar] = m;
-		}
-		return {
-			avatar: encodeURI(avatar),
-			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
-			name: safeText(nameEl),
-			role: safeText(roleEl)
-		};
-	}).filter((c) => c.name);
-	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
-		const thumb = img.src || img.dataset.src || "";
-		const a = img.closest("a");
-		return {
-			hdUrl: upgradePhoto(thumb) || "",
-			link: a ? a.href : "",
-			thumbUrl: encodeURI(thumb)
-		};
-	}).filter((p) => p.thumbUrl);
-	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
-		const m = (a.getAttribute("style") || "").match(RE_BG_URL);
-		const thumbUrl = m ? m[1] : "";
-		return {
-			thumbUrl: encodeURI(thumbUrl),
-			title: a.getAttribute("title") || "",
-			trailerPageUrl: a.href
-		};
-	}).filter((t) => t.trailerPageUrl);
-	var extractReviewRating = (item) => {
-		let stars = 0;
-		let ratingWord = "";
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (ratingEl) {
-			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
-			ratingWord = ratingEl.getAttribute("title") || "";
-		}
-		if (stars === 0) {
-			const titleRating = $(".main-title-rating", item);
-			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
-		}
-		return {
-			ratingWord,
-			stars
-		};
-	};
-	var extractReviewContent = (item) => {
-		const shortContent = $(".review-short .short-content", item);
-		if (shortContent) {
-			const contentCopy = shortContent.cloneNode(true);
-			contentCopy.querySelector("a.unfold")?.remove();
-			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
-		}
-		const mainBd = $(".main-bd", item);
-		return mainBd ? safeText(mainBd) : "";
-	};
-	var extractReviewVotes = (item) => {
-		const action = $(".action", item);
-		if (!action) return {
-			usefulCount: 0,
-			uselessCount: 0
-		};
-		const upEl = $(".action-btn.up", action);
-		const downEl = $(".action-btn.down", action);
-		return {
-			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
-			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
-		};
-	};
-	var extractReviewItem = (item) => {
-		const title = safeText($(".main-bd h2 a", item));
-		if (!title) return null;
-		const nameLink = $(".main-hd a.name", item);
-		const name = safeText(nameLink);
-		if (!name) return null;
-		const avatarImg = $(".main-hd .avator img", item);
-		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
-		const { stars, ratingWord } = extractReviewRating(item);
-		const time = safeText($(".main-hd .main-meta", item));
-		const content = extractReviewContent(item);
-		const { usefulCount, uselessCount } = extractReviewVotes(item);
-		const spoiler = !!$(".spoiler-tip", item);
-		return {
-			avatar,
-			content,
-			id: item.id || "",
-			link: nameLink?.href ?? "",
-			name,
-			ratingWord,
-			spoiler,
-			stars,
-			time,
-			title,
-			usefulCount,
-			uselessCount
-		};
-	};
-	var extractReviews = (doc) => {
-		const items = $$("#reviews-wrapper .review-item", doc);
-		const out = [];
-		for (const item of items) {
-			const review = extractReviewItem(item);
-			if (review) out.push(review);
-		}
-		return out;
-	};
-	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
-		const linkEl = $("dt a", dl);
-		const imgEl = $("dt a img", dl);
-		const titleEl = $("dd a", dl);
-		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
-		return {
-			link: linkEl ? linkEl.href : "",
-			poster: upgradePoster(rawPoster) || "",
-			title: safeText(titleEl)
-		};
-	}).filter((r) => r.title);
-	var extractRating = (item) => {
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (!ratingEl) return {
-			ratingWord: "",
-			stars: 0
-		};
-		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-		return {
-			ratingWord: ratingEl.getAttribute("title") || "",
-			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
-		};
-	};
-	var extractTime = (item) => {
-		const timeEl = $(".comment-time", item);
-		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
-	};
-	var extractVotes = (item) => {
-		const votesEl = $(".vote-count", item) ?? $(".votes", item);
-		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
-	};
-	var extractAvatar = (item) => {
-		const img = $(".avatar img", item);
-		if (!img) return "";
-		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
-	};
-	var extractVoted = (item) => {
-		if (item.querySelector(".j.vote-comment")) return false;
-		const voteArea = $(".comment-vote", item);
-		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
-	};
-	var extractComments = (doc) => {
-		const items = $$("#hot-comments .comment-item", doc);
-		const out = [];
-		for (const item of items) {
-			const authorEl = $(".comment-info a", item);
-			const name = safeText(authorEl);
-			if (!name) continue;
-			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
-			if (!content) continue;
-			const { stars, ratingWord } = extractRating(item);
-			out.push({
-				avatar: extractAvatar(item),
-				cid: item.dataset.cid ?? "",
-				content,
-				link: authorEl?.href ?? "",
-				name,
-				ratingWord,
-				stars,
-				time: extractTime(item),
-				voted: extractVoted(item),
-				votes: extractVotes(item)
-			});
-		}
-		return out;
-	};
-	var isRealUrl = (h) => RE_HTTP.test(h || "");
-	var parsePlaySources = (doc) => {
-		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
-		if (!srcScript) return {};
-		const txt = srcScript.textContent;
-		const map = {};
-		let m = RE_PLAY_SOURCES.exec(txt);
-		while (m) {
-			const [, sourceId] = m;
-			const playLink = m[2].replaceAll("&amp;", "&");
-			if (!map[sourceId]) map[sourceId] = playLink;
-			m = RE_PLAY_SOURCES.exec(txt);
-		}
-		return map;
-	};
-	var extractStreaming = (doc) => {
-		const seen = new Set();
-		const out = [];
-		const sourcesMap = parsePlaySources(doc);
-		const playBtns = $$("a.playBtn", doc);
-		for (const a of playBtns) {
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			let { href } = a;
-			if (!isRealUrl(href)) {
-				const sourceId = a.dataset.source;
-				if (sourceId && sourcesMap[sourceId]) href = sourcesMap[sourceId];
-				else continue;
-			}
-			const iconUrl = a.dataset.pic || void 0;
-			out.push({
-				href,
-				iconUrl,
-				name
-			});
-		}
-		for (const a of $$("a", doc)) {
-			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			seen.add(name);
-			if (isRealUrl(a.href)) out.push({
-				href: a.href,
-				name
-			});
-		}
-		return out;
-	};
-	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
-	var extractDoubanData = (doc) => {
-		const info = extractInfo(doc);
-		const isTV = isTVInfo(info);
-		return {
-			awards: extractAwards(doc),
-			celebrities: extractCelebrities(doc),
-			comments: extractComments(doc),
-			discussions: extractDiscussions(doc),
-			info,
-			interest: extractInterestState(doc),
-			isTV,
-			photos: extractPhotos(doc),
-			poster: extractPoster(doc),
-			rating: extractRating$1(doc),
-			recommendations: extractRecommendations(doc),
-			reviews: extractReviews(doc),
-			series: extractSeries(doc),
-			streaming: extractStreaming(doc),
-			subjectId: extractSubjectId(doc),
-			summary: extractSummary(doc),
-			title: extractTitle(doc),
-			trailers: extractTrailers(doc),
-			year: extractYear(doc)
-		};
+		});
 	};
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
 	};
-	var buildHeroCallbacks = (subjectId, doc = document, loggedIn = true) => buildInterestMarkingCallbacks(subjectId, {
-		doc,
-		loggedIn
-	});
 	var mountSubjectPage = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
 		if (!doc.querySelector("#content h1")) {
@@ -5871,17 +5937,9 @@ input::placeholder {
 		setSubjectTitle(doc, data);
 		const root = doc.createElement("div");
 		root.id = "atv-douban-root";
-		R(u(SubjectPage, {
+		R(u(SubjectPageRuntime, {
 			data,
-			deps: {
-				canReviewVote: () => true,
-				canVote: () => true,
-				doc,
-				handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
-				handleVote: (cid) => postVote(cid, data.subjectId),
-				heroCallbacks: buildHeroCallbacks(data.subjectId, doc, data.interest.loggedIn),
-				seriesMoreLink: extractSeriesMoreLink(doc)
-			}
+			doc
 		}), root);
 		doc.body.insertBefore(root, doc.body.firstChild);
 	};

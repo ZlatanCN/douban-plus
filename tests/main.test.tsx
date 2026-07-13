@@ -1,6 +1,5 @@
 /* ── main.ts — Unit Tests ───────────────────────────────────── */
-/* Tests computeNavSections() and buildHeroCallbacks() from      */
-/* src/main.ts.                                                  */
+/* Tests page composition helpers. */
 
 import { render } from "preact";
 import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
@@ -8,10 +7,9 @@ import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { computeNavSections } from "@/components/layout/nav";
 import { StickyNav } from "@/components/layout/sticky-nav";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageDeps } from "@/modules/subject-page/types";
-import { buildHeroCallbacks } from "@/runtime/mount";
+import type { SubjectPageRuntime } from "@/modules/subject-page/types";
 import { watchSeries } from "@/runtime/series-effect";
-import type { DoubanData, InfoBlock, InterestState, SeriesItem } from "@/types";
+import type { DoubanData, InfoBlock, SeriesItem } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */
@@ -109,35 +107,86 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
   ...overrides,
 });
 
-/* ── SubjectPage deps helper ─────────────────────────────── */
+/* ── SubjectPage runtime helper ──────────────────────────── */
 
-const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
-  handleVote: () => Promise.resolve({ ok: true }),
-  ...overrides,
-  heroCallbacks: {
-    handleCollectClick: () => {},
-    handleOpenInterest: () => {},
-    handleWatchingClick: () => {},
-    handleWishClick: () => {},
+const makeRuntime = (
+  data: DoubanData,
+  overrides?: Partial<SubjectPageRuntime>
+): SubjectPageRuntime => ({
+  actions: {
+    expandNativeSummary: () => Promise.resolve(null),
+    handleCommentVote: () => Promise.resolve({ ok: true }),
+    handleReviewVote: () => Promise.resolve({ ok: true }),
+    interestMarking: {
+      post: () => Promise.resolve({ ok: false }),
+      reload: () => {},
+      remove: () => Promise.resolve({ ok: false }),
+    },
   },
+  avatarUrls: new Map(),
+  externalRatings: null,
+  firstBroadcastPlatform: null,
+  navigation: {
+    activeSectionId: "",
+    onJump: () => {},
+    scrolling: false,
+    sections: computeNavSections(data),
+    visible: false,
+  },
+  series: [],
+  ...overrides,
 });
 
 const renderSubjectPage = (
   data: DoubanData = makeDoubanData(),
-  deps: SubjectPageDeps = makeDeps()
+  runtime: SubjectPageRuntime = makeRuntime(data)
 ): HTMLElement => {
   const root = document.createElement("div");
   root.id = "atv-douban-root";
-  render(<SubjectPage data={data} deps={deps} />, root);
+  render(<SubjectPage data={data} runtime={runtime} />, root);
   onTestFinished(() => render(null, root));
   return root;
 };
+
+describe("Subject page runtime value", () => {
+  it("renders a runtime-supplied comment avatar without acquiring host data", () => {
+    const profileLink = "https://www.douban.com/people/page-avatar/";
+    const avatarUrl = "https://example.com/page-avatar.jpg";
+    const data = makeDoubanData({
+      comments: [
+        {
+          ...makeDoubanData().comments[0],
+          avatar: "",
+          cid: "page-avatar",
+          link: profileLink,
+        },
+      ],
+    });
+
+    const root = renderSubjectPage(
+      data,
+      makeRuntime(data, { avatarUrls: new Map([[profileLink, avatarUrl]]) })
+    );
+
+    expect(
+      root
+        .querySelector<HTMLElement>(
+          "[data-cid='page-avatar'] .atv-comment-avatar"
+        )
+        ?.getAttribute("style")
+    ).toContain(avatarUrl);
+  });
+});
 
 const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
   const stickyNav = document.createElement("nav");
   stickyNav.className = "atv-stickynav";
   render(
-    <StickyNav sections={computeNavSections(data)} title={data.title} />,
+    <StickyNav
+      onJump={() => {}}
+      sections={computeNavSections(data)}
+      title={data.title}
+    />,
     stickyNav
   );
   onTestFinished(() => render(null, stickyNav));
@@ -271,79 +320,6 @@ describe(computeNavSections, () => {
       movieSections.find((section) => section.id === "atv-reviews"),
       tvSections.find((section) => section.id === "atv-reviews"),
     ]).toStrictEqual([S.series, S.movieReviews, S.tvReviews]);
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════ */
-/* ── buildHeroCallbacks ──────────────────────────────────── */
-/* ═══════════════════════════════════════════════════════════ */
-
-const defaultInterest: InterestState = {
-  ck: "",
-  comment: "",
-  date: "",
-  hasWatching: false,
-  loggedIn: false,
-  marked: false,
-  rating: 0,
-  status: "none",
-  tags: [],
-  usefulCount: "",
-};
-
-const stubRaf = (): void => {
-  vi.spyOn(window, "requestAnimationFrame").mockImplementation(
-    // oxlint-disable-next-line promise/prefer-await-to-callbacks
-    (cb: FrameRequestCallback): number => {
-      // oxlint-disable-next-line promise/prefer-await-to-callbacks
-      cb(0);
-      return 0;
-    }
-  );
-};
-
-const unstubRaf = (): void => {
-  vi.restoreAllMocks();
-};
-
-const cleanupModal = (): void => {
-  document.querySelector("#atv-interest-modal")?.remove();
-  document.body.style.overflow = "";
-};
-
-describe(buildHeroCallbacks, () => {
-  afterEach(() => {
-    unstubRaf();
-    cleanupModal();
-  });
-
-  it("returns object with four callback functions (t11)", () => {
-    const cbs = buildHeroCallbacks("1292052");
-    expect(cbs.handleCollectClick).toBeTypeOf("function");
-    expect(cbs.handleOpenInterest).toBeTypeOf("function");
-    expect(cbs.handleWatchingClick).toBeTypeOf("function");
-    expect(cbs.handleWishClick).toBeTypeOf("function");
-  });
-
-  it("does not throw when calling handleWishClick (t12)", () => {
-    const cbs = buildHeroCallbacks("1292052");
-    expect(() => cbs.handleWishClick()).not.toThrow();
-  });
-
-  it("does not throw when calling handleWatchingClick (t13)", () => {
-    const cbs = buildHeroCallbacks("1292052");
-    expect(() => cbs.handleWatchingClick()).not.toThrow();
-  });
-
-  it("does not throw when calling handleCollectClick (t14)", () => {
-    const cbs = buildHeroCallbacks("1292052");
-    expect(() => cbs.handleCollectClick()).not.toThrow();
-  });
-
-  it("does not throw when calling handleOpenInterest (t15)", () => {
-    stubRaf();
-    const cbs = buildHeroCallbacks("1292052");
-    expect(() => cbs.handleOpenInterest(defaultInterest)).not.toThrow();
   });
 });
 

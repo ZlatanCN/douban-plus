@@ -13,12 +13,6 @@ const RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
 const RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
 const RE_HTTP = /^https?:\/\//u;
 const RE_ONLINE_VIDEO = /online-video/u;
-const RE_WISH = /想看/u;
-const RE_DO = /在看/u;
-const RE_COLLECT = /看过/u;
-const RE_WISH_EXACT = /^想看$/u;
-const RE_DO_EXACT = /^在看$/u;
-const RE_COLLECT_EXACT = /^看过$/u;
 const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
 const RE_IMDB_LINK = /^tt\d+$/u;
 const RE_SEASON_SUFFIX = /\d$/u;
@@ -30,11 +24,7 @@ const RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
 export {
   RE_ALLSTAR,
   RE_BG_URL,
-  RE_COLLECT,
-  RE_COLLECT_EXACT,
   RE_COLON_WS,
-  RE_DO,
-  RE_DO_EXACT,
   RE_HSPACE,
   RE_HTTP,
   RE_IMDB_ID,
@@ -49,8 +39,6 @@ export {
   RE_SLASH_SEP,
   RE_SOURCES_SCRIPT,
   RE_SUBJECT_ID,
-  RE_WISH,
-  RE_WISH_EXACT,
   RE_WS,
   RE_WS_GLOBAL,
   RE_YEAR,

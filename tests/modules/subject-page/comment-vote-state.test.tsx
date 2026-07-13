@@ -2,7 +2,7 @@ import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageDeps } from "@/modules/subject-page/types";
+import type { SubjectPageRuntime } from "@/modules/subject-page/types";
 import type { Comment, DoubanData, InfoBlock } from "@/types";
 
 vi.hoisted(() => {
@@ -75,25 +75,40 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   ...overrides,
 });
 
-const makeDeps = (overrides?: Partial<SubjectPageDeps>): SubjectPageDeps => ({
-  canVote: () => true,
-  handleVote: () => Promise.resolve({ ok: true }),
-  heroCallbacks: {
-    handleCollectClick: () => {},
-    handleOpenInterest: () => {},
-    handleWatchingClick: () => {},
-    handleWishClick: () => {},
+const makeRuntime = (
+  voteComment: SubjectPageRuntime["actions"]["handleCommentVote"] = () =>
+    Promise.resolve({ ok: true })
+): SubjectPageRuntime => ({
+  actions: {
+    expandNativeSummary: () => Promise.resolve(null),
+    handleCommentVote: voteComment,
+    handleReviewVote: () => Promise.resolve({ ok: true }),
+    interestMarking: {
+      post: () => Promise.resolve({ ok: false }),
+      reload: () => {},
+      remove: () => Promise.resolve({ ok: false }),
+    },
   },
-  ...overrides,
+  avatarUrls: new Map(),
+  externalRatings: null,
+  firstBroadcastPlatform: null,
+  navigation: {
+    activeSectionId: "",
+    onJump: () => {},
+    scrolling: false,
+    sections: [],
+    visible: false,
+  },
+  series: [],
 });
 
 const renderPage = (
   data: DoubanData = makeData(),
-  deps: SubjectPageDeps = makeDeps()
+  runtime: SubjectPageRuntime = makeRuntime()
 ): HTMLElement => {
   const root = document.createElement("div");
   root.id = "atv-douban-root";
-  render(<SubjectPage data={data} deps={deps} />, root);
+  render(<SubjectPage data={data} runtime={runtime} />, root);
   return root;
 };
 
@@ -119,9 +134,7 @@ describe("comment vote state across cards and modals", () => {
   it("shows card vote state inside the modal after voting on a card", async () => {
     const root = renderPage(
       makeData(),
-      makeDeps({
-        handleVote: () => Promise.resolve({ count: 9, ok: true }),
-      })
+      makeRuntime(() => Promise.resolve({ count: 9, ok: true }))
     );
 
     root.querySelector<HTMLButtonElement>(".atv-comment-votes")?.click();
@@ -140,9 +153,7 @@ describe("comment vote state across cards and modals", () => {
   it("shows modal vote state on the card after closing the modal", async () => {
     const root = renderPage(
       makeData(),
-      makeDeps({
-        handleVote: () => Promise.resolve({ count: 11, ok: true }),
-      })
+      makeRuntime(() => Promise.resolve({ count: 11, ok: true }))
     );
     const modal = await openCommentModal(root);
 

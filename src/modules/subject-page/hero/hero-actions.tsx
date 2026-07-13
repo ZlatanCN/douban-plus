@@ -35,19 +35,19 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
         <InterestButton
           className="atv-btn atv-btn-primary"
           label="想看"
-          onClick={callbacks.handleWishClick}
+          onClick={() => callbacks.handleOpenInterest(state, "标记想看")}
         />
         {state.hasWatching ? (
           <InterestButton
             className="atv-btn atv-btn-secondary"
             label="在看"
-            onClick={callbacks.handleWatchingClick}
+            onClick={() => callbacks.handleOpenInterest(state, "标记在看")}
           />
         ) : null}
         <InterestButton
           className="atv-btn atv-btn-secondary"
           label="看过"
-          onClick={callbacks.handleCollectClick}
+          onClick={() => callbacks.handleOpenInterest(state, "标记看过")}
         />
       </div>
     );

@@ -1,11 +1,8 @@
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 
-import { postInterest, removeInterest } from "@/api/interest";
-import { computeNavSections, StickyNav } from "@/components/layout";
+import { StickyNav } from "@/components/layout";
 import { PosterModal, VideoModal } from "@/components/modal";
-import { expandNativeSummary } from "@/extract/rating";
-import { buildModalCallbacks } from "@/runtime/interest-marking";
-import { extractSeriesMoreLink, watchSeries } from "@/runtime/series-effect";
+import { useTrailerAcquisition } from "@/runtime/use-trailer-acquisition";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -16,11 +13,10 @@ import {
   initialCommentVoteState,
 } from "./comments/comment-vote-state";
 import type { CommentVoteState } from "./comments/comment-vote-state";
-import { useAvatarUrls } from "./comments/use-avatar-urls";
 import { DetailsSection } from "./details";
 import { DiscussionsSection } from "./discussions";
 import { Hero } from "./hero";
-import { InterestForm } from "./interest/interest-form";
+import { useInterestMarking } from "./interest/use-interest-marking";
 import { LoginModal } from "./login/login-modal";
 import {
   CastSection,
@@ -38,19 +34,24 @@ import {
   reviewWithVoteState,
 } from "./reviews/review-vote-state";
 import type { ReviewVoteState } from "./reviews/review-vote-state";
-import type { SubjectPageDeps } from "./types";
+import type { SubjectPageRuntime } from "./types";
 import { useVoteState } from "./use-vote-state";
 import type { VoteStateStrategy } from "./use-vote-state";
 
 type SubjectPageProps = {
   data: DoubanData;
-  deps: SubjectPageDeps;
+  runtime: SubjectPageRuntime;
 };
 
 type ActiveMediaModal =
   | { alt: string; src: string; type: "poster" }
   | { trailer: Trailer; type: "video" }
   | null;
+
+type TrailerModalProps = {
+  onClose: () => void;
+  trailer: Trailer;
+};
 
 const toHeroData = (data: DoubanData): HeroData => ({
   imdbId: data.info.imdb || null,
@@ -79,89 +80,62 @@ const reviewVoteStrategy = {
   persist: persistReviewVoteState,
 } satisfies VoteStateStrategy<Review, ReviewVoteState>;
 
-const SubjectPage = ({ data, deps }: SubjectPageProps) => {
+const TrailerModal = ({ onClose, trailer }: TrailerModalProps) => {
+  const acquisition = useTrailerAcquisition(trailer);
+
+  return (
+    <VideoModal acquisition={acquisition} onClose={onClose} trailer={trailer} />
+  );
+};
+
+const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
   const [activeMediaModal, setActiveMediaModal] =
     useState<ActiveMediaModal>(null);
+  const closeMediaModal = useCallback(() => setActiveMediaModal(null), []);
   const [loginAction, setLoginAction] = useState<string | null>(null);
-  const [activeInterest, setActiveInterest] = useState(data.interest);
-  const [interestOpen, setInterestOpen] = useState(false);
-  const [series, setSeries] = useState(data.series);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
-  const avatarUrls = useAvatarUrls(data.comments);
+  const { avatarUrls } = runtime;
   const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
+  const interestMarking = useInterestMarking({
+    adapters: runtime.actions.interestMarking,
+    loggedIn: data.interest.loggedIn,
+    onLoginRequired: setLoginAction,
+    subjectId: data.subjectId,
+  });
   const canVote = (): boolean => {
     if (!data.interest.loggedIn) {
       setLoginAction("给短评点有用");
       return false;
     }
-    return deps.canVote?.() ?? true;
+    return true;
   };
   const canReviewVote = (): boolean => {
     if (!data.interest.loggedIn) {
       setLoginAction("给影评投票");
       return false;
     }
-    return deps.canReviewVote?.() ?? true;
+    return true;
   };
-  const heroCallbacks = {
-    ...deps.heroCallbacks,
-    handleCollectClick: () => {
-      if (!data.interest.loggedIn) {
-        setLoginAction("标记看过");
-        return;
-      }
-      deps.heroCallbacks.handleCollectClick();
-    },
-    handleOpenInterest: (state: typeof data.interest) => {
-      if (!data.interest.loggedIn) {
-        setLoginAction("标记这部作品");
-        return;
-      }
-      setActiveInterest(state);
-      setInterestOpen(true);
-    },
-    handleWatchingClick: () => {
-      if (!data.interest.loggedIn) {
-        setLoginAction("标记在看");
-        return;
-      }
-      deps.heroCallbacks.handleWatchingClick();
-    },
-    handleWishClick: () => {
-      if (!data.interest.loggedIn) {
-        setLoginAction("标记想看");
-        return;
-      }
-      deps.heroCallbacks.handleWishClick();
-    },
-  };
-
-  useEffect(() => watchSeries(setSeries, deps.doc), [deps.doc]);
 
   return (
     <>
-      <StickyNav
-        doc={deps.doc}
-        sections={computeNavSections({ ...data, series })}
-        title={data.title}
-      />
+      <StickyNav {...runtime.navigation} title={data.title} />
       <Hero
-        callbacks={heroCallbacks}
+        callbacks={interestMarking.callbacks}
         data={toHeroData(data)}
-        expandNativeSummary={() => expandNativeSummary(deps.doc)}
+        expandNativeSummary={runtime.actions.expandNativeSummary}
+        externalRatings={runtime.externalRatings}
+        firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>
           setActiveMediaModal({ alt, src, type: "poster" })
         }
       />
       <StreamingSection streaming={data.streaming} />
-      <SeriesSection
-        items={series}
-        moreLink={deps.seriesMoreLink ?? extractSeriesMoreLink(deps.doc)}
-      />
+      <SeriesSection items={runtime.series} moreLink={runtime.seriesMoreLink} />
       <CastSection celebrities={data.celebrities} />
       <PhotosSection
         data={{
@@ -183,7 +157,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         getVoteState={commentVotes.getVoteState}
         onOpen={setActiveComment}
         onVoteStateChange={handleCommentVoteStateChange}
-        onVote={deps.handleVote}
+        onVote={runtime.actions.handleCommentVote}
         subjectId={data.subjectId}
       />
       <ReviewsSection
@@ -192,7 +166,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
         isTV={data.isTV}
         onOpen={setActiveReview}
         onVoteStateChange={handleReviewVoteStateChange}
-        onVote={deps.handleReviewVote}
+        onVote={runtime.actions.handleReviewVote}
         reviews={reviewVotes.mergeVoteStates(data.reviews)}
         subjectId={data.subjectId}
       />
@@ -213,7 +187,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
           }}
           onClose={() => setActiveComment(null)}
           onVoteStateChange={handleCommentVoteStateChange}
-          onVote={deps.handleVote}
+          onVote={runtime.actions.handleCommentVote}
           voteState={commentVotes.getVoteState(activeComment)}
         />
       ) : null}
@@ -222,7 +196,7 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
           canVote={canReviewVote}
           onClose={() => setActiveReview(null)}
           onVoteStateChange={handleReviewVoteStateChange}
-          onVote={deps.handleReviewVote}
+          onVote={runtime.actions.handleReviewVote}
           review={reviewVotes.mergeVoteState(activeReview)}
           voteState={reviewVotes.getVoteState(activeReview)}
         />
@@ -230,30 +204,20 @@ const SubjectPage = ({ data, deps }: SubjectPageProps) => {
       {activeMediaModal?.type === "poster" ? (
         <PosterModal
           alt={activeMediaModal.alt}
-          onClose={() => setActiveMediaModal(null)}
+          onClose={closeMediaModal}
           src={activeMediaModal.src}
         />
       ) : null}
       {activeMediaModal?.type === "video" ? (
-        <VideoModal
-          onClose={() => setActiveMediaModal(null)}
+        <TrailerModal
+          onClose={closeMediaModal}
           trailer={activeMediaModal.trailer}
         />
       ) : null}
       {loginAction ? (
         <LoginModal action={loginAction} onClose={() => setLoginAction(null)} />
       ) : null}
-      {interestOpen ? (
-        <InterestForm
-          callbacks={buildModalCallbacks(data.subjectId, {
-            post: postInterest,
-            reload: () => location.reload(),
-            remove: removeInterest,
-          })}
-          onClose={() => setInterestOpen(false)}
-          state={activeInterest}
-        />
-      ) : null}
+      {interestMarking.form}
     </>
   );
 };
