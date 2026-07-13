@@ -1,7 +1,8 @@
-import { useState } from "preact/hooks";
+import { useCallback, useState } from "preact/hooks";
 
 import { StickyNav } from "@/components/layout";
 import { PosterModal, VideoModal } from "@/components/modal";
+import { useTrailerAcquisition } from "@/runtime/use-trailer-acquisition";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -47,6 +48,11 @@ type ActiveMediaModal =
   | { trailer: Trailer; type: "video" }
   | null;
 
+type TrailerModalProps = {
+  onClose: () => void;
+  trailer: Trailer;
+};
+
 const toHeroData = (data: DoubanData): HeroData => ({
   imdbId: data.info.imdb || null,
   info: data.info,
@@ -74,11 +80,20 @@ const reviewVoteStrategy = {
   persist: persistReviewVoteState,
 } satisfies VoteStateStrategy<Review, ReviewVoteState>;
 
+const TrailerModal = ({ onClose, trailer }: TrailerModalProps) => {
+  const acquisition = useTrailerAcquisition(trailer);
+
+  return (
+    <VideoModal acquisition={acquisition} onClose={onClose} trailer={trailer} />
+  );
+};
+
 const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const [activeComment, setActiveComment] = useState<Comment | null>(null);
   const [activeReview, setActiveReview] = useState<Review | null>(null);
   const [activeMediaModal, setActiveMediaModal] =
     useState<ActiveMediaModal>(null);
+  const closeMediaModal = useCallback(() => setActiveMediaModal(null), []);
   const [loginAction, setLoginAction] = useState<string | null>(null);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
   const { avatarUrls } = runtime;
@@ -189,13 +204,13 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       {activeMediaModal?.type === "poster" ? (
         <PosterModal
           alt={activeMediaModal.alt}
-          onClose={() => setActiveMediaModal(null)}
+          onClose={closeMediaModal}
           src={activeMediaModal.src}
         />
       ) : null}
       {activeMediaModal?.type === "video" ? (
-        <VideoModal
-          onClose={() => setActiveMediaModal(null)}
+        <TrailerModal
+          onClose={closeMediaModal}
           trailer={activeMediaModal.trailer}
         />
       ) : null}

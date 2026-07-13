@@ -2690,90 +2690,129 @@ input::placeholder {
 		})
 	});
 	var MODAL_ID = "atv-video-modal";
-	var REDIRECT_DELAY_MS = 1500;
-	var TOAST_DURATION_MS = 3e3;
-	var extractEmbedUrl = (html) => {
-		const ldMatch = html.match(/<script type="application\/ld\+json">(?<json>[\s\S]*?)<\/script>/u);
-		if (!ldMatch?.groups) throw new Error("no ld+json");
-		const data = JSON.parse(ldMatch.groups.json);
-		const embedUrl = data?.embedUrl ?? data?.video?.embedUrl ?? null;
-		if (typeof embedUrl !== "string" || !embedUrl) throw new Error("no embedUrl");
-		return embedUrl;
-	};
-	var VideoModalContent = ({ trailer }) => {
+	var VideoModalContent = ({ acquisition }) => {
 		const close = useModalClose();
-		const [state, setState] = d({ status: "loading" });
-		const [showToast, setShowToast] = d(false);
 		h(() => {
-			let active = true;
-			(async () => {
-				try {
-					const embedUrl = extractEmbedUrl(await (await fetch(trailer.trailerPageUrl)).text());
-					if (active) setState({
-						embedUrl,
-						status: "loaded"
-					});
-				} catch {
-					if (active) {
-						setState({ status: "error" });
-						setShowToast(true);
-					}
-				}
-			})();
-			return () => {
-				active = false;
-			};
-		}, [trailer.trailerPageUrl]);
-		h(() => {
-			if (state.status !== "error") return;
-			const redirectTimer = window.setTimeout(() => {
-				window.open(trailer.trailerPageUrl, "_blank");
-				close();
-			}, REDIRECT_DELAY_MS);
-			const toastTimer = window.setTimeout(() => {
-				setShowToast(false);
-			}, TOAST_DURATION_MS);
-			return () => {
-				window.clearTimeout(redirectTimer);
-				window.clearTimeout(toastTimer);
-			};
-		}, [
-			close,
-			state.status,
-			trailer.trailerPageUrl
-		]);
+			if (acquisition.status === "fallback") close();
+		}, [acquisition.status, close]);
 		return u(S, { children: [u(ModalCloseButton, {
 			ariaLabel: "关闭视频",
 			onClick: close
 		}), u("div", {
 			class: "atv-modal-video-content",
 			children: [
-				state.status === "loading" ? u("div", {
+				acquisition.status === "loading" ? u("div", {
 					class: "atv-modal-loading",
 					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
 				}) : null,
-				state.status === "loaded" ? u("video", {
+				acquisition.status === "loaded" ? u("video", {
 					autoplay: true,
 					class: "atv-modal-video",
 					controls: true,
 					playsinline: true,
-					src: state.embedUrl
+					src: acquisition.embedUrl
 				}) : null,
-				showToast ? u("div", {
+				acquisition.status === "failed" ? u("div", {
 					class: "atv-modal-toast",
 					children: "视频加载失败"
 				}) : null
 			]
 		})] });
 	};
-	var VideoModal = ({ onClose, trailer }) => u(ModalShell, {
+	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
 		ariaLabel: trailer.title || "视频预览",
 		className: "atv-modal-overlay is-video",
 		id: MODAL_ID,
 		onClose,
 		surfaceClassName: "atv-modal-surface",
-		children: u(VideoModalContent, { trailer })
+		children: u(VideoModalContent, { acquisition })
 	});
+	var FALLBACK_DELAY_MS = 1500;
+	var isRecord = (value) => typeof value === "object" && value !== null;
+	var safeEmbedUrl = (value) => {
+		if (typeof value !== "string" || !value) return null;
+		try {
+			const url = new URL(value, window.location.href);
+			return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+		} catch {
+			return null;
+		}
+	};
+	var findEmbedUrl = (value) => {
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				const embedUrl = findEmbedUrl(item);
+				if (embedUrl) return embedUrl;
+			}
+			return null;
+		}
+		if (!isRecord(value)) return null;
+		return safeEmbedUrl(value.embedUrl) ?? findEmbedUrl(value.video) ?? findEmbedUrl(value["@graph"]);
+	};
+	var extractEmbedUrl = (html) => {
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		for (const script of doc.querySelectorAll("script[type=\"application/ld+json\"]")) try {
+			const embedUrl = findEmbedUrl(JSON.parse(script.textContent ?? ""));
+			if (embedUrl) return embedUrl;
+		} catch {}
+		return null;
+	};
+	var loadEmbedUrl = async (trailerPageUrl, signal) => {
+		const response = await fetch(trailerPageUrl, { signal });
+		if (!response.ok) throw new Error("trailer page request failed");
+		const embedUrl = extractEmbedUrl(await response.text());
+		if (!embedUrl) throw new Error("trailer page has no safe embed URL");
+		return embedUrl;
+	};
+	var useTrailerAcquisition = (trailer) => {
+		const [record, setRecord] = d({
+			result: { status: "loading" },
+			trailerPageUrl: null
+		});
+		const trailerPageUrl = trailer?.trailerPageUrl;
+		h(() => {
+			if (!trailerPageUrl) return;
+			const controller = new AbortController();
+			setRecord({
+				result: { status: "loading" },
+				trailerPageUrl
+			});
+			(async () => {
+				try {
+					const embedUrl = await loadEmbedUrl(trailerPageUrl, controller.signal);
+					if (!controller.signal.aborted) setRecord({
+						result: {
+							embedUrl,
+							status: "loaded"
+						},
+						trailerPageUrl
+					});
+				} catch {
+					if (!controller.signal.aborted) setRecord({
+						result: { status: "failed" },
+						trailerPageUrl
+					});
+				}
+			})();
+			return () => controller.abort();
+		}, [trailerPageUrl]);
+		h(() => {
+			if (!trailerPageUrl || record.trailerPageUrl !== trailerPageUrl || record.result.status !== "failed") return;
+			const fallbackTimer = window.setTimeout(() => {
+				window.open(trailerPageUrl, "_blank", "noopener");
+				setRecord({
+					result: { status: "fallback" },
+					trailerPageUrl
+				});
+			}, FALLBACK_DELAY_MS);
+			return () => window.clearTimeout(fallbackTimer);
+		}, [
+			record.result.status,
+			record.trailerPageUrl,
+			trailerPageUrl
+		]);
+		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
+	};
 	var Section = ({ children, id, moreLink, title }) => u("section", {
 		class: "atv-section",
 		id,
@@ -5132,10 +5171,18 @@ input::placeholder {
 		merge: reviewWithVoteState,
 		persist: persistReviewVoteState
 	};
+	var TrailerModal = ({ onClose, trailer }) => {
+		return u(VideoModal, {
+			acquisition: useTrailerAcquisition(trailer),
+			onClose,
+			trailer
+		});
+	};
 	var SubjectPage = ({ data, runtime }) => {
 		const [activeComment, setActiveComment] = d(null);
 		const [activeReview, setActiveReview] = d(null);
 		const [activeMediaModal, setActiveMediaModal] = d(null);
+		const closeMediaModal = q(() => setActiveMediaModal(null), []);
 		const [loginAction, setLoginAction] = d(null);
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
 		const { avatarUrls } = runtime;
@@ -5250,11 +5297,11 @@ input::placeholder {
 			}) : null,
 			activeMediaModal?.type === "poster" ? u(PosterModal, {
 				alt: activeMediaModal.alt,
-				onClose: () => setActiveMediaModal(null),
+				onClose: closeMediaModal,
 				src: activeMediaModal.src
 			}) : null,
-			activeMediaModal?.type === "video" ? u(VideoModal, {
-				onClose: () => setActiveMediaModal(null),
+			activeMediaModal?.type === "video" ? u(TrailerModal, {
+				onClose: closeMediaModal,
 				trailer: activeMediaModal.trailer
 			}) : null,
 			loginAction ? u(LoginModal, {
