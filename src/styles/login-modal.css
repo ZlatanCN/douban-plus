@@ -113,7 +113,7 @@ dialog::backdrop {
   inset: 10px;
   opacity: 1;
   pointer-events: none;
-  transition: opacity 200ms ease;
+  transition: opacity var(--atv-duration-feedback) ease;
 }
 
 .atv-login-modal-native:empty {
@@ -155,7 +155,7 @@ dialog::backdrop {
      existing modal surface color while keeping text readable. */
   filter: invert(0.89) hue-rotate(180deg) !important;
   opacity: 0;
-  transition: opacity 200ms ease;
+  transition: opacity var(--atv-duration-feedback) ease;
 }
 
 .atv-login-modal-native.is-ready > iframe {

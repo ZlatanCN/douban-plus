@@ -40,11 +40,10 @@ const mockUseSwipeToDismiss = vi.hoisted(() =>
   vi.fn<
     (options: SwipeToDismissOptions) => {
       ref: (el: HTMLElement | null) => void;
-      style: { transform?: string };
     }
   >((options) => {
     swipeCallbacks.onDismiss = options.onDismiss;
-    return { ref: swipeDismissRef, style: {} };
+    return { ref: swipeDismissRef };
   })
 );
 

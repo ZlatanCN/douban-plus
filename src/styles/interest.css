@@ -89,7 +89,7 @@
   background: rgb(255 255 255 / 12%);
   pointer-events: none;
   transform: translateX(calc(var(--atv-interest-status-index) * 100%));
-  transition: transform 200ms var(--atv-ease-in-out);
+  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);
 }
 
 .atv-interest-modal-status {
@@ -112,7 +112,7 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
-  transition: color 200ms ease;
+  transition: color var(--atv-duration-feedback) ease;
 }
 
 .atv-interest-modal-status:hover {
@@ -141,8 +141,8 @@
   color: rgb(255 255 255 / 20%);
   cursor: pointer;
   transition:
-    color 200ms ease,
-    transform 200ms ease;
+    color var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-hover) var(--atv-ease-out);
 }
 
 .atv-interest-modal-star.is-full {
@@ -172,8 +172,8 @@
   resize: vertical;
   -webkit-tap-highlight-color: transparent;
   transition:
-    border-color 200ms ease,
-    background 200ms ease;
+    border-color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease;
 }
 
 .atv-interest-modal-comment::placeholder {
@@ -207,7 +207,7 @@
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
-    background 200ms ease,
+    background var(--atv-duration-feedback) ease,
     transform var(--atv-duration-press) var(--atv-ease-out);
 }
 
@@ -244,9 +244,9 @@
   letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
   transition:
-    color 200ms ease,
-    border-color 200ms ease,
-    background 200ms ease;
+    color var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease;
 }
 
 .atv-interest-modal-remove:hover {

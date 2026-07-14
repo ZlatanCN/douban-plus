@@ -53,12 +53,6 @@
   font-weight: 500;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .atv-trailer-tile:hover {
-    transform: scale(1.02);
-  }
-}
-
 /* ---------- Video Modal ---------- */
 .atv-modal-overlay.is-video {
   backdrop-filter: none;

@@ -21,7 +21,8 @@ body {
 #atv-douban-root {
   position: relative;
   min-height: 100vh;
-  animation: atv-fadein 200ms var(--atv-ease-out) forwards;
+  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)
+    forwards;
   background: var(--atv-bg-primary);
   color: var(--atv-text-primary);
   font-family:
