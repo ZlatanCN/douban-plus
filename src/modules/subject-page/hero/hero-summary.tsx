@@ -10,6 +10,7 @@ type HeroSummaryProps = {
 const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
   const teaserRef = useRef<HTMLParagraphElement>(null);
   const previousTextRef = useRef(text);
+  const summaryRequestRef = useRef(0);
   const [expanded, setExpanded] = useState(false);
   const [summary, setSummary] = useState(text);
   const [showToggle, setShowToggle] = useState(true);
@@ -26,6 +27,7 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
 
   useEffect(() => {
     if (previousTextRef.current !== text) {
+      summaryRequestRef.current += 1;
       previousTextRef.current = text;
       setExpanded(false);
       setSummary(text);
@@ -35,15 +37,21 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
 
   const toggle = async (): Promise<void> => {
     if (expanded) {
+      summaryRequestRef.current += 1;
       setExpanded(false);
-      setSummaryTransitionKey((key) => key + 1);
       return;
     }
     setExpanded(true);
-    setSummaryTransitionKey((key) => key + 1);
+    const requestId = summaryRequestRef.current + 1;
+    summaryRequestRef.current = requestId;
     const expandedText = await expandNativeSummary?.();
-    if (expandedText) {
+    if (
+      requestId === summaryRequestRef.current &&
+      expandedText &&
+      expandedText !== summary
+    ) {
       setSummary(expandedText);
+      setSummaryTransitionKey((key) => key + 1);
     }
   };
 
@@ -53,10 +61,7 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
         class={`atv-hero-teaser${expanded ? "" : " is-clamped"}`}
         ref={teaserRef}
       >
-        <span
-          class="atv-hero-teaser-content"
-          key={`${summaryTransitionKey}-${summary}`}
-        >
+        <span class="atv-hero-teaser-content" key={summaryTransitionKey}>
           {summary}
         </span>
       </p>

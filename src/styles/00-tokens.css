@@ -22,4 +22,6 @@
   --atv-duration-press: 160ms;
   --atv-duration-hover: 160ms;
   --atv-duration-overlay: 200ms;
+  --atv-duration-modal-backdrop: 400ms;
+  --atv-duration-modal-surface: 350ms;
 }

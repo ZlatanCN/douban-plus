@@ -237,11 +237,6 @@
     transition: none;
   }
 
-  .atv-review-modal-body.is-skeleton::before,
-  .atv-review-modal-body.is-skeleton::after {
-    animation: none;
-  }
-
   /* Modal overlay fades */
   .atv-modal-overlay,
   .atv-comment-overlay,
@@ -254,10 +249,6 @@
   .atv-login-modal.is-open .atv-login-modal-inner {
     transform: none;
     transition: none;
-  }
-
-  .atv-login-modal-native[aria-busy="true"] {
-    animation: none;
   }
 
   /* Accent edge glow */

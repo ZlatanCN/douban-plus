@@ -235,7 +235,7 @@ a.atv-comment-author:hover {
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms var(--atv-ease-out);
+  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
 }
 
 .atv-comment-overlay.is-open {
@@ -254,7 +254,7 @@ a.atv-comment-author:hover {
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms var(--atv-ease-out);
+  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
 }
 
 .atv-comment-overlay.is-open .atv-comment-overlay-inner {

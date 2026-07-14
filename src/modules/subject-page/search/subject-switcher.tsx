@@ -57,9 +57,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   );
 
   const openSuggestion = useCallback(
-    (suggestion: SubjectSuggestion) => {
-      openInNewTab(suggestion.url);
-    },
+    (suggestion: SubjectSuggestion) => openInNewTab(suggestion.url),
     [openInNewTab]
   );
 
@@ -194,7 +192,9 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           </button>
           {hasResultsPanel ? (
             <div
-              class="atv-subject-suggestion-rail"
+              class={`atv-subject-suggestion-rail${
+                activeIndex >= 0 ? " is-keyboard-navigating" : ""
+              }`}
               id={suggestionListId}
               role={suggestions.length ? "listbox" : "status"}
             >

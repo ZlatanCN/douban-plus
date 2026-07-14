@@ -22,8 +22,8 @@ dialog::backdrop {
   overscroll-behavior: contain;
   pointer-events: none;
   transition:
-    visibility 0s linear 360ms,
-    opacity 360ms var(--atv-ease-out);
+    visibility 0s linear var(--atv-duration-modal-backdrop),
+    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
   visibility: hidden;
 }
 
@@ -54,7 +54,7 @@ dialog::backdrop {
   scrollbar-width: none;
   text-align: center;
   transform: scale(0.92) translateY(8px);
-  transition: transform 350ms var(--atv-ease-out);
+  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
 }
 
 .atv-login-modal-inner::-webkit-scrollbar {
@@ -127,12 +127,7 @@ dialog::backdrop {
   position: absolute;
   z-index: 2;
   border-radius: 10px;
-  background:
-    linear-gradient(90deg, transparent, rgb(255 255 255 / 5.5%), transparent),
-    rgb(255 255 255 / 3.5%);
-  background-size:
-    220% 100%,
-    auto;
+  background: rgb(255 255 255 / 3.5%);
   content: "";
   inset: 10px;
   opacity: 1;
@@ -146,10 +141,6 @@ dialog::backdrop {
 
 .atv-login-modal-native[aria-busy="true"] {
   min-height: 360px;
-}
-
-.atv-login-modal-native[aria-busy="true"]::before {
-  animation: atv-login-native-loading 1400ms linear infinite;
 }
 
 .atv-login-modal-native.is-ready::before {
@@ -193,18 +184,4 @@ dialog::backdrop {
 .atv-login-modal-close:focus-visible {
   outline: 2px solid var(--atv-accent);
   outline-offset: 3px;
-}
-
-@keyframes atv-login-native-loading {
-  from {
-    background-position:
-      160% 0,
-      0 0;
-  }
-
-  to {
-    background-position:
-      -60% 0,
-      0 0;
-  }
 }

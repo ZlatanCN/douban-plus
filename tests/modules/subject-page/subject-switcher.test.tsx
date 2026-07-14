@@ -162,6 +162,31 @@ describe(SubjectSwitcher, () => {
     );
   });
 
+  it("marks the candidate rail as keyboard-navigated only while a candidate is active", async () => {
+    fetchSuggestions.mockResolvedValue([suggestion]);
+    const root = renderSwitcher();
+
+    await openSwitcher(root);
+    const input = await inputQuery(root, "权力");
+    await vi.waitFor(() => {
+      expect(fetchSuggestions).toHaveBeenCalledOnce();
+    });
+
+    const rail = root.querySelector(".atv-subject-suggestion-rail");
+    expect(rail?.classList.contains("is-keyboard-navigating")).toBeFalsy();
+
+    input.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "ArrowDown" })
+    );
+    await Promise.resolve();
+
+    expect(rail?.classList.contains("is-keyboard-navigating")).toBeTruthy();
+    expect(root.querySelector('[aria-selected="true"]')).not.toBeNull();
+
+    await inputQuery(root, "权力的游戏");
+    expect(rail?.classList.contains("is-keyboard-navigating")).toBeFalsy();
+  });
+
   it("falls back to a native movie search and closes when there is no selected candidate", async () => {
     const root = renderSwitcher();
 

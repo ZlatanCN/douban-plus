@@ -350,22 +350,5 @@
   width: 120px;
   height: 22px;
   border-radius: 4px;
-  animation: atv-ratings-shimmer 1.6s linear infinite;
-  background: linear-gradient(
-    90deg,
-    rgb(255 255 255 / 4%) 25%,
-    rgb(255 255 255 / 10%) 50%,
-    rgb(255 255 255 / 4%) 75%
-  );
-  background-size: 200% 100%;
-}
-
-@keyframes atv-ratings-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-
-  100% {
-    background-position: -200% 0;
-  }
+  background: rgb(255 255 255 / 6%);
 }

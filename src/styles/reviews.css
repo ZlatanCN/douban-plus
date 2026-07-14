@@ -295,7 +295,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms var(--atv-ease-out);
+  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open {
@@ -335,7 +335,7 @@
   scrollbar-color: rgb(255 255 255 / 12%) transparent;
   scrollbar-width: thin;
   transform: scale(0.92) translateY(8px);
-  transition: transform 400ms var(--atv-ease-out);
+  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
 }
 
 .atv-review-modal.is-open .atv-review-modal-scroll {
