@@ -12,6 +12,7 @@ const MODAL_ID = "atv-video-modal";
 type VideoModalProps = {
   acquisition: TrailerAcquisitionState;
   onClose: () => void;
+  openRequestId?: number;
   trailer: Trailer;
 };
 
@@ -54,12 +55,18 @@ const VideoModalContent = ({
   );
 };
 
-const VideoModal = ({ acquisition, onClose, trailer }: VideoModalProps) => (
+const VideoModal = ({
+  acquisition,
+  onClose,
+  openRequestId,
+  trailer,
+}: VideoModalProps) => (
   <ModalShell
     ariaLabel={trailer.title || "视频预览"}
     className="atv-modal-overlay is-video"
     id={MODAL_ID}
     onClose={onClose}
+    openRequestId={openRequestId}
     surfaceClassName="atv-modal-surface"
   >
     <VideoModalContent acquisition={acquisition} />

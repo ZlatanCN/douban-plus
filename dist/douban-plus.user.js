@@ -36,7 +36,7 @@
 			else (document.head || document.documentElement).appendChild(document.createElement("style")).append(c);
 		})(t);
 	};
-	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody > #wrapper {\n  display: none !important;\n}\n\nbody {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\n#db-global-nav,\n#db-nav-movie {\n  display: none !important;\n}\n\n[id^=\"dale_\"],\n[class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein 200ms var(--atv-ease-out) forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n  transition:\n    opacity 280ms ease,\n    transform 280ms var(--atv-ease-out);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  opacity: 1;\n  pointer-events: auto;\n  transform: none;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color 200ms ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n.atv-stickynav-jumps a::after {\n  position: absolute;\n  bottom: -4px;\n  left: 0;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: scaleX(0);\n  transform-origin: center;\n  transition: transform var(--atv-duration-hover) ease;\n}\n\n.atv-stickynav.is-scrolling .atv-stickynav-jumps a::after {\n  transition: none;\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-jumps a.is-active::after {\n  transform: scaleX(1);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity 300ms var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity 200ms ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 56px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  box-shadow:\n    0 24px 60px rgb(0 0 0 / 60%),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1.05;\n  text-shadow:\n    0 2px 20px rgb(0 0 0 / 70%),\n    0 0 60px rgb(0 0 0 / 30%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background 200ms ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity 200ms ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background 200ms ease,\n    box-shadow 200ms ease,\n    color 200ms ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform 220ms ease;\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color 200ms ease;\n  white-space: nowrap;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scroll-snap-type: x mandatory;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color 300ms ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  flex: 0 0 400px;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-tile.is-portrait {\n  flex: 0 0 240px;\n  aspect-ratio: 3 / 4;\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover,\n  .atv-cast-card:hover {\n    transform: translateY(-2px);\n  }\n\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster {\n    transform: scale(1.02);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 16px 32px;\n  grid-template-columns: 200px 1fr;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  color: rgb(255 255 255 / 55%);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}\n\n.atv-info-value {\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n}\n\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background 220ms ease,\n    border-color 220ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity 220ms ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color 220ms ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 18px;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n  transition: border-color 260ms ease;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 22px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n}\n\n.atv-comment-overlay.is-open {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  transform: scale(0.92) translateY(8px);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-comment-overlay.is-open .atv-comment-overlay-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay,\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n}\n\n.atv-modal-overlay.is-open {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transform: scale(0.92);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-modal-overlay.is-open .atv-modal-img {\n  transform: scale(1);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 0;\n  transform: scaleX(0.97);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out),\n    transform var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n}\n\n.is-open .atv-modal-accent-bar {\n  opacity: 1;\n  transform: scaleX(1);\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    color 200ms ease,\n    background 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  opacity: 0;\n  overscroll-behavior: contain;\n  pointer-events: none;\n  transition:\n    visibility 0s linear var(--atv-duration-modal-backdrop),\n    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n  visibility: hidden;\n}\n\n.atv-login-modal.is-open {\n  opacity: 1;\n  pointer-events: auto;\n  transition-delay: 0s;\n  visibility: visible;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n  transform: scale(0.92) translateY(8px);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-login-modal.is-open .atv-login-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity 200ms ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity 200ms ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n}\n\n.atv-interest-modal.is-open {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 380px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  transform: scale(0.92) translateY(8px);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-interest-modal.is-open .atv-interest-modal-inner {\n  transform: scale(1) translateY(0);\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 20px 48px 0;\n}\n\n.atv-interest-modal-header-title {\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 16px 20px 20px;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  padding: 3px;\n  border-radius: 999px;\n  margin-bottom: 20px;\n  background: rgb(255 255 255 / 6%);\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  top: 3px;\n  bottom: 3px;\n  left: 3px;\n  width: calc((100% - 6px) / var(--atv-interest-status-count));\n  border-radius: 999px;\n  background: rgb(255 255 255 / 12%);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform 200ms var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 36px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color 200ms ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: #fff;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  justify-content: center;\n  margin-bottom: 24px;\n  gap: 6px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color 200ms ease,\n    transform 200ms ease;\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 64px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 16px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: vertical;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: 999px;\n  margin-bottom: 10px;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 999px;\n  margin-bottom: 4px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-trailer-tile:hover {\n    transform: scale(1.02);\n  }\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  transform: scale(0.92);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-modal-overlay.is-open .atv-modal-video {\n  transform: scale(1);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity 300ms ease,\n    transform 300ms ease;\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color 250ms ease,\n    background 250ms ease,\n    border-color 250ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);\n}\n\n.atv-review-modal.is-open {\n  opacity: 1;\n  pointer-events: auto;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n  transform: scale(0.92) translateY(8px);\n  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);\n}\n\n.atv-review-modal.is-open .atv-review-modal-scroll {\n  transform: scale(1) translateY(0);\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  overflow: hidden;\n  border: 1px solid rgb(255 255 255 / 7%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  min-height: 66px;\n  align-items: center;\n  padding: 16px 22px;\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  gap: 3px 24px;\n  grid-template-columns: minmax(0, 1fr) minmax(106px, max-content) 17px;\n  grid-template-rows: auto auto;\n  isolation: isolate;\n}\n\n.atv-discussion-row:last-child {\n  border-bottom: 0;\n}\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0.35);\n  transition:\n    opacity 180ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n.atv-discussion-title {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  margin: 0;\n  color: rgb(255 255 255 / 90%);\n  font-size: 16px;\n  font-weight: 600;\n  grid-column: 1;\n  grid-row: 1;\n  letter-spacing: -0.01em;\n  line-height: 1.45;\n  pointer-events: none;\n  text-overflow: ellipsis;\n  transition: color 180ms ease;\n  white-space: nowrap;\n}\n\n.atv-discussion-copy {\n  display: contents;\n  pointer-events: none;\n}\n\n.atv-discussion-meta {\n  display: contents;\n}\n\n.atv-discussion-author {\n  position: relative;\n  z-index: 2;\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  grid-column: 1;\n  grid-row: 2;\n  line-height: 1.35;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n.atv-discussion-activity {\n  position: relative;\n  z-index: 2;\n  display: grid;\n  min-width: 106px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 3px;\n  grid-column: 2;\n  grid-row: 1 / span 2;\n  line-height: 1.35;\n  pointer-events: none;\n  text-align: right;\n  transition: color 180ms ease;\n}\n\n.atv-discussion-time {\n  display: grid;\n  font-variant-numeric: tabular-nums;\n  gap: 1px;\n  white-space: nowrap;\n}\n\n.atv-discussion-footer {\n  margin-top: 14px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color 180ms ease;\n}\n\n.atv-discussion-footer a:hover,\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  text-decoration: underline;\n}\n\n.atv-discussion-footer a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-discussion-arrow {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-accent-bright);\n  font-size: 17px;\n  grid-column: 3;\n  grid-row: 1 / span 2;\n  opacity: 0.35;\n  pointer-events: none;\n  transform: translate(-3px, 3px);\n  transition:\n    opacity 180ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:hover .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:hover .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-activity {\n  color: var(--atv-accent-bright);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: none;\n}\n\n@media (width <= 768px) {\n  .atv-discussion-row {\n    min-height: 0;\n    align-items: start;\n    padding: 14px 16px;\n    gap: 6px 14px;\n    grid-template-columns: minmax(0, 1fr) 17px;\n    grid-template-rows: auto;\n  }\n\n  .atv-discussion-copy {\n    position: relative;\n    z-index: 2;\n    display: block;\n    min-width: 0;\n    grid-column: 1;\n    pointer-events: none;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n    text-overflow: clip;\n    white-space: normal;\n  }\n\n  .atv-discussion-meta {\n    display: flex;\n    min-width: 0;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-top: 6px;\n    color: var(--atv-text-tertiary);\n    font-size: 12px;\n    gap: 8px;\n    line-height: 1.35;\n  }\n\n  .atv-discussion-author {\n    min-width: 0;\n    max-width: 100%;\n    flex: 0 1 auto;\n    margin-top: 0;\n  }\n\n  .atv-discussion-activity {\n    display: flex;\n    min-width: 0;\n    align-items: center;\n    color: inherit;\n    font-size: inherit;\n    gap: 8px;\n    line-height: inherit;\n    text-align: left;\n  }\n\n  .atv-discussion-author + .atv-discussion-activity::before {\n    width: 1px;\n    height: 1em;\n    background: rgb(255 255 255 / 18%);\n    content: \"\";\n  }\n\n  .atv-discussion-time {\n    display: inline-flex;\n    gap: 3px;\n  }\n\n  .atv-discussion-arrow {\n    align-self: center;\n    grid-column: 2;\n    grid-row: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-activity,\n  .atv-discussion-arrow,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before,\n  .atv-discussion-arrow {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color 200ms ease,\n    color 200ms ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color 200ms ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile {\n    flex-basis: 280px;\n  }\n\n  .atv-photo-tile.is-portrait {\n    flex-basis: 170px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-poster-card:hover {\n    transform: scale(1.03);\n  }\n\n  .atv-comment-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n    transform: translateY(-2px);\n  }\n\n  .atv-review-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n    transform: translateY(-2px);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 0.7;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n    transform: translateY(-2px);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n  animation: atv-summary-content-in 200ms var(--atv-ease-out) both;\n}\n\n.atv-rating-panel-imdb.is-loaded,\n.atv-rating-panel-rt.is-loaded,\n.atv-rating-panel-mc.is-loaded {\n  animation: atv-rating-content-in 200ms var(--atv-ease-out) both;\n}\n\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  transition:\n    opacity 200ms var(--atv-ease-out),\n    transform 200ms var(--atv-ease-out);\n}\n\n.atv-rating-panel-imdb.is-exiting,\n.atv-rating-panel-rt.is-exiting,\n.atv-rating-panel-mc.is-exiting {\n  opacity: 0;\n  transform: translateY(-4px);\n}\n\n.atv-review-modal-body.is-loaded,\n.atv-review-modal-body.is-error {\n  animation: atv-review-content-in 200ms var(--atv-ease-out) both;\n}\n\n@keyframes atv-summary-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-rating-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-review-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-content-fade {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-modal-img,\n  .atv-modal-video,\n  .atv-comment-overlay-inner,\n  .atv-interest-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal,\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: opacity var(--atv-duration-overlay) ease;\n  }\n\n  .atv-login-modal {\n    transition:\n      visibility 0s linear 200ms,\n      opacity 200ms ease;\n  }\n\n  .atv-login-modal.is-open {\n    transition-delay: 0s, 0s;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-rating-panel-imdb.is-loaded,\n  .atv-rating-panel-rt.is-loaded,\n  .atv-rating-panel-mc.is-loaded,\n  .atv-review-modal-body.is-loaded,\n  .atv-review-modal-body.is-error,\n  .atv-hero-teaser-content {\n    animation: atv-content-fade 200ms ease both;\n    transform: none;\n  }\n\n  .atv-rating-panel-imdb.is-exiting,\n  .atv-rating-panel-rt.is-exiting,\n  .atv-rating-panel-mc.is-exiting {\n    transform: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-poster-card:hover,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-stickynav,\n  .atv-stickynav.is-visible,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border-bottom-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-discussion-row {\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
+	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody > #wrapper {\n  display: none !important;\n}\n\nbody {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\n#db-global-nav,\n#db-nav-movie {\n  display: none !important;\n}\n\n[id^=\"dale_\"],\n[class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein 200ms var(--atv-ease-out) forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n  transition:\n    opacity 280ms ease,\n    transform 280ms var(--atv-ease-out);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  opacity: 1;\n  pointer-events: auto;\n  transform: none;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color 200ms ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n.atv-stickynav-jumps a::after {\n  position: absolute;\n  bottom: -4px;\n  left: 0;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: scaleX(0);\n  transform-origin: center;\n  transition: transform var(--atv-duration-hover) ease;\n}\n\n.atv-stickynav.is-scrolling .atv-stickynav-jumps a::after {\n  transition: none;\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-jumps a.is-active::after {\n  transform: scaleX(1);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity 300ms var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity 200ms ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 56px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  box-shadow:\n    0 24px 60px rgb(0 0 0 / 60%),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1.05;\n  text-shadow:\n    0 2px 20px rgb(0 0 0 / 70%),\n    0 0 60px rgb(0 0 0 / 30%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background 200ms ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity 200ms ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background 200ms ease,\n    box-shadow 200ms ease,\n    color 200ms ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform 220ms ease;\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color 200ms ease;\n  white-space: nowrap;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scroll-snap-type: x mandatory;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color 300ms ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  flex: 0 0 400px;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-tile.is-portrait {\n  flex: 0 0 240px;\n  aspect-ratio: 3 / 4;\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover,\n  .atv-cast-card:hover {\n    transform: translateY(-2px);\n  }\n\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster {\n    transform: scale(1.02);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 16px 32px;\n  grid-template-columns: 200px 1fr;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  color: rgb(255 255 255 / 55%);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}\n\n.atv-info-value {\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n}\n\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  transition:\n    color 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background 220ms ease,\n    border-color 220ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity 220ms ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color 220ms ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 18px;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n  transition: border-color 260ms ease;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 22px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color 260ms ease,\n    box-shadow 260ms ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay,\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    color 200ms ease,\n    background 200ms ease,\n    border-color 200ms ease;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity 200ms ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity 200ms ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 380px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  padding: 20px 48px 0;\n}\n\n.atv-interest-modal-header-title {\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 16px 20px 20px;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  padding: 3px;\n  border-radius: 999px;\n  margin-bottom: 20px;\n  background: rgb(255 255 255 / 6%);\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  top: 3px;\n  bottom: 3px;\n  left: 3px;\n  width: calc((100% - 6px) / var(--atv-interest-status-count));\n  border-radius: 999px;\n  background: rgb(255 255 255 / 12%);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform 200ms var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 36px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color 200ms ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: #fff;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  justify-content: center;\n  margin-bottom: 24px;\n  gap: 6px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color 200ms ease,\n    transform 200ms ease;\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 64px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 16px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: vertical;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: 999px;\n  margin-bottom: 10px;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background 200ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 999px;\n  margin-bottom: 4px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-trailer-tile:hover {\n    transform: scale(1.02);\n  }\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity 300ms ease,\n    transform 300ms ease;\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color 250ms ease,\n    background 250ms ease,\n    border-color 250ms ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  overflow: hidden;\n  border: 1px solid rgb(255 255 255 / 7%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  min-height: 66px;\n  align-items: center;\n  padding: 16px 22px;\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  gap: 3px 24px;\n  grid-template-columns: minmax(0, 1fr) minmax(106px, max-content) 17px;\n  grid-template-rows: auto auto;\n  isolation: isolate;\n}\n\n.atv-discussion-row:last-child {\n  border-bottom: 0;\n}\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0.35);\n  transition:\n    opacity 180ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n.atv-discussion-title {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  margin: 0;\n  color: rgb(255 255 255 / 90%);\n  font-size: 16px;\n  font-weight: 600;\n  grid-column: 1;\n  grid-row: 1;\n  letter-spacing: -0.01em;\n  line-height: 1.45;\n  pointer-events: none;\n  text-overflow: ellipsis;\n  transition: color 180ms ease;\n  white-space: nowrap;\n}\n\n.atv-discussion-copy {\n  display: contents;\n  pointer-events: none;\n}\n\n.atv-discussion-meta {\n  display: contents;\n}\n\n.atv-discussion-author {\n  position: relative;\n  z-index: 2;\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  grid-column: 1;\n  grid-row: 2;\n  line-height: 1.35;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n.atv-discussion-activity {\n  position: relative;\n  z-index: 2;\n  display: grid;\n  min-width: 106px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 3px;\n  grid-column: 2;\n  grid-row: 1 / span 2;\n  line-height: 1.35;\n  pointer-events: none;\n  text-align: right;\n  transition: color 180ms ease;\n}\n\n.atv-discussion-time {\n  display: grid;\n  font-variant-numeric: tabular-nums;\n  gap: 1px;\n  white-space: nowrap;\n}\n\n.atv-discussion-footer {\n  margin-top: 14px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color 180ms ease;\n}\n\n.atv-discussion-footer a:hover,\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  text-decoration: underline;\n}\n\n.atv-discussion-footer a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-discussion-arrow {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-accent-bright);\n  font-size: 17px;\n  grid-column: 3;\n  grid-row: 1 / span 2;\n  opacity: 0.35;\n  pointer-events: none;\n  transform: translate(-3px, 3px);\n  transition:\n    opacity 180ms ease,\n    transform 220ms var(--atv-ease-out);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:hover .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:hover .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-activity {\n  color: var(--atv-accent-bright);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: none;\n}\n\n@media (width <= 768px) {\n  .atv-discussion-row {\n    min-height: 0;\n    align-items: start;\n    padding: 14px 16px;\n    gap: 6px 14px;\n    grid-template-columns: minmax(0, 1fr) 17px;\n    grid-template-rows: auto;\n  }\n\n  .atv-discussion-copy {\n    position: relative;\n    z-index: 2;\n    display: block;\n    min-width: 0;\n    grid-column: 1;\n    pointer-events: none;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n    text-overflow: clip;\n    white-space: normal;\n  }\n\n  .atv-discussion-meta {\n    display: flex;\n    min-width: 0;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-top: 6px;\n    color: var(--atv-text-tertiary);\n    font-size: 12px;\n    gap: 8px;\n    line-height: 1.35;\n  }\n\n  .atv-discussion-author {\n    min-width: 0;\n    max-width: 100%;\n    flex: 0 1 auto;\n    margin-top: 0;\n  }\n\n  .atv-discussion-activity {\n    display: flex;\n    min-width: 0;\n    align-items: center;\n    color: inherit;\n    font-size: inherit;\n    gap: 8px;\n    line-height: inherit;\n    text-align: left;\n  }\n\n  .atv-discussion-author + .atv-discussion-activity::before {\n    width: 1px;\n    height: 1em;\n    background: rgb(255 255 255 / 18%);\n    content: \"\";\n  }\n\n  .atv-discussion-time {\n    display: inline-flex;\n    gap: 3px;\n  }\n\n  .atv-discussion-arrow {\n    align-self: center;\n    grid-column: 2;\n    grid-row: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-activity,\n  .atv-discussion-arrow,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before,\n  .atv-discussion-arrow {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color 200ms ease,\n    color 200ms ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color 200ms ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color 200ms ease,\n    border-color 200ms ease,\n    background 200ms ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile {\n    flex-basis: 280px;\n  }\n\n  .atv-photo-tile.is-portrait {\n    flex-basis: 170px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-poster-card:hover {\n    transform: scale(1.03);\n  }\n\n  .atv-comment-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n    transform: translateY(-2px);\n  }\n\n  .atv-review-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n    transform: translateY(-2px);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 0.7;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n    transform: translateY(-2px);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n  animation: atv-summary-content-in 200ms var(--atv-ease-out) both;\n}\n\n.atv-rating-panel-imdb.is-loaded,\n.atv-rating-panel-rt.is-loaded,\n.atv-rating-panel-mc.is-loaded {\n  animation: atv-rating-content-in 200ms var(--atv-ease-out) both;\n}\n\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  transition:\n    opacity 200ms var(--atv-ease-out),\n    transform 200ms var(--atv-ease-out);\n}\n\n.atv-rating-panel-imdb.is-exiting,\n.atv-rating-panel-rt.is-exiting,\n.atv-rating-panel-mc.is-exiting {\n  opacity: 0;\n  transform: translateY(-4px);\n}\n\n.atv-review-modal-body.is-loaded,\n.atv-review-modal-body.is-error {\n  animation: atv-review-content-in 200ms var(--atv-ease-out) both;\n}\n\n@keyframes atv-summary-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-rating-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-review-content-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-content-fade {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-rating-panel-imdb.is-loaded,\n  .atv-rating-panel-rt.is-loaded,\n  .atv-rating-panel-mc.is-loaded,\n  .atv-review-modal-body.is-loaded,\n  .atv-review-modal-body.is-error,\n  .atv-hero-teaser-content {\n    animation: atv-content-fade 200ms ease both;\n    transform: none;\n  }\n\n  .atv-rating-panel-imdb.is-exiting,\n  .atv-rating-panel-rt.is-exiting,\n  .atv-rating-panel-mc.is-exiting {\n    transform: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-poster-card:hover,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-stickynav,\n  .atv-stickynav.is-visible,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border-bottom-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-discussion-row {\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
 	var LOGIN_FRAME_STYLE_ID = "atv-login-frame-theme";
 	var LOGIN_FRAME_CSS = `
 :root {
@@ -5195,6 +5195,3701 @@ input::placeholder {
 			children: u(IconClose, { size })
 		});
 	};
+	function addUniqueItem(arr, item) {
+		if (arr.indexOf(item) === -1) arr.push(item);
+	}
+	function removeItem(arr, item) {
+		const index = arr.indexOf(item);
+		if (index > -1) arr.splice(index, 1);
+	}
+	var clamp = (min, max, v) => {
+		if (v > max) return max;
+		if (v < min) return min;
+		return v;
+	};
+	var MotionGlobalConfig = {};
+	var isNumericalString = (v) => /^-?(?:\d+(?:\.\d+)?|\.\d+)$/u.test(v);
+	var isObject = (value) => typeof value === "object" && value !== null;
+	var isZeroValueString = (v) => /^0[^.\s]+$/u.test(v);
+	function memo(callback) {
+		let result;
+		return () => {
+			if (result === void 0) result = callback();
+			return result;
+		};
+	}
+	var noop$3 = (any) => any;
+	var pipe = (...transformers) => transformers.reduce((a, b) => (v) => b(a(v)));
+	var progress = (from, to, value) => {
+		const range = to - from;
+		return range ? (value - from) / range : 1;
+	};
+	var SubscriptionManager = class {
+		constructor() {
+			this.subscriptions = [];
+		}
+		add(handler) {
+			addUniqueItem(this.subscriptions, handler);
+			return () => removeItem(this.subscriptions, handler);
+		}
+		notify(a, b, c) {
+			const numSubscriptions = this.subscriptions.length;
+			if (!numSubscriptions) return;
+			if (numSubscriptions === 1) this.subscriptions[0](a, b, c);
+			else for (let i = 0; i < numSubscriptions; i++) {
+				const handler = this.subscriptions[i];
+				handler && handler(a, b, c);
+			}
+		}
+		getSize() {
+			return this.subscriptions.length;
+		}
+		clear() {
+			this.subscriptions.length = 0;
+		}
+	};
+	var secondsToMilliseconds = (seconds) => seconds * 1e3;
+	var millisecondsToSeconds = (milliseconds) => milliseconds / 1e3;
+	var velocityPerSecond = (velocity, frameDuration) => frameDuration ? velocity * (1e3 / frameDuration) : 0;
+	var wrap = (min, max, v) => {
+		const rangeSize = max - min;
+		return ((v - min) % rangeSize + rangeSize) % rangeSize + min;
+	};
+	var calcBezier = (t, a1, a2) => (((1 - 3 * a2 + 3 * a1) * t + (3 * a2 - 6 * a1)) * t + 3 * a1) * t;
+	var subdivisionPrecision = 1e-7;
+	var subdivisionMaxIterations = 12;
+	function binarySubdivide(x, lowerBound, upperBound, mX1, mX2) {
+		let currentX;
+		let currentT;
+		let i = 0;
+		do {
+			currentT = lowerBound + (upperBound - lowerBound) / 2;
+			currentX = calcBezier(currentT, mX1, mX2) - x;
+			if (currentX > 0) upperBound = currentT;
+			else lowerBound = currentT;
+		} while (Math.abs(currentX) > subdivisionPrecision && ++i < subdivisionMaxIterations);
+		return currentT;
+	}
+	function cubicBezier(mX1, mY1, mX2, mY2) {
+		if (mX1 === mY1 && mX2 === mY2) return noop$3;
+		const getTForX = (aX) => binarySubdivide(aX, 0, 1, mX1, mX2);
+		return (t) => t === 0 || t === 1 ? t : calcBezier(getTForX(t), mY1, mY2);
+	}
+	var mirrorEasing = (easing) => (p) => p <= .5 ? easing(2 * p) / 2 : (2 - easing(2 * (1 - p))) / 2;
+	var reverseEasing = (easing) => (p) => 1 - easing(1 - p);
+	var backOut = cubicBezier(.33, 1.53, .69, .99);
+	var backIn = reverseEasing(backOut);
+	var backInOut = mirrorEasing(backIn);
+	var anticipate = (p) => p >= 1 ? 1 : (p *= 2) < 1 ? .5 * backIn(p) : .5 * (2 - Math.pow(2, -10 * (p - 1)));
+	var circIn = (p) => 1 - Math.sin(Math.acos(p));
+	var circOut = reverseEasing(circIn);
+	var circInOut = mirrorEasing(circIn);
+	var easeIn = cubicBezier(.42, 0, 1, 1);
+	var easeOut = cubicBezier(0, 0, .58, 1);
+	var easeInOut = cubicBezier(.42, 0, .58, 1);
+	var isEasingArray = (ease) => {
+		return Array.isArray(ease) && typeof ease[0] !== "number";
+	};
+	function getEasingForSegment(easing, i) {
+		return isEasingArray(easing) ? easing[wrap(0, easing.length, i)] : easing;
+	}
+	var isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
+	var easingLookup = {
+		linear: noop$3,
+		easeIn,
+		easeInOut,
+		easeOut,
+		circIn,
+		circInOut,
+		circOut,
+		backIn,
+		backInOut,
+		backOut,
+		anticipate
+	};
+	var isValidEasing = (easing) => {
+		return typeof easing === "string";
+	};
+	var easingDefinitionToFunction = (definition) => {
+		if (isBezierDefinition(definition)) {
+			definition.length;
+			const [x1, y1, x2, y2] = definition;
+			return cubicBezier(x1, y1, x2, y2);
+		} else if (isValidEasing(definition)) {
+			easingLookup[definition], `${definition}`;
+			return easingLookup[definition];
+		}
+		return definition;
+	};
+	var stepsOrder = [
+		"setup",
+		"read",
+		"resolveKeyframes",
+		"preUpdate",
+		"update",
+		"preRender",
+		"render",
+		"postRender"
+	];
+	function createRenderStep(runNextFrame) {
+		let thisFrame = new Set();
+		let nextFrame = new Set();
+		let isProcessing = false;
+		let flushNextFrame = false;
+		const toKeepAlive = new WeakSet();
+		let latestFrameData = {
+			delta: 0,
+			timestamp: 0,
+			isProcessing: false
+		};
+		function triggerCallback(callback) {
+			if (toKeepAlive.has(callback)) {
+				step.schedule(callback);
+				runNextFrame();
+			}
+			callback(latestFrameData);
+		}
+		const step = {
+			schedule: (callback, keepAlive = false, immediate = false) => {
+				const queue = immediate && isProcessing ? thisFrame : nextFrame;
+				if (keepAlive) toKeepAlive.add(callback);
+				queue.add(callback);
+				return callback;
+			},
+			cancel: (callback) => {
+				nextFrame.delete(callback);
+				toKeepAlive.delete(callback);
+			},
+			process: (frameData) => {
+				latestFrameData = frameData;
+				if (isProcessing) {
+					flushNextFrame = true;
+					return;
+				}
+				isProcessing = true;
+				const prevFrame = thisFrame;
+				thisFrame = nextFrame;
+				nextFrame = prevFrame;
+				thisFrame.forEach(triggerCallback);
+				thisFrame.clear();
+				isProcessing = false;
+				if (flushNextFrame) {
+					flushNextFrame = false;
+					step.process(frameData);
+				}
+			}
+		};
+		return step;
+	}
+	var maxElapsed = 40;
+	function createRenderBatcher(scheduleNextBatch, allowKeepAlive) {
+		let runNextFrame = false;
+		let useDefaultElapsed = true;
+		const state = {
+			delta: 0,
+			timestamp: 0,
+			isProcessing: false
+		};
+		const flagRunNextFrame = () => runNextFrame = true;
+		const steps = stepsOrder.reduce((acc, key) => {
+			acc[key] = createRenderStep(flagRunNextFrame);
+			return acc;
+		}, {});
+		const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps;
+		const processBatch = () => {
+			const useManualTiming = MotionGlobalConfig.useManualTiming;
+			const timestamp = useManualTiming ? state.timestamp : performance.now();
+			runNextFrame = false;
+			if (!useManualTiming) state.delta = useDefaultElapsed ? 1e3 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1);
+			state.timestamp = timestamp;
+			state.isProcessing = true;
+			setup.process(state);
+			read.process(state);
+			resolveKeyframes.process(state);
+			preUpdate.process(state);
+			update.process(state);
+			preRender.process(state);
+			render.process(state);
+			postRender.process(state);
+			state.isProcessing = false;
+			if (runNextFrame && allowKeepAlive) {
+				useDefaultElapsed = false;
+				scheduleNextBatch(processBatch);
+			}
+		};
+		const wake = () => {
+			runNextFrame = true;
+			useDefaultElapsed = true;
+			if (!state.isProcessing) scheduleNextBatch(processBatch);
+		};
+		const schedule = stepsOrder.reduce((acc, key) => {
+			const step = steps[key];
+			acc[key] = (process, keepAlive = false, immediate = false) => {
+				if (!runNextFrame) wake();
+				return step.schedule(process, keepAlive, immediate);
+			};
+			return acc;
+		}, {});
+		const cancel = (process) => {
+			for (let i = 0; i < stepsOrder.length; i++) steps[stepsOrder[i]].cancel(process);
+		};
+		return {
+			schedule,
+			cancel,
+			state,
+			steps
+		};
+	}
+	var { schedule: frame, cancel: cancelFrame, state: frameData, steps: frameSteps } = createRenderBatcher(typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : noop$3, true);
+	var now;
+	function clearTime() {
+		now = void 0;
+	}
+	var time = {
+		now: () => {
+			if (now === void 0) time.set(frameData.isProcessing || MotionGlobalConfig.useManualTiming ? frameData.timestamp : performance.now());
+			return now;
+		},
+		set: (newTime) => {
+			now = newTime;
+			queueMicrotask(clearTime);
+		}
+	};
+	var checkStringStartsWith = (token) => (key) => typeof key === "string" && key.startsWith(token);
+	var isCSSVariableName = checkStringStartsWith("--");
+	var startsAsVariableToken = checkStringStartsWith("var(--");
+	var isCSSVariableToken = (value) => {
+		if (!startsAsVariableToken(value)) return false;
+		return singleCssVariableRegex.test(value.split("/*")[0].trim());
+	};
+	var singleCssVariableRegex = /var\(--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)$/iu;
+	function containsCSSVariable(value) {
+		if (typeof value !== "string") return false;
+		return value.split("/*")[0].includes("var(--");
+	}
+	var number = {
+		test: (v) => typeof v === "number",
+		parse: parseFloat,
+		transform: (v) => v
+	};
+	var alpha = {
+		...number,
+		transform: (v) => clamp(0, 1, v)
+	};
+	var scale = {
+		...number,
+		default: 1
+	};
+	var sanitize = (v) => Math.round(v * 1e5) / 1e5;
+	var floatRegex = /-?(?:\d+(?:\.\d+)?|\.\d+)/gu;
+	function isNullish(v) {
+		return v == null;
+	}
+	var singleColorRegex = /^(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))$/iu;
+	var isColorString = (type, testProp) => (v) => {
+		return Boolean(typeof v === "string" && singleColorRegex.test(v) && v.startsWith(type) || testProp && !isNullish(v) && Object.prototype.hasOwnProperty.call(v, testProp));
+	};
+	var splitColor = (aName, bName, cName) => (v) => {
+		if (typeof v !== "string") return v;
+		const [a, b, c, alpha] = v.match(floatRegex);
+		return {
+			[aName]: parseFloat(a),
+			[bName]: parseFloat(b),
+			[cName]: parseFloat(c),
+			alpha: alpha !== void 0 ? parseFloat(alpha) : 1
+		};
+	};
+	var clampRgbUnit = (v) => clamp(0, 255, v);
+	var rgbUnit = {
+		...number,
+		transform: (v) => Math.round(clampRgbUnit(v))
+	};
+	var rgba = {
+		test: isColorString("rgb", "red"),
+		parse: splitColor("red", "green", "blue"),
+		transform: ({ red, green, blue, alpha: alpha$1 = 1 }) => "rgba(" + rgbUnit.transform(red) + ", " + rgbUnit.transform(green) + ", " + rgbUnit.transform(blue) + ", " + sanitize(alpha.transform(alpha$1)) + ")"
+	};
+	function parseHex(v) {
+		let r = "";
+		let g = "";
+		let b = "";
+		let a = "";
+		if (v.length > 5) {
+			r = v.substring(1, 3);
+			g = v.substring(3, 5);
+			b = v.substring(5, 7);
+			a = v.substring(7, 9);
+		} else {
+			r = v.substring(1, 2);
+			g = v.substring(2, 3);
+			b = v.substring(3, 4);
+			a = v.substring(4, 5);
+			r += r;
+			g += g;
+			b += b;
+			a += a;
+		}
+		return {
+			red: parseInt(r, 16),
+			green: parseInt(g, 16),
+			blue: parseInt(b, 16),
+			alpha: a ? parseInt(a, 16) / 255 : 1
+		};
+	}
+	var hex = {
+		test: isColorString("#"),
+		parse: parseHex,
+		transform: rgba.transform
+	};
+	var createUnitType = (unit) => ({
+		test: (v) => typeof v === "string" && v.endsWith(unit) && v.split(" ").length === 1,
+		parse: parseFloat,
+		transform: (v) => `${v}${unit}`
+	});
+	var degrees = createUnitType("deg");
+	var percent = createUnitType("%");
+	var px = createUnitType("px");
+	var vh = createUnitType("vh");
+	var vw = createUnitType("vw");
+	var progressPercentage = (() => ({
+		...percent,
+		parse: (v) => percent.parse(v) / 100,
+		transform: (v) => percent.transform(v * 100)
+	}))();
+	var hsla = {
+		test: isColorString("hsl", "hue"),
+		parse: splitColor("hue", "saturation", "lightness"),
+		transform: ({ hue, saturation, lightness, alpha: alpha$1 = 1 }) => {
+			return "hsla(" + Math.round(hue) + ", " + percent.transform(sanitize(saturation)) + ", " + percent.transform(sanitize(lightness)) + ", " + sanitize(alpha.transform(alpha$1)) + ")";
+		}
+	};
+	var color = {
+		test: (v) => rgba.test(v) || hex.test(v) || hsla.test(v),
+		parse: (v) => {
+			if (rgba.test(v)) return rgba.parse(v);
+			else if (hsla.test(v)) return hsla.parse(v);
+			else return hex.parse(v);
+		},
+		transform: (v) => {
+			return typeof v === "string" ? v : v.hasOwnProperty("red") ? rgba.transform(v) : hsla.transform(v);
+		},
+		getAnimatableNone: (v) => {
+			const parsed = color.parse(v);
+			parsed.alpha = 0;
+			return color.transform(parsed);
+		}
+	};
+	var colorRegex = /(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))/giu;
+	function test(v) {
+		return isNaN(v) && typeof v === "string" && (v.match(floatRegex)?.length || 0) + (v.match(colorRegex)?.length || 0) > 0;
+	}
+	var NUMBER_TOKEN = "number";
+	var COLOR_TOKEN = "color";
+	var VAR_TOKEN = "var";
+	var VAR_FUNCTION_TOKEN = "var(";
+	var SPLIT_TOKEN = "${}";
+	var complexRegex = /var\s*\(\s*--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)|#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\)|-?(?:\d+(?:\.\d+)?|\.\d+)/giu;
+	function analyseComplexValue(value) {
+		const originalValue = value.toString();
+		const values = [];
+		const indexes = {
+			color: [],
+			number: [],
+			var: []
+		};
+		const types = [];
+		let i = 0;
+		return {
+			values,
+			split: originalValue.replace(complexRegex, (parsedValue) => {
+				if (color.test(parsedValue)) {
+					indexes.color.push(i);
+					types.push(COLOR_TOKEN);
+					values.push(color.parse(parsedValue));
+				} else if (parsedValue.startsWith(VAR_FUNCTION_TOKEN)) {
+					indexes.var.push(i);
+					types.push(VAR_TOKEN);
+					values.push(parsedValue);
+				} else {
+					indexes.number.push(i);
+					types.push(NUMBER_TOKEN);
+					values.push(parseFloat(parsedValue));
+				}
+				++i;
+				return SPLIT_TOKEN;
+			}).split(SPLIT_TOKEN),
+			indexes,
+			types
+		};
+	}
+	function parseComplexValue(v) {
+		return analyseComplexValue(v).values;
+	}
+	function buildTransformer({ split, types }) {
+		const numSections = split.length;
+		return (v) => {
+			let output = "";
+			for (let i = 0; i < numSections; i++) {
+				output += split[i];
+				if (v[i] !== void 0) {
+					const type = types[i];
+					if (type === NUMBER_TOKEN) output += sanitize(v[i]);
+					else if (type === COLOR_TOKEN) output += color.transform(v[i]);
+					else output += v[i];
+				}
+			}
+			return output;
+		};
+	}
+	function createTransformer(source) {
+		return buildTransformer(analyseComplexValue(source));
+	}
+	var convertNumbersToZero = (v) => typeof v === "number" ? 0 : color.test(v) ? color.getAnimatableNone(v) : v;
+	var convertToZero = (value, splitBefore) => {
+		if (typeof value === "number") return splitBefore?.trim().endsWith("/") ? value : 0;
+		return convertNumbersToZero(value);
+	};
+	function getAnimatableNone$1(v) {
+		const info = analyseComplexValue(v);
+		return buildTransformer(info)(info.values.map((value, i) => convertToZero(value, info.split[i])));
+	}
+	var complex = {
+		test,
+		parse: parseComplexValue,
+		createTransformer,
+		getAnimatableNone: getAnimatableNone$1
+	};
+	function hueToRgb(p, q, t) {
+		if (t < 0) t += 1;
+		if (t > 1) t -= 1;
+		if (t < 1 / 6) return p + (q - p) * 6 * t;
+		if (t < 1 / 2) return q;
+		if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+		return p;
+	}
+	function hslaToRgba({ hue, saturation, lightness, alpha }) {
+		hue /= 360;
+		saturation /= 100;
+		lightness /= 100;
+		let red = 0;
+		let green = 0;
+		let blue = 0;
+		if (!saturation) red = green = blue = lightness;
+		else {
+			const q = lightness < .5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+			const p = 2 * lightness - q;
+			red = hueToRgb(p, q, hue + 1 / 3);
+			green = hueToRgb(p, q, hue);
+			blue = hueToRgb(p, q, hue - 1 / 3);
+		}
+		return {
+			red: Math.round(red * 255),
+			green: Math.round(green * 255),
+			blue: Math.round(blue * 255),
+			alpha
+		};
+	}
+	function mixImmediate(a, b) {
+		return (p) => p > 0 ? b : a;
+	}
+	var mixNumber$1 = (from, to, progress) => {
+		return from + (to - from) * progress;
+	};
+	var mixLinearColor = (from, to, v) => {
+		const fromExpo = from * from;
+		const expo = v * (to * to - fromExpo) + fromExpo;
+		return expo < 0 ? 0 : Math.sqrt(expo);
+	};
+	var colorTypes = [
+		hex,
+		rgba,
+		hsla
+	];
+	var getColorType = (v) => colorTypes.find((type) => type.test(v));
+	function asRGBA(color) {
+		const type = getColorType(color);
+		`${color}`;
+		if (!Boolean(type)) return false;
+		let model = type.parse(color);
+		if (type === hsla) model = hslaToRgba(model);
+		return model;
+	}
+	var mixColor = (from, to) => {
+		const fromRGBA = asRGBA(from);
+		const toRGBA = asRGBA(to);
+		if (!fromRGBA || !toRGBA) return mixImmediate(from, to);
+		const blended = { ...fromRGBA };
+		return (v) => {
+			blended.red = mixLinearColor(fromRGBA.red, toRGBA.red, v);
+			blended.green = mixLinearColor(fromRGBA.green, toRGBA.green, v);
+			blended.blue = mixLinearColor(fromRGBA.blue, toRGBA.blue, v);
+			blended.alpha = mixNumber$1(fromRGBA.alpha, toRGBA.alpha, v);
+			return rgba.transform(blended);
+		};
+	};
+	var invisibleValues = new Set(["none", "hidden"]);
+	function mixVisibility(origin, target) {
+		if (invisibleValues.has(origin)) return (p) => p <= 0 ? origin : target;
+		else return (p) => p >= 1 ? target : origin;
+	}
+	function mixNumber(a, b) {
+		return (p) => mixNumber$1(a, b, p);
+	}
+	function getMixer(a) {
+		if (typeof a === "number") return mixNumber;
+		else if (typeof a === "string") return isCSSVariableToken(a) ? mixImmediate : color.test(a) ? mixColor : mixComplex;
+		else if (Array.isArray(a)) return mixArray;
+		else if (typeof a === "object") return color.test(a) ? mixColor : mixObject;
+		return mixImmediate;
+	}
+	function mixArray(a, b) {
+		const output = [...a];
+		const numValues = output.length;
+		const blendValue = a.map((v, i) => getMixer(v)(v, b[i]));
+		return (p) => {
+			for (let i = 0; i < numValues; i++) output[i] = blendValue[i](p);
+			return output;
+		};
+	}
+	function mixObject(a, b) {
+		const output = {
+			...a,
+			...b
+		};
+		const blendValue = {};
+		for (const key in output) if (a[key] !== void 0 && b[key] !== void 0) blendValue[key] = getMixer(a[key])(a[key], b[key]);
+		return (v) => {
+			for (const key in blendValue) output[key] = blendValue[key](v);
+			return output;
+		};
+	}
+	function matchOrder(origin, target) {
+		const orderedOrigin = [];
+		const pointers = {
+			color: 0,
+			var: 0,
+			number: 0
+		};
+		for (let i = 0; i < target.values.length; i++) {
+			const type = target.types[i];
+			const originIndex = origin.indexes[type][pointers[type]];
+			orderedOrigin[i] = origin.values[originIndex] ?? 0;
+			pointers[type]++;
+		}
+		return orderedOrigin;
+	}
+	var mixComplex = (origin, target) => {
+		const template = complex.createTransformer(target);
+		const originStats = analyseComplexValue(origin);
+		const targetStats = analyseComplexValue(target);
+		if (originStats.indexes.var.length === targetStats.indexes.var.length && originStats.indexes.color.length === targetStats.indexes.color.length && originStats.indexes.number.length >= targetStats.indexes.number.length) {
+			if (invisibleValues.has(origin) && !targetStats.values.length || invisibleValues.has(target) && !originStats.values.length) return mixVisibility(origin, target);
+			return pipe(mixArray(matchOrder(originStats, targetStats), targetStats.values), template);
+		} else {
+			`${origin}${target}`;
+			return mixImmediate(origin, target);
+		}
+	};
+	function mix(from, to, p) {
+		if (typeof from === "number" && typeof to === "number" && typeof p === "number") return mixNumber$1(from, to, p);
+		return getMixer(from)(from, to);
+	}
+	var frameloopDriver = (update) => {
+		const passTimestamp = ({ timestamp }) => update(timestamp);
+		return {
+			start: (keepAlive = true) => frame.update(passTimestamp, keepAlive),
+			stop: () => cancelFrame(passTimestamp),
+			now: () => frameData.isProcessing ? frameData.timestamp : time.now()
+		};
+	};
+	var generateLinearEasing = (easing, duration, resolution = 10) => {
+		let points = "";
+		const numPoints = Math.max(Math.round(duration / resolution), 2);
+		for (let i = 0; i < numPoints; i++) points += Math.round(easing(i / (numPoints - 1)) * 1e4) / 1e4 + ", ";
+		return `linear(${points.substring(0, points.length - 2)})`;
+	};
+	var maxGeneratorDuration = 2e4;
+	function calcGeneratorDuration(generator) {
+		let duration = 0;
+		const timeStep = 50;
+		let state = generator.next(duration);
+		while (!state.done && duration < 2e4) {
+			duration += timeStep;
+			state = generator.next(duration);
+		}
+		return duration >= 2e4 ? Infinity : duration;
+	}
+	function createGeneratorEasing(options, scale = 100, createGenerator) {
+		const generator = createGenerator({
+			...options,
+			keyframes: [0, scale]
+		});
+		const duration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
+		return {
+			type: "keyframes",
+			ease: (progress) => {
+				return generator.next(duration * progress).value / scale;
+			},
+			duration: millisecondsToSeconds(duration)
+		};
+	}
+	var springDefaults = {
+		stiffness: 100,
+		damping: 10,
+		mass: 1,
+		velocity: 0,
+		duration: 800,
+		bounce: .3,
+		visualDuration: .3,
+		restSpeed: {
+			granular: .01,
+			default: 2
+		},
+		restDelta: {
+			granular: .005,
+			default: .5
+		},
+		minDuration: .01,
+		maxDuration: 10,
+		minDamping: .05,
+		maxDamping: 1
+	};
+	function calcAngularFreq(undampedFreq, dampingRatio) {
+		return undampedFreq * Math.sqrt(1 - dampingRatio * dampingRatio);
+	}
+	var rootIterations = 12;
+	function approximateRoot(envelope, derivative, initialGuess) {
+		let result = initialGuess;
+		for (let i = 1; i < rootIterations; i++) result = result - envelope(result) / derivative(result);
+		return result;
+	}
+	var safeMin = .001;
+	function findSpring({ duration = springDefaults.duration, bounce = springDefaults.bounce, velocity = springDefaults.velocity, mass = springDefaults.mass }) {
+		let envelope;
+		let derivative;
+		springDefaults.maxDuration;
+		let dampingRatio = 1 - bounce;
+		dampingRatio = clamp(springDefaults.minDamping, springDefaults.maxDamping, dampingRatio);
+		duration = clamp(springDefaults.minDuration, springDefaults.maxDuration, millisecondsToSeconds(duration));
+		if (dampingRatio < 1) {
+			envelope = (undampedFreq) => {
+				const exponentialDecay = undampedFreq * dampingRatio;
+				const delta = exponentialDecay * duration;
+				const a = exponentialDecay - velocity;
+				const b = calcAngularFreq(undampedFreq, dampingRatio);
+				const c = Math.exp(-delta);
+				return safeMin - a / b * c;
+			};
+			derivative = (undampedFreq) => {
+				const delta = undampedFreq * dampingRatio * duration;
+				const d = delta * velocity + velocity;
+				const e = Math.pow(dampingRatio, 2) * Math.pow(undampedFreq, 2) * duration;
+				const f = Math.exp(-delta);
+				const g = calcAngularFreq(Math.pow(undampedFreq, 2), dampingRatio);
+				return (-envelope(undampedFreq) + safeMin > 0 ? -1 : 1) * ((d - e) * f) / g;
+			};
+		} else {
+			envelope = (undampedFreq) => {
+				return -.001 + Math.exp(-undampedFreq * duration) * ((undampedFreq - velocity) * duration + 1);
+			};
+			derivative = (undampedFreq) => {
+				return Math.exp(-undampedFreq * duration) * ((velocity - undampedFreq) * (duration * duration));
+			};
+		}
+		const initialGuess = 5 / duration;
+		const undampedFreq = approximateRoot(envelope, derivative, initialGuess);
+		duration = secondsToMilliseconds(duration);
+		if (isNaN(undampedFreq)) return {
+			stiffness: springDefaults.stiffness,
+			damping: springDefaults.damping,
+			duration
+		};
+		else {
+			const stiffness = Math.pow(undampedFreq, 2) * mass;
+			return {
+				stiffness,
+				damping: dampingRatio * 2 * Math.sqrt(mass * stiffness),
+				duration
+			};
+		}
+	}
+	var durationKeys = ["duration", "bounce"];
+	var physicsKeys = [
+		"stiffness",
+		"damping",
+		"mass"
+	];
+	function isSpringType(options, keys) {
+		return keys.some((key) => options[key] !== void 0);
+	}
+	function getSpringOptions(options) {
+		let springOptions = {
+			velocity: springDefaults.velocity,
+			stiffness: springDefaults.stiffness,
+			damping: springDefaults.damping,
+			mass: springDefaults.mass,
+			isResolvedFromDuration: false,
+			...options
+		};
+		if (!isSpringType(options, physicsKeys) && isSpringType(options, durationKeys)) {
+			springOptions.velocity = 0;
+			if (options.visualDuration) {
+				const visualDuration = options.visualDuration;
+				const root = 2 * Math.PI / (visualDuration * 1.2);
+				const stiffness = root * root;
+				const damping = 2 * clamp(.05, 1, 1 - (options.bounce || 0)) * Math.sqrt(stiffness);
+				springOptions = {
+					...springOptions,
+					mass: springDefaults.mass,
+					stiffness,
+					damping
+				};
+			} else {
+				const derived = findSpring({
+					...options,
+					velocity: 0
+				});
+				springOptions = {
+					...springOptions,
+					...derived,
+					mass: springDefaults.mass
+				};
+				springOptions.isResolvedFromDuration = true;
+			}
+		}
+		return springOptions;
+	}
+	function spring(optionsOrVisualDuration = springDefaults.visualDuration, bounce = springDefaults.bounce) {
+		const options = typeof optionsOrVisualDuration !== "object" ? {
+			visualDuration: optionsOrVisualDuration,
+			keyframes: [0, 1],
+			bounce
+		} : optionsOrVisualDuration;
+		let { restSpeed, restDelta } = options;
+		const origin = options.keyframes[0];
+		const target = options.keyframes[options.keyframes.length - 1];
+		const state = {
+			done: false,
+			value: origin
+		};
+		const { stiffness, damping, mass, duration, velocity, isResolvedFromDuration } = getSpringOptions({
+			...options,
+			velocity: -millisecondsToSeconds(options.velocity || 0)
+		});
+		const initialVelocity = velocity || 0;
+		const dampingRatio = damping / (2 * Math.sqrt(stiffness * mass));
+		const initialDelta = target - origin;
+		const undampedAngularFreq = millisecondsToSeconds(Math.sqrt(stiffness / mass));
+		const isGranularScale = Math.abs(initialDelta) < 5;
+		restSpeed || (restSpeed = isGranularScale ? springDefaults.restSpeed.granular : springDefaults.restSpeed.default);
+		restDelta || (restDelta = isGranularScale ? springDefaults.restDelta.granular : springDefaults.restDelta.default);
+		let resolveSpring;
+		let resolveVelocity;
+		let angularFreq;
+		let A;
+		let sinCoeff;
+		let cosCoeff;
+		if (dampingRatio < 1) {
+			angularFreq = calcAngularFreq(undampedAngularFreq, dampingRatio);
+			A = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / angularFreq;
+			resolveSpring = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				return target - envelope * (A * Math.sin(angularFreq * t) + initialDelta * Math.cos(angularFreq * t));
+			};
+			sinCoeff = dampingRatio * undampedAngularFreq * A + initialDelta * angularFreq;
+			cosCoeff = dampingRatio * undampedAngularFreq * initialDelta - A * angularFreq;
+			resolveVelocity = (t) => {
+				return Math.exp(-dampingRatio * undampedAngularFreq * t) * (sinCoeff * Math.sin(angularFreq * t) + cosCoeff * Math.cos(angularFreq * t));
+			};
+		} else if (dampingRatio === 1) {
+			resolveSpring = (t) => target - Math.exp(-undampedAngularFreq * t) * (initialDelta + (initialVelocity + undampedAngularFreq * initialDelta) * t);
+			const C = initialVelocity + undampedAngularFreq * initialDelta;
+			resolveVelocity = (t) => Math.exp(-undampedAngularFreq * t) * (undampedAngularFreq * C * t - initialVelocity);
+		} else {
+			const dampedAngularFreq = undampedAngularFreq * Math.sqrt(dampingRatio * dampingRatio - 1);
+			resolveSpring = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				const freqForT = Math.min(dampedAngularFreq * t, 300);
+				return target - envelope * ((initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) * Math.sinh(freqForT) + dampedAngularFreq * initialDelta * Math.cosh(freqForT)) / dampedAngularFreq;
+			};
+			const P = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / dampedAngularFreq;
+			const sinhCoeff = dampingRatio * undampedAngularFreq * P - initialDelta * dampedAngularFreq;
+			const coshCoeff = dampingRatio * undampedAngularFreq * initialDelta - P * dampedAngularFreq;
+			resolveVelocity = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				const freqForT = Math.min(dampedAngularFreq * t, 300);
+				return envelope * (sinhCoeff * Math.sinh(freqForT) + coshCoeff * Math.cosh(freqForT));
+			};
+		}
+		const generator = {
+			calculatedDuration: isResolvedFromDuration ? duration || null : null,
+			velocity: (t) => secondsToMilliseconds(resolveVelocity(t)),
+			next: (t) => {
+				if (!isResolvedFromDuration && dampingRatio < 1) {
+					const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+					const sin = Math.sin(angularFreq * t);
+					const cos = Math.cos(angularFreq * t);
+					const current = target - envelope * (A * sin + initialDelta * cos);
+					const currentVelocity = secondsToMilliseconds(envelope * (sinCoeff * sin + cosCoeff * cos));
+					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
+					state.value = state.done ? target : current;
+					return state;
+				}
+				const current = resolveSpring(t);
+				if (!isResolvedFromDuration) {
+					const currentVelocity = secondsToMilliseconds(resolveVelocity(t));
+					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
+				} else state.done = t >= duration;
+				state.value = state.done ? target : current;
+				return state;
+			},
+			toString: () => {
+				const calculatedDuration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
+				const easing = generateLinearEasing((progress) => generator.next(calculatedDuration * progress).value, calculatedDuration, 30);
+				return calculatedDuration + "ms " + easing;
+			},
+			toTransition: () => {}
+		};
+		return generator;
+	}
+	spring.applyToOptions = (options) => {
+		const generatorOptions = createGeneratorEasing(options, 100, spring);
+		options.ease = generatorOptions.ease;
+		options.duration = secondsToMilliseconds(generatorOptions.duration);
+		options.type = "keyframes";
+		return options;
+	};
+	var velocitySampleDuration = 5;
+	function getGeneratorVelocity(resolveValue, t, current) {
+		const prevT = Math.max(t - velocitySampleDuration, 0);
+		return velocityPerSecond(current - resolveValue(prevT), t - prevT);
+	}
+	function inertia({ keyframes, velocity = 0, power = .8, timeConstant = 325, bounceDamping = 10, bounceStiffness = 500, modifyTarget, min, max, restDelta = .5, restSpeed }) {
+		const origin = keyframes[0];
+		const state = {
+			done: false,
+			value: origin
+		};
+		const isOutOfBounds = (v) => min !== void 0 && v < min || max !== void 0 && v > max;
+		const nearestBoundary = (v) => {
+			if (min === void 0) return max;
+			if (max === void 0) return min;
+			return Math.abs(min - v) < Math.abs(max - v) ? min : max;
+		};
+		let amplitude = power * velocity;
+		const ideal = origin + amplitude;
+		const target = modifyTarget === void 0 ? ideal : modifyTarget(ideal);
+		if (target !== ideal) amplitude = target - origin;
+		const calcDelta = (t) => -amplitude * Math.exp(-t / timeConstant);
+		const calcLatest = (t) => target + calcDelta(t);
+		const applyFriction = (t) => {
+			const delta = calcDelta(t);
+			const latest = calcLatest(t);
+			state.done = Math.abs(delta) <= restDelta;
+			state.value = state.done ? target : latest;
+		};
+		let timeReachedBoundary;
+		let spring$1;
+		const checkCatchBoundary = (t) => {
+			if (!isOutOfBounds(state.value)) return;
+			timeReachedBoundary = t;
+			spring$1 = spring({
+				keyframes: [state.value, nearestBoundary(state.value)],
+				velocity: getGeneratorVelocity(calcLatest, t, state.value),
+				damping: bounceDamping,
+				stiffness: bounceStiffness,
+				restDelta,
+				restSpeed
+			});
+		};
+		checkCatchBoundary(0);
+		return {
+			calculatedDuration: null,
+			next: (t) => {
+				let hasUpdatedFrame = false;
+				if (!spring$1 && timeReachedBoundary === void 0) {
+					hasUpdatedFrame = true;
+					applyFriction(t);
+					checkCatchBoundary(t);
+				}
+				if (timeReachedBoundary !== void 0 && t >= timeReachedBoundary) return spring$1.next(t - timeReachedBoundary);
+				else {
+					!hasUpdatedFrame && applyFriction(t);
+					return state;
+				}
+			}
+		};
+	}
+	function createMixers(output, ease, customMixer) {
+		const mixers = [];
+		const mixerFactory = customMixer || MotionGlobalConfig.mix || mix;
+		const numMixers = output.length - 1;
+		for (let i = 0; i < numMixers; i++) {
+			let mixer = mixerFactory(output[i], output[i + 1]);
+			if (ease) mixer = pipe(Array.isArray(ease) ? ease[i] || noop$3 : ease, mixer);
+			mixers.push(mixer);
+		}
+		return mixers;
+	}
+	function interpolate(input, output, { clamp: isClamp = true, ease, mixer } = {}) {
+		const inputLength = input.length;
+		output.length;
+		if (inputLength === 1) return () => output[0];
+		if (inputLength === 2 && output[0] === output[1]) return () => output[1];
+		const isZeroDeltaRange = input[0] === input[1];
+		if (input[0] > input[inputLength - 1]) {
+			input = [...input].reverse();
+			output = [...output].reverse();
+		}
+		const mixers = createMixers(output, ease, mixer);
+		const numMixers = mixers.length;
+		const interpolator = (v) => {
+			if (isZeroDeltaRange && v < input[0]) return output[0];
+			let i = 0;
+			if (numMixers > 1) {
+				for (; i < input.length - 2; i++) if (v < input[i + 1]) break;
+			}
+			const progressInRange = progress(input[i], input[i + 1], v);
+			return mixers[i](progressInRange);
+		};
+		return isClamp ? (v) => interpolator(clamp(input[0], input[inputLength - 1], v)) : interpolator;
+	}
+	function fillOffset(offset, remaining) {
+		const min = offset[offset.length - 1];
+		for (let i = 1; i <= remaining; i++) {
+			const offsetProgress = progress(0, remaining, i);
+			offset.push(mixNumber$1(min, 1, offsetProgress));
+		}
+	}
+	function defaultOffset(arr) {
+		const offset = [0];
+		fillOffset(offset, arr.length - 1);
+		return offset;
+	}
+	function convertOffsetToTimes(offset, duration) {
+		return offset.map((o) => o * duration);
+	}
+	function defaultEasing(values, easing) {
+		return values.map(() => easing || easeInOut).splice(0, values.length - 1);
+	}
+	function keyframes({ duration = 300, keyframes: keyframeValues, times, ease = "easeInOut" }) {
+		const easingFunctions = isEasingArray(ease) ? ease.map(easingDefinitionToFunction) : easingDefinitionToFunction(ease);
+		const state = {
+			done: false,
+			value: keyframeValues[0]
+		};
+		const mapTimeToKeyframe = interpolate(convertOffsetToTimes(times && times.length === keyframeValues.length ? times : defaultOffset(keyframeValues), duration), keyframeValues, { ease: Array.isArray(easingFunctions) ? easingFunctions : defaultEasing(keyframeValues, easingFunctions) });
+		return {
+			calculatedDuration: duration,
+			next: (t) => {
+				state.value = mapTimeToKeyframe(t);
+				state.done = t >= duration;
+				return state;
+			}
+		};
+	}
+	var isNotNull = (value) => value !== null;
+	function getFinalKeyframe(keyframes, { repeat, repeatType = "loop" }, finalKeyframe, speed = 1) {
+		const resolvedKeyframes = keyframes.filter(isNotNull);
+		const index = speed < 0 || repeat && repeatType !== "loop" && repeat % 2 === 1 ? 0 : resolvedKeyframes.length - 1;
+		return !index || finalKeyframe === void 0 ? resolvedKeyframes[index] : finalKeyframe;
+	}
+	var transitionTypeMap = {
+		decay: inertia,
+		inertia,
+		tween: keyframes,
+		keyframes,
+		spring
+	};
+	function replaceTransitionType(transition) {
+		if (typeof transition.type === "string") transition.type = transitionTypeMap[transition.type];
+	}
+	var WithPromise = class {
+		constructor() {
+			this.updateFinished();
+		}
+		get finished() {
+			return this._finished;
+		}
+		updateFinished() {
+			this._finished = new Promise((resolve) => {
+				this.resolve = resolve;
+			});
+		}
+		notifyFinished() {
+			this.resolve();
+		}
+		then(onResolve, onReject) {
+			return this.finished.then(onResolve, onReject);
+		}
+	};
+	var percentToProgress = (percent) => percent / 100;
+	var JSAnimation = class extends WithPromise {
+		constructor(options) {
+			super();
+			this.state = "idle";
+			this.startTime = null;
+			this.isStopped = false;
+			this.currentTime = 0;
+			this.holdTime = null;
+			this.playbackSpeed = 1;
+			this.delayState = {
+				done: false,
+				value: void 0
+			};
+			this.stop = () => {
+				const { motionValue } = this.options;
+				if (motionValue && motionValue.updatedAt !== time.now()) this.tick(time.now());
+				this.isStopped = true;
+				if (this.state === "idle") return;
+				this.teardown();
+				this.options.onStop?.();
+			};
+			this.options = options;
+			this.initAnimation();
+			this.play();
+			if (options.autoplay === false) this.pause();
+		}
+		initAnimation() {
+			const { options } = this;
+			replaceTransitionType(options);
+			const { type = keyframes, repeat = 0, repeatDelay = 0, repeatType, velocity = 0 } = options;
+			let { keyframes: keyframes$1 } = options;
+			const generatorFactory = type || keyframes;
+			if (generatorFactory !== keyframes && typeof keyframes$1[0] !== "number") {
+				this.mixKeyframes = pipe(percentToProgress, mix(keyframes$1[0], keyframes$1[1]));
+				keyframes$1 = [0, 100];
+			}
+			const generator = generatorFactory({
+				...options,
+				keyframes: keyframes$1
+			});
+			if (repeatType === "mirror") this.mirroredGenerator = generatorFactory({
+				...options,
+				keyframes: [...keyframes$1].reverse(),
+				velocity: -velocity
+			});
+			if (generator.calculatedDuration === null) generator.calculatedDuration = calcGeneratorDuration(generator);
+			const { calculatedDuration } = generator;
+			this.calculatedDuration = calculatedDuration;
+			this.resolvedDuration = calculatedDuration + repeatDelay;
+			this.totalDuration = this.resolvedDuration * (repeat + 1) - repeatDelay;
+			this.generator = generator;
+		}
+		updateTime(timestamp) {
+			const animationTime = Math.round(timestamp - this.startTime) * this.playbackSpeed;
+			if (this.holdTime !== null) this.currentTime = this.holdTime;
+			else this.currentTime = animationTime;
+		}
+		tick(timestamp, sample = false) {
+			const { generator, totalDuration, mixKeyframes, mirroredGenerator, resolvedDuration, calculatedDuration } = this;
+			if (this.startTime === null) return generator.next(0);
+			const { delay = 0, keyframes, repeat, repeatType, repeatDelay, type, onUpdate, finalKeyframe } = this.options;
+			if (this.speed > 0) this.startTime = Math.min(this.startTime, timestamp);
+			else if (this.speed < 0) this.startTime = Math.min(timestamp - totalDuration / this.speed, this.startTime);
+			if (sample) this.currentTime = timestamp;
+			else this.updateTime(timestamp);
+			const timeWithoutDelay = this.currentTime - delay * (this.playbackSpeed >= 0 ? 1 : -1);
+			const isInDelayPhase = this.playbackSpeed >= 0 ? timeWithoutDelay < 0 : timeWithoutDelay > totalDuration;
+			this.currentTime = Math.max(timeWithoutDelay, 0);
+			if (this.state === "finished" && this.holdTime === null) this.currentTime = totalDuration;
+			let elapsed = this.currentTime;
+			let frameGenerator = generator;
+			if (repeat) {
+				const progress = Math.min(this.currentTime, totalDuration) / resolvedDuration;
+				let currentIteration = Math.floor(progress);
+				let iterationProgress = progress % 1;
+				if (!iterationProgress && progress >= 1) iterationProgress = 1;
+				iterationProgress === 1 && currentIteration--;
+				currentIteration = Math.min(currentIteration, repeat + 1);
+				if (Boolean(currentIteration % 2)) {
+					if (repeatType === "reverse") {
+						iterationProgress = 1 - iterationProgress;
+						if (repeatDelay) iterationProgress -= repeatDelay / resolvedDuration;
+					} else if (repeatType === "mirror") frameGenerator = mirroredGenerator;
+				}
+				elapsed = clamp(0, 1, iterationProgress) * resolvedDuration;
+			}
+			let state;
+			if (isInDelayPhase) {
+				this.delayState.value = keyframes[0];
+				state = this.delayState;
+			} else state = frameGenerator.next(elapsed);
+			if (mixKeyframes && !isInDelayPhase) state.value = mixKeyframes(state.value);
+			let { done } = state;
+			if (!isInDelayPhase && calculatedDuration !== null) done = this.playbackSpeed >= 0 ? this.currentTime >= totalDuration : this.currentTime <= 0;
+			const isAnimationFinished = this.holdTime === null && (this.state === "finished" || this.state === "running" && done);
+			if (isAnimationFinished && type !== inertia) state.value = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
+			if (onUpdate) onUpdate(state.value);
+			if (isAnimationFinished) this.finish();
+			return state;
+		}
+		then(resolve, reject) {
+			return this.finished.then(resolve, reject);
+		}
+		get duration() {
+			return millisecondsToSeconds(this.calculatedDuration);
+		}
+		get iterationDuration() {
+			const { delay = 0 } = this.options || {};
+			return this.duration + millisecondsToSeconds(delay);
+		}
+		get time() {
+			return millisecondsToSeconds(this.currentTime);
+		}
+		set time(newTime) {
+			newTime = secondsToMilliseconds(newTime);
+			this.currentTime = newTime;
+			if (this.startTime === null || this.holdTime !== null || this.playbackSpeed === 0) this.holdTime = newTime;
+			else if (this.driver) this.startTime = this.driver.now() - newTime / this.playbackSpeed;
+			if (this.driver) this.driver.start(false);
+			else {
+				this.startTime = 0;
+				this.state = "paused";
+				this.holdTime = newTime;
+				this.tick(newTime);
+			}
+		}
+		getGeneratorVelocity() {
+			const t = this.currentTime;
+			if (t <= 0) return this.options.velocity || 0;
+			if (this.generator.velocity) return this.generator.velocity(t);
+			const current = this.generator.next(t).value;
+			return getGeneratorVelocity((s) => this.generator.next(s).value, t, current);
+		}
+		get speed() {
+			return this.playbackSpeed;
+		}
+		set speed(newSpeed) {
+			const hasChanged = this.playbackSpeed !== newSpeed;
+			if (hasChanged && this.driver) this.updateTime(time.now());
+			this.playbackSpeed = newSpeed;
+			if (hasChanged && this.driver) this.time = millisecondsToSeconds(this.currentTime);
+		}
+		play() {
+			if (this.isStopped) return;
+			const { driver = frameloopDriver, startTime } = this.options;
+			if (!this.driver) this.driver = driver((timestamp) => this.tick(timestamp));
+			this.options.onPlay?.();
+			const now = this.driver.now();
+			if (this.state === "finished") {
+				this.updateFinished();
+				this.startTime = now;
+			} else if (this.holdTime !== null) this.startTime = now - this.holdTime;
+			else if (!this.startTime) this.startTime = startTime ?? now;
+			if (this.state === "finished" && this.speed < 0) this.startTime += this.calculatedDuration;
+			this.holdTime = null;
+			this.state = "running";
+			this.driver.start();
+		}
+		pause() {
+			this.state = "paused";
+			this.updateTime(time.now());
+			this.holdTime = this.currentTime;
+		}
+		complete() {
+			if (this.state !== "running") this.play();
+			this.state = "finished";
+			this.holdTime = null;
+		}
+		finish() {
+			this.notifyFinished();
+			this.teardown();
+			this.state = "finished";
+			this.options.onComplete?.();
+		}
+		cancel() {
+			this.holdTime = null;
+			this.startTime = 0;
+			this.tick(0);
+			this.teardown();
+			this.options.onCancel?.();
+		}
+		teardown() {
+			this.state = "idle";
+			this.stopDriver();
+			this.startTime = this.holdTime = null;
+		}
+		stopDriver() {
+			if (!this.driver) return;
+			this.driver.stop();
+			this.driver = void 0;
+		}
+		sample(sampleTime) {
+			this.startTime = 0;
+			return this.tick(sampleTime, true);
+		}
+		attachTimeline(timeline) {
+			if (this.options.allowFlatten) {
+				this.options.type = "keyframes";
+				this.options.ease = "linear";
+				this.initAnimation();
+			}
+			this.driver?.stop();
+			return timeline.observe(this);
+		}
+	};
+	function fillWildcards(keyframes) {
+		for (let i = 1; i < keyframes.length; i++) keyframes[i] ?? (keyframes[i] = keyframes[i - 1]);
+	}
+	var radToDeg = (rad) => rad * 180 / Math.PI;
+	var rotate = (v) => {
+		return rebaseAngle(radToDeg(Math.atan2(v[1], v[0])));
+	};
+	var matrix2dParsers = {
+		x: 4,
+		y: 5,
+		translateX: 4,
+		translateY: 5,
+		scaleX: 0,
+		scaleY: 3,
+		scale: (v) => (Math.abs(v[0]) + Math.abs(v[3])) / 2,
+		rotate,
+		rotateZ: rotate,
+		skewX: (v) => radToDeg(Math.atan(v[1])),
+		skewY: (v) => radToDeg(Math.atan(v[2])),
+		skew: (v) => (Math.abs(v[1]) + Math.abs(v[2])) / 2
+	};
+	var rebaseAngle = (angle) => {
+		angle = angle % 360;
+		if (angle < 0) angle += 360;
+		return angle;
+	};
+	var rotateZ = rotate;
+	var scaleX = (v) => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+	var scaleY = (v) => Math.sqrt(v[4] * v[4] + v[5] * v[5]);
+	var matrix3dParsers = {
+		x: 12,
+		y: 13,
+		z: 14,
+		translateX: 12,
+		translateY: 13,
+		translateZ: 14,
+		scaleX,
+		scaleY,
+		scale: (v) => (scaleX(v) + scaleY(v)) / 2,
+		rotateX: (v) => rebaseAngle(radToDeg(Math.atan2(v[6], v[5]))),
+		rotateY: (v) => rebaseAngle(radToDeg(Math.atan2(-v[2], v[0]))),
+		rotateZ,
+		rotate: rotateZ,
+		skewX: (v) => radToDeg(Math.atan(v[4])),
+		skewY: (v) => radToDeg(Math.atan(v[1])),
+		skew: (v) => (Math.abs(v[1]) + Math.abs(v[4])) / 2
+	};
+	function defaultTransformValue(name) {
+		return name.includes("scale") ? 1 : 0;
+	}
+	function parseValueFromTransform(transform, name) {
+		if (!transform || transform === "none") return defaultTransformValue(name);
+		const matrix3dMatch = transform.match(/^matrix3d\(([-\d.e\s,]+)\)$/u);
+		let parsers;
+		let match;
+		if (matrix3dMatch) {
+			parsers = matrix3dParsers;
+			match = matrix3dMatch;
+		} else {
+			const matrix2dMatch = transform.match(/^matrix\(([-\d.e\s,]+)\)$/u);
+			parsers = matrix2dParsers;
+			match = matrix2dMatch;
+		}
+		if (!match) return defaultTransformValue(name);
+		const valueParser = parsers[name];
+		const values = match[1].split(",").map(convertTransformToNumber);
+		return typeof valueParser === "function" ? valueParser(values) : values[valueParser];
+	}
+	var readTransformValue = (instance, name) => {
+		const { transform = "none" } = getComputedStyle(instance);
+		return parseValueFromTransform(transform, name);
+	};
+	function convertTransformToNumber(value) {
+		return parseFloat(value.trim());
+	}
+	var transformPropOrder = [
+		"transformPerspective",
+		"x",
+		"y",
+		"z",
+		"translateX",
+		"translateY",
+		"translateZ",
+		"scale",
+		"scaleX",
+		"scaleY",
+		"rotate",
+		"rotateX",
+		"rotateY",
+		"rotateZ",
+		"skew",
+		"skewX",
+		"skewY"
+	];
+	var transformProps = (() => new Set([...transformPropOrder, "pathRotation"]))();
+	var isNumOrPxType = (v) => v === number || v === px;
+	var transformKeys = new Set([
+		"x",
+		"y",
+		"z"
+	]);
+	var nonTranslationalTransformKeys = transformPropOrder.filter((key) => !transformKeys.has(key));
+	function removeNonTranslationalTransform(visualElement) {
+		const removedTransforms = [];
+		nonTranslationalTransformKeys.forEach((key) => {
+			const value = visualElement.getValue(key);
+			if (value !== void 0) {
+				removedTransforms.push([key, value.get()]);
+				value.set(key.startsWith("scale") ? 1 : 0);
+			}
+		});
+		return removedTransforms;
+	}
+	var positionalValues = {
+		width: ({ x }, { paddingLeft = "0", paddingRight = "0", boxSizing }) => {
+			const width = x.max - x.min;
+			return boxSizing === "border-box" ? width : width - parseFloat(paddingLeft) - parseFloat(paddingRight);
+		},
+		height: ({ y }, { paddingTop = "0", paddingBottom = "0", boxSizing }) => {
+			const height = y.max - y.min;
+			return boxSizing === "border-box" ? height : height - parseFloat(paddingTop) - parseFloat(paddingBottom);
+		},
+		top: (_bbox, { top }) => parseFloat(top),
+		left: (_bbox, { left }) => parseFloat(left),
+		bottom: ({ y }, { top }) => parseFloat(top) + (y.max - y.min),
+		right: ({ x }, { left }) => parseFloat(left) + (x.max - x.min),
+		x: (_bbox, { transform }) => parseValueFromTransform(transform, "x"),
+		y: (_bbox, { transform }) => parseValueFromTransform(transform, "y")
+	};
+	positionalValues.translateX = positionalValues.x;
+	positionalValues.translateY = positionalValues.y;
+	var toResolve = new Set();
+	var isScheduled = false;
+	var anyNeedsMeasurement = false;
+	var isForced = false;
+	function measureAllKeyframes() {
+		if (anyNeedsMeasurement) {
+			const resolversToMeasure = Array.from(toResolve).filter((resolver) => resolver.needsMeasurement);
+			const elementsToMeasure = new Set(resolversToMeasure.map((resolver) => resolver.element));
+			const transformsToRestore = new Map();
+			elementsToMeasure.forEach((element) => {
+				const removedTransforms = removeNonTranslationalTransform(element);
+				if (!removedTransforms.length) return;
+				transformsToRestore.set(element, removedTransforms);
+				element.render();
+			});
+			resolversToMeasure.forEach((resolver) => resolver.measureInitialState());
+			elementsToMeasure.forEach((element) => {
+				element.render();
+				const restore = transformsToRestore.get(element);
+				if (restore) restore.forEach(([key, value]) => {
+					element.getValue(key)?.set(value);
+				});
+			});
+			resolversToMeasure.forEach((resolver) => resolver.measureEndState());
+			resolversToMeasure.forEach((resolver) => {
+				if (resolver.suspendedScrollY !== void 0) window.scrollTo(0, resolver.suspendedScrollY);
+			});
+		}
+		anyNeedsMeasurement = false;
+		isScheduled = false;
+		toResolve.forEach((resolver) => resolver.complete(isForced));
+		toResolve.clear();
+	}
+	function readAllKeyframes() {
+		toResolve.forEach((resolver) => {
+			resolver.readKeyframes();
+			if (resolver.needsMeasurement) anyNeedsMeasurement = true;
+		});
+	}
+	function flushKeyframeResolvers() {
+		isForced = true;
+		readAllKeyframes();
+		measureAllKeyframes();
+		isForced = false;
+	}
+	var KeyframeResolver = class {
+		constructor(unresolvedKeyframes, onComplete, name, motionValue, element, isAsync = false) {
+			this.state = "pending";
+			this.isAsync = false;
+			this.needsMeasurement = false;
+			this.unresolvedKeyframes = [...unresolvedKeyframes];
+			this.onComplete = onComplete;
+			this.name = name;
+			this.motionValue = motionValue;
+			this.element = element;
+			this.isAsync = isAsync;
+		}
+		scheduleResolve() {
+			this.state = "scheduled";
+			if (this.isAsync) {
+				toResolve.add(this);
+				if (!isScheduled) {
+					isScheduled = true;
+					frame.read(readAllKeyframes);
+					frame.resolveKeyframes(measureAllKeyframes);
+				}
+			} else {
+				this.readKeyframes();
+				this.complete();
+			}
+		}
+		readKeyframes() {
+			const { unresolvedKeyframes, name, element, motionValue } = this;
+			if (unresolvedKeyframes[0] === null) {
+				const currentValue = motionValue?.get();
+				const finalKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
+				if (currentValue !== void 0) unresolvedKeyframes[0] = currentValue;
+				else if (element && name) {
+					const valueAsRead = element.readValue(name, finalKeyframe);
+					if (valueAsRead !== void 0 && valueAsRead !== null) unresolvedKeyframes[0] = valueAsRead;
+				}
+				if (unresolvedKeyframes[0] === void 0) unresolvedKeyframes[0] = finalKeyframe;
+				if (motionValue && currentValue === void 0) motionValue.set(unresolvedKeyframes[0]);
+			}
+			fillWildcards(unresolvedKeyframes);
+		}
+		setFinalKeyframe() {}
+		measureInitialState() {}
+		renderEndStyles() {}
+		measureEndState() {}
+		complete(isForcedComplete = false) {
+			this.state = "complete";
+			this.onComplete(this.unresolvedKeyframes, this.finalKeyframe, isForcedComplete);
+			toResolve.delete(this);
+		}
+		cancel() {
+			if (this.state === "scheduled") {
+				toResolve.delete(this);
+				this.state = "pending";
+			}
+		}
+		resume() {
+			if (this.state === "pending") this.scheduleResolve();
+		}
+	};
+	var isCSSVar = (name) => name.startsWith("--");
+	function setStyle(element, name, value) {
+		isCSSVar(name) ? element.style.setProperty(name, value) : element.style[name] = value;
+	}
+	var supportsFlags = {};
+	function memoSupports(callback, supportsFlag) {
+		const memoized = memo(callback);
+		return () => supportsFlags[supportsFlag] ?? memoized();
+	}
+	var supportsScrollTimeline = memoSupports(() => window.ScrollTimeline !== void 0, "scrollTimeline");
+	var supportsLinearEasing = memoSupports(() => {
+		try {
+			document.createElement("div").animate({ opacity: 0 }, { easing: "linear(0, 1)" });
+		} catch (e) {
+			return false;
+		}
+		return true;
+	}, "linearEasing");
+	var cubicBezierAsString = ([a, b, c, d]) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
+	var supportedWaapiEasing = {
+		linear: "linear",
+		ease: "ease",
+		easeIn: "ease-in",
+		easeOut: "ease-out",
+		easeInOut: "ease-in-out",
+		circIn: cubicBezierAsString([
+			0,
+			.65,
+			.55,
+			1
+		]),
+		circOut: cubicBezierAsString([
+			.55,
+			0,
+			1,
+			.45
+		]),
+		backIn: cubicBezierAsString([
+			.31,
+			.01,
+			.66,
+			-.59
+		]),
+		backOut: cubicBezierAsString([
+			.33,
+			1.53,
+			.69,
+			.99
+		])
+	};
+	function mapEasingToNativeEasing(easing, duration) {
+		if (!easing) return;
+		else if (typeof easing === "function") return supportsLinearEasing() ? generateLinearEasing(easing, duration) : "ease-out";
+		else if (isBezierDefinition(easing)) return cubicBezierAsString(easing);
+		else if (Array.isArray(easing)) return easing.map((segmentEasing) => mapEasingToNativeEasing(segmentEasing, duration) || supportedWaapiEasing.easeOut);
+		else return supportedWaapiEasing[easing];
+	}
+	function startWaapiAnimation(element, valueName, keyframes, { delay = 0, duration = 300, repeat = 0, repeatType = "loop", ease = "easeOut", times } = {}, pseudoElement = void 0) {
+		const keyframeOptions = { [valueName]: keyframes };
+		if (times) keyframeOptions.offset = times;
+		const easing = mapEasingToNativeEasing(ease, duration);
+		if (Array.isArray(easing)) keyframeOptions.easing = easing;
+		const options = {
+			delay,
+			duration,
+			easing: !Array.isArray(easing) ? easing : "linear",
+			fill: "both",
+			iterations: repeat + 1,
+			direction: repeatType === "reverse" ? "alternate" : "normal"
+		};
+		if (pseudoElement) options.pseudoElement = pseudoElement;
+		return element.animate(keyframeOptions, options);
+	}
+	function isGenerator(type) {
+		return typeof type === "function" && "applyToOptions" in type;
+	}
+	function applyGeneratorOptions({ type, ...options }) {
+		if (isGenerator(type) && supportsLinearEasing()) return type.applyToOptions(options);
+		else {
+			options.duration ?? (options.duration = 300);
+			options.ease ?? (options.ease = "easeOut");
+		}
+		return options;
+	}
+	var NativeAnimation = class extends WithPromise {
+		constructor(options) {
+			super();
+			this.finishedTime = null;
+			this.isStopped = false;
+			this.manualStartTime = null;
+			if (!options) return;
+			const { element, name, keyframes, pseudoElement, allowFlatten = false, finalKeyframe, onComplete } = options;
+			this.isPseudoElement = Boolean(pseudoElement);
+			this.allowFlatten = allowFlatten;
+			this.options = options;
+			options.type;
+			const transition = applyGeneratorOptions(options);
+			this.animation = startWaapiAnimation(element, name, keyframes, transition, pseudoElement);
+			if (transition.autoplay === false) this.animation.pause();
+			this.animation.onfinish = () => {
+				this.finishedTime = this.time;
+				if (!pseudoElement) {
+					const keyframe = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
+					if (this.updateMotionValue) this.updateMotionValue(keyframe);
+					setStyle(element, name, keyframe);
+					this.animation.cancel();
+				}
+				onComplete?.();
+				this.notifyFinished();
+			};
+		}
+		play() {
+			if (this.isStopped) return;
+			this.manualStartTime = null;
+			this.animation.play();
+			if (this.state === "finished") this.updateFinished();
+		}
+		pause() {
+			this.animation.pause();
+		}
+		complete() {
+			this.animation.finish?.();
+		}
+		cancel() {
+			try {
+				this.animation.cancel();
+			} catch (e) {}
+		}
+		stop() {
+			if (this.isStopped) return;
+			this.isStopped = true;
+			const { state } = this;
+			if (state === "idle" || state === "finished") return;
+			if (this.updateMotionValue) this.updateMotionValue();
+			else this.commitStyles();
+			if (!this.isPseudoElement) this.cancel();
+		}
+		commitStyles() {
+			const element = this.options?.element;
+			if (!this.isPseudoElement && element?.isConnected) this.animation.commitStyles?.();
+		}
+		get duration() {
+			const duration = this.animation.effect?.getComputedTiming?.().duration || 0;
+			return millisecondsToSeconds(Number(duration));
+		}
+		get iterationDuration() {
+			const { delay = 0 } = this.options || {};
+			return this.duration + millisecondsToSeconds(delay);
+		}
+		get time() {
+			return millisecondsToSeconds(Number(this.animation.currentTime) || 0);
+		}
+		set time(newTime) {
+			const wasFinished = this.finishedTime !== null;
+			this.manualStartTime = null;
+			this.finishedTime = null;
+			this.animation.currentTime = secondsToMilliseconds(newTime);
+			if (wasFinished) this.animation.pause();
+		}
+		get speed() {
+			return this.animation.playbackRate;
+		}
+		set speed(newSpeed) {
+			if (newSpeed < 0) this.finishedTime = null;
+			this.animation.playbackRate = newSpeed;
+		}
+		get state() {
+			return this.finishedTime !== null ? "finished" : this.animation.playState;
+		}
+		get startTime() {
+			return this.manualStartTime ?? Number(this.animation.startTime);
+		}
+		set startTime(newStartTime) {
+			this.manualStartTime = this.animation.startTime = newStartTime;
+		}
+		attachTimeline({ timeline, rangeStart, rangeEnd, observe }) {
+			if (this.allowFlatten) this.animation.effect?.updateTiming({ easing: "linear" });
+			this.animation.onfinish = null;
+			if (timeline && supportsScrollTimeline()) {
+				this.animation.timeline = timeline;
+				if (rangeStart) this.animation.rangeStart = rangeStart;
+				if (rangeEnd) this.animation.rangeEnd = rangeEnd;
+				return noop$3;
+			} else return observe(this);
+		}
+	};
+	var unsupportedEasingFunctions = {
+		anticipate,
+		backInOut,
+		circInOut
+	};
+	function isUnsupportedEase(key) {
+		return key in unsupportedEasingFunctions;
+	}
+	function replaceStringEasing(transition) {
+		if (typeof transition.ease === "string" && isUnsupportedEase(transition.ease)) transition.ease = unsupportedEasingFunctions[transition.ease];
+	}
+	var sampleDelta = 10;
+	var NativeAnimationExtended = class extends NativeAnimation {
+		constructor(options) {
+			replaceStringEasing(options);
+			replaceTransitionType(options);
+			super(options);
+			if (options.startTime !== void 0 && options.autoplay !== false) this.startTime = options.startTime;
+			this.options = options;
+		}
+		updateMotionValue(value) {
+			const { motionValue, onUpdate, onComplete, element, ...options } = this.options;
+			if (!motionValue) return;
+			if (value !== void 0) {
+				motionValue.set(value);
+				return;
+			}
+			const sampleAnimation = new JSAnimation({
+				...options,
+				autoplay: false
+			});
+			const sampleTime = Math.max(sampleDelta, time.now() - this.startTime);
+			const delta = clamp(0, sampleDelta, sampleTime - sampleDelta);
+			const current = sampleAnimation.sample(sampleTime).value;
+			const { name } = this.options;
+			if (element && name) setStyle(element, name, current);
+			motionValue.setWithVelocity(sampleAnimation.sample(Math.max(0, sampleTime - delta)).value, current, delta);
+			sampleAnimation.stop();
+		}
+	};
+	var isAnimatable = (value, name) => {
+		if (name === "zIndex") return false;
+		if (typeof value === "number" || Array.isArray(value)) return true;
+		if (typeof value === "string" && (complex.test(value) || value === "0") && !value.startsWith("url(")) return true;
+		return false;
+	};
+	function hasKeyframesChanged(keyframes) {
+		const current = keyframes[0];
+		if (keyframes.length === 1) return true;
+		for (let i = 0; i < keyframes.length; i++) if (keyframes[i] !== current) return true;
+	}
+	function canAnimate(keyframes, name, type, velocity) {
+		const originKeyframe = keyframes[0];
+		if (originKeyframe === null) return false;
+		if (name === "display" || name === "visibility") return true;
+		const targetKeyframe = keyframes[keyframes.length - 1];
+		const isOriginAnimatable = isAnimatable(originKeyframe, name);
+		const isTargetAnimatable = isAnimatable(targetKeyframe, name);
+		`${name}${originKeyframe}${targetKeyframe}${isOriginAnimatable ? targetKeyframe : originKeyframe}`;
+		if (!isOriginAnimatable || !isTargetAnimatable) return false;
+		return hasKeyframesChanged(keyframes) || (type === "spring" || isGenerator(type)) && velocity;
+	}
+	function makeAnimationInstant(options) {
+		options.duration = 0;
+		options.type = "keyframes";
+	}
+	var acceleratedValues = new Set([
+		"opacity",
+		"clipPath",
+		"filter",
+		"transform"
+	]);
+	var browserColorFunctions = /^(?:oklch|oklab|lab|lch|color|color-mix|light-dark)\(/;
+	function hasBrowserOnlyColors(keyframes) {
+		for (let i = 0; i < keyframes.length; i++) if (typeof keyframes[i] === "string" && browserColorFunctions.test(keyframes[i])) return true;
+		return false;
+	}
+	var colorProperties = new Set([
+		"color",
+		"backgroundColor",
+		"outlineColor",
+		"fill",
+		"stroke",
+		"borderColor",
+		"borderTopColor",
+		"borderRightColor",
+		"borderBottomColor",
+		"borderLeftColor"
+	]);
+	var supportsWaapi = memo(() => Object.hasOwnProperty.call(Element.prototype, "animate"));
+	function supportsBrowserAnimation(options) {
+		const { motionValue, name, repeatDelay, repeatType, damping, type, keyframes } = options;
+		if (!(motionValue?.owner?.current instanceof HTMLElement)) return false;
+		const { onUpdate, transformTemplate } = motionValue.owner.getProps();
+		return supportsWaapi() && name && (acceleratedValues.has(name) || colorProperties.has(name) && hasBrowserOnlyColors(keyframes)) && (name !== "transform" || !transformTemplate) && !onUpdate && !repeatDelay && repeatType !== "mirror" && damping !== 0 && type !== "inertia";
+	}
+	var MAX_RESOLVE_DELAY = 40;
+	var AsyncMotionValueAnimation = class extends WithPromise {
+		constructor({ autoplay = true, delay = 0, type = "keyframes", repeat = 0, repeatDelay = 0, repeatType = "loop", keyframes, name, motionValue, element, ...options }) {
+			super();
+			this.stop = () => {
+				if (this._animation) {
+					this._animation.stop();
+					this.stopTimeline?.();
+				}
+				this.keyframeResolver?.cancel();
+			};
+			this.createdAt = time.now();
+			const optionsWithDefaults = {
+				autoplay,
+				delay,
+				type,
+				repeat,
+				repeatDelay,
+				repeatType,
+				name,
+				motionValue,
+				element,
+				...options
+			};
+			const KeyframeResolver$1 = element?.KeyframeResolver || KeyframeResolver;
+			this.keyframeResolver = new KeyframeResolver$1(keyframes, (resolvedKeyframes, finalKeyframe, forced) => this.onKeyframesResolved(resolvedKeyframes, finalKeyframe, optionsWithDefaults, !forced), name, motionValue, element);
+			this.keyframeResolver?.scheduleResolve();
+		}
+		onKeyframesResolved(keyframes, finalKeyframe, options, sync) {
+			this.keyframeResolver = void 0;
+			const { name, type, velocity, delay, isHandoff, onUpdate } = options;
+			this.resolvedAt = time.now();
+			let canAnimateValue = true;
+			if (!canAnimate(keyframes, name, type, velocity)) {
+				canAnimateValue = false;
+				if (MotionGlobalConfig.instantAnimations || !delay) onUpdate?.(getFinalKeyframe(keyframes, options, finalKeyframe));
+				keyframes[0] = keyframes[keyframes.length - 1];
+				makeAnimationInstant(options);
+				options.repeat = 0;
+			}
+			const resolvedOptions = {
+				startTime: sync ? !this.resolvedAt ? this.createdAt : this.resolvedAt - this.createdAt > MAX_RESOLVE_DELAY ? this.resolvedAt : this.createdAt : void 0,
+				finalKeyframe,
+				...options,
+				keyframes
+			};
+			const useWaapi = canAnimateValue && !isHandoff && supportsBrowserAnimation(resolvedOptions);
+			const element = resolvedOptions.motionValue?.owner?.current;
+			let animation;
+			if (useWaapi) try {
+				animation = new NativeAnimationExtended({
+					...resolvedOptions,
+					element
+				});
+			} catch {
+				animation = new JSAnimation(resolvedOptions);
+			}
+			else animation = new JSAnimation(resolvedOptions);
+			animation.finished.then(() => {
+				this.notifyFinished();
+			}).catch(noop$3);
+			if (this.pendingTimeline) {
+				this.stopTimeline = animation.attachTimeline(this.pendingTimeline);
+				this.pendingTimeline = void 0;
+			}
+			this._animation = animation;
+		}
+		get finished() {
+			if (!this._animation) return this._finished;
+			else return this.animation.finished;
+		}
+		then(onResolve, _onReject) {
+			return this.finished.finally(onResolve).then(() => {});
+		}
+		get animation() {
+			if (!this._animation) {
+				this.keyframeResolver?.resume();
+				flushKeyframeResolvers();
+			}
+			return this._animation;
+		}
+		get duration() {
+			return this.animation.duration;
+		}
+		get iterationDuration() {
+			return this.animation.iterationDuration;
+		}
+		get time() {
+			return this.animation.time;
+		}
+		set time(newTime) {
+			this.animation.time = newTime;
+		}
+		get speed() {
+			return this.animation.speed;
+		}
+		get state() {
+			return this.animation.state;
+		}
+		set speed(newSpeed) {
+			this.animation.speed = newSpeed;
+		}
+		get startTime() {
+			return this.animation.startTime;
+		}
+		attachTimeline(timeline) {
+			if (this._animation) this.stopTimeline = this.animation.attachTimeline(timeline);
+			else this.pendingTimeline = timeline;
+			return () => this.stop();
+		}
+		play() {
+			this.animation.play();
+		}
+		pause() {
+			this.animation.pause();
+		}
+		complete() {
+			this.animation.complete();
+		}
+		cancel() {
+			if (this._animation) this.animation.cancel();
+			this.keyframeResolver?.cancel();
+		}
+	};
+	var GroupAnimation = class {
+		constructor(animations) {
+			this.stop = () => this.runAll("stop");
+			this.animations = animations.filter(Boolean);
+		}
+		get finished() {
+			return Promise.all(this.animations.map((animation) => animation.finished));
+		}
+		getAll(propName) {
+			return this.animations[0][propName];
+		}
+		setAll(propName, newValue) {
+			for (let i = 0; i < this.animations.length; i++) this.animations[i][propName] = newValue;
+		}
+		attachTimeline(timeline) {
+			const subscriptions = this.animations.map((animation) => animation.attachTimeline(timeline));
+			return () => {
+				subscriptions.forEach((cancel, i) => {
+					cancel && cancel();
+					this.animations[i].stop();
+				});
+			};
+		}
+		get time() {
+			return this.getAll("time");
+		}
+		set time(time) {
+			this.setAll("time", time);
+		}
+		get speed() {
+			return this.getAll("speed");
+		}
+		set speed(speed) {
+			this.setAll("speed", speed);
+		}
+		get state() {
+			return this.getAll("state");
+		}
+		get startTime() {
+			return this.getAll("startTime");
+		}
+		get duration() {
+			return getMax(this.animations, "duration");
+		}
+		get iterationDuration() {
+			return getMax(this.animations, "iterationDuration");
+		}
+		runAll(methodName) {
+			this.animations.forEach((controls) => controls[methodName]());
+		}
+		play() {
+			this.runAll("play");
+		}
+		pause() {
+			this.runAll("pause");
+		}
+		cancel() {
+			this.runAll("cancel");
+		}
+		complete() {
+			this.runAll("complete");
+		}
+	};
+	function getMax(animations, propName) {
+		let max = 0;
+		for (let i = 0; i < animations.length; i++) {
+			const value = animations[i][propName];
+			if (value !== null && value > max) max = value;
+		}
+		return max;
+	}
+	var GroupAnimationWithThen = class extends GroupAnimation {
+		then(onResolve, _onReject) {
+			return this.finished.finally(onResolve).then(() => {});
+		}
+	};
+	var MAX_VELOCITY_DELTA = 30;
+	var isFloat = (value) => {
+		return !isNaN(parseFloat(value));
+	};
+	var collectMotionValues = { current: void 0 };
+	var MotionValue = class {
+		constructor(init, options = {}) {
+			this.canTrackVelocity = null;
+			this.events = {};
+			this.updateAndNotify = (v) => {
+				const currentTime = time.now();
+				if (this.updatedAt !== currentTime) this.setPrevFrameValue();
+				this.prev = this.current;
+				this.setCurrent(v);
+				if (this.current !== this.prev) {
+					this.events.change?.notify(this.current);
+					if (this.dependents) for (const dependent of this.dependents) dependent.dirty();
+				}
+			};
+			this.hasAnimated = false;
+			this.setCurrent(init);
+			this.owner = options.owner;
+		}
+		setCurrent(current) {
+			this.current = current;
+			this.updatedAt = time.now();
+			if (this.canTrackVelocity === null && current !== void 0) this.canTrackVelocity = isFloat(this.current);
+		}
+		setPrevFrameValue(prevFrameValue = this.current) {
+			this.prevFrameValue = prevFrameValue;
+			this.prevUpdatedAt = this.updatedAt;
+		}
+		onChange(subscription) {
+			return this.on("change", subscription);
+		}
+		on(eventName, callback) {
+			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
+			const unsubscribe = this.events[eventName].add(callback);
+			if (eventName === "change") return () => {
+				unsubscribe();
+				frame.read(() => {
+					if (!this.events.change.getSize()) this.stop();
+				});
+			};
+			return unsubscribe;
+		}
+		clearListeners() {
+			for (const eventManagers in this.events) this.events[eventManagers].clear();
+		}
+		attach(passiveEffect, stopPassiveEffect) {
+			this.passiveEffect = passiveEffect;
+			this.stopPassiveEffect = stopPassiveEffect;
+		}
+		set(v) {
+			if (!this.passiveEffect) this.updateAndNotify(v);
+			else this.passiveEffect(v, this.updateAndNotify);
+		}
+		setWithVelocity(prev, current, delta) {
+			this.set(current);
+			this.prev = void 0;
+			this.prevFrameValue = prev;
+			this.prevUpdatedAt = this.updatedAt - delta;
+		}
+		jump(v, endAnimation = true) {
+			this.updateAndNotify(v);
+			this.prev = v;
+			this.prevUpdatedAt = this.prevFrameValue = void 0;
+			endAnimation && this.stop();
+			if (this.stopPassiveEffect) this.stopPassiveEffect();
+		}
+		dirty() {
+			this.events.change?.notify(this.current);
+		}
+		addDependent(dependent) {
+			if (!this.dependents) this.dependents = new Set();
+			this.dependents.add(dependent);
+		}
+		removeDependent(dependent) {
+			if (this.dependents) this.dependents.delete(dependent);
+		}
+		get() {
+			if (collectMotionValues.current) collectMotionValues.current.push(this);
+			return this.current;
+		}
+		getPrevious() {
+			return this.prev;
+		}
+		getVelocity() {
+			const currentTime = time.now();
+			if (!this.canTrackVelocity || this.prevFrameValue === void 0 || currentTime - this.updatedAt > MAX_VELOCITY_DELTA) return 0;
+			const delta = Math.min(this.updatedAt - this.prevUpdatedAt, MAX_VELOCITY_DELTA);
+			return velocityPerSecond(parseFloat(this.current) - parseFloat(this.prevFrameValue), delta);
+		}
+		start(startAnimation) {
+			this.stop();
+			return new Promise((resolve) => {
+				this.hasAnimated = true;
+				this.animation = startAnimation(resolve);
+				if (this.events.animationStart) this.events.animationStart.notify();
+			}).then(() => {
+				if (this.events.animationComplete) this.events.animationComplete.notify();
+				this.clearAnimation();
+			});
+		}
+		stop() {
+			if (this.animation) {
+				this.animation.stop();
+				if (this.events.animationCancel) this.events.animationCancel.notify();
+			}
+			this.clearAnimation();
+		}
+		isAnimating() {
+			return !!this.animation;
+		}
+		clearAnimation() {
+			delete this.animation;
+		}
+		destroy() {
+			this.dependents?.clear();
+			this.events.destroy?.notify();
+			this.clearListeners();
+			this.stop();
+			if (this.stopPassiveEffect) this.stopPassiveEffect();
+		}
+	};
+	function motionValue(init, options) {
+		return new MotionValue(init, options);
+	}
+	function resolveTransition(transition, parentTransition) {
+		if (transition?.inherit && parentTransition) {
+			const { inherit: _, ...rest } = transition;
+			return {
+				...parentTransition,
+				...rest
+			};
+		}
+		return transition;
+	}
+	function getValueTransition$1(transition, key) {
+		const valueTransition = transition?.[key] ?? transition?.["default"] ?? transition;
+		if (valueTransition !== transition) return resolveTransition(valueTransition, transition);
+		return valueTransition;
+	}
+	var underDampedSpring = {
+		type: "spring",
+		stiffness: 500,
+		damping: 25,
+		restSpeed: 10
+	};
+	var criticallyDampedSpring = (target) => ({
+		type: "spring",
+		stiffness: 550,
+		damping: target === 0 ? 2 * Math.sqrt(550) : 30,
+		restSpeed: 10
+	});
+	var keyframesTransition = {
+		type: "keyframes",
+		duration: .8
+	};
+	var ease = {
+		type: "keyframes",
+		ease: [
+			.25,
+			.1,
+			.35,
+			1
+		],
+		duration: .3
+	};
+	var getDefaultTransition = (valueKey, { keyframes }) => {
+		if (keyframes.length > 2) return keyframesTransition;
+		else if (transformProps.has(valueKey)) return valueKey.startsWith("scale") ? criticallyDampedSpring(keyframes[1]) : underDampedSpring;
+		return ease;
+	};
+	var orchestrationKeys = new Set([
+		"when",
+		"delay",
+		"delayChildren",
+		"staggerChildren",
+		"staggerDirection",
+		"repeat",
+		"repeatType",
+		"repeatDelay",
+		"from",
+		"elapsed"
+	]);
+	function isTransitionDefined(transition) {
+		for (const key in transition) if (!orchestrationKeys.has(key)) return true;
+		return false;
+	}
+	var animateMotionValue = (name, value, target, transition = {}, element, isHandoff) => (onComplete) => {
+		const valueTransition = getValueTransition$1(transition, name) || {};
+		const delay = valueTransition.delay || transition.delay || 0;
+		let { elapsed = 0 } = transition;
+		elapsed = elapsed - secondsToMilliseconds(delay);
+		const options = {
+			keyframes: Array.isArray(target) ? target : [null, target],
+			ease: "easeOut",
+			velocity: value.getVelocity(),
+			...valueTransition,
+			delay: -elapsed,
+			onUpdate: (v) => {
+				value.set(v);
+				valueTransition.onUpdate && valueTransition.onUpdate(v);
+			},
+			onComplete: () => {
+				onComplete();
+				valueTransition.onComplete && valueTransition.onComplete();
+			},
+			name,
+			motionValue: value,
+			element: isHandoff ? void 0 : element
+		};
+		if (!isTransitionDefined(valueTransition)) Object.assign(options, getDefaultTransition(name, options));
+		options.duration && (options.duration = secondsToMilliseconds(options.duration));
+		options.repeatDelay && (options.repeatDelay = secondsToMilliseconds(options.repeatDelay));
+		if (options.from !== void 0) options.keyframes[0] = options.from;
+		let shouldSkip = false;
+		if (options.type === false || options.duration === 0 && !options.repeatDelay) {
+			makeAnimationInstant(options);
+			if (options.delay === 0) shouldSkip = true;
+		}
+		if (MotionGlobalConfig.instantAnimations || MotionGlobalConfig.skipAnimations || element?.shouldSkipAnimations || valueTransition.skipAnimations) {
+			shouldSkip = true;
+			makeAnimationInstant(options);
+			options.delay = 0;
+		}
+		options.allowFlatten = !valueTransition.type && !valueTransition.ease;
+		if (shouldSkip && !isHandoff && value.get() !== void 0) {
+			const finalKeyframe = getFinalKeyframe(options.keyframes, valueTransition);
+			if (finalKeyframe !== void 0) {
+				frame.update(() => {
+					options.onUpdate(finalKeyframe);
+					options.onComplete();
+				});
+				return;
+			}
+		}
+		return valueTransition.isSync ? new JSAnimation(options) : new AsyncMotionValueAnimation(options);
+	};
+	var splitCSSVariableRegex = /^var\(--(?:([\w-]+)|([\w-]+), ?([a-zA-Z\d ()%#.,-]+))\)/u;
+	function parseCSSVariable(current) {
+		const match = splitCSSVariableRegex.exec(current);
+		if (!match) return [,];
+		const [, token1, token2, fallback] = match;
+		return [`--${token1 ?? token2}`, fallback];
+	}
+	function getVariableValue(current, element, depth = 1) {
+		`${current}`;
+		const [token, fallback] = parseCSSVariable(current);
+		if (!token) return;
+		const resolved = window.getComputedStyle(element).getPropertyValue(token);
+		if (resolved) {
+			const trimmed = resolved.trim();
+			return isNumericalString(trimmed) ? parseFloat(trimmed) : trimmed;
+		}
+		return isCSSVariableToken(fallback) ? getVariableValue(fallback, element, depth + 1) : fallback;
+	}
+	function getValueState(visualElement) {
+		const state = [{}, {}];
+		visualElement?.values.forEach((value, key) => {
+			state[0][key] = value.get();
+			state[1][key] = value.getVelocity();
+		});
+		return state;
+	}
+	function resolveVariantFromProps(props, definition, custom, visualElement) {
+		if (typeof definition === "function") {
+			const [current, velocity] = getValueState(visualElement);
+			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
+		}
+		if (typeof definition === "string") definition = props.variants && props.variants[definition];
+		if (typeof definition === "function") {
+			const [current, velocity] = getValueState(visualElement);
+			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
+		}
+		return definition;
+	}
+	function resolveVariant(visualElement, definition, custom) {
+		const props = visualElement.getProps();
+		return resolveVariantFromProps(props, definition, custom !== void 0 ? custom : props.custom, visualElement);
+	}
+	var positionalKeys = new Set([
+		"width",
+		"height",
+		"top",
+		"left",
+		"right",
+		"bottom",
+		...transformPropOrder
+	]);
+	var isKeyframesTarget = (v) => {
+		return Array.isArray(v);
+	};
+	function setMotionValue(visualElement, key, value) {
+		if (visualElement.hasValue(key)) visualElement.getValue(key).set(value);
+		else visualElement.addValue(key, motionValue(value));
+	}
+	function resolveFinalValueInKeyframes(v) {
+		return isKeyframesTarget(v) ? v[v.length - 1] || 0 : v;
+	}
+	function setTarget(visualElement, definition) {
+		let { transitionEnd = {}, transition = {}, ...target } = resolveVariant(visualElement, definition) || {};
+		target = {
+			...target,
+			...transitionEnd
+		};
+		for (const key in target) setMotionValue(visualElement, key, resolveFinalValueInKeyframes(target[key]));
+	}
+	var isMotionValue = (value) => Boolean(value && value.getVelocity);
+	function isWillChangeMotionValue(value) {
+		return Boolean(isMotionValue(value) && value.add);
+	}
+	function addValueToWillChange(visualElement, key) {
+		const willChange = visualElement.getValue("willChange");
+		if (isWillChangeMotionValue(willChange)) return willChange.add(key);
+		else if (!willChange && MotionGlobalConfig.WillChange) {
+			const newWillChange = new MotionGlobalConfig.WillChange("auto");
+			visualElement.addValue("willChange", newWillChange);
+			newWillChange.add(key);
+		}
+	}
+	function camelToDash(str) {
+		return str.replace(/([A-Z])/g, (match) => `-${match.toLowerCase()}`);
+	}
+	var optimizedAppearDataAttribute = "data-" + camelToDash("framerAppearId");
+	function getOptimisedAppearId(visualElement) {
+		return visualElement.props[optimizedAppearDataAttribute];
+	}
+	function shouldBlockAnimation({ protectedKeys, needsAnimating }, key) {
+		const shouldBlock = protectedKeys.hasOwnProperty(key) && needsAnimating[key] !== true;
+		needsAnimating[key] = false;
+		return shouldBlock;
+	}
+	function animateTarget(visualElement, targetAndTransition, { delay = 0, transitionOverride, type } = {}) {
+		let { transition, transitionEnd, ...target } = targetAndTransition;
+		const defaultTransition = visualElement.getDefaultTransition();
+		transition = transition ? resolveTransition(transition, defaultTransition) : defaultTransition;
+		const reduceMotion = transition?.reduceMotion;
+		const skipAnimations = transition?.skipAnimations;
+		if (transitionOverride) transition = transitionOverride;
+		const animations = [];
+		const animationTypeState = type && visualElement.animationState && visualElement.animationState.getState()[type];
+		const path = transition?.path;
+		if (path) path.animateVisualElement(visualElement, target, transition, delay, animations);
+		for (const key in target) {
+			const value = visualElement.getValue(key, visualElement.latestValues[key] ?? null);
+			const valueTarget = target[key];
+			if (valueTarget === void 0 || animationTypeState && shouldBlockAnimation(animationTypeState, key)) continue;
+			const valueTransition = {
+				delay,
+				...getValueTransition$1(transition || {}, key)
+			};
+			if (skipAnimations) valueTransition.skipAnimations = true;
+			const currentValue = value.get();
+			if (currentValue !== void 0 && !value.isAnimating() && !Array.isArray(valueTarget) && valueTarget === currentValue && !valueTransition.velocity) {
+				frame.update(() => value.set(valueTarget));
+				continue;
+			}
+			let isHandoff = false;
+			if (window.MotionHandoffAnimation) {
+				const appearId = getOptimisedAppearId(visualElement);
+				if (appearId) {
+					const startTime = window.MotionHandoffAnimation(appearId, key, frame);
+					if (startTime !== null) {
+						valueTransition.startTime = startTime;
+						isHandoff = true;
+					}
+				}
+			}
+			addValueToWillChange(visualElement, key);
+			const shouldReduceMotion = reduceMotion ?? visualElement.shouldReduceMotion;
+			value.start(animateMotionValue(key, value, valueTarget, shouldReduceMotion && positionalKeys.has(key) ? { type: false } : valueTransition, visualElement, isHandoff));
+			const animation = value.animation;
+			if (animation) animations.push(animation);
+		}
+		if (transitionEnd) {
+			const applyTransitionEnd = () => frame.update(() => {
+				transitionEnd && setTarget(visualElement, transitionEnd);
+			});
+			if (animations.length) Promise.all(animations).then(applyTransitionEnd);
+			else applyTransitionEnd();
+		}
+		return animations;
+	}
+	var auto = {
+		test: (v) => v === "auto",
+		parse: (v) => v
+	};
+	var testValueType = (v) => (type) => type.test(v);
+	var dimensionValueTypes = [
+		number,
+		px,
+		percent,
+		degrees,
+		vw,
+		vh,
+		auto
+	];
+	var findDimensionValueType = (v) => dimensionValueTypes.find(testValueType(v));
+	function isNone(value) {
+		if (typeof value === "number") return value === 0;
+		else if (value !== null) return value === "none" || value === "0" || isZeroValueString(value);
+		else return true;
+	}
+	var maxDefaults = new Set([
+		"brightness",
+		"contrast",
+		"saturate",
+		"opacity"
+	]);
+	function applyDefaultFilter(v) {
+		const [name, value] = v.slice(0, -1).split("(");
+		if (name === "drop-shadow") return v;
+		const [number] = value.match(floatRegex) || [];
+		if (!number) return v;
+		const unit = value.replace(number, "");
+		let defaultValue = maxDefaults.has(name) ? 1 : 0;
+		if (number !== value) defaultValue *= 100;
+		return name + "(" + defaultValue + unit + ")";
+	}
+	var functionRegex = /\b([a-z-]*)\(.*?\)/gu;
+	var filter = {
+		...complex,
+		getAnimatableNone: (v) => {
+			const functions = v.match(functionRegex);
+			return functions ? functions.map(applyDefaultFilter).join(" ") : v;
+		}
+	};
+	var mask = {
+		...complex,
+		getAnimatableNone: (v) => {
+			const parsed = complex.parse(v);
+			return complex.createTransformer(v)(parsed.map((v) => typeof v === "number" ? 0 : typeof v === "object" ? {
+				...v,
+				alpha: 1
+			} : v));
+		}
+	};
+	var int = {
+		...number,
+		transform: Math.round
+	};
+	var numberValueTypes = {
+		borderWidth: px,
+		borderTopWidth: px,
+		borderRightWidth: px,
+		borderBottomWidth: px,
+		borderLeftWidth: px,
+		borderRadius: px,
+		borderTopLeftRadius: px,
+		borderTopRightRadius: px,
+		borderBottomRightRadius: px,
+		borderBottomLeftRadius: px,
+		width: px,
+		maxWidth: px,
+		height: px,
+		maxHeight: px,
+		top: px,
+		right: px,
+		bottom: px,
+		left: px,
+		inset: px,
+		insetBlock: px,
+		insetBlockStart: px,
+		insetBlockEnd: px,
+		insetInline: px,
+		insetInlineStart: px,
+		insetInlineEnd: px,
+		padding: px,
+		paddingTop: px,
+		paddingRight: px,
+		paddingBottom: px,
+		paddingLeft: px,
+		paddingBlock: px,
+		paddingBlockStart: px,
+		paddingBlockEnd: px,
+		paddingInline: px,
+		paddingInlineStart: px,
+		paddingInlineEnd: px,
+		margin: px,
+		marginTop: px,
+		marginRight: px,
+		marginBottom: px,
+		marginLeft: px,
+		marginBlock: px,
+		marginBlockStart: px,
+		marginBlockEnd: px,
+		marginInline: px,
+		marginInlineStart: px,
+		marginInlineEnd: px,
+		fontSize: px,
+		backgroundPositionX: px,
+		backgroundPositionY: px,
+		rotate: degrees,
+		pathRotation: degrees,
+		rotateX: degrees,
+		rotateY: degrees,
+		rotateZ: degrees,
+		scale,
+		scaleX: scale,
+		scaleY: scale,
+		scaleZ: scale,
+		skew: degrees,
+		skewX: degrees,
+		skewY: degrees,
+		distance: px,
+		translateX: px,
+		translateY: px,
+		translateZ: px,
+		x: px,
+		y: px,
+		z: px,
+		perspective: px,
+		transformPerspective: px,
+		opacity: alpha,
+		originX: progressPercentage,
+		originY: progressPercentage,
+		originZ: px,
+		zIndex: int,
+		fillOpacity: alpha,
+		strokeOpacity: alpha,
+		numOctaves: int
+	};
+	var defaultValueTypes = {
+		...numberValueTypes,
+		color,
+		backgroundColor: color,
+		outlineColor: color,
+		fill: color,
+		stroke: color,
+		borderColor: color,
+		borderTopColor: color,
+		borderRightColor: color,
+		borderBottomColor: color,
+		borderLeftColor: color,
+		filter,
+		WebkitFilter: filter,
+		mask,
+		WebkitMask: mask
+	};
+	var getDefaultValueType = (key) => defaultValueTypes[key];
+	var customTypes = new Set([filter, mask]);
+	function getAnimatableNone(key, value) {
+		let defaultValueType = getDefaultValueType(key);
+		if (!customTypes.has(defaultValueType)) defaultValueType = complex;
+		return defaultValueType.getAnimatableNone ? defaultValueType.getAnimatableNone(value) : void 0;
+	}
+	var invalidTemplates = new Set([
+		"auto",
+		"none",
+		"0"
+	]);
+	function makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name) {
+		let i = 0;
+		let animatableTemplate = void 0;
+		while (i < unresolvedKeyframes.length && !animatableTemplate) {
+			const keyframe = unresolvedKeyframes[i];
+			if (typeof keyframe === "string" && !invalidTemplates.has(keyframe) && analyseComplexValue(keyframe).values.length) animatableTemplate = unresolvedKeyframes[i];
+			i++;
+		}
+		if (animatableTemplate && name) for (const noneIndex of noneKeyframeIndexes) unresolvedKeyframes[noneIndex] = getAnimatableNone(name, animatableTemplate);
+	}
+	var DOMKeyframesResolver = class extends KeyframeResolver {
+		constructor(unresolvedKeyframes, onComplete, name, motionValue, element) {
+			super(unresolvedKeyframes, onComplete, name, motionValue, element, true);
+		}
+		readKeyframes() {
+			const { unresolvedKeyframes, element, name } = this;
+			if (!element || !element.current) return;
+			super.readKeyframes();
+			for (let i = 0; i < unresolvedKeyframes.length; i++) {
+				let keyframe = unresolvedKeyframes[i];
+				if (typeof keyframe === "string") {
+					keyframe = keyframe.trim();
+					if (isCSSVariableToken(keyframe)) {
+						const resolved = getVariableValue(keyframe, element.current);
+						if (resolved !== void 0) unresolvedKeyframes[i] = resolved;
+						if (i === unresolvedKeyframes.length - 1) this.finalKeyframe = keyframe;
+					}
+				}
+			}
+			this.resolveNoneKeyframes();
+			if (!positionalKeys.has(name) || unresolvedKeyframes.length !== 2) return;
+			const [origin, target] = unresolvedKeyframes;
+			const originType = findDimensionValueType(origin);
+			const targetType = findDimensionValueType(target);
+			if (containsCSSVariable(origin) !== containsCSSVariable(target) && positionalValues[name]) {
+				this.needsMeasurement = true;
+				return;
+			}
+			if (originType === targetType) return;
+			if (isNumOrPxType(originType) && isNumOrPxType(targetType)) for (let i = 0; i < unresolvedKeyframes.length; i++) {
+				const value = unresolvedKeyframes[i];
+				if (typeof value === "string") unresolvedKeyframes[i] = parseFloat(value);
+			}
+			else if (positionalValues[name]) this.needsMeasurement = true;
+		}
+		resolveNoneKeyframes() {
+			const { unresolvedKeyframes, name } = this;
+			const noneKeyframeIndexes = [];
+			for (let i = 0; i < unresolvedKeyframes.length; i++) if (unresolvedKeyframes[i] === null || isNone(unresolvedKeyframes[i])) noneKeyframeIndexes.push(i);
+			if (noneKeyframeIndexes.length) makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name);
+		}
+		measureInitialState() {
+			const { element, unresolvedKeyframes, name } = this;
+			if (!element || !element.current) return;
+			if (name === "height") this.suspendedScrollY = window.pageYOffset;
+			this.measuredOrigin = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
+			unresolvedKeyframes[0] = this.measuredOrigin;
+			const measureKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
+			if (measureKeyframe !== void 0) element.getValue(name, measureKeyframe).jump(measureKeyframe, false);
+		}
+		measureEndState() {
+			const { element, name, unresolvedKeyframes } = this;
+			if (!element || !element.current) return;
+			const value = element.getValue(name);
+			value && value.jump(this.measuredOrigin, false);
+			const finalKeyframeIndex = unresolvedKeyframes.length - 1;
+			const finalKeyframe = unresolvedKeyframes[finalKeyframeIndex];
+			unresolvedKeyframes[finalKeyframeIndex] = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
+			if (finalKeyframe !== null && this.finalKeyframe === void 0) this.finalKeyframe = finalKeyframe;
+			if (this.removedTransforms?.length) this.removedTransforms.forEach(([unsetTransformName, unsetTransformValue]) => {
+				element.getValue(unsetTransformName).set(unsetTransformValue);
+			});
+			this.resolveNoneKeyframes();
+		}
+	};
+	var cornerRadiusProps = [
+		"borderTopLeftRadius",
+		"borderTopRightRadius",
+		"borderBottomRightRadius",
+		"borderBottomLeftRadius"
+	];
+	function resolveElements(elementOrSelector, scope, selectorCache) {
+		if (elementOrSelector == null) return [];
+		if (elementOrSelector instanceof EventTarget) return [elementOrSelector];
+		else if (typeof elementOrSelector === "string") {
+			let root = document;
+			if (scope) root = scope.current;
+			const elements = selectorCache?.[elementOrSelector] ?? root.querySelectorAll(elementOrSelector);
+			return elements ? Array.from(elements) : [];
+		}
+		return Array.from(elementOrSelector).filter((element) => element != null);
+	}
+	var getValueAsType = (value, type) => {
+		return type && typeof value === "number" ? type.transform(value) : value;
+	};
+	var { schedule: microtask, cancel: cancelMicrotask } = createRenderBatcher(queueMicrotask, false);
+	function isSVGElement(element) {
+		return isObject(element) && "ownerSVGElement" in element;
+	}
+	function isSVGSVGElement(element) {
+		return isSVGElement(element) && element.tagName === "svg";
+	}
+	var valueTypes = [
+		...dimensionValueTypes,
+		color,
+		complex
+	];
+	var findValueType = (v) => valueTypes.find(testValueType(v));
+	var createAxis = () => ({
+		min: 0,
+		max: 0
+	});
+	var createBox = () => ({
+		x: createAxis(),
+		y: createAxis()
+	});
+	var visualElementStore = new WeakMap();
+	function isAnimationControls(v) {
+		return v !== null && typeof v === "object" && typeof v.start === "function";
+	}
+	function isVariantLabel(v) {
+		return typeof v === "string" || Array.isArray(v);
+	}
+	var variantProps = ["initial", ...[
+		"animate",
+		"whileInView",
+		"whileFocus",
+		"whileHover",
+		"whileTap",
+		"whileDrag",
+		"exit"
+	]];
+	function isControllingVariants(props) {
+		return isAnimationControls(props.animate) || variantProps.some((name) => isVariantLabel(props[name]));
+	}
+	function isVariantNode(props) {
+		return Boolean(isControllingVariants(props) || props.variants);
+	}
+	function updateMotionValuesFromProps(element, next, prev) {
+		for (const key in next) {
+			const nextValue = next[key];
+			const prevValue = prev[key];
+			if (isMotionValue(nextValue)) element.addValue(key, nextValue);
+			else if (isMotionValue(prevValue)) element.addValue(key, motionValue(nextValue, { owner: element }));
+			else if (prevValue !== nextValue) if (element.hasValue(key)) {
+				const existingValue = element.getValue(key);
+				if (existingValue.liveStyle === true) existingValue.jump(nextValue);
+				else if (!existingValue.hasAnimated) existingValue.set(nextValue);
+			} else {
+				const latestValue = element.getStaticValue(key);
+				element.addValue(key, motionValue(latestValue !== void 0 ? latestValue : nextValue, { owner: element }));
+			}
+		}
+		for (const key in prev) if (next[key] === void 0) element.removeValue(key);
+		return next;
+	}
+	var prefersReducedMotion$1 = { current: null };
+	var hasReducedMotionListener = { current: false };
+	var isBrowser = typeof window !== "undefined";
+	function initPrefersReducedMotion() {
+		hasReducedMotionListener.current = true;
+		if (!isBrowser) return;
+		if (window.matchMedia) {
+			const motionMediaQuery = window.matchMedia("(prefers-reduced-motion)");
+			const setReducedMotionPreferences = () => prefersReducedMotion$1.current = motionMediaQuery.matches;
+			motionMediaQuery.addEventListener("change", setReducedMotionPreferences);
+			setReducedMotionPreferences();
+		} else prefersReducedMotion$1.current = false;
+	}
+	var propEventHandlers = [
+		"AnimationStart",
+		"AnimationComplete",
+		"Update",
+		"BeforeLayoutMeasure",
+		"LayoutMeasure",
+		"LayoutAnimationStart",
+		"LayoutAnimationComplete"
+	];
+	var featureDefinitions = {};
+	var VisualElement = class {
+		scrapeMotionValuesFromProps(_props, _prevProps, _visualElement) {
+			return {};
+		}
+		constructor({ parent, props, presenceContext, reducedMotionConfig, skipAnimations, blockInitialAnimation, visualState }, options = {}) {
+			this.current = null;
+			this.children = new Set();
+			this.isVariantNode = false;
+			this.isControllingVariants = false;
+			this.shouldReduceMotion = null;
+			this.shouldSkipAnimations = false;
+			this.values = new Map();
+			this.KeyframeResolver = KeyframeResolver;
+			this.features = {};
+			this.valueSubscriptions = new Map();
+			this.prevMotionValues = {};
+			this.hasBeenMounted = false;
+			this.events = {};
+			this.propEventSubscriptions = {};
+			this.notifyUpdate = () => this.notify("Update", this.latestValues);
+			this.render = () => {
+				if (!this.current) return;
+				this.triggerBuild();
+				this.renderInstance(this.current, this.renderState, this.props.style, this.projection);
+			};
+			this.renderScheduledAt = 0;
+			this.scheduleRender = () => {
+				const now = time.now();
+				if (this.renderScheduledAt < now) {
+					this.renderScheduledAt = now;
+					frame.render(this.render, false, true);
+				}
+			};
+			const { latestValues, renderState } = visualState;
+			this.latestValues = latestValues;
+			this.baseTarget = { ...latestValues };
+			this.initialValues = props.initial ? { ...latestValues } : {};
+			this.renderState = renderState;
+			this.parent = parent;
+			this.props = props;
+			this.presenceContext = presenceContext;
+			this.depth = parent ? parent.depth + 1 : 0;
+			this.reducedMotionConfig = reducedMotionConfig;
+			this.skipAnimationsConfig = skipAnimations;
+			this.options = options;
+			this.blockInitialAnimation = Boolean(blockInitialAnimation);
+			this.isControllingVariants = isControllingVariants(props);
+			this.isVariantNode = isVariantNode(props);
+			if (this.isVariantNode) this.variantChildren = new Set();
+			this.manuallyAnimateOnMount = Boolean(parent && parent.current);
+			const { willChange, ...initialMotionValues } = this.scrapeMotionValuesFromProps(props, {}, this);
+			for (const key in initialMotionValues) {
+				const value = initialMotionValues[key];
+				if (latestValues[key] !== void 0 && isMotionValue(value)) value.set(latestValues[key]);
+			}
+		}
+		mount(instance) {
+			if (this.hasBeenMounted) for (const key in this.initialValues) {
+				this.values.get(key)?.jump(this.initialValues[key]);
+				this.latestValues[key] = this.initialValues[key];
+			}
+			this.current = instance;
+			visualElementStore.set(instance, this);
+			if (this.projection && !this.projection.instance) this.projection.mount(instance);
+			if (this.parent && this.isVariantNode && !this.isControllingVariants) this.removeFromVariantTree = this.parent.addVariantChild(this);
+			this.values.forEach((value, key) => this.bindToMotionValue(key, value));
+			if (this.reducedMotionConfig === "never") this.shouldReduceMotion = false;
+			else if (this.reducedMotionConfig === "always") this.shouldReduceMotion = true;
+			else {
+				if (!hasReducedMotionListener.current) initPrefersReducedMotion();
+				this.shouldReduceMotion = prefersReducedMotion$1.current;
+			}
+			this.shouldSkipAnimations = this.skipAnimationsConfig ?? false;
+			this.parent?.addChild(this);
+			this.update(this.props, this.presenceContext);
+			this.hasBeenMounted = true;
+		}
+		unmount() {
+			this.projection && this.projection.unmount();
+			cancelFrame(this.notifyUpdate);
+			cancelFrame(this.render);
+			this.valueSubscriptions.forEach((remove) => remove());
+			this.valueSubscriptions.clear();
+			this.removeFromVariantTree && this.removeFromVariantTree();
+			this.parent?.removeChild(this);
+			for (const key in this.events) this.events[key].clear();
+			for (const key in this.features) {
+				const feature = this.features[key];
+				if (feature) {
+					feature.unmount();
+					feature.isMounted = false;
+				}
+			}
+			this.current = null;
+		}
+		addChild(child) {
+			this.children.add(child);
+			this.enteringChildren ?? (this.enteringChildren = new Set());
+			this.enteringChildren.add(child);
+		}
+		removeChild(child) {
+			this.children.delete(child);
+			this.enteringChildren && this.enteringChildren.delete(child);
+		}
+		bindToMotionValue(key, value) {
+			if (this.valueSubscriptions.has(key)) this.valueSubscriptions.get(key)();
+			if (value.accelerate && acceleratedValues.has(key) && this.current instanceof HTMLElement) {
+				const { factory, keyframes, times, ease, duration } = value.accelerate;
+				const animation = new NativeAnimation({
+					element: this.current,
+					name: key,
+					keyframes,
+					times,
+					ease,
+					duration: secondsToMilliseconds(duration)
+				});
+				const cleanup = factory(animation);
+				this.valueSubscriptions.set(key, () => {
+					cleanup();
+					animation.cancel();
+				});
+				return;
+			}
+			const valueIsTransform = transformProps.has(key);
+			if (valueIsTransform && this.onBindTransform) this.onBindTransform();
+			const removeOnChange = value.on("change", (latestValue) => {
+				this.latestValues[key] = latestValue;
+				this.props.onUpdate && frame.preRender(this.notifyUpdate);
+				if (valueIsTransform && this.projection) this.projection.isTransformDirty = true;
+				this.scheduleRender();
+			});
+			let removeSyncCheck;
+			if (typeof window !== "undefined" && window.MotionCheckAppearSync) removeSyncCheck = window.MotionCheckAppearSync(this, key, value);
+			this.valueSubscriptions.set(key, () => {
+				removeOnChange();
+				if (removeSyncCheck) removeSyncCheck();
+			});
+		}
+		sortNodePosition(other) {
+			if (!this.current || !this.sortInstanceNodePosition || this.type !== other.type) return 0;
+			return this.sortInstanceNodePosition(this.current, other.current);
+		}
+		updateFeatures() {
+			let key = "animation";
+			for (key in featureDefinitions) {
+				const featureDefinition = featureDefinitions[key];
+				if (!featureDefinition) continue;
+				const { isEnabled, Feature: FeatureConstructor } = featureDefinition;
+				if (!this.features[key] && FeatureConstructor && isEnabled(this.props)) this.features[key] = new FeatureConstructor(this);
+				if (this.features[key]) {
+					const feature = this.features[key];
+					if (feature.isMounted) feature.update();
+					else {
+						feature.mount();
+						feature.isMounted = true;
+					}
+				}
+			}
+		}
+		triggerBuild() {
+			this.build(this.renderState, this.latestValues, this.props);
+		}
+		measureViewportBox() {
+			return this.current ? this.measureInstanceViewportBox(this.current, this.props) : createBox();
+		}
+		getStaticValue(key) {
+			return this.latestValues[key];
+		}
+		setStaticValue(key, value) {
+			this.latestValues[key] = value;
+		}
+		update(props, presenceContext) {
+			if (props.transformTemplate || this.props.transformTemplate) this.scheduleRender();
+			this.prevProps = this.props;
+			this.props = props;
+			this.prevPresenceContext = this.presenceContext;
+			this.presenceContext = presenceContext;
+			for (let i = 0; i < propEventHandlers.length; i++) {
+				const key = propEventHandlers[i];
+				if (this.propEventSubscriptions[key]) {
+					this.propEventSubscriptions[key]();
+					delete this.propEventSubscriptions[key];
+				}
+				const listener = props["on" + key];
+				if (listener) this.propEventSubscriptions[key] = this.on(key, listener);
+			}
+			this.prevMotionValues = updateMotionValuesFromProps(this, this.scrapeMotionValuesFromProps(props, this.prevProps || {}, this), this.prevMotionValues);
+			if (this.handleChildMotionValue) this.handleChildMotionValue();
+		}
+		getProps() {
+			return this.props;
+		}
+		getVariant(name) {
+			return this.props.variants ? this.props.variants[name] : void 0;
+		}
+		getDefaultTransition() {
+			return this.props.transition;
+		}
+		getTransformPagePoint() {
+			return this.props.transformPagePoint;
+		}
+		getClosestVariantNode() {
+			return this.isVariantNode ? this : this.parent ? this.parent.getClosestVariantNode() : void 0;
+		}
+		addVariantChild(child) {
+			const closestVariantNode = this.getClosestVariantNode();
+			if (closestVariantNode) {
+				closestVariantNode.variantChildren && closestVariantNode.variantChildren.add(child);
+				return () => closestVariantNode.variantChildren.delete(child);
+			}
+		}
+		addValue(key, value) {
+			const existingValue = this.values.get(key);
+			if (value !== existingValue) {
+				if (existingValue) this.removeValue(key);
+				this.bindToMotionValue(key, value);
+				this.values.set(key, value);
+				this.latestValues[key] = value.get();
+			}
+		}
+		removeValue(key) {
+			this.values.delete(key);
+			const unsubscribe = this.valueSubscriptions.get(key);
+			if (unsubscribe) {
+				unsubscribe();
+				this.valueSubscriptions.delete(key);
+			}
+			delete this.latestValues[key];
+			this.removeValueFromRenderState(key, this.renderState);
+		}
+		hasValue(key) {
+			return this.values.has(key);
+		}
+		getValue(key, defaultValue) {
+			if (this.props.values && this.props.values[key]) return this.props.values[key];
+			let value = this.values.get(key);
+			if (value === void 0 && defaultValue !== void 0) {
+				value = motionValue(defaultValue === null ? void 0 : defaultValue, { owner: this });
+				this.addValue(key, value);
+			}
+			return value;
+		}
+		readValue(key, target) {
+			let value = this.latestValues[key] !== void 0 || !this.current ? this.latestValues[key] : this.getBaseTargetFromProps(this.props, key) ?? this.readValueFromInstance(this.current, key, this.options);
+			if (value !== void 0 && value !== null) {
+				if (typeof value === "string" && (isNumericalString(value) || isZeroValueString(value))) value = parseFloat(value);
+				else if (!findValueType(value) && complex.test(target)) value = getAnimatableNone(key, target);
+				this.setBaseTarget(key, isMotionValue(value) ? value.get() : value);
+			}
+			return isMotionValue(value) ? value.get() : value;
+		}
+		setBaseTarget(key, value) {
+			this.baseTarget[key] = value;
+		}
+		getBaseTarget(key) {
+			const { initial } = this.props;
+			let valueFromInitial;
+			if (typeof initial === "string" || typeof initial === "object") {
+				const variant = resolveVariantFromProps(this.props, initial, this.presenceContext?.custom);
+				if (variant) valueFromInitial = variant[key];
+			}
+			if (initial && valueFromInitial !== void 0) return valueFromInitial;
+			const target = this.getBaseTargetFromProps(this.props, key);
+			if (target !== void 0 && !isMotionValue(target)) return target;
+			return this.initialValues[key] !== void 0 && valueFromInitial === void 0 ? void 0 : this.baseTarget[key];
+		}
+		on(eventName, callback) {
+			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
+			return this.events[eventName].add(callback);
+		}
+		notify(eventName, ...args) {
+			if (this.events[eventName]) this.events[eventName].notify(...args);
+		}
+		scheduleRenderMicrotask() {
+			microtask.render(this.render);
+		}
+	};
+	var DOMVisualElement = class extends VisualElement {
+		constructor() {
+			super(...arguments);
+			this.KeyframeResolver = DOMKeyframesResolver;
+		}
+		sortInstanceNodePosition(a, b) {
+			return a.compareDocumentPosition(b) & 2 ? 1 : -1;
+		}
+		getBaseTargetFromProps(props, key) {
+			const style = props.style;
+			return style ? style[key] : void 0;
+		}
+		removeValueFromRenderState(key, { vars, style }) {
+			delete vars[key];
+			delete style[key];
+		}
+		handleChildMotionValue() {
+			if (this.childSubscription) {
+				this.childSubscription();
+				delete this.childSubscription;
+			}
+			const { children } = this.props;
+			if (isMotionValue(children)) this.childSubscription = children.on("change", (latest) => {
+				if (this.current) this.current.textContent = `${latest}`;
+			});
+		}
+	};
+	function convertBoundingBoxToBox({ top, left, right, bottom }) {
+		return {
+			x: {
+				min: left,
+				max: right
+			},
+			y: {
+				min: top,
+				max: bottom
+			}
+		};
+	}
+	function transformBoxPoints(point, transformPoint) {
+		if (!transformPoint) return point;
+		const topLeft = transformPoint({
+			x: point.left,
+			y: point.top
+		});
+		const bottomRight = transformPoint({
+			x: point.right,
+			y: point.bottom
+		});
+		return {
+			top: topLeft.y,
+			left: topLeft.x,
+			bottom: bottomRight.y,
+			right: bottomRight.x
+		};
+	}
+	function measureViewportBox(instance, transformPoint) {
+		return convertBoundingBoxToBox(transformBoxPoints(instance.getBoundingClientRect(), transformPoint));
+	}
+	var translateAlias = {
+		x: "translateX",
+		y: "translateY",
+		z: "translateZ",
+		transformPerspective: "perspective"
+	};
+	var numTransforms = transformPropOrder.length;
+	function buildTransform(latestValues, transform, transformTemplate) {
+		let transformString = "";
+		let transformIsDefault = true;
+		for (let i = 0; i < numTransforms; i++) {
+			const key = transformPropOrder[i];
+			const value = latestValues[key];
+			if (value === void 0) continue;
+			let valueIsDefault = true;
+			if (typeof value === "number") valueIsDefault = value === (key.startsWith("scale") ? 1 : 0);
+			else {
+				const parsed = parseFloat(value);
+				valueIsDefault = key.startsWith("scale") ? parsed === 1 : parsed === 0;
+			}
+			if (!valueIsDefault || transformTemplate) {
+				const valueAsType = getValueAsType(value, numberValueTypes[key]);
+				if (!valueIsDefault) {
+					transformIsDefault = false;
+					const transformName = translateAlias[key] || key;
+					transformString += `${transformName}(${valueAsType}) `;
+				}
+				if (transformTemplate) transform[key] = valueAsType;
+			}
+		}
+		const pathRotation = latestValues.pathRotation;
+		if (pathRotation) {
+			transformIsDefault = false;
+			transformString += `rotate(${getValueAsType(pathRotation, numberValueTypes.pathRotation)}) `;
+		}
+		transformString = transformString.trim();
+		if (transformTemplate) transformString = transformTemplate(transform, transformIsDefault ? "" : transformString);
+		else if (transformIsDefault) transformString = "none";
+		return transformString;
+	}
+	function buildHTMLStyles(state, latestValues, transformTemplate) {
+		const { style, vars, transformOrigin } = state;
+		let hasTransform = false;
+		let hasTransformOrigin = false;
+		for (const key in latestValues) {
+			const value = latestValues[key];
+			if (transformProps.has(key)) {
+				hasTransform = true;
+				continue;
+			} else if (isCSSVariableName(key)) {
+				vars[key] = value;
+				continue;
+			} else {
+				const valueAsType = getValueAsType(value, numberValueTypes[key]);
+				if (key.startsWith("origin")) {
+					hasTransformOrigin = true;
+					transformOrigin[key] = valueAsType;
+				} else style[key] = valueAsType;
+			}
+		}
+		if (!latestValues.transform) {
+			if (hasTransform || transformTemplate) style.transform = buildTransform(latestValues, state.transform, transformTemplate);
+			else if (style.transform) style.transform = "none";
+		}
+		if (hasTransformOrigin) {
+			const { originX = "50%", originY = "50%", originZ = 0 } = transformOrigin;
+			style.transformOrigin = `${originX} ${originY} ${originZ}`;
+		}
+	}
+	function renderHTML(element, { style, vars }, styleProp, projection) {
+		const elementStyle = element.style;
+		let key;
+		for (key in style) elementStyle[key] = style[key];
+		projection?.applyProjectionStyles(elementStyle, styleProp);
+		for (key in vars) elementStyle.setProperty(key, vars[key]);
+	}
+	function pixelsToPercent(pixels, axis) {
+		if (axis.max === axis.min) return 0;
+		return pixels / (axis.max - axis.min) * 100;
+	}
+	var correctBorderRadius = { correct: (latest, node) => {
+		if (!node.target) return latest;
+		if (typeof latest === "string") if (px.test(latest)) latest = parseFloat(latest);
+		else return latest;
+		return `${pixelsToPercent(latest, node.target.x)}% ${pixelsToPercent(latest, node.target.y)}%`;
+	} };
+	var correctBoxShadow = { correct: (latest, { treeScale, projectionDelta }) => {
+		const original = latest;
+		const shadow = complex.parse(latest);
+		if (shadow.length > 5) return original;
+		const template = complex.createTransformer(latest);
+		const offset = typeof shadow[0] !== "number" ? 1 : 0;
+		const xScale = projectionDelta.x.scale * treeScale.x;
+		const yScale = projectionDelta.y.scale * treeScale.y;
+		shadow[0 + offset] /= xScale;
+		shadow[1 + offset] /= yScale;
+		const averageScale = mixNumber$1(xScale, yScale, .5);
+		if (typeof shadow[2 + offset] === "number") shadow[2 + offset] /= averageScale;
+		if (typeof shadow[3 + offset] === "number") shadow[3 + offset] /= averageScale;
+		return template(shadow);
+	} };
+	var scaleCorrectors = {
+		borderRadius: {
+			...correctBorderRadius,
+			applyTo: [...cornerRadiusProps]
+		},
+		borderTopLeftRadius: correctBorderRadius,
+		borderTopRightRadius: correctBorderRadius,
+		borderBottomLeftRadius: correctBorderRadius,
+		borderBottomRightRadius: correctBorderRadius,
+		boxShadow: correctBoxShadow
+	};
+	function isForcedMotionValue(key, { layout, layoutId }) {
+		return transformProps.has(key) || key.startsWith("origin") || (layout || layoutId !== void 0) && (!!scaleCorrectors[key] || key === "opacity");
+	}
+	function scrapeMotionValuesFromProps$1(props, prevProps, visualElement) {
+		const style = props.style;
+		const prevStyle = prevProps?.style;
+		const newValues = {};
+		if (!style) return newValues;
+		for (const key in style) if (isMotionValue(style[key]) || prevStyle && isMotionValue(prevStyle[key]) || isForcedMotionValue(key, props) || visualElement?.getValue(key)?.liveStyle !== void 0) newValues[key] = style[key];
+		return newValues;
+	}
+	function getComputedStyle$1(element) {
+		return window.getComputedStyle(element);
+	}
+	var HTMLVisualElement = class extends DOMVisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "html";
+			this.renderInstance = renderHTML;
+		}
+		readValueFromInstance(instance, key) {
+			if (transformProps.has(key)) return this.projection?.isProjecting ? defaultTransformValue(key) : readTransformValue(instance, key);
+			else {
+				const computedStyle = getComputedStyle$1(instance);
+				const value = (isCSSVariableName(key) ? computedStyle.getPropertyValue(key) : computedStyle[key]) || 0;
+				return typeof value === "string" ? value.trim() : value;
+			}
+		}
+		measureInstanceViewportBox(instance, { transformPagePoint }) {
+			return measureViewportBox(instance, transformPagePoint);
+		}
+		build(renderState, latestValues, props) {
+			buildHTMLStyles(renderState, latestValues, props.transformTemplate);
+		}
+		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+			return scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
+		}
+	};
+	function isObjectKey(key, object) {
+		return key in object;
+	}
+	var ObjectVisualElement = class extends VisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "object";
+		}
+		readValueFromInstance(instance, key) {
+			if (isObjectKey(key, instance)) {
+				const value = instance[key];
+				if (typeof value === "string" || typeof value === "number") return value;
+			}
+		}
+		getBaseTargetFromProps() {}
+		removeValueFromRenderState(key, renderState) {
+			delete renderState.output[key];
+		}
+		measureInstanceViewportBox() {
+			return createBox();
+		}
+		build(renderState, latestValues) {
+			Object.assign(renderState.output, latestValues);
+		}
+		renderInstance(instance, { output }) {
+			Object.assign(instance, output);
+		}
+		sortInstanceNodePosition() {
+			return 0;
+		}
+	};
+	var dashKeys = {
+		offset: "stroke-dashoffset",
+		array: "stroke-dasharray"
+	};
+	var camelKeys = {
+		offset: "strokeDashoffset",
+		array: "strokeDasharray"
+	};
+	function buildSVGPath(attrs, length, spacing = 1, offset = 0, useDashCase = true) {
+		attrs.pathLength = 1;
+		const keys = useDashCase ? dashKeys : camelKeys;
+		attrs[keys.offset] = `${-offset}`;
+		attrs[keys.array] = `${length} ${spacing}`;
+	}
+	var cssMotionPathProperties = [
+		"offsetDistance",
+		"offsetPath",
+		"offsetRotate",
+		"offsetAnchor"
+	];
+	function buildSVGAttrs(state, { attrX, attrY, attrScale, pathLength, pathSpacing = 1, pathOffset = 0, ...latest }, isSVGTag, transformTemplate, styleProp) {
+		buildHTMLStyles(state, latest, transformTemplate);
+		if (isSVGTag) {
+			if (state.style.viewBox) state.attrs.viewBox = state.style.viewBox;
+			return;
+		}
+		state.attrs = state.style;
+		state.style = {};
+		const { attrs, style } = state;
+		if (attrs.transform) {
+			style.transform = attrs.transform;
+			delete attrs.transform;
+		}
+		if (style.transform || attrs.transformOrigin) {
+			style.transformOrigin = attrs.transformOrigin ?? "50% 50%";
+			delete attrs.transformOrigin;
+		}
+		if (style.transform) {
+			style.transformBox = styleProp?.transformBox ?? "fill-box";
+			delete attrs.transformBox;
+		}
+		for (const key of cssMotionPathProperties) if (attrs[key] !== void 0) {
+			style[key] = attrs[key];
+			delete attrs[key];
+		}
+		if (attrX !== void 0) attrs.x = attrX;
+		if (attrY !== void 0) attrs.y = attrY;
+		if (attrScale !== void 0) attrs.scale = attrScale;
+		if (pathLength !== void 0) buildSVGPath(attrs, pathLength, pathSpacing, pathOffset, false);
+	}
+	var camelCaseAttributes = new Set([
+		"baseFrequency",
+		"diffuseConstant",
+		"kernelMatrix",
+		"kernelUnitLength",
+		"keySplines",
+		"keyTimes",
+		"limitingConeAngle",
+		"markerHeight",
+		"markerWidth",
+		"numOctaves",
+		"targetX",
+		"targetY",
+		"surfaceScale",
+		"specularConstant",
+		"specularExponent",
+		"stdDeviation",
+		"tableValues",
+		"viewBox",
+		"gradientTransform",
+		"pathLength",
+		"startOffset",
+		"textLength",
+		"lengthAdjust"
+	]);
+	var isSVGTag = (tag) => typeof tag === "string" && tag.toLowerCase() === "svg";
+	function renderSVG(element, renderState, _styleProp, projection) {
+		renderHTML(element, renderState, void 0, projection);
+		for (const key in renderState.attrs) element.setAttribute(!camelCaseAttributes.has(key) ? camelToDash(key) : key, renderState.attrs[key]);
+	}
+	function scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+		const newValues = scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
+		for (const key in props) if (isMotionValue(props[key]) || isMotionValue(prevProps[key])) {
+			const targetKey = transformPropOrder.indexOf(key) !== -1 ? "attr" + key.charAt(0).toUpperCase() + key.substring(1) : key;
+			newValues[targetKey] = props[key];
+		}
+		return newValues;
+	}
+	var SVGVisualElement = class extends DOMVisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "svg";
+			this.isSVGTag = false;
+			this.measureInstanceViewportBox = createBox;
+		}
+		getBaseTargetFromProps(props, key) {
+			return props[key];
+		}
+		readValueFromInstance(instance, key) {
+			if (transformProps.has(key)) {
+				const defaultType = getDefaultValueType(key);
+				return defaultType ? defaultType.default || 0 : 0;
+			}
+			key = !camelCaseAttributes.has(key) ? camelToDash(key) : key;
+			return instance.getAttribute(key);
+		}
+		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+			return scrapeMotionValuesFromProps(props, prevProps, visualElement);
+		}
+		build(renderState, latestValues, props) {
+			buildSVGAttrs(renderState, latestValues, this.isSVGTag, props.transformTemplate, props.style);
+		}
+		renderInstance(instance, renderState, styleProp, projection) {
+			renderSVG(instance, renderState, styleProp, projection);
+		}
+		mount(instance) {
+			this.isSVGTag = isSVGTag(instance.tagName);
+			super.mount(instance);
+		}
+	};
+	function animateSingleValue(value, keyframes, options) {
+		const motionValue$1 = isMotionValue(value) ? value : motionValue(value);
+		motionValue$1.start(animateMotionValue("", motionValue$1, keyframes, options));
+		return motionValue$1.animation;
+	}
+	function isDOMKeyframes(keyframes) {
+		return typeof keyframes === "object" && !Array.isArray(keyframes);
+	}
+	function resolveSubjects(subject, keyframes, scope, selectorCache) {
+		if (subject == null) return [];
+		if (typeof subject === "string" && isDOMKeyframes(keyframes)) return resolveElements(subject, scope, selectorCache);
+		else if (subject instanceof NodeList) return Array.from(subject);
+		else if (Array.isArray(subject)) return subject.filter((s) => s != null);
+		else return [subject];
+	}
+	function calculateRepeatDuration(duration, repeat, repeatDelay) {
+		return duration * (repeat + 1) + repeatDelay * repeat;
+	}
+	function calcNextTime(current, next, prev, labels) {
+		if (typeof next === "number") return next;
+		else if (next.startsWith("-") || next.startsWith("+")) return Math.max(0, current + parseFloat(next));
+		else if (next === "<") return prev;
+		else if (next.startsWith("<")) return Math.max(0, prev + parseFloat(next.slice(1)));
+		else return labels.get(next) ?? current;
+	}
+	function eraseKeyframes(sequence, startTime, endTime) {
+		for (let i = 0; i < sequence.length; i++) {
+			const keyframe = sequence[i];
+			if (keyframe.at > startTime && keyframe.at < endTime) {
+				removeItem(sequence, keyframe);
+				i--;
+			}
+		}
+	}
+	function addKeyframes(sequence, keyframes, easing, offset, startTime, endTime) {
+		eraseKeyframes(sequence, startTime, endTime);
+		for (let i = 0; i < keyframes.length; i++) sequence.push({
+			value: keyframes[i],
+			at: mixNumber$1(startTime, endTime, offset[i]),
+			easing: getEasingForSegment(easing, i)
+		});
+	}
+	function normalizeTimes(times, repeat, repeatDelayUnits = 0) {
+		const totalUnits = repeat + 1 + repeat * repeatDelayUnits;
+		for (let i = 0; i < times.length; i++) times[i] = times[i] / totalUnits;
+	}
+	function compareByTime(a, b) {
+		if (a.at === b.at) {
+			if (a.value === null) return 1;
+			if (b.value === null) return -1;
+			return 0;
+		} else return a.at - b.at;
+	}
+	var defaultSegmentEasing = "easeInOut";
+	var MAX_REPEAT = 20;
+	function createAnimationsFromSequence(sequence, { defaultTransition = {}, ...sequenceTransition } = {}, scope, generators) {
+		const defaultDuration = defaultTransition.duration || .3;
+		const animationDefinitions = new Map();
+		const sequences = new Map();
+		const elementCache = {};
+		const timeLabels = new Map();
+		let prevTime = 0;
+		let currentTime = 0;
+		let totalDuration = 0;
+		for (let i = 0; i < sequence.length; i++) {
+			const segment = sequence[i];
+			if (typeof segment === "string") {
+				timeLabels.set(segment, currentTime);
+				continue;
+			} else if (!Array.isArray(segment)) {
+				timeLabels.set(segment.name, calcNextTime(currentTime, segment.at, prevTime, timeLabels));
+				continue;
+			}
+			let [subject, keyframes, transition = {}] = segment;
+			if (transition.at !== void 0) currentTime = calcNextTime(currentTime, transition.at, prevTime, timeLabels);
+			let maxDuration = 0;
+			const resolveValueSequence = (valueKeyframes, valueTransition, valueSequence, elementIndex = 0, numSubjects = 0) => {
+				const valueKeyframesAsList = keyframesAsList(valueKeyframes);
+				const { delay = 0, times = defaultOffset(valueKeyframesAsList), type = defaultTransition.type || "keyframes", repeat, repeatType, repeatDelay = 0, ...remainingTransition } = valueTransition;
+				let { ease = defaultTransition.ease || "easeOut", duration } = valueTransition;
+				const calculatedDelay = typeof delay === "function" ? delay(elementIndex, numSubjects) : delay;
+				const numKeyframes = valueKeyframesAsList.length;
+				const createGenerator = isGenerator(type) ? type : generators?.[type || "keyframes"];
+				if (numKeyframes <= 2 && createGenerator) {
+					let absoluteDelta = 100;
+					if (numKeyframes === 2 && isNumberKeyframesArray(valueKeyframesAsList)) {
+						const delta = valueKeyframesAsList[1] - valueKeyframesAsList[0];
+						absoluteDelta = Math.abs(delta);
+					}
+					const springTransition = {
+						...defaultTransition,
+						...remainingTransition
+					};
+					if (duration !== void 0) springTransition.duration = secondsToMilliseconds(duration);
+					const springEasing = createGeneratorEasing(springTransition, absoluteDelta, createGenerator);
+					ease = springEasing.ease;
+					duration = springEasing.duration;
+				}
+				duration ?? (duration = defaultDuration);
+				const startTime = currentTime + calculatedDelay;
+				if (times.length === 1 && times[0] === 0) times[1] = 1;
+				const remainder = times.length - valueKeyframesAsList.length;
+				remainder > 0 && fillOffset(times, remainder);
+				valueKeyframesAsList.length === 1 && valueKeyframesAsList.unshift(null);
+				if (repeat) `${repeat}${MAX_REPEAT}`;
+				if (repeat && repeat < MAX_REPEAT) {
+					const repeatDelayUnits = duration > 0 ? repeatDelay / duration : 0;
+					duration = calculateRepeatDuration(duration, repeat, repeatDelay);
+					const originalKeyframes = [...valueKeyframesAsList];
+					const originalTimes = [...times];
+					ease = Array.isArray(ease) ? [...ease] : [ease];
+					const originalEase = [...ease];
+					const isFlipping = repeatType === "reverse" || repeatType === "mirror";
+					let flippedKeyframes = originalKeyframes;
+					let flippedEases = originalEase;
+					if (isFlipping) {
+						flippedKeyframes = [...originalKeyframes].reverse();
+						if (repeatType === "reverse") flippedEases = [...originalEase].reverse().map((e) => typeof e === "function" ? reverseEasing(e) : e);
+					}
+					for (let repeatIndex = 0; repeatIndex < repeat; repeatIndex++) {
+						const isFlipped = isFlipping && repeatIndex % 2 === 0;
+						const iterKeyframes = isFlipped ? flippedKeyframes : originalKeyframes;
+						const iterEase = isFlipped ? flippedEases : originalEase;
+						const iterStartOffset = (repeatIndex + 1) * (1 + repeatDelayUnits);
+						if (repeatDelayUnits > 0) {
+							valueKeyframesAsList.push(valueKeyframesAsList[valueKeyframesAsList.length - 1]);
+							times.push(iterStartOffset);
+							ease.push("linear");
+						}
+						valueKeyframesAsList.push(...iterKeyframes);
+						for (let keyframeIndex = 0; keyframeIndex < iterKeyframes.length; keyframeIndex++) {
+							times.push(originalTimes[keyframeIndex] + iterStartOffset);
+							ease.push(keyframeIndex === 0 ? "linear" : getEasingForSegment(iterEase, keyframeIndex - 1));
+						}
+					}
+					normalizeTimes(times, repeat, repeatDelayUnits);
+				}
+				const targetTime = startTime + duration;
+				addKeyframes(valueSequence, valueKeyframesAsList, ease, times, startTime, targetTime);
+				maxDuration = Math.max(calculatedDelay + duration, maxDuration);
+				totalDuration = Math.max(targetTime, totalDuration);
+			};
+			if (isMotionValue(subject)) {
+				const subjectSequence = getSubjectSequence(subject, sequences);
+				resolveValueSequence(keyframes, transition, getValueSequence("default", subjectSequence));
+			} else {
+				const subjects = resolveSubjects(subject, keyframes, scope, elementCache);
+				const numSubjects = subjects.length;
+				for (let subjectIndex = 0; subjectIndex < numSubjects; subjectIndex++) {
+					keyframes = keyframes;
+					transition = transition;
+					const thisSubject = subjects[subjectIndex];
+					const subjectSequence = getSubjectSequence(thisSubject, sequences);
+					for (const key in keyframes) resolveValueSequence(keyframes[key], getValueTransition(transition, key), getValueSequence(key, subjectSequence), subjectIndex, numSubjects);
+				}
+			}
+			prevTime = currentTime;
+			currentTime += maxDuration;
+		}
+		sequences.forEach((valueSequences, element) => {
+			for (const key in valueSequences) {
+				const valueSequence = valueSequences[key];
+				valueSequence.sort(compareByTime);
+				const keyframes = [];
+				const valueOffset = [];
+				const valueEasing = [];
+				for (let i = 0; i < valueSequence.length; i++) {
+					const { at, value, easing } = valueSequence[i];
+					keyframes.push(value);
+					valueOffset.push(progress(0, totalDuration, at));
+					valueEasing.push(easing || "easeOut");
+				}
+				if (valueOffset[0] !== 0) {
+					valueOffset.unshift(0);
+					keyframes.unshift(keyframes[0]);
+					valueEasing.unshift(defaultSegmentEasing);
+				}
+				if (valueOffset[valueOffset.length - 1] !== 1) {
+					valueOffset.push(1);
+					keyframes.push(null);
+				}
+				if (!animationDefinitions.has(element)) animationDefinitions.set(element, {
+					keyframes: {},
+					transition: {}
+				});
+				const definition = animationDefinitions.get(element);
+				definition.keyframes[key] = keyframes;
+				const { type: _type, ...remainingDefaultTransition } = defaultTransition;
+				definition.transition[key] = {
+					...remainingDefaultTransition,
+					duration: totalDuration,
+					ease: valueEasing,
+					times: valueOffset,
+					...sequenceTransition
+				};
+			}
+		});
+		return animationDefinitions;
+	}
+	function getSubjectSequence(subject, sequences) {
+		!sequences.has(subject) && sequences.set(subject, {});
+		return sequences.get(subject);
+	}
+	function getValueSequence(name, sequences) {
+		if (!sequences[name]) sequences[name] = [];
+		return sequences[name];
+	}
+	function keyframesAsList(keyframes) {
+		return Array.isArray(keyframes) ? keyframes : [keyframes];
+	}
+	function getValueTransition(transition, key) {
+		return transition && transition[key] ? {
+			...transition,
+			...transition[key]
+		} : { ...transition };
+	}
+	var isNumber = (keyframe) => typeof keyframe === "number";
+	var isNumberKeyframesArray = (keyframes) => keyframes.every(isNumber);
+	function createDOMVisualElement(element) {
+		const options = {
+			presenceContext: null,
+			props: {},
+			visualState: {
+				renderState: {
+					transform: {},
+					transformOrigin: {},
+					style: {},
+					vars: {},
+					attrs: {}
+				},
+				latestValues: {}
+			}
+		};
+		const node = isSVGElement(element) && !isSVGSVGElement(element) ? new SVGVisualElement(options) : new HTMLVisualElement(options);
+		node.mount(element);
+		visualElementStore.set(element, node);
+	}
+	function createObjectVisualElement(subject) {
+		const node = new ObjectVisualElement({
+			presenceContext: null,
+			props: {},
+			visualState: {
+				renderState: { output: {} },
+				latestValues: {}
+			}
+		});
+		node.mount(subject);
+		visualElementStore.set(subject, node);
+	}
+	function isSingleValue(subject, keyframes) {
+		return isMotionValue(subject) || typeof subject === "number" || typeof subject === "string" && !isDOMKeyframes(keyframes);
+	}
+	function animateSubject(subject, keyframes, options, scope) {
+		const animations = [];
+		if (isSingleValue(subject, keyframes)) animations.push(animateSingleValue(subject, isDOMKeyframes(keyframes) ? keyframes.default || keyframes : keyframes, options ? options.default || options : options));
+		else {
+			if (subject == null) return animations;
+			const subjects = resolveSubjects(subject, keyframes, scope);
+			const numSubjects = subjects.length;
+			for (let i = 0; i < numSubjects; i++) {
+				const thisSubject = subjects[i];
+				const createVisualElement = thisSubject instanceof Element ? createDOMVisualElement : createObjectVisualElement;
+				if (!visualElementStore.has(thisSubject)) createVisualElement(thisSubject);
+				const visualElement = visualElementStore.get(thisSubject);
+				const transition = { ...options };
+				if ("delay" in transition && typeof transition.delay === "function") transition.delay = transition.delay(i, numSubjects);
+				animations.push(...animateTarget(visualElement, {
+					...keyframes,
+					transition
+				}, {}));
+			}
+		}
+		return animations;
+	}
+	function animateSequence(sequence, options, scope) {
+		const animations = [];
+		createAnimationsFromSequence(sequence.map((segment) => {
+			if (Array.isArray(segment) && typeof segment[0] === "function") {
+				const callback = segment[0];
+				const mv = motionValue(0);
+				mv.on("change", callback);
+				if (segment.length === 1) return [mv, [0, 1]];
+				else if (segment.length === 2) return [
+					mv,
+					[0, 1],
+					segment[1]
+				];
+				else return [
+					mv,
+					segment[1],
+					segment[2]
+				];
+			}
+			return segment;
+		}), options, scope, { spring }).forEach(({ keyframes, transition }, subject) => {
+			animations.push(...animateSubject(subject, keyframes, transition));
+		});
+		return animations;
+	}
+	function isSequence(value) {
+		return Array.isArray(value) && value.some(Array.isArray);
+	}
+	function createScopedAnimate(options = {}) {
+		const { scope, reduceMotion, skipAnimations } = options;
+		function scopedAnimate(subjectOrSequence, optionsOrKeyframes, options) {
+			let animations = [];
+			let animationOnComplete;
+			const inherited = {};
+			if (reduceMotion !== void 0) inherited.reduceMotion = reduceMotion;
+			if (skipAnimations !== void 0) inherited.skipAnimations = skipAnimations;
+			if (isSequence(subjectOrSequence)) {
+				const { onComplete, ...sequenceOptions } = optionsOrKeyframes || {};
+				if (typeof onComplete === "function") animationOnComplete = onComplete;
+				animations = animateSequence(subjectOrSequence, {
+					...inherited,
+					...sequenceOptions
+				}, scope);
+			} else {
+				const { onComplete, ...rest } = options || {};
+				if (typeof onComplete === "function") animationOnComplete = onComplete;
+				animations = animateSubject(subjectOrSequence, optionsOrKeyframes, {
+					...inherited,
+					...rest
+				}, scope);
+			}
+			const animation = new GroupAnimationWithThen(animations);
+			if (animationOnComplete) animation.finished.then(animationOnComplete);
+			if (scope) {
+				scope.animations.push(animation);
+				animation.finished.then(() => {
+					removeItem(scope.animations, animation);
+				});
+			}
+			return animation;
+		}
+		return scopedAnimate;
+	}
+	var animate = createScopedAnimate();
+	var springConfigs = {
+		carouselSnap: {
+			damping: 18,
+			stiffness: 200,
+			type: "spring"
+		},
+		contentEntrance: {
+			damping: 28,
+			stiffness: 300,
+			type: "spring"
+		},
+		modalBackdrop: {
+			bounce: 0,
+			duration: .4,
+			type: "spring"
+		},
+		modalSurface: {
+			bounce: 0,
+			duration: .35,
+			type: "spring"
+		},
+		stickyNav: {
+			damping: 28,
+			stiffness: 300,
+			type: "spring"
+		},
+		swipeToDismiss: {
+			damping: 15,
+			stiffness: 180,
+			type: "spring"
+		}
+	};
+	var animateWithReducedMotion = (element, options) => {
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return animate(element, options.reducedMotionProperties ?? options.properties, { duration: .2 });
+		return animate(element, options.properties, options.springConfig ?? springConfigs.contentEntrance);
+	};
 	var focusableSelector = [
 		"button:not([disabled])",
 		"iframe",
@@ -5232,46 +8927,88 @@ input::placeholder {
 		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
 		return close;
 	};
-	var CLOSE_FALLBACK_DURATION_MS = 500;
-	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, id, onClose, surfaceClassName }) => {
+	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
+	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+	var prefersReducedMotion = () => window.matchMedia?.(reducedMotionQuery).matches ?? false;
+	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
+		try {
+			await Promise.all(animations.map((animation) => animation.finished));
+			if (animationId === animationIdRef.current) finishClose();
+		} catch {}
+	};
+	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, id, onClose, openRequestId, surfaceClassName }) => {
 		const overlayRef = A(null);
 		const surfaceRef = A(null);
-		const [isOpen, setIsOpen] = d(false);
-		const [closing, setClosing] = d(false);
 		const realOnCloseRef = A(onClose);
-		const closeFallbackRef = A();
+		const [phase, setPhase] = d("open");
+		const [reducedMotion, setReducedMotion] = d(prefersReducedMotion);
 		const didFinishCloseRef = A(false);
+		const animationIdRef = A(0);
+		const animationsRef = A([]);
+		const previousOpenRequestIdRef = A(openRequestId);
 		h(() => {
 			realOnCloseRef.current = onClose;
 		}, [onClose]);
 		h(() => {
-			requestAnimationFrame(() => setIsOpen(true));
+			const mediaQuery = window.matchMedia?.(reducedMotionQuery);
+			if (!mediaQuery) return;
+			const updateReducedMotion = () => setReducedMotion(mediaQuery.matches);
+			mediaQuery.addEventListener("change", updateReducedMotion);
+			return () => mediaQuery.removeEventListener("change", updateReducedMotion);
 		}, []);
 		const finishClose = q(() => {
 			if (didFinishCloseRef.current) return;
 			didFinishCloseRef.current = true;
-			if (closeFallbackRef.current !== void 0) window.clearTimeout(closeFallbackRef.current);
 			realOnCloseRef.current();
 		}, []);
-		const handleClose = q(() => {
-			if (closing) return;
-			didFinishCloseRef.current = false;
-			setClosing(true);
-			setIsOpen(false);
-		}, [closing]);
-		h(() => {
-			if (!closing) return;
+		const animateModal = q((state) => {
 			const overlay = overlayRef.current;
-			const onTransitionEnd = (event) => {
-				if (event.target === overlay && event.propertyName === "opacity") finishClose();
-			};
-			overlay?.addEventListener("transitionend", onTransitionEnd);
-			closeFallbackRef.current = window.setTimeout(finishClose, CLOSE_FALLBACK_DURATION_MS);
+			const surface = surfaceRef.current;
+			if (!overlay || !surface) return;
+			for (const animation of animationsRef.current) animation.stop();
+			const animationId = animationIdRef.current + 1;
+			animationIdRef.current = animationId;
+			const opening = state === "open";
+			const backdropAnimation = animateWithReducedMotion(overlay, {
+				properties: { opacity: opening ? 1 : 0 },
+				reducedMotionProperties: { opacity: opening ? 1 : 0 },
+				springConfig: springConfigs.modalBackdrop
+			});
+			const surfaceAnimation = animateWithReducedMotion(surface, {
+				properties: {
+					opacity: opening ? 1 : 0,
+					transform: opening ? "scale(1) translateY(0)" : EXITING_SURFACE_TRANSFORM
+				},
+				reducedMotionProperties: { opacity: opening ? 1 : 0 },
+				springConfig: springConfigs.modalSurface
+			});
+			animationsRef.current = [backdropAnimation, surfaceAnimation];
+			if (!opening) finishClosingAnimation(animationId, [backdropAnimation, surfaceAnimation], animationIdRef, finishClose);
+		}, [finishClose]);
+		_(() => {
+			if (previousOpenRequestIdRef.current === openRequestId) return;
+			previousOpenRequestIdRef.current = openRequestId;
+			didFinishCloseRef.current = false;
+			setPhase("open");
+			animateModal("open");
+		}, [animateModal, openRequestId]);
+		const handleClose = q(() => {
+			if (didFinishCloseRef.current) return;
+			didFinishCloseRef.current = false;
+			setPhase("closing");
+			animateModal("closed");
+		}, [animateModal]);
+		h(() => {
+			const frame = requestAnimationFrame(() => {
+				if (!overlayRef.current) return;
+				animateModal("open");
+			});
 			return () => {
-				overlay?.removeEventListener("transitionend", onTransitionEnd);
-				if (closeFallbackRef.current !== void 0) window.clearTimeout(closeFallbackRef.current);
+				cancelAnimationFrame(frame);
+				for (const animation of animationsRef.current) animation.stop();
 			};
-		}, [closing, finishClose]);
+		}, [animateModal]);
 		h(() => {
 			const previousOverflow = document.body.style.overflow;
 			document.body.style.overflow = "hidden";
@@ -5299,7 +9036,6 @@ input::placeholder {
 			overlay.addEventListener("click", onClick);
 			return () => overlay.removeEventListener("click", onClick);
 		}, [handleClose]);
-		const openClass = isOpen ? " is-open" : "";
 		return u(ModalCloseContext.Provider, {
 			value: handleClose,
 			children: u("dialog", {
@@ -5307,15 +9043,23 @@ input::placeholder {
 				"aria-label": ariaLabel,
 				"aria-labelledby": ariaLabelledBy,
 				"aria-modal": "true",
-				class: `${className}${openClass}`,
+				class: className,
 				id,
 				open: true,
 				ref: overlayRef,
+				style: {
+					opacity: 0,
+					pointerEvents: phase === "open" ? "auto" : "none"
+				},
 				children: u("div", {
 					class: surfaceClassName,
 					onClick: (event) => event.stopPropagation(),
 					ref: surfaceRef,
 					role: "none",
+					style: {
+						opacity: 0,
+						transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM
+					},
 					tabindex: -1,
 					children
 				})
@@ -5333,54 +9077,17 @@ input::placeholder {
 			src
 		})] });
 	};
-	var PosterModal = ({ alt, onClose, src }) => u(ModalShell, {
+	var PosterModal = ({ alt, onClose, openRequestId, src }) => u(ModalShell, {
 		ariaLabel: "海报预览",
 		className: "atv-modal-overlay",
 		id: MODAL_ID$1,
 		onClose,
+		openRequestId,
 		surfaceClassName: "atv-modal-surface",
 		children: u(PosterModalContent, {
 			alt,
 			src
 		})
-	});
-	var MODAL_ID = "atv-video-modal";
-	var VideoModalContent = ({ acquisition }) => {
-		const close = useModalClose();
-		h(() => {
-			if (acquisition.status === "fallback") close();
-		}, [acquisition.status, close]);
-		return u(S, { children: [u(ModalCloseButton, {
-			ariaLabel: "关闭视频",
-			onClick: close
-		}), u("div", {
-			class: "atv-modal-video-content",
-			children: [
-				acquisition.status === "loading" ? u("div", {
-					class: "atv-modal-loading",
-					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
-				}) : null,
-				acquisition.status === "loaded" ? u("video", {
-					autoplay: true,
-					class: "atv-modal-video",
-					controls: true,
-					playsinline: true,
-					src: acquisition.embedUrl
-				}) : null,
-				acquisition.status === "failed" ? u("div", {
-					class: "atv-modal-toast",
-					children: "视频加载失败"
-				}) : null
-			]
-		})] });
-	};
-	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
-		ariaLabel: trailer.title || "视频预览",
-		className: "atv-modal-overlay is-video",
-		id: MODAL_ID,
-		onClose,
-		surfaceClassName: "atv-modal-surface",
-		children: u(VideoModalContent, { acquisition })
 	});
 	var FALLBACK_DELAY_MS = 1500;
 	var isRecord$1 = (value) => typeof value === "object" && value !== null;
@@ -5467,6 +9174,53 @@ input::placeholder {
 			trailerPageUrl
 		]);
 		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
+	};
+	var MODAL_ID = "atv-video-modal";
+	var VideoModalContent = ({ acquisition }) => {
+		const close = useModalClose();
+		h(() => {
+			if (acquisition.status === "fallback") close();
+		}, [acquisition.status, close]);
+		return u(S, { children: [u(ModalCloseButton, {
+			ariaLabel: "关闭视频",
+			onClick: close
+		}), u("div", {
+			class: "atv-modal-video-content",
+			children: [
+				acquisition.status === "loading" ? u("div", {
+					class: "atv-modal-loading",
+					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
+				}) : null,
+				acquisition.status === "loaded" ? u("video", {
+					autoplay: true,
+					class: "atv-modal-video",
+					controls: true,
+					playsinline: true,
+					src: acquisition.embedUrl
+				}) : null,
+				acquisition.status === "failed" ? u("div", {
+					class: "atv-modal-toast",
+					children: "视频加载失败"
+				}) : null
+			]
+		})] });
+	};
+	var VideoModal = ({ acquisition, onClose, openRequestId, trailer }) => u(ModalShell, {
+		ariaLabel: trailer.title || "视频预览",
+		className: "atv-modal-overlay is-video",
+		id: MODAL_ID,
+		onClose,
+		openRequestId,
+		surfaceClassName: "atv-modal-surface",
+		children: u(VideoModalContent, { acquisition })
+	});
+	var TrailerModal = ({ onClose, openRequestId, trailer }) => {
+		return u(VideoModal, {
+			acquisition: useTrailerAcquisition(trailer),
+			onClose,
+			openRequestId,
+			trailer
+		});
 	};
 	var Section = ({ children, id, moreLink, title }) => u("section", {
 		class: "atv-section",
@@ -5725,10 +9479,11 @@ input::placeholder {
 			})
 		] });
 	};
-	var CommentModal = ({ canVote, comment, onClose, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
+	var CommentModal = ({ canVote, comment, onClose, openRequestId, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
 		className: "atv-comment-overlay",
 		id: "atv-comment-overlay",
 		onClose,
+		openRequestId,
 		surfaceClassName: "atv-comment-overlay-inner",
 		children: u(CommentModalContent, {
 			canVote,
@@ -6801,6 +10556,19 @@ input::placeholder {
 			})
 		]
 	});
+	var useModalRequest = () => {
+		const [active, setActive] = d(null);
+		return {
+			active,
+			handleClose: q(() => setActive(null), []),
+			handleOpen: q((value) => {
+				setActive((previous) => ({
+					requestId: (previous?.requestId ?? 0) + 1,
+					value
+				}));
+			}, [])
+		};
+	};
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("div", {
 		class: "atv-interest-modal-stars",
 		children: Array.from({ length: 5 }, (_, index) => {
@@ -6941,23 +10709,24 @@ input::placeholder {
 			})
 		] });
 	};
-	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
+	var InterestForm = ({ callbacks, onClose, openRequestId, state }) => u(ModalShell, {
 		ariaLabelledBy: "atv-interest-modal-title",
 		className: "atv-interest-modal",
 		id: "atv-interest-modal",
 		onClose,
+		openRequestId,
 		surfaceClassName: "atv-interest-modal-inner",
 		children: u(InterestFormContent, {
 			callbacks,
 			state
-		})
+		}, openRequestId)
 	});
 	var saveOptionsFromForm = (form) => ({
 		comment: form.comment,
 		rating: form.rating > 0 ? form.rating : void 0
 	});
 	var useInterestMarking = ({ adapters, loggedIn, onLoginRequired, subjectId }) => {
-		const [activeInterest, setActiveInterest] = d(null);
+		const activeInterest = useModalRequest();
 		const { post, reload, remove } = adapters;
 		const requireLogin = (action) => {
 			if (loggedIn) return true;
@@ -6967,9 +10736,9 @@ input::placeholder {
 		return {
 			callbacks: { handleOpenInterest: (state, action = "标记这部作品") => {
 				if (!requireLogin(action)) return;
-				setActiveInterest(state);
+				activeInterest.handleOpen(state);
 			} },
-			form: activeInterest ? u(InterestForm, {
+			form: activeInterest.active ? u(InterestForm, {
 				callbacks: {
 					onRemove: async (status) => {
 						const result = await remove(subjectId, status);
@@ -6982,8 +10751,9 @@ input::placeholder {
 						return result;
 					}
 				},
-				onClose: () => setActiveInterest(null),
-				state: activeInterest
+				onClose: activeInterest.handleClose,
+				openRequestId: activeInterest.active.requestId,
+				state: activeInterest.active.value
 			}) : null
 		};
 	};
@@ -7170,7 +10940,7 @@ input::placeholder {
 			})
 		] });
 	};
-	var LoginModal = ({ action, onClose }) => {
+	var LoginModal = ({ action, onClose, openRequestId }) => {
 		const hostRef = A(null);
 		const [state, setState] = d({ kind: "loading" });
 		const busy = state.kind === "loading" || state.kind === "mounted";
@@ -7187,6 +10957,7 @@ input::placeholder {
 			className: "atv-login-modal",
 			id: "atv-login-modal",
 			onClose,
+			openRequestId,
 			surfaceClassName: "atv-login-modal-inner",
 			children: u(LoginModalContent, {
 				action,
@@ -7941,11 +11712,12 @@ input::placeholder {
 			})
 		] });
 	};
-	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
+	var ReviewModal = ({ canVote, onClose, openRequestId, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
 		ariaLabelledBy: "atv-review-modal-title",
 		className: "atv-review-modal",
 		id: "atv-review-modal",
 		onClose,
+		openRequestId,
 		surfaceClassName: "atv-review-modal-scroll",
 		children: u(ReviewModalContent, {
 			canVote,
@@ -8331,20 +12103,12 @@ input::placeholder {
 		merge: reviewWithVoteState,
 		persist: persistReviewVoteState
 	};
-	var TrailerModal = ({ onClose, trailer }) => {
-		return u(VideoModal, {
-			acquisition: useTrailerAcquisition(trailer),
-			onClose,
-			trailer
-		});
-	};
 	var SubjectPage = ({ data, runtime }) => {
-		const [activeComment, setActiveComment] = d(null);
-		const [activeReview, setActiveReview] = d(null);
-		const [activeMediaModal, setActiveMediaModal] = d(null);
+		const activeComment = useModalRequest();
+		const activeReview = useModalRequest();
+		const activeMediaModal = useModalRequest();
 		const [subjectSwitcherOpen, setSubjectSwitcherOpen] = d(false);
-		const closeMediaModal = q(() => setActiveMediaModal(null), []);
-		const [loginAction, setLoginAction] = d(null);
+		const loginAction = useModalRequest();
 		const commentVotes = useVoteState(data.comments, commentVoteStrategy);
 		const { avatarUrls } = runtime;
 		const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
@@ -8353,19 +12117,19 @@ input::placeholder {
 		const interestMarking = useInterestMarking({
 			adapters: runtime.actions.interestMarking,
 			loggedIn: data.interest.loggedIn,
-			onLoginRequired: setLoginAction,
+			onLoginRequired: loginAction.handleOpen,
 			subjectId: data.subjectId
 		});
 		const canVote = () => {
 			if (!data.interest.loggedIn) {
-				setLoginAction("给短评点有用");
+				loginAction.handleOpen("给短评点有用");
 				return false;
 			}
 			return true;
 		};
 		const canReviewVote = () => {
 			if (!data.interest.loggedIn) {
-				setLoginAction("给影评投票");
+				loginAction.handleOpen("给影评投票");
 				return false;
 			}
 			return true;
@@ -8383,7 +12147,7 @@ input::placeholder {
 				expandNativeSummary: runtime.actions.expandNativeSummary,
 				externalRatings: runtime.externalRatings,
 				firstBroadcastPlatform: runtime.firstBroadcastPlatform,
-				onOpenPoster: (src, alt) => setActiveMediaModal({
+				onOpenPoster: (src, alt) => activeMediaModal.handleOpen({
 					alt,
 					src,
 					type: "poster"
@@ -8401,12 +12165,12 @@ input::placeholder {
 					subjectId: data.subjectId,
 					trailers: data.trailers
 				},
-				onOpenPoster: (src, alt) => setActiveMediaModal({
+				onOpenPoster: (src, alt) => activeMediaModal.handleOpen({
 					alt,
 					src,
 					type: "poster"
 				}),
-				onOpenVideo: (trailer) => setActiveMediaModal({
+				onOpenVideo: (trailer) => activeMediaModal.handleOpen({
 					trailer,
 					type: "video"
 				})
@@ -8416,7 +12180,7 @@ input::placeholder {
 				canVote,
 				comments: commentVotes.mergeVoteStates(data.comments),
 				getVoteState: commentVotes.getVoteState,
-				onOpen: setActiveComment,
+				onOpen: activeComment.handleOpen,
 				onVoteStateChange: handleCommentVoteStateChange,
 				onVote: runtime.actions.handleCommentVote,
 				subjectId: data.subjectId
@@ -8425,7 +12189,7 @@ input::placeholder {
 				canVote: canReviewVote,
 				getVoteState: reviewVotes.getVoteState,
 				isTV: data.isTV,
-				onOpen: setActiveReview,
+				onOpen: activeReview.handleOpen,
 				onVoteStateChange: handleReviewVoteStateChange,
 				onVote: runtime.actions.handleReviewVote,
 				reviews: reviewVotes.mergeVoteStates(data.reviews),
@@ -8439,37 +12203,42 @@ input::placeholder {
 				isTV: data.isTV
 			} }),
 			u("div", { class: "atv-footer-spacer" }),
-			activeComment ? u(CommentModal, {
+			activeComment.active ? u(CommentModal, {
 				canVote,
 				comment: {
-					...commentVotes.mergeVoteState(activeComment),
-					avatar: avatarUrls.get(activeComment.link) || activeComment.avatar
+					...commentVotes.mergeVoteState(activeComment.active.value),
+					avatar: avatarUrls.get(activeComment.active.value.link) || activeComment.active.value.avatar
 				},
-				onClose: () => setActiveComment(null),
+				onClose: activeComment.handleClose,
+				openRequestId: activeComment.active.requestId,
 				onVoteStateChange: handleCommentVoteStateChange,
 				onVote: runtime.actions.handleCommentVote,
-				voteState: commentVotes.getVoteState(activeComment)
+				voteState: commentVotes.getVoteState(activeComment.active.value)
 			}) : null,
-			activeReview ? u(ReviewModal, {
+			activeReview.active ? u(ReviewModal, {
 				canVote: canReviewVote,
-				onClose: () => setActiveReview(null),
+				onClose: activeReview.handleClose,
 				onVoteStateChange: handleReviewVoteStateChange,
 				onVote: runtime.actions.handleReviewVote,
-				review: reviewVotes.mergeVoteState(activeReview),
-				voteState: reviewVotes.getVoteState(activeReview)
+				openRequestId: activeReview.active.requestId,
+				review: reviewVotes.mergeVoteState(activeReview.active.value),
+				voteState: reviewVotes.getVoteState(activeReview.active.value)
 			}) : null,
-			activeMediaModal?.type === "poster" ? u(PosterModal, {
-				alt: activeMediaModal.alt,
-				onClose: closeMediaModal,
-				src: activeMediaModal.src
+			activeMediaModal.active?.value.type === "poster" ? u(PosterModal, {
+				alt: activeMediaModal.active.value.alt,
+				onClose: activeMediaModal.handleClose,
+				openRequestId: activeMediaModal.active.requestId,
+				src: activeMediaModal.active.value.src
 			}) : null,
-			activeMediaModal?.type === "video" ? u(TrailerModal, {
-				onClose: closeMediaModal,
-				trailer: activeMediaModal.trailer
+			activeMediaModal.active?.value.type === "video" ? u(TrailerModal, {
+				onClose: activeMediaModal.handleClose,
+				openRequestId: activeMediaModal.active.requestId,
+				trailer: activeMediaModal.active.value.trailer
 			}) : null,
-			loginAction ? u(LoginModal, {
-				action: loginAction,
-				onClose: () => setLoginAction(null)
+			loginAction.active ? u(LoginModal, {
+				action: loginAction.active.value,
+				onClose: loginAction.handleClose,
+				openRequestId: loginAction.active.requestId
 			}) : null,
 			interestMarking.form
 		] });

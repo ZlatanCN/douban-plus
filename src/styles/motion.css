@@ -137,32 +137,6 @@
     scroll-behavior: auto;
   }
 
-  .atv-modal-img,
-  .atv-modal-video,
-  .atv-comment-overlay-inner,
-  .atv-interest-modal-inner {
-    transform: none;
-    transition: none;
-  }
-
-  .atv-review-modal,
-  .atv-modal-overlay,
-  .atv-comment-overlay,
-  .atv-interest-modal,
-  .atv-login-modal {
-    transition: opacity var(--atv-duration-overlay) ease;
-  }
-
-  .atv-login-modal {
-    transition:
-      visibility 0s linear 200ms,
-      opacity 200ms ease;
-  }
-
-  .atv-login-modal.is-open {
-    transition-delay: 0s, 0s;
-  }
-
   .atv-spinner {
     animation: none;
   }

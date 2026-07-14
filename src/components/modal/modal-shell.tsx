@@ -1,10 +1,42 @@
 import type { ComponentChildren } from "preact";
-import { useCallback, useEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
+
+import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 import { trapFocus } from "./focus-trap";
 import { ModalCloseContext } from "./modal-close-context";
 
-const CLOSE_FALLBACK_DURATION_MS = 500;
+const ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
+const EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+
+type ModalAnimation = ReturnType<typeof animateWithReducedMotion>;
+type ModalPhase = "open" | "closing";
+
+const prefersReducedMotion = (): boolean =>
+  window.matchMedia?.(reducedMotionQuery).matches ?? false;
+
+const finishClosingAnimation = async (
+  animationId: number,
+  animations: ModalAnimation[],
+  animationIdRef: { current: number },
+  finishClose: () => void
+): Promise<void> => {
+  try {
+    await Promise.all(animations.map((animation) => animation.finished));
+    if (animationId === animationIdRef.current) {
+      finishClose();
+    }
+  } catch {
+    // A newer spring interrupted this closing sequence.
+  }
+};
 
 type ModalShellProps = {
   ariaDescribedBy?: string;
@@ -14,6 +46,7 @@ type ModalShellProps = {
   className: string;
   id: string;
   onClose: () => void;
+  openRequestId?: number;
   surfaceClassName: string;
 };
 
@@ -25,22 +58,32 @@ const ModalShell = ({
   className,
   id,
   onClose,
+  openRequestId,
   surfaceClassName,
 }: ModalShellProps) => {
   const overlayRef = useRef<HTMLDialogElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [closing, setClosing] = useState(false);
   const realOnCloseRef = useRef(onClose);
-  const closeFallbackRef = useRef<number>();
+  const [phase, setPhase] = useState<ModalPhase>("open");
+  const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);
   const didFinishCloseRef = useRef(false);
+  const animationIdRef = useRef(0);
+  const animationsRef = useRef<ModalAnimation[]>([]);
+  const previousOpenRequestIdRef = useRef(openRequestId);
 
   useEffect(() => {
     realOnCloseRef.current = onClose;
   }, [onClose]);
 
   useEffect(() => {
-    requestAnimationFrame(() => setIsOpen(true));
+    const mediaQuery = window.matchMedia?.(reducedMotionQuery);
+    if (!mediaQuery) {
+      return;
+    }
+    const updateReducedMotion = (): void =>
+      setReducedMotion(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updateReducedMotion);
+    return () => mediaQuery.removeEventListener("change", updateReducedMotion);
   }, []);
 
   const finishClose = useCallback((): void => {
@@ -48,45 +91,88 @@ const ModalShell = ({
       return;
     }
     didFinishCloseRef.current = true;
-    if (closeFallbackRef.current !== undefined) {
-      window.clearTimeout(closeFallbackRef.current);
-    }
     realOnCloseRef.current();
   }, []);
 
+  const animateModal = useCallback(
+    (state: "open" | "closed"): void => {
+      const overlay = overlayRef.current;
+      const surface = surfaceRef.current;
+      if (!overlay || !surface) {
+        return;
+      }
+
+      for (const animation of animationsRef.current) {
+        animation.stop();
+      }
+
+      const animationId = animationIdRef.current + 1;
+      animationIdRef.current = animationId;
+      const opening = state === "open";
+      const backdropAnimation = animateWithReducedMotion(overlay, {
+        properties: { opacity: opening ? 1 : 0 },
+        reducedMotionProperties: { opacity: opening ? 1 : 0 },
+        springConfig: springConfigs.modalBackdrop,
+      });
+      const surfaceAnimation = animateWithReducedMotion(surface, {
+        properties: {
+          opacity: opening ? 1 : 0,
+          transform: opening
+            ? "scale(1) translateY(0)"
+            : EXITING_SURFACE_TRANSFORM,
+        },
+        reducedMotionProperties: { opacity: opening ? 1 : 0 },
+        springConfig: springConfigs.modalSurface,
+      });
+      animationsRef.current = [backdropAnimation, surfaceAnimation];
+
+      if (!opening) {
+        void finishClosingAnimation(
+          animationId,
+          [backdropAnimation, surfaceAnimation],
+          animationIdRef,
+          finishClose
+        );
+      }
+    },
+    [finishClose]
+  );
+
+  useLayoutEffect(() => {
+    if (previousOpenRequestIdRef.current === openRequestId) {
+      return;
+    }
+    previousOpenRequestIdRef.current = openRequestId;
+    didFinishCloseRef.current = false;
+    setPhase("open");
+    animateModal("open");
+  }, [animateModal, openRequestId]);
+
   const handleClose = useCallback((): void => {
-    if (closing) {
+    if (didFinishCloseRef.current) {
       return;
     }
     didFinishCloseRef.current = false;
-    setClosing(true);
-    setIsOpen(false);
-  }, [closing]);
+    setPhase("closing");
+    animateModal("closed");
+  }, [animateModal]);
 
   useEffect(() => {
-    if (!closing) {
-      return;
-    }
-    const overlay = overlayRef.current;
-    const onTransitionEnd = (event: TransitionEvent): void => {
-      if (event.target === overlay && event.propertyName === "opacity") {
-        finishClose();
+    const frame = requestAnimationFrame(() => {
+      const overlay = overlayRef.current;
+      if (!overlay) {
+        return;
       }
-    };
-
-    overlay?.addEventListener("transitionend", onTransitionEnd);
-    closeFallbackRef.current = window.setTimeout(
-      finishClose,
-      CLOSE_FALLBACK_DURATION_MS
-    );
+      animateModal("open");
+    });
 
     return () => {
-      overlay?.removeEventListener("transitionend", onTransitionEnd);
-      if (closeFallbackRef.current !== undefined) {
-        window.clearTimeout(closeFallbackRef.current);
+      cancelAnimationFrame(frame);
+      for (const animation of animationsRef.current) {
+        animation.stop();
       }
     };
-  }, [closing, finishClose]);
+  }, [animateModal]);
 
   useEffect(() => {
     const previousOverflow = document.body.style.overflow;
@@ -126,8 +212,6 @@ const ModalShell = ({
     return () => overlay.removeEventListener("click", onClick);
   }, [handleClose]);
 
-  const openClass = isOpen ? " is-open" : "";
-
   return (
     <ModalCloseContext.Provider value={handleClose}>
       <dialog
@@ -135,16 +219,24 @@ const ModalShell = ({
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledBy}
         aria-modal="true"
-        class={`${className}${openClass}`}
+        class={className}
         id={id}
         open
         ref={overlayRef}
+        style={{
+          opacity: 0,
+          pointerEvents: phase === "open" ? "auto" : "none",
+        }}
       >
         <div
           class={surfaceClassName}
           onClick={(event) => event.stopPropagation()}
           ref={surfaceRef}
           role="none"
+          style={{
+            opacity: 0,
+            transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
+          }}
           tabindex={-1}
         >
           {children}
@@ -154,5 +246,4 @@ const ModalShell = ({
   );
 };
 
-export { ModalShell };
-export type { ModalShellProps };
+export { ModalShell, type ModalShellProps };

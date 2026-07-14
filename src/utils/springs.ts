@@ -8,8 +8,8 @@ import { animate } from "motion";
 const springConfigs = {
   carouselSnap: { damping: 18, stiffness: 200, type: "spring" as const },
   contentEntrance: { damping: 28, stiffness: 300, type: "spring" as const },
-  modalBackdrop: { damping: 22, stiffness: 200, type: "spring" as const },
-  modalSurface: { damping: 25, stiffness: 250, type: "spring" as const },
+  modalBackdrop: { bounce: 0, duration: 0.4, type: "spring" as const },
+  modalSurface: { bounce: 0, duration: 0.35, type: "spring" as const },
   stickyNav: { damping: 28, stiffness: 300, type: "spring" as const },
   swipeToDismiss: { damping: 15, stiffness: 180, type: "spring" as const },
 };
@@ -22,6 +22,7 @@ const animateWithReducedMotion = (
   element: Element,
   options: {
     properties: Record<string, string | number>;
+    reducedMotionProperties?: Record<string, string | number>;
     springConfig?: SpringConfig;
   }
 ) => {
@@ -30,7 +31,11 @@ const animateWithReducedMotion = (
   ).matches;
 
   if (prefersReduced) {
-    return animate(element, options.properties, { duration: 0.2 });
+    return animate(
+      element,
+      options.reducedMotionProperties ?? options.properties,
+      { duration: 0.2 }
+    );
   }
 
   return animate(

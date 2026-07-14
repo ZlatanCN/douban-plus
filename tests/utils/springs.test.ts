@@ -73,31 +73,27 @@ describe("springConfigs", () => {
     }
   });
 
-  it("each config has type, stiffness and damping", () => {
+  it("each config has a spring type", () => {
     for (const name of configNames) {
       const c = springConfigs[name];
       expect(c).toHaveProperty("type", "spring");
-      expect(c).toHaveProperty("stiffness");
-      expect(c.stiffness).toBeTypeOf("number");
-      expect(c).toHaveProperty("damping");
-      expect(c.damping).toBeTypeOf("number");
     }
   });
 
   /* ── Per-config values ─────────────────────────────── */
 
-  it("modalSurface → stiff 250 / damp 25", () => {
+  it("modalSurface → critically-damped 350 ms", () => {
     expect(springConfigs.modalSurface).toStrictEqual({
-      damping: 25,
-      stiffness: 250,
+      bounce: 0,
+      duration: 0.35,
       type: "spring",
     });
   });
 
-  it("modalBackdrop → stiff 200 / damp 22", () => {
+  it("modalBackdrop → critically-damped 400 ms", () => {
     expect(springConfigs.modalBackdrop).toStrictEqual({
-      damping: 22,
-      stiffness: 200,
+      bounce: 0,
+      duration: 0.4,
       type: "spring",
     });
   });
@@ -176,6 +172,21 @@ describe(animateWithReducedMotion, () => {
     expect(mockAnimate).toHaveBeenCalledWith(
       el,
       { opacity: 0.5 },
+      { duration: 0.2 }
+    );
+  });
+
+  it("uses the opacity-only target supplied for reduced motion", () => {
+    vi.stubGlobal("matchMedia", makeMatchMediaMock(true));
+
+    animateWithReducedMotion(el, {
+      properties: { opacity: 0, transform: "scale(0.92)" },
+      reducedMotionProperties: { opacity: 0 },
+    });
+
+    expect(mockAnimate).toHaveBeenCalledWith(
+      el,
+      { opacity: 0 },
       { duration: 0.2 }
     );
   });

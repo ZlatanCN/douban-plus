@@ -293,14 +293,6 @@
   margin: 0;
   background: rgb(0 0 0 / 72%);
   inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
-}
-
-.atv-review-modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .atv-review-modal .atv-modal-close {
@@ -334,12 +326,6 @@
   overflow-y: auto;
   scrollbar-color: rgb(255 255 255 / 12%) transparent;
   scrollbar-width: thin;
-  transform: scale(0.92) translateY(8px);
-  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
-}
-
-.atv-review-modal.is-open .atv-review-modal-scroll {
-  transform: scale(1) translateY(0);
 }
 
 .atv-review-modal-header {
