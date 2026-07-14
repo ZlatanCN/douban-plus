@@ -1,9 +1,10 @@
 import type { JSX } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import { IconPopcorn, IconTomato } from "@/components/common/icons";
 import { Stars } from "@/components/common/stars";
 import type { ImdbRating, McRating, RtRating } from "@/types";
+import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 import {
   isFresh,
@@ -36,7 +37,7 @@ const SOURCE_CLASS = {
   rt: "atv-rating-panel-rt",
 } as const satisfies Record<ExternalRatingProps["source"], string>;
 
-const CONTENT_TRANSITION_MS = 200;
+const CONTENT_TRANSITION_MS = 300;
 
 const renderImdbRating = (rating: ImdbRating): JSX.Element => (
   <>
@@ -168,6 +169,9 @@ const ExternalRating = (props: ExternalRatingProps) => {
   const shouldRender = !props.resolved || Boolean(props.rating);
   const [rendered, setRendered] = useState(shouldRender);
   const [exiting, setExiting] = useState(!shouldRender);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const animationRef = useRef<{ stop: () => void } | null>(null);
+  const prevHasRatingRef = useRef(false);
 
   useEffect(() => {
     if (shouldRender) {
@@ -184,12 +188,52 @@ const ExternalRating = (props: ExternalRatingProps) => {
     return () => window.clearTimeout(timer);
   }, [shouldRender]);
 
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) {
+      return;
+    }
+    const hasRating = Boolean(props.rating);
+    const justLoaded = hasRating && !prevHasRatingRef.current;
+    prevHasRatingRef.current = hasRating;
+
+    if (justLoaded) {
+      animationRef.current?.stop();
+      animationRef.current = animateWithReducedMotion(panel, {
+        properties: {
+          opacity: [0, 1],
+          transform: ["translateY(4px)", "translateY(0)"],
+        },
+        reducedMotionProperties: { opacity: [0, 1] },
+        springConfig: springConfigs.ratingEntrance,
+      });
+    }
+  }, [props.rating, props.resolved, props.source]);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel || !exiting) {
+      return;
+    }
+
+    animationRef.current?.stop();
+    animationRef.current = animateWithReducedMotion(panel, {
+      properties: {
+        opacity: [1, 0],
+        transform: ["translateY(0)", "translateY(-4px)"],
+      },
+      reducedMotionProperties: { opacity: [1, 0] },
+      springConfig: springConfigs.ratingEntrance,
+    });
+  }, [exiting]);
+
   if (!rendered) {
     return null;
   }
 
   return (
     <div
+      ref={panelRef}
       class={`${SOURCE_CLASS[props.source]} ${ratingStateClass(
         Boolean(props.rating),
         props.resolved

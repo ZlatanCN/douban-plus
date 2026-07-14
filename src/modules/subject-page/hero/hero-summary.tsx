@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { IconChevron } from "@/components/common/icons";
+import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 type HeroSummaryProps = {
   expandNativeSummary?: () => Promise<string | null>;
@@ -9,6 +10,7 @@ type HeroSummaryProps = {
 
 const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
   const teaserRef = useRef<HTMLParagraphElement>(null);
+  const contentRef = useRef<HTMLSpanElement>(null);
   const previousTextRef = useRef(text);
   const summaryRequestRef = useRef(0);
   const [expanded, setExpanded] = useState(false);
@@ -34,6 +36,19 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
       setSummaryTransitionKey((key) => key + 1);
     }
   }, [text]);
+
+  useEffect(() => {
+    if (contentRef.current) {
+      animateWithReducedMotion(contentRef.current, {
+        properties: {
+          opacity: [0, 1],
+          transform: ["translateY(4px)", "translateY(0)"],
+        },
+        reducedMotionProperties: { opacity: [0, 1] },
+        springConfig: springConfigs.summaryEntrance,
+      });
+    }
+  }, [summaryTransitionKey]);
 
   const toggle = async (): Promise<void> => {
     if (expanded) {
@@ -61,7 +76,11 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
         class={`atv-hero-teaser${expanded ? "" : " is-clamped"}`}
         ref={teaserRef}
       >
-        <span class="atv-hero-teaser-content" key={summaryTransitionKey}>
+        <span
+          class="atv-hero-teaser-content"
+          key={summaryTransitionKey}
+          ref={contentRef}
+        >
           {summary}
         </span>
       </p>
