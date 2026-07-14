@@ -8896,6 +8896,11 @@ input::placeholder {
 			duration: .3,
 			type: "spring"
 		},
+		swipeDismiss: {
+			bounce: .2,
+			duration: .4,
+			type: "spring"
+		},
 		swipeToDismiss: {
 			damping: 15,
 			stiffness: 180,
@@ -8943,8 +8948,99 @@ input::placeholder {
 		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
 		return close;
 	};
+	var useSwipeToDismiss = (options) => {
+		const optionsRef = A(options);
+		h(() => {
+			optionsRef.current = options;
+		}, [options]);
+		const [deltaY, setDeltaY] = d(0);
+		const startYRef = A(0);
+		const currentDeltaRef = A(0);
+		const pointerHistoryRef = A([]);
+		const animationRef = A(null);
+		const elementRef = A(null);
+		const handlePointerDown = q((event) => {
+			const element = event.currentTarget;
+			elementRef.current = element;
+			startYRef.current = event.clientY;
+			currentDeltaRef.current = 0;
+			pointerHistoryRef.current = [];
+			element.setPointerCapture(event.pointerId);
+		}, []);
+		const handlePointerMove = q((event) => {
+			const element = elementRef.current;
+			if (!element) return;
+			const delta = event.clientY - startYRef.current;
+			if (delta < 0) return;
+			currentDeltaRef.current = delta;
+			const history = pointerHistoryRef.current;
+			history.push({
+				time: performance.now(),
+				y: event.clientY
+			});
+			if (history.length > 5) history.shift();
+			element.style.transform = `translateY(${delta}px)`;
+			setDeltaY(delta);
+		}, []);
+		const handlePointerUp = q(() => {
+			const element = elementRef.current;
+			if (!element) return;
+			const delta = currentDeltaRef.current;
+			const history = pointerHistoryRef.current;
+			setDeltaY(0);
+			const { dismissThreshold = 80, velocityThreshold = 300, onDismiss } = optionsRef.current;
+			let velocity = 0;
+			if (history.length >= 2) {
+				const [first] = history;
+				const last = history.at(-1);
+				if (last) {
+					const dt = (last.time - first.time) / 1e3;
+					if (dt > 0) velocity = (last.y - first.y) / dt;
+				}
+			}
+			if (delta > dismissThreshold || velocity > velocityThreshold) {
+				onDismiss();
+				return;
+			}
+			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) element.style.transform = "";
+			else {
+				const anim = animate(element, { transform: "translateY(0)" }, springConfigs.swipeToDismiss);
+				animationRef.current = anim;
+				(async () => {
+					await anim.finished;
+					element.style.transform = "";
+				})();
+			}
+		}, []);
+		return {
+			ref: q((el) => {
+				if (animationRef.current) {
+					animationRef.current.stop();
+					animationRef.current = null;
+				}
+				const prevEl = elementRef.current;
+				if (prevEl) {
+					prevEl.removeEventListener("pointerdown", handlePointerDown);
+					prevEl.removeEventListener("pointermove", handlePointerMove);
+					prevEl.removeEventListener("pointerup", handlePointerUp);
+				}
+				if (el) {
+					el.addEventListener("pointerdown", handlePointerDown);
+					el.addEventListener("pointermove", handlePointerMove);
+					el.addEventListener("pointerup", handlePointerUp);
+					elementRef.current = el;
+				} else elementRef.current = null;
+			}, [
+				handlePointerDown,
+				handlePointerMove,
+				handlePointerUp
+			]),
+			style: deltaY > 0 ? { transform: `translateY(${deltaY}px)` } : {}
+		};
+	};
 	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
 	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+	var SWIPE_DISMISS_DISTANCE = 120;
 	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 	var prefersReducedMotion = () => window.matchMedia?.(reducedMotionQuery).matches ?? false;
 	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
@@ -8953,9 +9049,10 @@ input::placeholder {
 			if (animationId === animationIdRef.current) finishClose();
 		} catch {}
 	};
-	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, id, onClose, openRequestId, surfaceClassName }) => {
+	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, dismissable = false, id, onClose, openRequestId, surfaceClassName }) => {
 		const overlayRef = A(null);
 		const surfaceRef = A(null);
+		const closeSourceRef = A("standard");
 		const realOnCloseRef = A(onClose);
 		const [phase, setPhase] = d("open");
 		const [reducedMotion, setReducedMotion] = d(prefersReducedMotion);
@@ -8991,13 +9088,16 @@ input::placeholder {
 				reducedMotionProperties: { opacity: opening ? 1 : 0 },
 				springConfig: springConfigs.modalBackdrop
 			});
+			const surfaceExitTransform = closeSourceRef.current === "swipe" ? `translateY(${SWIPE_DISMISS_DISTANCE}px)` : EXITING_SURFACE_TRANSFORM;
+			const surfaceSpring = closeSourceRef.current === "swipe" ? springConfigs.swipeDismiss : springConfigs.modalSurface;
+			if (!opening) closeSourceRef.current = "standard";
 			const surfaceAnimation = animateWithReducedMotion(surface, {
 				properties: {
 					opacity: opening ? 1 : 0,
-					transform: opening ? "scale(1) translateY(0)" : EXITING_SURFACE_TRANSFORM
+					transform: opening ? "scale(1) translateY(0)" : surfaceExitTransform
 				},
 				reducedMotionProperties: { opacity: opening ? 1 : 0 },
-				springConfig: springConfigs.modalSurface
+				springConfig: surfaceSpring
 			});
 			animationsRef.current = [backdropAnimation, surfaceAnimation];
 			if (!opening) finishClosingAnimation(animationId, [backdropAnimation, surfaceAnimation], animationIdRef, finishClose);
@@ -9015,6 +9115,15 @@ input::placeholder {
 			setPhase("closing");
 			animateModal("closed");
 		}, [animateModal]);
+		const handleSwipeDismiss = q(() => {
+			closeSourceRef.current = "swipe";
+			handleClose();
+		}, [handleClose]);
+		const swipe = useSwipeToDismiss({ onDismiss: dismissable ? handleSwipeDismiss : () => {} });
+		const surfaceRefCallback = q((el) => {
+			surfaceRef.current = el;
+			if (dismissable) swipe.ref(el);
+		}, [dismissable, swipe]);
 		h(() => {
 			const frame = requestAnimationFrame(() => {
 				if (!overlayRef.current) return;
@@ -9070,11 +9179,15 @@ input::placeholder {
 				children: u("div", {
 					class: surfaceClassName,
 					onClick: (event) => event.stopPropagation(),
-					ref: surfaceRef,
+					ref: dismissable ? surfaceRefCallback : surfaceRef,
 					role: "none",
 					style: {
 						opacity: 0,
-						transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM
+						transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
+						...dismissable ? {
+							touchAction: "pan-x",
+							...swipe.style
+						} : {}
 					},
 					tabindex: -1,
 					children

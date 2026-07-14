@@ -9,7 +9,7 @@ import type { InterestState, ModalCallbacks } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
-const animationControls = {
+const animationControls = Object.assign(Promise.resolve(), {
   attachTimeline: vi.fn<(...args: unknown[]) => VoidFunction>(),
   cancel: vi.fn<(...args: unknown[]) => void>(),
   complete: vi.fn<(...args: unknown[]) => void>(),
@@ -22,10 +22,8 @@ const animationControls = {
   startTime: null,
   state: "running" as const,
   stop: vi.fn<(...args: unknown[]) => void>(),
-  // eslint-disable-next-line unicorn/no-thenable -- Motion's animation control is awaitable.
-  then: vi.fn<(...args: unknown[]) => Promise<void>>(),
   time: 0,
-};
+});
 
 const animate = vi.hoisted(() =>
   vi.fn<(...args: unknown[]) => typeof animationControls>(

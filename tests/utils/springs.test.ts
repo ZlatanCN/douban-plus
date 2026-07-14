@@ -5,7 +5,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 /* ── Module-Level Mocks ─────────────────────────────── */
 
-const mockControls = {
+const mockControls = Object.assign(Promise.resolve(), {
   attachTimeline: vi.fn<(...args: unknown[]) => VoidFunction>(),
   cancel: vi.fn<(...args: unknown[]) => void>(),
   complete: vi.fn<(...args: unknown[]) => void>(),
@@ -18,12 +18,8 @@ const mockControls = {
   startTime: null,
   state: "running" as const,
   stop: vi.fn<(...args: unknown[]) => void>(),
-  // `then` needed so the mock is assignable to
-  // AnimationPlaybackControlsWithThen (motion's animate return type).
-  // eslint-disable-next-line unicorn/no-thenable
-  then: vi.fn<(...args: unknown[]) => Promise<void>>(),
   time: 0,
-};
+});
 
 const mockAnimate = vi.hoisted(() =>
   vi.fn<(...args: unknown[]) => typeof mockControls>(() => mockControls)

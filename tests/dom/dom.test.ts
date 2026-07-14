@@ -87,9 +87,8 @@ describe(safeText, () => {
     expect(safeText(null)).toBe("");
   });
 
-  it("returns empty string for undefined", () => {
-    // oxlint-disable-next-line unicorn/no-useless-undefined
-    expect(safeText(undefined)).toBe("");
+  it("returns empty string when called without an argument", () => {
+    expect(safeText()).toBe("");
   });
 
   it("returns text for element hidden by class", () => {
