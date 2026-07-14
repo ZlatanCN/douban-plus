@@ -98,10 +98,10 @@ describe("springConfigs", () => {
     });
   });
 
-  it("stickyNav → stiff 300 / damp 28", () => {
+  it("stickyNav → bounce 0 / duration 0.3", () => {
     expect(springConfigs.stickyNav).toStrictEqual({
-      damping: 28,
-      stiffness: 300,
+      bounce: 0,
+      duration: 0.3,
       type: "spring",
     });
   });

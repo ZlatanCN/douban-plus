@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import type { SubjectPageNavigation } from "@/modules/subject-page/types";
 import type { NavSection } from "@/types";
+import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 const useStickyNavigation = (
   doc: Document,
@@ -11,6 +12,7 @@ const useStickyNavigation = (
   const [visible, setVisible] = useState(false);
   const [scrolling, setScrolling] = useState(false);
   const lastVisibleRef = useRef(false);
+  const navRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     const view = doc.defaultView ?? window;
@@ -36,6 +38,21 @@ const useStickyNavigation = (
       view.clearTimeout(scrollTimer);
     };
   }, [doc]);
+
+  /* ── Spring animation on visibility change ────────────── */
+  useEffect(() => {
+    const nav = navRef.current;
+    if (!nav) {
+      return;
+    }
+
+    animateWithReducedMotion(nav, {
+      properties: visible
+        ? { opacity: 1, transform: "translateY(0)" }
+        : { opacity: 0, transform: "translateY(-100%)" },
+      springConfig: springConfigs.stickyNav,
+    });
+  }, [visible]);
 
   useEffect(() => {
     const view = doc.defaultView ?? window;
@@ -102,7 +119,7 @@ const useStickyNavigation = (
     [doc]
   );
 
-  return { activeSectionId, onJump, scrolling, sections, visible };
+  return { activeSectionId, navRef, onJump, scrolling, sections, visible };
 };
 
 export { useStickyNavigation };

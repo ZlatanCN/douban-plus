@@ -96,6 +96,7 @@ const makeRuntime = (
   firstBroadcastPlatform: null,
   navigation: {
     activeSectionId: "",
+    navRef: { current: null },
     onJump: () => {},
     scrolling: false,
     sections: [],

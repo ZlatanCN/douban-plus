@@ -4,6 +4,7 @@ import type { NavSection, TitleInfo } from "@/types";
 
 type StickyNavProps = {
   activeSectionId?: string;
+  navRef?: { current: HTMLElement | null };
   onJump: (sectionId: string) => void;
   scrolling?: boolean;
   sections: NavSection[];
@@ -15,6 +16,7 @@ type StickyNavProps = {
 
 const StickyNav = ({
   activeSectionId = "",
+  navRef,
   onJump,
   scrolling = false,
   sections,
@@ -24,6 +26,7 @@ const StickyNav = ({
   visible = false,
 }: StickyNavProps) => (
   <nav
+    ref={navRef}
     class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${subjectSwitcherOpen ? " has-subject-switcher-open" : ""}`}
   >
     <div class="atv-stickynav-title">

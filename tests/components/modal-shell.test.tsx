@@ -41,7 +41,7 @@ vi.mock(import("@/utils/springs"), () => ({
     contentEntrance: { damping: 28, stiffness: 300, type: "spring" },
     modalBackdrop: { bounce: 0, duration: 0.4, type: "spring" },
     modalSurface: { bounce: 0, duration: 0.35, type: "spring" },
-    stickyNav: { damping: 28, stiffness: 300, type: "spring" },
+    stickyNav: { bounce: 0, duration: 0.3, type: "spring" },
     swipeToDismiss: { damping: 15, stiffness: 180, type: "spring" },
   } as const,
 }));

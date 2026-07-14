@@ -186,8 +186,6 @@
   .atv-photo-tile:hover,
   .atv-rec-card:hover .atv-rec-poster,
   .atv-trailer-tile:hover,
-  .atv-stickynav,
-  .atv-stickynav.is-visible,
   .atv-hero-more.is-open svg {
     transform: none;
   }
