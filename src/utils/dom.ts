@@ -10,7 +10,7 @@ const $$ = <T extends Element = Element>(
   ctx?: ParentNode
 ): T[] => [...(ctx ?? document).querySelectorAll<T>(selector)];
 
-const safeText = (el: Node | null | undefined): string =>
+const safeText = (el?: Node | null): string =>
   el ? (el.textContent ?? "").trim() : "";
 
 /* ── Exports ─────────────────────────────────────────── */

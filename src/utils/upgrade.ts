@@ -4,7 +4,7 @@
  * Upgrade poster CDN URL from standard to HD.
  * Replaces "s_ratio_poster" with "l_ratio_poster".
  */
-const upgradePoster = (url: string | null | undefined): string | null => {
+const upgradePoster = (url?: string | null): string | null => {
   if (!url) {
     return null;
   }
@@ -19,7 +19,7 @@ const upgradePoster = (url: string | null | undefined): string | null => {
  * Upgrade photo CDN URL from standard to HD.
  * Replaces "/sqxs/" → "/large/" and "/m/" → "/l/".
  */
-const upgradePhoto = (url: string | null | undefined): string | null => {
+const upgradePhoto = (url?: string | null): string | null => {
   if (!url) {
     return null;
   }

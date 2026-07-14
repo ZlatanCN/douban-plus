@@ -26,9 +26,8 @@ describe(upgradePoster, () => {
     expect(upgradePoster(null)).toBeNull();
   });
 
-  it("returns null for undefined input", () => {
-    // oxlint-disable-next-line unicorn/no-useless-undefined
-    expect(upgradePoster(undefined)).toBeNull();
+  it("returns null when called without an argument", () => {
+    expect(upgradePoster()).toBeNull();
   });
 
   it("returns null for empty string input", () => {
@@ -78,9 +77,8 @@ describe(upgradePhoto, () => {
     expect(upgradePhoto(null)).toBeNull();
   });
 
-  it("returns null for undefined input", () => {
-    // oxlint-disable-next-line unicorn/no-useless-undefined
-    expect(upgradePhoto(undefined)).toBeNull();
+  it("returns null when called without an argument", () => {
+    expect(upgradePhoto()).toBeNull();
   });
 
   it("returns null for empty string input", () => {

@@ -1,3 +1,4 @@
+import type { AnimationPlaybackControlsWithThen } from "motion";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,8 +10,29 @@ import { renderIntoRoot } from "../helpers/render";
 
 /* ── Motion mock ────────────────────────────────────────── */
 
-// eslint-disable-next-line vitest/require-mock-type-parameters -- generic mock for motion module
-const mockAnimate = vi.hoisted(() => vi.fn());
+const createAnimationControls = (
+  overrides?: Partial<AnimationPlaybackControlsWithThen>
+): AnimationPlaybackControlsWithThen =>
+  Object.assign(Promise.resolve(), {
+    attachTimeline: vi.fn<(...args: unknown[]) => VoidFunction>(),
+    cancel: vi.fn<(...args: unknown[]) => void>(),
+    complete: vi.fn<(...args: unknown[]) => void>(),
+    duration: 0,
+    finished: Promise.resolve(),
+    iterationDuration: 0,
+    pause: vi.fn<(...args: unknown[]) => void>(),
+    play: vi.fn<(...args: unknown[]) => void>(),
+    speed: 1,
+    startTime: null,
+    state: "running" as const,
+    stop: vi.fn<(...args: unknown[]) => void>(),
+    time: 0,
+    ...overrides,
+  });
+
+const mockAnimate = vi.hoisted(() =>
+  vi.fn<(...args: unknown[]) => AnimationPlaybackControlsWithThen>()
+);
 
 vi.mock(import("motion"), () => ({
   animate: mockAnimate,
@@ -36,10 +58,11 @@ const TestComponent = ({ onDismiss, ...rest }: PartialOptions) => {
 describe(useSwipeToDismiss, () => {
   beforeEach(() => {
     mockAnimate.mockReset();
-    mockAnimate.mockReturnValue({
-      finished: Promise.resolve(),
-      stop: vi.fn<() => void>(),
-    });
+    mockAnimate.mockReturnValue(
+      createAnimationControls({
+        stop: vi.fn<() => void>(),
+      })
+    );
     vi.useFakeTimers();
   });
 
@@ -361,10 +384,12 @@ describe(useSwipeToDismiss, () => {
 
   it("stops any running animation when the ref is cleaned up on unmount", () => {
     const stopMock = vi.fn<() => void>();
-    mockAnimate.mockReturnValue({
-      finished: Promise.withResolvers().promise,
-      stop: stopMock,
-    });
+    mockAnimate.mockReturnValue(
+      createAnimationControls({
+        finished: Promise.withResolvers<undefined>().promise,
+        stop: stopMock,
+      })
+    );
 
     const onDismiss = vi.fn<() => void>();
     const root = document.createElement("div");

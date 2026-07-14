@@ -80,11 +80,12 @@ const useSwipeToDismiss = (
     let velocity = 0;
     if (history.length >= 2) {
       const [first] = history;
-      // eslint-disable-next-line unicorn/prefer-at -- at(-1) returns T|undefined which breaks strict type safety
-      const last = history[history.length - 1];
-      const dt = (last.time - first.time) / 1000;
-      if (dt > 0) {
-        velocity = (last.y - first.y) / dt;
+      const last = history.at(-1);
+      if (last) {
+        const dt = (last.time - first.time) / 1000;
+        if (dt > 0) {
+          velocity = (last.y - first.y) / dt;
+        }
       }
     }
 

@@ -37,8 +37,12 @@ const swipeDismissRef = vi.hoisted(() =>
   vi.fn<(el: HTMLElement | null) => void>()
 );
 const mockUseSwipeToDismiss = vi.hoisted(() =>
-  // eslint-disable-next-line vitest/require-mock-type-parameters -- generic mock for module factory
-  vi.fn((options: SwipeToDismissOptions) => {
+  vi.fn<
+    (options: SwipeToDismissOptions) => {
+      ref: (el: HTMLElement | null) => void;
+      style: { transform?: string };
+    }
+  >((options) => {
     swipeCallbacks.onDismiss = options.onDismiss;
     return { ref: swipeDismissRef, style: {} };
   })
@@ -49,7 +53,7 @@ const motion = vi.hoisted(() => {
   const animate = vi.fn<typeof animateWithReducedMotion>(() => {
     const completion = Promise.withResolvers<null>();
     animations.push({ resolve: () => completion.resolve(null) });
-    return {
+    return Object.assign(completion.promise, {
       attachTimeline: vi.fn<(...args: unknown[]) => VoidFunction>(),
       cancel: vi.fn<(...args: unknown[]) => void>(),
       complete: vi.fn<(...args: unknown[]) => void>(),
@@ -60,12 +64,10 @@ const motion = vi.hoisted(() => {
       play: vi.fn<(...args: unknown[]) => void>(),
       speed: 1,
       startTime: null,
-      state: "running",
+      state: "running" as const,
       stop: vi.fn<(...args: unknown[]) => void>(),
-      // eslint-disable-next-line unicorn/no-thenable -- Motion's animation control is awaitable.
-      then: vi.fn<(...args: unknown[]) => Promise<void>>(),
       time: 0,
-    } satisfies AnimationPlaybackControlsWithThen;
+    }) satisfies AnimationPlaybackControlsWithThen;
   });
 
   return { animate, animations };
