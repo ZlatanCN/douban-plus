@@ -11,9 +11,11 @@ import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 import { trapFocus } from "./focus-trap";
 import { ModalCloseContext } from "./modal-close-context";
+import { useSwipeToDismiss } from "./use-swipe-to-dismiss";
 
 const ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
 const EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+const SWIPE_DISMISS_DISTANCE = 120;
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 
 type ModalAnimation = ReturnType<typeof animateWithReducedMotion>;
@@ -44,6 +46,7 @@ type ModalShellProps = {
   ariaLabelledBy?: string;
   children: ComponentChildren;
   className: string;
+  dismissable?: boolean;
   id: string;
   onClose: () => void;
   openRequestId?: number;
@@ -56,6 +59,7 @@ const ModalShell = ({
   ariaLabelledBy,
   children,
   className,
+  dismissable = false,
   id,
   onClose,
   openRequestId,
@@ -63,6 +67,7 @@ const ModalShell = ({
 }: ModalShellProps) => {
   const overlayRef = useRef<HTMLDialogElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const closeSourceRef = useRef<"standard" | "swipe">("standard");
   const realOnCloseRef = useRef(onClose);
   const [phase, setPhase] = useState<ModalPhase>("open");
   const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);
@@ -114,15 +119,24 @@ const ModalShell = ({
         reducedMotionProperties: { opacity: opening ? 1 : 0 },
         springConfig: springConfigs.modalBackdrop,
       });
+      const surfaceExitTransform =
+        closeSourceRef.current === "swipe"
+          ? `translateY(${SWIPE_DISMISS_DISTANCE}px)`
+          : EXITING_SURFACE_TRANSFORM;
+      const surfaceSpring =
+        closeSourceRef.current === "swipe"
+          ? springConfigs.swipeDismiss
+          : springConfigs.modalSurface;
+      if (!opening) {
+        closeSourceRef.current = "standard";
+      }
       const surfaceAnimation = animateWithReducedMotion(surface, {
         properties: {
           opacity: opening ? 1 : 0,
-          transform: opening
-            ? "scale(1) translateY(0)"
-            : EXITING_SURFACE_TRANSFORM,
+          transform: opening ? "scale(1) translateY(0)" : surfaceExitTransform,
         },
         reducedMotionProperties: { opacity: opening ? 1 : 0 },
-        springConfig: springConfigs.modalSurface,
+        springConfig: surfaceSpring,
       });
       animationsRef.current = [backdropAnimation, surfaceAnimation];
 
@@ -156,6 +170,27 @@ const ModalShell = ({
     setPhase("closing");
     animateModal("closed");
   }, [animateModal]);
+
+  const handleSwipeDismiss = useCallback(() => {
+    closeSourceRef.current = "swipe";
+    handleClose();
+  }, [handleClose]);
+  const swipe = useSwipeToDismiss({
+    onDismiss: dismissable
+      ? handleSwipeDismiss
+      : () => {
+          void 0;
+        },
+  });
+  const surfaceRefCallback = useCallback(
+    (el: HTMLDivElement | null) => {
+      surfaceRef.current = el;
+      if (dismissable) {
+        swipe.ref(el);
+      }
+    },
+    [dismissable, swipe]
+  );
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -231,11 +266,14 @@ const ModalShell = ({
         <div
           class={surfaceClassName}
           onClick={(event) => event.stopPropagation()}
-          ref={surfaceRef}
+          ref={dismissable ? surfaceRefCallback : surfaceRef}
           role="none"
           style={{
             opacity: 0,
             transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
+            ...(dismissable
+              ? { touchAction: "pan-x" as const, ...swipe.style }
+              : {}),
           }}
           tabindex={-1}
         >
