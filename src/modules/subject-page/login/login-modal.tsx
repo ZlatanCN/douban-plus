@@ -9,6 +9,7 @@ import type { NativeLoginAdoptionState } from "./native-login-frame";
 type LoginModalProps = {
   action: string;
   onClose: () => void;
+  openRequestId?: number;
 };
 
 const statusForLoginState = (state: NativeLoginAdoptionState): string => {
@@ -62,7 +63,7 @@ const LoginModalContent = ({
   );
 };
 
-const LoginModal = ({ action, onClose }: LoginModalProps) => {
+const LoginModal = ({ action, onClose, openRequestId }: LoginModalProps) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<NativeLoginAdoptionState>({
     kind: "loading",
@@ -87,6 +88,7 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
       className="atv-login-modal"
       id="atv-login-modal"
       onClose={onClose}
+      openRequestId={openRequestId}
       surfaceClassName="atv-login-modal-inner"
     >
       <LoginModalContent

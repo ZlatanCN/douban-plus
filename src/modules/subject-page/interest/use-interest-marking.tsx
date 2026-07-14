@@ -1,5 +1,4 @@
 import type { JSX } from "preact";
-import { useState } from "preact/hooks";
 
 import type {
   HeroCallbacks,
@@ -8,6 +7,7 @@ import type {
   ModalCallbacks,
 } from "@/types";
 
+import { useModalRequest } from "../use-modal-request";
 import { InterestForm } from "./interest-form";
 
 type InterestResult = {
@@ -53,9 +53,7 @@ const useInterestMarking = ({
   onLoginRequired,
   subjectId,
 }: UseInterestMarkingOptions): InterestMarking => {
-  const [activeInterest, setActiveInterest] = useState<InterestState | null>(
-    null
-  );
+  const activeInterest = useModalRequest<InterestState>();
   const { post, reload, remove } = adapters;
 
   const requireLogin = (action: string): boolean => {
@@ -71,7 +69,7 @@ const useInterestMarking = ({
       if (!requireLogin(action)) {
         return;
       }
-      setActiveInterest(state);
+      activeInterest.handleOpen(state);
     },
   };
 
@@ -98,11 +96,12 @@ const useInterestMarking = ({
 
   return {
     callbacks,
-    form: activeInterest ? (
+    form: activeInterest.active ? (
       <InterestForm
         callbacks={formCallbacks}
-        onClose={() => setActiveInterest(null)}
-        state={activeInterest}
+        onClose={activeInterest.handleClose}
+        openRequestId={activeInterest.active.requestId}
+        state={activeInterest.active.value}
       />
     ) : null,
   };

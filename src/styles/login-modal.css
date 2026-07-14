@@ -18,20 +18,7 @@ dialog::backdrop {
   margin: 0;
   background: rgb(0 0 0 / 72%);
   inset: 0;
-  opacity: 0;
   overscroll-behavior: contain;
-  pointer-events: none;
-  transition:
-    visibility 0s linear var(--atv-duration-modal-backdrop),
-    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
-  visibility: hidden;
-}
-
-.atv-login-modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
-  transition-delay: 0s;
-  visibility: visible;
 }
 
 .atv-login-modal-inner {
@@ -53,16 +40,10 @@ dialog::backdrop {
     "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
   scrollbar-width: none;
   text-align: center;
-  transform: scale(0.92) translateY(8px);
-  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
 }
 
 .atv-login-modal-inner::-webkit-scrollbar {
   display: none;
-}
-
-.atv-login-modal.is-open .atv-login-modal-inner {
-  transform: scale(1) translateY(0);
 }
 
 .atv-modal-close.atv-login-modal-close {

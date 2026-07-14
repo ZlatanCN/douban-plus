@@ -12,14 +12,6 @@
   margin: 0;
   background: rgb(0 0 0 / 72%);
   inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
-}
-
-.atv-interest-modal.is-open {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .atv-interest-modal-inner {
@@ -32,12 +24,6 @@
   background: var(--atv-bg-secondary);
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
-  transform: scale(0.92) translateY(8px);
-  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
-}
-
-.atv-interest-modal.is-open .atv-interest-modal-inner {
-  transform: scale(1) translateY(0);
 }
 
 .atv-interest-modal-header {

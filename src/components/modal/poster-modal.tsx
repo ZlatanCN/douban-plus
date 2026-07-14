@@ -8,6 +8,7 @@ const MODAL_ID = "atv-poster-modal";
 type PosterModalProps = {
   alt: string;
   onClose: () => void;
+  openRequestId?: number;
   src: string;
 };
 
@@ -24,12 +25,18 @@ const PosterModalContent = ({
   );
 };
 
-const PosterModal = ({ alt, onClose, src }: PosterModalProps) => (
+const PosterModal = ({
+  alt,
+  onClose,
+  openRequestId,
+  src,
+}: PosterModalProps) => (
   <ModalShell
     ariaLabel="海报预览"
     className="atv-modal-overlay"
     id={MODAL_ID}
     onClose={onClose}
+    openRequestId={openRequestId}
     surfaceClassName="atv-modal-surface"
   >
     <PosterModalContent alt={alt} src={src} />

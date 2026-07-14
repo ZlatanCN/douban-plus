@@ -71,10 +71,4 @@
   max-height: 90vh;
   border-radius: var(--atv-radius-lg);
   box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
-  transform: scale(0.92);
-  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
-}
-
-.atv-modal-overlay.is-open .atv-modal-video {
-  transform: scale(1);
 }

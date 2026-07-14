@@ -12,6 +12,7 @@ import { useReviewContent } from "./use-review-content";
 type ReviewModalProps = {
   canVote?: AccountActionGuard;
   onClose: () => void;
+  openRequestId?: number;
   onVoteStateChange?: (
     review: Review,
     state: ReviewVoteState,
@@ -137,6 +138,7 @@ const ReviewModalContent = ({
 const ReviewModal = ({
   canVote,
   onClose,
+  openRequestId,
   onVoteStateChange,
   onVote,
   review,
@@ -147,6 +149,7 @@ const ReviewModal = ({
     className="atv-review-modal"
     id="atv-review-modal"
     onClose={onClose}
+    openRequestId={openRequestId}
     surfaceClassName="atv-review-modal-scroll"
   >
     <ReviewModalContent

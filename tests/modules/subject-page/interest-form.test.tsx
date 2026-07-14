@@ -9,6 +9,32 @@ import type { InterestState, ModalCallbacks } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
+const animationControls = {
+  attachTimeline: vi.fn<(...args: unknown[]) => VoidFunction>(),
+  cancel: vi.fn<(...args: unknown[]) => void>(),
+  complete: vi.fn<(...args: unknown[]) => void>(),
+  duration: 0,
+  finished: Promise.resolve(),
+  iterationDuration: 0,
+  pause: vi.fn<(...args: unknown[]) => void>(),
+  play: vi.fn<(...args: unknown[]) => void>(),
+  speed: 1,
+  startTime: null,
+  state: "running" as const,
+  stop: vi.fn<(...args: unknown[]) => void>(),
+  // eslint-disable-next-line unicorn/no-thenable -- Motion's animation control is awaitable.
+  then: vi.fn<(...args: unknown[]) => Promise<void>>(),
+  time: 0,
+};
+
+const animate = vi.hoisted(() =>
+  vi.fn<(...args: unknown[]) => typeof animationControls>(
+    () => animationControls
+  )
+);
+
+vi.mock(import("motion"), () => ({ animate }));
+
 const makeState = (overrides?: Partial<InterestState>): InterestState => ({
   ck: "token",
   comment: "",
@@ -125,13 +151,12 @@ describe(InterestForm, () => {
       ?.click();
     await Promise.resolve();
     await Promise.resolve();
-
     expect(onSave).toHaveBeenCalledWith({
       comment: "good",
       rating: 4,
       status: "collect",
     });
-    expect(onClose).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
 
   it("shows save errors and removes existing marks", async () => {
@@ -169,6 +194,6 @@ describe(InterestForm, () => {
     await Promise.resolve();
     await Promise.resolve();
     expect(onRemove).toHaveBeenCalledWith("wish");
-    expect(onClose).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
 });

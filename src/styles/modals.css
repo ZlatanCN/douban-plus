@@ -25,14 +25,6 @@
   margin: 0;
   background: rgb(0 0 0 / 78%);
   inset: 0;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
-}
-
-.atv-modal-overlay.is-open {
-  opacity: 1;
-  pointer-events: auto;
 }
 
 .atv-modal-img {
@@ -41,12 +33,6 @@
   border-radius: var(--atv-radius-lg);
   box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
   object-fit: contain;
-  transform: scale(0.92);
-  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
-}
-
-.atv-modal-overlay.is-open .atv-modal-img {
-  transform: scale(1);
 }
 
 .atv-modal-accent-bar {
@@ -63,17 +49,7 @@
     var(--atv-accent) 85%,
     transparent
   );
-  opacity: 0;
-  transform: scaleX(0.97);
-  transform-origin: center;
-  transition:
-    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out),
-    transform var(--atv-duration-modal-backdrop) var(--atv-ease-out);
-}
-
-.is-open .atv-modal-accent-bar {
   opacity: 1;
-  transform: scaleX(1);
 }
 
 .atv-modal-close {
