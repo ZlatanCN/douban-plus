@@ -117,6 +117,49 @@ describe("Review content", () => {
     expect(fetch).not.toHaveBeenCalled();
   });
 
+  it("preserves an embedded Douban subject reference for modal rendering", async () => {
+    document.body.innerHTML = `
+      <article id="review_47">
+        <div id="review_47_full">
+          <div class="review-content">
+            <div class="subject-container">
+              <div class="subject-wrapper">
+                <a href="https://movie.douban.com/subject/1296965/">
+                  <div class="subject-cover"><img src="https://img1.doubanio.com/view/photo/s_ratio_poster/public/p2310910759.jpg" /></div>
+                  <div class="subject-info">
+                    <div class="subject-title"><span class="title-text">销魂天师</span><span class="title-tail"> (1988)</span></div>
+                    <div class="subject-rating"><span class="rating-star1"></span><span class="rating-star1"></span><span class="rating-star1"></span><span class="rating-star2"></span><span class="rating-star0"></span><span class="rating-score">7.7</span></div>
+                    <div class="subject-summary">1988 / 美国 / 喜剧 恐怖</div>
+                  </div>
+                </a>
+              </div>
+              <div class="subject-caption-wrapper"><div class="subject-caption">艾薇拉是成功被经典影响后的原创角色</div></div>
+            </div>
+          </div>
+        </div>
+      </article>
+    `;
+    const fetch = vi.fn<() => Promise<Response>>();
+    vi.stubGlobal("fetch", fetch);
+    const root = renderProbe("review_47");
+
+    await vi.waitFor(() =>
+      expect(root.querySelector("output")?.dataset.status).toBe("loaded")
+    );
+
+    const html = root.querySelector("output")?.dataset.html ?? "";
+    expectHtml(
+      html,
+      'class="subject-container"',
+      'class="subject-cover"',
+      'class="subject-rating"',
+      'class="rating-star2"',
+      'class="subject-caption"',
+      'href="https://movie.douban.com/subject/1296965/"'
+    );
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
   it("preserves blockquote with cite and footer in sanitized review content", async () => {
     document.body.innerHTML = `
       <article id="review_44">

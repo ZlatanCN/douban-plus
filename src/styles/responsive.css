@@ -153,6 +153,25 @@
     float: none;
   }
 
+  .atv-review-modal-body .subject-wrapper > a {
+    padding: 10px;
+    gap: 10px;
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .atv-review-modal-body .subject-cover {
+    width: 44px;
+    height: 66px;
+  }
+
+  .atv-review-modal-body .subject-title {
+    font-size: 15px;
+  }
+
+  .atv-review-modal-body .subject-caption-wrapper {
+    padding: 0 10px 10px 66px;
+  }
+
   /* Review content typography — responsive */
   .atv-review-modal-body h3 {
     margin-top: 22px;
