@@ -24,9 +24,8 @@
   -webkit-tap-highlight-color: transparent;
   transition:
     transform var(--atv-duration-press) var(--atv-ease-out),
-    background 200ms ease,
-    box-shadow 200ms ease,
-    color 200ms ease;
+    background var(--atv-duration-feedback) ease,
+    color var(--atv-duration-feedback) ease;
 }
 
 .atv-btn:active {
@@ -95,7 +94,7 @@
 }
 
 .atv-hero-more svg {
-  transition: transform 220ms ease;
+  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);
 }
 
 .atv-hero-more.is-open svg {

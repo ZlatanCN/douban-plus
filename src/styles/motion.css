@@ -11,18 +11,12 @@
     transform: translateY(-1px);
   }
 
-  .atv-poster-card:hover {
-    transform: scale(1.03);
-  }
-
   .atv-comment-card:hover {
     border-color: rgb(255 255 255 / 12%);
-    transform: translateY(-2px);
   }
 
   .atv-review-card:hover {
     border-color: rgb(255 255 255 / 12%);
-    transform: translateY(-2px);
   }
 
   .atv-review-card:hover .atv-review-readmore {
@@ -37,7 +31,6 @@
   .atv-stream-card:hover {
     border-color: rgb(255 255 255 / 18%);
     background: rgb(255 255 255 / 9%);
-    transform: translateY(-2px);
   }
 
   .atv-interest-modal-star:hover {
@@ -59,21 +52,6 @@
   display: block;
 }
 
-.atv-rating-panel-imdb,
-.atv-rating-panel-rt,
-.atv-rating-panel-mc {
-  transition:
-    opacity 200ms var(--atv-ease-out),
-    transform 200ms var(--atv-ease-out);
-}
-
-.atv-rating-panel-imdb.is-exiting,
-.atv-rating-panel-rt.is-exiting,
-.atv-rating-panel-mc.is-exiting {
-  opacity: 0;
-  transform: translateY(-4px);
-}
-
 @keyframes atv-content-fade {
   from {
     opacity: 0;
@@ -93,12 +71,6 @@
     animation: none;
   }
 
-  .atv-rating-panel-imdb.is-exiting,
-  .atv-rating-panel-rt.is-exiting,
-  .atv-rating-panel-mc.is-exiting {
-    transform: none;
-  }
-
   .atv-modal-accent-bar {
     opacity: 1;
   }
@@ -106,6 +78,7 @@
   .atv-btn-primary:hover,
   .atv-btn-secondary:hover,
   .atv-btn:active,
+  .atv-modal-close:active,
   .atv-poster-card:hover,
   .atv-comment-card:hover,
   .atv-comment-votes:active,

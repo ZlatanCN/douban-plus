@@ -50,6 +50,7 @@ const useStickyNavigation = (
       properties: visible
         ? { opacity: 1, transform: "translateY(0)" }
         : { opacity: 0, transform: "translateY(-100%)" },
+      reducedMotionProperties: { opacity: visible ? 1 : 0 },
       springConfig: springConfigs.stickyNav,
     });
   }, [visible]);

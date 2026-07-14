@@ -271,9 +271,7 @@ const ModalShell = ({
           style={{
             opacity: 0,
             transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
-            ...(dismissable
-              ? { touchAction: "pan-x" as const, ...swipe.style }
-              : {}),
+            ...(dismissable ? { touchAction: "pan-x" as const } : {}),
           }}
           tabindex={-1}
         >

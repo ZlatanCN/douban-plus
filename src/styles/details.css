@@ -26,8 +26,8 @@
   border-bottom: 1px solid var(--atv-border-medium);
   color: var(--atv-text-primary);
   transition:
-    color 200ms ease,
-    border-color 200ms ease;
+    color var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease;
 }
 
 .atv-info-value a:hover {

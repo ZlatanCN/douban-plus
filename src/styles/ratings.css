@@ -24,7 +24,7 @@
   grid-template-rows: 28px 44px 20px 1fr;
   place-items: center center;
   text-align: center;
-  transition: background 200ms ease;
+  transition: background var(--atv-duration-feedback) ease;
 }
 
 .atv-rating-panel-douban:hover,
@@ -51,7 +51,7 @@
   align-items: center;
   align-self: center;
   opacity: 0.85;
-  transition: opacity 200ms ease;
+  transition: opacity var(--atv-duration-feedback) ease;
 }
 
 .atv-rating-panel-logo:hover {

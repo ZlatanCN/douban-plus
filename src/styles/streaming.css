@@ -26,9 +26,9 @@
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
-    background 220ms ease,
-    border-color 220ms ease,
-    transform 220ms var(--atv-ease-out);
+    background var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
 }
 
 /* Center-glow overlay — subtle brand bloom from card center */
@@ -44,7 +44,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 220ms ease;
+  transition: opacity var(--atv-duration-feedback) ease;
 }
 
 /* ── Combined SVG cards ── */
@@ -127,7 +127,7 @@
   overflow: hidden;
   min-width: 0;
   text-overflow: ellipsis;
-  transition: color 220ms ease;
+  transition: color var(--atv-duration-feedback) ease;
   white-space: nowrap;
 }
 

@@ -145,10 +145,10 @@ describe("springConfigs", () => {
     });
   });
 
-  it("reviewBodyEntrance → bounce 0 / duration 0.35", () => {
+  it("reviewBodyEntrance → bounce 0 / duration 0.3", () => {
     expect(springConfigs.reviewBodyEntrance).toStrictEqual({
       bounce: 0,
-      duration: 0.35,
+      duration: 0.3,
       type: "spring",
     });
   });

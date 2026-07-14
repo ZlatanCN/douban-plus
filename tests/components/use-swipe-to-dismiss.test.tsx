@@ -45,12 +45,12 @@ type PartialOptions = Partial<
 > & { onDismiss: () => void };
 
 const TestComponent = ({ onDismiss, ...rest }: PartialOptions) => {
-  const { ref, style } = useSwipeToDismiss({
+  const { ref } = useSwipeToDismiss({
     dismissThreshold: rest.dismissThreshold,
     onDismiss,
     velocityThreshold: rest.velocityThreshold,
   });
-  return <div ref={ref} style={style} data-testid="swipe-area" />;
+  return <div ref={ref} data-testid="swipe-area" />;
 };
 
 /* ── Tests ──────────────────────────────────────────────── */
@@ -138,6 +138,92 @@ describe(useSwipeToDismiss, () => {
     );
 
     expect(onDismiss).not.toHaveBeenCalled();
+  });
+
+  it("settles a cancelled drag with the same snap-back spring", () => {
+    const onDismiss = vi.fn<() => void>();
+    const root = renderIntoRoot(
+      <TestComponent
+        onDismiss={onDismiss}
+        dismissThreshold={200}
+        velocityThreshold={1000}
+      />
+    );
+    const element = root.querySelector<HTMLElement>(
+      "[data-testid=swipe-area]"
+    ) as HTMLElement;
+
+    element.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        clientY: 150,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointercancel", { bubbles: true, pointerId: 1 })
+    );
+
+    expect(onDismiss).not.toHaveBeenCalled();
+    expect(mockAnimate).toHaveBeenCalledWith(
+      element,
+      { transform: "translateY(0)" },
+      springConfigs.swipeToDismiss
+    );
+  });
+
+  it("stops an in-flight snap-back before a new drag begins", () => {
+    const stop = vi.fn<() => void>();
+    mockAnimate.mockReturnValue(
+      createAnimationControls({
+        finished: Promise.withResolvers<undefined>().promise,
+        stop,
+      })
+    );
+    const root = renderIntoRoot(
+      <TestComponent
+        onDismiss={vi.fn<() => void>()}
+        dismissThreshold={200}
+        velocityThreshold={1000}
+      />
+    );
+    const element = root.querySelector<HTMLElement>(
+      "[data-testid=swipe-area]"
+    ) as HTMLElement;
+
+    element.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        clientY: 150,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 2,
+      })
+    );
+
+    expect(stop).toHaveBeenCalledOnce();
   });
 
   /* ── Spring parameter selection ───────────────────────── */

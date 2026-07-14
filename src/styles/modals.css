@@ -73,15 +73,20 @@
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
   transition:
-    color 200ms ease,
-    background 200ms ease,
-    border-color 200ms ease;
+    transform var(--atv-duration-press) var(--atv-ease-out),
+    color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease;
 }
 
 .atv-modal-close:hover {
   border-color: rgb(255 255 255 / 30%);
   background: rgb(255 255 255 / 16%);
   color: #fff;
+}
+
+.atv-modal-close:active {
+  transform: scale(0.97);
 }
 
 .atv-modal-close svg {

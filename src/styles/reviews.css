@@ -176,8 +176,8 @@
   pointer-events: none;
   transform: translateX(-3px);
   transition:
-    opacity 300ms ease,
-    transform 300ms ease;
+    opacity var(--atv-duration-hover) var(--atv-ease-out),
+    transform var(--atv-duration-hover) var(--atv-ease-out);
 }
 
 .atv-review-card:focus-visible .atv-review-readmore {
@@ -221,9 +221,9 @@
   gap: 5px;
   line-height: 1;
   transition:
-    color 250ms ease,
-    background 250ms ease,
-    border-color 250ms ease,
+    color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease,
     transform var(--atv-duration-press) var(--atv-ease-out);
   white-space: nowrap;
 }

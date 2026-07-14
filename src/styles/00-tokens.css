@@ -21,6 +21,8 @@
   --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --atv-duration-press: 160ms;
   --atv-duration-hover: 160ms;
+  --atv-duration-feedback: 200ms;
+  --atv-duration-content: 300ms;
   --atv-duration-overlay: 200ms;
   --atv-duration-modal-backdrop: 400ms;
   --atv-duration-modal-surface: 350ms;

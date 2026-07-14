@@ -11,7 +11,7 @@ const springConfigs = {
   modalBackdrop: { bounce: 0, duration: 0.4, type: "spring" as const },
   modalSurface: { bounce: 0, duration: 0.35, type: "spring" as const },
   ratingEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
-  reviewBodyEntrance: { bounce: 0, duration: 0.35, type: "spring" as const },
+  reviewBodyEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
   stickyNav: { bounce: 0, duration: 0.3, type: "spring" as const },
   summaryEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
   swipeDismiss: { bounce: 0.2, duration: 0.4, type: "spring" as const },
