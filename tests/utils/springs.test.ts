@@ -65,6 +65,9 @@ describe("springConfigs", () => {
     "contentEntrance",
     "swipeToDismiss",
     "carouselSnap",
+    "ratingEntrance",
+    "reviewBodyEntrance",
+    "summaryEntrance",
   ] as const;
 
   it("exports all expected configs", () => {
@@ -126,6 +129,30 @@ describe("springConfigs", () => {
     expect(springConfigs.carouselSnap).toStrictEqual({
       damping: 18,
       stiffness: 200,
+      type: "spring",
+    });
+  });
+
+  it("ratingEntrance → bounce 0 / duration 0.3", () => {
+    expect(springConfigs.ratingEntrance).toStrictEqual({
+      bounce: 0,
+      duration: 0.3,
+      type: "spring",
+    });
+  });
+
+  it("summaryEntrance → bounce 0 / duration 0.3", () => {
+    expect(springConfigs.summaryEntrance).toStrictEqual({
+      bounce: 0,
+      duration: 0.3,
+      type: "spring",
+    });
+  });
+
+  it("reviewBodyEntrance → bounce 0 / duration 0.35", () => {
+    expect(springConfigs.reviewBodyEntrance).toStrictEqual({
+      bounce: 0,
+      duration: 0.35,
       type: "spring",
     });
   });

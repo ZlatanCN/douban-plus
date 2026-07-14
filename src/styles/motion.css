@@ -57,13 +57,6 @@
 
 .atv-hero-teaser-content {
   display: block;
-  animation: atv-summary-content-in 200ms var(--atv-ease-out) both;
-}
-
-.atv-rating-panel-imdb.is-loaded,
-.atv-rating-panel-rt.is-loaded,
-.atv-rating-panel-mc.is-loaded {
-  animation: atv-rating-content-in 200ms var(--atv-ease-out) both;
 }
 
 .atv-rating-panel-imdb,
@@ -79,47 +72,6 @@
 .atv-rating-panel-mc.is-exiting {
   opacity: 0;
   transform: translateY(-4px);
-}
-
-.atv-review-modal-body.is-loaded,
-.atv-review-modal-body.is-error {
-  animation: atv-review-content-in 200ms var(--atv-ease-out) both;
-}
-
-@keyframes atv-summary-content-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes atv-rating-content-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes atv-review-content-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 @keyframes atv-content-fade {
@@ -139,16 +91,6 @@
 
   .atv-spinner {
     animation: none;
-  }
-
-  .atv-rating-panel-imdb.is-loaded,
-  .atv-rating-panel-rt.is-loaded,
-  .atv-rating-panel-mc.is-loaded,
-  .atv-review-modal-body.is-loaded,
-  .atv-review-modal-body.is-error,
-  .atv-hero-teaser-content {
-    animation: atv-content-fade 200ms ease both;
-    transform: none;
   }
 
   .atv-rating-panel-imdb.is-exiting,

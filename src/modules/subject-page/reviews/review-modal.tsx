@@ -1,8 +1,11 @@
+import { useEffect, useRef } from "preact/hooks";
+
 import { HtmlContent } from "@/components/common/icons";
 import { Stars } from "@/components/common/stars";
 import { ModalCloseButton, ModalShell } from "@/components/modal/index";
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
@@ -56,6 +59,34 @@ const ReviewModalContent = ({
   const content = useReviewContent(review.id);
   const displayName = reviewDisplayName(review.name);
   const numericId = reviewNumericId(review.id);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const bodyAnimationRef = useRef<{ stop: () => void } | null>(null);
+  const prevStatusRef =
+    useRef<ReturnType<typeof useReviewContent>["status"]>("loading");
+
+  useEffect(() => {
+    const bodyEl = bodyRef.current;
+    if (!bodyEl) {
+      return;
+    }
+    const currentStatus = content.status;
+    const justFinished =
+      (currentStatus === "loaded" || currentStatus === "error") &&
+      prevStatusRef.current === "loading";
+    prevStatusRef.current = currentStatus;
+
+    if (justFinished) {
+      bodyAnimationRef.current?.stop();
+      bodyAnimationRef.current = animateWithReducedMotion(bodyEl, {
+        properties: {
+          opacity: [0, 1],
+          transform: ["translateY(4px)", "translateY(0)"],
+        },
+        reducedMotionProperties: { opacity: [0, 1] },
+        springConfig: springConfigs.reviewBodyEntrance,
+      });
+    }
+  }, [content.status]);
   return (
     <>
       <ModalCloseButton ariaLabel="关闭影评" onClick={handleClose} />
@@ -94,19 +125,21 @@ const ReviewModalContent = ({
           </div>
         </div>
       </div>
-      <HtmlContent
-        aria-busy={content.status === "loading" ? "true" : "false"}
-        aria-live="polite"
-        class={bodyClassName(content.status)}
-        html={content.html || undefined}
-      >
-        {content.status === "loading" ? "加载中" : null}
-        {content.status === "error" ? (
-          <div class="atv-review-modal-error">
-            <p>影评内容暂时加载失败</p>
-          </div>
-        ) : null}
-      </HtmlContent>
+      <div ref={bodyRef}>
+        <HtmlContent
+          aria-busy={content.status === "loading" ? "true" : "false"}
+          aria-live="polite"
+          class={bodyClassName(content.status)}
+          html={content.html || undefined}
+        >
+          {content.status === "loading" ? "加载中" : null}
+          {content.status === "error" ? (
+            <div class="atv-review-modal-error">
+              <p>影评内容暂时加载失败</p>
+            </div>
+          ) : null}
+        </HtmlContent>
+      </div>
       <div class="atv-review-modal-footer">
         <div class="atv-review-modal-votes">
           <div class="atv-review-actions" data-rid={review.id || undefined}>
