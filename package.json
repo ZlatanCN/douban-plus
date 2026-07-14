@@ -28,6 +28,7 @@
     "ci": "pnpm lint && tsc --noEmit && tsc -p tests/tsconfig.json --noEmit && vitest run && vite build && tsx tests/qa.ts"
   },
   "dependencies": {
+    "motion": "^12.42.2",
     "preact": "^10.29.6"
   },
   "devDependencies": {

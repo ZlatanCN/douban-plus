@@ -227,3 +227,129 @@
     background: rgb(255 255 255 / 12%);
   }
 }
+
+/* ---------- Accessibility: reduced transparency ---------- */
+@media (prefers-reduced-transparency: reduce) {
+  .atv-stickynav.is-visible:not(.is-scrolling) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: #0a0a0c;
+  }
+
+  .atv-modal-overlay,
+  .atv-comment-overlay,
+  .atv-interest-modal,
+  .atv-login-modal,
+  .atv-review-modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 90%);
+  }
+
+  .atv-btn-secondary {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .atv-chip {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .atv-series-badge {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 80%);
+  }
+
+  .atv-trailer-label {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 80%);
+  }
+
+  .atv-comment-expand {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* ---------- Accessibility: high contrast ---------- */
+@media (prefers-contrast: more) {
+  .atv-modal-overlay,
+  .atv-comment-overlay,
+  .atv-interest-modal,
+  .atv-login-modal,
+  .atv-review-modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 92%);
+  }
+
+  .atv-comment-card,
+  .atv-review-card,
+  .atv-stream-card,
+  .atv-chip,
+  .atv-comment-votes {
+    border-color: rgb(255 255 255 / 25%);
+  }
+
+  .atv-discussion-row {
+    border-bottom-color: rgb(255 255 255 / 25%);
+  }
+
+  .atv-chip {
+    color: var(--atv-text-primary);
+  }
+
+  .atv-comment-expand {
+    border-color: rgb(255 255 255 / 25%);
+    background: rgb(0 0 0 / 50%);
+  }
+
+  .atv-btn-secondary {
+    border-color: rgb(255 255 255 / 30%);
+    background: rgb(255 255 255 / 12%);
+  }
+
+  .atv-series-badge {
+    background: rgb(0 0 0 / 85%);
+  }
+
+  .atv-trailer-label {
+    background: rgb(0 0 0 / 85%);
+  }
+}
+
+/* ---------- Card press states ---------- */
+.atv-discussion-row {
+  transition: transform var(--atv-duration-press) var(--atv-ease-out);
+}
+
+.atv-poster-card:active {
+  transform: scale(0.97);
+}
+
+.atv-stream-card:active {
+  transform: scale(0.97);
+}
+
+.atv-photo-tile:active {
+  transform: scale(0.97);
+}
+
+.atv-cast-card:active {
+  transform: scale(0.97);
+}
+
+.atv-series-card:active {
+  transform: scale(0.97);
+}
+
+.atv-comment-card:active {
+  transform: scale(0.97);
+}
+
+.atv-discussion-row:active {
+  transform: scale(0.97);
+}
