@@ -26,6 +26,7 @@ type InterestMarkingActions = {
 
 type SubjectPageNavigation = {
   activeSectionId: string;
+  navRef: { current: HTMLElement | null };
   onJump: (sectionId: string) => void;
   scrolling: boolean;
   sections: NavSection[];
