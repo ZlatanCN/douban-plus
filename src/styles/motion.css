@@ -163,13 +163,6 @@
     transition-delay: 0s, 0s;
   }
 
-  .atv-rating-panel-skeleton {
-    animation: none;
-  }
-
-  .atv-review-modal-body.is-skeleton::before,
-  .atv-review-modal-body.is-skeleton::after,
-  .atv-login-modal-native[aria-busy="true"]::before,
   .atv-spinner {
     animation: none;
   }

@@ -27,7 +27,7 @@
   inset: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 400ms var(--atv-ease-out);
+  transition: opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out);
 }
 
 .atv-modal-overlay.is-open {
@@ -42,7 +42,7 @@
   box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
   object-fit: contain;
   transform: scale(0.92);
-  transition: transform 350ms var(--atv-ease-out);
+  transition: transform var(--atv-duration-modal-surface) var(--atv-ease-out);
 }
 
 .atv-modal-overlay.is-open .atv-modal-img {
@@ -67,8 +67,8 @@
   transform: scaleX(0.97);
   transform-origin: center;
   transition:
-    opacity 400ms var(--atv-ease-out),
-    transform 400ms var(--atv-ease-out);
+    opacity var(--atv-duration-modal-backdrop) var(--atv-ease-out),
+    transform var(--atv-duration-modal-backdrop) var(--atv-ease-out);
 }
 
 .is-open .atv-modal-accent-bar {

@@ -34,6 +34,7 @@ import {
   reviewWithVoteState,
 } from "./reviews/review-vote-state";
 import type { ReviewVoteState } from "./reviews/review-vote-state";
+import { SubjectSwitcher } from "./search/subject-switcher";
 import type { SubjectPageRuntime } from "./types";
 import { useVoteState } from "./use-vote-state";
 import type { VoteStateStrategy } from "./use-vote-state";
@@ -93,6 +94,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const [activeReview, setActiveReview] = useState<Review | null>(null);
   const [activeMediaModal, setActiveMediaModal] =
     useState<ActiveMediaModal>(null);
+  const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
   const closeMediaModal = useCallback(() => setActiveMediaModal(null), []);
   const [loginAction, setLoginAction] = useState<string | null>(null);
   const commentVotes = useVoteState(data.comments, commentVoteStrategy);
@@ -123,7 +125,14 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
 
   return (
     <>
-      <StickyNav {...runtime.navigation} title={data.title} />
+      <StickyNav
+        {...runtime.navigation}
+        subjectSwitcher={
+          <SubjectSwitcher onOpenChange={setSubjectSwitcherOpen} />
+        }
+        subjectSwitcherOpen={subjectSwitcherOpen}
+        title={data.title}
+      />
       <Hero
         callbacks={interestMarking.callbacks}
         data={toHeroData(data)}

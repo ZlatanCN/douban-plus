@@ -46,7 +46,7 @@
 }
 
 .atv-hero-still.is-hd.is-loaded {
-  animation: atv-kenburns 22s ease-out forwards;
+  animation: atv-kenburns 22s linear forwards;
   opacity: 1;
 }
 
