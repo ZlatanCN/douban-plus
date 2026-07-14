@@ -42,6 +42,19 @@ describe(StickyNav, () => {
     );
   });
 
+  it("labels the current title as the previous work while the switcher is open", () => {
+    const root = renderIntoRoot(
+      <StickyNav {...makeData()} onJump={noop} subjectSwitcherOpen />
+    );
+
+    expect(root.querySelector(".atv-stickynav")?.classList).toContain(
+      "has-subject-switcher-open"
+    );
+    expect(root.querySelector(".atv-stickynav-title")?.textContent).toBe(
+      "上一部"
+    );
+  });
+
   it("renders each section link with href and label", () => {
     const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
     const links = root.querySelectorAll<HTMLAnchorElement>(
