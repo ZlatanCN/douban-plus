@@ -10,6 +10,7 @@ import {
   commentVoteKey,
   commentWithVoteState,
   initialCommentVoteState,
+  persistCommentVoteState,
 } from "./comments/comment-vote-state";
 import type { CommentVoteState } from "./comments/comment-vote-state";
 import { DetailsSection } from "./details";
@@ -66,6 +67,7 @@ const commentVoteStrategy = {
   initial: initialCommentVoteState,
   key: commentVoteKey,
   merge: commentWithVoteState,
+  persist: persistCommentVoteState,
 } satisfies VoteStateStrategy<Comment, CommentVoteState>;
 
 const reviewVoteStrategy = {

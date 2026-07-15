@@ -3,6 +3,7 @@ import type { AccountActionGuard, Comment } from "@/types";
 
 import { getSubjectSectionCopy } from "../section-copy";
 import type { CommentVoteCallback } from "../types";
+import type { VotePersistOptions } from "../vote-state";
 import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 
@@ -12,7 +13,11 @@ type CommentsSectionProps = {
   comments: Comment[];
   getVoteState?: (comment: Comment) => CommentVoteState;
   onOpen: (comment: Comment) => void;
-  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
+  onVoteStateChange?: (
+    comment: Comment,
+    state: CommentVoteState,
+    options?: VotePersistOptions
+  ) => void;
   onVote: CommentVoteCallback;
   subjectId: string;
 };

@@ -3,12 +3,15 @@ import { useState } from "preact/hooks";
 import { IconVoteTriangle } from "@/components/common/icons";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
 
+import { useVoteAction } from "../use-vote-action";
+import type { VotePersistOptions } from "../vote-state";
 import { reviewNumericId } from "./review-identity";
 import {
   initialReviewVoteState,
   optimisticReviewVoteState,
   persistReviewVoteState,
   resolvedReviewVoteState,
+  reviewVotedOf,
 } from "./review-vote-state";
 import type { ReviewVoteDirection, ReviewVoteState } from "./review-vote-state";
 
@@ -17,13 +20,15 @@ type ReviewVoteButtonsProps = {
   onStateChange?: (
     review: Review,
     state: ReviewVoteState,
-    options?: { persist?: boolean }
+    options?: VotePersistOptions
   ) => void;
   onVote?: ReviewVoteCallback;
   review: Review;
   size?: "normal" | "large";
   state?: ReviewVoteState;
 };
+
+type ReviewVoteResult = Awaited<ReturnType<ReviewVoteCallback>>;
 
 const ReviewVoteButtons = ({
   canVote,
@@ -36,12 +41,11 @@ const ReviewVoteButtons = ({
   const [localState, setLocalState] = useState<ReviewVoteState>(() =>
     initialReviewVoteState(review)
   );
-  const [loading, setLoading] = useState(false);
   const voteState = state ?? localState;
 
   const setVoteState = (
     nextState: ReviewVoteState,
-    options?: { persist?: boolean }
+    options?: VotePersistOptions
   ): void => {
     if (onStateChange) {
       onStateChange(review, nextState, options);
@@ -53,30 +57,31 @@ const ReviewVoteButtons = ({
     }
   };
 
-  const vote = async (type: ReviewVoteDirection): Promise<void> => {
-    if (loading || voteState.voted === type || !onVote) {
-      return;
-    }
-    if (canVote && !canVote()) {
-      return;
-    }
-
-    const previous = voteState;
-    setLoading(true);
-    setVoteState(optimisticReviewVoteState(voteState, type));
-
-    const result = await onVote(reviewNumericId(review.id), type);
-    if (result.ok) {
-      setVoteState(resolvedReviewVoteState(voteState, type, result), {
-        persist: true,
-      });
-    } else {
-      setVoteState(previous);
-    }
-    setLoading(false);
-  };
+  const { loading, vote } = useVoteAction<
+    ReviewVoteState,
+    ReviewVoteDirection,
+    ReviewVoteResult
+  >({
+    canVote,
+    getState: () => voteState,
+    onVote: (dir) =>
+      onVote
+        ? onVote(reviewNumericId(review.id), dir)
+        : Promise.resolve({ ok: false }),
+    optimistic: optimisticReviewVoteState,
+    resolve: resolvedReviewVoteState,
+    setState: setVoteState,
+    votedOf: reviewVotedOf,
+  });
 
   const sizeClass = size === "large" ? " is-lg" : "";
+
+  const handleVote = (dir: ReviewVoteDirection): void => {
+    if (!onVote) {
+      return;
+    }
+    void vote(dir);
+  };
 
   return (
     <>
@@ -89,7 +94,7 @@ const ReviewVoteButtons = ({
         disabled={!onVote || loading || voteState.voted === "useful"}
         onClick={(event) => {
           event.stopPropagation();
-          void vote("useful");
+          handleVote("useful");
         }}
         type="button"
       >
@@ -105,7 +110,7 @@ const ReviewVoteButtons = ({
         disabled={!onVote || loading || voteState.voted === "useless"}
         onClick={(event) => {
           event.stopPropagation();
-          void vote("useless");
+          handleVote("useless");
         }}
         type="button"
       >
