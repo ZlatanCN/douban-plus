@@ -1,10 +1,10 @@
 import type { JSX } from "preact";
-import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { IconPopcorn, IconTomato } from "@/components/common/icons";
 import { Stars } from "@/components/common/stars";
+import { useEntranceExitAnimation } from "@/hooks/use-entrance-exit-animation";
 import type { ImdbRating, McRating, RtRating } from "@/types";
-import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
+import { springConfigs } from "@/utils/springs";
 
 import {
   isFresh,
@@ -165,132 +165,11 @@ const renderExternalRatingContent = (
 
 const ExternalRating = (props: ExternalRatingProps) => {
   const shouldRender = !props.resolved || Boolean(props.rating);
-  const [rendered, setRendered] = useState(shouldRender);
-  const panelRef = useRef<HTMLDivElement | null>(null);
-  const animationRef = useRef<ReturnType<
-    typeof animateWithReducedMotion
-  > | null>(null);
-  const animationGenerationRef = useRef(0);
-  const desiredRenderRef = useRef(shouldRender);
-  const pendingEntranceRef = useRef(false);
-  const prevHasRatingRef = useRef(false);
-
-  const stopAnimation = useCallback(() => {
-    animationGenerationRef.current += 1;
-    animationRef.current?.stop();
-    animationRef.current = null;
-  }, []);
-
-  const animatePanel = useCallback(
-    (
-      panelElement: HTMLDivElement,
-      properties: Parameters<typeof animateWithReducedMotion>[1]["properties"],
-      reducedMotionProperties: NonNullable<
-        Parameters<
-          typeof animateWithReducedMotion
-        >[1]["reducedMotionProperties"]
-      >
-    ) => {
-      stopAnimation();
-      const animationGeneration = animationGenerationRef.current;
-      const animation = animateWithReducedMotion(panelElement, {
-        properties,
-        reducedMotionProperties,
-        springConfig: springConfigs.ratingEntrance,
-      });
-      animationRef.current = animation;
-      return { animation, animationGeneration };
-    },
-    [stopAnimation]
-  );
-
-  const animateEntrance = useCallback(
-    (panel: HTMLDivElement) => {
-      animatePanel(
-        panel,
-        {
-          opacity: [0, 1],
-          transform: ["translateY(4px)", "translateY(0)"],
-        },
-        { opacity: [0, 1] }
-      );
-    },
-    [animatePanel]
-  );
-
-  const setPanelRef = useCallback(
-    (element: HTMLDivElement | null) => {
-      panelRef.current = element;
-      if (element && pendingEntranceRef.current) {
-        pendingEntranceRef.current = false;
-        animateEntrance(element);
-      }
-    },
-    [animateEntrance]
-  );
-
-  useLayoutEffect(() => {
-    const wasDesired = desiredRenderRef.current;
-    desiredRenderRef.current = shouldRender;
-    const hasRating = Boolean(props.rating);
-    const justLoaded = hasRating && !prevHasRatingRef.current;
-    prevHasRatingRef.current = hasRating;
-
-    if (shouldRender) {
-      if (!wasDesired) {
-        stopAnimation();
-      }
-      if (justLoaded) {
-        const panel = panelRef.current;
-        if (panel) {
-          animateEntrance(panel);
-        } else {
-          pendingEntranceRef.current = true;
-        }
-      }
-      setRendered(true);
-      return;
-    }
-
-    pendingEntranceRef.current = false;
-    const panel = panelRef.current;
-    if (!panel) {
-      setRendered(false);
-      return;
-    }
-
-    const { animation, animationGeneration } = animatePanel(
-      panel,
-      {
-        opacity: [1, 0],
-        transform: ["translateY(0)", "translateY(-4px)"],
-      },
-      { opacity: [1, 0] }
-    );
-
-    void (async () => {
-      try {
-        await animation.finished;
-        if (
-          animationGenerationRef.current === animationGeneration &&
-          !desiredRenderRef.current
-        ) {
-          animationRef.current = null;
-          setRendered(false);
-        }
-      } catch {
-        // A new rating state superseded this exit animation.
-      }
-    })();
-  }, [
-    animateEntrance,
-    animatePanel,
-    props.rating,
+  const { rendered, setRef } = useEntranceExitAnimation(
     shouldRender,
-    stopAnimation,
-  ]);
-
-  useLayoutEffect(() => stopAnimation, [stopAnimation]);
+    Boolean(props.rating),
+    springConfigs.ratingEntrance
+  );
 
   if (!rendered) {
     return null;
@@ -298,7 +177,7 @@ const ExternalRating = (props: ExternalRatingProps) => {
 
   return (
     <div
-      ref={setPanelRef}
+      ref={setRef}
       class={`${SOURCE_CLASS[props.source]} ${ratingStateClass(
         Boolean(props.rating),
         props.resolved

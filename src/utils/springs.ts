@@ -52,4 +52,20 @@ const animateWithReducedMotion = (
   );
 };
 
-export { animateWithReducedMotion, springConfigs, type SpringConfig };
+/** Standard one-shot entrance animation: fade in + slide up 4px. */
+const playEntrance = (element: Element, springConfig: SpringConfig) =>
+  animateWithReducedMotion(element, {
+    properties: {
+      opacity: [0, 1],
+      transform: ["translateY(4px)", "translateY(0)"],
+    },
+    reducedMotionProperties: { opacity: [0, 1] },
+    springConfig,
+  });
+
+export {
+  animateWithReducedMotion,
+  playEntrance,
+  springConfigs,
+  type SpringConfig,
+};
