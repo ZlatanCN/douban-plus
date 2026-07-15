@@ -75,7 +75,8 @@ src/
   api/                 — data fetching & scraping interfaces
     comment.ts           — postVote() for comment voting via GM POST
     interest.ts          — postInterest/removeInterest for interest marking
-    imdb.ts              — fetchImdbRating() via IMDB GraphQL API
+    imdb.ts              — fetchImdbRating() via IMDB GraphQL API; two-stage orchestration (title info → season episodes → fallback)
+    imdb-parsers.ts      — pure IMDB response parsers: extractTitleFields, parseResponse, parseSeasonRating (extracted 2026-07-15 for independent testability)
     rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
