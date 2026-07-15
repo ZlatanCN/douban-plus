@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { IconChevron } from "@/components/common/icons";
-import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
+import { playEntrance, springConfigs } from "@/utils/springs";
 
 type HeroSummaryProps = {
   expandNativeSummary?: () => Promise<string | null>;
@@ -39,14 +39,7 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
 
   useEffect(() => {
     if (contentRef.current) {
-      animateWithReducedMotion(contentRef.current, {
-        properties: {
-          opacity: [0, 1],
-          transform: ["translateY(4px)", "translateY(0)"],
-        },
-        reducedMotionProperties: { opacity: [0, 1] },
-        springConfig: springConfigs.summaryEntrance,
-      });
+      playEntrance(contentRef.current, springConfigs.summaryEntrance);
     }
   }, [summaryTransitionKey]);
 

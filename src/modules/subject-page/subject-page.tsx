@@ -6,12 +6,7 @@ import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
 import { CommentModal } from "./comments/comment-modal";
-import {
-  commentVoteKey,
-  commentWithVoteState,
-  initialCommentVoteState,
-} from "./comments/comment-vote-state";
-import type { CommentVoteState } from "./comments/comment-vote-state";
+import { commentVoteApi } from "./comments/comment-vote-state";
 import { DetailsSection } from "./details";
 import { DiscussionsSection } from "./discussions";
 import { Hero } from "./hero";
@@ -26,18 +21,11 @@ import {
 } from "./media";
 import { ReviewsSection } from "./reviews";
 import { ReviewModal } from "./reviews/review-modal";
-import {
-  initialReviewVoteState,
-  persistReviewVoteState,
-  reviewVoteKey,
-  reviewWithVoteState,
-} from "./reviews/review-vote-state";
-import type { ReviewVoteState } from "./reviews/review-vote-state";
+import { reviewVoteApi } from "./reviews/review-vote-state";
 import { SubjectSwitcher } from "./search/subject-switcher";
 import type { SubjectPageRuntime } from "./types";
 import { useModalRequest } from "./use-modal-request";
 import { useVoteState } from "./use-vote-state";
-import type { VoteStateStrategy } from "./use-vote-state";
 
 type SubjectPageProps = {
   data: DoubanData;
@@ -62,28 +50,15 @@ const toHeroData = (data: DoubanData): HeroData => ({
   year: data.year,
 });
 
-const commentVoteStrategy = {
-  initial: initialCommentVoteState,
-  key: commentVoteKey,
-  merge: commentWithVoteState,
-} satisfies VoteStateStrategy<Comment, CommentVoteState>;
-
-const reviewVoteStrategy = {
-  initial: initialReviewVoteState,
-  key: reviewVoteKey,
-  merge: reviewWithVoteState,
-  persist: persistReviewVoteState,
-} satisfies VoteStateStrategy<Review, ReviewVoteState>;
-
 const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const activeComment = useModalRequest<Comment>();
   const activeReview = useModalRequest<Review>();
   const activeMediaModal = useModalRequest<ActiveMediaModal>();
   const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
   const loginAction = useModalRequest<string>();
-  const commentVotes = useVoteState(data.comments, commentVoteStrategy);
+  const commentVotes = useVoteState(data.comments, commentVoteApi);
   const { avatarUrls } = runtime;
-  const reviewVotes = useVoteState(data.reviews, reviewVoteStrategy);
+  const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
   const interestMarking = useInterestMarking({

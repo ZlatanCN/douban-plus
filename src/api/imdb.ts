@@ -2,6 +2,9 @@ import type { ImdbRating } from "@/types";
 import { createCache } from "@/utils/cache";
 import { gmPost } from "@/utils/request";
 
+import { parseResponse, parseSeasonRating } from "./imdb-parsers";
+import type { ParsedResponse } from "./imdb-parsers";
+
 const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;
   title: string;
@@ -44,224 +47,109 @@ type FetchImdbResult = {
   title: string | null;
 };
 
-type ParsedResponse = {
-  titleText: string | null;
-  aggregateRating: number | undefined;
-  voteCount: number | undefined;
-  /** When the queried tconst is an episode, the parent series id + title.
-   *  Null for movies and series-level tconsts. */
-  seriesInfo: {
-    id: string;
-    titleText: string;
-  } | null;
-};
-
-type ParsedRaw = {
-  data?: {
-    title?: {
-      id: string;
-      titleText?: { text: string };
-      ratingsSummary?: { aggregateRating: number; voteCount: number };
-      series?: {
-        series?: {
-          id: string;
-          titleText?: { text: string };
-        };
-      } | null;
-    };
-  };
-  errors?: unknown;
-};
-
-const extractTitleFields = (parsed: ParsedRaw): ParsedResponse | null => {
-  if (parsed.errors) {
-    return null;
-  }
-  const title = parsed?.data?.title;
-  const seriesNested = title?.series?.series;
-  const seriesInfo = seriesNested?.id
-    ? {
-        id: seriesNested.id,
-        titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? "",
-      }
-    : null;
-  return {
-    aggregateRating: title?.ratingsSummary?.aggregateRating,
-    seriesInfo: seriesInfo as ParsedResponse["seriesInfo"],
-    titleText: title?.titleText?.text ?? null,
-    voteCount: title?.ratingsSummary?.voteCount,
-  };
-};
-
-const parseResponse = (json: string): ParsedResponse | { error: true } => {
-  try {
-    const parsed = JSON.parse(json) as ParsedRaw;
-    const result = extractTitleFields(parsed);
-    return result ?? { error: true as const };
-  } catch {
-    return { error: true as const };
-  }
-};
-
-/** Parse the season-episodes response and compute a vote-weighted average rating. */
-const parseSeasonRating = (
-  json: string
-): { rating: NonNullable<ImdbRating> } | null => {
-  try {
-    const parsed = JSON.parse(json) as {
-      data?: {
-        title?: {
-          episodes?: {
-            episodes?: {
-              edges?: {
-                node?: {
-                  ratingsSummary?: {
-                    aggregateRating: number | null;
-                    voteCount: number | null;
-                  };
-                };
-              }[];
-            };
-          };
-        };
-      };
-    };
-
-    const edges = parsed?.data?.title?.episodes?.episodes?.edges;
-    if (!edges || edges.length === 0) {
-      return null;
-    }
-
-    let totalWeighted = 0;
-    let totalVotes = 0;
-    for (const edge of edges) {
-      const rs = edge?.node?.ratingsSummary;
-      if (
-        rs &&
-        typeof rs.aggregateRating === "number" &&
-        typeof rs.voteCount === "number" &&
-        rs.voteCount > 0
-      ) {
-        totalWeighted += rs.aggregateRating * rs.voteCount;
-        totalVotes += rs.voteCount;
-      }
-    }
-
-    if (totalVotes === 0) {
-      return null;
-    }
-
-    return {
-      rating: {
-        count: totalVotes,
-        score: Math.round((totalWeighted / totalVotes) * 10) / 10,
-      },
-    };
-  } catch {
-    return null;
-  }
-};
+const IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
+const IMDB_REFERER = "https://www.imdb.com/";
+const IMDB_HEADERS = { "Content-Type": "application/json" };
 
 /** Build a cache key scoped to series + season, e.g. "tt0944947-s05". */
 const seasonCacheKey = (seriesId: string, season: number): string =>
   `${seriesId}-s${String(season).padStart(2, "0")}`;
 
+const postGraphQL = (
+  query: string,
+  variables: Record<string, unknown>
+): Promise<string> =>
+  gmPost(
+    IMDB_GRAPHQL_URL,
+    JSON.stringify({ query, variables }),
+    IMDB_REFERER,
+    IMDB_HEADERS
+  );
+
+/** First pass: fetch title info + detect whether the tconst is an episode. */
+const fetchTitleInfo = async (
+  imdbId: string
+): Promise<ParsedResponse | null> => {
+  try {
+    const json = await postGraphQL(GRAPHQL_QUERY, { id: imdbId });
+    const parsed = parseResponse(json);
+    return "error" in parsed ? null : parsed;
+  } catch (error) {
+    console.warn("[IMDB] fetch FAILED for", imdbId, error);
+    return null;
+  }
+};
+
+/** Second pass: fetch all episode ratings for a season, return vote-weighted average. */
+const fetchSeasonRating = async (
+  seriesId: string,
+  season: number
+): Promise<{ rating: NonNullable<ImdbRating> } | null> => {
+  try {
+    const json = await postGraphQL(SEASON_EPISODES_QUERY, {
+      id: seriesId,
+      season: String(season),
+    });
+    return parseSeasonRating(json);
+  } catch {
+    console.warn("[IMDB] season episodes query failed, falling back");
+    return null;
+  }
+};
+
+/**
+ * Resolve an IMDb rating for a title (and optionally a specific season of a
+ * series/episode). Two-stage GraphQL: first pass gets title info + series
+ * linkage; if a season is requested, a second pass averages episode ratings.
+ * Falls back to the direct title rating when the season pass is skipped or
+ * fails. Results are cached per imdbId and per series-season.
+ */
 const fetchImdbRating = async (
   imdbId: string,
   season?: number
 ): Promise<FetchImdbResult> => {
   if (!imdbId) {
-    return {
-      rating: null,
-      title: null,
-    };
+    return { rating: null, title: null };
   }
-
-  // ----- Check cache before HTTP request -----
 
   const cached = imdbCache.get(imdbId);
   if (cached) {
     return { rating: cached.rating, title: cached.title };
   }
 
-  // ----- First pass: get title info + check if tconst is an episode -----
-
-  let json: string;
-  try {
-    json = await gmPost(
-      "https://graphql.imdb.com/",
-      JSON.stringify({ query: GRAPHQL_QUERY, variables: { id: imdbId } }),
-      "https://www.imdb.com/",
-      { "Content-Type": "application/json" }
-    );
-  } catch (error) {
-    console.warn("[IMDB] fetch FAILED for", imdbId, error);
+  const titleInfo = await fetchTitleInfo(imdbId);
+  if (!titleInfo) {
     return { rating: null, title: null };
   }
 
-  const parsed = parseResponse(json);
-  if ("error" in parsed) {
-    return { rating: null, title: null };
-  }
-
-  const { aggregateRating, voteCount, titleText, seriesInfo } = parsed;
-
-  // ----- Season-level rating (weighted avg of all episode ratings) -----
-  //
-  //   Fires for BOTH scenarios:
-  //   - Episode tconst  (seriesInfo is set) → parent series ID from seriesInfo.id
-  //   - Series tconst   (seriesInfo is null, season is provided) → imdbId IS the series
-  //   Only skips when season is absent (movie / one-off).
-
+  const { aggregateRating, voteCount, titleText, seriesInfo } = titleInfo;
   const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
+
   if (season && seriesIdForSeason) {
     const sKey = seasonCacheKey(seriesIdForSeason, season);
     const sCached = imdbCache.get(sKey);
     if (sCached) {
       return { rating: sCached.rating, title: sCached.title };
     }
-
-    try {
-      const sJson = await gmPost(
-        "https://graphql.imdb.com/",
-        JSON.stringify({
-          query: SEASON_EPISODES_QUERY,
-          variables: { id: seriesIdForSeason, season: String(season) },
-        }),
-        "https://www.imdb.com/",
-        { "Content-Type": "application/json" }
-      );
-      const seasonResult = parseSeasonRating(sJson);
-      if (seasonResult) {
-        const title = seriesInfo?.titleText ?? titleText ?? "";
-        imdbCache.set(sKey, { rating: seasonResult.rating, title });
-        return { rating: seasonResult.rating, title };
-      }
-    } catch {
-      console.warn("[IMDB] season episodes query failed, falling back");
+    const seasonResult = await fetchSeasonRating(seriesIdForSeason, season);
+    if (seasonResult) {
+      const title = seriesInfo?.titleText ?? titleText ?? "";
+      imdbCache.set(sKey, { rating: seasonResult.rating, title });
+      return { rating: seasonResult.rating, title };
     }
   }
 
-  // ----- Fallback: use the direct title rating (series / movie / episode) -----
-
-  const effectiveRating = aggregateRating;
-  const effectiveCount = voteCount;
-  const effectiveTitle = titleText;
-
-  if (
-    typeof effectiveRating === "number" &&
-    typeof effectiveCount === "number"
-  ) {
+  if (typeof aggregateRating === "number" && typeof voteCount === "number") {
     const rating: NonNullable<ImdbRating> = {
-      count: effectiveCount,
-      score: effectiveRating,
+      count: voteCount,
+      score: aggregateRating,
     };
-    const title = typeof effectiveTitle === "string" ? effectiveTitle : "";
+    const title = typeof titleText === "string" ? titleText : "";
     imdbCache.set(imdbId, { rating, title });
     return { rating, title };
   }
 
-  return { rating: null, title: effectiveTitle };
+  return { rating: null, title: titleText };
 };
 
 export { fetchImdbRating };

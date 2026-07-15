@@ -1,27 +1,12 @@
 /* ── SVG icon components ───────────────────────────────── */
 /* Replacements for dangerouslySetInnerHTML-based icon rendering */
 
-import type { JSX, ComponentChildren } from "preact";
+import type { JSX } from "preact";
 import { useId } from "preact/hooks";
 
-const HtmlContent = ({
-  children,
-  className,
-  html,
-  ...rest
-}: JSX.HTMLAttributes<HTMLDivElement> & {
-  html?: string;
-  children?: ComponentChildren;
-}) => (
-  <div
-    class={className}
-    // eslint-disable-next-line react/no-danger -- Review HTML is sanitized before reaching this controlled render boundary.
-    dangerouslySetInnerHTML={html ? { __html: html } : undefined}
-    {...rest}
-  >
-    {html ? null : children}
-  </div>
-);
+// HtmlContent (the controlled-HTML render seam) now lives in
+// @/components/common/html-content so the project's only
+// dangerouslySetInnerHTML boundary has a single, findable owner.
 
 type IconProps = JSX.SVGAttributes<SVGSVGElement>;
 
@@ -3173,7 +3158,6 @@ const LogoShowtime = (props: IconProps) => (
 );
 
 export {
-  HtmlContent,
   IconArrow,
   IconCheck,
   IconChevron,

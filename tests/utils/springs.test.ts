@@ -59,7 +59,7 @@ describe("springConfigs", () => {
     "modalBackdrop",
     "stickyNav",
     "contentEntrance",
-    "swipeToDismiss",
+    "swipeSettleBack",
     "carouselSnap",
     "ratingEntrance",
     "reviewBodyEntrance",
@@ -113,8 +113,8 @@ describe("springConfigs", () => {
     });
   });
 
-  it("swipeToDismiss → stiff 180 / damp 15", () => {
-    expect(springConfigs.swipeToDismiss).toStrictEqual({
+  it("swipeSettleBack → stiff 180 / damp 15", () => {
+    expect(springConfigs.swipeSettleBack).toStrictEqual({
       damping: 15,
       stiffness: 180,
       type: "spring",

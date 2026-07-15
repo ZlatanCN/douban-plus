@@ -13,3 +13,4 @@ session-*.md
 */.DS_Store
 coverage
 plans/
+.workbuddy

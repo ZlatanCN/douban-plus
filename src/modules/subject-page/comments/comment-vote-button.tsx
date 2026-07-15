@@ -4,10 +4,9 @@ import { IconThumb } from "@/components/common/icons";
 import type { AccountActionGuard } from "@/types";
 
 import type { CommentVoteCallback } from "../types";
-import {
-  optimisticCommentVoteState,
-  resolvedCommentVoteState,
-} from "./comment-vote-state";
+import { useVoteAction } from "../use-vote-action";
+import type { VotePersistOptions } from "../vote-state";
+import { commentVoteApi } from "./comment-vote-state";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentVoteButtonProps = {
@@ -15,7 +14,10 @@ type CommentVoteButtonProps = {
   cid: string;
   className: string;
   count: number;
-  onStateChange?: (state: CommentVoteState) => void;
+  onStateChange?: (
+    state: CommentVoteState,
+    options?: VotePersistOptions
+  ) => void;
   onVote: CommentVoteCallback;
   state?: CommentVoteState;
   voted: boolean;
@@ -35,36 +37,31 @@ const CommentVoteButton = ({
     count,
     voted,
   });
-  const [loading, setLoading] = useState(false);
   const voteState = state ?? localState;
 
-  const setVoteState = (nextState: CommentVoteState): void => {
+  const setVoteState = (
+    nextState: CommentVoteState,
+    options?: VotePersistOptions
+  ): void => {
     if (onStateChange) {
-      onStateChange(nextState);
+      onStateChange(nextState, options);
     } else {
       setLocalState(nextState);
     }
   };
 
-  const vote = async (): Promise<void> => {
-    if (loading || voteState.voted || !cid) {
-      return;
-    }
-    if (canVote && !canVote()) {
-      return;
-    }
+  const { loading, vote } = useVoteAction(commentVoteApi, {
+    canVote,
+    getState: () => voteState,
+    onVote: () => onVote(cid),
+    setState: setVoteState,
+  });
 
-    setLoading(true);
-    const previous = voteState;
-    const optimistic = optimisticCommentVoteState(voteState);
-    setVoteState(optimistic);
-    const result = await onVote(cid);
-    if (result.ok) {
-      setVoteState(resolvedCommentVoteState(optimistic, result));
-    } else {
-      setVoteState(previous);
+  const handleVote = (): void => {
+    if (!cid) {
+      return;
     }
-    setLoading(false);
+    void vote("up");
   };
 
   return (
@@ -75,7 +72,7 @@ const CommentVoteButton = ({
       disabled={loading || voteState.voted || !cid}
       onClick={(event) => {
         event.stopPropagation();
-        void vote();
+        handleVote();
       }}
       type="button"
     >

@@ -125,7 +125,7 @@ const ModalShell = ({
           : EXITING_SURFACE_TRANSFORM;
       const surfaceSpring =
         closeSourceRef.current === "swipe"
-          ? springConfigs.swipeDismiss
+          ? springConfigs.swipeDismissExit
           : springConfigs.modalSurface;
       if (!opening) {
         closeSourceRef.current = "standard";

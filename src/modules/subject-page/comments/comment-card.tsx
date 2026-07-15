@@ -5,6 +5,7 @@ import { Stars } from "@/components/common/stars";
 import type { AccountActionGuard, Comment } from "@/types";
 
 import type { CommentVoteCallback } from "../types";
+import type { VotePersistOptions } from "../vote-state";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 import type { CommentVoteState } from "./comment-vote-state";
@@ -13,7 +14,11 @@ type CommentCardProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onOpen: (comment: Comment) => void;
-  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
+  onVoteStateChange?: (
+    comment: Comment,
+    state: CommentVoteState,
+    options?: VotePersistOptions
+  ) => void;
   onVote: CommentVoteCallback;
   voteState?: CommentVoteState;
 };
@@ -109,7 +114,7 @@ const CommentCard = ({
             count={comment.votes}
             onStateChange={
               onVoteStateChange
-                ? (state) => onVoteStateChange(comment, state)
+                ? (state, options) => onVoteStateChange(comment, state, options)
                 : undefined
             }
             onVote={onVote}

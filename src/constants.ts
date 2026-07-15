@@ -2,6 +2,7 @@ const RE_SLASH_SEP = /\s*\/\s*/gu;
 const RE_WS_GLOBAL = /\s+/gu;
 const RE_COLON_WS = /[:：\s]/gu;
 const RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+const RE_H1_YEAR = /\((?<year>\d{4})\)\s*$/u;
 const RE_WS = /\s+/u;
 const RE_YEAR = /(?<year>\d{4})/u;
 const RE_NON_DIGIT = /\D/gu;
@@ -42,5 +43,6 @@ export {
   RE_WS,
   RE_WS_GLOBAL,
   RE_YEAR,
+  RE_H1_YEAR,
   RE_YEAR_TRAIL,
 };

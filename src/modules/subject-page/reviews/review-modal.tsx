@@ -1,11 +1,11 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { HtmlContent } from "@/components/common/icons";
+import { HtmlContent } from "@/components/common/html-content";
 import { Stars } from "@/components/common/stars";
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { ModalCloseButton, ModalShell } from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
-import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
+import { playEntrance, springConfigs } from "@/utils/springs";
 
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
@@ -77,14 +77,10 @@ const ReviewModalContent = ({
 
     if (justFinished) {
       bodyAnimationRef.current?.stop();
-      bodyAnimationRef.current = animateWithReducedMotion(bodyEl, {
-        properties: {
-          opacity: [0, 1],
-          transform: ["translateY(4px)", "translateY(0)"],
-        },
-        reducedMotionProperties: { opacity: [0, 1] },
-        springConfig: springConfigs.reviewBodyEntrance,
-      });
+      bodyAnimationRef.current = playEntrance(
+        bodyEl,
+        springConfigs.reviewBodyEntrance
+      );
     }
   }, [content.status]);
   return (

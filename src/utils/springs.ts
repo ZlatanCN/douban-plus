@@ -14,8 +14,8 @@ const springConfigs = {
   reviewBodyEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
   stickyNav: { bounce: 0, duration: 0.3, type: "spring" as const },
   summaryEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
-  swipeDismiss: { bounce: 0.2, duration: 0.4, type: "spring" as const },
-  swipeToDismiss: { damping: 15, stiffness: 180, type: "spring" as const },
+  swipeDismissExit: { bounce: 0.2, duration: 0.4, type: "spring" as const },
+  swipeSettleBack: { damping: 15, stiffness: 180, type: "spring" as const },
 };
 
 type SpringConfig = (typeof springConfigs)[keyof typeof springConfigs];
@@ -52,4 +52,20 @@ const animateWithReducedMotion = (
   );
 };
 
-export { animateWithReducedMotion, springConfigs, type SpringConfig };
+/** Standard one-shot entrance animation: fade in + slide up 4px. */
+const playEntrance = (element: Element, springConfig: SpringConfig) =>
+  animateWithReducedMotion(element, {
+    properties: {
+      opacity: [0, 1],
+      transform: ["translateY(4px)", "translateY(0)"],
+    },
+    reducedMotionProperties: { opacity: [0, 1] },
+    springConfig,
+  });
+
+export {
+  animateWithReducedMotion,
+  playEntrance,
+  springConfigs,
+  type SpringConfig,
+};

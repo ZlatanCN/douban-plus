@@ -47,6 +47,7 @@
 }
 
 .atv-stickynav-jumps {
+  position: relative;
   display: flex;
   flex: 0 0 auto;
   gap: 24px;
@@ -66,24 +67,6 @@
   color: rgb(255 255 255 / 70%);
 }
 
-.atv-stickynav-jumps a::after {
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  border-radius: 1px;
-  background: var(--atv-accent);
-  content: "";
-  transform: scaleX(0);
-  transform-origin: center;
-  transition: transform var(--atv-duration-hover) ease;
-}
-
-.atv-stickynav.is-scrolling .atv-stickynav-jumps a::after {
-  transition: none;
-}
-
 #atv-douban-root .atv-stickynav-jumps a:hover {
   background: transparent;
   color: var(--atv-accent-bright);
@@ -93,8 +76,16 @@
   color: var(--atv-accent-bright);
 }
 
-.atv-stickynav-jumps a.is-active::after {
-  transform: scaleX(1);
+.atv-stickynav-marker {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--atv-accent-bright);
+  transform: translateX(0);
+  transition:
+    transform var(--atv-duration-feedback) var(--atv-ease-in-out),
+    width var(--atv-duration-feedback) var(--atv-ease-in-out);
 }
 
 @media (width <= 768px) {
@@ -108,5 +99,13 @@
 
   .atv-stickynav-jumps a {
     font-size: 12px;
+  }
+}
+
+/* The sliding active marker jumps to the active item without sliding
+   motion under reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .atv-stickynav-marker {
+    transition: none;
   }
 }

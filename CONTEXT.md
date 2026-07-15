@@ -56,6 +56,7 @@ src/
       reviews/           — review cards, modal lifecycle, content loading, up/down vote state
       interest/          — complete 作品标记 flow: account gate, form, writes, and refresh
       login/             — ATV login modal shell + trusted Douban iframe host
+      search/            — 作品切换器: subject switcher UI, request hook, combobox nav hook
       use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
   components/
     common/            — reusable leaf UI such as poster and stars
@@ -65,16 +66,17 @@ src/
   styles/              — ownership-oriented CSS files ordered by the manifest
   extract/             — DOM data extraction
     index.ts            — barrel
-    title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
+    title-helpers.ts    — H1 extraction owner: extractH1 (DOM read of #content h1), extractYearFromH1, extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
     streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
-    context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
+    context.ts          — buildContext(imdbId, isTV, h1): pure assembler; takes the H1 string (read via extractH1) + identifiers, no DOM access
     orchestrate.ts      — resolveAll(ctx, deps?): guards identifiers, calls fetch adapters, parallel-first strategy with Promise.allSettled
   api/                 — data fetching & scraping interfaces
     comment.ts           — postVote() for comment voting via GM POST
     interest.ts          — postInterest/removeInterest for interest marking
-    imdb.ts              — fetchImdbRating() via IMDB GraphQL API
+    imdb.ts              — fetchImdbRating() via IMDB GraphQL API; two-stage orchestration (title info → season episodes → fallback)
+    imdb-parsers.ts      — pure IMDB response parsers: extractTitleFields, parseResponse, parseSeasonRating (extracted 2026-07-15 for independent testability)
     rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
@@ -162,8 +164,8 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
    - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
    - Review-content acquisition uses one deep module, `reviews/use-review-content.ts`: native page HTML and fetched review-page HTML are internal adapters; callers receive only loading, loaded sanitized 影评正文, or error state.
-   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The shared keyed owner-state plumbing lives in `use-vote-state.ts`; comment vote behavior is modeled in `comments/comment-vote-state.ts`, and review useful/useless behavior plus persistence is modeled in `reviews/review-vote-state.ts`.
-   - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state.
+   - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The vote-state machine has one owner: `createVoteState` in `vote-state.ts` produces a `VoteApi`; `use-vote-state.ts` and `use-vote-action.ts` both consume that `VoteApi` directly — no hand-assembled strategy shape at the composition root. `comments/comment-vote-state.ts` exports `commentVoteApi`; `reviews/review-vote-state.ts` exports `reviewVoteApi`.
+   - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state. `use-vote-action.ts` accepts a `VoteTransitionApi` (the `optimistic`/`resolve`/`votedOf` subset of `VoteApi`) plus per-instance wiring, so the hook owns only the async orchestration and touches the half of the state machine it actually uses.
 
 2. **Comment avatar runtime hook (2026-07-13)** — `runtime/use-avatar-urls.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, and resolved avatar URLs. `SubjectPageRuntime` supplies the resulting `Map<link, url>` through the `SubjectPage` runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, document, or network lifecycle leaks through the page-composition seam.
 

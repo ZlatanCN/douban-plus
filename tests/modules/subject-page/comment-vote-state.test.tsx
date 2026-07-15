@@ -9,6 +9,17 @@ vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;
 });
 
+const storeCommentVote = (
+  key: string,
+  value: unknown,
+  expiresAt = Date.now() + 365 * 24 * 60 * 60 * 1000
+): void => {
+  localStorage.setItem(
+    "atv:comment:vote",
+    JSON.stringify([[key, { expiresAt, value }]])
+  );
+};
+
 const makeInfoBlock = (overrides?: Partial<InfoBlock>): InfoBlock => ({
   aliases: "",
   cast: [],
@@ -124,6 +135,7 @@ const openCommentModal = async (root: HTMLElement): Promise<HTMLElement> => {
 describe("comment vote state across cards and modals", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
+    localStorage.clear();
     vi.stubGlobal(
       "fetch",
       vi.fn<() => Promise<never>>(() =>
@@ -171,5 +183,36 @@ describe("comment vote state across cards and modals", () => {
     expect(cardVote?.classList.contains("is-voted")).toBeTruthy();
     expect(cardVote?.getAttribute("aria-pressed")).toBe("true");
     expect(cardVote?.textContent).toContain("11");
+  });
+
+  it("restores a previous comment vote after a page refresh", () => {
+    storeCommentVote("c1", { count: 42, type: "up" });
+
+    const root = renderPage();
+    const cardVote =
+      root.querySelector<HTMLButtonElement>(".atv-comment-votes");
+
+    expect(cardVote?.classList.contains("is-voted")).toBeTruthy();
+    expect(cardVote?.textContent).toContain("42");
+  });
+
+  it("persists the comment vote to localStorage on a successful vote", async () => {
+    const root = renderPage(
+      makeData(),
+      makeRuntime(() => Promise.resolve({ count: 9, ok: true }))
+    );
+
+    root.querySelector<HTMLButtonElement>(".atv-comment-votes")?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const stored = JSON.parse(
+      localStorage.getItem("atv:comment:vote") ?? "[]"
+    ) as [
+      string,
+      { expiresAt: number; value: { count: number; type: string } },
+    ][];
+    expect(stored[0]?.[0]).toBe("c1");
+    expect(stored[0]?.[1].value).toStrictEqual({ count: 9, type: "up" });
   });
 });

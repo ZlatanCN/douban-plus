@@ -1,4 +1,3 @@
-import type { JSX } from "preact";
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { normalizeSubjectQuery } from "@/api/subject-suggestions";
@@ -13,25 +12,17 @@ import {
 } from "./subject-switcher-helpers";
 import type { SubjectSwitcherProps } from "./subject-switcher-helpers";
 import { useSubjectSuggestionRequest } from "./use-subject-suggestion-request";
-import type { SuggestionRequest } from "./use-subject-suggestion-request";
+import { useSwitcherNav } from "./use-switcher-nav";
 
 const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [activeIndex, setActiveIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const normalizedQuery = normalizeSubjectQuery(query);
-  const request = useSubjectSuggestionRequest(normalizedQuery);
-  const requestMatchesQuery =
-    request.status !== "idle" && request.query === normalizedQuery;
-  const displayedRequest: SuggestionRequest =
-    normalizedQuery && !requestMatchesQuery
-      ? { query: normalizedQuery, status: "loading" }
-      : request;
+  const displayedRequest = useSubjectSuggestionRequest(normalizedQuery);
   const suggestions =
     displayedRequest.status === "ready" ? displayedRequest.suggestions : [];
-  const activeSuggestion = suggestions[activeIndex] ?? null;
   const hasResultsPanel =
     Boolean(normalizedQuery) && displayedRequest.status !== "idle";
   const showFallback =
@@ -39,7 +30,6 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
     (displayedRequest.status === "ready" && !suggestions.length);
 
   const closeSwitcher = useCallback(() => {
-    setActiveIndex(-1);
     setIsOpen(false);
     setQuery("");
   }, []);
@@ -66,6 +56,13 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
       openInNewTab(nativeSearchUrl(normalizedQuery));
     }
   }, [normalizedQuery, openInNewTab]);
+
+  const nav = useSwitcherNav({
+    items: suggestions,
+    onClose: closeSwitcher,
+    onSelect: openSuggestion,
+    onSubmit: submitSearch,
+  });
 
   useEffect(() => onOpenChange?.(isOpen), [isOpen, onOpenChange]);
 
@@ -112,38 +109,6 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
     return () => document.removeEventListener("pointerdown", onPointerDown);
   }, [closeSwitcher, isOpen]);
 
-  const onInputKeyDown = (
-    event: JSX.TargetedKeyboardEvent<HTMLInputElement>
-  ) => {
-    if (event.key === "ArrowDown" && suggestions.length) {
-      event.preventDefault();
-      setActiveIndex((current) =>
-        Math.min(current + 1, suggestions.length - 1)
-      );
-      return;
-    }
-    if (event.key === "ArrowUp" && suggestions.length) {
-      event.preventDefault();
-      setActiveIndex((current) =>
-        current <= 0 ? suggestions.length - 1 : current - 1
-      );
-      return;
-    }
-    if (event.key === "Enter") {
-      event.preventDefault();
-      if (activeSuggestion) {
-        openSuggestion(activeSuggestion);
-      } else {
-        submitSearch();
-      }
-      return;
-    }
-    if (event.key === "Escape") {
-      event.preventDefault();
-      closeSwitcher();
-    }
-  };
-
   return (
     <div
       class={`atv-subject-switcher${isOpen ? " is-open" : ""}`}
@@ -162,8 +127,8 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           </span>
           <input
             aria-activedescendant={
-              activeSuggestion
-                ? `atv-subject-suggestion-${activeSuggestion.id}`
+              nav.activeItem
+                ? `atv-subject-suggestion-${nav.activeItem.id}`
                 : undefined
             }
             aria-autocomplete="list"
@@ -172,10 +137,10 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
             class="atv-subject-switcher-input"
             id="atv-subject-switcher-input"
             onInput={(event) => {
-              setActiveIndex(-1);
+              nav.handleReset();
               setQuery(event.currentTarget.value);
             }}
-            onKeyDown={onInputKeyDown}
+            onKeyDown={nav.handleKeyDown}
             placeholder="搜索电影、剧集"
             ref={inputRef}
             role="combobox"
@@ -193,7 +158,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           {hasResultsPanel ? (
             <div
               class={`atv-subject-suggestion-rail${
-                activeIndex >= 0 ? " is-keyboard-navigating" : ""
+                nav.activeIndex >= 0 ? " is-keyboard-navigating" : ""
               }`}
               id={suggestionListId}
               role={suggestions.length ? "listbox" : "status"}
@@ -211,7 +176,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
               {displayedRequest.status === "ready" && suggestions.length
                 ? suggestions.map((suggestion, index) => (
                     <SuggestionRow
-                      active={index === activeIndex}
+                      active={index === nav.activeIndex}
                       index={index}
                       key={suggestion.id}
                       onOpen={openSuggestion}

@@ -33,9 +33,7 @@ const swipeCallbacks = vi.hoisted(() => {
   const callbacks: { onDismiss?: () => void } = {};
   return callbacks;
 });
-const swipeDismissRef = vi.hoisted(() =>
-  vi.fn<(el: HTMLElement | null) => void>()
-);
+const swipeRef = vi.hoisted(() => vi.fn<(el: HTMLElement | null) => void>());
 const mockUseSwipeToDismiss = vi.hoisted(() =>
   vi.fn<
     (options: SwipeToDismissOptions) => {
@@ -43,7 +41,7 @@ const mockUseSwipeToDismiss = vi.hoisted(() =>
     }
   >((options) => {
     swipeCallbacks.onDismiss = options.onDismiss;
-    return { ref: swipeDismissRef };
+    return { ref: swipeRef };
   })
 );
 
@@ -83,8 +81,8 @@ vi.mock(import("@/utils/springs"), () => ({
     reviewBodyEntrance: { bounce: 0, duration: 0.35, type: "spring" },
     stickyNav: { bounce: 0, duration: 0.3, type: "spring" },
     summaryEntrance: { bounce: 0, duration: 0.3, type: "spring" },
-    swipeDismiss: { bounce: 0.2, duration: 0.4, type: "spring" },
-    swipeToDismiss: { damping: 15, stiffness: 180, type: "spring" },
+    swipeDismissExit: { bounce: 0.2, duration: 0.4, type: "spring" },
+    swipeSettleBack: { damping: 15, stiffness: 180, type: "spring" },
   } as const,
 }));
 
@@ -287,7 +285,7 @@ describe(ModalShell, () => {
       );
     });
 
-    it("uses swipeDismiss spring config when closing via swipe", async () => {
+    it("uses swipeDismissExit spring config when closing via swipe", async () => {
       mockUseSwipeToDismiss.mockClear();
       motion.animate.mockClear();
       const onClose = vi.fn<() => void>();

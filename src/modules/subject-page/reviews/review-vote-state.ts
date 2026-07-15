@@ -1,6 +1,7 @@
 import type { Review, ReviewVoteCallback } from "@/types";
 import { createCache } from "@/utils/cache";
 
+import { createVoteState } from "../vote-state";
 import { reviewNumericId } from "./review-identity";
 
 type ReviewVoteDirection = "useful" | "useless";
@@ -19,7 +20,7 @@ type StoredReviewVote = {
 
 type ReviewVoteResult = Awaited<ReturnType<ReviewVoteCallback>>;
 
-const reviewVoteCache = createCache<StoredReviewVote | ReviewVoteDirection>(
+const reviewVoteCache = createCache<StoredReviewVote>(
   "atv:review:vote",
   365 * 24 * 60 * 60 * 1000
 );
@@ -39,53 +40,11 @@ const voteDirection = (
   return null;
 };
 
-const initialReviewVoteState = (review: Review): ReviewVoteState => {
-  const cached = reviewVoteCache.get(reviewVoteKey(review));
-  return {
-    usefulCount:
-      typeof cached === "object" && typeof cached.usefulCount === "number"
-        ? cached.usefulCount
-        : (review.usefulCount ?? 0),
-    uselessCount:
-      typeof cached === "object" && typeof cached.uselessCount === "number"
-        ? cached.uselessCount
-        : (review.uselessCount ?? 0),
-    voted: voteDirection(cached),
-  };
-};
-
-const optimisticReviewVoteState = (
-  state: ReviewVoteState,
-  type: ReviewVoteDirection
-): ReviewVoteState => ({
-  usefulCount: state.usefulCount + (type === "useful" ? 1 : 0),
-  uselessCount: state.uselessCount + (type === "useless" ? 1 : 0),
-  voted: type,
+const baseInitialReviewVoteState = (review: Review): ReviewVoteState => ({
+  usefulCount: review.usefulCount ?? 0,
+  uselessCount: review.uselessCount ?? 0,
+  voted: null,
 });
-
-const resolvedReviewVoteState = (
-  current: ReviewVoteState,
-  type: ReviewVoteDirection,
-  result: ReviewVoteResult
-): ReviewVoteState => ({
-  usefulCount: result.usefulCount ?? current.usefulCount,
-  uselessCount: result.uselessCount ?? current.uselessCount,
-  voted: type,
-});
-
-const persistReviewVoteState = (
-  review: Review,
-  state: ReviewVoteState
-): void => {
-  if (!state.voted) {
-    return;
-  }
-  reviewVoteCache.set(reviewVoteKey(review), {
-    type: state.voted,
-    usefulCount: state.usefulCount,
-    uselessCount: state.uselessCount,
-  });
-};
 
 const reviewWithVoteState = (
   review: Review,
@@ -96,12 +55,46 @@ const reviewWithVoteState = (
   uselessCount: state.uselessCount,
 });
 
-export {
-  initialReviewVoteState,
-  optimisticReviewVoteState,
-  persistReviewVoteState,
-  resolvedReviewVoteState,
-  reviewVoteKey,
-  reviewWithVoteState,
-};
+const reviewVoteApi = createVoteState<
+  ReviewVoteState,
+  ReviewVoteDirection,
+  Review,
+  ReviewVoteResult,
+  StoredReviewVote
+>({
+  countKey: (dir) => (dir === "useful" ? "usefulCount" : "uselessCount"),
+  initial: baseInitialReviewVoteState,
+  key: reviewVoteKey,
+  mergeResult: (state, dir, result) => ({
+    ...state,
+    usefulCount: result.usefulCount ?? state.usefulCount,
+    uselessCount: result.uselessCount ?? state.uselessCount,
+    voted: dir,
+  }),
+  persistence: {
+    cache: reviewVoteCache,
+    hydrate: (stored) => {
+      const hydrated: Partial<ReviewVoteState> = {
+        voted: voteDirection(stored),
+      };
+      if (typeof stored.usefulCount === "number") {
+        hydrated.usefulCount = stored.usefulCount;
+      }
+      if (typeof stored.uselessCount === "number") {
+        hydrated.uselessCount = stored.uselessCount;
+      }
+      return hydrated;
+    },
+    serialize: (state) => ({
+      type: state.voted ?? "useful",
+      usefulCount: state.usefulCount,
+      uselessCount: state.uselessCount,
+    }),
+  },
+  toItem: reviewWithVoteState,
+  votedOf: (state) => state.voted,
+  withVoted: (state, dir) => ({ ...state, voted: dir }),
+});
+
+export { reviewVoteApi };
 export type { ReviewVoteDirection, ReviewVoteState };

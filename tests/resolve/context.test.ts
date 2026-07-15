@@ -1,35 +1,11 @@
 /* ── buildContext — Unit Tests ──────────────────────────── */
-/* Tests for src/resolve/context.ts. Uses test DOM fixtures. */
+/* Tests for src/resolve/context.ts. buildContext is pure: it takes the
+   already-extracted H1 string (no DOM), so fixtures are plain strings. */
 
 import { describe, it, expect } from "vitest";
 
 // Import after mocking
 const { buildContext } = await import("../../src/resolve/context");
-
-/* ── Helpers ──────────────────────────────────────────── */
-
-const makeDocWithH1 = (h1: string, options?: { imdb?: string }): Document => {
-  const doc = document.implementation.createHTMLDocument();
-  const h1El = doc.createElement("h1");
-  h1El.textContent = h1;
-  const content = doc.createElement("div");
-  content.id = "content";
-  content.append(h1El);
-  doc.body.append(content);
-
-  if (options?.imdb) {
-    const info = doc.createElement("div");
-    info.id = "info";
-    const imdbLink = doc.createElement("a");
-    imdbLink.href = `https://www.imdb.com/title/${options.imdb}/`;
-    const pl = doc.createElement("span");
-    pl.className = "pl";
-    pl.textContent = "IMDb: ";
-    info.append(pl, imdbLink);
-    doc.body.append(info);
-  }
-  return doc;
-};
 
 /* ── Suite ────────────────────────────────────────────── */
 
@@ -37,9 +13,9 @@ describe("buildContext", () => {
   /* ── Movie with English title in H1 ─────────────── */
 
   it("extracts englishTitle from H1 with trailing year (t1)", () => {
-    const doc = makeDocWithH1("肖申克的救赎 The Shawshank Redemption (1994)");
+    const h1 = "肖申克的救赎 The Shawshank Redemption (1994)";
 
-    const ctx = buildContext("tt0111161", false, doc);
+    const ctx = buildContext("tt0111161", false, h1);
 
     expect(ctx.imdbId).toBe("tt0111161");
     expect(ctx.englishTitle).toBe("The Shawshank Redemption");
@@ -48,9 +24,9 @@ describe("buildContext", () => {
   });
 
   it("extracts englishTitle without year suffix (t2)", () => {
-    const doc = makeDocWithH1("Inception 盗梦空间");
+    const h1 = "Inception 盗梦空间";
 
-    const ctx = buildContext("tt1375666", false, doc);
+    const ctx = buildContext("tt1375666", false, h1);
 
     expect(ctx.englishTitle).toBe("Inception");
     expect(ctx.imdbId).toBe("tt1375666");
@@ -60,11 +36,9 @@ describe("buildContext", () => {
   /* ── TV series ─────────────────────────────────── */
 
   it("extracts season from H1 for TV and omits year (t3)", () => {
-    const doc = makeDocWithH1(
-      "权力的游戏 第五季 Game of Thrones Season 5 (2015)"
-    );
+    const h1 = "权力的游戏 第五季 Game of Thrones Season 5 (2015)";
 
-    const ctx = buildContext("tt0944947", true, doc);
+    const ctx = buildContext("tt0944947", true, h1);
 
     expect(ctx.englishTitle).toBe("Game of Thrones");
     expect(ctx.season).toBe(5);
@@ -73,9 +47,9 @@ describe("buildContext", () => {
   });
 
   it("handles TV with no season in H1 (t4)", () => {
-    const doc = makeDocWithH1("Breaking Bad 绝命毒师");
+    const h1 = "Breaking Bad 绝命毒师";
 
-    const ctx = buildContext("tt0903747", true, doc);
+    const ctx = buildContext("tt0903747", true, h1);
 
     expect(ctx.englishTitle).toBe("Breaking Bad");
     expect(ctx.season).toBeUndefined();
@@ -85,9 +59,9 @@ describe("buildContext", () => {
   /* ── No English title in H1 ────────────────────── */
 
   it("returns null englishTitle when H1 has no English text (t5)", () => {
-    const doc = makeDocWithH1("純國產電影 (2005)");
+    const h1 = "純國產電影 (2005)";
 
-    const ctx = buildContext(null, false, doc);
+    const ctx = buildContext(null, false, h1);
 
     expect(ctx.englishTitle).toBeNull();
     expect(ctx.imdbId).toBeNull();
@@ -96,18 +70,18 @@ describe("buildContext", () => {
   /* ── Nulls and undefined ───────────────────────── */
 
   it("allows null imdbId (t6)", () => {
-    const doc = makeDocWithH1("Test Movie");
+    const h1 = "Test Movie";
 
-    const ctx = buildContext(null, false, doc);
+    const ctx = buildContext(null, false, h1);
 
     expect(ctx.imdbId).toBeNull();
     expect(ctx.englishTitle).toBe("Test Movie");
   });
 
   it("handles empty H1 gracefully (t7)", () => {
-    const doc = makeDocWithH1("");
+    const h1 = "";
 
-    const ctx = buildContext("tt0111161", false, doc);
+    const ctx = buildContext("tt0111161", false, h1);
 
     expect(ctx.englishTitle).toBeNull();
     expect(ctx.year).toBeUndefined();
