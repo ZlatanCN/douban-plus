@@ -1,5 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
+import { extractH1 } from "@/extract/title-helpers";
 import { buildContext } from "@/resolve/context";
 import { resolveAll } from "@/resolve/orchestrate";
 
@@ -20,7 +21,9 @@ const useExternalRatings = (
 
     let cancelled = false;
     const loadRatings = async (): Promise<void> => {
-      const ratings = await resolveAll(buildContext(imdbId, isTV, doc));
+      const ratings = await resolveAll(
+        buildContext(imdbId, isTV, extractH1(doc))
+      );
       if (!cancelled) {
         setExternal(ratings);
       }

@@ -65,11 +65,11 @@ src/
   styles/              — ownership-oriented CSS files ordered by the manifest
   extract/             — DOM data extraction
     index.ts            — barrel
-    title-helpers.ts    — extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
+    title-helpers.ts    — H1 extraction owner: extractH1 (DOM read of #content h1), extractYearFromH1, extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
     streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
-    context.ts          — buildContext(imdbId, isTV, doc): builds context from identifiers + DOM H1
+    context.ts          — buildContext(imdbId, isTV, h1): pure assembler; takes the H1 string (read via extractH1) + identifiers, no DOM access
     orchestrate.ts      — resolveAll(ctx, deps?): guards identifiers, calls fetch adapters, parallel-first strategy with Promise.allSettled
   api/                 — data fetching & scraping interfaces
     comment.ts           — postVote() for comment voting via GM POST
