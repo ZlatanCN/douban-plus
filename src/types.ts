@@ -29,10 +29,16 @@ type RtRating = {
   audienceCount: number;
 };
 
-/** Return type of extractRating() */
 type RatingInfo = {
   score: number;
   count: number;
+};
+
+/** An optional position in a Douban editorial subject collection. */
+type RankLabel = {
+  position: string;
+  title: string;
+  href: string;
 };
 
 /** Return type of extractInfo() — the "info" block from #info */
@@ -199,6 +205,7 @@ type DoubanData = {
   year: string;
   poster: string | null;
   rating: RatingInfo | null;
+  rankLabel: RankLabel | null;
   summary: string | null;
   info: InfoBlock;
   celebrities: Celebrity[];
@@ -237,6 +244,7 @@ type HeroData = {
     "seasons" | "episodes" | "episodeRuntime" | "country" | "genres" | "runtime"
   >;
   rating: RatingInfo | null;
+  rankLabel: RankLabel | null;
   imdbId: string | null;
   interest: InterestState;
   summary: string | null;
@@ -360,6 +368,7 @@ export type {
   Photo,
   PhotosData,
   RatingInfo,
+  RankLabel,
   Recommendation,
   Review,
   ReviewData,

@@ -26,6 +26,10 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
+**完整署名**: 当前作品详情信息中的完整导演、编剧或主演人员集合，包含豆瓣原生“更多...”控件后隐藏的条目；控件本身不属于署名。 _Avoid_: 更多链接、截断演职员表
+
+**榜单标记**: 豆瓣可选的编辑榜单定位，由名次与原生榜单目的地组成，显示在 Hero 中但不承诺所有作品都有。 _Avoid_: 豆瓣榜单描述、推荐标签
+
 **影评正文**: 一篇影评的完整可阅读内容，与列表卡片中的摘要不同；内容不可获得时必须明确失败，不以摘要替代。 _Avoid_: 影评摘要、截断正文
 
 **小组讨论 / 讨论区**: 与当前作品关联的话题入口集合（来自"小组讨论"或"讨论区"两种 DOM 结构），增强页只展示话题摘要信息并跳转到豆瓣原生讨论页面；三种 DOM 变体（小组讨论 table + 讨论区 Type 1 `.mod .mv-discussion-list` + 讨论区 Type 2 `.section-discussion`）互斥出现，提取器自动检测。话题链接可能跨多个豆瓣子域名（小组话题使用 `www.douban.com/group/topic/`、条目讨论使用 `movie.douban.com/subject/…/discussion/`）；讨论提取器的 URL 安全验证允许任意 `*.douban.com` 子域名。 _Avoid_: 短评、影评、在增强页内加载正文或回复
@@ -34,7 +38,7 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 ## Architecture
 
-GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject-page UI is moving to traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
+GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject-page UI uses traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
 
 `src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject-page/` or shared Preact primitives under `src/components/`.
 
@@ -65,8 +69,8 @@ src/
   styles.css           — single stylesheet manifest imported by main.ts
   styles/              — ownership-oriented CSS files ordered by the manifest
   extract/             — DOM data extraction
-    index.ts            — barrel
     title-helpers.ts    — H1 extraction owner: extractH1 (DOM read of #content h1), extractYearFromH1, extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
+    rank-label.ts       — optional Douban editorial collection position and destination
     streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource

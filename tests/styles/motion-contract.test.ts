@@ -8,6 +8,7 @@ const readStyle = (name: string): string =>
 
 const motionCss = readStyle("motion.css");
 const heroActionsCss = readStyle("hero-actions.css");
+const heroCss = readStyle("hero.css");
 const mediaCss = readStyle("media.css");
 const mediaPlaybackCss = readStyle("media-playback.css");
 const modalsCss = readStyle("modals.css");
@@ -30,6 +31,25 @@ describe("motion style contract", () => {
     );
     expect(heroActionsCss).toContain(
       "transition: transform var(--atv-duration-hover) var(--atv-ease-in-out)"
+    );
+  });
+
+  it("limits rank-label motion to fine-pointer hover and keeps keyboard focus still", () => {
+    expect(heroCss).toContain("@media (hover: hover) and (pointer: fine)");
+    expect(heroCss).toContain(
+      ".atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);"
+    );
+    expect(heroCss).not.toContain(
+      ".atv-rank-label:focus-visible .atv-rank-label-arrow {\n  color: var(--atv-text-primary);\n  transform: translateX(3px);"
+    );
+  });
+
+  it("keeps rank-label interaction feedback in the gold collection palette", () => {
+    expect(heroCss).toContain(
+      ".atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;"
+    );
+    expect(heroCss).not.toContain(
+      ".atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: var(--atv-accent-bright);"
     );
   });
 

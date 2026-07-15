@@ -64,6 +64,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   isTV: false,
   photos: [],
   poster: null,
+  rankLabel: null,
   rating: null,
   recommendations: [],
   reviews: [makeReview()],

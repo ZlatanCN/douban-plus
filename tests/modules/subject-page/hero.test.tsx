@@ -46,6 +46,7 @@ const makeHeroData = (overrides?: Partial<HeroData>): HeroData => ({
   isTV: false,
   photos: [],
   poster: null,
+  rankLabel: null,
   rating: { count: 2_000_000, score: 9.7 },
   subjectId: "1292052",
   summary: "Hope can set you free.",
@@ -224,6 +225,32 @@ describe(Hero, () => {
     expect(
       el.querySelector(".atv-hero-meta .atv-first-broadcast-platform")
     ).not.toBeNull();
+  });
+
+  it("renders a linked Douban collection rank when available", () => {
+    const el = renderSingle(
+      <Hero
+        callbacks={makeCallbacks()}
+        data={makeHeroData({
+          rankLabel: {
+            href: "https://m.douban.com/subject_collection/ECVACWVGI",
+            position: "No.12",
+            title: "高分经典美剧榜",
+          },
+        })}
+      />
+    );
+
+    const rank = el.querySelector<HTMLAnchorElement>(".atv-rank-label");
+    expect(rank?.textContent).toBe("No.12高分经典美剧榜");
+    expect(rank?.href).toBe(
+      "https://m.douban.com/subject_collection/ECVACWVGI"
+    );
+    expect(rank?.target).toBe("_blank");
+    expect(rank?.getAttribute("aria-label")).toBe(
+      "查看榜单：高分经典美剧榜，No.12"
+    );
+    expect(rank?.querySelector(".atv-rank-label-entry")).not.toBeNull();
   });
 
   it("routes logged-out actions to the interest callback with an action label", () => {

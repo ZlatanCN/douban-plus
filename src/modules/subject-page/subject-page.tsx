@@ -43,6 +43,7 @@ const toHeroData = (data: DoubanData): HeroData => ({
   isTV: data.isTV,
   photos: data.photos,
   poster: data.poster,
+  rankLabel: data.rankLabel,
   rating: data.rating,
   subjectId: data.subjectId,
   summary: data.summary,

@@ -53,6 +53,27 @@ describe(extractInfo, () => {
     expect(result.cast[0].text).toBe("蒂姆·罗宾斯");
   });
 
+  it("includes every hidden person but never treats the native more control as a person", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="info">
+  <span><span class="pl">导演</span>: <span class="attrs"><span><a href="/personage/1/">导演甲</a> / </span><span style="display: none"><a href="/personage/2/">导演乙</a></span><a class="more-attrs" href="javascript:;">更多...</a></span></span><br/>
+  <span><span class="pl">主演</span>: <span class="attrs"><span><a href="/personage/3/" rel="v:starring">主演甲</a> / </span><span style="display: none"><a href="/personage/4/" rel="v:starring">主演乙</a></span><a class="more-attrs" href="javascript:;">更多...</a></span></span><br/>
+</div>
+</body></html>`);
+
+    const result = extractInfo(doc);
+
+    expect(result.director.map((person) => person.text)).toStrictEqual([
+      "导演甲",
+      "导演乙",
+    ]);
+    expect(result.cast.map((person) => person.text)).toStrictEqual([
+      "主演甲",
+      "主演乙",
+    ]);
+  });
+
   it("extracts media info from #info block", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

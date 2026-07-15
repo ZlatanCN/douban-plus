@@ -1,3 +1,4 @@
+import { IconArrow } from "@/components/common/icons";
 import type { RatingResultMap } from "@/resolve/types";
 import type { HeroCallbacks, HeroData } from "@/types";
 
@@ -50,6 +51,21 @@ const Hero = ({
           </h1>
           {data.title.original ? (
             <div class="atv-hero-orig">{data.title.original}</div>
+          ) : null}
+          {data.rankLabel ? (
+            <a
+              aria-label={`查看榜单：${data.rankLabel.title}，${data.rankLabel.position}`}
+              class="atv-rank-label"
+              href={data.rankLabel.href}
+              rel="noopener"
+              target="_blank"
+            >
+              <span class="atv-rank-label-entry">
+                <strong>{data.rankLabel.position}</strong>
+                <span class="atv-rank-label-title">{data.rankLabel.title}</span>
+                <IconArrow class="atv-rank-label-arrow" />
+              </span>
+            </a>
           ) : null}
           <HeroMeta
             info={data.info}

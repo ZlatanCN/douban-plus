@@ -92,6 +92,9 @@ const collectLinksAfter = (
       const el = n as HTMLElement;
       const anchors = el.tagName === "A" ? [el] : $$("a", el);
       for (const a of anchors) {
+        if (a.classList.contains("more-attrs")) {
+          continue;
+        }
         const t = (a.textContent || "").trim();
         if (t) {
           out.push({ href: (a as HTMLAnchorElement).href || "", text: t });
