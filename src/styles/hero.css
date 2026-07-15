@@ -186,6 +186,97 @@
   opacity: 0.85;
 }
 
+.atv-rank-label {
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 0 25px;
+  color: var(--atv-text-primary);
+  text-decoration: none;
+}
+
+.atv-rank-label-entry {
+  display: grid;
+  min-height: 34px;
+  align-items: center;
+  padding: 5px 8px 5px 12px;
+  border-left: 2px solid var(--atv-rating-gold);
+  background: linear-gradient(
+    90deg,
+    rgb(255 184 0 / 14%) 0%,
+    rgb(255 184 0 / 0%) 86%
+  );
+  column-gap: 12px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+
+.atv-rank-label-entry strong {
+  color: var(--atv-rating-gold);
+  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.atv-rank-label-title {
+  overflow: hidden;
+  color: var(--atv-text-secondary);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-rank-label-arrow {
+  color: var(--atv-text-tertiary);
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+.atv-rank-label:hover,
+.atv-rank-label:focus-visible {
+  outline: none;
+}
+
+.atv-rank-label:hover .atv-rank-label-entry,
+.atv-rank-label:focus-visible .atv-rank-label-entry {
+  border-left-color: #ffd166;
+  background: linear-gradient(
+    90deg,
+    rgb(255 184 0 / 22%) 0%,
+    rgb(255 184 0 / 0%) 86%
+  );
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-rank-label:hover .atv-rank-label-arrow {
+    color: var(--atv-text-primary);
+    transform: translateX(3px);
+  }
+}
+
+@media (width <= 480px) {
+  .atv-rank-label {
+    margin-bottom: 21px;
+  }
+
+  .atv-rank-label-entry {
+    max-width: min(100%, 340px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-rank-label-arrow {
+    transition: none;
+  }
+
+  .atv-rank-label:hover .atv-rank-label-arrow {
+    transform: none;
+  }
+}
+
 .atv-hero-meta {
   display: flex;
   flex-wrap: wrap;

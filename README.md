@@ -1,40 +1,33 @@
 # Douban Plus
 
-Douban Plus 是一个适配 ScriptCat 和 Tampermonkey 的用户脚本。它只作用于豆瓣电影和电视剧详情页，把原页面重排为 Apple TV 风格的暗色界面，同时保留豆瓣原始链接、登录流程和标记能力。
+Douban Plus 是适配 ScriptCat 和 Tampermonkey 的豆瓣影视详情页用户脚本。它从当前页面读取公开资料，再以 Preact 重排为紧凑的暗色影视详情页；豆瓣原有链接、登录、标记与投票流程仍保留在其原生边界内。
 
 ![Hero screenshot](tests/screenshots/movie-shawshank-hero.png)
 
-## 主要能力
+## 功能
 
-Douban Plus 读取当前豆瓣详情页的现有文档对象模型（DOM），提取页面数据，然后用 Preact 渲染新的详情页界面：
-
-- **沉浸式首屏**：使用海报、背景图、评分、简介和标记操作组成首屏体验
-- **外部评分**：展示 IMDb、Rotten Tomatoes 和 Metacritic 评分，并在数据缺失时降级为空态
-- **流媒体来源**：展示可播放平台，使用平台标识和跳转链接帮助你继续观看
-- **媒体浏览**：支持海报、剧照和预告片 modal 预览
-- **短评和影评**：同步 card 与 modal 内的投票状态，未登录时先打开登录提示
-- **兴趣标记**：支持想看、在看、看过、评分、短评和取消标记
-- **作品切换器**：通过 Sticky Nav 搜索电影和剧集，展示最多五个候选，并在新标签页打开所选作品或豆瓣原生搜索
-- **登录提示**：在需要账号状态的操作前，打开 ATV 风格 modal，并嵌入豆瓣官方登录 iframe
-- **响应式布局**：适配桌面、平板和手机视口，并尊重 `prefers-reduced-motion`
-- **视觉回归截图**：端到端测试会生成首屏、整页和移动端截图
+- 沉浸式 Hero：海报、背景图、元数据、豆瓣与外部评分、简介及作品标记。
+- 原生资料完整呈现：导演、编剧和主演会读取“更多...”后隐藏的完整署名；豆瓣榜单中的名次与榜单链接也会显示在 Hero。
+- 外部评分：IMDb、Rotten Tomatoes 与 Metacritic 独立解析；缺失来源不会阻塞页面。
+- 观看与媒体：观看平台、首播平台、剧集、演员、剧照、海报和预告片预览。
+- 社区与账号操作：短评、影评、讨论、投票与作品标记；未登录时只承载豆瓣官方登录 iframe。
+- 作品切换器：Sticky Nav 中可搜索并在新标签页打开影视条目或豆瓣原生搜索。
+- 响应式与可访问性：适配桌面和移动视口，并尊重 `prefers-reduced-motion`。
 
 ## 安装
 
-从源码安装时，先构建用户脚本，再把生成文件安装到脚本管理器：
+从源码构建：
 
 ```bash
 pnpm install
-pnpm run build
+pnpm build
 ```
 
-然后在 ScriptCat 或 Tampermonkey 中新建脚本，粘贴 [`dist/douban-plus.user.js`](dist/douban-plus.user.js) 的完整内容。保存后访问 `https://movie.douban.com/subject/*` 页面，脚本会自动运行。
+将 [`dist/douban-plus.user.js`](dist/douban-plus.user.js) 的完整内容安装到 ScriptCat 或 Tampermonkey。随后访问 `https://movie.douban.com/subject/*`，脚本会自动运行。
 
-当前构建产物约为 `288 KB`，未压缩，便于检查和调试。
+构建产物未压缩，体积会随依赖和功能变化；以构建命令输出为准。
 
 ## 开发
-
-先安装依赖：
 
 ```bash
 git clone https://github.com/ZlatanCN/douban-plus.git
@@ -42,117 +35,78 @@ cd douban-plus
 pnpm install
 ```
 
-常用命令：
+| 命令             | 用途                                         |
+| ---------------- | -------------------------------------------- |
+| `pnpm dev`       | 启动 Vite 开发服务器和 userscript 开发注入。 |
+| `pnpm build`     | 生成 `dist/douban-plus.user.js`。            |
+| `pnpm lint`      | 运行 Ultracite 与 Stylelint。                |
+| `pnpm typecheck` | 检查源码和测试的 TypeScript 类型。           |
+| `pnpm test`      | 运行 Vitest 单元与集成测试。                 |
+| `pnpm test:e2e`  | 使用 Playwright Edge 在真实豆瓣页面执行 QA。 |
 
-```bash
-pnpm run dev
-pnpm run build
-pnpm run lint
-pnpm run typecheck
-pnpm run test
-pnpm run test:e2e
-```
+开发模式由 `vite-plugin-monkey` 注入脚本。若豆瓣页面 CSP 阻止开发注入，需要在本地浏览器环境中处理该限制。
 
-这些命令分别启动 Vite 开发服务器、构建用户脚本、检查代码风格、检查 TypeScript 类型、运行单元和集成测试、运行 Playwright 端到端测试。
-
-开发服务器通过 `vite-plugin-monkey` 注入脚本。豆瓣页面的 Content Security Policy（CSP）可能阻止开发模式内联脚本，开发时可使用本地浏览器配置处理 CSP 限制。
-
-## 项目结构
-
-核心代码按运行阶段和页面体验拆分：
+## 架构
 
 ```text
 src/
-  main.ts              # 用户脚本入口
-  runtime/             # 挂载、账号拦截、兴趣标记、登录 iframe 主题等运行时流程
-  extract/             # 从豆瓣 DOM 提取页面数据
-  resolve/             # 外部评分解析调度
+  main.ts              # userscript 入口；区分 subject 页和登录 iframe
+  runtime/             # 挂载、数据组装与浏览器生命周期
+  extract/             # 只读解析豆瓣 DOM
+  resolve/             # 外部评分的并行解析调度
   api/                 # 网络请求、缓存和站点解析
-  modules/
-    subject-page/      # Preact 详情页模块
-      hero/            # 首屏、海报、简介和操作
-      ratings/         # 豆瓣和外部评分
-      media/           # 流媒体、演员、剧照、推荐和系列
-      comments/        # 短评列表、modal 和点赞状态
-      reviews/         # 影评列表、modal 和有用/没用状态
-      interest/        # 想看、在看、看过表单
-      login/           # 登录提示 modal 和官方 iframe 宿主
-  components/
-    common/            # 图标、星级等通用 UI
-    layout/            # 区块和导航
-    modal/             # 统一 modal shell、focus trap 和关闭按钮
-  styles.css           # 样式入口
-  styles/              # 按体验拆分的 CSS 文件
+  modules/subject-page/ # 页面体验模块
+    hero/              # Hero、海报、元数据、简介和操作
+    ratings/           # 豆瓣与外部评分
+    media/             # 平台、演员、剧照、推荐和剧集
+    comments/ reviews/ # 社区内容、modal 与投票状态
+    interest/ login/   # 作品标记与豆瓣官方登录 iframe
+    search/             # 作品切换器
+  components/          # 通用 UI、布局与 canonical modal shell
+  styles/              # 按体验所有权拆分，通过 styles.css 统一导入
 tests/
-  qa.ts                # 端到端测试入口
+  qa.ts                # QA / E2E 入口
   qa/                  # Playwright 场景、断言和截图流程
-  screenshots/         # 视觉回归截图
+  screenshots/         # Hero、整页和移动端视觉回归截图
 ```
 
-`src/build/` 是旧的 DOM builder 层，已经退出当前架构。新的界面代码应进入 `src/modules/subject-page/` 或共享 Preact primitives。
+页面流程为：`extractDoubanData()` 读取当前文档 → `mountSubjectPage()` 创建 Preact 根节点 → `SubjectPageRuntime` 管理异步评分、首播平台、导航和媒体生命周期 → `SubjectPage` 渲染页面体验。外部评分在 `resolveAll()` 中并行获取，单个来源失败不会影响其余来源或首屏。
 
-## 工作原理
+`src/build/` 是已退役的 DOM-builder 层。新增界面应进入 `src/modules/subject-page/` 或共享 Preact 组件，不要重建 imperative DOM UI。
 
-页面加载后，脚本按以下顺序运行：
+## 验证
 
-1. **匹配页面**：`vite-plugin-monkey` 只在豆瓣 subject 页面和豆瓣账号登录 iframe 页面运行脚本
-2. **提取数据**：`src/runtime/extract-data.ts` 组合 `extract/` 模块，得到 `DoubanData`
-3. **渲染界面**：`src/runtime/mount.tsx` 把 `SubjectPage` 渲染到新的根节点
-4. **启动效果**：运行头像补全、系列数据观察、sticky nav 和账号拦截等效果
-5. **加载外部评分**：Preact rating 模块通过 `resolveAll` 并行解析 IMDb、Rotten Tomatoes 和 Metacritic
-6. **保留豆瓣能力**：登录、标记和投票仍走豆瓣官方页面或接口，不复制账号表单逻辑
-
-账号相关操作会先通过 `src/runtime/account-gate.ts` 检查登录状态。未登录时，脚本打开 ATV 风格登录 modal，并只嵌入豆瓣官方账号 iframe。
-
-## 测试
-
-单元和集成测试使用 Vitest：
+常规改动：
 
 ```bash
-pnpm run test
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
-端到端测试使用 Playwright Edge，并注入 `dist/douban-plus.user.js`：
+会影响真实豆瓣页面交互、截图或浏览器生命周期时，再执行：
 
 ```bash
-pnpm run build
-pnpm run test:e2e
+pnpm build
+pnpm test:e2e
 ```
 
-端到端测试覆盖真实豆瓣页面场景，包含核心渲染、内容区块、交互、媒体 modal 和截图断言。截图文件保存在 `tests/screenshots/`，每个场景包含 `hero`、`full` 和 `mobile` 三类截图。
-
-## 发布前检查
-
-发布或开 pull request 前运行：
-
-```bash
-pnpm run lint
-pnpm run typecheck
-pnpm run test
-pnpm run build
-```
-
-如果改动会影响真实页面交互，再运行：
-
-```bash
-pnpm run test:e2e
-```
-
-版本号遵循语义化版本。面向用户的新能力或架构性重构使用 minor 版本，兼容修复使用 patch 版本。
+E2E 会注入刚构建的 userscript，并在每个场景生成 `hero`、`full` 与 `mobile` 三张截图。
 
 ## 常见问题
 
 ### 图片无法显示怎么办？
 
-豆瓣图片可能受防盗链策略影响。脚本会尽量使用高清图源和合适的 `referrerPolicy`，但浏览器、网络环境或豆瓣 CDN 策略仍可能影响加载结果。
+豆瓣图片可能受防盗链、CDN 或网络环境影响。脚本会尽量选用可用图源和合适的 `referrerPolicy`，但无法绕过浏览器或站点策略。
 
-### 未登录时为什么先出现登录 modal？
+### 为什么未登录时会先出现登录 modal？
 
-短评点赞、影评投票和兴趣标记都依赖豆瓣账号状态。脚本会先打开登录提示 modal，避免未登录时出现乐观更新后回滚的状态跳动。
+短评投票、影评投票和作品标记都依赖豆瓣账号状态。脚本只展示自己的 modal 外壳，并嵌入豆瓣官方登录 iframe；不会复制账号表单或读取凭据。
 
-### 支持豆瓣首页、排行榜或搜索页吗？
+### 支持首页、榜单或搜索页吗？
 
-不支持。脚本只匹配豆瓣电影和电视剧详情页，也就是 `/subject/*` 路径。
+不支持。脚本只匹配豆瓣电影和电视剧的 `/subject/*` 详情页，以及必要的豆瓣登录 iframe 页面。
 
 ## 开源协议
 

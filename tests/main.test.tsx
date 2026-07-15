@@ -90,6 +90,7 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
     },
   ],
   poster: null,
+  rankLabel: null,
   rating: { count: 2_345_678, score: 9.7 },
   recommendations: [{ link: "", poster: "", title: "The Godfather" }],
   reviews: [],

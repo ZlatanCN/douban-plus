@@ -13,6 +13,7 @@ import {
   extractPhotos,
   extractTrailers,
 } from "@/extract/media";
+import { extractRankLabel } from "@/extract/rank-label";
 import { extractRating, extractSummary } from "@/extract/rating";
 import { extractReviews } from "@/extract/reviews";
 import { extractSeries } from "@/extract/series";
@@ -37,6 +38,7 @@ const extractDoubanData = (doc: Document): DoubanData => {
     isTV,
     photos: extractPhotos(doc),
     poster: extractPoster(doc),
+    rankLabel: extractRankLabel(doc),
     rating: extractRating(doc),
     recommendations: extractRecommendations(doc),
     reviews: extractReviews(doc),
