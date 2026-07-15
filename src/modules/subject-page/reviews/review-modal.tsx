@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { HtmlContent } from "@/components/common/icons";
+import { HtmlContent } from "@/components/common/html-content";
 import { Stars } from "@/components/common/stars";
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import { ModalCloseButton, ModalShell } from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
 import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
