@@ -55,13 +55,7 @@ const reviewWithVoteState = (
   uselessCount: state.uselessCount,
 });
 
-const {
-  initial: initialReviewVoteState,
-  optimistic: optimisticReviewVoteState,
-  resolve: resolvedReviewVoteState,
-  persist: persistReviewVoteState,
-  votedOf: reviewVotedOf,
-} = createVoteState<
+const reviewVoteApi = createVoteState<
   ReviewVoteState,
   ReviewVoteDirection,
   Review,
@@ -102,13 +96,5 @@ const {
   withVoted: (state, dir) => ({ ...state, voted: dir }),
 });
 
-export {
-  initialReviewVoteState,
-  optimisticReviewVoteState,
-  persistReviewVoteState,
-  resolvedReviewVoteState,
-  reviewVoteKey,
-  reviewVotedOf,
-  reviewWithVoteState,
-};
+export { reviewVoteApi };
 export type { ReviewVoteDirection, ReviewVoteState };

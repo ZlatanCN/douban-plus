@@ -6,11 +6,7 @@ import type { AccountActionGuard } from "@/types";
 import type { CommentVoteCallback } from "../types";
 import { useVoteAction } from "../use-vote-action";
 import type { VotePersistOptions } from "../vote-state";
-import {
-  commentVotedOf,
-  optimisticCommentVoteState,
-  resolvedCommentVoteState,
-} from "./comment-vote-state";
+import { commentVoteApi } from "./comment-vote-state";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentVoteButtonProps = {
@@ -54,18 +50,11 @@ const CommentVoteButton = ({
     }
   };
 
-  const { loading, vote } = useVoteAction<
-    CommentVoteState,
-    "up",
-    { ok: boolean; count?: number }
-  >({
+  const { loading, vote } = useVoteAction(commentVoteApi, {
     canVote,
     getState: () => voteState,
     onVote: () => onVote(cid),
-    optimistic: optimisticCommentVoteState,
-    resolve: resolvedCommentVoteState,
     setState: setVoteState,
-    votedOf: commentVotedOf,
   });
 
   const handleVote = (): void => {

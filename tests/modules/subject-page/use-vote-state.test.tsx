@@ -2,7 +2,7 @@ import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useVoteState } from "@/modules/subject-page/use-vote-state";
-import type { VoteStateStrategy } from "@/modules/subject-page/use-vote-state";
+import type { VoteApi } from "@/modules/subject-page/vote-state";
 
 type TestItem = {
   count: number;
@@ -15,17 +15,19 @@ type TestVoteState = {
   voted: boolean;
 };
 
-const testStrategy: VoteStateStrategy<TestItem, TestVoteState> = {
-  initial: (item) => ({
-    count: item.count,
-    voted: false,
-  }),
+type TestResult = { ok: boolean };
+
+const makeApi = (
+  persist?: (item: TestItem, state: TestVoteState) => void
+): VoteApi<TestVoteState, "up", TestItem, TestResult> => ({
+  initial: (item) => ({ count: item.count, voted: false }),
   key: (item) => item.id,
-  merge: (item, state) => ({
-    ...item,
-    count: state.count,
-  }),
-};
+  optimistic: (state) => ({ ...state, count: state.count + 1, voted: true }),
+  persist: persist ?? (() => {}),
+  resolve: (state) => state,
+  toItem: (item, state) => ({ ...item, count: state.count }),
+  votedOf: (state) => (state.voted ? "up" : null),
+});
 
 const items: TestItem[] = [
   { count: 1, id: "a", label: "Alpha" },
@@ -35,12 +37,9 @@ const items: TestItem[] = [
 const TestHarness = ({
   persist,
 }: {
-  persist?: VoteStateStrategy<TestItem, TestVoteState>["persist"];
+  persist?: (item: TestItem, state: TestVoteState) => void;
 }) => {
-  const votes = useVoteState(items, {
-    ...testStrategy,
-    persist,
-  });
+  const votes = useVoteState(items, makeApi(persist));
   const firstState = votes.getVoteState(items[0]);
   const secondState = votes.getVoteState(items[1]);
   const mergedFirst = votes.mergeVoteState(items[0]);
@@ -79,7 +78,7 @@ const TestHarness = ({
 };
 
 const renderHarness = (
-  persist?: VoteStateStrategy<TestItem, TestVoteState>["persist"]
+  persist?: (item: TestItem, state: TestVoteState) => void
 ): HTMLElement => {
   const root = document.createElement("div");
   render(<TestHarness persist={persist} />, root);

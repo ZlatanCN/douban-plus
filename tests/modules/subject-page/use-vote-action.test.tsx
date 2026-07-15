@@ -3,9 +3,16 @@ import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useVoteAction } from "@/modules/subject-page/use-vote-action";
+import type { VoteTransitionApi } from "@/modules/subject-page/use-vote-action";
 
 type State = { count: number; voted: "up" | null };
 type Result = { ok: boolean; count?: number };
+
+const api: VoteTransitionApi<State, "up", Result> = {
+  optimistic: (s) => ({ ...s, count: s.count + 1, voted: "up" }),
+  resolve: (s, _d, r) => ({ ...s, count: r.count ?? s.count, voted: "up" }),
+  votedOf: (s) => s.voted,
+};
 
 const TestHarness = ({
   onVote,
@@ -13,13 +20,10 @@ const TestHarness = ({
   onVote: (dir: "up") => Promise<Result>;
 }) => {
   const [state, setState] = useState<State>({ count: 5, voted: null });
-  const { loading, vote } = useVoteAction<State, "up", Result>({
+  const { loading, vote } = useVoteAction(api, {
     getState: () => state,
     onVote,
-    optimistic: (s) => ({ ...s, count: s.count + 1, voted: "up" }),
-    resolve: (s, _d, r) => ({ ...s, count: r.count ?? s.count, voted: "up" }),
     setState: (next) => setState(next),
-    votedOf: (s) => s.voted,
   });
 
   return (

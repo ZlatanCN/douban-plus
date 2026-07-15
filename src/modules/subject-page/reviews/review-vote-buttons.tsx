@@ -6,13 +6,7 @@ import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
 import { useVoteAction } from "../use-vote-action";
 import type { VotePersistOptions } from "../vote-state";
 import { reviewNumericId } from "./review-identity";
-import {
-  initialReviewVoteState,
-  optimisticReviewVoteState,
-  persistReviewVoteState,
-  resolvedReviewVoteState,
-  reviewVotedOf,
-} from "./review-vote-state";
+import { reviewVoteApi } from "./review-vote-state";
 import type { ReviewVoteDirection, ReviewVoteState } from "./review-vote-state";
 
 type ReviewVoteButtonsProps = {
@@ -28,8 +22,6 @@ type ReviewVoteButtonsProps = {
   state?: ReviewVoteState;
 };
 
-type ReviewVoteResult = Awaited<ReturnType<ReviewVoteCallback>>;
-
 const ReviewVoteButtons = ({
   canVote,
   onStateChange,
@@ -39,7 +31,7 @@ const ReviewVoteButtons = ({
   state,
 }: ReviewVoteButtonsProps) => {
   const [localState, setLocalState] = useState<ReviewVoteState>(() =>
-    initialReviewVoteState(review)
+    reviewVoteApi.initial(review)
   );
   const voteState = state ?? localState;
 
@@ -52,26 +44,19 @@ const ReviewVoteButtons = ({
     } else {
       setLocalState(nextState);
       if (options?.persist) {
-        persistReviewVoteState(review, nextState);
+        reviewVoteApi.persist(review, nextState);
       }
     }
   };
 
-  const { loading, vote } = useVoteAction<
-    ReviewVoteState,
-    ReviewVoteDirection,
-    ReviewVoteResult
-  >({
+  const { loading, vote } = useVoteAction(reviewVoteApi, {
     canVote,
     getState: () => voteState,
     onVote: (dir) =>
       onVote
         ? onVote(reviewNumericId(review.id), dir)
         : Promise.resolve({ ok: false }),
-    optimistic: optimisticReviewVoteState,
-    resolve: resolvedReviewVoteState,
     setState: setVoteState,
-    votedOf: reviewVotedOf,
   });
 
   const sizeClass = size === "large" ? " is-lg" : "";

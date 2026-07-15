@@ -34,13 +34,7 @@ const commentWithVoteState = (
   votes: state.count,
 });
 
-const {
-  initial: initialCommentVoteState,
-  optimistic: optimisticCommentVoteState,
-  resolve: resolvedCommentVoteState,
-  persist: persistCommentVoteState,
-  votedOf: commentVotedOf,
-} = createVoteState<
+const commentVoteApi = createVoteState<
   CommentVoteState,
   "up",
   Comment,
@@ -71,13 +65,5 @@ const {
   withVoted: (state, dir) => ({ ...state, voted: dir === "up" }),
 });
 
-export {
-  commentVoteKey,
-  commentVotedOf,
-  commentWithVoteState,
-  initialCommentVoteState,
-  optimisticCommentVoteState,
-  persistCommentVoteState,
-  resolvedCommentVoteState,
-};
+export { commentVoteApi };
 export type { CommentVoteState };
