@@ -175,7 +175,7 @@ describe(useSwipeToDismiss, () => {
     expect(mockAnimate).toHaveBeenCalledWith(
       element,
       { transform: "translateY(0)" },
-      springConfigs.swipeToDismiss
+      springConfigs.swipeSettleBack
     );
   });
 
@@ -228,7 +228,7 @@ describe(useSwipeToDismiss, () => {
 
   /* ── Spring parameter selection ───────────────────────── */
 
-  it("uses swipeToDismiss spring config for snap-back animation", () => {
+  it("uses swipeSettleBack spring config for snap-back animation", () => {
     const onDismiss = vi.fn<() => void>();
     const root = renderIntoRoot(
       <TestComponent
@@ -262,7 +262,7 @@ describe(useSwipeToDismiss, () => {
     expect(mockAnimate).toHaveBeenCalledWith(
       element,
       { transform: "translateY(0)" },
-      springConfigs.swipeToDismiss
+      springConfigs.swipeSettleBack
     );
   });
 

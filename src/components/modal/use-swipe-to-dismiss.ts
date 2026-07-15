@@ -108,7 +108,7 @@ const useSwipeToDismiss = (
       const anim = animate(
         element,
         { transform: "translateY(0)" },
-        springConfigs.swipeToDismiss
+        springConfigs.swipeSettleBack
       );
       animationRef.current = anim;
       void (async () => {

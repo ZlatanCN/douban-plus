@@ -54,4 +54,8 @@ describe("motion style contract", () => {
     expect(motionCss).not.toContain("atv-rating-panel-imdb.is-exiting");
     expect(motionCss).not.toContain("atv-rating-panel-rt.is-exiting");
   });
+
+  it("does not define the unused atv-content-fade keyframe", () => {
+    expect(motionCss).not.toContain("atv-content-fade");
+  });
 });

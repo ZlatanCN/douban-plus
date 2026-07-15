@@ -52,16 +52,6 @@
   display: block;
 }
 
-@keyframes atv-content-fade {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .atv-carousel {
     scroll-behavior: auto;

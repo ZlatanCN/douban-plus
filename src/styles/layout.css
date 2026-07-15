@@ -67,6 +67,32 @@
   outline-offset: 3px;
 }
 
+/* ---------- Section reveal on scroll ---------- */
+
+/* Below-the-fold sections start offset and fade in once they enter the
+   viewport. The motion here is opacity + a small translateY only. */
+.atv-section-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.atv-section-reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--atv-duration-content) var(--atv-ease-out),
+    transform var(--atv-duration-content) var(--atv-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-section-reveal,
+  .atv-section-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 /* ---------- Carousel ---------- */
 .atv-carousel {
   display: flex;

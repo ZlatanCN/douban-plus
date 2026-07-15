@@ -1,9 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { StickyNav } from "@/components/layout/sticky-nav";
+import {
+  StickyNav,
+  computeIndicatorMetrics,
+} from "@/components/layout/sticky-nav";
 import type { StickyNavData } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
+
+const rect = (left: number, width: number): DOMRectReadOnly =>
+  ({
+    bottom: 0,
+    height: 0,
+    left,
+    right: left + width,
+    toJSON: () => ({}),
+    top: 0,
+    width,
+    x: left,
+    y: 0,
+  }) as DOMRectReadOnly;
 
 const makeData = (overrides?: Partial<StickyNavData>): StickyNavData => ({
   sections: [
@@ -21,6 +37,11 @@ const makeData = (overrides?: Partial<StickyNavData>): StickyNavData => ({
 const noop = (): undefined => undefined;
 
 describe(StickyNav, () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
   it("renders the title from data.title.primary", () => {
     const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
     expect(root.querySelector(".atv-stickynav-title")?.textContent).toBe(
@@ -99,5 +120,97 @@ describe(StickyNav, () => {
     link?.dispatchEvent(event);
     expect(event.defaultPrevented).toBeTruthy();
     expect(onJump).toHaveBeenCalledWith("atv-cast");
+  });
+
+  it("renders a single sliding marker element", () => {
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
+    const marker = root.querySelector(".atv-stickynav-marker");
+    expect(marker).not.toBeNull();
+    expect(root.querySelectorAll(".atv-stickynav-marker")).toHaveLength(1);
+  });
+
+  it("tags each jump link with its section id for marker measurement", () => {
+    const root = renderIntoRoot(<StickyNav {...makeData()} onJump={noop} />);
+    const links = root.querySelectorAll<HTMLAnchorElement>(
+      ".atv-stickynav-jumps a"
+    );
+    expect(links[0].dataset.sectionId).toBe("atv-cast");
+    expect(links[1].dataset.sectionId).toBe("atv-photos");
+  });
+
+  describe("sliding-marker indicator metrics", () => {
+    it("measures the active link offset and width relative to its container", () => {
+      const container = document.createElement("div");
+      const link = document.createElement("a");
+      vi.spyOn(container, "getBoundingClientRect").mockReturnValue(
+        rect(100, 500)
+      );
+      vi.spyOn(link, "getBoundingClientRect").mockReturnValue(rect(250, 80));
+
+      expect(computeIndicatorMetrics(link, container)).toStrictEqual({
+        left: 150,
+        width: 80,
+      });
+    });
+
+    it("returns a zero offset when the link starts at the container's left edge", () => {
+      const container = document.createElement("div");
+      const link = document.createElement("a");
+      vi.spyOn(container, "getBoundingClientRect").mockReturnValue(
+        rect(0, 500)
+      );
+      vi.spyOn(link, "getBoundingClientRect").mockReturnValue(rect(0, 64));
+
+      expect(computeIndicatorMetrics(link, container)).toStrictEqual({
+        left: 0,
+        width: 64,
+      });
+    });
+  });
+
+  it("positions the sliding marker over the active link", () => {
+    const navRef = { current: null as HTMLElement | null };
+    const rafState: { callback: ((time: number) => void) | null } = {
+      callback: null,
+    };
+    /* eslint-disable promise/prefer-await-to-callbacks -- requestAnimationFrame is callback-based. */
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
+      (callback: (time: number) => void): number => {
+        rafState.callback = callback;
+        return 0;
+      }
+    );
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation((): void => {});
+    /* eslint-enable promise/prefer-await-to-callbacks */
+
+    const root = renderIntoRoot(
+      <StickyNav
+        {...makeData()}
+        activeSectionId="atv-cast"
+        navRef={navRef}
+        onJump={noop}
+      />
+    );
+
+    const jumps = root.querySelector<HTMLElement>(
+      ".atv-stickynav-jumps"
+    ) as HTMLElement;
+    const activeLink = root.querySelector<HTMLElement>(
+      '[data-section-id="atv-cast"]'
+    ) as HTMLElement;
+    const marker = root.querySelector<HTMLElement>(
+      ".atv-stickynav-marker"
+    ) as HTMLElement;
+    expect(marker).not.toBeNull();
+
+    vi.spyOn(jumps, "getBoundingClientRect").mockReturnValue(rect(0, 500));
+    vi.spyOn(activeLink, "getBoundingClientRect").mockReturnValue(
+      rect(120, 90)
+    );
+
+    rafState.callback?.(0);
+
+    expect(marker.style.transform).toBe("translateX(120px)");
+    expect(marker.style.width).toBe("90px");
   });
 });
