@@ -1,14 +1,82 @@
 /* ── Interest State Extractor ────────────────────────── */
 /* Wish/watching/collect interest state from Douban page. */
 
+import { RE_INTEREST_ACTIVE } from "@/constants";
 import type { InterestState } from "@/types";
+import { $, $$ } from "@/utils/dom";
 
-import {
-  findInterestAnchors,
-  findInterestRoot,
-  isInterestActive,
-  matchInterestText,
-} from "./interest-dom";
+/* ── DOM Locators ───────────────────────────────────── */
+
+const findInterestRoot = (doc: Document): HTMLElement | null =>
+  $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+
+const findInterestAnchors = (
+  doc: Document,
+  root = findInterestRoot(doc)
+): HTMLAnchorElement[] => (root ? $$<HTMLAnchorElement>("a", root) : []);
+
+const isInterestActive = (anchor: HTMLAnchorElement | null): boolean => {
+  if (!anchor) {
+    return false;
+  }
+  const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+  return RE_INTEREST_ACTIVE.test(classes);
+};
+
+/* ── Status Matchers ────────────────────────────────── */
+
+/**
+ * S3 (new Douban) status text uses rich, disambiguated phrasings
+ * ("已看过", "我看过这部电影"). These are the only patterns consulted when
+ * scanning the broad S3 DOM, so a stray bare word elsewhere can never be
+ * mistaken for the user's interest.
+ */
+const matchS3Status = (text: string): InterestState["status"] | null => {
+  if (text.includes("已看过")) {
+    return "collect";
+  }
+  if (text.includes("已想看")) {
+    return "wish";
+  }
+  if (text.includes("已在看")) {
+    return "do";
+  }
+  if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) {
+    return "collect";
+  }
+  if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) {
+    return "wish";
+  }
+  if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) {
+    return "do";
+  }
+  return null;
+};
+
+/**
+ * Bare status words carried by S2 (legacy Douban) anchors ("看过", "想看",
+ * "在看"). Used only as a fallback after the S3 rich patterns miss.
+ */
+const matchBareStatus = (text: string): InterestState["status"] | null => {
+  if (/^看过$/u.test(text)) {
+    return "collect";
+  }
+  if (/^想看$/u.test(text)) {
+    return "wish";
+  }
+  if (/^(?:正在?)?在看$/u.test(text)) {
+    return "do";
+  }
+  return null;
+};
+
+/**
+ * Matches an interest status from a single text token, trying the S3 rich
+ * phrasings first and falling back to the S2 bare words only when no rich
+ * phrasing matched. Used by the legacy anchor path.
+ */
+const matchRichOrBareStatus = (text: string): InterestState["status"] | null =>
+  matchS3Status(text) ?? matchBareStatus(text);
 
 /* ── S3 / S2 State Detection ────────────────────────── */
 
@@ -29,8 +97,7 @@ const detectS3State = (
   let status: InterestState["status"] = "none";
   const allTextEls = root.querySelectorAll<HTMLElement>("span, div, a");
   for (const el of allTextEls) {
-    const t = (el.textContent || "").trim();
-    const s = matchInterestText(t, true);
+    const s = matchS3Status((el.textContent || "").trim());
     if (s) {
       status = s;
       break;
@@ -88,7 +155,7 @@ const detectS2Status = (
     if (status !== "none") {
       continue;
     }
-    const s = matchInterestText(text);
+    const s = matchRichOrBareStatus(text);
     if (s && isInterestActive(a)) {
       status = s;
     }

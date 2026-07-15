@@ -631,6 +631,7 @@ input::placeholder {
 	var RE_WS_GLOBAL = /\s+/gu;
 	var RE_COLON_WS = /[:：\s]/gu;
 	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_H1_YEAR = /\((?<year>\d{4})\)\s*$/u;
 	var RE_WS = /\s+/u;
 	var RE_YEAR = /(?<year>\d{4})/u;
 	var RE_NON_DIGIT = /\D/gu;
@@ -939,20 +940,6 @@ input::placeholder {
 		}
 		return out;
 	};
-	var matchInterestText = (text, s3Only = false) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		if (!s3Only) {
-			if (/^看过$/u.test(text)) return "collect";
-			if (/^想看$/u.test(text)) return "wish";
-			if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		}
-		return null;
-	};
 	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
 	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
 	var isInterestActive = (anchor) => {
@@ -960,11 +947,27 @@ input::placeholder {
 		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
 		return RE_INTEREST_ACTIVE.test(classes);
 	};
+	var matchS3Status = (text) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		return null;
+	};
+	var matchBareStatus = (text) => {
+		if (/^看过$/u.test(text)) return "collect";
+		if (/^想看$/u.test(text)) return "wish";
+		if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		return null;
+	};
+	var matchRichOrBareStatus = (text) => matchS3Status(text) ?? matchBareStatus(text);
 	var detectS3State = (root) => {
 		let status = "none";
 		const allTextEls = root.querySelectorAll("span, div, a");
 		for (const el of allTextEls) {
-			const s = matchInterestText((el.textContent || "").trim(), true);
+			const s = matchS3Status((el.textContent || "").trim());
 			if (s) {
 				status = s;
 				break;
@@ -1000,7 +1003,7 @@ input::placeholder {
 			const text = (a.textContent || "").trim();
 			if (text === "在看") hasWatching = true;
 			if (status !== "none") continue;
-			const s = matchInterestText(text);
+			const s = matchRichOrBareStatus(text);
 			if (s && isInterestActive(a)) status = s;
 		}
 		return {
@@ -1807,12 +1810,6 @@ input::placeholder {
 				}, section.id))
 			})
 		]
-	});
-	var HtmlContent = ({ children, className, html, ...rest }) => u("div", {
-		class: className,
-		dangerouslySetInnerHTML: html ? { __html: html } : void 0,
-		...rest,
-		children: html ? null : children
 	});
 	var IconStarFull = (props) => u("svg", {
 		viewBox: "0 0 16 16",
@@ -9397,46 +9394,168 @@ input::placeholder {
 		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
 		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
 	});
+	var useVoteAction = ({ canVote, getState, onVote, optimistic, resolve, setState, votedOf }) => {
+		const [loading, setLoading] = d(false);
+		return {
+			loading,
+			vote: q(async (dir) => {
+				if (loading || votedOf(getState()) === dir) return;
+				if (canVote && !canVote()) return;
+				const previous = getState();
+				setLoading(true);
+				const optimisticState = optimistic(previous, dir);
+				setState(optimisticState);
+				const result = await onVote(dir);
+				if (result.ok) setState(resolve(optimisticState, dir, result), { persist: true });
+				else setState(previous);
+				setLoading(false);
+			}, [
+				canVote,
+				getState,
+				loading,
+				onVote,
+				optimistic,
+				resolve,
+				setState,
+				votedOf
+			])
+		};
+	};
+	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
+		const load = () => {
+			try {
+				const raw = localStorage.getItem(storageKey);
+				if (!raw) return new Map();
+				const parsed = JSON.parse(raw);
+				return new Map(parsed);
+			} catch {
+				return new Map();
+			}
+		};
+		const persist = (entries) => {
+			try {
+				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
+			} catch {}
+		};
+		return {
+			get(key) {
+				const entries = load();
+				const entry = entries.get(key);
+				if (!entry) return;
+				if (Date.now() > entry.expiresAt) {
+					entries.delete(key);
+					persist(entries);
+					return;
+				}
+				return entry.value;
+			},
+			set(key, value) {
+				const entries = load();
+				entries.set(key, {
+					expiresAt: Date.now() + ttlMs,
+					value
+				});
+				persist(entries);
+			}
+		};
+	};
+	var createVoteState = (config) => {
+		const optimistic = (state, dir) => {
+			const countKey = config.countKey(dir);
+			const next = {
+				...state,
+				[countKey]: state[countKey] + 1
+			};
+			return config.withVoted(next, dir);
+		};
+		const resolve = (optimisticState, dir, result) => config.mergeResult(optimisticState, dir, result);
+		const initial = (item) => {
+			const base = config.initial(item);
+			const { persistence } = config;
+			if (!persistence) return base;
+			const stored = persistence.cache.get(config.key(item));
+			return stored ? {
+				...base,
+				...persistence.hydrate(stored)
+			} : base;
+		};
+		const persist = (item, state) => {
+			const { persistence } = config;
+			if (!persistence) return;
+			if (!config.votedOf(state)) return;
+			persistence.cache.set(config.key(item), persistence.serialize(state));
+		};
+		return {
+			initial,
+			key: config.key,
+			optimistic,
+			persist,
+			resolve,
+			toItem: config.toItem,
+			votedOf: config.votedOf
+		};
+	};
+	var commentVoteCache = createCache("atv:comment:vote", 365 * 24 * 60 * 60 * 1e3);
 	var commentVoteKey = (comment) => comment.cid || comment.link;
-	var initialCommentVoteState = (comment) => ({
+	var baseInitialCommentVoteState = (comment) => ({
 		count: comment.votes,
 		voted: comment.voted
-	});
-	var optimisticCommentVoteState = (state) => ({
-		count: state.count + 1,
-		voted: true
-	});
-	var resolvedCommentVoteState = (current, result) => ({
-		count: result.count ?? current.count,
-		voted: true
 	});
 	var commentWithVoteState = (comment, state) => ({
 		...comment,
 		voted: state.voted,
 		votes: state.count
 	});
+	var { initial: initialCommentVoteState, optimistic: optimisticCommentVoteState, resolve: resolvedCommentVoteState, persist: persistCommentVoteState, votedOf: commentVotedOf } = createVoteState({
+		countKey: () => "count",
+		initial: baseInitialCommentVoteState,
+		key: commentVoteKey,
+		mergeResult: (state, _dir, result) => ({
+			...state,
+			count: result.count ?? state.count,
+			voted: true
+		}),
+		persistence: {
+			cache: commentVoteCache,
+			hydrate: (stored) => {
+				const hydrated = { voted: true };
+				if (typeof stored.count === "number") hydrated.count = stored.count;
+				return hydrated;
+			},
+			serialize: (state) => ({
+				count: state.count,
+				type: "up"
+			})
+		},
+		toItem: commentWithVoteState,
+		votedOf: (state) => state.voted ? "up" : null,
+		withVoted: (state, dir) => ({
+			...state,
+			voted: dir === "up"
+		})
+	});
 	var CommentVoteButton = ({ canVote, cid, className, count, onStateChange, onVote, state, voted }) => {
 		const [localState, setLocalState] = d({
 			count,
 			voted
 		});
-		const [loading, setLoading] = d(false);
 		const voteState = state ?? localState;
-		const setVoteState = (nextState) => {
-			if (onStateChange) onStateChange(nextState);
+		const setVoteState = (nextState, options) => {
+			if (onStateChange) onStateChange(nextState, options);
 			else setLocalState(nextState);
 		};
-		const vote = async () => {
-			if (loading || voteState.voted || !cid) return;
-			if (canVote && !canVote()) return;
-			setLoading(true);
-			const previous = voteState;
-			const optimistic = optimisticCommentVoteState(voteState);
-			setVoteState(optimistic);
-			const result = await onVote(cid);
-			if (result.ok) setVoteState(resolvedCommentVoteState(optimistic, result));
-			else setVoteState(previous);
-			setLoading(false);
+		const { loading, vote } = useVoteAction({
+			canVote,
+			getState: () => voteState,
+			onVote: () => onVote(cid),
+			optimistic: optimisticCommentVoteState,
+			resolve: resolvedCommentVoteState,
+			setState: setVoteState,
+			votedOf: commentVotedOf
+		});
+		const handleVote = () => {
+			if (!cid) return;
+			vote("up");
 		};
 		return u("button", {
 			"aria-label": `有用，${voteState.count} 人觉得有用`,
@@ -9445,7 +9564,7 @@ input::placeholder {
 			disabled: loading || voteState.voted || !cid,
 			onClick: (event) => {
 				event.stopPropagation();
-				vote();
+				handleVote();
 			},
 			type: "button",
 			children: [u(IconThumb, {}), u("span", {
@@ -9525,7 +9644,7 @@ input::placeholder {
 							cid: comment.cid,
 							className: "atv-comment-votes",
 							count: comment.votes,
-							onStateChange: onVoteStateChange ? (state) => onVoteStateChange(comment, state) : void 0,
+							onStateChange: onVoteStateChange ? (state, options) => onVoteStateChange(comment, state, options) : void 0,
 							onVote,
 							state: voteState,
 							voted: comment.voted
@@ -11467,44 +11586,6 @@ input::placeholder {
 	}) : null;
 	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
 	var reviewDisplayName = (name) => name.trim() || "匿名用户";
-	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
-		const load = () => {
-			try {
-				const raw = localStorage.getItem(storageKey);
-				if (!raw) return new Map();
-				const parsed = JSON.parse(raw);
-				return new Map(parsed);
-			} catch {
-				return new Map();
-			}
-		};
-		const persist = (entries) => {
-			try {
-				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
-			} catch {}
-		};
-		return {
-			get(key) {
-				const entries = load();
-				const entry = entries.get(key);
-				if (!entry) return;
-				if (Date.now() > entry.expiresAt) {
-					entries.delete(key);
-					persist(entries);
-					return;
-				}
-				return entry.value;
-			},
-			set(key, value) {
-				const entries = load();
-				entries.set(key, {
-					expiresAt: Date.now() + ttlMs,
-					value
-				});
-				persist(entries);
-			}
-		};
-	};
 	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);
 	var reviewVoteKey = (review) => reviewNumericId(review.id);
 	var voteDirection = (value) => {
@@ -11513,40 +11594,49 @@ input::placeholder {
 		if (type === "useless" || type === "down") return "useless";
 		return null;
 	};
-	var initialReviewVoteState = (review) => {
-		const cached = reviewVoteCache.get(reviewVoteKey(review));
-		return {
-			usefulCount: typeof cached === "object" && typeof cached.usefulCount === "number" ? cached.usefulCount : review.usefulCount ?? 0,
-			uselessCount: typeof cached === "object" && typeof cached.uselessCount === "number" ? cached.uselessCount : review.uselessCount ?? 0,
-			voted: voteDirection(cached)
-		};
-	};
-	var optimisticReviewVoteState = (state, type) => ({
-		usefulCount: state.usefulCount + (type === "useful" ? 1 : 0),
-		uselessCount: state.uselessCount + (type === "useless" ? 1 : 0),
-		voted: type
+	var baseInitialReviewVoteState = (review) => ({
+		usefulCount: review.usefulCount ?? 0,
+		uselessCount: review.uselessCount ?? 0,
+		voted: null
 	});
-	var resolvedReviewVoteState = (current, type, result) => ({
-		usefulCount: result.usefulCount ?? current.usefulCount,
-		uselessCount: result.uselessCount ?? current.uselessCount,
-		voted: type
-	});
-	var persistReviewVoteState = (review, state) => {
-		if (!state.voted) return;
-		reviewVoteCache.set(reviewVoteKey(review), {
-			type: state.voted,
-			usefulCount: state.usefulCount,
-			uselessCount: state.uselessCount
-		});
-	};
 	var reviewWithVoteState = (review, state) => ({
 		...review,
 		usefulCount: state.usefulCount,
 		uselessCount: state.uselessCount
 	});
+	var { initial: initialReviewVoteState, optimistic: optimisticReviewVoteState, resolve: resolvedReviewVoteState, persist: persistReviewVoteState, votedOf: reviewVotedOf } = createVoteState({
+		countKey: (dir) => dir === "useful" ? "usefulCount" : "uselessCount",
+		initial: baseInitialReviewVoteState,
+		key: reviewVoteKey,
+		mergeResult: (state, dir, result) => ({
+			...state,
+			usefulCount: result.usefulCount ?? state.usefulCount,
+			uselessCount: result.uselessCount ?? state.uselessCount,
+			voted: dir
+		}),
+		persistence: {
+			cache: reviewVoteCache,
+			hydrate: (stored) => {
+				const hydrated = { voted: voteDirection(stored) };
+				if (typeof stored.usefulCount === "number") hydrated.usefulCount = stored.usefulCount;
+				if (typeof stored.uselessCount === "number") hydrated.uselessCount = stored.uselessCount;
+				return hydrated;
+			},
+			serialize: (state) => ({
+				type: state.voted ?? "useful",
+				usefulCount: state.usefulCount,
+				uselessCount: state.uselessCount
+			})
+		},
+		toItem: reviewWithVoteState,
+		votedOf: (state) => state.voted,
+		withVoted: (state, dir) => ({
+			...state,
+			voted: dir
+		})
+	});
 	var ReviewVoteButtons = ({ canVote, onStateChange, onVote, review, size = "normal", state }) => {
 		const [localState, setLocalState] = d(() => initialReviewVoteState(review));
-		const [loading, setLoading] = d(false);
 		const voteState = state ?? localState;
 		const setVoteState = (nextState, options) => {
 			if (onStateChange) onStateChange(review, nextState, options);
@@ -11555,18 +11645,20 @@ input::placeholder {
 				if (options?.persist) persistReviewVoteState(review, nextState);
 			}
 		};
-		const vote = async (type) => {
-			if (loading || voteState.voted === type || !onVote) return;
-			if (canVote && !canVote()) return;
-			const previous = voteState;
-			setLoading(true);
-			setVoteState(optimisticReviewVoteState(voteState, type));
-			const result = await onVote(reviewNumericId(review.id), type);
-			if (result.ok) setVoteState(resolvedReviewVoteState(voteState, type, result), { persist: true });
-			else setVoteState(previous);
-			setLoading(false);
-		};
+		const { loading, vote } = useVoteAction({
+			canVote,
+			getState: () => voteState,
+			onVote: (dir) => onVote ? onVote(reviewNumericId(review.id), dir) : Promise.resolve({ ok: false }),
+			optimistic: optimisticReviewVoteState,
+			resolve: resolvedReviewVoteState,
+			setState: setVoteState,
+			votedOf: reviewVotedOf
+		});
 		const sizeClass = size === "large" ? " is-lg" : "";
+		const handleVote = (dir) => {
+			if (!onVote) return;
+			vote(dir);
+		};
 		return u(S, { children: [u("button", {
 			"aria-label": `有用，${voteState.usefulCount} 人觉得有用`,
 			"aria-pressed": voteState.voted === "useful",
@@ -11574,7 +11666,7 @@ input::placeholder {
 			disabled: !onVote || loading || voteState.voted === "useful",
 			onClick: (event) => {
 				event.stopPropagation();
-				vote("useful");
+				handleVote("useful");
 			},
 			type: "button",
 			children: [u(IconVoteTriangle, {}), u("span", {
@@ -11588,7 +11680,7 @@ input::placeholder {
 			disabled: !onVote || loading || voteState.voted === "useless",
 			onClick: (event) => {
 				event.stopPropagation();
-				vote("useless");
+				handleVote("useless");
 			},
 			type: "button",
 			children: [u(IconVoteTriangle, {}), u("span", {
@@ -11752,7 +11844,7 @@ input::placeholder {
 		"rowspan",
 		"scope"
 	]);
-	var sanitizeReviewHtml = (html) => {
+	var sanitizeHtml = (html) => {
 		const doc = new DOMParser().parseFromString(html, "text/html");
 		for (const element of doc.body.querySelectorAll("*")) {
 			if (dangerousTags.has(element.tagName.toLowerCase())) {
@@ -11774,11 +11866,17 @@ input::placeholder {
 		}
 		return doc.body.innerHTML;
 	};
+	var HtmlContent = ({ children, className, html, dangerouslySetInnerHTML: _dangerouslySetInnerHTML, ...rest }) => u("div", {
+		class: className,
+		dangerouslySetInnerHTML: html ? { __html: sanitizeHtml(html) } : void 0,
+		...rest,
+		children: html ? null : children
+	});
 	var readNativeReviewContent = (rid) => {
 		const numericId = reviewNumericId(rid);
 		const fullContent = document.querySelector(`[id="${rid}"]`)?.querySelector(`#review_${numericId}_full .review-content`);
 		const text = (fullContent?.textContent ?? "").trim();
-		return fullContent && text ? sanitizeReviewHtml(fullContent.innerHTML) : null;
+		return fullContent && text ? sanitizeHtml(fullContent.innerHTML) : null;
 	};
 	var fetchReviewContent = async (rid) => {
 		const numericId = reviewNumericId(rid);
@@ -11786,7 +11884,7 @@ input::placeholder {
 		if (!response.ok) return null;
 		const html = await response.text();
 		const content = new DOMParser().parseFromString(html, "text/html").querySelector(".review-content");
-		return content ? sanitizeReviewHtml(content.innerHTML) : null;
+		return content ? sanitizeHtml(content.innerHTML) : null;
 	};
 	var useReviewContent = (rid) => {
 		const [state, setState] = d(() => {
@@ -12337,7 +12435,8 @@ input::placeholder {
 	var commentVoteStrategy = {
 		initial: initialCommentVoteState,
 		key: commentVoteKey,
-		merge: commentWithVoteState
+		merge: commentWithVoteState,
+		persist: persistCommentVoteState
 	};
 	var reviewVoteStrategy = {
 		initial: initialReviewVoteState,
@@ -12584,18 +12683,15 @@ input::placeholder {
 		const d = m.groups.digit;
 		return /^\d+$/u.test(d) ? Math.trunc(Number(d)) : cn.indexOf(d) + 1;
 	};
-	var buildContext = (imdbId, isTV, doc) => {
-		const doubanH1 = doc.querySelector("#content h1")?.textContent?.trim() || "";
-		const englishTitle = doubanH1 ? extractEnglishSeriesName(doubanH1) : null;
-		const season = doubanH1 ? extractSeasonFromH1(doubanH1) : void 0;
-		const yearMatch = doubanH1.match(/\((?<year>\d{4})\)\s*$/u);
-		const year = isTV ? void 0 : yearMatch?.groups?.year ?? void 0;
+	var extractH1 = (doc) => doc.querySelector("#content h1")?.textContent?.trim() || "";
+	var extractYearFromH1 = (h1) => h1.match(RE_H1_YEAR)?.groups?.year;
+	var buildContext = (imdbId, isTV, h1) => {
 		return {
-			englishTitle: englishTitle || null,
+			englishTitle: h1 ? extractEnglishSeriesName(h1) || null : null,
 			imdbId,
 			isTV,
-			season,
-			year
+			season: h1 ? extractSeasonFromH1(h1) : void 0,
+			year: isTV ? void 0 : extractYearFromH1(h1)
 		};
 	};
 	var imdbCache = createCache("dp:imdb-cache", 720 * 60 * 60 * 1e3);
@@ -12912,7 +13008,7 @@ input::placeholder {
 			}
 			let cancelled = false;
 			const loadRatings = async () => {
-				const ratings = await resolveAll(buildContext(imdbId, isTV, doc));
+				const ratings = await resolveAll(buildContext(imdbId, isTV, extractH1(doc)));
 				if (!cancelled) setExternal(ratings);
 			};
 			loadRatings();
