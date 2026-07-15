@@ -12,6 +12,14 @@ type SuggestionRequest =
   | { query: string; status: "ready"; suggestions: SubjectSuggestion[] }
   | { query: string; status: "failed" };
 
+/**
+ * Owns the suggestion request lifecycle: debounce, fetch, cancel, and the
+ * race-condition alignment between the current query and the in-flight
+ * request. Returns the already-aligned {@link SuggestionRequest} so callers
+ * never need to know whether `request.query` matches the current input — the
+ * "query changed but the hook hasn't caught up" gap is reported as `loading`,
+ * not as a stale `ready` result.
+ */
 const useSubjectSuggestionRequest = (
   normalizedQuery: string
 ): SuggestionRequest => {
@@ -54,7 +62,11 @@ const useSubjectSuggestionRequest = (
     };
   }, [normalizedQuery]);
 
-  return request;
+  const requestMatchesQuery =
+    request.status !== "idle" && request.query === normalizedQuery;
+  return normalizedQuery && !requestMatchesQuery
+    ? { query: normalizedQuery, status: "loading" }
+    : request;
 };
 
 export { useSubjectSuggestionRequest, type SuggestionRequest };

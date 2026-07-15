@@ -56,6 +56,7 @@ src/
       reviews/           — review cards, modal lifecycle, content loading, up/down vote state
       interest/          — complete 作品标记 flow: account gate, form, writes, and refresh
       login/             — ATV login modal shell + trusted Douban iframe host
+      search/            — 作品切换器: subject switcher UI, request hook, combobox nav hook
       use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
   components/
     common/            — reusable leaf UI such as poster and stars
