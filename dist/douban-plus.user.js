@@ -845,50 +845,43 @@ input::placeholder {
 		return { topics: [] };
 	};
 	var findLabel = (root, label) => {
-		if (!root) return null;
-		const spans = $$("span.pl", root);
-		for (const s of spans) if ((s.textContent || "").replace(RE_COLON_WS, "") === label) return s;
+		const labels = $$("span.pl", root);
+		for (const candidate of labels) if ((candidate.textContent || "").replace(RE_COLON_WS, "") === label) return candidate;
 		return null;
 	};
-	var collectInfoTextAfter = (root, label, trim) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return "";
-		let out = "";
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 3) out += n.nodeValue;
-			else if (n.nodeType === 1) out += n.textContent || "";
-			n = n.nextSibling;
+	var adjacentSiblings = (label) => {
+		const siblings = [];
+		let current = label.nextSibling;
+		while (current) {
+			if (current.nodeType === 1 && (current.classList?.contains("pl") || current.tagName === "BR")) break;
+			siblings.push(current);
+			current = current.nextSibling;
 		}
-		let result = out.replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ");
-		if (trim !== false) result = result.trim();
-		return result;
+		return siblings;
+	};
+	var collectInfoTextAfter = (root, label) => {
+		const labelElement = findLabel(root, label);
+		if (!labelElement) return "";
+		return adjacentSiblings(labelElement).map((sibling) => {
+			if (sibling.nodeType === 3) return sibling.nodeValue || "";
+			return sibling.nodeType === 1 ? sibling.textContent || "" : "";
+		}).join("").replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ").trim();
 	};
 	var collectLinksAfter = (root, label) => {
-		const labelEl = findLabel(root, label);
-		if (!labelEl) return [];
-		const out = [];
-		let n = labelEl.nextSibling;
-		while (n) {
-			if (n.nodeType === 1 && n.classList?.contains("pl")) break;
-			if (n.nodeType === 1 && n.tagName === "BR") break;
-			if (n.nodeType === 1) {
-				const el = n;
-				const anchors = el.tagName === "A" ? [el] : $$("a", el);
-				for (const a of anchors) {
-					if (a.classList.contains("more-attrs")) continue;
-					const t = (a.textContent || "").trim();
-					if (t) out.push({
-						href: a.href || "",
-						text: t
-					});
-				}
-			}
-			n = n.nextSibling;
-		}
-		return out;
+		const labelElement = findLabel(root, label);
+		if (!labelElement) return [];
+		return adjacentSiblings(labelElement).flatMap((sibling) => {
+			if (sibling.nodeType !== 1) return [];
+			const element = sibling;
+			return (element.tagName === "A" ? [element] : $$("a", element)).flatMap((anchor) => {
+				if (anchor.classList.contains("more-attrs")) return [];
+				const text = (anchor.textContent || "").trim();
+				return text ? [{
+					href: anchor.href || "",
+					text
+				}] : [];
+			});
+		});
 	};
 	var extractInfo = (doc) => {
 		const info = $("#info", doc);

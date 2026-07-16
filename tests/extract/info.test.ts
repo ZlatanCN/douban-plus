@@ -3,11 +3,17 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractInfo } from "@/extract/info";
+import * as info from "@/extract/info";
 
 import { buildDoc } from "../helpers/doc";
 
+const { extractInfo } = info;
+
 describe(extractInfo, () => {
+  it("exposes only the InfoBlock extraction interface", () => {
+    expect(Object.keys(info)).toStrictEqual(["extractInfo"]);
+  });
+
   it("extracts crew info from #info block", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

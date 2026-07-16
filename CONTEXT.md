@@ -74,6 +74,7 @@ src/
     title-helpers.ts    — H1 extraction owner: extractH1 (DOM read of #content h1), extractYearFromH1, extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
     rank-label.ts       — optional Douban editorial collection position and destination
     streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
+    info.ts             — deep InfoBlock extractor: semantic v:* fields, label-sibling text/links, selected season
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
     context.ts          — buildContext(imdbId, isTV, h1): pure assembler; takes the H1 string (read via extractH1) + identifiers, no DOM access
@@ -223,6 +224,10 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 ### Resolved-comment host integration
 
 `runtime/use-resolved-comments.ts` is the explicit host integration owner for resolved comments while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns comments with resolved-avatar fallback applied to `SubjectPageRuntime`. The page-composition seam receives resolved comments and never starts requests, reads browser globals, or selects profile-link keys. Runtime tests cover profile lookup and fallback through the rendered page; Subject-page tests pass resolved comments directly.
+
+### InfoBlock extraction
+
+`extract/info.ts` is the only owner of `#info` markup traversal. Its internal adapters handle semantic `v:*` fields, label-adjacent text, label-adjacent links, and the selected season; `extractInfo(doc)` is the sole extractor interface, and `runtime/extract-data.ts` receives only the resulting `InfoBlock`. Do not recreate a shared label-traversal seam until a second production extractor actually needs it.
 
 ### Key design decisions
 

@@ -2,11 +2,86 @@
 /* Directors, writers, cast, genres, country, language,     */
 /* dates, runtime, episodes, seasons, aliases, IMDb.        */
 
-import { RE_IMDB_ID } from "@/constants";
+import {
+  RE_COLON_WS,
+  RE_IMDB_ID,
+  RE_SLASH_SEP,
+  RE_WS_GLOBAL,
+} from "@/constants";
 import type { InfoBlock } from "@/types";
 import { $, $$ } from "@/utils/dom";
 
-import { collectInfoTextAfter, collectLinksAfter, findLabel } from "./helpers";
+type Person = InfoBlock["director"][number];
+
+const findLabel = (root: HTMLElement, label: string): HTMLElement | null => {
+  const labels = $$<HTMLSpanElement>("span.pl", root);
+  for (const candidate of labels) {
+    const text = (candidate.textContent || "").replace(RE_COLON_WS, "");
+    if (text === label) {
+      return candidate;
+    }
+  }
+  return null;
+};
+
+const adjacentSiblings = (label: HTMLElement): ChildNode[] => {
+  const siblings: ChildNode[] = [];
+  let current: ChildNode | null = label.nextSibling;
+  while (current) {
+    if (
+      current.nodeType === 1 &&
+      ((current as HTMLElement).classList?.contains("pl") ||
+        (current as HTMLElement).tagName === "BR")
+    ) {
+      break;
+    }
+    siblings.push(current);
+    current = current.nextSibling;
+  }
+  return siblings;
+};
+
+const collectInfoTextAfter = (root: HTMLElement, label: string): string => {
+  const labelElement = findLabel(root, label);
+  if (!labelElement) {
+    return "";
+  }
+  return adjacentSiblings(labelElement)
+    .map((sibling) => {
+      if (sibling.nodeType === 3) {
+        return sibling.nodeValue || "";
+      }
+      return sibling.nodeType === 1 ? sibling.textContent || "" : "";
+    })
+    .join("")
+    .replace(RE_SLASH_SEP, " / ")
+    .replace(RE_WS_GLOBAL, " ")
+    .trim();
+};
+
+const collectLinksAfter = (root: HTMLElement, label: string): Person[] => {
+  const labelElement = findLabel(root, label);
+  if (!labelElement) {
+    return [];
+  }
+  return adjacentSiblings(labelElement).flatMap((sibling) => {
+    if (sibling.nodeType !== 1) {
+      return [];
+    }
+    const element = sibling as HTMLElement;
+    const anchors: HTMLAnchorElement[] =
+      element.tagName === "A"
+        ? [element as HTMLAnchorElement]
+        : $$<HTMLAnchorElement>("a", element);
+    return anchors.flatMap((anchor) => {
+      if (anchor.classList.contains("more-attrs")) {
+        return [];
+      }
+      const text = (anchor.textContent || "").trim();
+      return text ? [{ href: anchor.href || "", text }] : [];
+    });
+  });
+};
 
 /**
  * Extract all metadata fields from the #info block.
