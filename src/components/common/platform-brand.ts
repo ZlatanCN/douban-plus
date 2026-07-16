@@ -21,6 +21,8 @@ import {
   LogoIqiyi,
   LogoIqiyiCombined,
   LogoItvx,
+  LogoMangoTv,
+  LogoMangoTvCombined,
   LogoNbc,
   LogoNhk,
   LogoShowtime,
@@ -59,6 +61,7 @@ type PlatformBrandKey =
   | "hulu"
   | "iqiyi"
   | "itvx"
+  | "mango-tv"
   | "migu"
   | "nbc"
   | "nhk"
@@ -183,6 +186,16 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
     heroIcon: LogoYouku,
     key: "youku",
     label: "优酷",
+    surface: "dark",
+  },
+  {
+    Icon: LogoMangoTvCombined,
+    aliases: ["芒果TV", "芒果台", "mango tv", "mgtv", "湖南卫视/芒果TV"],
+    color: "#FF5F00",
+    colorMode: "intrinsic",
+    heroIcon: LogoMangoTv,
+    key: "mango-tv",
+    label: "芒果TV",
     surface: "dark",
   },
   {

@@ -51,14 +51,14 @@ describe(resolveStreamingProvider, () => {
   it("falls back to source name when the provider is unknown", () => {
     const provider = resolveStreamingProvider(
       stream({
-        href: "https://www.mgtv.com/billboard/example.html",
-        name: "芒果TV",
+        href: "https://www.example.com/billboard/example.html",
+        name: "示例平台",
       })
     );
 
     expect(provider.key).toBe("unknown");
     expect(provider.Icon).toBeUndefined();
-    expect(provider.label).toBe("芒果TV");
+    expect(provider.label).toBe("示例平台");
   });
 
   it("falls back to the source name for unknown providers", () => {
@@ -118,8 +118,8 @@ describe(StreamingSection, () => {
       <StreamingSection
         streaming={[
           stream({
-            href: "https://www.mgtv.com/billboard/example.html",
-            name: "芒果TV",
+            href: "https://www.example.com/billboard/example.html",
+            name: "示例平台",
           }),
         ]}
       />
@@ -129,7 +129,7 @@ describe(StreamingSection, () => {
     expect(card?.dataset.provider).toBe("unknown");
     expect(card?.querySelector("svg")).toBeNull();
     expect(card?.querySelector(".atv-stream-logo-fallback")?.textContent).toBe(
-      "芒"
+      "示"
     );
   });
 
