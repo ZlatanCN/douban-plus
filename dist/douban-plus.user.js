@@ -9283,92 +9283,6 @@ input::placeholder {
 			src
 		})
 	});
-	var FALLBACK_DELAY_MS = 1500;
-	var isRecord$1 = (value) => typeof value === "object" && value !== null;
-	var safeEmbedUrl = (value) => {
-		if (typeof value !== "string" || !value) return null;
-		try {
-			const url = new URL(value, window.location.href);
-			return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
-		} catch {
-			return null;
-		}
-	};
-	var findEmbedUrl = (value) => {
-		if (Array.isArray(value)) {
-			for (const item of value) {
-				const embedUrl = findEmbedUrl(item);
-				if (embedUrl) return embedUrl;
-			}
-			return null;
-		}
-		if (!isRecord$1(value)) return null;
-		return safeEmbedUrl(value.embedUrl) ?? findEmbedUrl(value.video) ?? findEmbedUrl(value["@graph"]);
-	};
-	var extractEmbedUrl = (html) => {
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		for (const script of doc.querySelectorAll("script[type=\"application/ld+json\"]")) try {
-			const embedUrl = findEmbedUrl(JSON.parse(script.textContent ?? ""));
-			if (embedUrl) return embedUrl;
-		} catch {}
-		return null;
-	};
-	var loadEmbedUrl = async (trailerPageUrl, signal) => {
-		const response = await fetch(trailerPageUrl, { signal });
-		if (!response.ok) throw new Error("trailer page request failed");
-		const embedUrl = extractEmbedUrl(await response.text());
-		if (!embedUrl) throw new Error("trailer page has no safe embed URL");
-		return embedUrl;
-	};
-	var useTrailerAcquisition = (trailer) => {
-		const [record, setRecord] = d({
-			result: { status: "loading" },
-			trailerPageUrl: null
-		});
-		const trailerPageUrl = trailer?.trailerPageUrl;
-		h(() => {
-			if (!trailerPageUrl) return;
-			const controller = new AbortController();
-			setRecord({
-				result: { status: "loading" },
-				trailerPageUrl
-			});
-			(async () => {
-				try {
-					const embedUrl = await loadEmbedUrl(trailerPageUrl, controller.signal);
-					if (!controller.signal.aborted) setRecord({
-						result: {
-							embedUrl,
-							status: "loaded"
-						},
-						trailerPageUrl
-					});
-				} catch {
-					if (!controller.signal.aborted) setRecord({
-						result: { status: "failed" },
-						trailerPageUrl
-					});
-				}
-			})();
-			return () => controller.abort();
-		}, [trailerPageUrl]);
-		h(() => {
-			if (!trailerPageUrl || record.trailerPageUrl !== trailerPageUrl || record.result.status !== "failed") return;
-			const fallbackTimer = window.setTimeout(() => {
-				window.open(trailerPageUrl, "_blank", "noopener");
-				setRecord({
-					result: { status: "fallback" },
-					trailerPageUrl
-				});
-			}, FALLBACK_DELAY_MS);
-			return () => window.clearTimeout(fallbackTimer);
-		}, [
-			record.result.status,
-			record.trailerPageUrl,
-			trailerPageUrl
-		]);
-		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
-	};
 	var MODAL_ID = "atv-video-modal";
 	var VideoModalContent = ({ acquisition }) => {
 		const close = useModalClose();
@@ -9407,13 +9321,6 @@ input::placeholder {
 		surfaceClassName: "atv-modal-surface",
 		children: u(VideoModalContent, { acquisition })
 	});
-	var TrailerModal = ({ onClose, trailer }) => {
-		return u(VideoModal, {
-			acquisition: useTrailerAcquisition(trailer),
-			onClose,
-			trailer
-		});
-	};
 	var REVEAL_THRESHOLD = 0;
 	var useSectionReveal = (ref) => {
 		h(() => {
@@ -11667,6 +11574,99 @@ input::placeholder {
 			})
 		})
 	}) : null;
+	var FALLBACK_DELAY_MS = 1500;
+	var isRecord$1 = (value) => typeof value === "object" && value !== null;
+	var safeEmbedUrl = (value) => {
+		if (typeof value !== "string" || !value) return null;
+		try {
+			const url = new URL(value, window.location.href);
+			return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+		} catch {
+			return null;
+		}
+	};
+	var findEmbedUrl = (value) => {
+		if (Array.isArray(value)) {
+			for (const item of value) {
+				const embedUrl = findEmbedUrl(item);
+				if (embedUrl) return embedUrl;
+			}
+			return null;
+		}
+		if (!isRecord$1(value)) return null;
+		return safeEmbedUrl(value.embedUrl) ?? findEmbedUrl(value.video) ?? findEmbedUrl(value["@graph"]);
+	};
+	var extractEmbedUrl = (html) => {
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		for (const script of doc.querySelectorAll("script[type=\"application/ld+json\"]")) try {
+			const embedUrl = findEmbedUrl(JSON.parse(script.textContent ?? ""));
+			if (embedUrl) return embedUrl;
+		} catch {}
+		return null;
+	};
+	var loadEmbedUrl = async (trailerPageUrl, signal) => {
+		const response = await fetch(trailerPageUrl, { signal });
+		if (!response.ok) throw new Error("trailer page request failed");
+		const embedUrl = extractEmbedUrl(await response.text());
+		if (!embedUrl) throw new Error("trailer page has no safe embed URL");
+		return embedUrl;
+	};
+	var useTrailerAcquisition = (trailer) => {
+		const [record, setRecord] = d({
+			result: { status: "loading" },
+			trailerPageUrl: null
+		});
+		const trailerPageUrl = trailer?.trailerPageUrl;
+		h(() => {
+			if (!trailerPageUrl) return;
+			const controller = new AbortController();
+			setRecord({
+				result: { status: "loading" },
+				trailerPageUrl
+			});
+			(async () => {
+				try {
+					const embedUrl = await loadEmbedUrl(trailerPageUrl, controller.signal);
+					if (!controller.signal.aborted) setRecord({
+						result: {
+							embedUrl,
+							status: "loaded"
+						},
+						trailerPageUrl
+					});
+				} catch {
+					if (!controller.signal.aborted) setRecord({
+						result: { status: "failed" },
+						trailerPageUrl
+					});
+				}
+			})();
+			return () => controller.abort();
+		}, [trailerPageUrl]);
+		h(() => {
+			if (!trailerPageUrl || record.trailerPageUrl !== trailerPageUrl || record.result.status !== "failed") return;
+			const fallbackTimer = window.setTimeout(() => {
+				window.open(trailerPageUrl, "_blank", "noopener");
+				setRecord({
+					result: { status: "fallback" },
+					trailerPageUrl
+				});
+			}, FALLBACK_DELAY_MS);
+			return () => window.clearTimeout(fallbackTimer);
+		}, [
+			record.result.status,
+			record.trailerPageUrl,
+			trailerPageUrl
+		]);
+		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
+	};
+	var TrailerModal = ({ onClose, trailer }) => {
+		return u(VideoModal, {
+			acquisition: useTrailerAcquisition(trailer),
+			onClose,
+			trailer
+		});
+	};
 	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
 	var reviewDisplayName = (name) => name.trim() || "匿名用户";
 	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);

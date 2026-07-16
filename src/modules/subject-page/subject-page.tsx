@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 
 import { StickyNav } from "@/components/layout";
-import { ModalSession, PosterModal, TrailerModal } from "@/components/modal";
+import { ModalSession, PosterModal } from "@/components/modal";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -18,6 +18,7 @@ import {
   RecommendationsSection,
   SeriesSection,
   StreamingSection,
+  TrailerModal,
 } from "./media";
 import { ReviewsSection } from "./reviews";
 import { ReviewModal } from "./reviews/review-modal";
