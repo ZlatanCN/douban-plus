@@ -95,7 +95,7 @@ src/
     use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
     use-native-summary.ts — Preact hook: native summary selection, expansion, reread and fallback → adopted summary
     use-trailer-acquisition.ts — Preact hook: trailer-page fetch, LD+JSON parsing, cancellation and native fallback → acquisition state
-    series-effect.ts     — late-loading series observer and nav insertion
+    use-series-runtime.ts — Preact hook: absent/initial/late series, more-link adoption, and observer cleanup → series runtime result
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
 ```
@@ -194,9 +194,9 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
 7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
-   - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
-   - External rating resolution, first-broadcast lookup, late series observation, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`
-   - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
+   - Runtime effects are localized: avatars, late series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module
+   - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`; `useSeriesRuntime` owns the initial/late series result, more-link adoption, DOM observation, and cleanup
+   - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
 8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
    - External seam is `useInterestMarking({ subjectId, loggedIn, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes

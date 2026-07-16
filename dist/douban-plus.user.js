@@ -12668,27 +12668,6 @@ input::placeholder {
 			interestMarking.form
 		] });
 	};
-	var extractSeriesMoreLink = (doc = document) => {
-		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
-		return link ? {
-			href: link.href,
-			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
-		} : void 0;
-	};
-	var watchSeries = (onSeries, doc = document) => {
-		const container = doc.querySelector("#series-items");
-		if (!container) return () => void 0;
-		const update = () => {
-			if (container.querySelector(".items-swiper")) onSeries(extractSeries(doc));
-		};
-		update();
-		const observer = new MutationObserver(update);
-		observer.observe(container, {
-			childList: true,
-			subtree: true
-		});
-		return () => observer.disconnect();
-	};
 	var extractEnglishSeriesName = (h1) => {
 		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
 		if (!m) return "";
@@ -13194,6 +13173,37 @@ input::placeholder {
 			avatar: urls.get(comment.link) || comment.avatar
 		})), [comments, urls]);
 	};
+	var extractSeriesMoreLink = (doc) => {
+		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
+		return link ? {
+			href: link.href,
+			text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim()
+		} : void 0;
+	};
+	var readSeriesRuntime = (initial, doc) => ({
+		items: doc.querySelector("#series-items .items-swiper") ? extractSeries(doc) : initial,
+		moreLink: extractSeriesMoreLink(doc)
+	});
+	var useSeriesRuntime = (initial, doc) => {
+		const initialSeries = A(initial).current;
+		const [result, setResult] = d(() => readSeriesRuntime(initialSeries, doc));
+		h(() => {
+			const container = doc.querySelector("#series-items");
+			if (!container) {
+				setResult(readSeriesRuntime(initialSeries, doc));
+				return;
+			}
+			const update = () => setResult(readSeriesRuntime(initialSeries, doc));
+			update();
+			const observer = new MutationObserver(update);
+			observer.observe(container, {
+				childList: true,
+				subtree: true
+			});
+			return () => observer.disconnect();
+		}, [doc, initialSeries]);
+		return result;
+	};
 	var useStickyNavigation = (doc, sections) => {
 		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
@@ -13293,16 +13303,15 @@ input::placeholder {
 		location.reload();
 	};
 	var SubjectPageRuntime = ({ data, doc }) => {
-		const [series, setSeries] = d(data.series);
+		const series = useSeriesRuntime(data.series, doc);
 		const summary = useNativeSummary(data.summary, doc);
 		const resolvedComments = useResolvedComments(data.comments, doc);
 		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
 		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
 			...data,
-			series
-		}), [data, series]));
-		h(() => watchSeries(setSeries, doc), [doc]);
+			series: series.items
+		}), [data, series.items]));
 		return u(SubjectPage, {
 			data,
 			runtime: {
@@ -13319,8 +13328,8 @@ input::placeholder {
 				firstBroadcastPlatform,
 				navigation,
 				resolvedComments,
-				series,
-				seriesMoreLink: extractSeriesMoreLink(doc),
+				series: series.items,
+				seriesMoreLink: series.moreLink,
 				summary
 			}
 		});

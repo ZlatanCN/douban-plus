@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useMemo } from "preact/hooks";
 
 import { postVote } from "@/api/comment";
 import { postInterest, removeInterest } from "@/api/interest";
@@ -8,11 +8,11 @@ import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/subject-page/types";
 import type { DoubanData } from "@/types";
 
-import { extractSeriesMoreLink, watchSeries } from "./series-effect";
 import { useExternalRatings } from "./use-external-ratings";
 import { useFirstBroadcastPlatform } from "./use-first-broadcast-platform";
 import { useNativeSummary } from "./use-native-summary";
 import { useResolvedComments } from "./use-resolved-comments";
+import { useSeriesRuntime } from "./use-series-runtime";
 import { useStickyNavigation } from "./use-sticky-navigation";
 
 type SubjectPageRuntimeProps = {
@@ -25,7 +25,7 @@ const reloadPage = (): void => {
 };
 
 const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
-  const [series, setSeries] = useState(data.series);
+  const series = useSeriesRuntime(data.series, doc);
   const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
   const externalRatings = useExternalRatings(
@@ -38,12 +38,10 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     data.interest.loggedIn
   );
   const sections = useMemo(
-    () => computeNavSections({ ...data, series }),
-    [data, series]
+    () => computeNavSections({ ...data, series: series.items }),
+    [data, series.items]
   );
   const navigation = useStickyNavigation(doc, sections);
-
-  useEffect(() => watchSeries(setSeries, doc), [doc]);
 
   const runtime: SubjectPageRuntimeState = {
     actions: {
@@ -60,8 +58,8 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     firstBroadcastPlatform,
     navigation,
     resolvedComments,
-    series,
-    seriesMoreLink: extractSeriesMoreLink(doc),
+    series: series.items,
+    seriesMoreLink: series.moreLink,
     summary,
   };
 
