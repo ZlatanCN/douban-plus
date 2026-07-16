@@ -50,7 +50,7 @@ const ReviewVoteButtons = ({
   };
 
   const { loading, vote } = useVoteAction(reviewVoteApi, {
-    canVote,
+    ...(canVote ? { canVote } : {}),
     getState: () => voteState,
     onVote: (dir) =>
       onVote

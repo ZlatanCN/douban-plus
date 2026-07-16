@@ -25,12 +25,15 @@ const extractSeriesMoreLink = (doc: Document): SeriesMoreLink | undefined => {
 const readSeriesRuntime = (
   initial: SeriesItem[],
   doc: Document
-): SeriesRuntime => ({
-  items: doc.querySelector("#series-items .items-swiper")
-    ? extractSeries(doc)
-    : initial,
-  moreLink: extractSeriesMoreLink(doc),
-});
+): SeriesRuntime => {
+  const moreLink = extractSeriesMoreLink(doc);
+  return {
+    items: doc.querySelector("#series-items .items-swiper")
+      ? extractSeries(doc)
+      : initial,
+    ...(moreLink ? { moreLink } : {}),
+  };
+};
 
 const useSeriesRuntime = (
   initial: SeriesItem[],

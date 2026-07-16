@@ -59,7 +59,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     navigation,
     resolvedComments,
     series: series.items,
-    seriesMoreLink: series.moreLink,
+    ...(series.moreLink ? { seriesMoreLink: series.moreLink } : {}),
     summary,
   };
 

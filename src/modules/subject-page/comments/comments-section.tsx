@@ -37,28 +37,31 @@ const CommentsSection = ({
   return (
     <Section
       id="atv-comments"
-      moreLink={
-        subjectId
-          ? {
+      {...(subjectId
+        ? {
+            moreLink: {
               href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
               text: "查看全部 →",
-            }
-          : undefined
-      }
+            },
+          }
+        : {})}
       title={getSubjectSectionCopy("comments").sectionTitle}
     >
       <div class="atv-comments">
-        {comments.map((comment) => (
-          <CommentCard
-            comment={comment}
-            canVote={canVote}
-            key={comment.cid}
-            onOpen={onOpen}
-            onVoteStateChange={onVoteStateChange}
-            onVote={onVote}
-            voteState={getVoteState?.(comment)}
-          />
-        ))}
+        {comments.map((comment) => {
+          const voteState = getVoteState?.(comment);
+          return (
+            <CommentCard
+              {...(canVote ? { canVote } : {})}
+              comment={comment}
+              key={comment.cid}
+              onOpen={onOpen}
+              {...(onVoteStateChange ? { onVoteStateChange } : {})}
+              onVote={onVote}
+              {...(voteState ? { voteState } : {})}
+            />
+          );
+        })}
       </div>
     </Section>
   );

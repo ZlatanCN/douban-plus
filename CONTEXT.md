@@ -199,8 +199,8 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
 8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
-   - External seam is `useInterestMarking({ subjectId, loggedIn, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes
-   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reload
+   - External seam is `useInterestMarking({ subjectId, loggedIn, onFirstMarkSaved, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes. `onFirstMarkSaved` transfers the saved form state to the page composition seam for the one live unmarked-to-marked hero transition.
+   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads except for the first mark, whose optimistic hero state is owned by `SubjectPage`
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
    - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 

@@ -24,7 +24,7 @@ const extractCelebrities = (doc: Document): Celebrity[] =>
         const bg = avatarEl.getAttribute("style") || "";
         const m = bg.match(RE_BG_URL);
         if (m) {
-          [, avatar] = m;
+          avatar = m[1] ?? "";
         }
       }
       return {
@@ -69,7 +69,7 @@ const extractTrailers = (doc: Document): Trailer[] =>
     .map((a) => {
       const style = a.getAttribute("style") || "";
       const m = style.match(RE_BG_URL);
-      const thumbUrl = m ? m[1] : "";
+      const thumbUrl = m?.[1] ?? "";
       return {
         thumbUrl: encodeURI(thumbUrl),
         title: a.getAttribute("title") || "",

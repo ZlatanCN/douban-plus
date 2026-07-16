@@ -68,8 +68,8 @@ Re-read the cited code for every finding yourself. Reject anything that is by-de
 
 Present vetted findings as one table, ordered by leverage (impact ÷ effort):
 
-| #   | Severity | Category | Location | Finding | Fix summary |
-| --- | -------- | -------- | -------- | ------- | ----------- |
+| # | Severity | Category | Location | Finding | Fix summary |
+| --- | --- | --- | --- | --- | --- |
 
 Severity: **HIGH** = feel-breaking (wrong easing on UI, animation on keyboard/high-frequency actions, dropped frames, `scale(0)`); **MEDIUM** = noticeably off (wrong origin, non-interruptible dynamic UI, missing reduced-motion); **LOW** = polish (stagger, blur-masked crossfades, token consolidation).
 
@@ -81,7 +81,7 @@ Then **stop and wait for the user to select** which findings become plans. If ru
 
 One plan per selected finding, using [PLAN-TEMPLATE.md](PLAN-TEMPLATE.md), written into `plans/` as `NNN-short-slug.md` (monotonic numbering; respect existing plans). Stamp each plan with the current commit (`git rev-parse --short HEAD`).
 
-Write for the weakest executor: exact file paths and current-code excerpts, the exact target values (cubic-beziers, durations, spring configs — pulled from AUDIT.md, never approximated), the repo's own conventions with an exemplar, ordered steps, hard scope boundaries, and a verification section including how to _feel-check_ the result (slow motion, frame-by-frame, real device for gestures).
+Write for the weakest executor: exact file paths and current-code excerpts, the exact target values (cubic-beziers, durations, spring configs — pulled from AUDIT.md, never approximated), the repo's own conventions with an exemplar, ordered steps, hard scope boundaries, and a verification section including how to *feel-check* the result (slow motion, frame-by-frame, real device for gestures).
 
 Finish by creating or updating `plans/README.md`: recommended execution order, dependencies between plans, and a status column.
 

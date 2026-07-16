@@ -78,11 +78,13 @@ const ReviewCard = ({
           <span class="atv-review-readmore">展开阅读</span>
           <div class="atv-review-actions" data-rid={review.id || undefined}>
             <ReviewVoteButtons
-              canVote={canVote}
-              onStateChange={onVoteStateChange}
-              onVote={onVote}
+              {...(canVote ? { canVote } : {})}
+              {...(onVoteStateChange
+                ? { onStateChange: onVoteStateChange }
+                : {})}
+              {...(onVote ? { onVote } : {})}
               review={review}
-              state={voteState}
+              {...(voteState ? { state: voteState } : {})}
             />
           </div>
         </div>

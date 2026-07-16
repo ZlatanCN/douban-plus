@@ -71,17 +71,18 @@ const CommentModalContent = ({
       <div class="atv-comment-overlay-foot">
         <span class="atv-comment-overlay-time">{comment.time || ""}</span>
         <CommentVoteButton
-          canVote={canVote}
+          {...(canVote ? { canVote } : {})}
           cid={comment.cid}
           className="atv-comment-overlay-votes"
           count={comment.votes}
-          onStateChange={
-            onVoteStateChange
-              ? (state) => onVoteStateChange(comment, state)
-              : undefined
-          }
+          {...(onVoteStateChange
+            ? {
+                onStateChange: (state: CommentVoteState) =>
+                  onVoteStateChange(comment, state),
+              }
+            : {})}
           onVote={onVote}
-          state={voteState}
+          {...(voteState ? { state: voteState } : {})}
           voted={comment.voted}
         />
       </div>
@@ -104,11 +105,11 @@ const CommentModal = ({
     surfaceClassName="atv-comment-overlay-inner"
   >
     <CommentModalContent
-      canVote={canVote}
+      {...(canVote ? { canVote } : {})}
       comment={comment}
-      onVoteStateChange={onVoteStateChange}
+      {...(onVoteStateChange ? { onVoteStateChange } : {})}
       onVote={onVote}
-      voteState={voteState}
+      {...(voteState ? { voteState } : {})}
     />
   </ModalShell>
 );

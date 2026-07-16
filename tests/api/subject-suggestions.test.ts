@@ -47,10 +47,7 @@ describe(fetchSubjectSuggestions, () => {
       },
     ]);
     expect(fetchMock).toHaveBeenCalledWith(
-      "/j/subject_suggest?q=%E6%9D%83%E5%8A%9B",
-      {
-        signal: undefined,
-      }
+      "/j/subject_suggest?q=%E6%9D%83%E5%8A%9B"
     );
   });
 
@@ -62,8 +59,7 @@ describe(fetchSubjectSuggestions, () => {
     await fetchSubjectSuggestions("流浪 地球");
 
     expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
-      "/j/subject_suggest?q=%E6%B5%81%E6%B5%AA%20%E5%9C%B0%E7%90%83",
-      { signal: undefined }
+      "/j/subject_suggest?q=%E6%B5%81%E6%B5%AA%20%E5%9C%B0%E7%90%83"
     );
   });
 

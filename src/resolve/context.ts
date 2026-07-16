@@ -33,8 +33,8 @@ const buildContext = (
     englishTitle,
     imdbId,
     isTV,
-    season,
-    year,
+    ...(season === undefined ? {} : { season }),
+    ...(year === undefined ? {} : { year }),
   };
 };
 

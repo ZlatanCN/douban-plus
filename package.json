@@ -24,8 +24,8 @@
     "lint": "ultracite check && stylelint \"src/**/*.css\"",
     "fix": "ultracite fix && stylelint \"src/**/*.css\" --fix",
     "format": "ultracite fix",
-    "typecheck": "tsc --noEmit && tsc -p tests/tsconfig.json --noEmit",
-    "ci": "pnpm lint && tsc --noEmit && tsc -p tests/tsconfig.json --noEmit && vitest run && vite build && tsx tests/qa.ts"
+    "typecheck": "tsc && tsc -p tests/tsconfig.json",
+    "ci": "pnpm lint && tsc && tsc -p tests/tsconfig.json && vitest run && vite build && tsx tests/qa.ts"
   },
   "dependencies": {
     "motion": "^12.42.2",

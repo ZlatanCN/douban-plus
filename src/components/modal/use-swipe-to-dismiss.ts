@@ -83,7 +83,7 @@ const useSwipeToDismiss = (
     if (history.length >= 2) {
       const [first] = history;
       const last = history.at(-1);
-      if (last) {
+      if (first && last) {
         const dt = (last.time - first.time) / 1000;
         if (dt > 0) {
           velocity = (last.y - first.y) / dt;

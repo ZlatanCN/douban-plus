@@ -1,8 +1,10 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Hero } from "@/modules/subject-page/hero";
+import { HeroActions } from "@/modules/subject-page/hero/hero-actions";
 import {
   HeroBackground,
   pickStill,
@@ -301,6 +303,37 @@ describe(Hero, () => {
     ).toContain("年度最佳");
     el.querySelector<HTMLButtonElement>(".atv-interest-badge")?.click();
     expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest);
+  });
+
+  it("replaces first-mark actions with the saved interest panel", async () => {
+    const callbacks = makeCallbacks();
+    const root = document.createElement("div");
+    const unmarkedInterest = { ...defaultInterest, loggedIn: true };
+    const markedInterest = {
+      ...unmarkedInterest,
+      comment: "年度最佳",
+      marked: true,
+      rating: 4,
+      status: "collect" as const,
+    };
+
+    render(
+      <HeroActions callbacks={callbacks} state={unmarkedInterest} />,
+      root
+    );
+    expect(root.querySelector(".atv-interest-panel")).toBeNull();
+
+    render(<HeroActions callbacks={callbacks} state={markedInterest} />, root);
+    await Promise.resolve();
+
+    expect(root.querySelector(".atv-interest-panel")).not.toBeNull();
+    expect(root.querySelectorAll(".atv-actions > .atv-btn")).toHaveLength(0);
+    expect(root.querySelector(".atv-interest-badge")?.textContent).toContain(
+      "看过"
+    );
+    expect(root.querySelector(".atv-interest-panel-comment")?.textContent).toBe(
+      '"年度最佳"'
+    );
   });
 });
 

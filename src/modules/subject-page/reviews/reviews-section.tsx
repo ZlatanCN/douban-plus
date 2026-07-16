@@ -46,17 +46,20 @@ const ReviewsSection = ({
       }
     >
       <div class="atv-reviews">
-        {reviews.map((review) => (
-          <ReviewCard
-            canVote={canVote}
-            key={review.id}
-            onOpen={onOpen}
-            onVote={onVote}
-            onVoteStateChange={onVoteStateChange}
-            review={review}
-            voteState={getVoteState?.(review)}
-          />
-        ))}
+        {reviews.map((review) => {
+          const voteState = getVoteState?.(review);
+          return (
+            <ReviewCard
+              {...(canVote ? { canVote } : {})}
+              key={review.id}
+              onOpen={onOpen}
+              {...(onVote ? { onVote } : {})}
+              {...(onVoteStateChange ? { onVoteStateChange } : {})}
+              review={review}
+              {...(voteState ? { voteState } : {})}
+            />
+          );
+        })}
       </div>
     </Section>
   );

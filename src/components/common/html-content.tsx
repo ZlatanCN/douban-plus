@@ -128,7 +128,9 @@ const HtmlContent = ({
   <div
     class={className}
     // eslint-disable-next-line react/no-danger -- html is sanitized by sanitizeHtml before it reaches this controlled render boundary.
-    dangerouslySetInnerHTML={html ? { __html: sanitizeHtml(html) } : undefined}
+    {...(html
+      ? { dangerouslySetInnerHTML: { __html: sanitizeHtml(html) } }
+      : {})}
     {...rest}
   >
     {html ? null : children}

@@ -183,7 +183,7 @@ const extractInfo = (doc: Document): InfoBlock => {
   if (imdbL) {
     const raw = collectInfoTextAfter(info, "IMDb");
     const m = raw.match(RE_IMDB_ID);
-    out.imdb = m ? m[1] : raw;
+    out.imdb = m?.[1] ?? raw;
   }
 
   return out;

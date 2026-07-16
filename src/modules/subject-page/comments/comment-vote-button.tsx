@@ -51,7 +51,7 @@ const CommentVoteButton = ({
   };
 
   const { loading, vote } = useVoteAction(commentVoteApi, {
-    canVote,
+    ...(canVote ? { canVote } : {}),
     getState: () => voteState,
     onVote: () => onVote(cid),
     setState: setVoteState,

@@ -83,13 +83,13 @@ const resolveStreamingProvider = (
   if (provider) {
     const { Icon, color, colorMode, key, label, surface } = provider;
     return {
-      Icon,
+      ...(Icon ? { Icon } : {}),
       color,
-      colorMode,
-      combinedSvg: COMBINED_SVG_BRANDS.has(key) || undefined,
+      ...(colorMode ? { colorMode } : {}),
+      ...(COMBINED_SVG_BRANDS.has(key) ? { combinedSvg: true } : {}),
       key,
       label,
-      surface,
+      ...(surface ? { surface } : {}),
     };
   }
 

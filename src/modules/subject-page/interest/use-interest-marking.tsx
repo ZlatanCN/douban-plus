@@ -32,6 +32,7 @@ type InterestMarkingAdapters = {
 type UseInterestMarkingOptions = {
   adapters: InterestMarkingAdapters;
   loggedIn: boolean;
+  onFirstMarkSaved: (previous: InterestState, form: InterestFormState) => void;
   onLoginRequired: (action: string) => void;
   subjectId: string;
 };
@@ -45,12 +46,24 @@ const saveOptionsFromForm = (
   form: InterestFormState
 ): { comment: string; rating?: number } => ({
   comment: form.comment,
-  rating: form.rating > 0 ? form.rating : undefined,
+  ...(form.rating > 0 ? { rating: form.rating } : {}),
+});
+
+const interestFromSavedForm = (
+  previous: InterestState,
+  form: InterestFormState
+): InterestState => ({
+  ...previous,
+  comment: form.comment,
+  marked: true,
+  rating: form.rating,
+  status: form.status,
 });
 
 const useInterestMarking = ({
   adapters,
   loggedIn,
+  onFirstMarkSaved,
   onLoginRequired,
   subjectId,
 }: UseInterestMarkingOptions): InterestMarking => {
@@ -83,13 +96,18 @@ const useInterestMarking = ({
       return result;
     },
     onSave: async (form) => {
+      const previous = activeInterest.active?.value;
       const result = await post(
         subjectId,
         form.status,
         saveOptionsFromForm(form)
       );
       if (result.ok) {
-        reload();
+        if (previous && !previous.marked) {
+          onFirstMarkSaved(previous, form);
+        } else {
+          reload();
+        }
       }
       return result;
     },
@@ -109,7 +127,7 @@ const useInterestMarking = ({
   };
 };
 
-export { useInterestMarking };
+export { interestFromSavedForm, useInterestMarking };
 export type {
   InterestMarking,
   InterestMarkingAdapters,

@@ -21,7 +21,7 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
   items.length ? (
     <Section
       id="atv-series"
-      moreLink={moreLink}
+      {...(moreLink ? { moreLink } : {})}
       title={getSubjectSectionCopy("series").sectionTitle}
     >
       <div class="atv-carousel atv-series-carousel">

@@ -30,6 +30,9 @@ const DISCUSSION_TIMESTAMP =
 
 const isTrackingParameter = (fragment: string): boolean => {
   const [rawKey] = fragment.split("=", 1);
+  if (rawKey === undefined) {
+    return false;
+  }
   try {
     return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
   } catch {
@@ -134,6 +137,9 @@ const extractActivity = (
     return { raw };
   }
   const { date, seconds, time } = match.groups;
+  if (!date || !time) {
+    return { raw };
+  }
   const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
   return isValidDiscussionTimestamp(dateTime)
     ? { date, dateTime, raw, time }
@@ -193,7 +199,7 @@ const extractLinkTotal = (link: Element | null): number | undefined => {
   const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(
     safeText(link)
   );
-  const total = totalMatch?.groups
+  const total = totalMatch?.groups?.total
     ? Number(totalMatch.groups.total.replaceAll(",", ""))
     : Number.NaN;
   return Number.isSafeInteger(total) ? total : undefined;

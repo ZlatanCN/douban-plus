@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "preact/hooks";
+
 import {
   IconCheck,
   IconPlay,
@@ -7,6 +9,7 @@ import {
 } from "@/components/common/icons";
 import type { HeroCallbacks, InterestState } from "@/types";
 import { INTEREST_LABELS } from "@/types";
+import { playEntrance, springConfigs } from "@/utils/springs";
 
 type HeroActionsProps = {
   callbacks: HeroCallbacks;
@@ -29,6 +32,22 @@ const InterestButton = ({
 );
 
 const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
+  const interestPanelRef = useRef<HTMLDivElement>(null);
+  const previousMarkedRef = useRef(state.marked);
+
+  useEffect(() => {
+    const wasMarked = previousMarkedRef.current;
+    previousMarkedRef.current = state.marked;
+
+    if (!wasMarked && state.marked && interestPanelRef.current) {
+      const animation = playEntrance(
+        interestPanelRef.current,
+        springConfigs.contentEntrance
+      );
+      return () => animation.stop();
+    }
+  }, [state.marked]);
+
   if (!state.loggedIn) {
     return (
       <div class="atv-actions">
@@ -81,7 +100,7 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
 
   return (
     <div class="atv-actions">
-      <div class="atv-interest-panel">
+      <div class="atv-interest-panel" ref={interestPanelRef}>
         <div class="atv-interest-panel-header">
           <button
             class="atv-btn atv-btn-primary is-active atv-interest-badge"

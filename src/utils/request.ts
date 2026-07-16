@@ -31,7 +31,7 @@ const gmRequest = (
   // oxlint-disable-next-line promise/avoid-new
   return new Promise((resolve, reject) => {
     getXhr()({
-      data,
+      ...(data === undefined ? {} : { data }),
       headers,
       method,
       onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
@@ -66,12 +66,12 @@ const gmPost = async (
           "[GM] POST failed (attempt",
           attempt + 1,
           "), retrying in",
-          RETRY_DELAYS[attempt],
+          RETRY_DELAYS[attempt] ?? 0,
           "ms —",
           (error as Error).message
         );
         // oxlint-disable-next-line no-await-in-loop
-        await delay(RETRY_DELAYS[attempt]);
+        await delay(RETRY_DELAYS[attempt] ?? 0);
       } else {
         throw error;
       }

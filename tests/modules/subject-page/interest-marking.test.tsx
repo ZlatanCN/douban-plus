@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { useInterestMarking } from "@/modules/subject-page/interest/use-interest-marking";
+import {
+  interestFromSavedForm,
+  useInterestMarking,
+} from "@/modules/subject-page/interest/use-interest-marking";
 import type { InterestFormState, InterestState } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
@@ -11,6 +14,7 @@ vi.hoisted(() => {
 
 type InterestMarkingHarnessProps = {
   loggedIn?: boolean;
+  onFirstMarkSaved?: (previous: InterestState, form: InterestFormState) => void;
   onLoginRequired?: (action: string) => void;
   post?: (
     subjectId: string,
@@ -45,6 +49,7 @@ const failRemove = () => Promise.resolve({ ok: false });
 
 const InterestMarkingHarness = ({
   loggedIn = true,
+  onFirstMarkSaved = noop,
   onLoginRequired = vi.fn<(action: string) => void>(),
   post = failPost,
   reload = noop,
@@ -54,6 +59,7 @@ const InterestMarkingHarness = ({
   const interestMarking = useInterestMarking({
     adapters: { post, reload, remove },
     loggedIn,
+    onFirstMarkSaved,
     onLoginRequired,
     subjectId: "1292052",
   });
@@ -72,13 +78,19 @@ const InterestMarkingHarness = ({
 };
 
 describe("Interest marking", () => {
-  it("opens the enhanced form and refreshes after a successful mark", async () => {
+  it("updates the caller after a successful first mark without refreshing", async () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
     const reload = vi.fn<() => void>();
+    const onFirstMarkSaved =
+      vi.fn<(previous: InterestState, form: InterestFormState) => void>();
     const root = renderIntoRoot(
-      <InterestMarkingHarness post={post} reload={reload} />
+      <InterestMarkingHarness
+        onFirstMarkSaved={onFirstMarkSaved}
+        post={post}
+        reload={reload}
+      />
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
@@ -93,7 +105,34 @@ describe("Interest marking", () => {
       comment: "",
       rating: undefined,
     });
-    expect(reload).toHaveBeenCalledOnce();
+    expect(onFirstMarkSaved).toHaveBeenCalledWith(makeState(), {
+      comment: "",
+      rating: 0,
+      status: "wish",
+    });
+    expect(reload).not.toHaveBeenCalled();
+  });
+
+  it("creates a marked state without inventing server-derived values", () => {
+    const previous = makeState({
+      date: "2026-07-16",
+      tags: ["科幻"],
+      usefulCount: "12 有用",
+    });
+
+    expect(
+      interestFromSavedForm(previous, {
+        comment: "年度最佳",
+        rating: 4,
+        status: "collect",
+      })
+    ).toStrictEqual({
+      ...previous,
+      comment: "年度最佳",
+      marked: true,
+      rating: 4,
+      status: "collect",
+    });
   });
 
   it("requests login instead of opening a form for a logged-out user", () => {
@@ -157,6 +196,34 @@ describe("Interest marking", () => {
     await Promise.resolve();
 
     expect(remove).toHaveBeenCalledWith("1292052", "collect");
+    expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it("refreshes after saving an existing mark", async () => {
+    const post = vi
+      .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
+      .mockResolvedValue({ ok: true });
+    const reload = vi.fn<() => void>();
+    const onFirstMarkSaved =
+      vi.fn<(previous: InterestState, form: InterestFormState) => void>();
+    const root = renderIntoRoot(
+      <InterestMarkingHarness
+        onFirstMarkSaved={onFirstMarkSaved}
+        post={post}
+        reload={reload}
+        state={makeState({ marked: true, status: "collect" })}
+      />
+    );
+
+    root.querySelector<HTMLButtonElement>("button")?.click();
+    await Promise.resolve();
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onFirstMarkSaved).not.toHaveBeenCalled();
     expect(reload).toHaveBeenCalledOnce();
   });
 });

@@ -46,7 +46,8 @@ The novelist's diary is the model: years of unstructured noticings that later ge
 
 A first fragment lives here.
 
-It can be multiple paragraphs. It can include lists, code, quotes — whatever shape the fragment naturally takes.
+It can be multiple paragraphs. It can include lists, code, quotes — whatever
+shape the fragment naturally takes.
 
 ---
 

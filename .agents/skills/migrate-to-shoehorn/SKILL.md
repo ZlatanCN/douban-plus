@@ -57,7 +57,7 @@ it("gets user by id", () => {
   getUser(
     fromPartial({
       body: { id: "123" },
-    })
+    }),
   );
 });
 ```
