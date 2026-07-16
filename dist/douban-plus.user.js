@@ -9733,7 +9733,7 @@ input::placeholder {
 			]
 		});
 	};
-	var CommentsSection = ({ avatarUrls, canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
+	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
 		if (!comments.length) return null;
 		return u(Section, {
 			id: "atv-comments",
@@ -9745,10 +9745,7 @@ input::placeholder {
 			children: u("div", {
 				class: "atv-comments",
 				children: comments.map((comment) => u(CommentCard, {
-					comment: {
-						...comment,
-						avatar: avatarUrls?.get(comment.link) || comment.avatar
-					},
+					comment,
 					canVote,
 					onOpen,
 					onVoteStateChange,
@@ -12548,7 +12545,7 @@ input::placeholder {
 		const [subjectSwitcherOpen, setSubjectSwitcherOpen] = d(false);
 		const loginAction = useModalRequest();
 		const commentVotes = useVoteState(data.comments, commentVoteApi);
-		const { avatarUrls } = runtime;
+		const activeResolvedComment = activeComment.active ? runtime.resolvedComments.find((comment) => comment.cid === activeComment.active?.value.cid) ?? activeComment.active.value : null;
 		const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
 		const handleCommentVoteStateChange = commentVotes.setVoteState;
 		const handleReviewVoteStateChange = reviewVotes.setVoteState;
@@ -12614,9 +12611,8 @@ input::placeholder {
 				})
 			}),
 			u(CommentsSection, {
-				avatarUrls,
 				canVote,
-				comments: commentVotes.mergeVoteStates(data.comments),
+				comments: commentVotes.mergeVoteStates(runtime.resolvedComments),
 				getVoteState: commentVotes.getVoteState,
 				onOpen: activeComment.handleOpen,
 				onVoteStateChange: handleCommentVoteStateChange,
@@ -12641,17 +12637,14 @@ input::placeholder {
 				isTV: data.isTV
 			} }),
 			u("div", { class: "atv-footer-spacer" }),
-			activeComment.active ? u(CommentModal, {
+			activeComment.active && activeResolvedComment ? u(CommentModal, {
 				canVote,
-				comment: {
-					...commentVotes.mergeVoteState(activeComment.active.value),
-					avatar: avatarUrls.get(activeComment.active.value.link) || activeComment.active.value.avatar
-				},
+				comment: commentVotes.mergeVoteState(activeResolvedComment),
 				onClose: activeComment.handleClose,
 				openRequestId: activeComment.active.requestId,
 				onVoteStateChange: handleCommentVoteStateChange,
 				onVote: runtime.actions.handleCommentVote,
-				voteState: commentVotes.getVoteState(activeComment.active.value)
+				voteState: commentVotes.getVoteState(activeResolvedComment)
 			}) : null,
 			activeReview.active ? u(ReviewModal, {
 				canVote: canReviewVote,
@@ -12701,72 +12694,6 @@ input::placeholder {
 			subtree: true
 		});
 		return () => observer.disconnect();
-	};
-	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
-	var avatarSelectors = [
-		"#profile .pic img",
-		".user-face",
-		"img[src*='/icon/']"
-	];
-	var extractProfileAvatar = (html) => {
-		const profile = new DOMParser().parseFromString(html, "text/html");
-		for (const selector of avatarSelectors) {
-			const image = profile.querySelector(selector);
-			if (!image) continue;
-			const source = image.src || image.dataset.src || image.dataset.original || "";
-			if (source) return source;
-		}
-		return "";
-	};
-	var profileLinks = (comments) => [...new Set(comments.flatMap(({ link }) => link ? [link] : []))];
-	var fetchAvatarUrls = async (links, referrer) => {
-		const urls = new Map();
-		const missing = [];
-		for (const link of links) {
-			const cached = avatarCache.get(link);
-			if (cached) urls.set(link, cached);
-			else missing.push(link);
-		}
-		if (missing.length === 0) return urls;
-		const fetched = await Promise.all(missing.map(async (link) => {
-			try {
-				return {
-					link,
-					url: extractProfileAvatar(await gmGet(link, referrer))
-				};
-			} catch {
-				return {
-					link,
-					url: ""
-				};
-			}
-		}));
-		for (const { link, url } of fetched) {
-			if (url) avatarCache.set(link, url);
-			urls.set(link, url);
-		}
-		return urls;
-	};
-	var useAvatarUrls = (comments, doc) => {
-		const [urls, setUrls] = d(() => new Map());
-		h(() => {
-			let active = true;
-			const links = profileLinks(comments);
-			if (links.length === 0) {
-				setUrls(new Map());
-				return () => {
-					active = false;
-				};
-			}
-			(async () => {
-				const nextUrls = await fetchAvatarUrls(links, doc.location.href);
-				if (active) setUrls(nextUrls);
-			})();
-			return () => {
-				active = false;
-			};
-		}, [comments, doc]);
-		return urls;
 	};
 	var extractEnglishSeriesName = (h1) => {
 		const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
@@ -13170,6 +13097,75 @@ input::placeholder {
 		}, [loggedIn, subjectId]);
 		return platform;
 	};
+	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
+	var avatarSelectors = [
+		"#profile .pic img",
+		".user-face",
+		"img[src*='/icon/']"
+	];
+	var extractProfileAvatar = (html) => {
+		const profile = new DOMParser().parseFromString(html, "text/html");
+		for (const selector of avatarSelectors) {
+			const image = profile.querySelector(selector);
+			if (!image) continue;
+			const source = image.src || image.dataset.src || image.dataset.original || "";
+			if (source) return source;
+		}
+		return "";
+	};
+	var profileLinks = (comments) => [...new Set(comments.flatMap(({ link }) => link ? [link] : []))];
+	var fetchAvatarUrls = async (links, referrer) => {
+		const urls = new Map();
+		const missing = [];
+		for (const link of links) {
+			const cached = avatarCache.get(link);
+			if (cached) urls.set(link, cached);
+			else missing.push(link);
+		}
+		if (missing.length === 0) return urls;
+		const fetched = await Promise.all(missing.map(async (link) => {
+			try {
+				return {
+					link,
+					url: extractProfileAvatar(await gmGet(link, referrer))
+				};
+			} catch {
+				return {
+					link,
+					url: ""
+				};
+			}
+		}));
+		for (const { link, url } of fetched) {
+			if (url) avatarCache.set(link, url);
+			urls.set(link, url);
+		}
+		return urls;
+	};
+	var useResolvedComments = (comments, doc) => {
+		const [urls, setUrls] = d(() => new Map());
+		h(() => {
+			let active = true;
+			const links = profileLinks(comments);
+			if (links.length === 0) {
+				setUrls(new Map());
+				return () => {
+					active = false;
+				};
+			}
+			(async () => {
+				const nextUrls = await fetchAvatarUrls(links, doc.location.href);
+				if (active) setUrls(nextUrls);
+			})();
+			return () => {
+				active = false;
+			};
+		}, [comments, doc]);
+		return T(() => comments.map((comment) => ({
+			...comment,
+			avatar: urls.get(comment.link) || comment.avatar
+		})), [comments, urls]);
+	};
 	var useStickyNavigation = (doc, sections) => {
 		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
@@ -13270,7 +13266,7 @@ input::placeholder {
 	};
 	var SubjectPageRuntime = ({ data, doc }) => {
 		const [series, setSeries] = d(data.series);
-		const avatarUrls = useAvatarUrls(data.comments, doc);
+		const resolvedComments = useResolvedComments(data.comments, doc);
 		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
 		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
@@ -13291,10 +13287,10 @@ input::placeholder {
 						remove: removeInterest
 					}
 				},
-				avatarUrls,
 				externalRatings,
 				firstBroadcastPlatform,
 				navigation,
+				resolvedComments,
 				series,
 				seriesMoreLink: extractSeriesMoreLink(doc)
 			}

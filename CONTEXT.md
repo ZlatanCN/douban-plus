@@ -22,6 +22,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **观看平台**: 提供当前作品观看入口的第三方视频服务商，例如爱奇艺、腾讯视频或 Netflix。 _Avoid_: 播放源、在哪儿看、播放平台
 
+**已解析评论**: 保留原始短评字段、并带有已解析头像的短评呈现数据；页面分区与短评弹窗只消费该结果。 _Avoid_: 可变原始短评
+
 **首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+、CBS、CCTV、FOX、FX、Showtime；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
@@ -89,7 +91,7 @@ src/
     subject-page-runtime.tsx — deep host integration module: lifecycle, requests, browser state → SubjectPage runtime value
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
-    use-avatar-urls.ts   — Preact hook: profile lookup, parsing, cache and cancellation → resolved avatar URLs
+    use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
     use-trailer-acquisition.ts — Preact hook: trailer-page fetch, LD+JSON parsing, cancellation and native fallback → acquisition state
     series-effect.ts     — late-loading series observer and nav insertion
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
@@ -171,7 +173,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The vote-state machine has one owner: `createVoteState` in `vote-state.ts` produces a `VoteApi`; `use-vote-state.ts` and `use-vote-action.ts` both consume that `VoteApi` directly — no hand-assembled strategy shape at the composition root. `comments/comment-vote-state.ts` exports `commentVoteApi`; `reviews/review-vote-state.ts` exports `reviewVoteApi`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state. `use-vote-action.ts` accepts a `VoteTransitionApi` (the `optimistic`/`resolve`/`votedOf` subset of `VoteApi`) plus per-instance wiring, so the hook owns only the async orchestration and touches the half of the state machine it actually uses.
 
-2. **Comment avatar runtime hook (2026-07-13)** — `runtime/use-avatar-urls.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, and resolved avatar URLs. `SubjectPageRuntime` supplies the resulting `Map<link, url>` through the `SubjectPage` runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, document, or network lifecycle leaks through the page-composition seam.
+2. **Resolved-comment runtime hook (2026-07-16)** — `runtime/use-resolved-comments.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, avatar fallback, and the resolved-comment projection. `SubjectPageRuntime` supplies resolved comments through the runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, profile-link key, avatar Map, document, or network lifecycle leaks through the page-composition seam.
 
 3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. `SubjectPage` supplies only the selected trailer; `VideoModal` receives an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
 
@@ -214,9 +216,9 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
   - API modules still keep their `ck` checks as the final safety net
 
-### Comment avatar host integration
+### Resolved-comment host integration
 
-`runtime/use-avatar-urls.ts` is the explicit host integration owner for comment avatars while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns `Map<link, url>` to `SubjectPageRuntime`. The page-composition seam receives the resolved Map and never starts requests or reads browser globals. Runtime tests cover profile lookup through the rendered page; Subject-page tests pass resolved Maps directly.
+`runtime/use-resolved-comments.ts` is the explicit host integration owner for resolved comments while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns comments with resolved-avatar fallback applied to `SubjectPageRuntime`. The page-composition seam receives resolved comments and never starts requests, reads browser globals, or selects profile-link keys. Runtime tests cover profile lookup and fallback through the rendered page; Subject-page tests pass resolved comments directly.
 
 ### Key design decisions
 

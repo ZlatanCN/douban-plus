@@ -89,7 +89,8 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
 
 const makeRuntime = (
   voteComment: SubjectPageRuntime["actions"]["handleCommentVote"] = () =>
-    Promise.resolve({ ok: true })
+    Promise.resolve({ ok: true }),
+  resolvedComments: Comment[] = [makeComment()]
 ): SubjectPageRuntime => ({
   actions: {
     expandNativeSummary: () => Promise.resolve(null),
@@ -101,7 +102,6 @@ const makeRuntime = (
       remove: () => Promise.resolve({ ok: false }),
     },
   },
-  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -112,6 +112,7 @@ const makeRuntime = (
     sections: [],
     visible: false,
   },
+  resolvedComments,
   series: [],
 });
 

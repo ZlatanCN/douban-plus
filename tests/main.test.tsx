@@ -124,7 +124,6 @@ const makeRuntime = (
       remove: () => Promise.resolve({ ok: false }),
     },
   },
-  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -135,6 +134,7 @@ const makeRuntime = (
     sections: computeNavSections(data),
     visible: false,
   },
+  resolvedComments: data.comments,
   series: [],
   ...overrides,
 });
@@ -151,7 +151,7 @@ const renderSubjectPage = (
 };
 
 describe("Subject page runtime value", () => {
-  it("renders a runtime-supplied comment avatar without acquiring host data", () => {
+  it("renders a runtime-supplied comment avatar in the list and modal", async () => {
     const profileLink = "https://www.douban.com/people/page-avatar/";
     const avatarUrl = "https://example.com/page-avatar.jpg";
     const data = makeDoubanData({
@@ -167,7 +167,9 @@ describe("Subject page runtime value", () => {
 
     const root = renderSubjectPage(
       data,
-      makeRuntime(data, { avatarUrls: new Map([[profileLink, avatarUrl]]) })
+      makeRuntime(data, {
+        resolvedComments: [{ ...data.comments[0], avatar: avatarUrl }],
+      })
     );
 
     expect(
@@ -175,6 +177,15 @@ describe("Subject page runtime value", () => {
         .querySelector<HTMLElement>(
           "[data-cid='page-avatar'] .atv-comment-avatar"
         )
+        ?.getAttribute("style")
+    ).toContain(avatarUrl);
+
+    root.querySelector<HTMLButtonElement>(".atv-comment-expand")?.click();
+    await Promise.resolve();
+
+    expect(
+      root
+        .querySelector<HTMLElement>(".atv-comment-overlay-avatar")
         ?.getAttribute("style")
     ).toContain(avatarUrl);
   });

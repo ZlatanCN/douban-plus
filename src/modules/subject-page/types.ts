@@ -3,6 +3,7 @@ import type {
   InterestFormState,
   InterestState,
   NavSection,
+  Comment,
   ReviewVoteCallback,
   SeriesItem,
 } from "@/types";
@@ -40,10 +41,10 @@ type SubjectPageRuntime = {
     handleCommentVote: CommentVoteCallback;
     handleReviewVote: ReviewVoteCallback;
   };
-  avatarUrls: Map<string, string>;
   externalRatings: RatingResultMap | null;
   firstBroadcastPlatform: string | null;
   navigation: SubjectPageNavigation;
+  resolvedComments: Comment[];
   series: SeriesItem[];
   seriesMoreLink?: { href: string; text: string };
 };

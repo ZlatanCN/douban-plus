@@ -85,39 +85,27 @@ describe("Subject page runtime", () => {
     expect(root.querySelector(".atv-footer-spacer")).not.toBeNull();
   });
 
-  it("resolves and deduplicates comment profile avatars through the runtime", async () => {
-    const profileLink = "https://www.douban.com/people/runtime-avatar/";
-    const avatarUrl = "https://example.com/runtime-avatar.jpg";
-    mockRequest.mockResolvedValue(`
-      <div id="profile"><div class="pic"><img src="${avatarUrl}" /></div></div>
-    `);
+  it("updates an open comment modal when its profile avatar resolves", async () => {
+    const profileLink = "https://www.douban.com/people/runtime-modal/";
+    const rawAvatarUrl = "https://example.com/runtime-modal-raw.jpg";
+    const avatarUrl = "https://example.com/runtime-modal-resolved.jpg";
+    const response = Promise.withResolvers<string>();
+    mockRequest.mockReturnValue(response.promise);
     const root = renderIntoRoot(
       <SubjectPageRuntime
         data={makeData({
           comments: [
             {
-              avatar: "",
-              cid: "runtime-avatar",
-              content: "头像来自 runtime",
+              avatar: rawAvatarUrl,
+              cid: "runtime-modal",
+              content: "打开后更新头像",
               link: profileLink,
-              name: "Runtime viewer",
+              name: "Runtime modal viewer",
               ratingWord: "推荐",
               stars: 4,
-              time: "2026-07-13",
+              time: "2026-07-16",
               voted: false,
               votes: 1,
-            },
-            {
-              avatar: "",
-              cid: "runtime-avatar-duplicate",
-              content: "同一个 profile",
-              link: profileLink,
-              name: "Runtime viewer again",
-              ratingWord: "推荐",
-              stars: 4,
-              time: "2026-07-13",
-              voted: false,
-              votes: 2,
             },
           ],
         })}
@@ -125,27 +113,34 @@ describe("Subject page runtime", () => {
       />
     );
 
+    await vi.waitFor(() => expect(mockRequest).toHaveBeenCalledOnce());
+    root.querySelector<HTMLButtonElement>(".atv-comment-expand")?.click();
+    await Promise.resolve();
+
+    expect(
+      root
+        .querySelector<HTMLElement>(".atv-comment-overlay-avatar")
+        ?.getAttribute("style")
+    ).toBe(`background-image: url("${rawAvatarUrl}");`);
+
+    response.resolve(
+      `<div id="profile"><div class="pic"><img src="${avatarUrl}" /></div></div>`
+    );
+
     await vi.waitFor(() =>
       expect([
         root
           .querySelector<HTMLElement>(
-            "[data-cid='runtime-avatar'] .atv-comment-avatar"
+            "[data-cid='runtime-modal'] .atv-comment-avatar"
           )
           ?.getAttribute("style"),
         root
-          .querySelector<HTMLElement>(
-            "[data-cid='runtime-avatar-duplicate'] .atv-comment-avatar"
-          )
+          .querySelector<HTMLElement>(".atv-comment-overlay-avatar")
           ?.getAttribute("style"),
       ]).toStrictEqual([
         `background-image: url("${avatarUrl}");`,
         `background-image: url("${avatarUrl}");`,
       ])
-    );
-
-    expect(mockRequest).toHaveBeenCalledExactlyOnceWith(
-      profileLink,
-      document.location.href
     );
   });
 

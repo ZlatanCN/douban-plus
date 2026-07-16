@@ -92,7 +92,6 @@ const makeRuntime = (
       remove: () => Promise.resolve({ ok: false }),
     },
   },
-  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -103,6 +102,7 @@ const makeRuntime = (
     sections: [],
     visible: false,
   },
+  resolvedComments: [],
   series: [],
 });
 

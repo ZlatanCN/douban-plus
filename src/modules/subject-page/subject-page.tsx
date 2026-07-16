@@ -58,7 +58,11 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
   const loginAction = useModalRequest<string>();
   const commentVotes = useVoteState(data.comments, commentVoteApi);
-  const { avatarUrls } = runtime;
+  const activeResolvedComment = activeComment.active
+    ? (runtime.resolvedComments.find(
+        (comment) => comment.cid === activeComment.active?.value.cid
+      ) ?? activeComment.active.value)
+    : null;
   const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
@@ -120,9 +124,8 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
         }
       />
       <CommentsSection
-        avatarUrls={avatarUrls}
         canVote={canVote}
-        comments={commentVotes.mergeVoteStates(data.comments)}
+        comments={commentVotes.mergeVoteStates(runtime.resolvedComments)}
         getVoteState={commentVotes.getVoteState}
         onOpen={activeComment.handleOpen}
         onVoteStateChange={handleCommentVoteStateChange}
@@ -147,20 +150,15 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       <div class="atv-footer-spacer" />
 
       {/* Modals rendered outside sections to avoid ancestor transform containment */}
-      {activeComment.active ? (
+      {activeComment.active && activeResolvedComment ? (
         <CommentModal
           canVote={canVote}
-          comment={{
-            ...commentVotes.mergeVoteState(activeComment.active.value),
-            avatar:
-              avatarUrls.get(activeComment.active.value.link) ||
-              activeComment.active.value.avatar,
-          }}
+          comment={commentVotes.mergeVoteState(activeResolvedComment)}
           onClose={activeComment.handleClose}
           openRequestId={activeComment.active.requestId}
           onVoteStateChange={handleCommentVoteStateChange}
           onVote={runtime.actions.handleCommentVote}
-          voteState={commentVotes.getVoteState(activeComment.active.value)}
+          voteState={commentVotes.getVoteState(activeResolvedComment)}
         />
       ) : null}
       {activeReview.active ? (

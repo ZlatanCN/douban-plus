@@ -10,9 +10,9 @@ import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/su
 import type { DoubanData } from "@/types";
 
 import { extractSeriesMoreLink, watchSeries } from "./series-effect";
-import { useAvatarUrls } from "./use-avatar-urls";
 import { useExternalRatings } from "./use-external-ratings";
 import { useFirstBroadcastPlatform } from "./use-first-broadcast-platform";
+import { useResolvedComments } from "./use-resolved-comments";
 import { useStickyNavigation } from "./use-sticky-navigation";
 
 type SubjectPageRuntimeProps = {
@@ -26,7 +26,7 @@ const reloadPage = (): void => {
 
 const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
   const [series, setSeries] = useState(data.series);
-  const avatarUrls = useAvatarUrls(data.comments, doc);
+  const resolvedComments = useResolvedComments(data.comments, doc);
   const externalRatings = useExternalRatings(
     data.info.imdb || null,
     data.isTV,
@@ -56,10 +56,10 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
         remove: removeInterest,
       },
     },
-    avatarUrls,
     externalRatings,
     firstBroadcastPlatform,
     navigation,
+    resolvedComments,
     series,
     seriesMoreLink: extractSeriesMoreLink(doc),
   };

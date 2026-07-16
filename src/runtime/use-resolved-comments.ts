@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 
 import type { Comment } from "@/types";
 import { createCache } from "@/utils/cache";
@@ -67,10 +67,7 @@ const fetchAvatarUrls = async (
   return urls;
 };
 
-const useAvatarUrls = (
-  comments: Comment[],
-  doc: Document
-): Map<string, string> => {
+const useResolvedComments = (comments: Comment[], doc: Document): Comment[] => {
   const [urls, setUrls] = useState<Map<string, string>>(() => new Map());
 
   useEffect(() => {
@@ -94,7 +91,14 @@ const useAvatarUrls = (
     };
   }, [comments, doc]);
 
-  return urls;
+  return useMemo(
+    () =>
+      comments.map((comment) => ({
+        ...comment,
+        avatar: urls.get(comment.link) || comment.avatar,
+      })),
+    [comments, urls]
+  );
 };
 
-export { useAvatarUrls };
+export { useResolvedComments };

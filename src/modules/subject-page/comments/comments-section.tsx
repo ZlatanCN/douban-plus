@@ -8,7 +8,6 @@ import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentsSectionProps = {
-  avatarUrls?: Map<string, string>;
   canVote?: AccountActionGuard;
   comments: Comment[];
   getVoteState?: (comment: Comment) => CommentVoteState;
@@ -23,7 +22,6 @@ type CommentsSectionProps = {
 };
 
 const CommentsSection = ({
-  avatarUrls,
   canVote,
   comments,
   getVoteState,
@@ -52,10 +50,7 @@ const CommentsSection = ({
       <div class="atv-comments">
         {comments.map((comment) => (
           <CommentCard
-            comment={{
-              ...comment,
-              avatar: avatarUrls?.get(comment.link) || comment.avatar,
-            }}
+            comment={comment}
             canVote={canVote}
             key={comment.cid}
             onOpen={onOpen}
