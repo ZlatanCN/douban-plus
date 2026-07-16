@@ -1,7 +1,6 @@
 import { useCallback, useState } from "preact/hooks";
 
 type ModalRequest<T> = {
-  requestId: number;
   value: T;
 };
 
@@ -16,10 +15,7 @@ const useModalRequest = <T>(): ModalRequestController<T> => {
 
   const handleClose = useCallback((): void => setActive(null), []);
   const handleOpen = useCallback((value: T): void => {
-    setActive((previous) => ({
-      requestId: (previous?.requestId ?? 0) + 1,
-      value,
-    }));
+    setActive({ value });
   }, []);
 
   return { active, handleClose, handleOpen };

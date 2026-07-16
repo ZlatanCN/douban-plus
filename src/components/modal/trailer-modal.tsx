@@ -5,24 +5,14 @@ import { VideoModal } from "./video-modal";
 
 type TrailerModalProps = {
   onClose: () => void;
-  openRequestId: number;
   trailer: Trailer;
 };
 
-const TrailerModal = ({
-  onClose,
-  openRequestId,
-  trailer,
-}: TrailerModalProps) => {
+const TrailerModal = ({ onClose, trailer }: TrailerModalProps) => {
   const acquisition = useTrailerAcquisition(trailer);
 
   return (
-    <VideoModal
-      acquisition={acquisition}
-      onClose={onClose}
-      openRequestId={openRequestId}
-      trailer={trailer}
-    />
+    <VideoModal acquisition={acquisition} onClose={onClose} trailer={trailer} />
   );
 };
 

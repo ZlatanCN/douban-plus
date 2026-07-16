@@ -5228,6 +5228,25 @@ input::placeholder {
 			children: u(IconClose, { size })
 		});
 	};
+	var ModalSessionContext = X(0);
+	var ModalSession = ({ children, request }) => {
+		const [session, setSession] = d({
+			request,
+			sequence: 0
+		});
+		_(() => {
+			setSession((current) => current.request === request ? current : {
+				request,
+				sequence: current.sequence + 1
+			});
+		}, [request]);
+		return u(ModalSessionContext.Provider, {
+			value: session.sequence,
+			children
+		});
+	};
+	var useModalSession = () => x(ModalSessionContext);
+	var ModalSessionContent = ({ children }) => u(S, { children }, useModalSession());
 	function addUniqueItem(arr, item) {
 		if (arr.indexOf(item) === -1) arr.push(item);
 	}
@@ -8951,6 +8970,22 @@ input::placeholder {
 		reducedMotionProperties: { opacity: [0, 1] },
 		springConfig
 	});
+	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
+	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+	var prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
+		try {
+			await Promise.all(animations.map((animation) => animation.finished));
+			if (animationId === animationIdRef.current) finishClose();
+		} catch {}
+	};
+	var ModalCloseContext = X(null);
+	var useModalClose = () => {
+		const close = x(ModalCloseContext);
+		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
+		return close;
+	};
 	var focusableSelector = [
 		"button:not([disabled])",
 		"iframe",
@@ -8982,11 +9017,34 @@ input::placeholder {
 			first.focus();
 		}
 	};
-	var ModalCloseContext = X(null);
-	var useModalClose = () => {
-		const close = x(ModalCloseContext);
-		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
-		return close;
+	var useModalAccessibility = ({ onClose, overlayRef, surfaceRef }) => {
+		h(() => {
+			const previousOverflow = document.body.style.overflow;
+			document.body.style.overflow = "hidden";
+			const onKeydown = (event) => {
+				if (event.key === "Escape") {
+					onClose();
+					return;
+				}
+				const surface = surfaceRef.current;
+				if (surface) trapFocus(event, surface);
+			};
+			document.addEventListener("keydown", onKeydown);
+			requestAnimationFrame(() => surfaceRef.current?.focus());
+			return () => {
+				document.removeEventListener("keydown", onKeydown);
+				document.body.style.overflow = previousOverflow;
+			};
+		}, [onClose, surfaceRef]);
+		h(() => {
+			const overlay = overlayRef.current;
+			if (!overlay) return;
+			const onClick = (event) => {
+				if (event.target === overlay) onClose();
+			};
+			overlay.addEventListener("click", onClick);
+			return () => overlay.removeEventListener("click", onClick);
+		}, [onClose, overlayRef]);
 	};
 	var useSwipeToDismiss = (options) => {
 		const optionsRef = A(options);
@@ -9088,18 +9146,7 @@ input::placeholder {
 			stopAnimation
 		]) };
 	};
-	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
-	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
-	var SWIPE_DISMISS_DISTANCE = 120;
-	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-	var prefersReducedMotion = () => window.matchMedia?.(reducedMotionQuery).matches ?? false;
-	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
-		try {
-			await Promise.all(animations.map((animation) => animation.finished));
-			if (animationId === animationIdRef.current) finishClose();
-		} catch {}
-	};
-	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, dismissable = false, id, onClose, openRequestId, surfaceClassName }) => {
+	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, dismissable = false, id, onClose, surfaceClassName }) => {
 		const overlayRef = A(null);
 		const surfaceRef = A(null);
 		const closeSourceRef = A("standard");
@@ -9109,7 +9156,8 @@ input::placeholder {
 		const didFinishCloseRef = A(false);
 		const animationIdRef = A(0);
 		const animationsRef = A([]);
-		const previousOpenRequestIdRef = A(openRequestId);
+		const session = useModalSession();
+		const previousSessionRef = A(session);
 		h(() => {
 			realOnCloseRef.current = onClose;
 		}, [onClose]);
@@ -9138,7 +9186,7 @@ input::placeholder {
 				reducedMotionProperties: { opacity: opening ? 1 : 0 },
 				springConfig: springConfigs.modalBackdrop
 			});
-			const surfaceExitTransform = closeSourceRef.current === "swipe" ? `translateY(${SWIPE_DISMISS_DISTANCE}px)` : EXITING_SURFACE_TRANSFORM;
+			const surfaceExitTransform = closeSourceRef.current === "swipe" ? `translateY(120px)` : EXITING_SURFACE_TRANSFORM;
 			const surfaceSpring = closeSourceRef.current === "swipe" ? springConfigs.swipeDismissExit : springConfigs.modalSurface;
 			if (!opening) closeSourceRef.current = "standard";
 			const surfaceAnimation = animateWithReducedMotion(surface, {
@@ -9153,12 +9201,12 @@ input::placeholder {
 			if (!opening) finishClosingAnimation(animationId, [backdropAnimation, surfaceAnimation], animationIdRef, finishClose);
 		}, [finishClose]);
 		_(() => {
-			if (previousOpenRequestIdRef.current === openRequestId) return;
-			previousOpenRequestIdRef.current = openRequestId;
+			if (previousSessionRef.current === session) return;
+			previousSessionRef.current = session;
 			didFinishCloseRef.current = false;
 			setPhase("open");
 			animateModal("open");
-		}, [animateModal, openRequestId]);
+		}, [animateModal, session]);
 		const handleClose = q(() => {
 			if (didFinishCloseRef.current) return;
 			didFinishCloseRef.current = false;
@@ -9184,33 +9232,11 @@ input::placeholder {
 				for (const animation of animationsRef.current) animation.stop();
 			};
 		}, [animateModal]);
-		h(() => {
-			const previousOverflow = document.body.style.overflow;
-			document.body.style.overflow = "hidden";
-			const onKeydown = (event) => {
-				if (event.key === "Escape") {
-					handleClose();
-					return;
-				}
-				const surface = surfaceRef.current;
-				if (surface) trapFocus(event, surface);
-			};
-			document.addEventListener("keydown", onKeydown);
-			requestAnimationFrame(() => surfaceRef.current?.focus());
-			return () => {
-				document.removeEventListener("keydown", onKeydown);
-				document.body.style.overflow = previousOverflow;
-			};
-		}, [handleClose]);
-		h(() => {
-			const overlay = overlayRef.current;
-			if (!overlay) return;
-			const onClick = (event) => {
-				if (event.target === overlay) handleClose();
-			};
-			overlay.addEventListener("click", onClick);
-			return () => overlay.removeEventListener("click", onClick);
-		}, [handleClose]);
+		useModalAccessibility({
+			onClose: handleClose,
+			overlayRef,
+			surfaceRef
+		});
 		return u(ModalCloseContext.Provider, {
 			value: handleClose,
 			children: u("dialog", {
@@ -9253,12 +9279,11 @@ input::placeholder {
 			src
 		})] });
 	};
-	var PosterModal = ({ alt, onClose, openRequestId, src }) => u(ModalShell, {
+	var PosterModal = ({ alt, onClose, src }) => u(ModalShell, {
 		ariaLabel: "海报预览",
 		className: "atv-modal-overlay",
 		id: MODAL_ID$1,
 		onClose,
-		openRequestId,
 		surfaceClassName: "atv-modal-surface",
 		children: u(PosterModalContent, {
 			alt,
@@ -9381,20 +9406,18 @@ input::placeholder {
 			]
 		})] });
 	};
-	var VideoModal = ({ acquisition, onClose, openRequestId, trailer }) => u(ModalShell, {
+	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
 		ariaLabel: trailer.title || "视频预览",
 		className: "atv-modal-overlay is-video",
 		id: MODAL_ID,
 		onClose,
-		openRequestId,
 		surfaceClassName: "atv-modal-surface",
 		children: u(VideoModalContent, { acquisition })
 	});
-	var TrailerModal = ({ onClose, openRequestId, trailer }) => {
+	var TrailerModal = ({ onClose, trailer }) => {
 		return u(VideoModal, {
 			acquisition: useTrailerAcquisition(trailer),
 			onClose,
-			openRequestId,
 			trailer
 		});
 	};
@@ -9797,11 +9820,10 @@ input::placeholder {
 			})
 		] });
 	};
-	var CommentModal = ({ canVote, comment, onClose, openRequestId, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
+	var CommentModal = ({ canVote, comment, onClose, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
 		className: "atv-comment-overlay",
 		id: "atv-comment-overlay",
 		onClose,
-		openRequestId,
 		surfaceClassName: "atv-comment-overlay-inner",
 		children: u(CommentModalContent, {
 			canVote,
@@ -10970,10 +10992,7 @@ input::placeholder {
 			active,
 			handleClose: q(() => setActive(null), []),
 			handleOpen: q((value) => {
-				setActive((previous) => ({
-					requestId: (previous?.requestId ?? 0) + 1,
-					value
-				}));
+				setActive({ value });
 			}, [])
 		};
 	};
@@ -11117,17 +11136,16 @@ input::placeholder {
 			})
 		] });
 	};
-	var InterestForm = ({ callbacks, onClose, openRequestId, state }) => u(ModalShell, {
+	var InterestForm = ({ callbacks, onClose, state }) => u(ModalShell, {
 		ariaLabelledBy: "atv-interest-modal-title",
 		className: "atv-interest-modal",
 		id: "atv-interest-modal",
 		onClose,
-		openRequestId,
 		surfaceClassName: "atv-interest-modal-inner",
-		children: u(InterestFormContent, {
+		children: u(ModalSessionContent, { children: u(InterestFormContent, {
 			callbacks,
 			state
-		}, openRequestId)
+		}) })
 	});
 	var saveOptionsFromForm = (form) => ({
 		comment: form.comment,
@@ -11146,22 +11164,24 @@ input::placeholder {
 				if (!requireLogin(action)) return;
 				activeInterest.handleOpen(state);
 			} },
-			form: activeInterest.active ? u(InterestForm, {
-				callbacks: {
-					onRemove: async (status) => {
-						const result = await remove(subjectId, status);
-						if (result.ok) reload();
-						return result;
+			form: activeInterest.active ? u(ModalSession, {
+				request: activeInterest.active,
+				children: u(InterestForm, {
+					callbacks: {
+						onRemove: async (status) => {
+							const result = await remove(subjectId, status);
+							if (result.ok) reload();
+							return result;
+						},
+						onSave: async (form) => {
+							const result = await post(subjectId, form.status, saveOptionsFromForm(form));
+							if (result.ok) reload();
+							return result;
+						}
 					},
-					onSave: async (form) => {
-						const result = await post(subjectId, form.status, saveOptionsFromForm(form));
-						if (result.ok) reload();
-						return result;
-					}
-				},
-				onClose: activeInterest.handleClose,
-				openRequestId: activeInterest.active.requestId,
-				state: activeInterest.active.value
+					onClose: activeInterest.handleClose,
+					state: activeInterest.active.value
+				})
 			}) : null
 		};
 	};
@@ -11348,7 +11368,7 @@ input::placeholder {
 			})
 		] });
 	};
-	var LoginModal = ({ action, onClose, openRequestId }) => {
+	var LoginModal = ({ action, onClose }) => {
 		const hostRef = A(null);
 		const [state, setState] = d({ kind: "loading" });
 		const busy = state.kind === "loading" || state.kind === "mounted";
@@ -11365,7 +11385,6 @@ input::placeholder {
 			className: "atv-login-modal",
 			id: "atv-login-modal",
 			onClose,
-			openRequestId,
 			surfaceClassName: "atv-login-modal-inner",
 			children: u(LoginModalContent, {
 				action,
@@ -12113,12 +12132,11 @@ input::placeholder {
 			})
 		] });
 	};
-	var ReviewModal = ({ canVote, onClose, openRequestId, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
+	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
 		ariaLabelledBy: "atv-review-modal-title",
 		className: "atv-review-modal",
 		id: "atv-review-modal",
 		onClose,
-		openRequestId,
 		surfaceClassName: "atv-review-modal-scroll",
 		children: u(ReviewModalContent, {
 			canVote,
@@ -12610,39 +12628,49 @@ input::placeholder {
 				isTV: data.isTV
 			} }),
 			u("div", { class: "atv-footer-spacer" }),
-			activeComment.active && activeResolvedComment ? u(CommentModal, {
-				canVote,
-				comment: commentVotes.mergeVoteState(activeResolvedComment),
-				onClose: activeComment.handleClose,
-				openRequestId: activeComment.active.requestId,
-				onVoteStateChange: handleCommentVoteStateChange,
-				onVote: runtime.actions.handleCommentVote,
-				voteState: commentVotes.getVoteState(activeResolvedComment)
+			activeComment.active && activeResolvedComment ? u(ModalSession, {
+				request: activeComment.active,
+				children: u(CommentModal, {
+					canVote,
+					comment: commentVotes.mergeVoteState(activeResolvedComment),
+					onClose: activeComment.handleClose,
+					onVoteStateChange: handleCommentVoteStateChange,
+					onVote: runtime.actions.handleCommentVote,
+					voteState: commentVotes.getVoteState(activeResolvedComment)
+				})
 			}) : null,
-			activeReview.active ? u(ReviewModal, {
-				canVote: canReviewVote,
-				onClose: activeReview.handleClose,
-				onVoteStateChange: handleReviewVoteStateChange,
-				onVote: runtime.actions.handleReviewVote,
-				openRequestId: activeReview.active.requestId,
-				review: reviewVotes.mergeVoteState(activeReview.active.value),
-				voteState: reviewVotes.getVoteState(activeReview.active.value)
+			activeReview.active ? u(ModalSession, {
+				request: activeReview.active,
+				children: u(ReviewModal, {
+					canVote: canReviewVote,
+					onClose: activeReview.handleClose,
+					onVoteStateChange: handleReviewVoteStateChange,
+					onVote: runtime.actions.handleReviewVote,
+					review: reviewVotes.mergeVoteState(activeReview.active.value),
+					voteState: reviewVotes.getVoteState(activeReview.active.value)
+				})
 			}) : null,
-			activeMediaModal.active?.value.type === "poster" ? u(PosterModal, {
-				alt: activeMediaModal.active.value.alt,
-				onClose: activeMediaModal.handleClose,
-				openRequestId: activeMediaModal.active.requestId,
-				src: activeMediaModal.active.value.src
+			activeMediaModal.active?.value.type === "poster" ? u(ModalSession, {
+				request: activeMediaModal.active,
+				children: u(PosterModal, {
+					alt: activeMediaModal.active.value.alt,
+					onClose: activeMediaModal.handleClose,
+					src: activeMediaModal.active.value.src
+				})
 			}) : null,
-			activeMediaModal.active?.value.type === "video" ? u(TrailerModal, {
-				onClose: activeMediaModal.handleClose,
-				openRequestId: activeMediaModal.active.requestId,
-				trailer: activeMediaModal.active.value.trailer
+			activeMediaModal.active?.value.type === "video" ? u(ModalSession, {
+				request: activeMediaModal.active,
+				children: u(TrailerModal, {
+					onClose: activeMediaModal.handleClose,
+					trailer: activeMediaModal.active.value.trailer
+				})
 			}) : null,
-			loginAction.active ? u(LoginModal, {
-				action: loginAction.active.value,
-				onClose: loginAction.handleClose,
-				openRequestId: loginAction.active.requestId
+			loginAction.active ? u(ModalSession, {
+				request: loginAction.active,
+				children: u(LoginModal, {
+					action: loginAction.active.value,
+					onClose: loginAction.handleClose
+				})
 			}) : null,
 			interestMarking.form
 		] });

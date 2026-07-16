@@ -188,6 +188,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 6. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
+   - `ModalSession` localizes same-instance reopen detection. `useModalRequest` creates a fresh request object per open; page composition wraps each active semantic modal in its local session, while `ModalShell` consumes the private session through context to reset a closing animation. Semantic modal interfaces carry only domain data and `onClose`, never animation request numbers.
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
 7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:

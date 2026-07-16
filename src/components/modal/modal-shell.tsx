@@ -9,36 +9,21 @@ import {
 
 import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 
-import { trapFocus } from "./focus-trap";
+import {
+  ENTERING_SURFACE_TRANSFORM,
+  EXITING_SURFACE_TRANSFORM,
+  SWIPE_DISMISS_DISTANCE,
+  finishClosingAnimation,
+  prefersReducedMotion,
+  reducedMotionQuery,
+} from "./modal-animation";
+import type { ModalAnimation } from "./modal-animation";
 import { ModalCloseContext } from "./modal-close-context";
+import { useModalSession } from "./modal-session";
+import { useModalAccessibility } from "./use-modal-accessibility";
 import { useSwipeToDismiss } from "./use-swipe-to-dismiss";
 
-const ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
-const EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
-const SWIPE_DISMISS_DISTANCE = 120;
-const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-
-type ModalAnimation = ReturnType<typeof animateWithReducedMotion>;
 type ModalPhase = "open" | "closing";
-
-const prefersReducedMotion = (): boolean =>
-  window.matchMedia?.(reducedMotionQuery).matches ?? false;
-
-const finishClosingAnimation = async (
-  animationId: number,
-  animations: ModalAnimation[],
-  animationIdRef: { current: number },
-  finishClose: () => void
-): Promise<void> => {
-  try {
-    await Promise.all(animations.map((animation) => animation.finished));
-    if (animationId === animationIdRef.current) {
-      finishClose();
-    }
-  } catch {
-    // A newer spring interrupted this closing sequence.
-  }
-};
 
 type ModalShellProps = {
   ariaDescribedBy?: string;
@@ -49,7 +34,6 @@ type ModalShellProps = {
   dismissable?: boolean;
   id: string;
   onClose: () => void;
-  openRequestId?: number;
   surfaceClassName: string;
 };
 
@@ -62,7 +46,6 @@ const ModalShell = ({
   dismissable = false,
   id,
   onClose,
-  openRequestId,
   surfaceClassName,
 }: ModalShellProps) => {
   const overlayRef = useRef<HTMLDialogElement>(null);
@@ -74,7 +57,8 @@ const ModalShell = ({
   const didFinishCloseRef = useRef(false);
   const animationIdRef = useRef(0);
   const animationsRef = useRef<ModalAnimation[]>([]);
-  const previousOpenRequestIdRef = useRef(openRequestId);
+  const session = useModalSession();
+  const previousSessionRef = useRef(session);
 
   useEffect(() => {
     realOnCloseRef.current = onClose;
@@ -153,14 +137,14 @@ const ModalShell = ({
   );
 
   useLayoutEffect(() => {
-    if (previousOpenRequestIdRef.current === openRequestId) {
+    if (previousSessionRef.current === session) {
       return;
     }
-    previousOpenRequestIdRef.current = openRequestId;
+    previousSessionRef.current = session;
     didFinishCloseRef.current = false;
     setPhase("open");
     animateModal("open");
-  }, [animateModal, openRequestId]);
+  }, [animateModal, session]);
 
   const handleClose = useCallback((): void => {
     if (didFinishCloseRef.current) {
@@ -209,43 +193,7 @@ const ModalShell = ({
     };
   }, [animateModal]);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const onKeydown = (event: KeyboardEvent): void => {
-      if (event.key === "Escape") {
-        handleClose();
-        return;
-      }
-      const surface = surfaceRef.current;
-      if (surface) {
-        trapFocus(event, surface);
-      }
-    };
-
-    document.addEventListener("keydown", onKeydown);
-    requestAnimationFrame(() => surfaceRef.current?.focus());
-
-    return () => {
-      document.removeEventListener("keydown", onKeydown);
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [handleClose]);
-
-  useEffect(() => {
-    const overlay = overlayRef.current;
-    if (!overlay) {
-      return;
-    }
-    const onClick = (event: MouseEvent): void => {
-      if (event.target === overlay) {
-        handleClose();
-      }
-    };
-    overlay.addEventListener("click", onClick);
-    return () => overlay.removeEventListener("click", onClick);
-  }, [handleClose]);
+  useModalAccessibility({ onClose: handleClose, overlayRef, surfaceRef });
 
   return (
     <ModalCloseContext.Provider value={handleClose}>

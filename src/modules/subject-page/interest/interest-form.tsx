@@ -1,7 +1,11 @@
 import type { JSX } from "preact";
 import { useState } from "preact/hooks";
 
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import {
+  ModalCloseButton,
+  ModalSessionContent,
+  ModalShell,
+} from "@/components/modal/index";
 import { useModalClose } from "@/components/modal/modal-close-context";
 import type { InterestFormState, InterestState, ModalCallbacks } from "@/types";
 import { INTEREST_LABELS } from "@/types";
@@ -11,7 +15,6 @@ import { StarRatingInput } from "./star-rating-input";
 type InterestFormProps = {
   callbacks: ModalCallbacks;
   onClose: () => void;
-  openRequestId?: number;
   state: InterestState;
 };
 
@@ -163,25 +166,17 @@ const InterestFormContent = ({
   );
 };
 
-const InterestForm = ({
-  callbacks,
-  onClose,
-  openRequestId,
-  state,
-}: InterestFormProps) => (
+const InterestForm = ({ callbacks, onClose, state }: InterestFormProps) => (
   <ModalShell
     ariaLabelledBy="atv-interest-modal-title"
     className="atv-interest-modal"
     id="atv-interest-modal"
     onClose={onClose}
-    openRequestId={openRequestId}
     surfaceClassName="atv-interest-modal-inner"
   >
-    <InterestFormContent
-      callbacks={callbacks}
-      key={openRequestId}
-      state={state}
-    />
+    <ModalSessionContent>
+      <InterestFormContent callbacks={callbacks} state={state} />
+    </ModalSessionContent>
   </ModalShell>
 );
 

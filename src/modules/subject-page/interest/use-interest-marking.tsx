@@ -1,5 +1,6 @@
 import type { JSX } from "preact";
 
+import { ModalSession } from "@/components/modal";
 import type {
   HeroCallbacks,
   InterestFormState,
@@ -97,12 +98,13 @@ const useInterestMarking = ({
   return {
     callbacks,
     form: activeInterest.active ? (
-      <InterestForm
-        callbacks={formCallbacks}
-        onClose={activeInterest.handleClose}
-        openRequestId={activeInterest.active.requestId}
-        state={activeInterest.active.value}
-      />
+      <ModalSession request={activeInterest.active}>
+        <InterestForm
+          callbacks={formCallbacks}
+          onClose={activeInterest.handleClose}
+          state={activeInterest.active.value}
+        />
+      </ModalSession>
     ) : null,
   };
 };

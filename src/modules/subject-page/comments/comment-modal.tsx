@@ -12,7 +12,6 @@ type CommentModalProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onClose: () => void;
-  openRequestId?: number;
   onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
   onVote: CommentVoteCallback;
   voteState?: CommentVoteState;
@@ -94,7 +93,6 @@ const CommentModal = ({
   canVote,
   comment,
   onClose,
-  openRequestId,
   onVoteStateChange,
   onVote,
   voteState,
@@ -103,7 +101,6 @@ const CommentModal = ({
     className="atv-comment-overlay"
     id="atv-comment-overlay"
     onClose={onClose}
-    openRequestId={openRequestId}
     surfaceClassName="atv-comment-overlay-inner"
   >
     <CommentModalContent

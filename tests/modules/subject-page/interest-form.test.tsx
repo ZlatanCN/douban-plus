@@ -1,5 +1,7 @@
+import { render } from "preact";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
+import { ModalSession } from "@/components/modal";
 import {
   InterestForm,
   initialStatus,
@@ -114,6 +116,47 @@ describe(InterestForm, () => {
     ).toBe("还不错");
     expect(root.querySelector(".atv-interest-modal-submit")?.textContent).toBe(
       "保存"
+    );
+  });
+
+  it("resets form state for a reopened modal session", async () => {
+    const callbacks = makeCallbacks();
+    const onClose = vi.fn<() => void>();
+    const firstRequest = {};
+    const root = renderIntoRoot(
+      <ModalSession request={firstRequest}>
+        <InterestForm
+          callbacks={callbacks}
+          onClose={onClose}
+          state={makeState({ comment: "初始短评" })}
+        />
+      </ModalSession>
+    );
+    const textarea = root.querySelector<HTMLTextAreaElement>(
+      ".atv-interest-modal-comment"
+    );
+    if (textarea) {
+      textarea.value = "尚未保存的修改";
+      textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+    await Promise.resolve();
+
+    render(
+      <ModalSession request={{}}>
+        <InterestForm
+          callbacks={callbacks}
+          onClose={onClose}
+          state={makeState({ comment: "初始短评" })}
+        />
+      </ModalSession>,
+      root
+    );
+
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector<HTMLTextAreaElement>(".atv-interest-modal-comment")
+          ?.value
+      ).toBe("初始短评")
     );
   });
 

@@ -1,4 +1,5 @@
 export { ModalCloseButton } from "./modal-close-button";
+export { ModalSession, ModalSessionContent } from "./modal-session";
 export { ModalShell } from "./modal-shell";
 export { PosterModal } from "./poster-modal";
 export { TrailerModal } from "./trailer-modal";

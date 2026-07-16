@@ -3,7 +3,7 @@ import { render } from "preact";
 import type { ComponentChild } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ModalShell } from "@/components/modal";
+import { ModalSession, ModalShell } from "@/components/modal";
 import type { SwipeToDismissOptions } from "@/components/modal/use-swipe-to-dismiss";
 import type { animateWithReducedMotion } from "@/utils/springs";
 
@@ -16,17 +16,18 @@ const trackedRenderIntoRoot = (node: ComponentChild): HTMLElement => {
   renderedRoots.push(root);
   return root;
 };
-const trackedRenderModal = (onClose: () => void, openRequestId?: number) =>
+const trackedRenderModal = (onClose: () => void, request: object = {}) =>
   trackedRenderIntoRoot(
-    <ModalShell
-      className="atv-test-modal"
-      id="atv-test-modal"
-      onClose={onClose}
-      openRequestId={openRequestId}
-      surfaceClassName="atv-test-modal-surface"
-    >
-      内容
-    </ModalShell>
+    <ModalSession request={request}>
+      <ModalShell
+        className="atv-test-modal"
+        id="atv-test-modal"
+        onClose={onClose}
+        surfaceClassName="atv-test-modal-surface"
+      >
+        内容
+      </ModalShell>
+    </ModalSession>
   );
 
 const swipeCallbacks = vi.hoisted(() => {
@@ -171,26 +172,28 @@ describe(ModalShell, () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("retargets an explicit reopen request while the close spring is running", async () => {
+  it("retargets a reopened modal session while the close spring is running", async () => {
     const onClose = vi.fn<() => void>();
-    const root = trackedRenderModal(onClose, 1);
+    const root = trackedRenderModal(onClose, {});
     const overlay = root.querySelector<HTMLDialogElement>("dialog");
 
     await flushEffects();
     overlay?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     await flushEffects();
     render(
-      <ModalShell
-        className="atv-test-modal"
-        id="atv-test-modal"
-        onClose={onClose}
-        openRequestId={2}
-        surfaceClassName="atv-test-modal-surface"
-      >
-        内容
-      </ModalShell>,
+      <ModalSession request={{}}>
+        <ModalShell
+          className="atv-test-modal"
+          id="atv-test-modal"
+          onClose={onClose}
+          surfaceClassName="atv-test-modal-surface"
+        >
+          内容
+        </ModalShell>
+      </ModalSession>,
       root
     );
+    await flushEffects();
 
     expect(motion.animate).toHaveBeenCalledTimes(6);
     expect(motion.animate).toHaveBeenNthCalledWith(5, overlay, {

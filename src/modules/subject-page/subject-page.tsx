@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 
 import { StickyNav } from "@/components/layout";
-import { PosterModal, TrailerModal } from "@/components/modal";
+import { ModalSession, PosterModal, TrailerModal } from "@/components/modal";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -150,48 +150,53 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
 
       {/* Modals rendered outside sections to avoid ancestor transform containment */}
       {activeComment.active && activeResolvedComment ? (
-        <CommentModal
-          canVote={canVote}
-          comment={commentVotes.mergeVoteState(activeResolvedComment)}
-          onClose={activeComment.handleClose}
-          openRequestId={activeComment.active.requestId}
-          onVoteStateChange={handleCommentVoteStateChange}
-          onVote={runtime.actions.handleCommentVote}
-          voteState={commentVotes.getVoteState(activeResolvedComment)}
-        />
+        <ModalSession request={activeComment.active}>
+          <CommentModal
+            canVote={canVote}
+            comment={commentVotes.mergeVoteState(activeResolvedComment)}
+            onClose={activeComment.handleClose}
+            onVoteStateChange={handleCommentVoteStateChange}
+            onVote={runtime.actions.handleCommentVote}
+            voteState={commentVotes.getVoteState(activeResolvedComment)}
+          />
+        </ModalSession>
       ) : null}
       {activeReview.active ? (
-        <ReviewModal
-          canVote={canReviewVote}
-          onClose={activeReview.handleClose}
-          onVoteStateChange={handleReviewVoteStateChange}
-          onVote={runtime.actions.handleReviewVote}
-          openRequestId={activeReview.active.requestId}
-          review={reviewVotes.mergeVoteState(activeReview.active.value)}
-          voteState={reviewVotes.getVoteState(activeReview.active.value)}
-        />
+        <ModalSession request={activeReview.active}>
+          <ReviewModal
+            canVote={canReviewVote}
+            onClose={activeReview.handleClose}
+            onVoteStateChange={handleReviewVoteStateChange}
+            onVote={runtime.actions.handleReviewVote}
+            review={reviewVotes.mergeVoteState(activeReview.active.value)}
+            voteState={reviewVotes.getVoteState(activeReview.active.value)}
+          />
+        </ModalSession>
       ) : null}
       {activeMediaModal.active?.value.type === "poster" ? (
-        <PosterModal
-          alt={activeMediaModal.active.value.alt}
-          onClose={activeMediaModal.handleClose}
-          openRequestId={activeMediaModal.active.requestId}
-          src={activeMediaModal.active.value.src}
-        />
+        <ModalSession request={activeMediaModal.active}>
+          <PosterModal
+            alt={activeMediaModal.active.value.alt}
+            onClose={activeMediaModal.handleClose}
+            src={activeMediaModal.active.value.src}
+          />
+        </ModalSession>
       ) : null}
       {activeMediaModal.active?.value.type === "video" ? (
-        <TrailerModal
-          onClose={activeMediaModal.handleClose}
-          openRequestId={activeMediaModal.active.requestId}
-          trailer={activeMediaModal.active.value.trailer}
-        />
+        <ModalSession request={activeMediaModal.active}>
+          <TrailerModal
+            onClose={activeMediaModal.handleClose}
+            trailer={activeMediaModal.active.value.trailer}
+          />
+        </ModalSession>
       ) : null}
       {loginAction.active ? (
-        <LoginModal
-          action={loginAction.active.value}
-          onClose={loginAction.handleClose}
-          openRequestId={loginAction.active.requestId}
-        />
+        <ModalSession request={loginAction.active}>
+          <LoginModal
+            action={loginAction.active.value}
+            onClose={loginAction.handleClose}
+          />
+        </ModalSession>
       ) : null}
       {interestMarking.form}
     </>
