@@ -92,6 +92,7 @@ src/
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
+    use-native-summary.ts — Preact hook: native summary selection, expansion, reread and fallback → adopted summary
     use-trailer-acquisition.ts — Preact hook: trailer-page fetch, LD+JSON parsing, cancellation and native fallback → acquisition state
     series-effect.ts     — late-loading series observer and nav insertion
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
@@ -177,35 +178,37 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. `SubjectPage` supplies only the selected trailer; `VideoModal` receives an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
 
-4. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
+4. **Native-summary adoption runtime hook (2026-07-16)** — `runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
+
+5. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
    - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
    - The shared implementation handles empty titles, slug normalization, cache-key construction, TTL cache lookup/write, sequential URL fallback, network-error isolation, and parser-null fallback
    - Provider modules keep only site-specific knowledge: Metacritic URL shapes + JSON-LD parser; Rotten Tomatoes URL shapes + script JSON parser
    - Preserve sequential fallback. These provider URLs are alternatives, not independent sources, so do not parallelize them.
 
-5. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
+6. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
-6. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
+7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
    - External rating resolution, first-broadcast lookup, late series observation, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`
    - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
 
-7. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
+8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
    - External seam is `useInterestMarking({ subjectId, loggedIn, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes
    - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reload
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
    - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 
-8. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
+9. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
    - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-9. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
+10. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
 
 - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call

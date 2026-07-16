@@ -1123,19 +1123,6 @@ input::placeholder {
 		if (!summary) return null;
 		return normalizeSummaryText(summary.textContent || "") || null;
 	};
-	var extractVisibleSummary = (doc) => {
-		const container = doc.querySelector("#link-report-intra");
-		if (!container) return extractSummary(doc);
-		return normalizeSummaryText([...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && child.style.display !== "none")?.textContent || "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc);
-	};
-	var expandNativeSummary = (doc = document) => {
-		const before = extractVisibleSummary(doc);
-		const trigger = doc.querySelector("a.a_show_full");
-		if (!trigger) return Promise.resolve(before);
-		trigger.click();
-		const after = extractVisibleSummary(doc);
-		return Promise.resolve(after || before);
-	};
 	var extractReviewRating = (item) => {
 		let stars = 0;
 		let ratingWord = "";
@@ -10855,11 +10842,10 @@ input::placeholder {
 			}) : u(PosterPlaceholder, {})
 		});
 	};
-	var HeroSummary = ({ expandNativeSummary, text }) => {
+	var HeroSummary = ({ text }) => {
 		const teaserRef = A(null);
 		const contentRef = A(null);
 		const previousTextRef = A(text);
-		const summaryRequestRef = A(0);
 		const [expanded, setExpanded] = d(false);
 		const [summary, setSummary] = d(text);
 		const [showToggle, setShowToggle] = d(true);
@@ -10872,7 +10858,6 @@ input::placeholder {
 		}, [text]);
 		h(() => {
 			if (previousTextRef.current !== text) {
-				summaryRequestRef.current += 1;
 				previousTextRef.current = text;
 				setExpanded(false);
 				setSummary(text);
@@ -10882,20 +10867,12 @@ input::placeholder {
 		h(() => {
 			if (contentRef.current) playEntrance(contentRef.current, springConfigs.summaryEntrance);
 		}, [summaryTransitionKey]);
-		const toggle = async () => {
+		const toggle = () => {
 			if (expanded) {
-				summaryRequestRef.current += 1;
 				setExpanded(false);
 				return;
 			}
 			setExpanded(true);
-			const requestId = summaryRequestRef.current + 1;
-			summaryRequestRef.current = requestId;
-			const expandedText = await expandNativeSummary?.();
-			if (requestId === summaryRequestRef.current && expandedText && expandedText !== summary) {
-				setSummary(expandedText);
-				setSummaryTransitionKey((key) => key + 1);
-			}
 		};
 		return u("div", {
 			class: "atv-hero-summary",
@@ -10909,7 +10886,7 @@ input::placeholder {
 				}, summaryTransitionKey)
 			}), u("button", {
 				class: `atv-hero-more${expanded ? " is-open" : ""}`,
-				onClick: () => void toggle(),
+				onClick: toggle,
 				style: { display: showToggle ? void 0 : "none" },
 				type: "button",
 				children: [u("span", { children: expanded ? "收起" : "展开" }), u(IconChevron, {})]
@@ -10917,7 +10894,7 @@ input::placeholder {
 		});
 	};
 	var noop$1 = () => void 0;
-	var Hero = ({ callbacks, data, expandNativeSummary, externalRatings = null, firstBroadcastPlatform = null, onOpenPoster = noop$1 }) => u("section", {
+	var Hero = ({ callbacks, data, externalRatings = null, firstBroadcastPlatform = null, onOpenPoster = noop$1 }) => u("section", {
 		class: "atv-hero",
 		children: [
 			u(HeroBackground, {
@@ -10980,10 +10957,7 @@ input::placeholder {
 								callbacks,
 								state: data.interest
 							}),
-							data.summary ? u(HeroSummary, {
-								expandNativeSummary,
-								text: data.summary
-							}) : null
+							data.summary ? u(HeroSummary, { text: data.summary }) : null
 						]
 					})]
 				})
@@ -12524,7 +12498,7 @@ input::placeholder {
 			setVoteState
 		};
 	};
-	var toHeroData = (data) => ({
+	var toHeroData = (data, summary) => ({
 		imdbId: data.info.imdb || null,
 		info: data.info,
 		interest: data.interest,
@@ -12534,7 +12508,7 @@ input::placeholder {
 		rankLabel: data.rankLabel,
 		rating: data.rating,
 		subjectId: data.subjectId,
-		summary: data.summary,
+		summary,
 		title: data.title,
 		year: data.year
 	});
@@ -12578,8 +12552,7 @@ input::placeholder {
 			}),
 			u(Hero, {
 				callbacks: interestMarking.callbacks,
-				data: toHeroData(data),
-				expandNativeSummary: runtime.actions.expandNativeSummary,
+				data: toHeroData(data, runtime.summary),
 				externalRatings: runtime.externalRatings,
 				firstBroadcastPlatform: runtime.firstBroadcastPlatform,
 				onOpenPoster: (src, alt) => activeMediaModal.handleOpen({
@@ -13097,6 +13070,40 @@ input::placeholder {
 		}, [loggedIn, subjectId]);
 		return platform;
 	};
+	var summaryContainerSelector = "#link-report-intra";
+	var summaryTriggerSelector = "a.a_show_full";
+	var isVisible = (element) => {
+		const display = element.ownerDocument.defaultView?.getComputedStyle(element).display;
+		return !element.hidden && element.style.display !== "none" && display !== "none";
+	};
+	var readVisibleSummary = (doc, fallback) => {
+		const container = doc.querySelector(summaryContainerSelector);
+		return normalizeSummaryText((container ? [...container.children].find((child) => child instanceof HTMLElement && !child.classList.contains("pl") && isVisible(child)) : null)?.textContent ?? "").replace(/\s*\(展开全部\)\s*$/u, "") || extractSummary(doc) || fallback;
+	};
+	var adoptNativeSummary = async (doc, fallback) => {
+		const before = readVisibleSummary(doc, fallback);
+		const trigger = doc.querySelector(summaryTriggerSelector);
+		if (!trigger) return before;
+		trigger.click();
+		await Promise.resolve();
+		return readVisibleSummary(doc, before) || before;
+	};
+	var useNativeSummary = (fallback, doc) => {
+		const [summary, setSummary] = d(fallback);
+		h(() => {
+			let active = true;
+			setSummary(fallback);
+			const adopt = async () => {
+				const result = await adoptNativeSummary(doc, fallback);
+				if (active) setSummary(result);
+			};
+			adopt();
+			return () => {
+				active = false;
+			};
+		}, [doc, fallback]);
+		return summary;
+	};
 	var avatarCache = createCache("dp:avatar-cache", 1800 * 1e3);
 	var avatarSelectors = [
 		"#profile .pic img",
@@ -13266,6 +13273,7 @@ input::placeholder {
 	};
 	var SubjectPageRuntime = ({ data, doc }) => {
 		const [series, setSeries] = d(data.series);
+		const summary = useNativeSummary(data.summary, doc);
 		const resolvedComments = useResolvedComments(data.comments, doc);
 		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
 		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
@@ -13278,7 +13286,6 @@ input::placeholder {
 			data,
 			runtime: {
 				actions: {
-					expandNativeSummary: () => expandNativeSummary(doc),
 					handleCommentVote: (cid) => postVote(cid, data.subjectId),
 					handleReviewVote: (rid, type) => postReviewVote(rid, type, data.subjectId),
 					interestMarking: {
@@ -13292,7 +13299,8 @@ input::placeholder {
 				navigation,
 				resolvedComments,
 				series,
-				seriesMoreLink: extractSeriesMoreLink(doc)
+				seriesMoreLink: extractSeriesMoreLink(doc),
+				summary
 			}
 		});
 	};

@@ -4,15 +4,13 @@ import { IconChevron } from "@/components/common/icons";
 import { playEntrance, springConfigs } from "@/utils/springs";
 
 type HeroSummaryProps = {
-  expandNativeSummary?: () => Promise<string | null>;
   text: string;
 };
 
-const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
+const HeroSummary = ({ text }: HeroSummaryProps) => {
   const teaserRef = useRef<HTMLParagraphElement>(null);
   const contentRef = useRef<HTMLSpanElement>(null);
   const previousTextRef = useRef(text);
-  const summaryRequestRef = useRef(0);
   const [expanded, setExpanded] = useState(false);
   const [summary, setSummary] = useState(text);
   const [showToggle, setShowToggle] = useState(true);
@@ -29,7 +27,6 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
 
   useEffect(() => {
     if (previousTextRef.current !== text) {
-      summaryRequestRef.current += 1;
       previousTextRef.current = text;
       setExpanded(false);
       setSummary(text);
@@ -43,24 +40,12 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
     }
   }, [summaryTransitionKey]);
 
-  const toggle = async (): Promise<void> => {
+  const toggle = (): void => {
     if (expanded) {
-      summaryRequestRef.current += 1;
       setExpanded(false);
       return;
     }
     setExpanded(true);
-    const requestId = summaryRequestRef.current + 1;
-    summaryRequestRef.current = requestId;
-    const expandedText = await expandNativeSummary?.();
-    if (
-      requestId === summaryRequestRef.current &&
-      expandedText &&
-      expandedText !== summary
-    ) {
-      setSummary(expandedText);
-      setSummaryTransitionKey((key) => key + 1);
-    }
   };
 
   return (
@@ -79,7 +64,7 @@ const HeroSummary = ({ expandNativeSummary, text }: HeroSummaryProps) => {
       </p>
       <button
         class={`atv-hero-more${expanded ? " is-open" : ""}`}
-        onClick={() => void toggle()}
+        onClick={toggle}
         style={{ display: showToggle ? undefined : "none" }}
         type="button"
       >

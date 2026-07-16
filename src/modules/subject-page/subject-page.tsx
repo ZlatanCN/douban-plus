@@ -36,7 +36,7 @@ type ActiveMediaModal =
   | { alt: string; src: string; type: "poster" }
   | { trailer: Trailer; type: "video" };
 
-const toHeroData = (data: DoubanData): HeroData => ({
+const toHeroData = (data: DoubanData, summary: string | null): HeroData => ({
   imdbId: data.info.imdb || null,
   info: data.info,
   interest: data.interest,
@@ -46,7 +46,7 @@ const toHeroData = (data: DoubanData): HeroData => ({
   rankLabel: data.rankLabel,
   rating: data.rating,
   subjectId: data.subjectId,
-  summary: data.summary,
+  summary,
   title: data.title,
   year: data.year,
 });
@@ -99,8 +99,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       />
       <Hero
         callbacks={interestMarking.callbacks}
-        data={toHeroData(data)}
-        expandNativeSummary={runtime.actions.expandNativeSummary}
+        data={toHeroData(data, runtime.summary)}
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>

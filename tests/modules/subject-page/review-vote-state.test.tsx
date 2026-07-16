@@ -83,7 +83,6 @@ const makeRuntime = (
     Promise.resolve({ ok: true })
 ): SubjectPageRuntime => ({
   actions: {
-    expandNativeSummary: () => Promise.resolve(null),
     handleCommentVote: () => Promise.resolve({ ok: true }),
     handleReviewVote: voteReview,
     interestMarking: {
@@ -104,6 +103,7 @@ const makeRuntime = (
   },
   resolvedComments: [],
   series: [],
+  summary: "",
 });
 
 const renderPage = (

@@ -115,7 +115,6 @@ const makeRuntime = (
   overrides?: Partial<SubjectPageRuntime>
 ): SubjectPageRuntime => ({
   actions: {
-    expandNativeSummary: () => Promise.resolve(null),
     handleCommentVote: () => Promise.resolve({ ok: true }),
     handleReviewVote: () => Promise.resolve({ ok: true }),
     interestMarking: {
@@ -136,6 +135,7 @@ const makeRuntime = (
   },
   resolvedComments: data.comments,
   series: [],
+  summary: data.summary,
   ...overrides,
 });
 

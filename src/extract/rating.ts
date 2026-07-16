@@ -56,43 +56,6 @@ const extractSummary = (doc: Document): string | null => {
   return txt || null;
 };
 
-const extractVisibleSummary = (doc: Document): string | null => {
-  const container = doc.querySelector("#link-report-intra");
-  if (!container) {
-    return extractSummary(doc);
-  }
-  const visible = [...container.children].find(
-    (child) =>
-      child instanceof HTMLElement &&
-      !child.classList.contains("pl") &&
-      child.style.display !== "none"
-  );
-  const text = normalizeSummaryText(visible?.textContent || "").replace(
-    /\s*\(展开全部\)\s*$/u,
-    ""
-  );
-  return text || extractSummary(doc);
-};
-
-const expandNativeSummary = (
-  doc: Document = document
-): Promise<string | null> => {
-  const before = extractVisibleSummary(doc);
-  const trigger = doc.querySelector<HTMLAnchorElement>("a.a_show_full");
-  if (!trigger) {
-    return Promise.resolve(before);
-  }
-
-  trigger.click();
-  const after = extractVisibleSummary(doc);
-  return Promise.resolve(after || before);
-};
-
 /* ── Exports ──────────────────────────────────────────── */
 
-export {
-  expandNativeSummary,
-  extractRating,
-  extractSummary,
-  extractVisibleSummary,
-};
+export { extractRating, extractSummary, normalizeSummaryText };

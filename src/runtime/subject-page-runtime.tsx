@@ -4,7 +4,6 @@ import { postVote } from "@/api/comment";
 import { postInterest, removeInterest } from "@/api/interest";
 import { postReviewVote } from "@/api/review";
 import { computeNavSections } from "@/components/layout/nav";
-import { expandNativeSummary } from "@/extract/rating";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/subject-page/types";
 import type { DoubanData } from "@/types";
@@ -12,6 +11,7 @@ import type { DoubanData } from "@/types";
 import { extractSeriesMoreLink, watchSeries } from "./series-effect";
 import { useExternalRatings } from "./use-external-ratings";
 import { useFirstBroadcastPlatform } from "./use-first-broadcast-platform";
+import { useNativeSummary } from "./use-native-summary";
 import { useResolvedComments } from "./use-resolved-comments";
 import { useStickyNavigation } from "./use-sticky-navigation";
 
@@ -26,6 +26,7 @@ const reloadPage = (): void => {
 
 const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
   const [series, setSeries] = useState(data.series);
+  const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
   const externalRatings = useExternalRatings(
     data.info.imdb || null,
@@ -46,7 +47,6 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
 
   const runtime: SubjectPageRuntimeState = {
     actions: {
-      expandNativeSummary: () => expandNativeSummary(doc),
       handleCommentVote: (cid) => postVote(cid, data.subjectId),
       handleReviewVote: (rid, type) =>
         postReviewVote(rid, type, data.subjectId),
@@ -62,6 +62,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     resolvedComments,
     series,
     seriesMoreLink: extractSeriesMoreLink(doc),
+    summary,
   };
 
   return <SubjectPage data={data} runtime={runtime} />;

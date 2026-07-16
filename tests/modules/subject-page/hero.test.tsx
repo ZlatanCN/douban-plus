@@ -305,39 +305,8 @@ describe(Hero, () => {
 });
 
 describe(HeroSummary, () => {
-  it("replaces the teaser with the native expanded summary", async () => {
-    const expandNativeSummary = vi
-      .fn<() => Promise<string>>()
-      .mockResolvedValue("完整的豆瓣剧情简介");
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={expandNativeSummary}
-        text="截断的简介"
-      />
-    );
-
-    el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
-    await waitUntil(() =>
-      expect(el.querySelector(".atv-hero-teaser")?.textContent).toBe(
-        "完整的豆瓣剧情简介"
-      )
-    );
-
-    expect(expandNativeSummary).toHaveBeenCalledOnce();
-  });
-
-  it("removes the clamp before an asynchronous native response resolves", async () => {
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
-          new Promise<string>((resolve) => {
-            void resolve;
-          })
-        }
-        text="截断的简介"
-      />
-    );
+  it("removes the clamp when the visual summary expands", async () => {
+    const el = renderSingle(<HeroSummary text="截断的简介" />);
 
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
     await Promise.resolve();
@@ -347,17 +316,7 @@ describe(HeroSummary, () => {
   });
 
   it("keeps the teaser content mounted across reversible expand and collapse", async () => {
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
-          new Promise<string>((resolve) => {
-            void resolve;
-          })
-        }
-        text="截断的简介"
-      />
-    );
+    const el = renderSingle(<HeroSummary text="截断的简介" />);
     const content = el.querySelector(".atv-hero-teaser-content");
 
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
@@ -367,42 +326,5 @@ describe(HeroSummary, () => {
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
     await Promise.resolve();
     expect(el.querySelector(".atv-hero-teaser-content")).toBe(content);
-  });
-
-  it("applies only the latest concurrent expanded summary response", async () => {
-    const pending: ((value: string) => void)[] = [];
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models concurrent native DOM expansion requests.
-          new Promise<string>((resolve) => {
-            pending.push(resolve);
-          })
-        }
-        text="截断的简介"
-      />
-    );
-    const toggle = el.querySelector<HTMLButtonElement>(".atv-hero-more");
-
-    toggle?.click();
-    await Promise.resolve();
-    toggle?.click();
-    await Promise.resolve();
-    toggle?.click();
-    await Promise.resolve();
-    expect(pending).toHaveLength(2);
-
-    pending[0]?.("完整的豆瓣剧情简介");
-    await delay(0);
-    expect(el.querySelector(".atv-hero-teaser-content")?.textContent).toBe(
-      "截断的简介"
-    );
-
-    pending[1]?.("完整的豆瓣剧情简介");
-    await waitUntil(() =>
-      expect(el.querySelector(".atv-hero-teaser-content")?.textContent).toBe(
-        "完整的豆瓣剧情简介"
-      )
-    );
   });
 });

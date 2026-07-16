@@ -36,7 +36,6 @@ type SubjectPageNavigation = {
 
 type SubjectPageRuntime = {
   actions: {
-    expandNativeSummary: () => Promise<string | null>;
     interestMarking: InterestMarkingActions;
     handleCommentVote: CommentVoteCallback;
     handleReviewVote: ReviewVoteCallback;
@@ -47,6 +46,7 @@ type SubjectPageRuntime = {
   resolvedComments: Comment[];
   series: SeriesItem[];
   seriesMoreLink?: { href: string; text: string };
+  summary: string | null;
 };
 
 export type {
