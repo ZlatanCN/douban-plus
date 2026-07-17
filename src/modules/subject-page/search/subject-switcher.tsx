@@ -173,8 +173,13 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
                   <span />
                 </div>
               ) : null}
-              {displayedRequest.status === "ready" && suggestions.length
-                ? suggestions.map((suggestion, index) => (
+              {displayedRequest.status === "ready" && suggestions.length ? (
+                <div
+                  class="atv-subject-suggestion-results"
+                  key={displayedRequest.query}
+                  role="presentation"
+                >
+                  {suggestions.map((suggestion, index) => (
                     <SuggestionRow
                       active={index === nav.activeIndex}
                       index={index}
@@ -182,8 +187,9 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
                       onOpen={openSuggestion}
                       suggestion={suggestion}
                     />
-                  ))
-                : null}
+                  ))}
+                </div>
+              ) : null}
               {showFallback ? (
                 <button
                   class="atv-subject-search-fallback"
