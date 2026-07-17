@@ -365,7 +365,6 @@ type InterestMarkingActions = {
     status: InterestFormState["status"],
     options: InterestWriteOptions
   ) => Promise<InterestActionResult>;
-  reload: () => void;
   remove: (
     subjectId: string,
     status: InterestState["status"]

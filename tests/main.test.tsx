@@ -127,7 +127,6 @@ const makeRuntime = (
           tags: [],
         }),
       post: () => Promise.resolve({ ok: false }),
-      reload: () => {},
       remove: () => Promise.resolve({ ok: false }),
     },
   },
@@ -372,6 +371,64 @@ describe(SubjectPage, () => {
     expect(root.querySelector("#atv-comments")).not.toBeNull();
     expect(root.querySelector("#atv-recs")).not.toBeNull();
     expect(root.querySelector("#atv-info")).not.toBeNull();
+  });
+
+  it("keeps a saved private mark's short review and tags visible in Hero", async () => {
+    const post = vi.fn<() => Promise<{ ok: boolean }>>(() =>
+      Promise.resolve({ ok: true })
+    );
+    const data = makeDoubanData({
+      interest: {
+        ck: "token",
+        comment: "保存前短评",
+        date: "2026-07-17",
+        hasWatching: false,
+        loggedIn: true,
+        marked: true,
+        rating: 2,
+        status: "collect",
+        tags: ["旧标签"],
+        usefulCount: "",
+      },
+    });
+    const runtime = makeRuntime(data, {
+      actions: {
+        handleCommentVote: () => Promise.resolve({ ok: true }),
+        handleReviewVote: () => Promise.resolve({ ok: true }),
+        interestMarking: {
+          fetch: () =>
+            Promise.resolve({
+              isPrivate: true,
+              myTags: [],
+              popularTags: [],
+              shareToBroadcast: false,
+              status: "collect",
+              tags: ["家庭"],
+            }),
+          post,
+          remove: () => Promise.resolve({ ok: false }),
+        },
+      },
+    });
+    const root = renderSubjectPage(data, runtime);
+
+    root.querySelector<HTMLButtonElement>(".atv-interest-badge")?.click();
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-interest-modal-tag-input")).not.toBeNull()
+    );
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+
+    await vi.waitFor(() => expect(post).toHaveBeenCalledOnce());
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector(".atv-interest-panel-comment")?.textContent
+      ).toContain("保存前短评")
+    );
+    expect(root.querySelector(".atv-interest-panel-tags")?.textContent).toBe(
+      "家庭"
+    );
   });
 
   it("omits streaming section when streaming array is empty (t26)", () => {

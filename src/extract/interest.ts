@@ -79,6 +79,13 @@ const matchBareStatus = (text: string): InterestState["status"] | null => {
 const matchRichOrBareStatus = (text: string): InterestState["status"] | null =>
   matchS3Status(text) ?? matchBareStatus(text);
 
+const directText = (element: HTMLElement): string =>
+  [...element.childNodes]
+    .filter((node) => node.nodeType === Node.TEXT_NODE)
+    .map((node) => node.textContent || "")
+    .join("")
+    .trim();
+
 /* ── S3 / S2 State Detection ────────────────────────── */
 
 /**
@@ -115,25 +122,33 @@ const detectS3State = (
   const dateEl = root.querySelector<HTMLElement>(".collection_date");
   const date = dateEl ? (dateEl.textContent || "").trim() : "";
 
-  // User's short review: the bare <span> inside .j a_stars after #rating.
-  // textContent merges all descendant text ("评论 1有用"), so we walk
-  // childNodes to grab only direct text, then separately extract the .pl
-  // vote-count span ("1有用").
-  const commentEl = root.querySelector<HTMLElement>(
-    ".j.a_stars > span:not(.mr10):not(#rating):not(.color_gray)"
-  );
+  // Private collections inject a "(私人收藏)" .color_gray badge before the
+  // tag/comment fields. Its malformed nested markup can make the short-review
+  // span a descendant of that badge, so it cannot be selected as a direct
+  // child. Find the last plain span with its own text instead. This keeps the
+  // status, date, tag, rating and vote metadata out of the review text.
+  const commentElements = root.querySelectorAll<HTMLElement>(".j.a_stars span");
+  let commentEl: HTMLElement | undefined;
+  for (let index = commentElements.length - 1; index >= 0; index -= 1) {
+    const element = commentElements[index];
+    if (
+      !element ||
+      element.matches(".mr10, .color_gray, .collection_date, .pl, #rating")
+    ) {
+      continue;
+    }
+    const text = directText(element);
+    if (text.length > 0 && matchS3Status(text) === null) {
+      commentEl = element;
+      break;
+    }
+  }
   let comment = "";
   let usefulCount = "";
   if (commentEl) {
     const voteEl = commentEl.querySelector<HTMLElement>(".pl");
     usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-    // Direct text nodes only — skip child elements like .pl
-    for (const node of commentEl.childNodes) {
-      if (node.nodeType === Node.TEXT_NODE) {
-        comment += node.textContent || "";
-      }
-    }
-    comment = comment.trim();
+    comment = directText(commentEl);
   }
 
   return { comment, date, hasWatching, rating, status, usefulCount };
@@ -165,13 +180,15 @@ const detectS2Status = (
 };
 
 const extractInterestTags = (root: HTMLElement): string[] => {
-  const text =
-    root.querySelector<HTMLElement>(".color_gray")?.textContent || "";
-  const match = /^标签\s*[:：]\s*(?<tags>.+)$/u.exec(text.trim());
-  if (!match?.groups?.tags) {
-    return [];
+  for (const element of root.querySelectorAll<HTMLElement>(".color_gray")) {
+    const match = /^标签\s*[:：]\s*(?<tags>.+)$/u.exec(
+      (element.textContent || "").trim()
+    );
+    if (match?.groups?.tags) {
+      return normalizeInterestTags(match.groups.tags);
+    }
   }
-  return normalizeInterestTags(match.groups.tags);
+  return [];
 };
 
 /* ── Main Extractor ─────────────────────────────────── */

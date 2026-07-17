@@ -67,6 +67,39 @@ describe(extractInterestState, () => {
     restore();
   });
 
+  it("reads tags and the short review from a private S3 collection", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="interest_sect_level" class="clearfix">
+  <div class="j a_stars">
+    <span class="mr10">
+      我看过这部电视剧
+      <span class="collection_date">2026-07-17</span>
+      <span class="color_gray">(私人收藏)<span></span>&nbsp;
+      <br>
+      我的评价:
+      <span id="rating"><input id="n_rating" type="hidden" value="2"></span>
+      <br>
+      <span class="color_gray">标签:家庭</span>
+      <br>
+      <span>测试<span class="pl"></span></span>
+    </span></span>
+  </div>
+</div>
+</body></html>`);
+    const restore = mockCookie(doc, "ck=test-private;");
+
+    expect(extractInterestState(doc)).toMatchObject({
+      comment: "测试",
+      date: "2026-07-17",
+      rating: 2,
+      status: "collect",
+      tags: ["家庭"],
+    });
+
+    restore();
+  });
+
   it("detects S3 wish state", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>
