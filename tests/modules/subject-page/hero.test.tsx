@@ -270,13 +270,30 @@ describe(Hero, () => {
     expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
       1,
       defaultInterest,
-      "标记想看"
+      { action: "标记想看", status: "wish" }
     );
     expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
       2,
       defaultInterest,
-      "标记看过"
+      { action: "标记看过", status: "collect" }
     );
+  });
+
+  it("preserves the selected status when a logged-in user starts a new mark", () => {
+    const callbacks = makeCallbacks();
+    const interest = { ...defaultInterest, loggedIn: true };
+    const el = renderSingle(
+      <Hero callbacks={callbacks} data={makeHeroData({ interest })} />
+    );
+    const buttons = el.querySelectorAll<HTMLButtonElement>(
+      ".atv-actions button"
+    );
+
+    buttons[1]?.click();
+
+    expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest, {
+      status: "collect",
+    });
   });
 
   it("renders marked interest state and opens the interest modal callback", () => {
@@ -289,6 +306,7 @@ describe(Hero, () => {
       marked: true,
       rating: 4,
       status: "collect" as const,
+      tags: ["人生", "温情"],
       usefulCount: "12 有用",
     };
     const el = renderSingle(
@@ -301,6 +319,13 @@ describe(Hero, () => {
     expect(
       el.querySelector(".atv-interest-panel-comment")?.textContent
     ).toContain("年度最佳");
+    const tags = el.querySelector(
+      ".atv-interest-panel-header .atv-interest-panel-tags"
+    );
+    expect(tags?.textContent).toBe("人生 · 温情");
+    expect(tags?.previousElementSibling?.classList).toContain(
+      "atv-interest-panel-date"
+    );
     el.querySelector<HTMLButtonElement>(".atv-interest-badge")?.click();
     expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest);
   });

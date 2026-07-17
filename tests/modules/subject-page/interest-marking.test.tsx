@@ -1,10 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  interestFromSavedForm,
-  useInterestMarking,
-} from "@/modules/subject-page/interest/use-interest-marking";
-import type { InterestFormState, InterestState } from "@/types";
+import { useInterestMarking } from "@/modules/subject-page/interest/use-interest-marking";
+import type {
+  InterestFormSnapshot,
+  InterestFormState,
+  InterestState,
+} from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
@@ -13,13 +14,18 @@ vi.hoisted(() => {
 });
 
 type InterestMarkingHarnessProps = {
+  fetch?: (subjectId: string) => Promise<InterestFormSnapshot>;
   loggedIn?: boolean;
-  onFirstMarkSaved?: (previous: InterestState, form: InterestFormState) => void;
   onLoginRequired?: (action: string) => void;
   post?: (
     subjectId: string,
     status: InterestFormState["status"],
-    options?: { comment?: string; rating?: number }
+    options?: {
+      comment?: string;
+      isPrivate?: boolean;
+      rating?: number;
+      tags?: string[];
+    }
   ) => Promise<{ error?: string; ok: boolean }>;
   reload?: () => void;
   remove?: (
@@ -43,13 +49,25 @@ const makeState = (overrides?: Partial<InterestState>): InterestState => ({
   ...overrides,
 });
 
+const defaultSnapshot = (
+  overrides?: Partial<InterestFormSnapshot>
+): InterestFormSnapshot => ({
+  isPrivate: false,
+  myTags: [],
+  popularTags: [],
+  shareToBroadcast: false,
+  status: "none",
+  tags: [],
+  ...overrides,
+});
 const failPost = () => Promise.resolve({ ok: false });
 const noop = (): undefined => undefined;
 const failRemove = () => Promise.resolve({ ok: false });
+const fetchSnapshot = () => Promise.resolve(defaultSnapshot());
 
 const InterestMarkingHarness = ({
+  fetch = fetchSnapshot,
   loggedIn = true,
-  onFirstMarkSaved = noop,
   onLoginRequired = vi.fn<(action: string) => void>(),
   post = failPost,
   reload = noop,
@@ -57,9 +75,8 @@ const InterestMarkingHarness = ({
   state = makeState(),
 }: InterestMarkingHarnessProps) => {
   const interestMarking = useInterestMarking({
-    adapters: { post, reload, remove },
+    adapters: { fetch, post, reload, remove },
     loggedIn,
-    onFirstMarkSaved,
     onLoginRequired,
     subjectId: "1292052",
   });
@@ -77,62 +94,37 @@ const InterestMarkingHarness = ({
   );
 };
 
+const waitForForm = async (root: HTMLElement): Promise<void> => {
+  await vi.waitFor(() =>
+    expect(root.querySelector(".atv-interest-modal-tag-input")).not.toBeNull()
+  );
+};
+
 describe("Interest marking", () => {
-  it("updates the caller after a successful first mark without refreshing", async () => {
+  it("refreshes after a successful first mark", async () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
     const reload = vi.fn<() => void>();
-    const onFirstMarkSaved =
-      vi.fn<(previous: InterestState, form: InterestFormState) => void>();
     const root = renderIntoRoot(
-      <InterestMarkingHarness
-        onFirstMarkSaved={onFirstMarkSaved}
-        post={post}
-        reload={reload}
-      />
+      <InterestMarkingHarness post={post} reload={reload} />
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
-    await Promise.resolve();
+    await waitForForm(root);
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(post).toHaveBeenCalledWith("1292052", "wish", {
-      comment: "",
-      rating: undefined,
-    });
-    expect(onFirstMarkSaved).toHaveBeenCalledWith(makeState(), {
-      comment: "",
-      rating: 0,
-      status: "wish",
-    });
-    expect(reload).not.toHaveBeenCalled();
-  });
-
-  it("creates a marked state without inventing server-derived values", () => {
-    const previous = makeState({
-      date: "2026-07-16",
-      tags: ["科幻"],
-      usefulCount: "12 有用",
-    });
-
-    expect(
-      interestFromSavedForm(previous, {
-        comment: "年度最佳",
-        rating: 4,
-        status: "collect",
+    await vi.waitFor(() =>
+      expect(post).toHaveBeenCalledWith("1292052", "wish", {
+        comment: "",
+        isPrivate: false,
+        rating: undefined,
+        shareToBroadcast: false,
+        tags: [],
       })
-    ).toStrictEqual({
-      ...previous,
-      comment: "年度最佳",
-      marked: true,
-      rating: 4,
-      status: "collect",
-    });
+    );
+    expect(reload).toHaveBeenCalledOnce();
   });
 
   it("requests login instead of opening a form for a logged-out user", () => {
@@ -160,7 +152,7 @@ describe("Interest marking", () => {
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
-    await Promise.resolve();
+    await waitForForm(root);
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();
@@ -174,13 +166,14 @@ describe("Interest marking", () => {
     expect(root.querySelector("#atv-interest-modal")).not.toBeNull();
   });
 
-  it("removes an existing mark and refreshes on success", async () => {
+  it("removes an existing mark after the inline confirmation and refreshes", async () => {
     const remove = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
     const reload = vi.fn<() => void>();
     const root = renderIntoRoot(
       <InterestMarkingHarness
+        fetch={() => Promise.resolve(defaultSnapshot({ status: "collect" }))}
         reload={reload}
         remove={remove}
         state={makeState({ marked: true, status: "collect" })}
@@ -188,14 +181,23 @@ describe("Interest marking", () => {
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
-    await Promise.resolve();
+    await waitForForm(root);
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-remove")
       ?.click();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(remove).toHaveBeenCalledWith("1292052", "collect");
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector(".atv-interest-modal-removal-confirmation")
+      ).not.toBeNull()
+    );
+    root
+      .querySelector<HTMLButtonElement>(
+        ".atv-interest-modal-removal-confirmation button:last-child"
+      )
+      ?.click();
+    await vi.waitFor(() =>
+      expect(remove).toHaveBeenCalledWith("1292052", "collect")
+    );
     expect(reload).toHaveBeenCalledOnce();
   });
 
@@ -204,11 +206,9 @@ describe("Interest marking", () => {
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
     const reload = vi.fn<() => void>();
-    const onFirstMarkSaved =
-      vi.fn<(previous: InterestState, form: InterestFormState) => void>();
     const root = renderIntoRoot(
       <InterestMarkingHarness
-        onFirstMarkSaved={onFirstMarkSaved}
+        fetch={() => Promise.resolve(defaultSnapshot({ status: "collect" }))}
         post={post}
         reload={reload}
         state={makeState({ marked: true, status: "collect" })}
@@ -216,14 +216,51 @@ describe("Interest marking", () => {
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
-    await Promise.resolve();
+    await waitForForm(root);
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();
-    await Promise.resolve();
-    await Promise.resolve();
+    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
+  });
 
-    expect(onFirstMarkSaved).not.toHaveBeenCalled();
+  it("uses the fresh native snapshot when saving a previously marked work", async () => {
+    const fetch = vi
+      .fn<() => Promise<InterestFormSnapshot>>()
+      .mockResolvedValue({
+        isPrivate: true,
+        myTags: ["成长"],
+        popularTags: [],
+        shareToBroadcast: true,
+        status: "collect",
+        tags: ["人生"],
+      });
+    const post = vi
+      .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
+      .mockResolvedValue({ ok: true });
+    const reload = vi.fn<() => void>();
+    const root = renderIntoRoot(
+      <InterestMarkingHarness
+        fetch={fetch}
+        post={post}
+        reload={reload}
+        state={makeState({ marked: false, status: "none" })}
+      />
+    );
+
+    root.querySelector<HTMLButtonElement>("button")?.click();
+    await waitForForm(root);
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+    await vi.waitFor(() =>
+      expect(post).toHaveBeenCalledWith("1292052", "collect", {
+        comment: "",
+        isPrivate: true,
+        rating: undefined,
+        shareToBroadcast: true,
+        tags: ["人生"],
+      })
+    );
     expect(reload).toHaveBeenCalledOnce();
   });
 });

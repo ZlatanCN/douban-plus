@@ -54,19 +54,34 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
         <InterestButton
           className="atv-btn atv-btn-primary"
           label="想看"
-          onClick={() => callbacks.handleOpenInterest(state, "标记想看")}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, {
+              action: "标记想看",
+              status: "wish",
+            })
+          }
         />
         {state.hasWatching ? (
           <InterestButton
             className="atv-btn atv-btn-secondary"
             label="在看"
-            onClick={() => callbacks.handleOpenInterest(state, "标记在看")}
+            onClick={() =>
+              callbacks.handleOpenInterest(state, {
+                action: "标记在看",
+                status: "do",
+              })
+            }
           />
         ) : null}
         <InterestButton
           className="atv-btn atv-btn-secondary"
           label="看过"
-          onClick={() => callbacks.handleOpenInterest(state, "标记看过")}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, {
+              action: "标记看过",
+              status: "collect",
+            })
+          }
         />
       </div>
     );
@@ -78,19 +93,25 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
         <InterestButton
           className="atv-btn atv-btn-primary"
           label="想看"
-          onClick={() => callbacks.handleOpenInterest(state)}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, { status: "wish" })
+          }
         />
         {state.hasWatching ? (
           <InterestButton
             className="atv-btn atv-btn-secondary"
             label="在看"
-            onClick={() => callbacks.handleOpenInterest(state)}
+            onClick={() =>
+              callbacks.handleOpenInterest(state, { status: "do" })
+            }
           />
         ) : null}
         <InterestButton
           className="atv-btn atv-btn-secondary"
           label="看过"
-          onClick={() => callbacks.handleOpenInterest(state)}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, { status: "collect" })
+          }
         />
       </div>
     );
@@ -125,6 +146,11 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
           ) : null}
           {state.date ? (
             <span class="atv-interest-panel-date">{state.date}</span>
+          ) : null}
+          {state.tags.length ? (
+            <span class="atv-interest-panel-tags">
+              {state.tags.join(" · ")}
+            </span>
           ) : null}
         </div>
         {state.comment ? (

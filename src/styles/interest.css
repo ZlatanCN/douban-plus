@@ -17,7 +17,7 @@
 .atv-interest-modal-inner {
   position: relative;
   width: 100%;
-  max-width: 380px;
+  max-width: 456px;
   max-height: 90vh;
   border: 1px solid rgb(255 255 255 / 10%);
   border-radius: 20px;
@@ -163,7 +163,7 @@
   padding: 10px 14px;
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 10px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   background: rgb(255 255 255 / 4%);
   color: var(--atv-text-primary);
   font-family: inherit;
@@ -195,7 +195,7 @@
   padding: 0 24px;
   border: none;
   border-radius: 999px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   appearance: none;
   background: var(--atv-accent);
   color: #fff;
@@ -233,7 +233,7 @@
   padding: 0 24px;
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 999px;
-  margin-bottom: 4px;
+  margin: 0;
   appearance: none;
   background: transparent;
   color: var(--atv-text-tertiary);
@@ -275,6 +275,237 @@
   padding: 8px 16px;
   margin-top: 8px;
   background: rgb(255 69 58 / 8%);
+}
+
+.atv-interest-modal-field-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 0 0 8px;
+  color: var(--atv-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.atv-interest-modal-field-header > span:last-child {
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.atv-interest-modal-tags {
+  margin-bottom: 18px;
+}
+
+.atv-interest-modal-tag-input-wrap {
+  display: flex;
+  min-height: 42px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 5px 8px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 4%);
+  gap: 5px;
+  transition:
+    border-color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease;
+}
+
+.atv-interest-modal-tag-input-wrap:focus-within {
+  border-color: rgb(255 255 255 / 20%);
+  background: rgb(255 255 255 / 6%);
+}
+
+.atv-interest-modal-tag-input {
+  min-width: 84px;
+  flex: 1 1 84px;
+  padding: 4px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--atv-text-primary);
+  font: inherit;
+  font-size: 13px;
+  outline: 0;
+}
+
+.atv-interest-modal-tag-input::placeholder {
+  color: var(--atv-text-tertiary);
+}
+
+.atv-interest-modal-tag {
+  display: inline-flex;
+  min-height: 26px;
+  align-items: center;
+  padding: 3px 9px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 999px;
+  appearance: none;
+  background: rgb(255 255 255 / 5%);
+  color: var(--atv-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  transition:
+    border-color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease,
+    color var(--atv-duration-feedback) ease;
+}
+
+.atv-interest-modal-tag.is-current {
+  border-color: rgb(65 190 93 / 45%);
+  background: rgb(65 190 93 / 16%);
+  color: #c3f6d0;
+}
+
+.atv-interest-modal-tag.is-selected {
+  border-color: rgb(65 190 93 / 38%);
+  background: rgb(65 190 93 / 12%);
+  color: var(--atv-text-primary);
+}
+
+.atv-interest-modal-tag-suggestions {
+  display: grid;
+  margin-top: 10px;
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
+  gap: 6px;
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+.atv-interest-modal-tag-suggestions > span {
+  padding-top: 5px;
+  letter-spacing: 0.02em;
+}
+
+.atv-interest-modal-tag-suggestions > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.atv-interest-modal-tag-skeleton {
+  display: flex;
+  height: 90px;
+  flex-wrap: wrap;
+  align-content: center;
+  padding: 12px;
+  border: 1px solid rgb(255 255 255 / 6%);
+  border-radius: 10px;
+  margin-bottom: 18px;
+  background: rgb(255 255 255 / 3%);
+  gap: 8px;
+}
+
+.atv-interest-modal-tag-skeleton span {
+  display: block;
+  height: 22px;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 8%);
+}
+
+.atv-interest-modal-tag-skeleton span:nth-child(1) {
+  width: 78px;
+}
+
+.atv-interest-modal-tag-skeleton span:nth-child(2) {
+  width: 54px;
+}
+
+.atv-interest-modal-tag-skeleton span:nth-child(3) {
+  width: 96px;
+}
+
+.atv-interest-modal-source-error {
+  display: flex;
+  min-height: 90px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid rgb(255 69 58 / 22%);
+  border-radius: 10px;
+  margin-bottom: 18px;
+  background: rgb(255 69 58 / 8%);
+  color: var(--atv-text-secondary);
+  font-size: 12px;
+  gap: 12px;
+}
+
+.atv-interest-modal-source-error button {
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  color: var(--atv-accent-bright);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+}
+
+.atv-interest-modal-settings {
+  display: grid;
+  margin: 0 0 18px;
+  gap: 8px;
+}
+
+.atv-interest-modal-private-setting {
+  display: inline-flex;
+  align-items: center;
+  color: var(--atv-text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.atv-interest-modal-private {
+  width: 15px;
+  height: 15px;
+  margin: 0;
+  accent-color: var(--atv-accent);
+}
+
+.atv-interest-modal-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.atv-interest-modal-removal-confirmation {
+  display: grid;
+  padding: 12px;
+  border: 1px solid rgb(255 69 58 / 22%);
+  border-radius: 10px;
+  background: rgb(255 69 58 / 8%);
+  color: var(--atv-text-secondary);
+  font-size: 12px;
+  gap: 10px;
+}
+
+.atv-interest-modal-removal-confirmation > div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.atv-interest-modal-removal-confirmation button {
+  height: 34px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  appearance: none;
+  background: rgb(255 255 255 / 6%);
+  color: var(--atv-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.atv-interest-modal-removal-confirmation button:last-child {
+  border-color: rgb(255 69 58 / 35%);
+  background: rgb(255 69 58 / 18%);
+  color: #ff9f99;
 }
 
 /* ---------- Interest Panel (S3 marked state) ---------- */
@@ -325,6 +556,17 @@
   font-style: italic;
   gap: 8px;
   line-height: 1.6;
+}
+
+.atv-interest-panel-tags {
+  overflow: hidden;
+  min-width: 0;
+  max-width: 36ch;
+  color: var(--atv-text-tertiary);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .atv-useful-badge {

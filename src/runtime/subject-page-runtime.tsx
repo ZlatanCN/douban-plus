@@ -1,7 +1,11 @@
 import { useMemo } from "preact/hooks";
 
 import { postVote } from "@/api/comment";
-import { postInterest, removeInterest } from "@/api/interest";
+import {
+  fetchInterestSnapshot,
+  postInterest,
+  removeInterest,
+} from "@/api/interest";
 import { postReviewVote } from "@/api/review";
 import { computeNavSections } from "@/components/layout/nav";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
@@ -49,6 +53,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
       handleReviewVote: (rid, type) =>
         postReviewVote(rid, type, data.subjectId),
       interestMarking: {
+        fetch: fetchInterestSnapshot,
         post: postInterest,
         reload: reloadPage,
         remove: removeInterest,

@@ -251,8 +251,16 @@ type HeroData = {
 };
 
 /** Callback seam for hero interest actions — replaces direct api/extract imports */
+type InterestOpenOptions = {
+  action?: string;
+  status?: Exclude<InterestState["status"], "none">;
+};
+
 type HeroCallbacks = {
-  handleOpenInterest: (state: InterestState, action?: string) => void;
+  handleOpenInterest: (
+    state: InterestState,
+    options?: InterestOpenOptions
+  ) => void;
 };
 
 /** Data slice for buildPhotos */
@@ -322,14 +330,52 @@ type InterestFormState = {
   status: "wish" | "do" | "collect";
   rating: number;
   comment: string;
+  tags: string[];
+  isPrivate: boolean;
+  shareToBroadcast: boolean;
+};
+
+/** Fresh interest values read when the marking form opens. */
+type InterestFormSnapshot = {
+  isPrivate: boolean;
+  myTags: string[];
+  popularTags: string[];
+  shareToBroadcast: boolean;
+  status: InterestState["status"];
+  tags: string[];
+};
+
+type InterestActionResult = {
+  error?: string;
+  ok: boolean;
+};
+
+type InterestWriteOptions = {
+  comment: string;
+  isPrivate: boolean;
+  rating?: number;
+  shareToBroadcast: boolean;
+  tags: string[];
+};
+
+type InterestMarkingActions = {
+  fetch: (subjectId: string) => Promise<InterestFormSnapshot>;
+  post: (
+    subjectId: string,
+    status: InterestFormState["status"],
+    options: InterestWriteOptions
+  ) => Promise<InterestActionResult>;
+  reload: () => void;
+  remove: (
+    subjectId: string,
+    status: InterestState["status"]
+  ) => Promise<InterestActionResult>;
 };
 
 /** Callback seam — modal calls these instead of importing API directly */
 type ModalCallbacks = {
-  onSave: (form: InterestFormState) => Promise<{ ok: boolean; error?: string }>;
-  onRemove: (
-    status: InterestState["status"]
-  ) => Promise<{ ok: boolean; error?: string }>;
+  onSave: (form: InterestFormState) => Promise<InterestActionResult>;
+  onRemove: (status: InterestState["status"]) => Promise<InterestActionResult>;
 };
 
 /** Map from interest value to Chinese label */
@@ -359,6 +405,11 @@ export type {
   HeroData,
   ImdbRating,
   InfoBlock,
+  InterestActionResult,
+  InterestFormSnapshot,
+  InterestOpenOptions,
+  InterestMarkingActions,
+  InterestWriteOptions,
   McRating,
   RtRating,
   InterestFormState,

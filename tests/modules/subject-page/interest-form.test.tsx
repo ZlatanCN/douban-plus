@@ -5,9 +5,13 @@ import { ModalSession } from "@/components/modal";
 import {
   InterestForm,
   initialStatus,
-  statusEntries,
 } from "@/modules/subject-page/interest/interest-form";
-import type { InterestState, ModalCallbacks } from "@/types";
+import { statusEntries } from "@/modules/subject-page/interest/interest-form-fields";
+import type {
+  InterestFormSnapshot,
+  InterestState,
+  ModalCallbacks,
+} from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
@@ -58,11 +62,26 @@ const makeCallbacks = (
   onSave: vi.fn<
     (data: {
       comment: string;
+      isPrivate: boolean;
       rating: number;
       status: string;
+      tags: string[];
     }) => Promise<{ ok: boolean }>
   >(() => Promise.resolve({ ok: true })),
   ...overrides,
+});
+
+const readySource = (overrides?: Partial<InterestFormSnapshot>) => ({
+  kind: "ready" as const,
+  snapshot: {
+    isPrivate: false,
+    myTags: [],
+    popularTags: [],
+    shareToBroadcast: false,
+    status: "wish" as const,
+    tags: [],
+    ...overrides,
+  },
 });
 
 describe(InterestForm, () => {
@@ -94,6 +113,30 @@ describe(InterestForm, () => {
       "do",
       "collect",
     ]);
+    expect(
+      statusEntries(false, "do").map((entry) => entry.value)
+    ).toStrictEqual(["wish", "do", "collect"]);
+  });
+
+  it("treats the fresh snapshot as the source of truth for existing marks", () => {
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ status: "do" })}
+        state={makeState({ marked: false, status: "none" })}
+      />
+    );
+
+    expect(root.querySelector("#atv-interest-modal-title")?.textContent).toBe(
+      "编辑作品标记"
+    );
+    expect(root.querySelector(".atv-interest-modal-remove")).not.toBeNull();
+    expect(
+      root
+        .querySelector<HTMLButtonElement>('[data-value="do"]')
+        ?.getAttribute("aria-pressed")
+    ).toBe("true");
   });
 
   it("renders status controls, rating, comment and submit", () => {
@@ -101,6 +144,7 @@ describe(InterestForm, () => {
       <InterestForm
         callbacks={makeCallbacks()}
         onClose={vi.fn<() => void>()}
+        source={readySource({ status: "collect" })}
         state={makeState({ comment: "还不错", hasWatching: true, rating: 3 })}
       />
     );
@@ -115,7 +159,7 @@ describe(InterestForm, () => {
         ?.value
     ).toBe("还不错");
     expect(root.querySelector(".atv-interest-modal-submit")?.textContent).toBe(
-      "保存"
+      "保存标记"
     );
   });
 
@@ -128,6 +172,7 @@ describe(InterestForm, () => {
         <InterestForm
           callbacks={callbacks}
           onClose={onClose}
+          source={readySource({ status: "wish" })}
           state={makeState({ comment: "初始短评" })}
         />
       </ModalSession>
@@ -146,6 +191,7 @@ describe(InterestForm, () => {
         <InterestForm
           callbacks={callbacks}
           onClose={onClose}
+          source={readySource({ status: "wish" })}
           state={makeState({ comment: "初始短评" })}
         />
       </ModalSession>,
@@ -173,6 +219,7 @@ describe(InterestForm, () => {
       <InterestForm
         callbacks={makeCallbacks({ onSave })}
         onClose={onClose}
+        source={readySource({ status: "wish" })}
         state={makeState({ hasWatching: true })}
       />
     );
@@ -194,8 +241,11 @@ describe(InterestForm, () => {
     await Promise.resolve();
     expect(onSave).toHaveBeenCalledWith({
       comment: "good",
+      isPrivate: false,
       rating: 4,
+      shareToBroadcast: false,
       status: "collect",
+      tags: [],
     });
     await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
   });
@@ -216,6 +266,7 @@ describe(InterestForm, () => {
       <InterestForm
         callbacks={makeCallbacks({ onRemove, onSave })}
         onClose={onClose}
+        source={readySource({ status: "wish" })}
         state={makeState({ marked: true, status: "wish" })}
       />
     );
@@ -233,8 +284,177 @@ describe(InterestForm, () => {
       .querySelector<HTMLButtonElement>(".atv-interest-modal-remove")
       ?.click();
     await Promise.resolve();
+    expect(root.textContent).toContain("取消这条作品标记？");
+    root
+      .querySelector<HTMLButtonElement>(
+        ".atv-interest-modal-removal-confirmation button:last-child"
+      )
+      ?.click();
+    await Promise.resolve();
     await Promise.resolve();
     expect(onRemove).toHaveBeenCalledWith("wish");
     await vi.waitFor(() => expect(onClose).toHaveBeenCalledOnce());
+  });
+
+  it("keeps the mark read-only while its complete record is loading", () => {
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        onRetry={vi.fn<() => void>()}
+        source={{ kind: "loading" }}
+        state={makeState({ comment: "初始短评", rating: 3 })}
+      />
+    );
+
+    expect(
+      root.querySelector(".atv-interest-modal-tag-skeleton")
+    ).not.toBeNull();
+    expect(
+      root.querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+        ?.disabled
+    ).toBeTruthy();
+    expect(
+      root.querySelector<HTMLTextAreaElement>(".atv-interest-modal-comment")
+        ?.disabled
+    ).toBeTruthy();
+  });
+
+  it("explains an incomplete record and offers an in-place retry", () => {
+    const onRetry = vi.fn<() => void>();
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        onRetry={onRetry}
+        source={{ kind: "error", message: "无法读取完整标记" }}
+        state={makeState()}
+      />
+    );
+
+    expect(
+      root.querySelector(".atv-interest-modal-source-error")?.textContent
+    ).toContain("无法读取完整标记");
+    root
+      .querySelector<HTMLButtonElement>(
+        ".atv-interest-modal-source-error button"
+      )
+      ?.click();
+    expect(onRetry).toHaveBeenCalledOnce();
+    expect(
+      root.querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+        ?.disabled
+    ).toBeTruthy();
+  });
+
+  it("edits normalized tags, private visibility, and the short-comment allowance", async () => {
+    const onSave = vi.fn<
+      (data: {
+        comment: string;
+        isPrivate: boolean;
+        rating: number;
+        status: string;
+        tags: string[];
+      }) => Promise<{ ok: boolean }>
+    >(() => Promise.resolve({ ok: true }));
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks({ onSave })}
+        onClose={vi.fn<() => void>()}
+        source={readySource({
+          myTags: ["成长"],
+          popularTags: ["温情"],
+          status: "collect",
+          tags: ["人生"],
+        })}
+        state={makeState({ marked: true })}
+      />
+    );
+
+    root.querySelector<HTMLButtonElement>('[data-tag="成长"]')?.click();
+    const input = root.querySelector<HTMLInputElement>(
+      ".atv-interest-modal-tag-input"
+    );
+    if (input) {
+      input.value = "科幻";
+      input.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+    root.querySelector<HTMLButtonElement>('[data-tag="温情"]')?.click();
+    const privateInput = root.querySelector<HTMLInputElement>(
+      ".atv-interest-modal-private"
+    );
+    if (privateInput) {
+      privateInput.checked = true;
+      privateInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const broadcastInput = root.querySelector<HTMLInputElement>(
+      ".atv-interest-modal-share-broadcast"
+    );
+    if (broadcastInput) {
+      broadcastInput.checked = true;
+      broadcastInput.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    const textarea = root.querySelector<HTMLTextAreaElement>(
+      ".atv-interest-modal-comment"
+    );
+    if (textarea) {
+      textarea.value = "短评";
+      textarea.dispatchEvent(new InputEvent("input", { bubbles: true }));
+    }
+    await Promise.resolve();
+
+    expect(
+      root.querySelector(".atv-interest-modal-comment-count")?.textContent
+    ).toBe("还可输入 348 字");
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onSave).toHaveBeenCalledWith({
+      comment: "短评",
+      isPrivate: true,
+      rating: 0,
+      shareToBroadcast: true,
+      status: "collect",
+      tags: ["人生", "成长", "科幻", "温情"],
+    });
+  });
+
+  it("removes the last tag when Backspace is pressed in an empty tag input", async () => {
+    const onSave = vi.fn<ModalCallbacks["onSave"]>(() =>
+      Promise.resolve({ ok: true })
+    );
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks({ onSave })}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ tags: ["人生", "温情"] })}
+        state={makeState({ marked: true })}
+      />
+    );
+    const input = root.querySelector<HTMLInputElement>(
+      ".atv-interest-modal-tag-input"
+    );
+
+    input?.dispatchEvent(
+      new KeyboardEvent("keydown", { bubbles: true, key: "Backspace" })
+    );
+    await Promise.resolve();
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(onSave).toHaveBeenCalledWith({
+      comment: "",
+      isPrivate: false,
+      rating: 0,
+      shareToBroadcast: false,
+      status: "wish",
+      tags: ["人生"],
+    });
   });
 });

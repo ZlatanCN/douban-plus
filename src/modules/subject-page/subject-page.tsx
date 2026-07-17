@@ -1,16 +1,8 @@
-import { useCallback, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import { StickyNav } from "@/components/layout";
 import { ModalSession, PosterModal } from "@/components/modal";
-import type {
-  Comment,
-  DoubanData,
-  HeroData,
-  InterestFormState,
-  InterestState,
-  Review,
-  Trailer,
-} from "@/types";
+import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
 import { CommentModal } from "./comments/comment-modal";
@@ -18,10 +10,7 @@ import { commentVoteApi } from "./comments/comment-vote-state";
 import { DetailsSection } from "./details";
 import { DiscussionsSection } from "./discussions";
 import { Hero } from "./hero";
-import {
-  interestFromSavedForm,
-  useInterestMarking,
-} from "./interest/use-interest-marking";
+import { useInterestMarking } from "./interest/use-interest-marking";
 import { LoginModal } from "./login/login-modal";
 import {
   CastSection,
@@ -67,7 +56,6 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const activeComment = useModalRequest<Comment>();
   const activeReview = useModalRequest<Review>();
   const activeMediaModal = useModalRequest<ActiveMediaModal>();
-  const [interest, setInterest] = useState(data.interest);
   const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
   const loginAction = useModalRequest<string>();
   const commentVotes = useVoteState(data.comments, commentVoteApi);
@@ -79,16 +67,9 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
-  const handleFirstMarkSaved = useCallback(
-    (previous: InterestState, form: InterestFormState): void => {
-      setInterest(interestFromSavedForm(previous, form));
-    },
-    []
-  );
   const interestMarking = useInterestMarking({
     adapters: runtime.actions.interestMarking,
-    loggedIn: interest.loggedIn,
-    onFirstMarkSaved: handleFirstMarkSaved,
+    loggedIn: data.interest.loggedIn,
     onLoginRequired: loginAction.handleOpen,
     subjectId: data.subjectId,
   });
@@ -119,7 +100,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       />
       <Hero
         callbacks={interestMarking.callbacks}
-        data={{ ...toHeroData(data, runtime.summary), interest }}
+        data={toHeroData(data, runtime.summary)}
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>

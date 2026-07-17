@@ -1,7 +1,6 @@
 import type { RatingResultMap } from "@/resolve/types";
 import type {
-  InterestFormState,
-  InterestState,
+  InterestMarkingActions,
   NavSection,
   Comment,
   ReviewVoteCallback,
@@ -11,19 +10,6 @@ import type {
 type CommentVoteCallback = (
   cid: string
 ) => Promise<{ ok: boolean; count?: number }>;
-
-type InterestMarkingActions = {
-  post: (
-    subjectId: string,
-    status: InterestFormState["status"],
-    options?: { comment?: string; rating?: number }
-  ) => Promise<{ error?: string; ok: boolean }>;
-  reload: () => void;
-  remove: (
-    subjectId: string,
-    status: InterestState["status"]
-  ) => Promise<{ error?: string; ok: boolean }>;
-};
 
 type SubjectPageNavigation = {
   activeSectionId: string;
@@ -49,9 +35,4 @@ type SubjectPageRuntime = {
   summary: string | null;
 };
 
-export type {
-  CommentVoteCallback,
-  InterestMarkingActions,
-  SubjectPageNavigation,
-  SubjectPageRuntime,
-};
+export type { CommentVoteCallback, SubjectPageNavigation, SubjectPageRuntime };

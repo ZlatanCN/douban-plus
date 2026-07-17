@@ -4,6 +4,7 @@
 import { RE_INTEREST_ACTIVE } from "@/constants";
 import type { InterestState } from "@/types";
 import { $, $$ } from "@/utils/dom";
+import { normalizeInterestTags } from "@/utils/interest-tags";
 
 /* ── DOM Locators ───────────────────────────────────── */
 
@@ -119,7 +120,7 @@ const detectS3State = (
   // childNodes to grab only direct text, then separately extract the .pl
   // vote-count span ("1有用").
   const commentEl = root.querySelector<HTMLElement>(
-    ".j.a_stars > span:not(.mr10):not(#rating)"
+    ".j.a_stars > span:not(.mr10):not(#rating):not(.color_gray)"
   );
   let comment = "";
   let usefulCount = "";
@@ -163,6 +164,16 @@ const detectS2Status = (
   return { hasWatching, status };
 };
 
+const extractInterestTags = (root: HTMLElement): string[] => {
+  const text =
+    root.querySelector<HTMLElement>(".color_gray")?.textContent || "";
+  const match = /^标签\s*[:：]\s*(?<tags>.+)$/u.exec(text.trim());
+  if (!match?.groups?.tags) {
+    return [];
+  }
+  return normalizeInterestTags(match.groups.tags);
+};
+
 /* ── Main Extractor ─────────────────────────────────── */
 
 /**
@@ -204,7 +215,7 @@ const extractInterestState = (doc: Document): InterestState => {
         marked: true,
         rating: s3.rating,
         status: s3.status,
-        tags: [],
+        tags: extractInterestTags(root as HTMLElement),
         usefulCount: s3.usefulCount,
       };
     }

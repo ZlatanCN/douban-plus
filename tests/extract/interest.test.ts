@@ -29,6 +29,7 @@ describe(extractInterestState, () => {
     <span>已看过</span>
   </span>
   <input type="hidden" id="n_rating" value="4" />
+  <span class="color_gray">标签:人生 温情</span>
 </div>
 </body></html>`);
     const restore = mockCookie(doc, "ck=test123;");
@@ -37,6 +38,32 @@ describe(extractInterestState, () => {
     expect(result.status).toBe("collect");
     expect(result.marked).toBeTruthy();
     expect(result.rating).toBe(4);
+    expect(result.tags).toStrictEqual(["人生", "温情"]);
+    restore();
+  });
+
+  it("keeps a tagged S3 mark's short comment separate from its tags", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<div id="interest_sect_level">
+  <div class="j a_stars">
+    <span class="mr10">我看过这部电影</span>
+    <br />
+    我的评价: <span id="rating"></span>
+    <br />
+    <span class="color_gray">标签:人生</span>
+    <br />
+    <span>好看<span class="pl"></span></span>
+  </div>
+</div>
+</body></html>`);
+    const restore = mockCookie(doc, "ck=test123;");
+
+    expect(extractInterestState(doc)).toMatchObject({
+      comment: "好看",
+      tags: ["人生"],
+    });
+
     restore();
   });
 
