@@ -1,5 +1,5 @@
 import type { JSX } from "preact";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 
 import { normalizeInterestTags } from "@/utils/interest-tags";
 
@@ -16,12 +16,14 @@ type InterestTagEditorProps = {
 const TagSuggestionGroup = ({
   disabled,
   label,
+  onBlur,
   onToggle,
   tags,
   value,
 }: {
   disabled: boolean;
   label: string;
+  onBlur: (event: JSX.TargetedFocusEvent<HTMLButtonElement>) => void;
   onToggle: (tag: string) => void;
   tags: string[];
   value: string[];
@@ -36,6 +38,7 @@ const TagSuggestionGroup = ({
           data-tag={tag}
           disabled={disabled}
           key={tag}
+          onBlur={onBlur}
           onClick={() => onToggle(tag)}
           type="button"
         >
@@ -56,6 +59,7 @@ const InterestTagEditor = ({
   tags,
 }: InterestTagEditorProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isSuggestionTrayOpen, setIsSuggestionTrayOpen] = useState(false);
   const currentDraft = (): string => inputRef.current?.value ?? draft;
   const commitDraft = (): void => {
     const pendingDraft = currentDraft();
@@ -97,6 +101,21 @@ const InterestTagEditor = ({
     event.preventDefault();
     commitDraft();
   };
+  const closeSuggestionTrayOnExit = (relatedTarget: EventTarget | null) => {
+    if (
+      !(relatedTarget instanceof Element) ||
+      !relatedTarget.closest(".atv-interest-modal-tags")
+    ) {
+      setIsSuggestionTrayOpen(false);
+    }
+  };
+  const onInputBlur = (event: JSX.TargetedFocusEvent<HTMLInputElement>) => {
+    commitDraft();
+    closeSuggestionTrayOnExit(event.relatedTarget);
+  };
+  const onTagBlur = (event: JSX.TargetedFocusEvent<HTMLButtonElement>) => {
+    closeSuggestionTrayOnExit(event.relatedTarget);
+  };
 
   return (
     <section
@@ -115,6 +134,7 @@ const InterestTagEditor = ({
             data-current-tag={tag}
             disabled={disabled}
             key={tag}
+            onBlur={onTagBlur}
             onClick={() => toggleTag(tag)}
             type="button"
           >
@@ -125,7 +145,8 @@ const InterestTagEditor = ({
           aria-label="输入标签"
           class="atv-interest-modal-tag-input"
           disabled={disabled}
-          onBlur={commitDraft}
+          onBlur={onInputBlur}
+          onFocus={() => setIsSuggestionTrayOpen(true)}
           onInput={(event) => onDraftChange(event.currentTarget.value)}
           onKeyDown={onKeyDown}
           placeholder={tags.length ? "添加标签" : "输入标签"}
@@ -133,19 +154,21 @@ const InterestTagEditor = ({
           value={draft}
         />
       </div>
-      {myTags.length ? (
+      {isSuggestionTrayOpen && myTags.length ? (
         <TagSuggestionGroup
           disabled={disabled}
           label="我的标签"
+          onBlur={onTagBlur}
           onToggle={toggleTag}
           tags={myTags}
           value={tags}
         />
       ) : null}
-      {popularTags.length ? (
+      {isSuggestionTrayOpen && popularTags.length ? (
         <TagSuggestionGroup
           disabled={disabled}
           label="热门标签"
+          onBlur={onTagBlur}
           onToggle={toggleTag}
           tags={popularTags}
           value={tags}

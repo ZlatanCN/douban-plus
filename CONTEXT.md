@@ -8,7 +8,9 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **作品标记**: 登录用户对当前作品作出的“想看”“在看”或“看过”状态，以及随状态提交或移除的评分、标签、短评和可见性。_Avoid_: 兴趣表单、原生按钮代理
 
-**私密作品标记**: 仅标记者本人可见的作品标记；它不等同于不发送广播，也不控制第三方同步。_Avoid_: 未分享作品、隐藏条目
+**私密作品标记**: 仅标记者本人可见的作品标记；在增强标记界面中，私密标记不能发布到豆瓣动态。_Avoid_: 未分享作品、隐藏条目
+
+**发布到豆瓣动态**: 将一条公开作品标记同步为自己的豆瓣动态；它仅适用于公开标记，且与第三方平台同步无关。_Avoid_: 第三方同步、隐私开关
 
 **我的标签**: 标记者已有的标签库，用于在编辑作品标记时提供可选建议；它不等同于当前作品已经使用的标签。_Avoid_: 热门标签、当前作品标签
 
@@ -207,8 +209,8 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
 8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
-   - External seam is `useInterestMarking({ subjectId, loggedIn, onFirstMarkSaved, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes. `onFirstMarkSaved` transfers the saved form state to the page composition seam for the one live unmarked-to-marked hero transition.
-   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads except for the first mark, whose optimistic hero state is owned by `SubjectPage`
+   - External seam is `useInterestMarking({ subjectId, subjectTitle, loggedIn, onLoginRequired, adapters })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes.
+   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads after every successful write; `SubjectPage` does not maintain optimistic interest state.
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
    - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 

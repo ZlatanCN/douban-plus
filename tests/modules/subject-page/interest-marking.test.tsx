@@ -79,6 +79,7 @@ const InterestMarkingHarness = ({
     loggedIn,
     onLoginRequired,
     subjectId: "1292052",
+    subjectTitle: "测试作品",
   });
 
   return (
@@ -119,12 +120,42 @@ describe("Interest marking", () => {
       expect(post).toHaveBeenCalledWith("1292052", "wish", {
         comment: "",
         isPrivate: false,
-        rating: undefined,
         shareToBroadcast: false,
         tags: [],
       })
     );
     expect(reload).toHaveBeenCalledOnce();
+  });
+
+  it("does not submit a saved rating after changing away from watched", async () => {
+    const post = vi
+      .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
+      .mockResolvedValue({ ok: true });
+    const root = renderIntoRoot(<InterestMarkingHarness post={post} />);
+
+    root.querySelector<HTMLButtonElement>("button")?.click();
+    await waitForForm(root);
+    root.querySelector<HTMLButtonElement>('[data-value="collect"]')?.click();
+    await Promise.resolve();
+    root
+      .querySelectorAll<HTMLButtonElement>(".atv-interest-modal-star")[3]
+      ?.click();
+    root.querySelector<HTMLButtonElement>('[data-value="wish"]')?.click();
+    await Promise.resolve();
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+
+    await vi.waitFor(() => expect(post).toHaveBeenCalledOnce());
+    const [, status, options] = post.mock.calls[0] ?? [];
+    expect(status).toBe("wish");
+    expect(options).toMatchObject({
+      comment: "",
+      isPrivate: false,
+      shareToBroadcast: false,
+      tags: [],
+    });
+    expect(options).not.toHaveProperty("rating");
   });
 
   it("requests login instead of opening a form for a logged-out user", () => {
@@ -230,7 +261,7 @@ describe("Interest marking", () => {
         isPrivate: true,
         myTags: ["成长"],
         popularTags: [],
-        shareToBroadcast: true,
+        shareToBroadcast: false,
         status: "collect",
         tags: ["人生"],
       });
@@ -256,8 +287,7 @@ describe("Interest marking", () => {
       expect(post).toHaveBeenCalledWith("1292052", "collect", {
         comment: "",
         isPrivate: true,
-        rating: undefined,
-        shareToBroadcast: true,
+        shareToBroadcast: false,
         tags: ["人生"],
       })
     );

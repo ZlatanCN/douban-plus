@@ -125,11 +125,15 @@ describe(InterestForm, () => {
         onClose={vi.fn<() => void>()}
         source={readySource({ status: "do" })}
         state={makeState({ marked: false, status: "none" })}
+        subjectTitle="测试作品"
       />
     );
 
-    expect(root.querySelector("#atv-interest-modal-title")?.textContent).toBe(
+    expect(root.querySelector(".atv-interest-modal-eyebrow")?.textContent).toBe(
       "编辑作品标记"
+    );
+    expect(root.querySelector("#atv-interest-modal-title")?.textContent).toBe(
+      "测试作品"
     );
     expect(root.querySelector(".atv-interest-modal-remove")).not.toBeNull();
     expect(
@@ -139,6 +143,87 @@ describe(InterestForm, () => {
     ).toBe("true");
   });
 
+  it("orients a new mark around the work title and shows rating only for watched work", async () => {
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ status: "none" })}
+        state={makeState()}
+        subjectTitle="纸牌屋 第一季"
+      />
+    );
+
+    expect(root.querySelector(".atv-interest-modal-eyebrow")?.textContent).toBe(
+      "标记作品"
+    );
+    expect(root.querySelector("#atv-interest-modal-title")?.textContent).toBe(
+      "纸牌屋 第一季"
+    );
+    expect(root.querySelector(".atv-interest-modal-stars")).toBeNull();
+
+    root.querySelector<HTMLButtonElement>('[data-value="collect"]')?.click();
+    await Promise.resolve();
+
+    const rating = root.querySelector(".atv-interest-modal-stars");
+    expect(rating?.getAttribute("aria-label")).toBe("评分（可选）");
+    expect(
+      root
+        .querySelector<HTMLButtonElement>(".atv-interest-modal-star")
+        ?.getAttribute("aria-label")
+    ).toBe("评分 1 星");
+  });
+
+  it("keeps a private mark out of the publishing flow", async () => {
+    const onSave = vi.fn<ModalCallbacks["onSave"]>(() =>
+      Promise.resolve({ ok: true })
+    );
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks({ onSave })}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ shareToBroadcast: true, status: "none" })}
+        state={makeState()}
+        subjectTitle="纸牌屋 第一季"
+      />
+    );
+
+    expect(
+      root.querySelector<HTMLInputElement>(
+        'input[name="interest-visibility"][value="public"]'
+      )?.checked
+    ).toBeTruthy();
+    expect(
+      root.querySelector("#atv-interest-modal-share-broadcast")
+    ).not.toBeNull();
+
+    const privateVisibility = root.querySelector<HTMLInputElement>(
+      'input[name="interest-visibility"][value="private"]'
+    );
+    if (privateVisibility) {
+      privateVisibility.checked = true;
+      privateVisibility.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    await Promise.resolve();
+
+    expect(
+      root.querySelector("#atv-interest-modal-share-broadcast")
+    ).toBeNull();
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+      ?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(onSave).toHaveBeenCalledWith({
+      comment: "",
+      isPrivate: true,
+      rating: 0,
+      shareToBroadcast: false,
+      status: "wish",
+      tags: [],
+    });
+  });
+
   it("renders status controls, rating, comment and submit", () => {
     const root = renderIntoRoot(
       <InterestForm
@@ -146,6 +231,7 @@ describe(InterestForm, () => {
         onClose={vi.fn<() => void>()}
         source={readySource({ status: "collect" })}
         state={makeState({ comment: "还不错", hasWatching: true, rating: 3 })}
+        subjectTitle="测试作品"
       />
     );
 
@@ -163,6 +249,41 @@ describe(InterestForm, () => {
     );
   });
 
+  it("makes an optional rating easy to clear", async () => {
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ status: "collect" })}
+        state={makeState({ marked: true, rating: 3, status: "collect" })}
+        subjectTitle="测试作品"
+      />
+    );
+
+    root
+      .querySelectorAll<HTMLButtonElement>(".atv-interest-modal-star")[2]
+      ?.click();
+    await Promise.resolve();
+    expect(
+      root.querySelectorAll(".atv-interest-modal-star.is-full")
+    ).toHaveLength(0);
+
+    root
+      .querySelectorAll<HTMLButtonElement>(".atv-interest-modal-star")[3]
+      ?.click();
+    await Promise.resolve();
+    expect(
+      root.querySelectorAll(".atv-interest-modal-star.is-full")
+    ).toHaveLength(4);
+    root
+      .querySelector<HTMLButtonElement>(".atv-interest-modal-rating-clear")
+      ?.click();
+    await Promise.resolve();
+    expect(
+      root.querySelectorAll(".atv-interest-modal-star.is-full")
+    ).toHaveLength(0);
+  });
+
   it("resets form state for a reopened modal session", async () => {
     const callbacks = makeCallbacks();
     const onClose = vi.fn<() => void>();
@@ -174,6 +295,7 @@ describe(InterestForm, () => {
           onClose={onClose}
           source={readySource({ status: "wish" })}
           state={makeState({ comment: "初始短评" })}
+          subjectTitle="测试作品"
         />
       </ModalSession>
     );
@@ -193,6 +315,7 @@ describe(InterestForm, () => {
           onClose={onClose}
           source={readySource({ status: "wish" })}
           state={makeState({ comment: "初始短评" })}
+          subjectTitle="测试作品"
         />
       </ModalSession>,
       root
@@ -221,10 +344,12 @@ describe(InterestForm, () => {
         onClose={onClose}
         source={readySource({ status: "wish" })}
         state={makeState({ hasWatching: true })}
+        subjectTitle="测试作品"
       />
     );
 
     root.querySelector<HTMLButtonElement>('[data-value="collect"]')?.click();
+    await Promise.resolve();
     root.querySelectorAll<HTMLElement>(".atv-interest-modal-star")[3]?.click();
     const textarea = root.querySelector<HTMLTextAreaElement>(
       ".atv-interest-modal-comment"
@@ -268,6 +393,7 @@ describe(InterestForm, () => {
         onClose={onClose}
         source={readySource({ status: "wish" })}
         state={makeState({ marked: true, status: "wish" })}
+        subjectTitle="测试作品"
       />
     );
 
@@ -304,6 +430,7 @@ describe(InterestForm, () => {
         onRetry={vi.fn<() => void>()}
         source={{ kind: "loading" }}
         state={makeState({ comment: "初始短评", rating: 3 })}
+        subjectTitle="测试作品"
       />
     );
 
@@ -329,6 +456,7 @@ describe(InterestForm, () => {
         onRetry={onRetry}
         source={{ kind: "error", message: "无法读取完整标记" }}
         state={makeState()}
+        subjectTitle="测试作品"
       />
     );
 
@@ -368,31 +496,36 @@ describe(InterestForm, () => {
           tags: ["人生"],
         })}
         state={makeState({ marked: true })}
+        subjectTitle="测试作品"
       />
     );
 
-    root.querySelector<HTMLButtonElement>('[data-tag="成长"]')?.click();
     const input = root.querySelector<HTMLInputElement>(
       ".atv-interest-modal-tag-input"
     );
+    expect(root.querySelector('[data-tag="成长"]')).toBeNull();
+    input?.dispatchEvent(new FocusEvent("focus", { bubbles: true }));
+    await Promise.resolve();
+    expect(root.querySelector('[data-tag="成长"]')).not.toBeNull();
+    root
+      .querySelector<HTMLButtonElement>('[data-tag="成长"]')
+      ?.dispatchEvent(new FocusEvent("blur", { bubbles: true }));
+    await Promise.resolve();
+    expect(root.querySelector('[data-tag="成长"]')).toBeNull();
+    input?.dispatchEvent(new FocusEvent("focus", { bubbles: true }));
+    await Promise.resolve();
+    root.querySelector<HTMLButtonElement>('[data-tag="成长"]')?.click();
     if (input) {
       input.value = "科幻";
       input.dispatchEvent(new InputEvent("input", { bubbles: true }));
     }
     root.querySelector<HTMLButtonElement>('[data-tag="温情"]')?.click();
-    const privateInput = root.querySelector<HTMLInputElement>(
-      ".atv-interest-modal-private"
+    const privateVisibility = root.querySelector<HTMLInputElement>(
+      'input[name="interest-visibility"][value="private"]'
     );
-    if (privateInput) {
-      privateInput.checked = true;
-      privateInput.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-    const broadcastInput = root.querySelector<HTMLInputElement>(
-      ".atv-interest-modal-share-broadcast"
-    );
-    if (broadcastInput) {
-      broadcastInput.checked = true;
-      broadcastInput.dispatchEvent(new Event("change", { bubbles: true }));
+    if (privateVisibility) {
+      privateVisibility.checked = true;
+      privateVisibility.dispatchEvent(new Event("change", { bubbles: true }));
     }
     const textarea = root.querySelector<HTMLTextAreaElement>(
       ".atv-interest-modal-comment"
@@ -416,7 +549,7 @@ describe(InterestForm, () => {
       comment: "短评",
       isPrivate: true,
       rating: 0,
-      shareToBroadcast: true,
+      shareToBroadcast: false,
       status: "collect",
       tags: ["人生", "成长", "科幻", "温情"],
     });
@@ -432,6 +565,7 @@ describe(InterestForm, () => {
         onClose={vi.fn<() => void>()}
         source={readySource({ tags: ["人生", "温情"] })}
         state={makeState({ marked: true })}
+        subjectTitle="测试作品"
       />
     );
     const input = root.querySelector<HTMLInputElement>(

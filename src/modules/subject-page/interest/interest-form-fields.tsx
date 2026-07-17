@@ -5,6 +5,7 @@ import type { InterestFormState, InterestState } from "@/types";
 import type { InterestFormSource } from "./interest-form-source";
 import { StarRatingInput } from "./star-rating-input";
 import { InterestTagEditor } from "./tag-editor";
+import { VisibilityAndPublishing } from "./visibility-and-publishing";
 
 type InterestFormFieldsProps = {
   disabled: boolean;
@@ -88,7 +89,8 @@ const InterestFormFields = ({
 
   return (
     <>
-      <div
+      <fieldset
+        aria-label="标记状态"
         class="atv-interest-modal-statuses"
         style={
           {
@@ -111,12 +113,14 @@ const InterestFormFields = ({
             {entry.label}
           </button>
         ))}
-      </div>
-      <StarRatingInput
-        disabled={disabled}
-        onChange={(rating) => onFormChange({ rating })}
-        rating={form.rating}
-      />
+      </fieldset>
+      {form.status === "collect" ? (
+        <StarRatingInput
+          disabled={disabled}
+          onChange={(rating) => onFormChange({ rating })}
+          rating={form.rating}
+        />
+      ) : null}
       {tagField}
       <label
         class="atv-interest-modal-field-header"
@@ -137,40 +141,12 @@ const InterestFormFields = ({
         rows={3}
         value={form.comment}
       />
-      <div class="atv-interest-modal-settings">
-        <label
-          class="atv-interest-modal-private-setting"
-          for="atv-interest-modal-private"
-        >
-          <input
-            checked={form.isPrivate}
-            class="atv-interest-modal-private"
-            disabled={disabled}
-            id="atv-interest-modal-private"
-            onChange={(event) =>
-              onFormChange({ isPrivate: event.currentTarget.checked })
-            }
-            type="checkbox"
-          />
-          <span>仅自己可见</span>
-        </label>
-        <label
-          class="atv-interest-modal-private-setting"
-          for="atv-interest-modal-share-broadcast"
-        >
-          <input
-            checked={form.shareToBroadcast}
-            class="atv-interest-modal-private atv-interest-modal-share-broadcast"
-            disabled={disabled}
-            id="atv-interest-modal-share-broadcast"
-            onChange={(event) =>
-              onFormChange({ shareToBroadcast: event.currentTarget.checked })
-            }
-            type="checkbox"
-          />
-          <span>发布到豆瓣动态</span>
-        </label>
-      </div>
+      <VisibilityAndPublishing
+        disabled={disabled}
+        isPrivate={form.isPrivate}
+        onChange={onFormChange}
+        shareToBroadcast={form.shareToBroadcast}
+      />
     </>
   );
 };

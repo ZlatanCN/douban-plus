@@ -42,9 +42,24 @@ const fetchMcRating = createRatingFetcher<McRating>({
   slugSeparator: "-",
   urls: ({ isTV, season, slug, year }) => {
     if (isTV) {
-      return season
+      const yearSlug = year ? `${slug}-${year}` : slug;
+      if (season) {
+        return [
+          // Priority 1: year-disambiguated slug with exact season
+          ...(year
+            ? [`https://www.metacritic.com/tv/${yearSlug}/season-${season}`]
+            : []),
+          // Priority 2: bare slug with exact season (current behaviour)
+          `https://www.metacritic.com/tv/${slug}/season-${season}`,
+          // Priority 3: year-disambiguated main page (fallback when season-URL fails)
+          ...(year ? [`https://www.metacritic.com/tv/${yearSlug}`] : []),
+          // Priority 4: bare slug main page
+          `https://www.metacritic.com/tv/${slug}`,
+        ];
+      }
+      return year
         ? [
-            `https://www.metacritic.com/tv/${slug}/season-${season}`,
+            `https://www.metacritic.com/tv/${yearSlug}`,
             `https://www.metacritic.com/tv/${slug}`,
           ]
         : [`https://www.metacritic.com/tv/${slug}`];

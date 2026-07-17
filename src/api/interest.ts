@@ -98,7 +98,9 @@ const postInterest = async (
     rating: typeof options?.rating === "number" ? String(options.rating) : "",
     tags: options?.tags?.join(" ") ?? "",
     ...(options?.isPrivate ? { private: "on" } : {}),
-    ...(options?.shareToBroadcast ? { "share-shuo": "douban" } : {}),
+    ...(options?.shareToBroadcast && !options.isPrivate
+      ? { "share-shuo": "douban" }
+      : {}),
   });
 
   try {

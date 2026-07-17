@@ -20,6 +20,7 @@ type UseInterestMarkingOptions = {
   loggedIn: boolean;
   onLoginRequired: (action: string) => void;
   subjectId: string;
+  subjectTitle: string;
 };
 
 type InterestMarking = {
@@ -32,8 +33,10 @@ const saveOptionsFromForm = (
 ): InterestWriteOptions => ({
   comment: form.comment,
   isPrivate: form.isPrivate,
-  ...(form.rating > 0 ? { rating: form.rating } : {}),
-  shareToBroadcast: form.shareToBroadcast,
+  ...(form.status === "collect" && form.rating > 0
+    ? { rating: form.rating }
+    : {}),
+  shareToBroadcast: form.isPrivate ? false : form.shareToBroadcast,
   tags: form.tags,
 });
 
@@ -42,6 +45,7 @@ const useInterestMarking = ({
   loggedIn,
   onLoginRequired,
   subjectId,
+  subjectTitle,
 }: UseInterestMarkingOptions): InterestMarking => {
   const activeInterest = useModalRequest<InterestState>();
   const { fetch, post, reload, remove } = adapters;
@@ -136,6 +140,7 @@ const useInterestMarking = ({
           onRetry={retry}
           source={source}
           state={activeInterest.active.value}
+          subjectTitle={subjectTitle}
         />
       </ModalSession>
     ) : null,

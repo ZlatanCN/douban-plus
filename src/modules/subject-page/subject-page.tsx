@@ -72,6 +72,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
     loggedIn: data.interest.loggedIn,
     onLoginRequired: loginAction.handleOpen,
     subjectId: data.subjectId,
+    subjectTitle: data.title.primary,
   });
   const canVote = (): boolean => {
     if (!data.interest.loggedIn) {

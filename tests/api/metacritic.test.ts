@@ -214,14 +214,44 @@ describe("fetchMcRating", () => {
     );
   });
 
-  it("ignores year for TV titles (t16)", async () => {
-    mockGmGet.mockResolvedValue(makeMcPage(90, 15));
+  it("uses year-suffixed slug as first attempt for TV with year, falls back to bare slug (t16)", async () => {
+    mockGmGet
+      // year-suffixed succeeds
+      .mockResolvedValueOnce(makeMcPage(90, 15));
 
-    await fetchMcRating("The Wire", true, undefined, "2002");
+    await fetchMcRating("House of Cards", true, undefined, "2013");
 
-    // Should NOT include year in the URL for TV
-    expect(mockGmGet).toHaveBeenCalledWith(
-      "https://www.metacritic.com/tv/the-wire",
+    expect(mockGmGet).toHaveBeenNthCalledWith(
+      1,
+      "https://www.metacritic.com/tv/house-of-cards-2013",
+      "https://www.metacritic.com/"
+    );
+  });
+
+  it("falls back to bare slug for TV when year-suffixed URL fails (t16b)", async () => {
+    mockGmGet
+      // year-suffixed fails
+      .mockRejectedValueOnce(new Error("404"))
+      // bare slug succeeds
+      .mockResolvedValueOnce(makeMcPage(90, 15));
+
+    const result = await fetchMcRating(
+      "House of Cards",
+      true,
+      undefined,
+      "2013"
+    );
+
+    expect(result).toStrictEqual({ reviewCount: 15, score: 90 });
+    expect(mockGmGet).toHaveBeenCalledTimes(2);
+    expect(mockGmGet).toHaveBeenNthCalledWith(
+      1,
+      "https://www.metacritic.com/tv/house-of-cards-2013",
+      "https://www.metacritic.com/"
+    );
+    expect(mockGmGet).toHaveBeenNthCalledWith(
+      2,
+      "https://www.metacritic.com/tv/house-of-cards",
       "https://www.metacritic.com/"
     );
   });

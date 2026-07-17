@@ -23,6 +23,7 @@ type InterestFormProps = {
   onRetry?: () => void;
   source: InterestFormSource;
   state: InterestState;
+  subjectTitle: string;
 };
 
 const initialStatus = (state: InterestState): InterestFormState["status"] =>
@@ -35,7 +36,9 @@ const formFrom = (
   comment: state.comment || "",
   isPrivate: snapshot?.isPrivate ?? false,
   rating: state.rating || 0,
-  shareToBroadcast: snapshot?.shareToBroadcast ?? false,
+  shareToBroadcast: snapshot?.isPrivate
+    ? false
+    : (snapshot?.shareToBroadcast ?? false),
   status:
     snapshot?.status && snapshot.status !== "none"
       ? snapshot.status
@@ -48,6 +51,7 @@ const InterestFormContent = ({
   onRetry,
   source,
   state,
+  subjectTitle,
 }: Omit<InterestFormProps, "onClose">) => {
   const handleClose = useModalClose();
   const snapshot = source.kind === "ready" ? source.snapshot : null;
@@ -113,12 +117,17 @@ const InterestFormContent = ({
     <>
       <div class="atv-modal-accent-bar" />
       <div class="atv-interest-modal-header">
-        <span
-          class="atv-interest-modal-header-title"
-          id="atv-interest-modal-title"
-        >
-          {isExistingMark ? "编辑作品标记" : "标记作品"}
-        </span>
+        <div class="atv-interest-modal-header-copy">
+          <p class="atv-interest-modal-eyebrow">
+            {isExistingMark ? "编辑作品标记" : "标记作品"}
+          </p>
+          <h2
+            class="atv-interest-modal-header-title"
+            id="atv-interest-modal-title"
+          >
+            {subjectTitle}
+          </h2>
+        </div>
         <ModalCloseButton
           ariaLabel="关闭标记弹窗"
           className="atv-interest-modal-close"
@@ -137,45 +146,52 @@ const InterestFormContent = ({
           state={state}
           tagDraft={tagDraft}
         />
-        {confirmingRemoval ? (
-          <div class="atv-interest-modal-removal-confirmation" role="alert">
-            <span>取消这条作品标记？</span>
-            <div>
-              <button onClick={() => setConfirmingRemoval(false)} type="button">
-                保留标记
-              </button>
-              <button
-                disabled={disabled}
-                onClick={() => void remove()}
-                type="button"
-              >
-                确认取消
-              </button>
+        <footer class="atv-interest-modal-footer">
+          {confirmingRemoval ? (
+            <div class="atv-interest-modal-removal-confirmation" role="alert">
+              <span>取消这条作品标记？</span>
+              <div>
+                <button
+                  onClick={() => setConfirmingRemoval(false)}
+                  type="button"
+                >
+                  保留标记
+                </button>
+                <button
+                  disabled={disabled}
+                  onClick={() => void remove()}
+                  type="button"
+                >
+                  确认取消
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <div class="atv-interest-modal-actions">
-            <button
-              class="atv-interest-modal-submit"
-              disabled={disabled}
-              onClick={() => void save()}
-              type="button"
-            >
-              {loading ? "保存中..." : "保存标记"}
-            </button>
-            {isExistingMark ? (
+          ) : (
+            <div class="atv-interest-modal-actions">
               <button
-                class="atv-interest-modal-remove"
+                class="atv-interest-modal-submit"
                 disabled={disabled}
-                onClick={() => setConfirmingRemoval(true)}
+                onClick={() => void save()}
                 type="button"
               >
-                取消标记
+                {loading ? "保存中..." : "保存标记"}
               </button>
-            ) : null}
+              {isExistingMark ? (
+                <button
+                  class="atv-interest-modal-remove"
+                  disabled={disabled}
+                  onClick={() => setConfirmingRemoval(true)}
+                  type="button"
+                >
+                  取消标记
+                </button>
+              ) : null}
+            </div>
+          )}
+          <div aria-live="polite" class="atv-interest-modal-error">
+            {error}
           </div>
-        )}
-        <div class="atv-interest-modal-error">{error}</div>
+        </footer>
       </div>
     </>
   );
@@ -187,6 +203,7 @@ const InterestForm = ({
   onRetry,
   source,
   state,
+  subjectTitle,
 }: InterestFormProps) => (
   <ModalShell
     ariaLabelledBy="atv-interest-modal-title"
@@ -201,6 +218,7 @@ const InterestForm = ({
         {...(onRetry ? { onRetry } : {})}
         source={source}
         state={state}
+        subjectTitle={subjectTitle}
       />
     </ModalSessionContent>
   </ModalShell>

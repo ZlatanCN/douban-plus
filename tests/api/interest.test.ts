@@ -267,6 +267,19 @@ describe(postInterest, () => {
     const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
     expect(params.get("share-shuo")).toBe("douban");
   });
+
+  it("never publishes a private mark as a Douban broadcast", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmPost.mockResolvedValue('{"r":0}');
+
+    await postInterest("123", "wish", {
+      isPrivate: true,
+      shareToBroadcast: true,
+    });
+
+    const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
+    expect(params.has("share-shuo")).toBeFalsy();
+  });
 });
 
 // ----------------------------------------------------------------
