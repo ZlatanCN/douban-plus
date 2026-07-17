@@ -19,6 +19,7 @@ type UseInterestMarkingOptions = {
   adapters: InterestMarkingActions;
   loggedIn: boolean;
   onLoginRequired: (action: string) => void;
+  onInterestChange: (interest: InterestState) => void;
   subjectId: string;
   subjectTitle: string;
 };
@@ -40,15 +41,44 @@ const saveOptionsFromForm = (
   tags: form.tags,
 });
 
+/**
+ * Projects a confirmed form submission into the state rendered in Hero.
+ * Visibility changes do not alter the current user's own collection data.
+ */
+const interestFromSavedForm = (
+  interest: InterestState,
+  form: InterestFormState
+): InterestState => ({
+  ...interest,
+  comment: form.comment,
+  marked: true,
+  rating: form.status === "collect" ? form.rating : 0,
+  status: form.status,
+  tags: form.tags,
+  usefulCount: "",
+});
+
+const interestAfterRemoval = (interest: InterestState): InterestState => ({
+  ...interest,
+  comment: "",
+  date: "",
+  marked: false,
+  rating: 0,
+  status: "none",
+  tags: [],
+  usefulCount: "",
+});
+
 const useInterestMarking = ({
   adapters,
   loggedIn,
   onLoginRequired,
+  onInterestChange,
   subjectId,
   subjectTitle,
 }: UseInterestMarkingOptions): InterestMarking => {
   const activeInterest = useModalRequest<InterestState>();
-  const { fetch, post, reload, remove } = adapters;
+  const { fetch, post, remove } = adapters;
   const [source, setSource] = useState<InterestFormSource>({
     kind: "loading",
   });
@@ -112,8 +142,8 @@ const useInterestMarking = ({
   const formCallbacks: ModalCallbacks = {
     onRemove: async (status) => {
       const result = await remove(subjectId, status);
-      if (result.ok) {
-        reload();
+      if (result.ok && activeInterest.active) {
+        onInterestChange(interestAfterRemoval(activeInterest.active.value));
       }
       return result;
     },
@@ -123,8 +153,10 @@ const useInterestMarking = ({
         form.status,
         saveOptionsFromForm(form)
       );
-      if (result.ok) {
-        reload();
+      if (result.ok && activeInterest.active) {
+        onInterestChange(
+          interestFromSavedForm(activeInterest.active.value, form)
+        );
       }
       return result;
     },
@@ -147,5 +179,5 @@ const useInterestMarking = ({
   };
 };
 
-export { useInterestMarking };
+export { interestAfterRemoval, interestFromSavedForm, useInterestMarking };
 export type { InterestMarking, UseInterestMarkingOptions };

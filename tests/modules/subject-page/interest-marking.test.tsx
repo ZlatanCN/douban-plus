@@ -17,6 +17,7 @@ type InterestMarkingHarnessProps = {
   fetch?: (subjectId: string) => Promise<InterestFormSnapshot>;
   loggedIn?: boolean;
   onLoginRequired?: (action: string) => void;
+  onInterestChange?: (interest: InterestState) => void;
   post?: (
     subjectId: string,
     status: InterestFormState["status"],
@@ -27,7 +28,6 @@ type InterestMarkingHarnessProps = {
       tags?: string[];
     }
   ) => Promise<{ error?: string; ok: boolean }>;
-  reload?: () => void;
   remove?: (
     subjectId: string,
     status: InterestState["status"]
@@ -61,7 +61,6 @@ const defaultSnapshot = (
   ...overrides,
 });
 const failPost = () => Promise.resolve({ ok: false });
-const noop = (): undefined => undefined;
 const failRemove = () => Promise.resolve({ ok: false });
 const fetchSnapshot = () => Promise.resolve(defaultSnapshot());
 
@@ -69,14 +68,15 @@ const InterestMarkingHarness = ({
   fetch = fetchSnapshot,
   loggedIn = true,
   onLoginRequired = vi.fn<(action: string) => void>(),
+  onInterestChange = vi.fn<(interest: InterestState) => void>(),
   post = failPost,
-  reload = noop,
   remove = failRemove,
   state = makeState(),
 }: InterestMarkingHarnessProps) => {
   const interestMarking = useInterestMarking({
-    adapters: { fetch, post, reload, remove },
+    adapters: { fetch, post, remove },
     loggedIn,
+    onInterestChange,
     onLoginRequired,
     subjectId: "1292052",
     subjectTitle: "测试作品",
@@ -102,13 +102,13 @@ const waitForForm = async (root: HTMLElement): Promise<void> => {
 };
 
 describe("Interest marking", () => {
-  it("refreshes after a successful first mark", async () => {
+  it("updates the rendered interest state after a successful first mark", async () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
-    const reload = vi.fn<() => void>();
+    const onInterestChange = vi.fn<(interest: InterestState) => void>();
     const root = renderIntoRoot(
-      <InterestMarkingHarness post={post} reload={reload} />
+      <InterestMarkingHarness onInterestChange={onInterestChange} post={post} />
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
@@ -124,7 +124,11 @@ describe("Interest marking", () => {
         tags: [],
       })
     );
-    expect(reload).toHaveBeenCalledOnce();
+    await vi.waitFor(() =>
+      expect(onInterestChange).toHaveBeenCalledWith(
+        makeState({ marked: true, status: "wish" })
+      )
+    );
   });
 
   it("does not submit a saved rating after changing away from watched", async () => {
@@ -173,13 +177,13 @@ describe("Interest marking", () => {
     expect(root.querySelector("#atv-interest-modal")).toBeNull();
   });
 
-  it("keeps the form open and does not refresh after a failed mark", async () => {
+  it("keeps the form open without changing rendered state after a failed mark", async () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ error: string; ok: boolean }>>()
       .mockResolvedValue({ error: "未登录", ok: false });
-    const reload = vi.fn<() => void>();
+    const onInterestChange = vi.fn<(interest: InterestState) => void>();
     const root = renderIntoRoot(
-      <InterestMarkingHarness post={post} reload={reload} />
+      <InterestMarkingHarness onInterestChange={onInterestChange} post={post} />
     );
 
     root.querySelector<HTMLButtonElement>("button")?.click();
@@ -193,19 +197,19 @@ describe("Interest marking", () => {
       )
     );
 
-    expect(reload).not.toHaveBeenCalled();
+    expect(onInterestChange).not.toHaveBeenCalled();
     expect(root.querySelector("#atv-interest-modal")).not.toBeNull();
   });
 
-  it("removes an existing mark after the inline confirmation and refreshes", async () => {
+  it("removes an existing mark after the inline confirmation", async () => {
     const remove = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
-    const reload = vi.fn<() => void>();
+    const onInterestChange = vi.fn<(interest: InterestState) => void>();
     const root = renderIntoRoot(
       <InterestMarkingHarness
         fetch={() => Promise.resolve(defaultSnapshot({ status: "collect" }))}
-        reload={reload}
+        onInterestChange={onInterestChange}
         remove={remove}
         state={makeState({ marked: true, status: "collect" })}
       />
@@ -229,19 +233,21 @@ describe("Interest marking", () => {
     await vi.waitFor(() =>
       expect(remove).toHaveBeenCalledWith("1292052", "collect")
     );
-    expect(reload).toHaveBeenCalledOnce();
+    expect(onInterestChange).toHaveBeenCalledWith(
+      makeState({ marked: false, status: "none" })
+    );
   });
 
-  it("refreshes after saving an existing mark", async () => {
+  it("updates an existing mark without reloading the page", async () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
-    const reload = vi.fn<() => void>();
+    const onInterestChange = vi.fn<(interest: InterestState) => void>();
     const root = renderIntoRoot(
       <InterestMarkingHarness
         fetch={() => Promise.resolve(defaultSnapshot({ status: "collect" }))}
         post={post}
-        reload={reload}
+        onInterestChange={onInterestChange}
         state={makeState({ marked: true, status: "collect" })}
       />
     );
@@ -251,7 +257,11 @@ describe("Interest marking", () => {
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();
-    await vi.waitFor(() => expect(reload).toHaveBeenCalledOnce());
+    await vi.waitFor(() =>
+      expect(onInterestChange).toHaveBeenCalledWith(
+        makeState({ marked: true, status: "collect" })
+      )
+    );
   });
 
   it("uses the fresh native snapshot when saving a previously marked work", async () => {
@@ -268,12 +278,12 @@ describe("Interest marking", () => {
     const post = vi
       .fn<(...args: unknown[]) => Promise<{ ok: boolean }>>()
       .mockResolvedValue({ ok: true });
-    const reload = vi.fn<() => void>();
+    const onInterestChange = vi.fn<(interest: InterestState) => void>();
     const root = renderIntoRoot(
       <InterestMarkingHarness
         fetch={fetch}
         post={post}
-        reload={reload}
+        onInterestChange={onInterestChange}
         state={makeState({ marked: false, status: "none" })}
       />
     );
@@ -291,6 +301,14 @@ describe("Interest marking", () => {
         tags: ["人生"],
       })
     );
-    expect(reload).toHaveBeenCalledOnce();
+    await vi.waitFor(() =>
+      expect(onInterestChange).toHaveBeenCalledWith(
+        makeState({
+          marked: true,
+          status: "collect",
+          tags: ["人生"],
+        })
+      )
+    );
   });
 });

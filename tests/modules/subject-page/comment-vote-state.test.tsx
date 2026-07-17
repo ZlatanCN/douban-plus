@@ -106,7 +106,6 @@ const makeRuntime = (
           tags: [],
         }),
       post: () => Promise.resolve({ ok: false }),
-      reload: () => {},
       remove: () => Promise.resolve({ ok: false }),
     },
   },

@@ -24,10 +24,6 @@ type SubjectPageRuntimeProps = {
   doc: Document;
 };
 
-const reloadPage = (): void => {
-  location.reload();
-};
-
 const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
   const series = useSeriesRuntime(data.series, doc);
   const summary = useNativeSummary(data.summary, doc);
@@ -55,7 +51,6 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
       interestMarking: {
         fetch: fetchInterestSnapshot,
         post: postInterest,
-        reload: reloadPage,
         remove: removeInterest,
       },
     },

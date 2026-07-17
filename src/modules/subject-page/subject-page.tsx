@@ -37,10 +37,14 @@ type ActiveMediaModal =
   | { alt: string; src: string; type: "poster" }
   | { trailer: Trailer; type: "video" };
 
-const toHeroData = (data: DoubanData, summary: string | null): HeroData => ({
+const toHeroData = (
+  data: DoubanData,
+  summary: string | null,
+  interest = data.interest
+): HeroData => ({
   imdbId: data.info.imdb || null,
   info: data.info,
-  interest: data.interest,
+  interest,
   isTV: data.isTV,
   photos: data.photos,
   poster: data.poster,
@@ -53,6 +57,7 @@ const toHeroData = (data: DoubanData, summary: string | null): HeroData => ({
 });
 
 const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
+  const [interest, setInterest] = useState(data.interest);
   const activeComment = useModalRequest<Comment>();
   const activeReview = useModalRequest<Review>();
   const activeMediaModal = useModalRequest<ActiveMediaModal>();
@@ -69,20 +74,21 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
   const interestMarking = useInterestMarking({
     adapters: runtime.actions.interestMarking,
-    loggedIn: data.interest.loggedIn,
+    loggedIn: interest.loggedIn,
+    onInterestChange: setInterest,
     onLoginRequired: loginAction.handleOpen,
     subjectId: data.subjectId,
     subjectTitle: data.title.primary,
   });
   const canVote = (): boolean => {
-    if (!data.interest.loggedIn) {
+    if (!interest.loggedIn) {
       loginAction.handleOpen("给短评点有用");
       return false;
     }
     return true;
   };
   const canReviewVote = (): boolean => {
-    if (!data.interest.loggedIn) {
+    if (!interest.loggedIn) {
       loginAction.handleOpen("给影评投票");
       return false;
     }
@@ -101,7 +107,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       />
       <Hero
         callbacks={interestMarking.callbacks}
-        data={toHeroData(data, runtime.summary)}
+        data={toHeroData(data, runtime.summary, interest)}
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>

@@ -171,7 +171,7 @@ describe(InterestForm, () => {
       root
         .querySelector<HTMLButtonElement>(".atv-interest-modal-star")
         ?.getAttribute("aria-label")
-    ).toBe("评分 1 星");
+    ).toBe("设为 1 星评分");
   });
 
   it("keeps a private mark out of the publishing flow", async () => {
@@ -249,7 +249,7 @@ describe(InterestForm, () => {
     );
   });
 
-  it("makes an optional rating easy to clear", async () => {
+  it("keeps an existing rating when its selected star is pressed again", async () => {
     const root = renderIntoRoot(
       <InterestForm
         callbacks={makeCallbacks()}
@@ -266,7 +266,12 @@ describe(InterestForm, () => {
     await Promise.resolve();
     expect(
       root.querySelectorAll(".atv-interest-modal-star.is-full")
-    ).toHaveLength(0);
+    ).toHaveLength(3);
+    expect(
+      root
+        .querySelectorAll<HTMLButtonElement>(".atv-interest-modal-star")[2]
+        ?.getAttribute("aria-label")
+    ).toBe("设为 3 星评分");
 
     root
       .querySelectorAll<HTMLButtonElement>(".atv-interest-modal-star")[3]
@@ -275,13 +280,7 @@ describe(InterestForm, () => {
     expect(
       root.querySelectorAll(".atv-interest-modal-star.is-full")
     ).toHaveLength(4);
-    root
-      .querySelector<HTMLButtonElement>(".atv-interest-modal-rating-clear")
-      ?.click();
-    await Promise.resolve();
-    expect(
-      root.querySelectorAll(".atv-interest-modal-star.is-full")
-    ).toHaveLength(0);
+    expect(root.querySelector(".atv-interest-modal-rating-clear")).toBeNull();
   });
 
   it("resets form state for a reopened modal session", async () => {

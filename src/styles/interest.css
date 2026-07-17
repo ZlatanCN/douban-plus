@@ -156,24 +156,11 @@
   letter-spacing: 0.01em;
 }
 
-.atv-interest-modal-rating-header > div {
-  display: flex;
-  align-items: baseline;
+.atv-interest-modal-rating-header > span:last-child {
   color: var(--atv-text-tertiary);
   font-size: 11px;
   font-weight: 500;
-  gap: 10px;
   letter-spacing: 0.02em;
-}
-
-.atv-interest-modal-rating-clear {
-  padding: 0;
-  border: 0;
-  appearance: none;
-  background: transparent;
-  color: var(--atv-accent-bright);
-  cursor: pointer;
-  font: inherit;
 }
 
 .atv-interest-modal-stars {
