@@ -31,10 +31,14 @@ const parseLegacyPlaySources = (doc: Document): Record<string, string> => {
   const map: Record<string, string> = {};
   let m = RE_PLAY_SOURCES.exec(txt);
   while (m) {
-    const [, sourceId] = m;
-    const playLink = m[2].replaceAll("&amp;", "&");
+    const [, sourceId, playLink] = m;
+    if (!sourceId || !playLink) {
+      m = RE_PLAY_SOURCES.exec(txt);
+      continue;
+    }
+    const decodedPlayLink = playLink.replaceAll("&amp;", "&");
     if (!map[sourceId]) {
-      map[sourceId] = playLink;
+      map[sourceId] = decodedPlayLink;
     }
     m = RE_PLAY_SOURCES.exec(txt);
   }
@@ -70,8 +74,8 @@ const extractStreaming = (doc: Document): Streaming[] => {
       href = mappedHref;
     }
     seen.add(name);
-    const iconUrl = a.dataset.pic || undefined;
-    out.push({ href, iconUrl, name });
+    const iconUrl = a.dataset.pic;
+    out.push({ href, ...(iconUrl ? { iconUrl } : {}), name });
   }
 
   for (const a of $$<HTMLAnchorElement>("a", doc)) {

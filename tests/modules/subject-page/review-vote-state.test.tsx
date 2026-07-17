@@ -83,16 +83,23 @@ const makeRuntime = (
     Promise.resolve({ ok: true })
 ): SubjectPageRuntime => ({
   actions: {
-    expandNativeSummary: () => Promise.resolve(null),
     handleCommentVote: () => Promise.resolve({ ok: true }),
     handleReviewVote: voteReview,
     interestMarking: {
+      fetch: () =>
+        Promise.resolve({
+          isPrivate: false,
+          myTags: [],
+          popularTags: [],
+          shareToBroadcast: false,
+          status: "wish" as const,
+          tags: [],
+        }),
       post: () => Promise.resolve({ ok: false }),
       reload: () => {},
       remove: () => Promise.resolve({ ok: false }),
     },
   },
-  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -103,7 +110,9 @@ const makeRuntime = (
     sections: [],
     visible: false,
   },
+  resolvedComments: [],
   series: [],
+  summary: "",
 });
 
 const renderPage = (

@@ -77,11 +77,14 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
   discussions.topics.length ? (
     <Section
       id="atv-discussions"
-      moreLink={
-        discussions.startDiscussionHref
-          ? { href: discussions.startDiscussionHref, text: "发起讨论 ↗" }
-          : undefined
-      }
+      {...(discussions.startDiscussionHref
+        ? {
+            moreLink: {
+              href: discussions.startDiscussionHref,
+              text: "发起讨论 ↗",
+            },
+          }
+        : {})}
       title={getSubjectSectionCopy("discussions").sectionTitle}
     >
       <div class="atv-discussion-board">
@@ -97,9 +100,11 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
             <div class="atv-discussion-copy">
               <h3 class="atv-discussion-title">{topic.title}</h3>
               <DiscussionMetadata
-                activity={topic.activity}
-                author={topic.author}
-                replies={topic.replies}
+                {...(topic.activity ? { activity: topic.activity } : {})}
+                {...(topic.author ? { author: topic.author } : {})}
+                {...(topic.replies === undefined
+                  ? {}
+                  : { replies: topic.replies })}
               />
             </div>
             <span aria-hidden="true" class="atv-discussion-arrow">

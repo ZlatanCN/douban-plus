@@ -8,7 +8,6 @@ import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentsSectionProps = {
-  avatarUrls?: Map<string, string>;
   canVote?: AccountActionGuard;
   comments: Comment[];
   getVoteState?: (comment: Comment) => CommentVoteState;
@@ -23,7 +22,6 @@ type CommentsSectionProps = {
 };
 
 const CommentsSection = ({
-  avatarUrls,
   canVote,
   comments,
   getVoteState,
@@ -39,31 +37,31 @@ const CommentsSection = ({
   return (
     <Section
       id="atv-comments"
-      moreLink={
-        subjectId
-          ? {
+      {...(subjectId
+        ? {
+            moreLink: {
               href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
               text: "查看全部 →",
-            }
-          : undefined
-      }
+            },
+          }
+        : {})}
       title={getSubjectSectionCopy("comments").sectionTitle}
     >
       <div class="atv-comments">
-        {comments.map((comment) => (
-          <CommentCard
-            comment={{
-              ...comment,
-              avatar: avatarUrls?.get(comment.link) || comment.avatar,
-            }}
-            canVote={canVote}
-            key={comment.cid}
-            onOpen={onOpen}
-            onVoteStateChange={onVoteStateChange}
-            onVote={onVote}
-            voteState={getVoteState?.(comment)}
-          />
-        ))}
+        {comments.map((comment) => {
+          const voteState = getVoteState?.(comment);
+          return (
+            <CommentCard
+              {...(canVote ? { canVote } : {})}
+              comment={comment}
+              key={comment.cid}
+              onOpen={onOpen}
+              {...(onVoteStateChange ? { onVoteStateChange } : {})}
+              onVote={onVote}
+              {...(voteState ? { voteState } : {})}
+            />
+          );
+        })}
       </div>
     </Section>
   );

@@ -6,7 +6,17 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **Host integration boundary**: The narrow layer where douban-plus reads or interoperates with Douban's existing document and browser platform APIs. _Avoid_: imperative UI, DOM-builder
 
-**作品标记**: 登录用户对当前作品作出的“想看”“在看”或“看过”状态，以及随状态提交或移除的评分和短评。_Avoid_: 兴趣表单、原生按钮代理
+**作品标记**: 登录用户对当前作品作出的“想看”“在看”或“看过”状态，以及随状态提交或移除的评分、标签、短评和可见性。_Avoid_: 兴趣表单、原生按钮代理
+
+**私密作品标记**: 仅标记者本人可见的作品标记；在增强标记界面中，私密标记不能发布到豆瓣动态。_Avoid_: 未分享作品、隐藏条目
+
+**发布到豆瓣动态**: 将一条公开作品标记同步为自己的豆瓣动态；它仅适用于公开标记，且与第三方平台同步无关。_Avoid_: 第三方同步、隐私开关
+
+**我的标签**: 标记者已有的标签库，用于在编辑作品标记时提供可选建议；它不等同于当前作品已经使用的标签。_Avoid_: 热门标签、当前作品标签
+
+**作品标签**: 标记者赋予当前作品的零个或多个自由文本标签；同一标签可同时属于“我的标签”库。_Avoid_: 作品分类、热门标签
+
+**热门标签**: 豆瓣针对当前作品给出的可选标签建议；它可以为空，且不属于标记者的“我的标签”库。_Avoid_: 我的标签、当前作品标签
 
 **作品切换器**: 增强详情页 Sticky Nav 中可展开的影视作品搜索入口，接受任意非空作品查询（包括单字片名或简称）并提供最多五项作品候选；候选不可用、为空或失败时，仍可在新标签页打开豆瓣原生影视作品搜索结果。点击入口或按 `/` 聚焦，`↑` / `↓` 选择候选，`Enter` 打开已选择候选或提交兜底搜索，`Escape` 或点击外部时清空并收起；成功打开新标签页后也恢复为收起状态。_Avoid_: 作品推荐、站内全局搜索
 
@@ -21,6 +31,8 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 **页面标题**: 页面分区内容上方的描述性标题，可以在对应导航标签上增加“热门”“详细”“作品”等范围修饰词。 _Avoid_: 为追求逐字一致而牺牲上下文
 
 **观看平台**: 提供当前作品观看入口的第三方视频服务商，例如爱奇艺、腾讯视频或 Netflix。 _Avoid_: 播放源、在哪儿看、播放平台
+
+**已解析评论**: 保留原始短评字段、并带有已解析头像的短评呈现数据；页面分区与短评弹窗只消费该结果。 _Avoid_: 可变原始短评
 
 **首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+、CBS、CCTV、FOX、FX、Showtime；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
 
@@ -72,6 +84,7 @@ src/
     title-helpers.ts    — H1 extraction owner: extractH1 (DOM read of #content h1), extractYearFromH1, extractEnglishSeriesName, extractSeasonFromH1 (extracted from main.ts 2026-07-06)
     rank-label.ts       — optional Douban editorial collection position and destination
     streaming.ts        — deep Streaming[] extractor: play buttons, online-video links, and legacy TV script data
+    info.ts             — deep InfoBlock extractor: semantic v:* fields, label-sibling text/links, selected season
   resolve/             — rating resolution seam (extracted to testable layer 2026-07-06)
     types.ts            — ResolutionContext, RatingResultMap, RatingSource
     context.ts          — buildContext(imdbId, isTV, h1): pure assembler; takes the H1 string (read via extractH1) + identifiers, no DOM access
@@ -89,9 +102,10 @@ src/
     subject-page-runtime.tsx — deep host integration module: lifecycle, requests, browser state → SubjectPage runtime value
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
-    use-avatar-urls.ts   — Preact hook: profile lookup, parsing, cache and cancellation → resolved avatar URLs
+    use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
+    use-native-summary.ts — Preact hook: native summary selection, expansion, reread and fallback → adopted summary
     use-trailer-acquisition.ts — Preact hook: trailer-page fetch, LD+JSON parsing, cancellation and native fallback → acquisition state
-    series-effect.ts     — late-loading series observer and nav insertion
+    use-series-runtime.ts — Preact hook: absent/initial/late series, more-link adoption, and observer cleanup → series runtime result
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
   main.ts              — thin userscript entry. Imports CSS and starts runtime after DOMContentLoaded.
 ```
@@ -171,39 +185,42 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The vote-state machine has one owner: `createVoteState` in `vote-state.ts` produces a `VoteApi`; `use-vote-state.ts` and `use-vote-action.ts` both consume that `VoteApi` directly — no hand-assembled strategy shape at the composition root. `comments/comment-vote-state.ts` exports `commentVoteApi`; `reviews/review-vote-state.ts` exports `reviewVoteApi`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state. `use-vote-action.ts` accepts a `VoteTransitionApi` (the `optimistic`/`resolve`/`votedOf` subset of `VoteApi`) plus per-instance wiring, so the hook owns only the async orchestration and touches the half of the state machine it actually uses.
 
-2. **Comment avatar runtime hook (2026-07-13)** — `runtime/use-avatar-urls.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, and resolved avatar URLs. `SubjectPageRuntime` supplies the resulting `Map<link, url>` through the `SubjectPage` runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, document, or network lifecycle leaks through the page-composition seam.
+2. **Resolved-comment runtime hook (2026-07-16)** — `runtime/use-resolved-comments.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, avatar fallback, and the resolved-comment projection. `SubjectPageRuntime` supplies resolved comments through the runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, profile-link key, avatar Map, document, or network lifecycle leaks through the page-composition seam.
 
-3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. `SubjectPage` supplies only the selected trailer; `VideoModal` receives an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
+3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. The subject-page media module owns the `TrailerModal` wrapper that passes the selected trailer to that hook; `VideoModal` remains in the generic modal module, receives only an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
 
-4. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
+4. **Native-summary adoption runtime hook (2026-07-16)** — `runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
+
+5. **External rating fetcher factory (2026-07-09)** — `src/api/rating-fetcher.ts` owns the common provider algorithm:
    - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
    - The shared implementation handles empty titles, slug normalization, cache-key construction, TTL cache lookup/write, sequential URL fallback, network-error isolation, and parser-null fallback
    - Provider modules keep only site-specific knowledge: Metacritic URL shapes + JSON-LD parser; Rotten Tomatoes URL shapes + script JSON parser
    - Preserve sequential fallback. These provider URLs are alternatives, not independent sources, so do not parallelize them.
 
-5. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
+6. **Canonical modal module (2026-07-09)** — `src/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
+   - `ModalSession` localizes same-instance reopen detection. `useModalRequest` creates a fresh request object per open; page composition wraps each active semantic modal in its local session, while `ModalShell` consumes the private session through context to reset a closing animation. Semantic modal interfaces carry only domain data and `onClose`, never animation request numbers.
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
-6. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
+7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
-   - Runtime effects are localized: avatars, late series data, sticky nav reveal, and active-section tracking each live behind a small internal module
-   - External rating resolution, first-broadcast lookup, late series observation, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`
-   - Web API lifecycle matches the platform contracts: `MutationObserver` observes late series DOM and disconnects after insertion; `IntersectionObserver` owns active-section updates for the sticky nav
+   - Runtime effects are localized: avatars, late series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module
+   - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`; `useSeriesRuntime` owns the initial/late series result, more-link adoption, DOM observation, and cleanup
+   - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
-7. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
-   - External seam is `useInterestMarking({ subjectId, loggedIn, onLoginRequired, adapters? })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes
-   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reload
+8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
+   - External seam is `useInterestMarking({ subjectId, subjectTitle, loggedIn, onLoginRequired, adapters })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes.
+   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads after every successful write; `SubjectPage` does not maintain optimistic interest state.
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
    - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 
-8. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
+9. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
    - `runScenario(browser, scenario)` owns page navigation, userscript injection, ATV error collection, phased assertions, retry, deadline, and cleanup
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-9. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
+10. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
 
 - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
@@ -214,9 +231,13 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
   - API modules still keep their `ck` checks as the final safety net
 
-### Comment avatar host integration
+### Resolved-comment host integration
 
-`runtime/use-avatar-urls.ts` is the explicit host integration owner for comment avatars while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns `Map<link, url>` to `SubjectPageRuntime`. The page-composition seam receives the resolved Map and never starts requests or reads browser globals. Runtime tests cover profile lookup through the rendered page; Subject-page tests pass resolved Maps directly.
+`runtime/use-resolved-comments.ts` is the explicit host integration owner for resolved comments while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns comments with resolved-avatar fallback applied to `SubjectPageRuntime`. The page-composition seam receives resolved comments and never starts requests, reads browser globals, or selects profile-link keys. Runtime tests cover profile lookup and fallback through the rendered page; Subject-page tests pass resolved comments directly.
+
+### InfoBlock extraction
+
+`extract/info.ts` is the only owner of `#info` markup traversal. Its internal adapters handle semantic `v:*` fields, label-adjacent text, label-adjacent links, and the selected season; `extractInfo(doc)` is the sole extractor interface, and `runtime/extract-data.ts` receives only the resulting `InfoBlock`. Do not recreate a shared label-traversal seam until a second production extractor actually needs it.
 
 ### Key design decisions
 

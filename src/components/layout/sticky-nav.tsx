@@ -82,7 +82,7 @@ const StickyNav = ({
 
   return (
     <nav
-      ref={navRef}
+      {...(navRef ? { ref: navRef } : {})}
       class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${subjectSwitcherOpen ? " has-subject-switcher-open" : ""}`}
     >
       <div class="atv-stickynav-title">

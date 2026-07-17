@@ -71,7 +71,12 @@ const createRatingFetcher =
       return cached;
     }
 
-    for (const url of urls({ isTV: Boolean(isTV), season, slug, year })) {
+    for (const url of urls({
+      isTV: Boolean(isTV),
+      ...(season === undefined ? {} : { season }),
+      slug,
+      ...(year === undefined ? {} : { year }),
+    })) {
       try {
         // oxlint-disable-next-line no-await-in-loop
         const html = await gmGet(url, referer);

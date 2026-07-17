@@ -1,8 +1,10 @@
 import { setTimeout as delay } from "node:timers/promises";
 
+import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { Hero } from "@/modules/subject-page/hero";
+import { HeroActions } from "@/modules/subject-page/hero/hero-actions";
 import {
   HeroBackground,
   pickStill,
@@ -268,13 +270,30 @@ describe(Hero, () => {
     expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
       1,
       defaultInterest,
-      "标记想看"
+      { action: "标记想看", status: "wish" }
     );
     expect(callbacks.handleOpenInterest).toHaveBeenNthCalledWith(
       2,
       defaultInterest,
-      "标记看过"
+      { action: "标记看过", status: "collect" }
     );
+  });
+
+  it("preserves the selected status when a logged-in user starts a new mark", () => {
+    const callbacks = makeCallbacks();
+    const interest = { ...defaultInterest, loggedIn: true };
+    const el = renderSingle(
+      <Hero callbacks={callbacks} data={makeHeroData({ interest })} />
+    );
+    const buttons = el.querySelectorAll<HTMLButtonElement>(
+      ".atv-actions button"
+    );
+
+    buttons[1]?.click();
+
+    expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest, {
+      status: "collect",
+    });
   });
 
   it("renders marked interest state and opens the interest modal callback", () => {
@@ -287,6 +306,7 @@ describe(Hero, () => {
       marked: true,
       rating: 4,
       status: "collect" as const,
+      tags: ["人生", "温情"],
       usefulCount: "12 有用",
     };
     const el = renderSingle(
@@ -299,45 +319,52 @@ describe(Hero, () => {
     expect(
       el.querySelector(".atv-interest-panel-comment")?.textContent
     ).toContain("年度最佳");
+    const tags = el.querySelector(
+      ".atv-interest-panel-header .atv-interest-panel-tags"
+    );
+    expect(tags?.textContent).toBe("人生 · 温情");
+    expect(tags?.previousElementSibling?.classList).toContain(
+      "atv-interest-panel-date"
+    );
     el.querySelector<HTMLButtonElement>(".atv-interest-badge")?.click();
     expect(callbacks.handleOpenInterest).toHaveBeenCalledWith(interest);
+  });
+
+  it("replaces first-mark actions with the saved interest panel", async () => {
+    const callbacks = makeCallbacks();
+    const root = document.createElement("div");
+    const unmarkedInterest = { ...defaultInterest, loggedIn: true };
+    const markedInterest = {
+      ...unmarkedInterest,
+      comment: "年度最佳",
+      marked: true,
+      rating: 4,
+      status: "collect" as const,
+    };
+
+    render(
+      <HeroActions callbacks={callbacks} state={unmarkedInterest} />,
+      root
+    );
+    expect(root.querySelector(".atv-interest-panel")).toBeNull();
+
+    render(<HeroActions callbacks={callbacks} state={markedInterest} />, root);
+    await Promise.resolve();
+
+    expect(root.querySelector(".atv-interest-panel")).not.toBeNull();
+    expect(root.querySelectorAll(".atv-actions > .atv-btn")).toHaveLength(0);
+    expect(root.querySelector(".atv-interest-badge")?.textContent).toContain(
+      "看过"
+    );
+    expect(root.querySelector(".atv-interest-panel-comment")?.textContent).toBe(
+      '"年度最佳"'
+    );
   });
 });
 
 describe(HeroSummary, () => {
-  it("replaces the teaser with the native expanded summary", async () => {
-    const expandNativeSummary = vi
-      .fn<() => Promise<string>>()
-      .mockResolvedValue("完整的豆瓣剧情简介");
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={expandNativeSummary}
-        text="截断的简介"
-      />
-    );
-
-    el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
-    await waitUntil(() =>
-      expect(el.querySelector(".atv-hero-teaser")?.textContent).toBe(
-        "完整的豆瓣剧情简介"
-      )
-    );
-
-    expect(expandNativeSummary).toHaveBeenCalledOnce();
-  });
-
-  it("removes the clamp before an asynchronous native response resolves", async () => {
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
-          new Promise<string>((resolve) => {
-            void resolve;
-          })
-        }
-        text="截断的简介"
-      />
-    );
+  it("removes the clamp when the visual summary expands", async () => {
+    const el = renderSingle(<HeroSummary text="截断的简介" />);
 
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
     await Promise.resolve();
@@ -347,17 +374,7 @@ describe(HeroSummary, () => {
   });
 
   it("keeps the teaser content mounted across reversible expand and collapse", async () => {
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models an in-flight native DOM expansion without resolving it.
-          new Promise<string>((resolve) => {
-            void resolve;
-          })
-        }
-        text="截断的简介"
-      />
-    );
+    const el = renderSingle(<HeroSummary text="截断的简介" />);
     const content = el.querySelector(".atv-hero-teaser-content");
 
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
@@ -367,42 +384,5 @@ describe(HeroSummary, () => {
     el.querySelector<HTMLButtonElement>(".atv-hero-more")?.click();
     await Promise.resolve();
     expect(el.querySelector(".atv-hero-teaser-content")).toBe(content);
-  });
-
-  it("applies only the latest concurrent expanded summary response", async () => {
-    const pending: ((value: string) => void)[] = [];
-    const el = renderSingle(
-      <HeroSummary
-        expandNativeSummary={() =>
-          // eslint-disable-next-line promise/avoid-new -- Models concurrent native DOM expansion requests.
-          new Promise<string>((resolve) => {
-            pending.push(resolve);
-          })
-        }
-        text="截断的简介"
-      />
-    );
-    const toggle = el.querySelector<HTMLButtonElement>(".atv-hero-more");
-
-    toggle?.click();
-    await Promise.resolve();
-    toggle?.click();
-    await Promise.resolve();
-    toggle?.click();
-    await Promise.resolve();
-    expect(pending).toHaveLength(2);
-
-    pending[0]?.("完整的豆瓣剧情简介");
-    await delay(0);
-    expect(el.querySelector(".atv-hero-teaser-content")?.textContent).toBe(
-      "截断的简介"
-    );
-
-    pending[1]?.("完整的豆瓣剧情简介");
-    await waitUntil(() =>
-      expect(el.querySelector(".atv-hero-teaser-content")?.textContent).toBe(
-        "完整的豆瓣剧情简介"
-      )
-    );
   });
 });

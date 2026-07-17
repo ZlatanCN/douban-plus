@@ -108,17 +108,20 @@ const CommentCard = ({
             <IconExpand />
           </button>
           <CommentVoteButton
-            canVote={canVote}
+            {...(canVote ? { canVote } : {})}
             cid={comment.cid}
             className="atv-comment-votes"
             count={comment.votes}
-            onStateChange={
-              onVoteStateChange
-                ? (state, options) => onVoteStateChange(comment, state, options)
-                : undefined
-            }
+            {...(onVoteStateChange
+              ? {
+                  onStateChange: (
+                    state: CommentVoteState,
+                    options?: VotePersistOptions
+                  ) => onVoteStateChange(comment, state, options),
+                }
+              : {})}
             onVote={onVote}
-            state={voteState}
+            {...(voteState ? { state: voteState } : {})}
             voted={comment.voted}
           />
         </div>

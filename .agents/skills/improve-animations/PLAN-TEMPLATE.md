@@ -13,19 +13,31 @@ Every plan written by `improve-animations` follows this structure. The executor 
 
 ## Problem
 
-What is wrong, where, and why it matters to how the product feels. Cite every location as `path/to/file.tsx:123` and include the current code verbatim:
+What is wrong, where, and why it matters to how the product feels. Cite every
+location as `path/to/file.tsx:123` and include the current code verbatim:
 
-​`css /* src/components/dropdown.css:14 — current */ .dropdown { transition: all 400ms ease-in; } ​`
+​```css
+/* src/components/dropdown.css:14 — current */
+.dropdown { transition: all 400ms ease-in; }
+​```
 
 ## Target
 
-The exact end state. Every value spelled out — curves, durations, spring configs, media queries. Never "use a nicer easing":
+The exact end state. Every value spelled out — curves, durations, spring
+configs, media queries. Never "use a nicer easing":
 
-​`css /* target */ .dropdown {   transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);   transform-origin: var(--radix-dropdown-menu-content-transform-origin); } ​`
+​```css
+/* target */
+.dropdown {
+  transition: transform 200ms var(--ease-out), opacity 200ms var(--ease-out);
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+}
+​```
 
 ## Repo conventions to follow
 
-How this codebase already does it, with one exemplar the executor should imitate (token names, file placement, prop patterns):
+How this codebase already does it, with one exemplar the executor should
+imitate (token names, file placement, prop patterns):
 
 - Easing tokens live in `src/styles/tokens.css`; add new curves there, e.g. `--ease-out: cubic-bezier(0.23, 1, 0.32, 1);`
 - <exemplar file:line that already does this correctly>

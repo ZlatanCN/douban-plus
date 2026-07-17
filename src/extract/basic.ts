@@ -40,7 +40,7 @@ const extractYear = (doc: Document): string => {
   const yEl = $("#content h1 .year", doc);
   const raw = safeText(yEl);
   const m = raw.match(RE_YEAR);
-  return m ? m[1] : "";
+  return m?.[1] ?? "";
 };
 
 /**
@@ -62,7 +62,7 @@ const extractPoster = (doc: Document): string | null => {
  */
 const extractSubjectId = (doc: Document): string => {
   const m = (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID);
-  return m ? m[1] : "";
+  return m?.[1] ?? "";
 };
 
 /* ── Exports ──────────────────────────────────────────── */

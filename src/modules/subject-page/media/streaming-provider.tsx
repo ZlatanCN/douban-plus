@@ -33,6 +33,7 @@ const PROVIDER_HOSTS: Partial<Record<PlatformBrandKey, string[]>> = {
   "hbo-max": ["max.com", "hbomax.com"],
   hulu: ["hulu.com"],
   iqiyi: ["iqiyi.com"],
+  "mango-tv": ["mgtv.com"],
   netflix: ["netflix.com"],
   "paramount-plus": ["paramountplus.com"],
   "prime-video": ["primevideo.com", "amazon.com"],
@@ -46,6 +47,7 @@ const PROVIDER_HOSTS: Partial<Record<PlatformBrandKey, string[]>> = {
 const COMBINED_SVG_BRANDS = new Set<PlatformBrandKey>([
   "bilibili",
   "iqiyi",
+  "mango-tv",
   "tencent-video",
   "youku",
 ]);
@@ -81,13 +83,13 @@ const resolveStreamingProvider = (
   if (provider) {
     const { Icon, color, colorMode, key, label, surface } = provider;
     return {
-      Icon,
+      ...(Icon ? { Icon } : {}),
       color,
-      colorMode,
-      combinedSvg: COMBINED_SVG_BRANDS.has(key) || undefined,
+      ...(colorMode ? { colorMode } : {}),
+      ...(COMBINED_SVG_BRANDS.has(key) ? { combinedSvg: true } : {}),
       key,
       label,
-      surface,
+      ...(surface ? { surface } : {}),
     };
   }
 

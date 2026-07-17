@@ -21,5 +21,3 @@ if (isDoubanLoginFrame()) {
 } else {
   mountSubjectPageWhenReady();
 }
-
-export { watchSeries } from "./runtime/series-effect";

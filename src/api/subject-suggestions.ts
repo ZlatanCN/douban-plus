@@ -111,10 +111,8 @@ const fetchSubjectSuggestions = async (
     return cached.suggestions;
   }
 
-  const response = await fetch(
-    `/j/subject_suggest?q=${encodeURIComponent(normalizedQuery)}`,
-    { signal }
-  );
+  const url = `/j/subject_suggest?q=${encodeURIComponent(normalizedQuery)}`;
+  const response = await (signal ? fetch(url, { signal }) : fetch(url));
   if (!response.ok) {
     throw new Error("Douban subject suggestions request failed.");
   }

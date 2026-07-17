@@ -28,7 +28,6 @@ sources[1] = [{play_link: "https://www.youku.com/play/1?from=tv&amp;episode=1"}]
       },
       {
         href: "https://www.youku.com/play/1?from=tv&episode=1",
-        iconUrl: undefined,
         name: "优酷",
       },
       { href: "https://www.example.com/online-video/play", name: "其他平台" },

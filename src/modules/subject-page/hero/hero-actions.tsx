@@ -1,3 +1,5 @@
+import { useEffect, useRef } from "preact/hooks";
+
 import {
   IconCheck,
   IconPlay,
@@ -7,6 +9,7 @@ import {
 } from "@/components/common/icons";
 import type { HeroCallbacks, InterestState } from "@/types";
 import { INTEREST_LABELS } from "@/types";
+import { playEntrance, springConfigs } from "@/utils/springs";
 
 type HeroActionsProps = {
   callbacks: HeroCallbacks;
@@ -29,25 +32,56 @@ const InterestButton = ({
 );
 
 const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
+  const interestPanelRef = useRef<HTMLDivElement>(null);
+  const previousMarkedRef = useRef(state.marked);
+
+  useEffect(() => {
+    const wasMarked = previousMarkedRef.current;
+    previousMarkedRef.current = state.marked;
+
+    if (!wasMarked && state.marked && interestPanelRef.current) {
+      const animation = playEntrance(
+        interestPanelRef.current,
+        springConfigs.contentEntrance
+      );
+      return () => animation.stop();
+    }
+  }, [state.marked]);
+
   if (!state.loggedIn) {
     return (
       <div class="atv-actions">
         <InterestButton
           className="atv-btn atv-btn-primary"
           label="想看"
-          onClick={() => callbacks.handleOpenInterest(state, "标记想看")}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, {
+              action: "标记想看",
+              status: "wish",
+            })
+          }
         />
         {state.hasWatching ? (
           <InterestButton
             className="atv-btn atv-btn-secondary"
             label="在看"
-            onClick={() => callbacks.handleOpenInterest(state, "标记在看")}
+            onClick={() =>
+              callbacks.handleOpenInterest(state, {
+                action: "标记在看",
+                status: "do",
+              })
+            }
           />
         ) : null}
         <InterestButton
           className="atv-btn atv-btn-secondary"
           label="看过"
-          onClick={() => callbacks.handleOpenInterest(state, "标记看过")}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, {
+              action: "标记看过",
+              status: "collect",
+            })
+          }
         />
       </div>
     );
@@ -59,19 +93,25 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
         <InterestButton
           className="atv-btn atv-btn-primary"
           label="想看"
-          onClick={() => callbacks.handleOpenInterest(state)}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, { status: "wish" })
+          }
         />
         {state.hasWatching ? (
           <InterestButton
             className="atv-btn atv-btn-secondary"
             label="在看"
-            onClick={() => callbacks.handleOpenInterest(state)}
+            onClick={() =>
+              callbacks.handleOpenInterest(state, { status: "do" })
+            }
           />
         ) : null}
         <InterestButton
           className="atv-btn atv-btn-secondary"
           label="看过"
-          onClick={() => callbacks.handleOpenInterest(state)}
+          onClick={() =>
+            callbacks.handleOpenInterest(state, { status: "collect" })
+          }
         />
       </div>
     );
@@ -81,7 +121,7 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
 
   return (
     <div class="atv-actions">
-      <div class="atv-interest-panel">
+      <div class="atv-interest-panel" ref={interestPanelRef}>
         <div class="atv-interest-panel-header">
           <button
             class="atv-btn atv-btn-primary is-active atv-interest-badge"
@@ -106,6 +146,11 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
           ) : null}
           {state.date ? (
             <span class="atv-interest-panel-date">{state.date}</span>
+          ) : null}
+          {state.tags.length ? (
+            <span class="atv-interest-panel-tags">
+              {state.tags.join(" · ")}
+            </span>
           ) : null}
         </div>
         {state.comment ? (

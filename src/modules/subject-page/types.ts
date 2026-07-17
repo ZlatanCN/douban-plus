@@ -1,8 +1,8 @@
 import type { RatingResultMap } from "@/resolve/types";
 import type {
-  InterestFormState,
-  InterestState,
+  InterestMarkingActions,
   NavSection,
+  Comment,
   ReviewVoteCallback,
   SeriesItem,
 } from "@/types";
@@ -10,19 +10,6 @@ import type {
 type CommentVoteCallback = (
   cid: string
 ) => Promise<{ ok: boolean; count?: number }>;
-
-type InterestMarkingActions = {
-  post: (
-    subjectId: string,
-    status: InterestFormState["status"],
-    options?: { comment?: string; rating?: number }
-  ) => Promise<{ error?: string; ok: boolean }>;
-  reload: () => void;
-  remove: (
-    subjectId: string,
-    status: InterestState["status"]
-  ) => Promise<{ error?: string; ok: boolean }>;
-};
 
 type SubjectPageNavigation = {
   activeSectionId: string;
@@ -35,22 +22,17 @@ type SubjectPageNavigation = {
 
 type SubjectPageRuntime = {
   actions: {
-    expandNativeSummary: () => Promise<string | null>;
     interestMarking: InterestMarkingActions;
     handleCommentVote: CommentVoteCallback;
     handleReviewVote: ReviewVoteCallback;
   };
-  avatarUrls: Map<string, string>;
   externalRatings: RatingResultMap | null;
   firstBroadcastPlatform: string | null;
   navigation: SubjectPageNavigation;
+  resolvedComments: Comment[];
   series: SeriesItem[];
   seriesMoreLink?: { href: string; text: string };
+  summary: string | null;
 };
 
-export type {
-  CommentVoteCallback,
-  InterestMarkingActions,
-  SubjectPageNavigation,
-  SubjectPageRuntime,
-};
+export type { CommentVoteCallback, SubjectPageNavigation, SubjectPageRuntime };

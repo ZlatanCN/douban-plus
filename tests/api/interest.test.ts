@@ -4,17 +4,83 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { postInterest, removeInterest } from "@/api/interest";
+import {
+  fetchInterestSnapshot,
+  postInterest,
+  removeInterest,
+} from "@/api/interest";
 
 const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
+);
+const mockGmGet = vi.hoisted(() =>
+  vi.fn<(url: string, referer?: string) => Promise<string>>()
 );
 const mockGetCk = vi.hoisted(() => vi.fn<() => string>());
 
 vi.mock(import("../../src/utils/request"), () => ({
   getCk: mockGetCk,
+  gmGet: mockGmGet,
   gmPost: mockGmPost,
 }));
+
+// ----------------------------------------------------------------
+// fetchInterestSnapshot
+// ----------------------------------------------------------------
+describe(fetchInterestSnapshot, () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("reads the current mark, tag suggestions, and private state from Douban", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmGet.mockResolvedValue(
+      JSON.stringify({
+        html: '<input id="inp-private" name="private" type="checkbox" checked><input id="share-shuo" type="checkbox" checked>',
+        interest_status: "collect",
+        my_tags: ["成长", "人生"],
+        popular_tags: ["历史"],
+        tags: ["人生", "人生", "温情"],
+      })
+    );
+
+    await expect(fetchInterestSnapshot("2373195")).resolves.toStrictEqual({
+      isPrivate: true,
+      myTags: ["成长", "人生"],
+      popularTags: ["历史"],
+      shareToBroadcast: true,
+      status: "collect",
+      tags: ["人生", "温情"],
+    });
+    expect(mockGmGet).toHaveBeenCalledWith(
+      "https://movie.douban.com/j/subject/2373195/interest",
+      "https://movie.douban.com/subject/2373195/"
+    );
+  });
+
+  it("does not request a snapshot without an authenticated session", async () => {
+    mockGetCk.mockReturnValue("");
+
+    await expect(fetchInterestSnapshot("2373195")).rejects.toThrow("未登录");
+    expect(mockGmGet).not.toHaveBeenCalled();
+  });
+
+  it("keeps an unmarked response distinct from a selected new status", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmGet.mockResolvedValue(
+      JSON.stringify({
+        interest_status: "",
+        my_tags: [],
+        popular_tags: [],
+        tags: [],
+      })
+    );
+
+    await expect(fetchInterestSnapshot("2373195")).resolves.toMatchObject({
+      status: "none",
+    });
+  });
+});
 
 // ----------------------------------------------------------------
 // postInterest
@@ -92,7 +158,7 @@ describe(postInterest, () => {
     await postInterest("123", "do", { tags: ["a", "b"] });
 
     const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
-    expect(params.get("tags")).toBe("a,b");
+    expect(params.get("tags")).toBe("a b");
   });
 
   it("includes rating, comment, and tags all in POST data when all options provided", async () => {
@@ -108,7 +174,7 @@ describe(postInterest, () => {
     const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
     expect(params.get("rating")).toBe("5");
     expect(params.get("comment")).toBe("great");
-    expect(params.get("tags")).toBe("x,y");
+    expect(params.get("tags")).toBe("x y");
   });
 
   it("returns ok=false with error message, logs warning when gmPost rejects", async () => {
@@ -171,7 +237,7 @@ describe(postInterest, () => {
     expect(params.get("ck")).toBe("mycustomck");
   });
 
-  it("sends foldcollect=F and private=empty in POST data", async () => {
+  it("sends foldcollect=F and omits private when the mark is public", async () => {
     mockGetCk.mockReturnValue("ck123");
     mockGmPost.mockResolvedValue('{"r":0}');
 
@@ -179,7 +245,40 @@ describe(postInterest, () => {
 
     const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
     expect(params.get("foldcollect")).toBe("F");
-    expect(params.get("private")).toBe("");
+    expect(params.has("private")).toBeFalsy();
+  });
+
+  it("sends private=on when the mark is only visible to the user", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmPost.mockResolvedValue('{"r":0}');
+
+    await postInterest("123", "wish", { isPrivate: true });
+
+    const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
+    expect(params.get("private")).toBe("on");
+  });
+
+  it("sends share-shuo=douban only when broadcasting is selected", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmPost.mockResolvedValue('{"r":0}');
+
+    await postInterest("123", "wish", { shareToBroadcast: true });
+
+    const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
+    expect(params.get("share-shuo")).toBe("douban");
+  });
+
+  it("never publishes a private mark as a Douban broadcast", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmPost.mockResolvedValue('{"r":0}');
+
+    await postInterest("123", "wish", {
+      isPrivate: true,
+      shareToBroadcast: true,
+    });
+
+    const params = new URLSearchParams(mockGmPost.mock.calls[0]?.[1] ?? "");
+    expect(params.has("share-shuo")).toBeFalsy();
   });
 });
 

@@ -59,14 +59,14 @@ const PhotosSection = ({
   data.photos.length || data.trailers.length ? (
     <Section
       id="atv-photos"
-      moreLink={
-        data.subjectId
-          ? {
+      {...(data.subjectId
+        ? {
+            moreLink: {
               href: `https://movie.douban.com/subject/${data.subjectId}/all_photos`,
               text: "查看全部 →",
-            }
-          : undefined
-      }
+            },
+          }
+        : {})}
       title={getSubjectSectionCopy("media").sectionTitle}
     >
       <div class="atv-carousel atv-photos">

@@ -2,14 +2,13 @@
 /* Tests page composition helpers. */
 
 import { render } from "preact";
-import { afterEach, describe, expect, it, onTestFinished, vi } from "vitest";
+import { describe, expect, it, onTestFinished, vi } from "vitest";
 
 import { computeNavSections } from "@/components/layout/nav";
 import { StickyNav } from "@/components/layout/sticky-nav";
 import { SubjectPage } from "@/modules/subject-page/subject-page";
 import type { SubjectPageRuntime } from "@/modules/subject-page/types";
-import { watchSeries } from "@/runtime/series-effect";
-import type { DoubanData, InfoBlock, SeriesItem } from "@/types";
+import type { DoubanData, InfoBlock } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */
@@ -115,16 +114,23 @@ const makeRuntime = (
   overrides?: Partial<SubjectPageRuntime>
 ): SubjectPageRuntime => ({
   actions: {
-    expandNativeSummary: () => Promise.resolve(null),
     handleCommentVote: () => Promise.resolve({ ok: true }),
     handleReviewVote: () => Promise.resolve({ ok: true }),
     interestMarking: {
+      fetch: () =>
+        Promise.resolve({
+          isPrivate: false,
+          myTags: [],
+          popularTags: [],
+          shareToBroadcast: false,
+          status: "wish" as const,
+          tags: [],
+        }),
       post: () => Promise.resolve({ ok: false }),
       reload: () => {},
       remove: () => Promise.resolve({ ok: false }),
     },
   },
-  avatarUrls: new Map(),
   externalRatings: null,
   firstBroadcastPlatform: null,
   navigation: {
@@ -135,7 +141,9 @@ const makeRuntime = (
     sections: computeNavSections(data),
     visible: false,
   },
+  resolvedComments: data.comments,
   series: [],
+  summary: data.summary,
   ...overrides,
 });
 
@@ -151,7 +159,7 @@ const renderSubjectPage = (
 };
 
 describe("Subject page runtime value", () => {
-  it("renders a runtime-supplied comment avatar without acquiring host data", () => {
+  it("renders a runtime-supplied comment avatar in the list and modal", async () => {
     const profileLink = "https://www.douban.com/people/page-avatar/";
     const avatarUrl = "https://example.com/page-avatar.jpg";
     const data = makeDoubanData({
@@ -167,7 +175,9 @@ describe("Subject page runtime value", () => {
 
     const root = renderSubjectPage(
       data,
-      makeRuntime(data, { avatarUrls: new Map([[profileLink, avatarUrl]]) })
+      makeRuntime(data, {
+        resolvedComments: [{ ...data.comments[0], avatar: avatarUrl }],
+      })
     );
 
     expect(
@@ -175,6 +185,15 @@ describe("Subject page runtime value", () => {
         .querySelector<HTMLElement>(
           "[data-cid='page-avatar'] .atv-comment-avatar"
         )
+        ?.getAttribute("style")
+    ).toContain(avatarUrl);
+
+    root.querySelector<HTMLButtonElement>(".atv-comment-expand")?.click();
+    await Promise.resolve();
+
+    expect(
+      root
+        .querySelector<HTMLElement>(".atv-comment-overlay-avatar")
         ?.getAttribute("style")
     ).toContain(avatarUrl);
   });
@@ -322,70 +341,6 @@ describe(computeNavSections, () => {
       movieSections.find((section) => section.id === "atv-reviews"),
       tvSections.find((section) => section.id === "atv-reviews"),
     ]).toStrictEqual([S.series, S.movieReviews, S.tvReviews]);
-  });
-});
-
-/* ═══════════════════════════════════════════════════════════ */
-/* ── watchSeries ──────────────────────────────────────────── */
-/* ═══════════════════════════════════════════════════════════ */
-
-describe(watchSeries, () => {
-  afterEach(() => {
-    document.body.innerHTML = "";
-  });
-
-  it("reports series data when .items-swiper appears late in #series-items (t20)", async () => {
-    document.body.innerHTML = `
-      <div id="series-items"></div>
-    `;
-    const onSeries = vi.fn<(items: SeriesItem[]) => void>();
-    watchSeries(onSeries);
-
-    const container = document.querySelector("#series-items") as HTMLElement;
-    container.innerHTML = `
-      <div class="items-swiper">
-        <div class="items-swiper-item">
-          <div class="items-swiper-item-pic"><a href="https://movie.douban.com/subject/1/"><img src="https://img1.doubanio.com/poster1.jpg"></a></div>
-          <div class="items-swiper-item-title" title="第一季"><a href="https://movie.douban.com/subject/1/">第一季</a><span class="items-swiper-item-rating">9.5</span></div>
-        </div>
-        <div class="items-swiper-item">
-          <div class="items-swiper-item-pic"><a href="https://movie.douban.com/subject/2/"><img src="https://img1.doubanio.com/poster2.jpg"></a></div>
-          <div class="items-swiper-item-title" title="第二季"><a href="https://movie.douban.com/subject/2/">第二季</a><span class="items-swiper-item-rating">9.3</span></div>
-        </div>
-      </div>
-    `;
-
-    await vi.waitFor(() =>
-      expect(onSeries).toHaveBeenCalledWith(expect.any(Array))
-    );
-    expect(onSeries.mock.calls.at(-1)?.[0]).toHaveLength(2);
-  });
-
-  it("reports existing series immediately (t21)", () => {
-    document.body.innerHTML = `
-      <div id="series-items">
-        <div class="items-swiper"><div class="items-swiper-item"></div></div>
-      </div>
-    `;
-    const onSeries = vi.fn<(items: SeriesItem[]) => void>();
-    watchSeries(onSeries);
-    expect(onSeries).toHaveBeenCalledWith([]);
-  });
-
-  it("does nothing when #series-items is absent from page (t22)", () => {
-    document.body.innerHTML = `
-      <div id="atv-douban-root">
-        <section class="atv-hero-section"></section>
-      </div>
-      <nav class="atv-stickynav">
-        <div class="atv-stickynav-jumps"></div>
-      </nav>
-    `;
-
-    const spy = vi.spyOn(window, "MutationObserver");
-    watchSeries(vi.fn<(items: SeriesItem[]) => void>());
-    expect(spy).not.toHaveBeenCalled();
-    spy.mockRestore();
   });
 });
 

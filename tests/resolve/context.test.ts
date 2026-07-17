@@ -35,7 +35,7 @@ describe("buildContext", () => {
 
   /* ── TV series ─────────────────────────────────── */
 
-  it("extracts season from H1 for TV and omits year (t3)", () => {
+  it("extracts season from H1 for TV, year is now included for slug disambiguation (t3)", () => {
     const h1 = "权力的游戏 第五季 Game of Thrones Season 5 (2015)";
 
     const ctx = buildContext("tt0944947", true, h1);
@@ -43,7 +43,7 @@ describe("buildContext", () => {
     expect(ctx.englishTitle).toBe("Game of Thrones");
     expect(ctx.season).toBe(5);
     expect(ctx.isTV).toBeTruthy();
-    expect(ctx.year).toBeUndefined();
+    expect(ctx.year).toBe("2015");
   });
 
   it("handles TV with no season in H1 (t4)", () => {

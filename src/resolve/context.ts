@@ -26,15 +26,17 @@ const buildContext = (
 
   const season = h1 ? extractSeasonFromH1(h1) : undefined;
 
-  // Trailing "(YYYY)" in the H1 disambiguates movie URLs; TV pages omit it.
-  const year = isTV ? undefined : extractYearFromH1(h1);
+  // Trailing "(YYYY)" in the H1 disambiguates slugs for both movies and TV.
+  // TV shows with the same name (e.g. UK vs US "House of Cards") need the
+  // year to avoid matching the wrong entry on Metacritic / RT.
+  const year = extractYearFromH1(h1);
 
   return {
     englishTitle,
     imdbId,
     isTV,
-    season,
-    year,
+    ...(season === undefined ? {} : { season }),
+    ...(year === undefined ? {} : { year }),
   };
 };
 

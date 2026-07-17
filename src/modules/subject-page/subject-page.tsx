@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 
 import { StickyNav } from "@/components/layout";
-import { PosterModal, TrailerModal } from "@/components/modal";
+import { ModalSession, PosterModal } from "@/components/modal";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -18,6 +18,7 @@ import {
   RecommendationsSection,
   SeriesSection,
   StreamingSection,
+  TrailerModal,
 } from "./media";
 import { ReviewsSection } from "./reviews";
 import { ReviewModal } from "./reviews/review-modal";
@@ -36,7 +37,7 @@ type ActiveMediaModal =
   | { alt: string; src: string; type: "poster" }
   | { trailer: Trailer; type: "video" };
 
-const toHeroData = (data: DoubanData): HeroData => ({
+const toHeroData = (data: DoubanData, summary: string | null): HeroData => ({
   imdbId: data.info.imdb || null,
   info: data.info,
   interest: data.interest,
@@ -46,7 +47,7 @@ const toHeroData = (data: DoubanData): HeroData => ({
   rankLabel: data.rankLabel,
   rating: data.rating,
   subjectId: data.subjectId,
-  summary: data.summary,
+  summary,
   title: data.title,
   year: data.year,
 });
@@ -58,7 +59,11 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
   const loginAction = useModalRequest<string>();
   const commentVotes = useVoteState(data.comments, commentVoteApi);
-  const { avatarUrls } = runtime;
+  const activeResolvedComment = activeComment.active
+    ? (runtime.resolvedComments.find(
+        (comment) => comment.cid === activeComment.active?.value.cid
+      ) ?? activeComment.active.value)
+    : null;
   const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
@@ -67,6 +72,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
     loggedIn: data.interest.loggedIn,
     onLoginRequired: loginAction.handleOpen,
     subjectId: data.subjectId,
+    subjectTitle: data.title.primary,
   });
   const canVote = (): boolean => {
     if (!data.interest.loggedIn) {
@@ -95,8 +101,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       />
       <Hero
         callbacks={interestMarking.callbacks}
-        data={toHeroData(data)}
-        expandNativeSummary={runtime.actions.expandNativeSummary}
+        data={toHeroData(data, runtime.summary)}
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>
@@ -104,7 +109,12 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
         }
       />
       <StreamingSection streaming={data.streaming} />
-      <SeriesSection items={runtime.series} moreLink={runtime.seriesMoreLink} />
+      <SeriesSection
+        items={runtime.series}
+        {...(runtime.seriesMoreLink
+          ? { moreLink: runtime.seriesMoreLink }
+          : {})}
+      />
       <CastSection celebrities={data.celebrities} />
       <PhotosSection
         data={{
@@ -120,9 +130,8 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
         }
       />
       <CommentsSection
-        avatarUrls={avatarUrls}
         canVote={canVote}
-        comments={commentVotes.mergeVoteStates(data.comments)}
+        comments={commentVotes.mergeVoteStates(runtime.resolvedComments)}
         getVoteState={commentVotes.getVoteState}
         onOpen={activeComment.handleOpen}
         onVoteStateChange={handleCommentVoteStateChange}
@@ -147,54 +156,54 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       <div class="atv-footer-spacer" />
 
       {/* Modals rendered outside sections to avoid ancestor transform containment */}
-      {activeComment.active ? (
-        <CommentModal
-          canVote={canVote}
-          comment={{
-            ...commentVotes.mergeVoteState(activeComment.active.value),
-            avatar:
-              avatarUrls.get(activeComment.active.value.link) ||
-              activeComment.active.value.avatar,
-          }}
-          onClose={activeComment.handleClose}
-          openRequestId={activeComment.active.requestId}
-          onVoteStateChange={handleCommentVoteStateChange}
-          onVote={runtime.actions.handleCommentVote}
-          voteState={commentVotes.getVoteState(activeComment.active.value)}
-        />
+      {activeComment.active && activeResolvedComment ? (
+        <ModalSession request={activeComment.active}>
+          <CommentModal
+            canVote={canVote}
+            comment={commentVotes.mergeVoteState(activeResolvedComment)}
+            onClose={activeComment.handleClose}
+            onVoteStateChange={handleCommentVoteStateChange}
+            onVote={runtime.actions.handleCommentVote}
+            voteState={commentVotes.getVoteState(activeResolvedComment)}
+          />
+        </ModalSession>
       ) : null}
       {activeReview.active ? (
-        <ReviewModal
-          canVote={canReviewVote}
-          onClose={activeReview.handleClose}
-          onVoteStateChange={handleReviewVoteStateChange}
-          onVote={runtime.actions.handleReviewVote}
-          openRequestId={activeReview.active.requestId}
-          review={reviewVotes.mergeVoteState(activeReview.active.value)}
-          voteState={reviewVotes.getVoteState(activeReview.active.value)}
-        />
+        <ModalSession request={activeReview.active}>
+          <ReviewModal
+            canVote={canReviewVote}
+            onClose={activeReview.handleClose}
+            onVoteStateChange={handleReviewVoteStateChange}
+            onVote={runtime.actions.handleReviewVote}
+            review={reviewVotes.mergeVoteState(activeReview.active.value)}
+            voteState={reviewVotes.getVoteState(activeReview.active.value)}
+          />
+        </ModalSession>
       ) : null}
       {activeMediaModal.active?.value.type === "poster" ? (
-        <PosterModal
-          alt={activeMediaModal.active.value.alt}
-          onClose={activeMediaModal.handleClose}
-          openRequestId={activeMediaModal.active.requestId}
-          src={activeMediaModal.active.value.src}
-        />
+        <ModalSession request={activeMediaModal.active}>
+          <PosterModal
+            alt={activeMediaModal.active.value.alt}
+            onClose={activeMediaModal.handleClose}
+            src={activeMediaModal.active.value.src}
+          />
+        </ModalSession>
       ) : null}
       {activeMediaModal.active?.value.type === "video" ? (
-        <TrailerModal
-          onClose={activeMediaModal.handleClose}
-          openRequestId={activeMediaModal.active.requestId}
-          trailer={activeMediaModal.active.value.trailer}
-        />
+        <ModalSession request={activeMediaModal.active}>
+          <TrailerModal
+            onClose={activeMediaModal.handleClose}
+            trailer={activeMediaModal.active.value.trailer}
+          />
+        </ModalSession>
       ) : null}
       {loginAction.active ? (
-        <LoginModal
-          action={loginAction.active.value}
-          onClose={loginAction.handleClose}
-          openRequestId={loginAction.active.requestId}
-        />
+        <ModalSession request={loginAction.active}>
+          <LoginModal
+            action={loginAction.active.value}
+            onClose={loginAction.handleClose}
+          />
+        </ModalSession>
       ) : null}
       {interestMarking.form}
     </>

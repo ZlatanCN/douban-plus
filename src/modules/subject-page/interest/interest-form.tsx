@@ -1,78 +1,110 @@
-import type { JSX } from "preact";
-import { useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
+import {
+  ModalCloseButton,
+  ModalSessionContent,
+  ModalShell,
+} from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
-import type { InterestFormState, InterestState, ModalCallbacks } from "@/types";
-import { INTEREST_LABELS } from "@/types";
+import type {
+  InterestFormSnapshot,
+  InterestFormState,
+  InterestState,
+  ModalCallbacks,
+} from "@/types";
+import { normalizeInterestTags } from "@/utils/interest-tags";
 
-import { StarRatingInput } from "./star-rating-input";
+import { InterestFormFields } from "./interest-form-fields";
+import type { InterestFormSource } from "./interest-form-source";
 
 type InterestFormProps = {
   callbacks: ModalCallbacks;
   onClose: () => void;
-  openRequestId?: number;
+  onRetry?: () => void;
+  source: InterestFormSource;
   state: InterestState;
+  subjectTitle: string;
 };
 
-const statusEntries = (
-  hasWatching: boolean
-): { label: string; value: InterestFormState["status"] }[] => [
-  { label: "想看", value: "wish" },
-  ...(hasWatching ? [{ label: "在看", value: "do" as const }] : []),
-  { label: "看过", value: "collect" },
-];
-
 const initialStatus = (state: InterestState): InterestFormState["status"] =>
-  state.marked && state.status !== "none" ? state.status : "wish";
+  state.status === "none" ? "wish" : state.status;
+
+const formFrom = (
+  state: InterestState,
+  snapshot: InterestFormSnapshot | null
+): InterestFormState => ({
+  comment: state.comment || "",
+  isPrivate: snapshot?.isPrivate ?? false,
+  rating: state.rating || 0,
+  shareToBroadcast: snapshot?.isPrivate
+    ? false
+    : (snapshot?.shareToBroadcast ?? false),
+  status:
+    snapshot?.status && snapshot.status !== "none"
+      ? snapshot.status
+      : initialStatus(state),
+  tags: snapshot?.tags ?? state.tags,
+});
 
 const InterestFormContent = ({
   callbacks,
+  onRetry,
+  source,
   state,
-}: {
-  callbacks: ModalCallbacks;
-  state: InterestState;
-}) => {
+  subjectTitle,
+}: Omit<InterestFormProps, "onClose">) => {
   const handleClose = useModalClose();
-  const [status, setStatus] = useState<InterestFormState["status"]>(
-    initialStatus(state)
+  const snapshot = source.kind === "ready" ? source.snapshot : null;
+  const [loadedSnapshot, setLoadedSnapshot] = useState(snapshot);
+  const [form, setForm] = useState<InterestFormState>(() =>
+    formFrom(state, snapshot)
   );
-  const [rating, setRating] = useState(state.rating || 0);
-  const [comment, setComment] = useState(state.comment || "");
+  const [tagDraft, setTagDraft] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   const [error, setError] = useState("");
-  const titlePrefix = state.marked ? "修改" : "标记";
-  const statuses = statusEntries(state.hasWatching);
-  const activeStatusIndex = statuses.findIndex(
-    (entry) => entry.value === status
-  );
+  const disabled = loading || source.kind !== "ready";
+  const isExistingMark = snapshot ? snapshot.status !== "none" : state.marked;
 
+  useEffect(() => {
+    if (snapshot && snapshot !== loadedSnapshot) {
+      setForm(formFrom(state, snapshot));
+      setTagDraft("");
+      setLoadedSnapshot(snapshot);
+    }
+  }, [loadedSnapshot, snapshot, state]);
+
+  const updateForm = (patch: Partial<InterestFormState>): void => {
+    setForm((current) => ({ ...current, ...patch }));
+  };
+  const updateTags = (update: (tags: string[]) => string[]): void => {
+    setForm((current) => ({ ...current, tags: update(current.tags) }));
+  };
   const save = async (): Promise<void> => {
-    if (loading) {
+    if (disabled) {
       return;
     }
     setLoading(true);
     setError("");
     const result = await callbacks.onSave({
-      comment: comment.trim(),
-      rating,
-      status,
+      ...form,
+      comment: form.comment.trim(),
+      tags: normalizeInterestTags([...form.tags, tagDraft]),
     });
     if (result.ok) {
       handleClose();
       return;
     }
-    setError(result.error || "操作失败");
+    setError(result.error || "保存失败");
     setLoading(false);
   };
-
   const remove = async (): Promise<void> => {
-    if (loading) {
+    if (disabled) {
       return;
     }
     setLoading(true);
     setError("");
-    const result = await callbacks.onRemove(state.status);
+    const result = await callbacks.onRemove(form.status);
     if (result.ok) {
       handleClose();
       return;
@@ -85,12 +117,17 @@ const InterestFormContent = ({
     <>
       <div class="atv-modal-accent-bar" />
       <div class="atv-interest-modal-header">
-        <span
-          class="atv-interest-modal-header-title"
-          id="atv-interest-modal-title"
-        >
-          {`${titlePrefix}${INTEREST_LABELS[status]}`}
-        </span>
+        <div class="atv-interest-modal-header-copy">
+          <p class="atv-interest-modal-eyebrow">
+            {isExistingMark ? "编辑作品标记" : "标记作品"}
+          </p>
+          <h2
+            class="atv-interest-modal-header-title"
+            id="atv-interest-modal-title"
+          >
+            {subjectTitle}
+          </h2>
+        </div>
         <ModalCloseButton
           ariaLabel="关闭标记弹窗"
           className="atv-interest-modal-close"
@@ -98,66 +135,63 @@ const InterestFormContent = ({
         />
       </div>
       <div class="atv-interest-modal-body">
-        <div
-          class="atv-interest-modal-statuses"
-          style={
-            {
-              "--atv-interest-status-count": statuses.length,
-              "--atv-interest-status-index": activeStatusIndex,
-            } as JSX.CSSProperties
-          }
-        >
-          <div aria-hidden="true" class="atv-interest-modal-status-indicator" />
-          {statuses.map((entry) => (
-            <button
-              aria-pressed={entry.value === status}
-              class={`atv-interest-modal-status${
-                entry.value === status ? " is-active" : ""
-              }`}
-              data-value={entry.value}
-              disabled={loading}
-              key={entry.value}
-              onClick={() => setStatus(entry.value)}
-              type="button"
-            >
-              {entry.label}
-            </button>
-          ))}
-        </div>
-        <StarRatingInput
-          disabled={loading}
-          onChange={setRating}
-          rating={rating}
+        <InterestFormFields
+          disabled={disabled}
+          form={form}
+          onFormChange={updateForm}
+          {...(onRetry ? { onRetry } : {})}
+          onTagDraftChange={setTagDraft}
+          onTagsChange={updateTags}
+          source={source}
+          state={state}
+          tagDraft={tagDraft}
         />
-        <textarea
-          class="atv-interest-modal-comment"
-          maxLength={350}
-          onInput={(event) =>
-            setComment((event.currentTarget as HTMLTextAreaElement).value)
-          }
-          placeholder="写一段短评…"
-          rows={3}
-          value={comment}
-        />
-        <button
-          class="atv-interest-modal-submit"
-          disabled={loading}
-          onClick={() => void save()}
-          type="button"
-        >
-          {loading ? "保存中..." : "保存"}
-        </button>
-        {state.marked ? (
-          <button
-            class="atv-interest-modal-remove"
-            disabled={loading}
-            onClick={() => void remove()}
-            type="button"
-          >
-            取消标记
-          </button>
-        ) : null}
-        <div class="atv-interest-modal-error">{error}</div>
+        <footer class="atv-interest-modal-footer">
+          {confirmingRemoval ? (
+            <div class="atv-interest-modal-removal-confirmation" role="alert">
+              <span>取消这条作品标记？</span>
+              <div>
+                <button
+                  onClick={() => setConfirmingRemoval(false)}
+                  type="button"
+                >
+                  保留标记
+                </button>
+                <button
+                  disabled={disabled}
+                  onClick={() => void remove()}
+                  type="button"
+                >
+                  确认取消
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div class="atv-interest-modal-actions">
+              <button
+                class="atv-interest-modal-submit"
+                disabled={disabled}
+                onClick={() => void save()}
+                type="button"
+              >
+                {loading ? "保存中..." : "保存标记"}
+              </button>
+              {isExistingMark ? (
+                <button
+                  class="atv-interest-modal-remove"
+                  disabled={disabled}
+                  onClick={() => setConfirmingRemoval(true)}
+                  type="button"
+                >
+                  取消标记
+                </button>
+              ) : null}
+            </div>
+          )}
+          <div aria-live="polite" class="atv-interest-modal-error">
+            {error}
+          </div>
+        </footer>
       </div>
     </>
   );
@@ -166,24 +200,29 @@ const InterestFormContent = ({
 const InterestForm = ({
   callbacks,
   onClose,
-  openRequestId,
+  onRetry,
+  source,
   state,
+  subjectTitle,
 }: InterestFormProps) => (
   <ModalShell
     ariaLabelledBy="atv-interest-modal-title"
     className="atv-interest-modal"
     id="atv-interest-modal"
     onClose={onClose}
-    openRequestId={openRequestId}
     surfaceClassName="atv-interest-modal-inner"
   >
-    <InterestFormContent
-      callbacks={callbacks}
-      key={openRequestId}
-      state={state}
-    />
+    <ModalSessionContent>
+      <InterestFormContent
+        callbacks={callbacks}
+        {...(onRetry ? { onRetry } : {})}
+        source={source}
+        state={state}
+        subjectTitle={subjectTitle}
+      />
+    </ModalSessionContent>
   </ModalShell>
 );
 
-export { InterestForm, initialStatus, statusEntries };
+export { InterestForm, initialStatus };
 export type { InterestFormProps };

@@ -13,7 +13,6 @@ import { HeroSummary } from "./hero-summary";
 type HeroProps = {
   callbacks: HeroCallbacks;
   data: HeroData;
-  expandNativeSummary?: () => Promise<string | null>;
   externalRatings?: RatingResultMap | null;
   firstBroadcastPlatform?: string | null;
   onOpenPoster?: (src: string, alt: string) => void;
@@ -24,7 +23,6 @@ const noop = (): undefined => undefined;
 const Hero = ({
   callbacks,
   data,
-  expandNativeSummary,
   externalRatings = null,
   firstBroadcastPlatform = null,
   onOpenPoster = noop,
@@ -83,12 +81,7 @@ const Hero = ({
             imdbId={data.imdbId}
           />
           <HeroActions callbacks={callbacks} state={data.interest} />
-          {data.summary ? (
-            <HeroSummary
-              expandNativeSummary={expandNativeSummary}
-              text={data.summary}
-            />
-          ) : null}
+          {data.summary ? <HeroSummary text={data.summary} /> : null}
         </div>
       </div>
     </div>

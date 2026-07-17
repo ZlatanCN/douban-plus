@@ -15,7 +15,6 @@ import { useReviewContent } from "./use-review-content";
 type ReviewModalProps = {
   canVote?: AccountActionGuard;
   onClose: () => void;
-  openRequestId?: number;
   onVoteStateChange?: (
     review: Review,
     state: ReviewVoteState,
@@ -126,7 +125,7 @@ const ReviewModalContent = ({
           aria-busy={content.status === "loading" ? "true" : "false"}
           aria-live="polite"
           class={bodyClassName(content.status)}
-          html={content.html || undefined}
+          {...(content.html ? { html: content.html } : {})}
         >
           {content.status === "loading" ? "加载中" : null}
           {content.status === "error" ? (
@@ -140,12 +139,14 @@ const ReviewModalContent = ({
         <div class="atv-review-modal-votes">
           <div class="atv-review-actions" data-rid={review.id || undefined}>
             <ReviewVoteButtons
-              canVote={canVote}
-              onStateChange={onVoteStateChange}
-              onVote={onVote}
+              {...(canVote ? { canVote } : {})}
+              {...(onVoteStateChange
+                ? { onStateChange: onVoteStateChange }
+                : {})}
+              {...(onVote ? { onVote } : {})}
               review={review}
               size="large"
-              state={voteState}
+              {...(voteState ? { state: voteState } : {})}
             />
           </div>
         </div>
@@ -167,7 +168,6 @@ const ReviewModalContent = ({
 const ReviewModal = ({
   canVote,
   onClose,
-  openRequestId,
   onVoteStateChange,
   onVote,
   review,
@@ -178,15 +178,14 @@ const ReviewModal = ({
     className="atv-review-modal"
     id="atv-review-modal"
     onClose={onClose}
-    openRequestId={openRequestId}
     surfaceClassName="atv-review-modal-scroll"
   >
     <ReviewModalContent
-      canVote={canVote}
-      onVote={onVote}
-      onVoteStateChange={onVoteStateChange}
+      {...(canVote ? { canVote } : {})}
+      {...(onVote ? { onVote } : {})}
+      {...(onVoteStateChange ? { onVoteStateChange } : {})}
       review={review}
-      voteState={voteState}
+      {...(voteState ? { voteState } : {})}
     />
   </ModalShell>
 );

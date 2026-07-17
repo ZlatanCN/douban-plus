@@ -13,7 +13,7 @@ const pickStill = (photos: Photo[], seed: string): Photo | null => {
   if (!photos.length) {
     return null;
   }
-  return photos[hashStr(String(seed || "")) % photos.length];
+  return photos[hashStr(String(seed || "")) % photos.length] ?? null;
 };
 
 const backgroundStyle = (still: Photo | null, poster: string | null) => {

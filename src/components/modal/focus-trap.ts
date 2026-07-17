@@ -28,6 +28,9 @@ const trapFocus = (event: KeyboardEvent, root: HTMLElement): void => {
   }
 
   const [first] = focusable;
+  if (!first) {
+    return;
+  }
   const last = focusable.at(-1);
   const active = document.activeElement;
 
