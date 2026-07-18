@@ -100,5 +100,5 @@ const resolveStreamingProvider = (
   };
 };
 
-export { decodeStreamingHref, resolveStreamingProvider };
+export { resolveStreamingProvider };
 export type { ResolvedStreamingProvider, StreamingProviderKey };

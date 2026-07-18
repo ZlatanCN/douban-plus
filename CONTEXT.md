@@ -70,7 +70,7 @@ src/
       types.ts           — subject-page runtime data and action contracts
       hero/              — hero background, poster, metadata, summary, actions
       ratings/           — Douban panel plus unified IMDb / Metacritic / Rotten Tomatoes external rating display
-      media/             — streaming, series, cast, photos, recommendations
+      media/             — streaming, series, cast, photos, recommendations; `streaming-provider.tsx` keeps curated-name and decoded-host adapters behind `resolveStreamingProvider(item)`
       details/           — facts, IMDb link, awards
       comments/          — short-comment cards, modal, icon voting, shared vote state
       reviews/           — review cards, modal lifecycle, content loading, up/down vote state

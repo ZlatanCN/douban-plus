@@ -1,10 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { StreamingSection } from "@/modules/subject-page/media";
-import {
-  decodeStreamingHref,
-  resolveStreamingProvider,
-} from "@/modules/subject-page/media/streaming-provider";
+import * as streamingProvider from "@/modules/subject-page/media/streaming-provider";
 import type { Streaming } from "@/types";
 
 import { renderSingle } from "../../helpers/render";
@@ -13,6 +10,16 @@ const stream = (overrides: Partial<Streaming>): Streaming => ({
   href: "https://example.com/watch",
   name: "Example",
   ...overrides,
+});
+
+const { resolveStreamingProvider } = streamingProvider;
+
+describe("streaming provider module", () => {
+  it("exposes provider resolution as its only runtime interface", () => {
+    expect(Object.keys(streamingProvider)).toStrictEqual([
+      "resolveStreamingProvider",
+    ]);
+  });
 });
 
 describe(resolveStreamingProvider, () => {
@@ -71,16 +78,6 @@ describe(resolveStreamingProvider, () => {
       key: "unknown",
       label: "小众影库",
     });
-  });
-});
-
-describe(decodeStreamingHref, () => {
-  it("returns the wrapped target URL when Douban proxies the link", () => {
-    expect(
-      decodeStreamingHref(
-        "https://www.douban.com/link2/?url=https%3A%2F%2Fwww.iqiyi.com%2Fv_1.html&type=online-video"
-      )
-    ).toBe("https://www.iqiyi.com/v_1.html");
   });
 });
 
