@@ -1,20 +1,12 @@
 import { PosterImage } from "@/components/common/poster-image";
 import { Section } from "@/components/layout/section";
-import type { SeriesItem } from "@/types";
+import type { ResolvedSeriesItem } from "@/modules/subject-page/types";
 
 import { getSubjectSectionCopy } from "../section-copy";
 
 type SeriesSectionProps = {
-  items: SeriesItem[];
+  items: ResolvedSeriesItem[];
   moreLink?: { href: string; text: string };
-};
-
-const subjectPath = (url: string): string => {
-  try {
-    return new URL(url).pathname;
-  } catch {
-    return "";
-  }
 };
 
 const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
@@ -26,9 +18,7 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
     >
       <div class="atv-carousel atv-series-carousel">
         {items.map((item) => {
-          const active =
-            item.link && subjectPath(item.link) === window.location.pathname;
-          const className = `atv-series-card${active ? " is-active" : ""}`;
+          const className = `atv-series-card${item.isCurrent ? " is-active" : ""}`;
           const key = item.link || item.title;
           const content = (
             <>
@@ -64,5 +54,5 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
     </Section>
   ) : null;
 
-export { SeriesSection, subjectPath };
+export { SeriesSection };
 export type { SeriesSectionProps };

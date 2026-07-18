@@ -30,6 +30,10 @@ type PhotoResolution = {
   status: "loading" | "ready";
 };
 
+type ResolvedSeriesItem = SeriesItem & {
+  isCurrent: boolean;
+};
+
 type SubjectPageRuntime = {
   actions: {
     interestMarking: InterestMarkingActions;
@@ -41,7 +45,7 @@ type SubjectPageRuntime = {
   navigation: SubjectPageNavigation;
   photoResolution: PhotoResolution;
   resolvedComments: Comment[];
-  series: SeriesItem[];
+  series: ResolvedSeriesItem[];
   seriesMoreLink?: { href: string; text: string };
   summary: string | null;
 };
@@ -50,6 +54,7 @@ export type {
   CommentVoteCallback,
   PhotoResolution,
   ResolvedPhoto,
+  ResolvedSeriesItem,
   SubjectPageNavigation,
   SubjectPageRuntime,
 };

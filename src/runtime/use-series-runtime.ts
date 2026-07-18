@@ -1,13 +1,33 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { extractSeries } from "@/extract/series";
+import type { ResolvedSeriesItem } from "@/modules/subject-page/types";
 import type { SeriesItem } from "@/types";
 
 type SeriesMoreLink = { href: string; text: string };
 
 type SeriesRuntime = {
-  items: SeriesItem[];
+  items: ResolvedSeriesItem[];
   moreLink?: SeriesMoreLink;
+};
+
+const subjectPath = (url: string): string => {
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return "";
+  }
+};
+
+const resolveCurrentSeries = (
+  items: SeriesItem[],
+  doc: Document
+): ResolvedSeriesItem[] => {
+  const pathname = doc.defaultView?.location.pathname ?? doc.location.pathname;
+  return items.map((item) => ({
+    ...item,
+    isCurrent: Boolean(item.link && subjectPath(item.link) === pathname),
+  }));
 };
 
 const extractSeriesMoreLink = (doc: Document): SeriesMoreLink | undefined => {
@@ -27,10 +47,11 @@ const readSeriesRuntime = (
   doc: Document
 ): SeriesRuntime => {
   const moreLink = extractSeriesMoreLink(doc);
+  const items = doc.querySelector("#series-items .items-swiper")
+    ? extractSeries(doc)
+    : initial;
   return {
-    items: doc.querySelector("#series-items .items-swiper")
-      ? extractSeries(doc)
-      : initial,
+    items: resolveCurrentSeries(items, doc),
     ...(moreLink ? { moreLink } : {}),
   };
 };

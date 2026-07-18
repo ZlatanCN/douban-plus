@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { SeriesSection } from "@/modules/subject-page/media";
-import type { SeriesItem } from "@/types";
+import type { ResolvedSeriesItem } from "@/modules/subject-page/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
-const makeItem = (overrides?: Partial<SeriesItem>): SeriesItem => ({
+const makeItem = (
+  overrides?: Partial<ResolvedSeriesItem>
+): ResolvedSeriesItem => ({
+  isCurrent: false,
   link: "https://movie.douban.com/subject/1/",
   poster: "https://img1.doubanio.com/poster.jpg",
   rating: "9.5",
@@ -46,6 +49,23 @@ describe(SeriesSection, () => {
       "第一季"
     );
     expect(card?.querySelector(".atv-series-badge")?.textContent).toBe("9.5");
+  });
+
+  it("marks the runtime-resolved current series without reading location", () => {
+    const root = renderIntoRoot(
+      <SeriesSection
+        items={[
+          makeItem({
+            isCurrent: true,
+            link: "https://example.com/not-current",
+          }),
+        ]}
+      />
+    );
+
+    expect(
+      root.querySelector(".atv-series-card")?.classList.contains("is-active")
+    ).toBeTruthy();
   });
 
   it("uses a non-anchor card when link is empty", () => {
