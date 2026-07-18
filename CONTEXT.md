@@ -108,6 +108,7 @@ src/
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
     use-native-summary.ts — Preact hook: native summary selection, expansion, reread and fallback → adopted summary
+    use-review-content.ts — Preact hook: native/fetched review HTML, sanitization, cancellation → review-content result
     use-trailer-acquisition.ts — Preact hook: trailer-page fetch, LD+JSON parsing, cancellation and native fallback → acquisition state
     use-series-runtime.ts — Preact hook: absent/initial/late series, current-series identity, more-link adoption, and observer cleanup → series runtime result
     use-sticky-navigation.ts — sticky nav reveal, active-section tracking, and jump lifecycle
@@ -185,7 +186,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
    - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
    - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
-   - Review-content acquisition uses one deep module, `reviews/use-review-content.ts`: native page HTML and fetched review-page HTML are internal adapters; callers receive only loading, loaded sanitized 影评正文, or error state.
+   - Review-content acquisition uses one deep runtime module, `runtime/use-review-content.ts`: native page HTML and fetched review-page HTML are internal adapters; `reviews/review-content-modal.tsx` passes its result to the visual `ReviewModal`, which receives only loading, loaded sanitized 影评正文, or error state.
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The vote-state machine has one owner: `createVoteState` in `vote-state.ts` produces a `VoteApi`; `use-vote-state.ts` and `use-vote-action.ts` both consume that `VoteApi` directly — no hand-assembled strategy shape at the composition root. `comments/comment-vote-state.ts` exports `commentVoteApi`; `reviews/review-vote-state.ts` exports `reviewVoteApi`.
    - Vote buttons support controlled and standalone modes. Inside `SubjectPage`, card and modal buttons must read/write the same owner state; standalone section tests can still rely on local button state. `use-vote-action.ts` accepts a `VoteTransitionApi` (the `optimistic`/`resolve`/`votedOf` subset of `VoteApi`) plus per-instance wiring, so the hook owns only the async orchestration and touches the half of the state machine it actually uses.
 
@@ -208,7 +209,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
 7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
    - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
-   - Runtime effects are localized: avatars, late series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module
+   - Runtime effects are localized: avatars, review-content and late-series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module
    - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`; `useSeriesRuntime` owns the initial/late series result, current-series identity, more-link adoption, DOM observation, and cleanup
    - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 

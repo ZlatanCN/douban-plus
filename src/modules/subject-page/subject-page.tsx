@@ -21,7 +21,7 @@ import {
   TrailerModal,
 } from "./media";
 import { ReviewsSection } from "./reviews";
-import { ReviewModal } from "./reviews/review-modal";
+import { ReviewContentModal } from "./reviews/review-content-modal";
 import { reviewVoteApi } from "./reviews/review-vote-state";
 import { SubjectSwitcher } from "./search/subject-switcher";
 import type { SubjectPageRuntime } from "./types";
@@ -177,7 +177,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       ) : null}
       {activeReview.active ? (
         <ModalSession request={activeReview.active}>
-          <ReviewModal
+          <ReviewContentModal
             canVote={canReviewVote}
             onClose={activeReview.handleClose}
             onVoteStateChange={handleReviewVoteStateChange}

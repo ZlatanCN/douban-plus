@@ -304,7 +304,11 @@ describe(ReviewsSection, () => {
 
   it("renders the stable review-content failure state in the modal", async () => {
     const root = renderIntoRoot(
-      <ReviewModal onClose={vi.fn<() => void>()} review={makeReview()} />
+      <ReviewModal
+        content={{ html: null, status: "error" }}
+        onClose={vi.fn<() => void>()}
+        review={makeReview()}
+      />
     );
 
     await vi.waitFor(() =>
@@ -316,5 +320,25 @@ describe(ReviewsSection, () => {
     expect(
       root.querySelector(".atv-review-modal-error")?.textContent
     ).toContain("影评内容暂时加载失败");
+  });
+
+  it("renders a supplied review-content result without starting host work", () => {
+    const fetch = vi.fn<() => Promise<Response>>();
+    vi.stubGlobal("fetch", fetch);
+    const root = renderIntoRoot(
+      <ReviewModal
+        content={{ html: "<p>受控正文</p>", status: "loaded" }}
+        onClose={vi.fn<() => void>()}
+        review={makeReview()}
+      />
+    );
+
+    expect(root.querySelector(".atv-review-modal-body")?.classList).toContain(
+      "is-loaded"
+    );
+    expect(root.querySelector(".atv-review-modal-body")?.textContent).toContain(
+      "受控正文"
+    );
+    expect(fetch).not.toHaveBeenCalled();
   });
 });

@@ -12566,9 +12566,8 @@ input::placeholder {
 		if (status === "error") return "atv-review-modal-body is-error";
 		return "atv-review-modal-body is-skeleton";
 	};
-	var ReviewModalContent = ({ canVote, onVoteStateChange, onVote, review, voteState }) => {
+	var ReviewModalContent = ({ canVote, content, onVoteStateChange, onVote, review, voteState }) => {
 		const handleClose = useModalClose();
-		const content = useReviewContent(review.id);
 		const displayName = reviewDisplayName(review.name);
 		const numericId = reviewNumericId(review.id);
 		const bodyRef = A(null);
@@ -12666,7 +12665,7 @@ input::placeholder {
 			})
 		] });
 	};
-	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
+	var ReviewModal = ({ canVote, content, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
 		ariaLabelledBy: "atv-review-modal-title",
 		className: "atv-review-modal",
 		id: "atv-review-modal",
@@ -12674,12 +12673,21 @@ input::placeholder {
 		surfaceClassName: "atv-review-modal-scroll",
 		children: u(ReviewModalContent, {
 			...canVote ? { canVote } : {},
+			content,
 			...onVote ? { onVote } : {},
 			...onVoteStateChange ? { onVoteStateChange } : {},
 			review,
 			...voteState ? { voteState } : {}
 		})
 	});
+	var ReviewContentModal = ({ review, ...props }) => {
+		const content = useReviewContent(review.id);
+		return u(ReviewModal, {
+			...props,
+			content,
+			review
+		});
+	};
 	var CACHE_DURATION_MS = 120 * 1e3;
 	var subjectSuggestionCache = new Map();
 	var subjectPathPattern = /^\/subject\/(?<subjectId>\d+)\/?$/u;
@@ -13184,7 +13192,7 @@ input::placeholder {
 			}) : null,
 			activeReview.active ? u(ModalSession, {
 				request: activeReview.active,
-				children: u(ReviewModal, {
+				children: u(ReviewContentModal, {
 					canVote: canReviewVote,
 					onClose: activeReview.handleClose,
 					onVoteStateChange: handleReviewVoteStateChange,

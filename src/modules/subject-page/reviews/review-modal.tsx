@@ -4,16 +4,17 @@ import { HtmlContent } from "@/components/common/html-content";
 import { Stars } from "@/components/common/stars";
 import { ModalCloseButton, ModalShell } from "@/components/modal";
 import { useModalClose } from "@/components/modal/modal-close-context";
+import type { ReviewContentState } from "@/runtime/use-review-content";
 import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
 import { playEntrance, springConfigs } from "@/utils/springs";
 
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";
 import type { ReviewVoteState } from "./review-vote-state";
-import { useReviewContent } from "./use-review-content";
 
 type ReviewModalProps = {
   canVote?: AccountActionGuard;
+  content: ReviewContentState;
   onClose: () => void;
   onVoteStateChange?: (
     review: Review,
@@ -25,9 +26,7 @@ type ReviewModalProps = {
   voteState?: ReviewVoteState;
 };
 
-const bodyClassName = (
-  status: ReturnType<typeof useReviewContent>["status"]
-) => {
+const bodyClassName = (status: ReviewContentState["status"]) => {
   if (status === "loaded") {
     return "atv-review-modal-body is-loaded";
   }
@@ -39,12 +38,14 @@ const bodyClassName = (
 
 const ReviewModalContent = ({
   canVote,
+  content,
   onVoteStateChange,
   onVote,
   review,
   voteState,
 }: {
   canVote?: AccountActionGuard;
+  content: ReviewContentState;
   onVoteStateChange?: (
     review: Review,
     state: ReviewVoteState,
@@ -55,13 +56,11 @@ const ReviewModalContent = ({
   voteState?: ReviewVoteState;
 }) => {
   const handleClose = useModalClose();
-  const content = useReviewContent(review.id);
   const displayName = reviewDisplayName(review.name);
   const numericId = reviewNumericId(review.id);
   const bodyRef = useRef<HTMLDivElement>(null);
   const bodyAnimationRef = useRef<{ stop: () => void } | null>(null);
-  const prevStatusRef =
-    useRef<ReturnType<typeof useReviewContent>["status"]>("loading");
+  const prevStatusRef = useRef<ReviewContentState["status"]>("loading");
 
   useEffect(() => {
     const bodyEl = bodyRef.current;
@@ -167,6 +166,7 @@ const ReviewModalContent = ({
 
 const ReviewModal = ({
   canVote,
+  content,
   onClose,
   onVoteStateChange,
   onVote,
@@ -182,6 +182,7 @@ const ReviewModal = ({
   >
     <ReviewModalContent
       {...(canVote ? { canVote } : {})}
+      content={content}
       {...(onVote ? { onVote } : {})}
       {...(onVoteStateChange ? { onVoteStateChange } : {})}
       review={review}
