@@ -28,7 +28,9 @@ const VideoModalContent = ({
 
   return (
     <>
-      <ModalCloseButton ariaLabel="关闭视频" onClick={close} />
+      {acquisition.status === "loading" ? null : (
+        <ModalCloseButton ariaLabel="关闭视频" onClick={close} />
+      )}
       <div class="atv-modal-video-content">
         {acquisition.status === "loading" ? (
           <div class="atv-modal-loading">

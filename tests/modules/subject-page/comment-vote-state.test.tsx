@@ -119,6 +119,7 @@ const makeRuntime = (
     sections: [],
     visible: false,
   },
+  photoResolution: { photos: [], status: "ready" },
   resolvedComments,
   series: [],
   summary: "",

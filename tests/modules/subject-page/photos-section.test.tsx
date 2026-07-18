@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import { PhotosSection } from "@/modules/subject-page/media";
-import type { Photo, PhotosData, Trailer } from "@/types";
+import type { ResolvedPhoto } from "@/modules/subject-page/types";
+import type { Trailer } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
-const makePhoto = (overrides?: Partial<Photo>): Photo => ({
+type ResolvedPhotosData = {
+  photos: ResolvedPhoto[];
+  subjectId: string;
+  trailers: Trailer[];
+};
+
+const makePhoto = (overrides?: Partial<ResolvedPhoto>): ResolvedPhoto => ({
+  aspectRatio: 16 / 9,
   hdUrl: "https://example.com/hd.jpg",
   link: "https://example.com/photo/1",
   thumbUrl: "https://example.com/thumb.jpg",
@@ -19,7 +27,9 @@ const makeTrailer = (overrides?: Partial<Trailer>): Trailer => ({
   ...overrides,
 });
 
-const makeData = (overrides?: Partial<PhotosData>): PhotosData => ({
+const makeData = (
+  overrides?: Partial<ResolvedPhotosData>
+): ResolvedPhotosData => ({
   photos: [],
   subjectId: "1292052",
   trailers: [],
@@ -74,9 +84,11 @@ describe(PhotosSection, () => {
     expect(tiles[1]?.querySelector("img")?.getAttribute("alt")).toBe("剧照");
   });
 
-  it("renders image fallback and portrait styling from component state", async () => {
+  it("keeps a resolved photo's geometry fixed after lazy image load", async () => {
     const root = renderIntoRoot(
-      <PhotosSection data={makeData({ photos: [makePhoto()] })} />
+      <PhotosSection
+        data={makeData({ photos: [makePhoto({ aspectRatio: 3 / 4 })] })}
+      />
     );
     const image = root.querySelector<HTMLImageElement>(".atv-photo-tile img");
     const tile = root.querySelector<HTMLElement>(".atv-photo-tile");
@@ -88,10 +100,36 @@ describe(PhotosSection, () => {
     Object.defineProperty(image, "naturalWidth", { value: 100 });
     image?.dispatchEvent(new Event("load", { bubbles: true }));
     await Promise.resolve();
-    expect(tile?.classList.contains("is-portrait")).toBeTruthy();
+    expect(tile?.classList.contains("is-portrait")).toBeFalsy();
+    expect(tile?.style.getPropertyValue("--atv-photo-aspect-ratio")).toBe(
+      "0.75"
+    );
 
     image?.dispatchEvent(new Event("error", { bubbles: true }));
     await Promise.resolve();
     expect(image?.getAttribute("src")).toBe("https://example.com/thumb.jpg");
+  });
+
+  it("reserves the stable rail height while photos resolve without a trailer", () => {
+    const root = renderIntoRoot(
+      <PhotosSection data={makeData()} resolvingPhotos />
+    );
+
+    expect(root.querySelector("#atv-photos")).not.toBeNull();
+    expect(root.querySelector(".atv-photo-rail-reserve")).not.toBeNull();
+    expect(root.querySelectorAll(".atv-photo-tile")).toHaveLength(0);
+  });
+
+  it("keeps the trailer available but withholds unresolved static photos", () => {
+    const root = renderIntoRoot(
+      <PhotosSection
+        data={makeData({ trailers: [makeTrailer()] })}
+        resolvingPhotos
+      />
+    );
+
+    expect(root.querySelectorAll(".atv-trailer-tile")).toHaveLength(1);
+    expect(root.querySelectorAll(".atv-photo-tile")).toHaveLength(1);
+    expect(root.querySelector(".atv-photo-rail-reserve")).toBeNull();
   });
 });

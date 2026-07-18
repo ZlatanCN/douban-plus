@@ -3,6 +3,7 @@ import type {
   InterestMarkingActions,
   NavSection,
   Comment,
+  Photo,
   ReviewVoteCallback,
   SeriesItem,
 } from "@/types";
@@ -20,6 +21,15 @@ type SubjectPageNavigation = {
   visible: boolean;
 };
 
+type ResolvedPhoto = Photo & {
+  aspectRatio: number;
+};
+
+type PhotoResolution = {
+  photos: ResolvedPhoto[];
+  status: "loading" | "ready";
+};
+
 type SubjectPageRuntime = {
   actions: {
     interestMarking: InterestMarkingActions;
@@ -29,10 +39,17 @@ type SubjectPageRuntime = {
   externalRatings: RatingResultMap | null;
   firstBroadcastPlatform: string | null;
   navigation: SubjectPageNavigation;
+  photoResolution: PhotoResolution;
   resolvedComments: Comment[];
   series: SeriesItem[];
   seriesMoreLink?: { href: string; text: string };
   summary: string | null;
 };
 
-export type { CommentVoteCallback, SubjectPageNavigation, SubjectPageRuntime };
+export type {
+  CommentVoteCallback,
+  PhotoResolution,
+  ResolvedPhoto,
+  SubjectPageNavigation,
+  SubjectPageRuntime,
+};

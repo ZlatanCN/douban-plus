@@ -66,12 +66,9 @@
     flex-basis: 120px;
   }
 
-  .atv-photo-tile {
-    flex-basis: 280px;
-  }
-
-  .atv-photo-tile.is-portrait {
-    flex-basis: 170px;
+  .atv-photo-tile:not(.atv-trailer-tile),
+  .atv-photo-rail-reserve {
+    height: 157.5px;
   }
 
   .atv-rating-panel .atv-rating-panel-score {
@@ -279,6 +276,7 @@
 
 @media (width <= 768px) {
   .atv-trailer-tile {
+    height: 157.5px;
     flex-basis: 280px;
   }
 }

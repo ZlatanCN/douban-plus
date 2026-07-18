@@ -9423,10 +9423,10 @@ input::placeholder {
 		h(() => {
 			if (acquisition.status === "fallback") close();
 		}, [acquisition.status, close]);
-		return u(S, { children: [u(ModalCloseButton, {
+		return u(S, { children: [acquisition.status !== "loading" ? u(ModalCloseButton, {
 			ariaLabel: "关闭视频",
 			onClick: close
-		}), u("div", {
+		}) : null, u("div", {
 			class: "atv-modal-video-content",
 			children: [
 				acquisition.status === "loading" ? u("div", {

@@ -16,6 +16,7 @@ import { useExternalRatings } from "./use-external-ratings";
 import { useFirstBroadcastPlatform } from "./use-first-broadcast-platform";
 import { useNativeSummary } from "./use-native-summary";
 import { useResolvedComments } from "./use-resolved-comments";
+import { useResolvedPhotoGeometry } from "./use-resolved-photo-geometry";
 import { useSeriesRuntime } from "./use-series-runtime";
 import { useStickyNavigation } from "./use-sticky-navigation";
 
@@ -28,6 +29,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
   const series = useSeriesRuntime(data.series, doc);
   const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
+  const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
   const externalRatings = useExternalRatings(
     data.info.imdb || null,
     data.isTV,
@@ -57,6 +59,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     externalRatings,
     firstBroadcastPlatform,
     navigation,
+    photoResolution,
     resolvedComments,
     series: series.items,
     ...(series.moreLink ? { seriesMoreLink: series.moreLink } : {}),

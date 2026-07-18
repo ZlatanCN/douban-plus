@@ -112,39 +112,50 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
 const makeRuntime = (
   data: DoubanData,
   overrides?: Partial<SubjectPageRuntime>
-): SubjectPageRuntime => ({
-  actions: {
-    handleCommentVote: () => Promise.resolve({ ok: true }),
-    handleReviewVote: () => Promise.resolve({ ok: true }),
-    interestMarking: {
-      fetch: () =>
-        Promise.resolve({
-          isPrivate: false,
-          myTags: [],
-          popularTags: [],
-          shareToBroadcast: false,
-          status: "wish" as const,
-          tags: [],
-        }),
-      post: () => Promise.resolve({ ok: false }),
-      remove: () => Promise.resolve({ ok: false }),
+): SubjectPageRuntime => {
+  const photoResolution = overrides?.photoResolution ?? {
+    photos: data.photos.map((photo) => ({
+      ...photo,
+      aspectRatio: 16 / 9,
+    })),
+    status: "ready",
+  };
+
+  return {
+    actions: {
+      handleCommentVote: () => Promise.resolve({ ok: true }),
+      handleReviewVote: () => Promise.resolve({ ok: true }),
+      interestMarking: {
+        fetch: () =>
+          Promise.resolve({
+            isPrivate: false,
+            myTags: [],
+            popularTags: [],
+            shareToBroadcast: false,
+            status: "wish" as const,
+            tags: [],
+          }),
+        post: () => Promise.resolve({ ok: false }),
+        remove: () => Promise.resolve({ ok: false }),
+      },
     },
-  },
-  externalRatings: null,
-  firstBroadcastPlatform: null,
-  navigation: {
-    activeSectionId: "",
-    navRef: { current: null },
-    onJump: () => {},
-    scrolling: false,
-    sections: computeNavSections(data),
-    visible: false,
-  },
-  resolvedComments: data.comments,
-  series: [],
-  summary: data.summary,
-  ...overrides,
-});
+    externalRatings: null,
+    firstBroadcastPlatform: null,
+    navigation: {
+      activeSectionId: "",
+      navRef: { current: null },
+      onJump: () => {},
+      scrolling: false,
+      sections: computeNavSections(data),
+      visible: false,
+    },
+    resolvedComments: data.comments,
+    series: [],
+    summary: data.summary,
+    ...overrides,
+    photoResolution,
+  };
+};
 
 const renderSubjectPage = (
   data: DoubanData = makeDoubanData(),

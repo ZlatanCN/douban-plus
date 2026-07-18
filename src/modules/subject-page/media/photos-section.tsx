@@ -2,14 +2,20 @@ import { useState } from "preact/hooks";
 
 import { PlayIcon } from "@/components/common/icons";
 import { Section } from "@/components/layout/section";
-import type { Photo, PhotosData, Trailer } from "@/types";
+import type { ResolvedPhoto } from "@/modules/subject-page/types";
+import type { Trailer } from "@/types";
 
 import { getSubjectSectionCopy } from "../section-copy";
 
 type PhotosSectionProps = {
-  data: PhotosData;
+  data: {
+    photos: ResolvedPhoto[];
+    subjectId: string;
+    trailers: Trailer[];
+  };
   onOpenPoster?: (src: string, alt: string) => void;
   onOpenVideo?: (trailer: Trailer) => void;
+  resolvingPhotos?: boolean;
 };
 
 const noop = (): undefined => undefined;
@@ -19,16 +25,16 @@ const PhotoTile = ({
   photo,
 }: {
   onOpenPoster: (src: string, alt: string) => void;
-  photo: Photo;
+  photo: ResolvedPhoto;
 }) => {
   const primarySrc = photo.hdUrl || photo.thumbUrl;
   const [displaySrc, setDisplaySrc] = useState(primarySrc);
-  const [isPortrait, setIsPortrait] = useState(false);
 
   return (
     <button
-      class={`atv-photo-tile${isPortrait ? " is-portrait" : ""}`}
+      class="atv-photo-tile"
       onClick={() => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照")}
+      style={{ "--atv-photo-aspect-ratio": String(photo.aspectRatio) }}
       type="button"
     >
       <img
@@ -37,12 +43,6 @@ const PhotoTile = ({
         onError={() => {
           if (photo.thumbUrl && displaySrc !== photo.thumbUrl) {
             setDisplaySrc(photo.thumbUrl);
-          }
-        }}
-        onLoad={(event) => {
-          const img = event.currentTarget;
-          if (img.naturalHeight > img.naturalWidth) {
-            setIsPortrait(true);
           }
         }}
         src={displaySrc}
@@ -55,8 +55,16 @@ const PhotosSection = ({
   data,
   onOpenPoster = noop,
   onOpenVideo = noop,
-}: PhotosSectionProps) =>
-  data.photos.length || data.trailers.length ? (
+  resolvingPhotos = false,
+}: PhotosSectionProps) => {
+  const hasMedia =
+    resolvingPhotos || data.photos.length > 0 || data.trailers.length > 0;
+
+  if (!hasMedia) {
+    return null;
+  }
+
+  return (
     <Section
       id="atv-photos"
       {...(data.subjectId
@@ -90,16 +98,22 @@ const PhotosSection = ({
             <span class="atv-trailer-label">{trailer.title || "预告片"}</span>
           </button>
         ))}
-        {data.photos.map((photo) => (
-          <PhotoTile
-            key={photo.link}
-            onOpenPoster={onOpenPoster}
-            photo={photo}
-          />
-        ))}
+        {resolvingPhotos && data.trailers.length === 0 ? (
+          <div aria-busy="true" class="atv-photo-rail-reserve" />
+        ) : null}
+        {resolvingPhotos
+          ? null
+          : data.photos.map((photo) => (
+              <PhotoTile
+                key={photo.link}
+                onOpenPoster={onOpenPoster}
+                photo={photo}
+              />
+            ))}
       </div>
     </Section>
-  ) : null;
+  );
+};
 
 export { PhotoTile, PhotosSection };
 export type { PhotosSectionProps };

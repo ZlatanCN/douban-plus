@@ -124,7 +124,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       <CastSection celebrities={data.celebrities} />
       <PhotosSection
         data={{
-          photos: data.photos,
+          photos: runtime.photoResolution.photos,
           subjectId: data.subjectId,
           trailers: data.trailers,
         }}
@@ -134,6 +134,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
         onOpenVideo={(trailer) =>
           activeMediaModal.handleOpen({ trailer, type: "video" })
         }
+        resolvingPhotos={runtime.photoResolution.status === "loading"}
       />
       <CommentsSection
         canVote={canVote}

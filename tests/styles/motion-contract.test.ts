@@ -13,6 +13,7 @@ const mediaCss = readStyle("media.css");
 const mediaPlaybackCss = readStyle("media-playback.css");
 const modalsCss = readStyle("modals.css");
 const reviewsCss = readStyle("reviews.css");
+const responsiveCss = readStyle("responsive.css");
 const tokensCss = readStyle("00-tokens.css");
 
 describe("motion style contract", () => {
@@ -77,5 +78,27 @@ describe("motion style contract", () => {
 
   it("does not define the unused atv-content-fade keyframe", () => {
     expect(motionCss).not.toContain("atv-content-fade");
+  });
+
+  it("keeps static-photo geometry stable", () => {
+    expect(mediaCss).toContain("flex: 0 0 auto;");
+    expect(mediaCss).toContain("height: 225px;");
+    expect(mediaCss).toContain(
+      "aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);"
+    );
+    expect(mediaCss).toContain("object-fit: contain;");
+    expect(mediaCss).toContain(".atv-photo-rail-reserve");
+  });
+
+  it("removes post-load portrait mutation without adding arrival motion", () => {
+    expect(mediaCss).not.toContain(".atv-photo-tile.is-portrait");
+    expect(responsiveCss).toContain(
+      ".atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;"
+    );
+    expect(responsiveCss).toContain(
+      ".atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;"
+    );
+    expect(responsiveCss).not.toContain(".atv-photo-tile.is-portrait");
+    expect(mediaCss).not.toContain("@keyframes");
   });
 });

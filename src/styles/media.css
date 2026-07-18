@@ -154,27 +154,28 @@
 .atv-photo-tile {
   display: flex;
   overflow: hidden;
-  flex: 0 0 400px;
+  height: 225px;
+  flex: 0 0 auto;
   padding: 0;
   border: none;
   border-radius: var(--atv-radius-md);
   appearance: none;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);
   background: var(--atv-bg-tertiary);
   cursor: pointer;
   scroll-snap-align: start;
   transition: transform var(--atv-duration-hover) var(--atv-ease-out);
 }
 
-.atv-photo-tile.is-portrait {
-  flex: 0 0 240px;
-  aspect-ratio: 3 / 4;
-}
-
 .atv-photo-tile img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+}
+
+.atv-photo-rail-reserve {
+  height: 225px;
+  flex: 0 0 100%;
 }
 
 /* ---------- Recommendations ---------- */
