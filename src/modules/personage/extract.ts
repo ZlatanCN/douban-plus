@@ -1,6 +1,11 @@
 import { $$, safeText } from "@/utils/dom";
 
-import type { PersonageFact, PersonageProfile } from "./types";
+import type {
+  PersonageFact,
+  PersonageGallery,
+  PersonageGalleryImage,
+  PersonageProfile,
+} from "./types";
 
 const personageIdFromPath = (pathname: string): string | null =>
   pathname.match(/^\/personage\/(?<id>\d+)\/?$/u)?.groups?.id ?? null;
@@ -20,6 +25,9 @@ const imageUrl = (element: Element | null): string | null => {
   );
 };
 
+const largePhotoUrl = (src: string): string =>
+  src.replace("/view/photo/photo/", "/view/photo/l/");
+
 const extractFacts = (target: Element): PersonageFact[] =>
   $$<HTMLLIElement>(".subject-property li", target).flatMap((item) => {
     const label = safeText(item.querySelector(".label"));
@@ -34,6 +42,43 @@ const extractBiography = (doc: Document): string[] | null => {
   return biography.length > 0 ? biography : null;
 };
 
+const extractGallery = (
+  doc: Document,
+  personageId: string
+): PersonageGallery | null => {
+  const galleryPath = `/personage/${personageId}/photos`;
+  const source = doc.querySelector(".subject-picture");
+  if (!source) {
+    return null;
+  }
+  const allImagesLink = $$<HTMLAnchorElement>("a[href]", source).find(
+    (link) =>
+      new URL(link.getAttribute("href") ?? "", doc.baseURI).pathname.replace(
+        /\/$/u,
+        ""
+      ) === galleryPath
+  );
+
+  const images = $$<HTMLElement>("li.picture", source).flatMap((image) => {
+    const src = imageUrl(image);
+    if (!src) {
+      return [];
+    }
+    return [
+      {
+        alt: image.getAttribute("aria-label")?.trim() ?? "",
+        largeSrc: largePhotoUrl(src),
+        src,
+      } satisfies PersonageGalleryImage,
+    ];
+  });
+
+  return {
+    allImagesHref: allImagesLink?.href ?? null,
+    images,
+  };
+};
+
 const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   const target = doc.querySelector(".subject-target");
   const name = safeText(target?.querySelector(".subject-name"));
@@ -45,6 +90,7 @@ const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   return {
     biography: extractBiography(doc),
     facts: extractFacts(target),
+    gallery: extractGallery(doc, id),
     id,
     name,
     portrait: imageUrl(

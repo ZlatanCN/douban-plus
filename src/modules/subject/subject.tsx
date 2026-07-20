@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
 import { ModalSession, PosterModal } from "@/components/modal";
+import { useModalRequest } from "@/hooks/use-modal-request";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
 import { CommentsSection } from "./comments";
@@ -25,7 +26,6 @@ import { reviewVoteApi } from "./reviews/review-vote-state";
 import { SubjectSwitcher } from "./search/subject-switcher";
 import { SubjectStickyNav } from "./subject-navigation";
 import type { SubjectPageRuntime } from "./types";
-import { useModalRequest } from "./use-modal-request";
 import { useVoteState } from "./use-vote-state";
 
 type SubjectPageProps = {

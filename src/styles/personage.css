@@ -21,6 +21,26 @@
   object-fit: cover;
 }
 
+.atv-personage-portrait-trigger {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+.atv-personage-portrait-trigger:focus-visible {
+  border-radius: 50%;
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+.atv-personage-portrait-trigger:active {
+  transform: scale(0.97);
+}
+
 .atv-personage-portrait.is-empty {
   background: radial-gradient(
     circle at 30% 25%,
@@ -43,6 +63,15 @@
   font-size: clamp(44px, 7vw, 84px);
   letter-spacing: -0.04em;
   line-height: 0.98;
+}
+
+.atv-personage-original-name {
+  margin: 14px 0 0;
+  color: var(--atv-text-secondary);
+  font-size: clamp(19px, 2.1vw, 28px);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
 }
 
 .atv-personage-facts {
@@ -85,9 +114,15 @@
   margin-top: 1em;
 }
 
-.atv-personage-biography > div.is-clamped {
+.atv-personage-biography > div.is-clamped > p:not(:first-child) {
+  display: none;
+}
+
+.atv-personage-biography > div.is-clamped > p:first-child {
+  display: -webkit-box;
   overflow: hidden;
-  max-height: 5.25em;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .atv-personage-biography button {
@@ -99,6 +134,62 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
+}
+
+.atv-personage .atv-section {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+.atv-personage-gallery-rail {
+  gap: 12px;
+  list-style: none;
+}
+
+.atv-personage-gallery-rail li {
+  min-width: 0;
+  height: 256px;
+  flex: 0 0 auto;
+  aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);
+  scroll-snap-align: start;
+}
+
+.atv-personage-gallery-rail button {
+  display: block;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--atv-radius-sm);
+  appearance: none;
+  background: var(--atv-bg-tertiary);
+  cursor: pointer;
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+.atv-personage-gallery-rail button:focus-visible {
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}
+
+.atv-personage-gallery-rail img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.atv-personage-gallery-rail button:active {
+  transform: scale(0.97);
+}
+
+.atv-personage-gallery-empty {
+  padding: 24px;
+  border-radius: var(--atv-radius-sm);
+  margin: 0;
+  background: var(--atv-bg-secondary);
+  color: var(--atv-text-tertiary);
 }
 
 @media (width <= 640px) {
@@ -118,5 +209,21 @@
   .atv-personage-biography {
     margin-top: 0;
     grid-column: 1 / -1;
+  }
+
+  .atv-personage-gallery-rail li {
+    height: 160px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-personage-portrait-trigger,
+  .atv-personage-gallery-rail button {
+    transition: none;
+  }
+
+  .atv-personage-portrait-trigger:active,
+  .atv-personage-gallery-rail button:active {
+    transform: none;
   }
 }

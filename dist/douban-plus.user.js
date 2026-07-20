@@ -61,7 +61,7 @@
 			else (document.head || document.documentElement).appendChild(document.createElement("style")).append(c);
 		})(t);
 	};
-	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody.atv-enhanced > #wrapper {\n  display: none !important;\n}\n\nbody.atv-enhanced {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\nbody.atv-enhanced #db-global-nav,\nbody.atv-enhanced #db-nav-movie,\nbody.atv-enhanced #db-nav-sns {\n  display: none !important;\n}\n\nbody.atv-enhanced [id^=\"dale_\"],\nbody.atv-enhanced [class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition:\n    transform var(--atv-duration-feedback) var(--atv-ease-in-out),\n    width var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n/* ---------- Subject suggestion results ---------- */\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion-results {\n  animation: atv-subject-suggestion-results-enter var(--atv-duration-feedback)\n    var(--atv-ease-out) both;\n}\n\n@keyframes atv-subject-suggestion-results-enter {\n  from {\n    opacity: 0;\n    transform: translateY(-4px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n\n  .atv-subject-suggestion-results {\n    animation: atv-subject-suggestion-results-fade-in\n      var(--atv-duration-feedback) var(--atv-ease-out) both;\n  }\n}\n\n@keyframes atv-subject-suggestion-results-fade-in {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 56px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  box-shadow:\n    0 24px 60px rgb(0 0 0 / 60%),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1.05;\n  text-shadow:\n    0 2px 20px rgb(0 0 0 / 70%),\n    0 0 60px rgb(0 0 0 / 30%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 14%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, \"Cascadia Code\", monospace;\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 700;\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 22%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n.atv-personage {\n  min-height: 100vh;\n  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;\n}\n\n.atv-personage-hero {\n  display: grid;\n  width: min(100%, 1120px);\n  align-items: start;\n  margin: 0 auto;\n  gap: clamp(28px, 5vw, 68px);\n  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);\n}\n\n.atv-personage-portrait {\n  width: 100%;\n  border-radius: 50%;\n  aspect-ratio: 1;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 24px 60px rgb(0 0 0 / 42%);\n  object-fit: cover;\n}\n\n.atv-personage-portrait.is-empty {\n  background: radial-gradient(\n    circle at 30% 25%,\n    #4a4a4d,\n    var(--atv-bg-tertiary) 62%\n  );\n}\n\n.atv-personage-kicker {\n  margin: 4px 0 12px;\n  color: var(--atv-accent-bright);\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 0.12em;\n}\n\n.atv-personage-identity h1 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: clamp(44px, 7vw, 84px);\n  letter-spacing: -0.04em;\n  line-height: 0.98;\n}\n\n.atv-personage-facts {\n  display: flex;\n  flex-wrap: wrap;\n  margin: 28px 0 0;\n  gap: 10px 22px;\n}\n\n.atv-personage-facts div {\n  display: flex;\n  gap: 8px;\n}\n\n.atv-personage-facts dt {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-personage-facts dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n}\n\n.atv-personage-biography {\n  max-width: 720px;\n  margin-top: 32px;\n}\n\n.atv-personage-biography > div {\n  color: var(--atv-text-secondary);\n  font-size: 17px;\n  line-height: 1.75;\n}\n\n.atv-personage-biography p {\n  margin: 0;\n}\n\n.atv-personage-biography p + p {\n  margin-top: 1em;\n}\n\n.atv-personage-biography > div.is-clamped {\n  overflow: hidden;\n  max-height: 5.25em;\n}\n\n.atv-personage-biography button {\n  padding: 0;\n  border: 0;\n  margin-top: 12px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n}\n\n@media (width <= 640px) {\n  .atv-personage-hero {\n    gap: 24px;\n    grid-template-columns: 112px minmax(0, 1fr);\n  }\n\n  .atv-personage-identity h1 {\n    font-size: clamp(34px, 10vw, 50px);\n  }\n\n  .atv-personage-facts {\n    margin-top: 20px;\n  }\n\n  .atv-personage-biography {\n    margin-top: 0;\n    grid-column: 1 / -1;\n  }\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scroll-snap-type: x mandatory;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  height: 225px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-photo-rail-reserve {\n  height: 225px;\n  flex: 0 0 100%;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 16px 32px;\n  grid-template-columns: 200px 1fr;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  color: rgb(255 255 255 / 55%);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}\n\n.atv-info-value {\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n}\n\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 18px;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 22px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay,\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 600;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  background: rgb(255 255 255 / 4%);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 13px;\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 5%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: rgb(65 190 93 / 45%);\n  background: rgb(65 190 93 / 16%);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: rgb(65 190 93 / 38%);\n  background: rgb(65 190 93 / 12%);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 255 255 / 3%);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: 13px;\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 6%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: rgb(255 69 58 / 35%);\n  background: rgb(255 69 58 / 18%);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  overflow: hidden;\n  min-width: 0;\n  max-width: 36ch;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  overflow: hidden;\n  border: 1px solid rgb(255 255 255 / 7%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  min-height: 66px;\n  align-items: center;\n  padding: 16px 22px;\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  gap: 3px 24px;\n  grid-template-columns: minmax(0, 1fr) minmax(106px, max-content) 17px;\n  grid-template-rows: auto auto;\n  isolation: isolate;\n}\n\n.atv-discussion-row:last-child {\n  border-bottom: 0;\n}\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0.35);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n.atv-discussion-title {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  margin: 0;\n  color: rgb(255 255 255 / 90%);\n  font-size: 16px;\n  font-weight: 600;\n  grid-column: 1;\n  grid-row: 1;\n  letter-spacing: -0.01em;\n  line-height: 1.45;\n  pointer-events: none;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-discussion-copy {\n  display: contents;\n  pointer-events: none;\n}\n\n.atv-discussion-meta {\n  display: contents;\n}\n\n.atv-discussion-author {\n  position: relative;\n  z-index: 2;\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  grid-column: 1;\n  grid-row: 2;\n  line-height: 1.35;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n.atv-discussion-activity {\n  position: relative;\n  z-index: 2;\n  display: grid;\n  min-width: 106px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 3px;\n  grid-column: 2;\n  grid-row: 1 / span 2;\n  line-height: 1.35;\n  pointer-events: none;\n  text-align: right;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-time {\n  display: grid;\n  font-variant-numeric: tabular-nums;\n  gap: 1px;\n  white-space: nowrap;\n}\n\n.atv-discussion-footer {\n  margin-top: 14px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-footer a:hover,\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  text-decoration: underline;\n}\n\n.atv-discussion-footer a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-discussion-arrow {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-accent-bright);\n  font-size: 17px;\n  grid-column: 3;\n  grid-row: 1 / span 2;\n  opacity: 0.35;\n  pointer-events: none;\n  transform: translate(-3px, 3px);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:hover .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:hover .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-activity {\n  color: var(--atv-accent-bright);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: none;\n}\n\n@media (width <= 768px) {\n  .atv-discussion-row {\n    min-height: 0;\n    align-items: start;\n    padding: 14px 16px;\n    gap: 6px 14px;\n    grid-template-columns: minmax(0, 1fr) 17px;\n    grid-template-rows: auto;\n  }\n\n  .atv-discussion-copy {\n    position: relative;\n    z-index: 2;\n    display: block;\n    min-width: 0;\n    grid-column: 1;\n    pointer-events: none;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n    text-overflow: clip;\n    white-space: normal;\n  }\n\n  .atv-discussion-meta {\n    display: flex;\n    min-width: 0;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-top: 6px;\n    color: var(--atv-text-tertiary);\n    font-size: 12px;\n    gap: 8px;\n    line-height: 1.35;\n  }\n\n  .atv-discussion-author {\n    min-width: 0;\n    max-width: 100%;\n    flex: 0 1 auto;\n    margin-top: 0;\n  }\n\n  .atv-discussion-activity {\n    display: flex;\n    min-width: 0;\n    align-items: center;\n    color: inherit;\n    font-size: inherit;\n    gap: 8px;\n    line-height: inherit;\n    text-align: left;\n  }\n\n  .atv-discussion-author + .atv-discussion-activity::before {\n    width: 1px;\n    height: 1em;\n    background: rgb(255 255 255 / 18%);\n    content: \"\";\n  }\n\n  .atv-discussion-time {\n    display: inline-flex;\n    gap: 3px;\n  }\n\n  .atv-discussion-arrow {\n    align-self: center;\n    grid-column: 2;\n    grid-row: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-activity,\n  .atv-discussion-arrow,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before,\n  .atv-discussion-arrow {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 0.7;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-poster-card:hover,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border-bottom-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-discussion-row {\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
+	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody.atv-enhanced > #wrapper {\n  display: none !important;\n}\n\nbody.atv-enhanced {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\nbody.atv-enhanced #db-global-nav,\nbody.atv-enhanced #db-nav-movie,\nbody.atv-enhanced #db-nav-sns {\n  display: none !important;\n}\n\nbody.atv-enhanced [id^=\"dale_\"],\nbody.atv-enhanced [class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition:\n    transform var(--atv-duration-feedback) var(--atv-ease-in-out),\n    width var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n/* ---------- Subject suggestion results ---------- */\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion-results {\n  animation: atv-subject-suggestion-results-enter var(--atv-duration-feedback)\n    var(--atv-ease-out) both;\n}\n\n@keyframes atv-subject-suggestion-results-enter {\n  from {\n    opacity: 0;\n    transform: translateY(-4px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n\n  .atv-subject-suggestion-results {\n    animation: atv-subject-suggestion-results-fade-in\n      var(--atv-duration-feedback) var(--atv-ease-out) both;\n  }\n}\n\n@keyframes atv-subject-suggestion-results-fade-in {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 56px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  box-shadow:\n    0 24px 60px rgb(0 0 0 / 60%),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1.05;\n  text-shadow:\n    0 2px 20px rgb(0 0 0 / 70%),\n    0 0 60px rgb(0 0 0 / 30%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 14%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, \"Cascadia Code\", monospace;\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 700;\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 22%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n.atv-personage {\n  min-height: 100vh;\n  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;\n}\n\n.atv-personage-hero {\n  display: grid;\n  width: min(100%, 1120px);\n  align-items: start;\n  margin: 0 auto;\n  gap: clamp(28px, 5vw, 68px);\n  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);\n}\n\n.atv-personage-portrait {\n  width: 100%;\n  border-radius: 50%;\n  aspect-ratio: 1;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 24px 60px rgb(0 0 0 / 42%);\n  object-fit: cover;\n}\n\n.atv-personage-portrait-trigger {\n  width: 100%;\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-personage-portrait-trigger:focus-visible {\n  border-radius: 50%;\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-personage-portrait-trigger:active {\n  transform: scale(0.97);\n}\n\n.atv-personage-portrait.is-empty {\n  background: radial-gradient(\n    circle at 30% 25%,\n    #4a4a4d,\n    var(--atv-bg-tertiary) 62%\n  );\n}\n\n.atv-personage-kicker {\n  margin: 4px 0 12px;\n  color: var(--atv-accent-bright);\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 0.12em;\n}\n\n.atv-personage-identity h1 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: clamp(44px, 7vw, 84px);\n  letter-spacing: -0.04em;\n  line-height: 0.98;\n}\n\n.atv-personage-original-name {\n  margin: 14px 0 0;\n  color: var(--atv-text-secondary);\n  font-size: clamp(19px, 2.1vw, 28px);\n  font-weight: 500;\n  letter-spacing: 0.01em;\n  line-height: 1.2;\n}\n\n.atv-personage-facts {\n  display: flex;\n  flex-wrap: wrap;\n  margin: 28px 0 0;\n  gap: 10px 22px;\n}\n\n.atv-personage-facts div {\n  display: flex;\n  gap: 8px;\n}\n\n.atv-personage-facts dt {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-personage-facts dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n}\n\n.atv-personage-biography {\n  max-width: 720px;\n  margin-top: 32px;\n}\n\n.atv-personage-biography > div {\n  color: var(--atv-text-secondary);\n  font-size: 17px;\n  line-height: 1.75;\n}\n\n.atv-personage-biography p {\n  margin: 0;\n}\n\n.atv-personage-biography p + p {\n  margin-top: 1em;\n}\n\n.atv-personage-biography > div.is-clamped > p:not(:first-child) {\n  display: none;\n}\n\n.atv-personage-biography > div.is-clamped > p:first-child {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 3;\n}\n\n.atv-personage-biography button {\n  padding: 0;\n  border: 0;\n  margin-top: 12px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-personage .atv-section {\n  padding-right: 0;\n  padding-left: 0;\n}\n\n.atv-personage-gallery-rail {\n  gap: 12px;\n  list-style: none;\n}\n\n.atv-personage-gallery-rail li {\n  min-width: 0;\n  height: 256px;\n  flex: 0 0 auto;\n  aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);\n  scroll-snap-align: start;\n}\n\n.atv-personage-gallery-rail button {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-personage-gallery-rail button:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-personage-gallery-rail img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-personage-gallery-rail button:active {\n  transform: scale(0.97);\n}\n\n.atv-personage-gallery-empty {\n  padding: 24px;\n  border-radius: var(--atv-radius-sm);\n  margin: 0;\n  background: var(--atv-bg-secondary);\n  color: var(--atv-text-tertiary);\n}\n\n@media (width <= 640px) {\n  .atv-personage-hero {\n    gap: 24px;\n    grid-template-columns: 112px minmax(0, 1fr);\n  }\n\n  .atv-personage-identity h1 {\n    font-size: clamp(34px, 10vw, 50px);\n  }\n\n  .atv-personage-facts {\n    margin-top: 20px;\n  }\n\n  .atv-personage-biography {\n    margin-top: 0;\n    grid-column: 1 / -1;\n  }\n\n  .atv-personage-gallery-rail li {\n    height: 160px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-personage-portrait-trigger,\n  .atv-personage-gallery-rail button {\n    transition: none;\n  }\n\n  .atv-personage-portrait-trigger:active,\n  .atv-personage-gallery-rail button:active {\n    transform: none;\n  }\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scroll-snap-type: x mandatory;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  height: 225px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-photo-rail-reserve {\n  height: 225px;\n  flex: 0 0 100%;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 16px 32px;\n  grid-template-columns: 200px 1fr;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  color: rgb(255 255 255 / 55%);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}\n\n.atv-info-value {\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n}\n\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 18px;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 22px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay,\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 600;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  background: rgb(255 255 255 / 4%);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 13px;\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 5%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: rgb(65 190 93 / 45%);\n  background: rgb(65 190 93 / 16%);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: rgb(65 190 93 / 38%);\n  background: rgb(65 190 93 / 12%);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 255 255 / 3%);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: 13px;\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 6%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: rgb(255 69 58 / 35%);\n  background: rgb(255 69 58 / 18%);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  overflow: hidden;\n  min-width: 0;\n  max-width: 36ch;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  overflow: hidden;\n  border: 1px solid rgb(255 255 255 / 7%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  min-height: 66px;\n  align-items: center;\n  padding: 16px 22px;\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  gap: 3px 24px;\n  grid-template-columns: minmax(0, 1fr) minmax(106px, max-content) 17px;\n  grid-template-rows: auto auto;\n  isolation: isolate;\n}\n\n.atv-discussion-row:last-child {\n  border-bottom: 0;\n}\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0.35);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n.atv-discussion-title {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  margin: 0;\n  color: rgb(255 255 255 / 90%);\n  font-size: 16px;\n  font-weight: 600;\n  grid-column: 1;\n  grid-row: 1;\n  letter-spacing: -0.01em;\n  line-height: 1.45;\n  pointer-events: none;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-discussion-copy {\n  display: contents;\n  pointer-events: none;\n}\n\n.atv-discussion-meta {\n  display: contents;\n}\n\n.atv-discussion-author {\n  position: relative;\n  z-index: 2;\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  grid-column: 1;\n  grid-row: 2;\n  line-height: 1.35;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n.atv-discussion-activity {\n  position: relative;\n  z-index: 2;\n  display: grid;\n  min-width: 106px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 3px;\n  grid-column: 2;\n  grid-row: 1 / span 2;\n  line-height: 1.35;\n  pointer-events: none;\n  text-align: right;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-time {\n  display: grid;\n  font-variant-numeric: tabular-nums;\n  gap: 1px;\n  white-space: nowrap;\n}\n\n.atv-discussion-footer {\n  margin-top: 14px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-footer a:hover,\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  text-decoration: underline;\n}\n\n.atv-discussion-footer a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-discussion-arrow {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-accent-bright);\n  font-size: 17px;\n  grid-column: 3;\n  grid-row: 1 / span 2;\n  opacity: 0.35;\n  pointer-events: none;\n  transform: translate(-3px, 3px);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:hover .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:hover .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-activity {\n  color: var(--atv-accent-bright);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: none;\n}\n\n@media (width <= 768px) {\n  .atv-discussion-row {\n    min-height: 0;\n    align-items: start;\n    padding: 14px 16px;\n    gap: 6px 14px;\n    grid-template-columns: minmax(0, 1fr) 17px;\n    grid-template-rows: auto;\n  }\n\n  .atv-discussion-copy {\n    position: relative;\n    z-index: 2;\n    display: block;\n    min-width: 0;\n    grid-column: 1;\n    pointer-events: none;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n    text-overflow: clip;\n    white-space: normal;\n  }\n\n  .atv-discussion-meta {\n    display: flex;\n    min-width: 0;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-top: 6px;\n    color: var(--atv-text-tertiary);\n    font-size: 12px;\n    gap: 8px;\n    line-height: 1.35;\n  }\n\n  .atv-discussion-author {\n    min-width: 0;\n    max-width: 100%;\n    flex: 0 1 auto;\n    margin-top: 0;\n  }\n\n  .atv-discussion-activity {\n    display: flex;\n    min-width: 0;\n    align-items: center;\n    color: inherit;\n    font-size: inherit;\n    gap: 8px;\n    line-height: inherit;\n    text-align: left;\n  }\n\n  .atv-discussion-author + .atv-discussion-activity::before {\n    width: 1px;\n    height: 1em;\n    background: rgb(255 255 255 / 18%);\n    content: \"\";\n  }\n\n  .atv-discussion-time {\n    display: inline-flex;\n    gap: 3px;\n  }\n\n  .atv-discussion-arrow {\n    align-self: center;\n    grid-column: 2;\n    grid-row: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-activity,\n  .atv-discussion-arrow,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before,\n  .atv-discussion-arrow {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 0.7;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-poster-card:hover,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border-bottom-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-discussion-row {\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
 	var LOGIN_FRAME_STYLE_ID = "atv-login-frame-theme";
 	var LOGIN_FRAME_CSS = `
 :root {
@@ -653,6 +653,7 @@ input::placeholder {
 		}
 		return (element.getAttribute("style") ?? "").match(/url\(["']?(?<url>[^"')]+)["']?\)/u)?.groups?.url ?? null;
 	};
+	var largePhotoUrl = (src) => src.replace("/view/photo/photo/", "/view/photo/l/");
 	var extractFacts = (target) => $$(".subject-property li", target).flatMap((item) => {
 		const label = safeText(item.querySelector(".label"));
 		const value = safeText(item.querySelector(".value"));
@@ -665,6 +666,25 @@ input::placeholder {
 		const biography = $$(".subject-intro p", doc).map(safeText).filter((paragraph) => paragraph && paragraph !== "暂无");
 		return biography.length > 0 ? biography : null;
 	};
+	var extractGallery = (doc, personageId) => {
+		const galleryPath = `/personage/${personageId}/photos`;
+		const source = doc.querySelector(".subject-picture");
+		if (!source) return null;
+		const allImagesLink = $$("a[href]", source).find((link) => new URL(link.getAttribute("href") ?? "", doc.baseURI).pathname.replace(/\/$/u, "") === galleryPath);
+		const images = $$("li.picture", source).flatMap((image) => {
+			const src = imageUrl(image);
+			if (!src) return [];
+			return [{
+				alt: image.getAttribute("aria-label")?.trim() ?? "",
+				largeSrc: largePhotoUrl(src),
+				src
+			}];
+		});
+		return {
+			allImagesHref: allImagesLink?.href ?? null,
+			images
+		};
+	};
 	var extractPersonageProfile = (doc) => {
 		const target = doc.querySelector(".subject-target");
 		const name = safeText(target?.querySelector(".subject-name"));
@@ -673,6 +693,7 @@ input::placeholder {
 		return {
 			biography: extractBiography(doc),
 			facts: extractFacts(target),
+			gallery: extractGallery(doc, id),
 			id,
 			name,
 			portrait: imageUrl(target.querySelector(".avatar img, .subject-avatar img") ?? target.querySelector(".avatar, .subject-avatar"))
@@ -856,1119 +877,6 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var PersonagePage = ({ profile }) => {
-		const [biographyExpanded, setBiographyExpanded] = d(false);
-		return u("main", {
-			class: "atv-personage",
-			children: u("section", {
-				class: "atv-personage-hero",
-				children: [profile.portrait ? u("img", {
-					alt: "",
-					class: "atv-personage-portrait",
-					src: profile.portrait
-				}) : u("div", {
-					"aria-hidden": "true",
-					class: "atv-personage-portrait is-empty"
-				}), u("div", {
-					class: "atv-personage-identity",
-					children: [
-						u("p", {
-							class: "atv-personage-kicker",
-							children: "人物"
-						}),
-						u("h1", { children: profile.name }),
-						profile.facts.length > 0 ? u("dl", {
-							class: "atv-personage-facts",
-							children: profile.facts.map((fact) => u("div", { children: [u("dt", { children: fact.label }), u("dd", { children: fact.value })] }, fact.label))
-						}) : null,
-						profile.biography?.length ? u("div", {
-							class: "atv-personage-biography",
-							children: [u("div", {
-								class: biographyExpanded ? "is-expanded" : "is-clamped",
-								children: profile.biography.map((paragraph, index) => u("p", { children: paragraph }, `${index}-${paragraph}`))
-							}), u("button", {
-								"aria-expanded": biographyExpanded,
-								onClick: () => setBiographyExpanded((expanded) => !expanded),
-								type: "button",
-								children: biographyExpanded ? "收起" : "展开"
-							})]
-						}) : null
-					]
-				})]
-			})
-		});
-	};
-	var activateEnhancedDocument = (doc) => {
-		doc.body.classList.add("atv-enhanced");
-	};
-	var installEnhancedRoot = (doc, renderRoot) => {
-		const root = doc.createElement("div");
-		root.id = "atv-douban-root";
-		try {
-			renderRoot(root);
-			doc.body.insertBefore(root, doc.body.firstChild);
-		} catch (error) {
-			root.remove();
-			console.warn("[ATV-Douban] 页面挂载失败：", error);
-			return false;
-		}
-		activateEnhancedDocument(doc);
-		return true;
-	};
-	var isPersonageHomepage = (location) => location.hostname === "www.douban.com" && /^\/personage\/\d+\/?$/u.test(location.pathname);
-	var mountPersonage = (doc = document) => {
-		if (doc.querySelector("#atv-douban-root")) return;
-		const profile = extractPersonageProfile(doc);
-		if (!profile) return;
-		if (installEnhancedRoot(doc, (root) => R(u(PersonagePage, { profile }), root))) doc.title = `${profile.name} · 豆瓣`;
-	};
-	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
-		const lis = $$("li", ul);
-		const orgEl = lis[0] ? $("a", lis[0]) : null;
-		const org = lis[0] ? safeText(lis[0]) : "";
-		const name = lis[1] ? safeText(lis[1]) : "";
-		const personEl = lis[2] ? $("a", lis[2]) : null;
-		const person = lis[2] ? safeText(lis[2]) : "";
-		return {
-			name,
-			org,
-			orgLink: orgEl ? orgEl.href : "",
-			person,
-			personLink: personEl ? personEl.href : ""
-		};
-	}).filter((a) => a.org);
-	var RE_SLASH_SEP = /\s*\/\s*/gu;
-	var RE_WS_GLOBAL = /\s+/gu;
-	var RE_COLON_WS = /[:：\s]/gu;
-	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
-	var RE_H1_YEAR = /\((?<year>\d{4})\)\s*$/u;
-	var RE_WS = /\s+/u;
-	var RE_YEAR = /(?<year>\d{4})/u;
-	var RE_NON_DIGIT = /\D/gu;
-	var RE_HSPACE = /[ \t]+/gu;
-	var RE_NL_MULTI = /\n{3,}/gu;
-	var RE_IMDB_ID = /(?<id>tt\d+)/u;
-	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
-	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
-	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
-	var RE_HTTP = /^https?:\/\//u;
-	var RE_ONLINE_VIDEO = /online-video/u;
-	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
-	var RE_IMDB_LINK = /^tt\d+$/u;
-	var RE_SEASON_SUFFIX = /\d$/u;
-	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
-	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
-	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
-	var upgradePoster = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
-	};
-	var upgradePhoto = (url) => {
-		if (!url) return null;
-		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
-	};
-	var extractTitle = (doc) => {
-		const h1 = $("#content h1", doc);
-		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
-		let primary = full;
-		let original = "";
-		const idx = full.search(RE_WS);
-		if (idx > 0) {
-			primary = full.slice(0, idx).trim();
-			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
-		}
-		return {
-			full,
-			original,
-			primary
-		};
-	};
-	var extractYear = (doc) => {
-		return safeText($("#content h1 .year", doc)).match(RE_YEAR)?.[1] ?? "";
-	};
-	var extractPoster = (doc) => {
-		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
-		if (!img) return null;
-		return upgradePoster(img.src || img.dataset.src || "");
-	};
-	var extractSubjectId = (doc) => {
-		return (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID)?.[1] ?? "";
-	};
-	var MAX_DISCUSSION_TOPICS = 10;
-	var DOUBAN_ORIGIN = "https://www.douban.com/";
-	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
-	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
-	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
-	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
-	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
-	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
-	var isTrackingParameter = (fragment) => {
-		const [rawKey] = fragment.split("=", 1);
-		if (rawKey === void 0) return false;
-		try {
-			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
-		} catch {
-			return false;
-		}
-	};
-	var removeTrackingParameter = (search) => {
-		if (!search) return "";
-		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
-		return remaining.length ? `?${remaining.join("&")}` : "";
-	};
-	var toSafeDoubanUrl = (rawHref) => {
-		try {
-			const url = new URL(rawHref, DOUBAN_ORIGIN);
-			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
-			return url;
-		} catch {
-			return;
-		}
-	};
-	var normalizeTopicHref = (rawHref) => {
-		const url = toSafeDoubanUrl(rawHref);
-		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
-		const search = removeTrackingParameter(url.search);
-		return `${url.origin}${url.pathname}${search}${url.hash}`;
-	};
-	var normalizeDoubanHref = (rawHref, path) => {
-		const url = toSafeDoubanUrl(rawHref);
-		return url && path.test(url.pathname) ? url.href : "";
-	};
-	var extractAuthor = (authorCell) => {
-		const link = authorCell?.querySelector("a");
-		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
-		if (!name) return;
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
-		return href ? {
-			href,
-			name
-		} : { name };
-	};
-	var extractReplies = (repliesCell) => {
-		if (!repliesCell) return;
-		const text = safeText(repliesCell);
-		if (!text) return 0;
-		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
-		if (match?.groups) return Number(match.groups.replies);
-		const bare = Number(text);
-		return Number.isSafeInteger(bare) ? bare : void 0;
-	};
-	var isValidDiscussionTimestamp = (dateTime) => {
-		const value = new Date(`${dateTime}Z`);
-		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
-	};
-	var extractActivity = (activityCell) => {
-		const raw = safeText(activityCell);
-		if (!raw) return;
-		const match = DISCUSSION_TIMESTAMP.exec(raw);
-		if (!match?.groups) return { raw };
-		const { date, seconds, time } = match.groups;
-		if (!date || !time) return { raw };
-		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
-		return isValidDiscussionTimestamp(dateTime) ? {
-			date,
-			dateTime,
-			raw,
-			time
-		} : { raw };
-	};
-	var extractTopics = (container) => {
-		const topics = [];
-		for (const row of $$("table tr", container)) {
-			if (row.closest(".mv-hot-discussion-list")) continue;
-			const link = row.cells[0]?.querySelector("a");
-			const title = safeText(link);
-			const rawHref = link?.getAttribute("href")?.trim() ?? "";
-			const href = rawHref ? normalizeTopicHref(rawHref) : "";
-			if (title && href) {
-				const author = extractAuthor(row.cells[1]);
-				const replies = extractReplies(row.cells[2]);
-				const activity = extractActivity(row.cells[3]);
-				topics.push({
-					...activity ? { activity } : {},
-					...author ? { author } : {},
-					href,
-					...replies === void 0 ? {} : { replies },
-					title
-				});
-				if (topics.length === MAX_DISCUSSION_TOPICS) break;
-			}
-		}
-		return topics;
-	};
-	var extractStartDiscussionHref = (container) => {
-		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
-	};
-	var linkHref = (link, path) => {
-		const rawHref = link?.getAttribute("href")?.trim() ?? "";
-		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
-	};
-	var extractLinkTotal = (link) => {
-		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
-		const total = totalMatch?.groups?.total ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
-		return Number.isSafeInteger(total) ? total : void 0;
-	};
-	var extractAllDiscussions = (container) => {
-		const pLink = container.querySelector("p a");
-		const pHref = linkHref(pLink, COLLECTION_PATH);
-		if (pHref) {
-			const total = extractLinkTotal(pLink);
-			return total === void 0 ? { href: pHref } : {
-				href: pHref,
-				total
-			};
-		}
-		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
-		if (h2Href) return { href: h2Href };
-		const listLink = container.querySelector(".mv-discussion-list a");
-		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
-		if (listHref) {
-			const total = extractLinkTotal(listLink);
-			return total === void 0 ? { href: listHref } : {
-				href: listHref,
-				total
-			};
-		}
-	};
-	var findModDiscussion = (doc) => {
-		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
-		return null;
-	};
-	var extractFromContainer = (container) => {
-		const topics = extractTopics(container);
-		const startDiscussionHref = extractStartDiscussionHref(container);
-		const allDiscussions = extractAllDiscussions(container);
-		return {
-			...allDiscussions ? { allDiscussions } : {},
-			...startDiscussionHref ? { startDiscussionHref } : {},
-			topics
-		};
-	};
-	var extractDiscussions = (doc) => {
-		const primary = doc.querySelector(".section-discussion");
-		if (primary) return extractFromContainer(primary);
-		const mod = findModDiscussion(doc);
-		if (mod) return extractFromContainer(mod);
-		return { topics: [] };
-	};
-	var findLabel = (root, label) => {
-		const labels = $$("span.pl", root);
-		for (const candidate of labels) if ((candidate.textContent || "").replace(RE_COLON_WS, "") === label) return candidate;
-		return null;
-	};
-	var adjacentSiblings = (label) => {
-		const siblings = [];
-		let current = label.nextSibling;
-		while (current) {
-			if (current.nodeType === 1 && (current.classList?.contains("pl") || current.tagName === "BR")) break;
-			siblings.push(current);
-			current = current.nextSibling;
-		}
-		return siblings;
-	};
-	var collectInfoTextAfter = (root, label) => {
-		const labelElement = findLabel(root, label);
-		if (!labelElement) return "";
-		return adjacentSiblings(labelElement).map((sibling) => {
-			if (sibling.nodeType === 3) return sibling.nodeValue || "";
-			return sibling.nodeType === 1 ? sibling.textContent || "" : "";
-		}).join("").replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ").trim();
-	};
-	var collectLinksAfter = (root, label) => {
-		const labelElement = findLabel(root, label);
-		if (!labelElement) return [];
-		return adjacentSiblings(labelElement).flatMap((sibling) => {
-			if (sibling.nodeType !== 1) return [];
-			const element = sibling;
-			return (element.tagName === "A" ? [element] : $$("a", element)).flatMap((anchor) => {
-				if (anchor.classList.contains("more-attrs")) return [];
-				const text = (anchor.textContent || "").trim();
-				return text ? [{
-					href: anchor.href || "",
-					text
-				}] : [];
-			});
-		});
-	};
-	var extractInfo = (doc) => {
-		const info = $("#info", doc);
-		const out = {
-			aliases: "",
-			cast: [],
-			country: "",
-			director: [],
-			episodeRuntime: "",
-			episodes: "",
-			firstAired: "",
-			genres: [],
-			imdb: "",
-			language: "",
-			releaseDate: "",
-			runtime: "",
-			seasons: "",
-			writers: []
-		};
-		if (!info) return out;
-		out.director = collectLinksAfter(info, "导演");
-		out.writers = collectLinksAfter(info, "编剧");
-		const starringEls = $$("a[rel=\"v:starring\"]", info);
-		out.cast = starringEls.length ? starringEls.map((a) => ({
-			href: a.href || "",
-			text: (a.textContent || "").trim()
-		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
-		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
-		out.country = collectInfoTextAfter(info, "制片国家/地区");
-		out.language = collectInfoTextAfter(info, "语言");
-		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
-		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.firstAired = collectInfoTextAfter(info, "首播");
-		const runEls = $$("span[property=\"v:runtime\"]", info);
-		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
-		out.episodes = collectInfoTextAfter(info, "集数");
-		if (findLabel(info, "季数")) {
-			const sel = $("#season", info);
-			if (sel) {
-				const opt = sel.options[sel.selectedIndex];
-				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
-			} else out.seasons = collectInfoTextAfter(info, "季数");
-		}
-		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
-		out.aliases = collectInfoTextAfter(info, "又名");
-		if (findLabel(info, "IMDb")) {
-			const raw = collectInfoTextAfter(info, "IMDb");
-			out.imdb = raw.match(RE_IMDB_ID)?.[1] ?? raw;
-		}
-		return out;
-	};
-	var normalizeInterestTags = (value) => {
-		return [...new Set((typeof value === "string" ? [value] : value).filter((item) => typeof item === "string").flatMap((item) => item.trim().split(/\s+/u)).filter(Boolean))];
-	};
-	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
-	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
-	var isInterestActive = (anchor) => {
-		if (!anchor) return false;
-		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-		return RE_INTEREST_ACTIVE.test(classes);
-	};
-	var matchS3Status = (text) => {
-		if (text.includes("已看过")) return "collect";
-		if (text.includes("已想看")) return "wish";
-		if (text.includes("已在看")) return "do";
-		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
-		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
-		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
-		return null;
-	};
-	var matchBareStatus = (text) => {
-		if (/^看过$/u.test(text)) return "collect";
-		if (/^想看$/u.test(text)) return "wish";
-		if (/^(?:正在?)?在看$/u.test(text)) return "do";
-		return null;
-	};
-	var matchRichOrBareStatus = (text) => matchS3Status(text) ?? matchBareStatus(text);
-	var directText = (element) => [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent || "").join("").trim();
-	var detectS3State = (root) => {
-		let status = "none";
-		const allTextEls = root.querySelectorAll("span, div, a");
-		for (const el of allTextEls) {
-			const s = matchS3Status((el.textContent || "").trim());
-			if (s) {
-				status = s;
-				break;
-			}
-		}
-		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
-		const ratingInput = root.querySelector("#n_rating");
-		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
-		const dateEl = root.querySelector(".collection_date");
-		const date = dateEl ? (dateEl.textContent || "").trim() : "";
-		const commentElements = root.querySelectorAll(".j.a_stars span");
-		let commentEl;
-		for (let index = commentElements.length - 1; index >= 0; index -= 1) {
-			const element = commentElements[index];
-			if (!element || element.matches(".mr10, .color_gray, .collection_date, .pl, #rating")) continue;
-			const text = directText(element);
-			if (text.length > 0 && matchS3Status(text) === null) {
-				commentEl = element;
-				break;
-			}
-		}
-		let comment = "";
-		let usefulCount = "";
-		if (commentEl) {
-			const voteEl = commentEl.querySelector(".pl");
-			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
-			comment = directText(commentEl);
-		}
-		return {
-			comment,
-			date,
-			hasWatching,
-			rating,
-			status,
-			usefulCount
-		};
-	};
-	var detectS2Status = (anchors) => {
-		let status = "none";
-		let hasWatching = false;
-		for (const a of anchors) {
-			const text = (a.textContent || "").trim();
-			if (text === "在看") hasWatching = true;
-			if (status !== "none") continue;
-			const s = matchRichOrBareStatus(text);
-			if (s && isInterestActive(a)) status = s;
-		}
-		return {
-			hasWatching,
-			status
-		};
-	};
-	var extractInterestTags = (root) => {
-		for (const element of root.querySelectorAll(".color_gray")) {
-			const match = /^标签\s*[:：]\s*(?<tags>.+)$/u.exec((element.textContent || "").trim());
-			if (match?.groups?.tags) return normalizeInterestTags(match.groups.tags);
-		}
-		return [];
-	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-		const loggedIn = !!ck;
-		const root = findInterestRoot(doc);
-		const anchors = findInterestAnchors(doc, root);
-		if (!loggedIn) return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
-			loggedIn: false,
-			marked: false,
-			rating: 0,
-			status: "none",
-			tags: [],
-			usefulCount: ""
-		};
-		if (root) {
-			const s3 = detectS3State(root);
-			if (s3.status !== "none") return {
-				ck,
-				comment: s3.comment,
-				date: s3.date,
-				hasWatching: s3.hasWatching,
-				loggedIn: true,
-				marked: true,
-				rating: s3.rating,
-				status: s3.status,
-				tags: extractInterestTags(root),
-				usefulCount: s3.usefulCount
-			};
-		}
-		const s2 = detectS2Status(anchors);
-		return {
-			ck,
-			comment: "",
-			date: "",
-			hasWatching: s2.hasWatching,
-			loggedIn: true,
-			marked: false,
-			rating: 0,
-			status: s2.status,
-			tags: [],
-			usefulCount: ""
-		};
-	};
-	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
-		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
-		const roleEl = $(".info .role", li);
-		const avatarEl = $(".avatar", li);
-		let avatar = "";
-		if (avatarEl) {
-			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
-			if (m) avatar = m[1] ?? "";
-		}
-		return {
-			avatar: encodeURI(avatar),
-			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
-			name: safeText(nameEl),
-			role: safeText(roleEl)
-		};
-	}).filter((c) => c.name);
-	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
-		const thumb = img.src || img.dataset.src || "";
-		const a = img.closest("a");
-		return {
-			hdUrl: upgradePhoto(thumb) || "",
-			link: a ? a.href : "",
-			thumbUrl: encodeURI(thumb)
-		};
-	}).filter((p) => p.thumbUrl);
-	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
-		const thumbUrl = (a.getAttribute("style") || "").match(RE_BG_URL)?.[1] ?? "";
-		return {
-			thumbUrl: encodeURI(thumbUrl),
-			title: a.getAttribute("title") || "",
-			trailerPageUrl: a.href
-		};
-	}).filter((t) => t.trailerPageUrl);
-	var extractRankLabel = (doc) => {
-		const label = $(".rank-label", doc);
-		const link = $(".rank-label-link a", label ?? doc);
-		const position = $(".rank-label-no", label ?? doc)?.textContent?.trim() || "";
-		const title = link?.textContent?.trim() || "";
-		const href = link?.href || "";
-		if (!label || !position || !title || !href) return null;
-		return {
-			href,
-			position,
-			title
-		};
-	};
-	var RE_CRLF = /\r\n?/gu;
-	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
-	var extractRating$1 = (doc) => {
-		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
-		const score = raw ? Number(raw) : NaN;
-		if (!score || Number.isNaN(score) || score <= 0) return null;
-		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
-		return {
-			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
-			score
-		};
-	};
-	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
-	var extractSummary = (doc) => {
-		const summary = $("span[property=\"v:summary\"]", doc);
-		if (!summary) return null;
-		return normalizeSummaryText(summary.textContent || "") || null;
-	};
-	var extractReviewRating = (item) => {
-		let stars = 0;
-		let ratingWord = "";
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (ratingEl) {
-			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
-			ratingWord = ratingEl.getAttribute("title") || "";
-		}
-		if (stars === 0) {
-			const titleRating = $(".main-title-rating", item);
-			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
-		}
-		return {
-			ratingWord,
-			stars
-		};
-	};
-	var extractReviewContent = (item) => {
-		const shortContent = $(".review-short .short-content", item);
-		if (shortContent) {
-			const contentCopy = shortContent.cloneNode(true);
-			contentCopy.querySelector("a.unfold")?.remove();
-			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
-		}
-		const mainBd = $(".main-bd", item);
-		return mainBd ? safeText(mainBd) : "";
-	};
-	var extractReviewVotes = (item) => {
-		const action = $(".action", item);
-		if (!action) return {
-			usefulCount: 0,
-			uselessCount: 0
-		};
-		const upEl = $(".action-btn.up", action);
-		const downEl = $(".action-btn.down", action);
-		return {
-			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
-			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
-		};
-	};
-	var extractReviewItem = (item) => {
-		const title = safeText($(".main-bd h2 a", item));
-		if (!title) return null;
-		const nameLink = $(".main-hd a.name", item);
-		const name = safeText(nameLink);
-		if (!name) return null;
-		const avatarImg = $(".main-hd .avator img", item);
-		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
-		const { stars, ratingWord } = extractReviewRating(item);
-		const time = safeText($(".main-hd .main-meta", item));
-		const content = extractReviewContent(item);
-		const { usefulCount, uselessCount } = extractReviewVotes(item);
-		const spoiler = !!$(".spoiler-tip", item);
-		return {
-			avatar,
-			content,
-			id: item.id || "",
-			link: nameLink?.href ?? "",
-			name,
-			ratingWord,
-			spoiler,
-			stars,
-			time,
-			title,
-			usefulCount,
-			uselessCount
-		};
-	};
-	var extractReviews = (doc) => {
-		const items = $$("#reviews-wrapper .review-item", doc);
-		const out = [];
-		for (const item of items) {
-			const review = extractReviewItem(item);
-			if (review) out.push(review);
-		}
-		return out;
-	};
-	var CN_DIGIT = {
-		一: 1,
-		七: 7,
-		三: 3,
-		九: 9,
-		二: 2,
-		五: 5,
-		八: 8,
-		六: 6,
-		四: 4
-	};
-	var parseCnNum = (s) => {
-		const arabic = Math.trunc(Number(s));
-		if (!Number.isNaN(arabic)) return arabic;
-		const parts = s.split("十");
-		if (parts.length === 2) {
-			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
-			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
-			return tens * 10 + ones;
-		}
-		if (s === "十") return 10;
-		return CN_DIGIT[s] ?? 0;
-	};
-	var seasonNum = (title) => {
-		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
-		if (!m?.groups?.num) return 0;
-		return parseCnNum(m.groups.num);
-	};
-	var extractSeries = (doc) => {
-		const container = $("#series-items .items-swiper", doc);
-		if (!container) return [];
-		const seen = new Set();
-		const items = $$(".items-swiper-item", container);
-		const out = [];
-		for (const el of items) {
-			const linkEl = $(".items-swiper-item-pic a", el);
-			const imgEl = $(".items-swiper-item-pic a img", el);
-			const titleEl = $(".items-swiper-item-title a", el);
-			const ratingEl = $(".items-swiper-item-rating", el);
-			const link = linkEl ? linkEl.href : "";
-			if (!link || seen.has(link)) continue;
-			seen.add(link);
-			out.push({
-				link,
-				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
-				rating: safeText(ratingEl),
-				title: safeText(titleEl)
-			});
-		}
-		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
-	};
-	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
-		const linkEl = $("dt a", dl);
-		const imgEl = $("dt a img", dl);
-		const titleEl = $("dd a", dl);
-		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
-		return {
-			link: linkEl ? linkEl.href : "",
-			poster: upgradePoster(rawPoster) || "",
-			title: safeText(titleEl)
-		};
-	}).filter((r) => r.title);
-	var extractRating = (item) => {
-		const ratingEl = $("[class*=\"allstar\"]", item);
-		if (!ratingEl) return {
-			ratingWord: "",
-			stars: 0
-		};
-		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
-		return {
-			ratingWord: ratingEl.getAttribute("title") || "",
-			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
-		};
-	};
-	var extractTime = (item) => {
-		const timeEl = $(".comment-time", item);
-		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
-	};
-	var extractVotes = (item) => {
-		const votesEl = $(".vote-count", item) ?? $(".votes", item);
-		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
-	};
-	var extractAvatar = (item) => {
-		const img = $(".avatar img", item);
-		if (!img) return "";
-		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
-	};
-	var extractVoted = (item) => {
-		if (item.querySelector(".j.vote-comment")) return false;
-		const voteArea = $(".comment-vote", item);
-		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
-	};
-	var extractComments = (doc) => {
-		const items = $$("#hot-comments .comment-item", doc);
-		const out = [];
-		for (const item of items) {
-			const authorEl = $(".comment-info a", item);
-			const name = safeText(authorEl);
-			if (!name) continue;
-			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
-			if (!content) continue;
-			const { stars, ratingWord } = extractRating(item);
-			out.push({
-				avatar: extractAvatar(item),
-				cid: item.dataset.cid ?? "",
-				content,
-				link: authorEl?.href ?? "",
-				name,
-				ratingWord,
-				stars,
-				time: extractTime(item),
-				voted: extractVoted(item),
-				votes: extractVotes(item)
-			});
-		}
-		return out;
-	};
-	var isRealUrl = (href) => RE_HTTP.test(href);
-	var parseLegacyPlaySources = (doc) => {
-		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
-		if (!srcScript) return {};
-		const txt = srcScript.textContent;
-		const map = {};
-		let m = RE_PLAY_SOURCES.exec(txt);
-		while (m) {
-			const [, sourceId, playLink] = m;
-			if (!sourceId || !playLink) {
-				m = RE_PLAY_SOURCES.exec(txt);
-				continue;
-			}
-			const decodedPlayLink = playLink.replaceAll("&amp;", "&");
-			if (!map[sourceId]) map[sourceId] = decodedPlayLink;
-			m = RE_PLAY_SOURCES.exec(txt);
-		}
-		return map;
-	};
-	var extractStreaming = (doc) => {
-		const seen = new Set();
-		const out = [];
-		const sourcesMap = parseLegacyPlaySources(doc);
-		const playBtns = $$("a.playBtn", doc);
-		for (const a of playBtns) {
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name)) continue;
-			let { href } = a;
-			if (!isRealUrl(href)) {
-				const sourceId = a.dataset.source;
-				const mappedHref = sourceId ? sourcesMap[sourceId] : void 0;
-				if (!mappedHref || !isRealUrl(mappedHref)) continue;
-				href = mappedHref;
-			}
-			seen.add(name);
-			const iconUrl = a.dataset.pic;
-			out.push({
-				href,
-				...iconUrl ? { iconUrl } : {},
-				name
-			});
-		}
-		for (const a of $$("a", doc)) {
-			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
-			const name = (a.dataset.cn || a.textContent || "").trim();
-			if (!name || seen.has(name) || !isRealUrl(a.href)) continue;
-			seen.add(name);
-			out.push({
-				href: a.href,
-				name
-			});
-		}
-		return out;
-	};
-	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
-	var extractDoubanData = (doc) => {
-		const info = extractInfo(doc);
-		const isTV = isTVInfo(info);
-		return {
-			awards: extractAwards(doc),
-			celebrities: extractCelebrities(doc),
-			comments: extractComments(doc),
-			discussions: extractDiscussions(doc),
-			info,
-			interest: extractInterestState(doc),
-			isTV,
-			photos: extractPhotos(doc),
-			poster: extractPoster(doc),
-			rankLabel: extractRankLabel(doc),
-			rating: extractRating$1(doc),
-			recommendations: extractRecommendations(doc),
-			reviews: extractReviews(doc),
-			series: extractSeries(doc),
-			streaming: extractStreaming(doc),
-			subjectId: extractSubjectId(doc),
-			summary: extractSummary(doc),
-			title: extractTitle(doc),
-			trailers: extractTrailers(doc),
-			year: extractYear(doc)
-		};
-	};
-	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
-	var delay = (ms) => new Promise((resolve) => {
-		setTimeout(resolve, ms);
-	});
-	var getXhr = () => {
-		const g = _GM_xmlhttpRequest;
-		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
-		return g;
-	};
-	var gmRequest = (method, url, referer, extraHeaders, data) => {
-		const headers = {
-			"Content-Type": "application/x-www-form-urlencoded",
-			...extraHeaders
-		};
-		if (referer) headers.Referer = referer;
-		return new Promise((resolve, reject) => {
-			getXhr()({
-				...data === void 0 ? {} : { data },
-				headers,
-				method,
-				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
-				onload: (r) => resolve(r.responseText),
-				url
-			});
-		});
-	};
-	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
-	var RETRY_DELAYS = [
-		300,
-		800,
-		2e3
-	];
-	var gmPost = async (url, data, referer, extraHeaders) => {
-		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
-			return await gmPostOnce(url, data, referer, extraHeaders);
-		} catch (error) {
-			if (attempt < RETRY_DELAYS.length) {
-				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt] ?? 0, "ms —", error.message);
-				await delay(RETRY_DELAYS[attempt] ?? 0);
-			} else throw error;
-		}
-		throw new Error("[GM] POST failed after all retries");
-	};
-	var gmGet = (url, referer) => gmRequest("GET", url, referer);
-	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
-	var API_VOTE = "https://movie.douban.com/j/comment/vote";
-	var postVote = async (cid, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				count: data.count,
-				ok: true
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postVote error:", error);
-			return { ok: false };
-		}
-	};
-	var API_INTEREST = "https://movie.douban.com/j/subject";
-	var API_REMOVE = "https://movie.douban.com/subject";
-	var isInterestStatus = (value) => value === "wish" || value === "do" || value === "collect";
-	var snapshotStatus = (value) => {
-		if (value === "" || value === null || value === void 0) return "none";
-		if (isInterestStatus(value)) return value;
-		throw new Error("返回的作品标记状态无效");
-	};
-	var formSettingsFromHtml = (html) => {
-		if (typeof html !== "string") return {
-			isPrivate: false,
-			shareToBroadcast: false
-		};
-		const doc = new DOMParser().parseFromString(html, "text/html");
-		return {
-			isPrivate: !!doc.querySelector("#inp-private")?.checked,
-			shareToBroadcast: !!doc.querySelector("#share-shuo")?.checked
-		};
-	};
-	var fetchInterestSnapshot = async (subjectId) => {
-		if (!getCk()) throw new Error("未登录");
-		try {
-			const response = JSON.parse(await gmGet(`${API_INTEREST}/${subjectId}/interest`, `https://movie.douban.com/subject/${subjectId}/`));
-			return {
-				...formSettingsFromHtml(response.html),
-				myTags: normalizeInterestTags(Array.isArray(response.my_tags) ? response.my_tags : []),
-				popularTags: normalizeInterestTags(Array.isArray(response.popular_tags) ? response.popular_tags : []),
-				status: snapshotStatus(response.interest_status),
-				tags: normalizeInterestTags(Array.isArray(response.tags) ? response.tags : [])
-			};
-		} catch (error) {
-			console.warn("[ATV-Douban] fetchInterestSnapshot error:", error);
-			throw new Error("无法读取完整标记", { cause: error });
-		}
-	};
-	var postInterest = async (subjectId, interest, options) => {
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({
-			ck,
-			comment: options?.comment ?? "",
-			foldcollect: "F",
-			interest,
-			rating: typeof options?.rating === "number" ? String(options.rating) : "",
-			tags: options?.tags?.join(" ") ?? "",
-			...options?.isPrivate ? { private: "on" } : {},
-			...options?.shareToBroadcast && !options.isPrivate ? { "share-shuo": "douban" } : {}
-		});
-		try {
-			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			const data = JSON.parse(text);
-			if (data.r === 0) return { ok: true };
-			return {
-				error: data.msg || "操作失败",
-				ok: false
-			};
-		} catch (error) {
-			console.warn("[ATV-Douban] postInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var removeInterest = async (subjectId, currentStatus) => {
-		if (currentStatus === "none") return { ok: true };
-		const ck = getCk();
-		if (!ck) return {
-			error: "未登录",
-			ok: false
-		};
-		const params = new URLSearchParams({ ck });
-		try {
-			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
-			return { ok: true };
-		} catch (error) {
-			console.warn("[ATV-Douban] removeInterest error:", error);
-			return {
-				error: String(error),
-				ok: false
-			};
-		}
-	};
-	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
-	var postReviewVote = async (rid, type, subjectId) => {
-		const ck = getCk();
-		if (!ck) return { ok: false };
-		try {
-			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
-			const data = JSON.parse(text);
-			if (data.r === 0) return {
-				ok: true,
-				usefulCount: data.useful_count,
-				uselessCount: data.useless_count
-			};
-			return { ok: false };
-		} catch (error) {
-			console.warn("[ATV-Douban] postReviewVote error:", error);
-			return { ok: false };
-		}
-	};
-	var SECTION_COPY = {
-		cast: {
-			navLabel: "演职员",
-			sectionTitle: "演职员"
-		},
-		comments: {
-			navLabel: "短评",
-			sectionTitle: "热门短评"
-		},
-		details: {
-			navLabel: "详情",
-			sectionTitle: "详细信息"
-		},
-		discussions: {
-			navLabel: "小组讨论",
-			sectionTitle: "小组讨论"
-		},
-		media: {
-			navLabel: "影像",
-			sectionTitle: "影像"
-		},
-		movieReviews: {
-			navLabel: "影评",
-			sectionTitle: "热门影评"
-		},
-		recommendations: {
-			navLabel: "相似作品",
-			sectionTitle: "相似作品"
-		},
-		series: {
-			navLabel: "同系列",
-			sectionTitle: "同系列作品"
-		},
-		streaming: {
-			navLabel: "观看平台",
-			sectionTitle: "观看平台"
-		},
-		tvReviews: {
-			navLabel: "剧评",
-			sectionTitle: "热门剧评"
-		}
-	};
-	var getSubjectSectionCopy = (section) => SECTION_COPY[section];
-	var computeNavSections = (data) => {
-		const sections = [];
-		if (data.streaming.length > 0) sections.push({
-			id: "atv-stream",
-			label: getSubjectSectionCopy("streaming").navLabel
-		});
-		if (data.series.length > 0) sections.push({
-			id: "atv-series",
-			label: getSubjectSectionCopy("series").navLabel
-		});
-		if (data.celebrities.length > 0) sections.push({
-			id: "atv-cast",
-			label: getSubjectSectionCopy("cast").navLabel
-		});
-		if (data.photos.length > 0 || data.trailers.length > 0) sections.push({
-			id: "atv-photos",
-			label: getSubjectSectionCopy("media").navLabel
-		});
-		if (data.comments.length > 0) sections.push({
-			id: "atv-comments",
-			label: getSubjectSectionCopy("comments").navLabel
-		});
-		if (data.reviews.length > 0) sections.push({
-			id: "atv-reviews",
-			label: getSubjectSectionCopy(data.isTV ? "tvReviews" : "movieReviews").navLabel
-		});
-		if (data.discussions.topics.length > 0) sections.push({
-			id: "atv-discussions",
-			label: getSubjectSectionCopy("discussions").navLabel
-		});
-		if (data.recommendations.length > 0) sections.push({
-			id: "atv-recs",
-			label: getSubjectSectionCopy("recommendations").navLabel
-		});
-		sections.push({
-			id: "atv-info",
-			label: getSubjectSectionCopy("details").navLabel
-		});
-		return sections;
-	};
 	var IconStarFull = (props) => u("svg", {
 		viewBox: "0 0 16 16",
 		width: "16",
@@ -5446,7 +4354,7 @@ input::placeholder {
 			return result;
 		};
 	}
-	var noop$3 = (any) => any;
+	var noop$4 = (any) => any;
 	var pipe = (...transformers) => transformers.reduce((a, b) => (v) => b(a(v)));
 	var progress = (from, to, value) => {
 		const range = to - from;
@@ -5499,7 +4407,7 @@ input::placeholder {
 		return currentT;
 	}
 	function cubicBezier(mX1, mY1, mX2, mY2) {
-		if (mX1 === mY1 && mX2 === mY2) return noop$3;
+		if (mX1 === mY1 && mX2 === mY2) return noop$4;
 		const getTForX = (aX) => binarySubdivide(aX, 0, 1, mX1, mX2);
 		return (t) => t === 0 || t === 1 ? t : calcBezier(getTForX(t), mY1, mY2);
 	}
@@ -5523,7 +4431,7 @@ input::placeholder {
 	}
 	var isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
 	var easingLookup = {
-		linear: noop$3,
+		linear: noop$4,
 		easeIn,
 		easeInOut,
 		easeOut,
@@ -5668,7 +4576,7 @@ input::placeholder {
 			steps
 		};
 	}
-	var { schedule: frame, cancel: cancelFrame, state: frameData, steps: frameSteps } = createRenderBatcher(typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : noop$3, true);
+	var { schedule: frame, cancel: cancelFrame, state: frameData, steps: frameSteps } = createRenderBatcher(typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : noop$4, true);
 	var now;
 	function clearTime() {
 		now = void 0;
@@ -6354,7 +5262,7 @@ input::placeholder {
 		const numMixers = output.length - 1;
 		for (let i = 0; i < numMixers; i++) {
 			let mixer = mixerFactory(output[i], output[i + 1]);
-			if (ease) mixer = pipe(Array.isArray(ease) ? ease[i] || noop$3 : ease, mixer);
+			if (ease) mixer = pipe(Array.isArray(ease) ? ease[i] || noop$4 : ease, mixer);
 			mixers.push(mixer);
 		}
 		return mixers;
@@ -7075,7 +5983,7 @@ input::placeholder {
 				this.animation.timeline = timeline;
 				if (rangeStart) this.animation.rangeStart = rangeStart;
 				if (rangeEnd) this.animation.rangeEnd = rangeEnd;
-				return noop$3;
+				return noop$4;
 			} else return observe(this);
 		}
 	};
@@ -7235,7 +6143,7 @@ input::placeholder {
 			else animation = new JSAnimation(resolvedOptions);
 			animation.finished.then(() => {
 				this.notifyFinished();
-			}).catch(noop$3);
+			}).catch(noop$4);
 			if (this.pendingTimeline) {
 				this.stopTimeline = animation.attachTimeline(this.pendingTimeline);
 				this.pendingTimeline = void 0;
@@ -9505,6 +8413,16 @@ input::placeholder {
 		surfaceClassName: "atv-modal-surface",
 		children: u(VideoModalContent, { acquisition })
 	});
+	var useModalRequest = () => {
+		const [active, setActive] = d(null);
+		return {
+			active,
+			handleClose: q(() => setActive(null), []),
+			handleOpen: q((value) => {
+				setActive({ value });
+			}, [])
+		};
+	};
 	var REVEAL_THRESHOLD = 0;
 	var useSectionReveal = (ref) => {
 		h(() => {
@@ -9551,6 +8469,1206 @@ input::placeholder {
 				children: title
 			}), children]
 		});
+	};
+	var noop$3 = () => void 0;
+	var PersonageGalleryImageTile = ({ alt, largeSrc, onOpenImage, src }) => {
+		const [aspectRatio, setAspectRatio] = d(null);
+		return u("li", {
+			...aspectRatio ? { style: { "--atv-personage-gallery-aspect-ratio": String(aspectRatio) } } : {},
+			children: u("button", {
+				"aria-label": `查看${alt}`,
+				onClick: () => onOpenImage(largeSrc, alt),
+				type: "button",
+				children: u("img", {
+					alt,
+					loading: "lazy",
+					onLoad: (event) => {
+						const image = event.currentTarget;
+						if (image.naturalWidth && image.naturalHeight) setAspectRatio(image.naturalWidth / image.naturalHeight);
+					},
+					src
+				})
+			})
+		});
+	};
+	var PersonageGallerySection = ({ gallery, name, onOpenImage = noop$3 }) => {
+		if (!gallery) return null;
+		return u(Section, {
+			id: "atv-personage-gallery",
+			...gallery.allImagesHref ? { moreLink: {
+				href: gallery.allImagesHref,
+				text: "查看全部 →"
+			} } : {},
+			title: "图片",
+			children: gallery.images.length > 0 ? u("ul", {
+				"aria-label": `${name}的图片`,
+				class: "atv-carousel atv-personage-gallery-rail",
+				children: gallery.images.map((image, index) => {
+					return u(PersonageGalleryImageTile, {
+						alt: image.alt || `${name}的图片 ${index + 1}`,
+						largeSrc: image.largeSrc,
+						onOpenImage,
+						src: image.src
+					}, image.src);
+				})
+			}) : u("p", {
+				class: "atv-personage-gallery-empty",
+				children: "暂无公开图片"
+			})
+		});
+	};
+	var splitPersonageName = (name) => {
+		const originalNameStart = name.search(/\p{Script=Latin}/u);
+		if (originalNameStart <= 0) return {
+			originalName: null,
+			primaryName: name
+		};
+		return {
+			originalName: name.slice(originalNameStart).trim(),
+			primaryName: name.slice(0, originalNameStart).trim()
+		};
+	};
+	var PersonagePage = ({ profile }) => {
+		const [biographyExpanded, setBiographyExpanded] = d(false);
+		const activeImage = useModalRequest();
+		const { originalName, primaryName } = splitPersonageName(profile.name);
+		return u(S, { children: [u("main", {
+			class: "atv-personage",
+			children: [u("section", {
+				class: "atv-personage-hero",
+				children: [profile.portrait ? u("button", {
+					"aria-label": `查看${primaryName}的头像`,
+					class: "atv-personage-portrait-trigger",
+					onClick: () => activeImage.handleOpen({
+						alt: `${primaryName}的头像`,
+						src: profile.portrait ?? ""
+					}),
+					type: "button",
+					children: u("img", {
+						alt: "",
+						class: "atv-personage-portrait",
+						src: profile.portrait
+					})
+				}) : u("div", {
+					"aria-hidden": "true",
+					class: "atv-personage-portrait is-empty"
+				}), u("div", {
+					class: "atv-personage-identity",
+					children: [
+						u("p", {
+							class: "atv-personage-kicker",
+							children: "人物"
+						}),
+						u("h1", { children: primaryName }),
+						originalName ? u("p", {
+							class: "atv-personage-original-name",
+							children: originalName
+						}) : null,
+						profile.facts.length > 0 ? u("dl", {
+							class: "atv-personage-facts",
+							children: profile.facts.map((fact) => u("div", { children: [u("dt", { children: fact.label }), u("dd", { children: fact.value })] }, fact.label))
+						}) : null,
+						profile.biography?.length ? u("div", {
+							class: "atv-personage-biography",
+							children: [u("div", {
+								class: biographyExpanded ? "is-expanded" : "is-clamped",
+								children: profile.biography.map((paragraph, index) => u("p", { children: paragraph }, `${index}-${paragraph}`))
+							}), u("button", {
+								"aria-expanded": biographyExpanded,
+								onClick: () => setBiographyExpanded((expanded) => !expanded),
+								type: "button",
+								children: biographyExpanded ? "收起" : "展开"
+							})]
+						}) : null
+					]
+				})]
+			}), u(PersonageGallerySection, {
+				gallery: profile.gallery,
+				name: primaryName,
+				onOpenImage: (src, alt) => activeImage.handleOpen({
+					alt,
+					src
+				})
+			})]
+		}), activeImage.active ? u(ModalSession, {
+			request: activeImage.active,
+			children: u(PosterModal, {
+				alt: activeImage.active.value.alt,
+				onClose: activeImage.handleClose,
+				src: activeImage.active.value.src
+			})
+		}) : null] });
+	};
+	var activateEnhancedDocument = (doc) => {
+		doc.body.classList.add("atv-enhanced");
+	};
+	var installEnhancedRoot = (doc, renderRoot) => {
+		const root = doc.createElement("div");
+		root.id = "atv-douban-root";
+		try {
+			renderRoot(root);
+			doc.body.insertBefore(root, doc.body.firstChild);
+		} catch (error) {
+			root.remove();
+			console.warn("[ATV-Douban] 页面挂载失败：", error);
+			return false;
+		}
+		activateEnhancedDocument(doc);
+		return true;
+	};
+	var isPersonageHomepage = (location) => location.hostname === "www.douban.com" && /^\/personage\/\d+\/?$/u.test(location.pathname);
+	var mountPersonage = (doc = document) => {
+		if (doc.querySelector("#atv-douban-root")) return;
+		const profile = extractPersonageProfile(doc);
+		if (!profile) return;
+		if (installEnhancedRoot(doc, (root) => R(u(PersonagePage, { profile }), root))) doc.title = `${profile.name} · 豆瓣`;
+	};
+	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
+		const lis = $$("li", ul);
+		const orgEl = lis[0] ? $("a", lis[0]) : null;
+		const org = lis[0] ? safeText(lis[0]) : "";
+		const name = lis[1] ? safeText(lis[1]) : "";
+		const personEl = lis[2] ? $("a", lis[2]) : null;
+		const person = lis[2] ? safeText(lis[2]) : "";
+		return {
+			name,
+			org,
+			orgLink: orgEl ? orgEl.href : "",
+			person,
+			personLink: personEl ? personEl.href : ""
+		};
+	}).filter((a) => a.org);
+	var RE_SLASH_SEP = /\s*\/\s*/gu;
+	var RE_WS_GLOBAL = /\s+/gu;
+	var RE_COLON_WS = /[:：\s]/gu;
+	var RE_YEAR_TRAIL = /\(\d{4}\)\s*$/u;
+	var RE_H1_YEAR = /\((?<year>\d{4})\)\s*$/u;
+	var RE_WS = /\s+/u;
+	var RE_YEAR = /(?<year>\d{4})/u;
+	var RE_NON_DIGIT = /\D/gu;
+	var RE_HSPACE = /[ \t]+/gu;
+	var RE_NL_MULTI = /\n{3,}/gu;
+	var RE_IMDB_ID = /(?<id>tt\d+)/u;
+	var RE_BG_URL = /url\(["']?(?<url>[^"')]+)["']?\)/u;
+	var RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
+	var RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
+	var RE_HTTP = /^https?:\/\//u;
+	var RE_ONLINE_VIDEO = /online-video/u;
+	var RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
+	var RE_IMDB_LINK = /^tt\d+$/u;
+	var RE_SEASON_SUFFIX = /\d$/u;
+	var RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
+	var RE_PLAY_SOURCES = /sources\[(?<sourceId>\d+)\]\s*=\s*\[\s*\{play_link:\s*"(?<playLink>[^"]+)"/gu;
+	var RE_SOURCES_SCRIPT = /\bsources\s*\[/u;
+	var upgradePoster = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/s_ratio_poster/", "/l_ratio_poster/").replace("s_ratio_poster", "l_ratio_poster"));
+	};
+	var upgradePhoto = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	};
+	var extractTitle = (doc) => {
+		const h1 = $("#content h1", doc);
+		const full = safeText($("span[property=\"v:itemreviewed\"]", h1 ?? doc)) || safeText(h1).replace(RE_YEAR_TRAIL, "").trim();
+		let primary = full;
+		let original = "";
+		const idx = full.search(RE_WS);
+		if (idx > 0) {
+			primary = full.slice(0, idx).trim();
+			original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
+		}
+		return {
+			full,
+			original,
+			primary
+		};
+	};
+	var extractYear = (doc) => {
+		return safeText($("#content h1 .year", doc)).match(RE_YEAR)?.[1] ?? "";
+	};
+	var extractPoster = (doc) => {
+		const img = $("#mainpic img", doc) || $("a.nbgnbg img", doc);
+		if (!img) return null;
+		return upgradePoster(img.src || img.dataset.src || "");
+	};
+	var extractSubjectId = (doc) => {
+		return (doc.defaultView?.location.pathname ?? "").match(RE_SUBJECT_ID)?.[1] ?? "";
+	};
+	var MAX_DISCUSSION_TOPICS = 10;
+	var DOUBAN_ORIGIN = "https://www.douban.com/";
+	var TOPIC_PATH = /^\/(?:group\/topic\/\d+|subject\/\d+\/discussion\/\d+)\/?$/u;
+	var DISCUSSION_COLLECTION_PATH = /^\/subject\/\d+\/discussion\/?$/u;
+	var COLLECTION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion)\/?$/u;
+	var START_DISCUSSION_PATH = /^\/(?:group\/\d+|subject\/\d+\/discussion\/create|register)\/?$/u;
+	var AUTHOR_PROFILE_PATH = /^\/people\/[^/]+\/?$/u;
+	var DISCUSSION_TIMESTAMP = /^(?<date>\d{4}-\d{2}-\d{2})\s+(?<time>\d{2}:\d{2})(?::(?<seconds>\d{2}))?$/u;
+	var isTrackingParameter = (fragment) => {
+		const [rawKey] = fragment.split("=", 1);
+		if (rawKey === void 0) return false;
+		try {
+			return decodeURIComponent(rawKey.replaceAll("+", " ")) === "_spm_id";
+		} catch {
+			return false;
+		}
+	};
+	var removeTrackingParameter = (search) => {
+		if (!search) return "";
+		const remaining = search.slice(1).split("&").filter((fragment) => !isTrackingParameter(fragment));
+		return remaining.length ? `?${remaining.join("&")}` : "";
+	};
+	var toSafeDoubanUrl = (rawHref) => {
+		try {
+			const url = new URL(rawHref, DOUBAN_ORIGIN);
+			if (url.protocol !== "http:" && url.protocol !== "https:" || !url.hostname.endsWith(".douban.com") || url.port || url.username || url.password) return;
+			return url;
+		} catch {
+			return;
+		}
+	};
+	var normalizeTopicHref = (rawHref) => {
+		const url = toSafeDoubanUrl(rawHref);
+		if (!url || !TOPIC_PATH.test(url.pathname)) return "";
+		const search = removeTrackingParameter(url.search);
+		return `${url.origin}${url.pathname}${search}${url.hash}`;
+	};
+	var normalizeDoubanHref = (rawHref, path) => {
+		const url = toSafeDoubanUrl(rawHref);
+		return url && path.test(url.pathname) ? url.href : "";
+	};
+	var extractAuthor = (authorCell) => {
+		const link = authorCell?.querySelector("a");
+		const name = safeText(link ?? authorCell).replace(/^来自\s*/u, "");
+		if (!name) return;
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		const href = rawHref ? normalizeDoubanHref(rawHref, AUTHOR_PROFILE_PATH) : "";
+		return href ? {
+			href,
+			name
+		} : { name };
+	};
+	var extractReplies = (repliesCell) => {
+		if (!repliesCell) return;
+		const text = safeText(repliesCell);
+		if (!text) return 0;
+		const match = /^(?<replies>\d+)\s*回应$/u.exec(text);
+		if (match?.groups) return Number(match.groups.replies);
+		const bare = Number(text);
+		return Number.isSafeInteger(bare) ? bare : void 0;
+	};
+	var isValidDiscussionTimestamp = (dateTime) => {
+		const value = new Date(`${dateTime}Z`);
+		return !Number.isNaN(value.getTime()) && value.toISOString().slice(0, dateTime.length) === dateTime;
+	};
+	var extractActivity = (activityCell) => {
+		const raw = safeText(activityCell);
+		if (!raw) return;
+		const match = DISCUSSION_TIMESTAMP.exec(raw);
+		if (!match?.groups) return { raw };
+		const { date, seconds, time } = match.groups;
+		if (!date || !time) return { raw };
+		const dateTime = `${date}T${time}${seconds ? `:${seconds}` : ""}`;
+		return isValidDiscussionTimestamp(dateTime) ? {
+			date,
+			dateTime,
+			raw,
+			time
+		} : { raw };
+	};
+	var extractTopics = (container) => {
+		const topics = [];
+		for (const row of $$("table tr", container)) {
+			if (row.closest(".mv-hot-discussion-list")) continue;
+			const link = row.cells[0]?.querySelector("a");
+			const title = safeText(link);
+			const rawHref = link?.getAttribute("href")?.trim() ?? "";
+			const href = rawHref ? normalizeTopicHref(rawHref) : "";
+			if (title && href) {
+				const author = extractAuthor(row.cells[1]);
+				const replies = extractReplies(row.cells[2]);
+				const activity = extractActivity(row.cells[3]);
+				topics.push({
+					...activity ? { activity } : {},
+					...author ? { author } : {},
+					href,
+					...replies === void 0 ? {} : { replies },
+					title
+				});
+				if (topics.length === MAX_DISCUSSION_TOPICS) break;
+			}
+		}
+		return topics;
+	};
+	var extractStartDiscussionHref = (container) => {
+		const rawHref = container.querySelector(".hd-ops .comment_btn, .mod-hd .comment_btn")?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, START_DISCUSSION_PATH) : "";
+	};
+	var linkHref = (link, path) => {
+		const rawHref = link?.getAttribute("href")?.trim() ?? "";
+		return rawHref ? normalizeDoubanHref(rawHref, path) : "";
+	};
+	var extractLinkTotal = (link) => {
+		const totalMatch = /全部\s*(?<total>\d+|\d{1,3}(?:,\d{3})+)\s*条/u.exec(safeText(link));
+		const total = totalMatch?.groups?.total ? Number(totalMatch.groups.total.replaceAll(",", "")) : NaN;
+		return Number.isSafeInteger(total) ? total : void 0;
+	};
+	var extractAllDiscussions = (container) => {
+		const pLink = container.querySelector("p a");
+		const pHref = linkHref(pLink, COLLECTION_PATH);
+		if (pHref) {
+			const total = extractLinkTotal(pLink);
+			return total === void 0 ? { href: pHref } : {
+				href: pHref,
+				total
+			};
+		}
+		const h2Href = linkHref(container.querySelector("h2 .pl a"), DISCUSSION_COLLECTION_PATH);
+		if (h2Href) return { href: h2Href };
+		const listLink = container.querySelector(".mv-discussion-list a");
+		const listHref = linkHref(listLink, DISCUSSION_COLLECTION_PATH);
+		if (listHref) {
+			const total = extractLinkTotal(listLink);
+			return total === void 0 ? { href: listHref } : {
+				href: listHref,
+				total
+			};
+		}
+	};
+	var findModDiscussion = (doc) => {
+		for (const mod of $$(".mod", doc)) if (mod.querySelector(".mv-discussion-list")) return mod;
+		return null;
+	};
+	var extractFromContainer = (container) => {
+		const topics = extractTopics(container);
+		const startDiscussionHref = extractStartDiscussionHref(container);
+		const allDiscussions = extractAllDiscussions(container);
+		return {
+			...allDiscussions ? { allDiscussions } : {},
+			...startDiscussionHref ? { startDiscussionHref } : {},
+			topics
+		};
+	};
+	var extractDiscussions = (doc) => {
+		const primary = doc.querySelector(".section-discussion");
+		if (primary) return extractFromContainer(primary);
+		const mod = findModDiscussion(doc);
+		if (mod) return extractFromContainer(mod);
+		return { topics: [] };
+	};
+	var findLabel = (root, label) => {
+		const labels = $$("span.pl", root);
+		for (const candidate of labels) if ((candidate.textContent || "").replace(RE_COLON_WS, "") === label) return candidate;
+		return null;
+	};
+	var adjacentSiblings = (label) => {
+		const siblings = [];
+		let current = label.nextSibling;
+		while (current) {
+			if (current.nodeType === 1 && (current.classList?.contains("pl") || current.tagName === "BR")) break;
+			siblings.push(current);
+			current = current.nextSibling;
+		}
+		return siblings;
+	};
+	var collectInfoTextAfter = (root, label) => {
+		const labelElement = findLabel(root, label);
+		if (!labelElement) return "";
+		return adjacentSiblings(labelElement).map((sibling) => {
+			if (sibling.nodeType === 3) return sibling.nodeValue || "";
+			return sibling.nodeType === 1 ? sibling.textContent || "" : "";
+		}).join("").replace(RE_SLASH_SEP, " / ").replace(RE_WS_GLOBAL, " ").trim();
+	};
+	var collectLinksAfter = (root, label) => {
+		const labelElement = findLabel(root, label);
+		if (!labelElement) return [];
+		return adjacentSiblings(labelElement).flatMap((sibling) => {
+			if (sibling.nodeType !== 1) return [];
+			const element = sibling;
+			return (element.tagName === "A" ? [element] : $$("a", element)).flatMap((anchor) => {
+				if (anchor.classList.contains("more-attrs")) return [];
+				const text = (anchor.textContent || "").trim();
+				return text ? [{
+					href: anchor.href || "",
+					text
+				}] : [];
+			});
+		});
+	};
+	var extractInfo = (doc) => {
+		const info = $("#info", doc);
+		const out = {
+			aliases: "",
+			cast: [],
+			country: "",
+			director: [],
+			episodeRuntime: "",
+			episodes: "",
+			firstAired: "",
+			genres: [],
+			imdb: "",
+			language: "",
+			releaseDate: "",
+			runtime: "",
+			seasons: "",
+			writers: []
+		};
+		if (!info) return out;
+		out.director = collectLinksAfter(info, "导演");
+		out.writers = collectLinksAfter(info, "编剧");
+		const starringEls = $$("a[rel=\"v:starring\"]", info);
+		out.cast = starringEls.length ? starringEls.map((a) => ({
+			href: a.href || "",
+			text: (a.textContent || "").trim()
+		})).filter((x) => x.text) : collectLinksAfter(info, "主演");
+		out.genres = $$("span[property=\"v:genre\"]", info).map((e) => (e.textContent || "").trim()).filter(Boolean);
+		out.country = collectInfoTextAfter(info, "制片国家/地区");
+		out.language = collectInfoTextAfter(info, "语言");
+		const relEls = $$("span[property=\"v:initialReleaseDate\"]", info);
+		if (relEls.length) out.releaseDate = relEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.firstAired = collectInfoTextAfter(info, "首播");
+		const runEls = $$("span[property=\"v:runtime\"]", info);
+		if (runEls.length) out.runtime = runEls.map((e) => (e.textContent || "").trim()).filter(Boolean).join(" / ");
+		out.episodes = collectInfoTextAfter(info, "集数");
+		if (findLabel(info, "季数")) {
+			const sel = $("#season", info);
+			if (sel) {
+				const opt = sel.options[sel.selectedIndex];
+				out.seasons = opt ? (opt.textContent || "").trim() : collectInfoTextAfter(info, "季数");
+			} else out.seasons = collectInfoTextAfter(info, "季数");
+		}
+		out.episodeRuntime = collectInfoTextAfter(info, "单集片长");
+		out.aliases = collectInfoTextAfter(info, "又名");
+		if (findLabel(info, "IMDb")) {
+			const raw = collectInfoTextAfter(info, "IMDb");
+			out.imdb = raw.match(RE_IMDB_ID)?.[1] ?? raw;
+		}
+		return out;
+	};
+	var normalizeInterestTags = (value) => {
+		return [...new Set((typeof value === "string" ? [value] : value).filter((item) => typeof item === "string").flatMap((item) => item.trim().split(/\s+/u)).filter(Boolean))];
+	};
+	var findInterestRoot = (doc) => $("#interest_sect_level", doc) || $("#interest_sectl", doc);
+	var findInterestAnchors = (doc, root = findInterestRoot(doc)) => root ? $$("a", root) : [];
+	var isInterestActive = (anchor) => {
+		if (!anchor) return false;
+		const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
+		return RE_INTEREST_ACTIVE.test(classes);
+	};
+	var matchS3Status = (text) => {
+		if (text.includes("已看过")) return "collect";
+		if (text.includes("已想看")) return "wish";
+		if (text.includes("已在看")) return "do";
+		if (/^我看过(?:这部电影|这部电视剧)/u.test(text)) return "collect";
+		if (/^我想看(?:这部电影|这部电视剧)/u.test(text)) return "wish";
+		if (/^(?:我在看|我正在看)(?:这部电影|这部电视剧)?/u.test(text)) return "do";
+		return null;
+	};
+	var matchBareStatus = (text) => {
+		if (/^看过$/u.test(text)) return "collect";
+		if (/^想看$/u.test(text)) return "wish";
+		if (/^(?:正在?)?在看$/u.test(text)) return "do";
+		return null;
+	};
+	var matchRichOrBareStatus = (text) => matchS3Status(text) ?? matchBareStatus(text);
+	var directText = (element) => [...element.childNodes].filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent || "").join("").trim();
+	var detectS3State = (root) => {
+		let status = "none";
+		const allTextEls = root.querySelectorAll("span, div, a");
+		for (const el of allTextEls) {
+			const s = matchS3Status((el.textContent || "").trim());
+			if (s) {
+				status = s;
+				break;
+			}
+		}
+		const hasWatching = [...allTextEls].some((el) => /^(?:正在?)?在看/u.test((el.textContent || "").trim()));
+		const ratingInput = root.querySelector("#n_rating");
+		const rating = ratingInput ? Math.trunc(Number(ratingInput.value)) : 0;
+		const dateEl = root.querySelector(".collection_date");
+		const date = dateEl ? (dateEl.textContent || "").trim() : "";
+		const commentElements = root.querySelectorAll(".j.a_stars span");
+		let commentEl;
+		for (let index = commentElements.length - 1; index >= 0; index -= 1) {
+			const element = commentElements[index];
+			if (!element || element.matches(".mr10, .color_gray, .collection_date, .pl, #rating")) continue;
+			const text = directText(element);
+			if (text.length > 0 && matchS3Status(text) === null) {
+				commentEl = element;
+				break;
+			}
+		}
+		let comment = "";
+		let usefulCount = "";
+		if (commentEl) {
+			const voteEl = commentEl.querySelector(".pl");
+			usefulCount = voteEl ? (voteEl.textContent || "").trim() : "";
+			comment = directText(commentEl);
+		}
+		return {
+			comment,
+			date,
+			hasWatching,
+			rating,
+			status,
+			usefulCount
+		};
+	};
+	var detectS2Status = (anchors) => {
+		let status = "none";
+		let hasWatching = false;
+		for (const a of anchors) {
+			const text = (a.textContent || "").trim();
+			if (text === "在看") hasWatching = true;
+			if (status !== "none") continue;
+			const s = matchRichOrBareStatus(text);
+			if (s && isInterestActive(a)) status = s;
+		}
+		return {
+			hasWatching,
+			status
+		};
+	};
+	var extractInterestTags = (root) => {
+		for (const element of root.querySelectorAll(".color_gray")) {
+			const match = /^标签\s*[:：]\s*(?<tags>.+)$/u.exec((element.textContent || "").trim());
+			if (match?.groups?.tags) return normalizeInterestTags(match.groups.tags);
+		}
+		return [];
+	};
+	var extractInterestState = (doc) => {
+		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+		const loggedIn = !!ck;
+		const root = findInterestRoot(doc);
+		const anchors = findInterestAnchors(doc, root);
+		if (!loggedIn) return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: anchors.some((a) => /^在看$/u.test((a.textContent || "").trim())),
+			loggedIn: false,
+			marked: false,
+			rating: 0,
+			status: "none",
+			tags: [],
+			usefulCount: ""
+		};
+		if (root) {
+			const s3 = detectS3State(root);
+			if (s3.status !== "none") return {
+				ck,
+				comment: s3.comment,
+				date: s3.date,
+				hasWatching: s3.hasWatching,
+				loggedIn: true,
+				marked: true,
+				rating: s3.rating,
+				status: s3.status,
+				tags: extractInterestTags(root),
+				usefulCount: s3.usefulCount
+			};
+		}
+		const s2 = detectS2Status(anchors);
+		return {
+			ck,
+			comment: "",
+			date: "",
+			hasWatching: s2.hasWatching,
+			loggedIn: true,
+			marked: false,
+			rating: 0,
+			status: s2.status,
+			tags: [],
+			usefulCount: ""
+		};
+	};
+	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
+		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
+		const roleEl = $(".info .role", li);
+		const avatarEl = $(".avatar", li);
+		let avatar = "";
+		if (avatarEl) {
+			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
+			if (m) avatar = m[1] ?? "";
+		}
+		return {
+			avatar: encodeURI(avatar),
+			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",
+			name: safeText(nameEl),
+			role: safeText(roleEl)
+		};
+	}).filter((c) => c.name);
+	var extractPhotos = (doc) => $$("#related-pic .related-pic-bd img", doc).map((img) => {
+		const thumb = img.src || img.dataset.src || "";
+		const a = img.closest("a");
+		return {
+			hdUrl: upgradePhoto(thumb) || "",
+			link: a ? a.href : "",
+			thumbUrl: encodeURI(thumb)
+		};
+	}).filter((p) => p.thumbUrl);
+	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
+		const thumbUrl = (a.getAttribute("style") || "").match(RE_BG_URL)?.[1] ?? "";
+		return {
+			thumbUrl: encodeURI(thumbUrl),
+			title: a.getAttribute("title") || "",
+			trailerPageUrl: a.href
+		};
+	}).filter((t) => t.trailerPageUrl);
+	var extractRankLabel = (doc) => {
+		const label = $(".rank-label", doc);
+		const link = $(".rank-label-link a", label ?? doc);
+		const position = $(".rank-label-no", label ?? doc)?.textContent?.trim() || "";
+		const title = link?.textContent?.trim() || "";
+		const href = link?.href || "";
+		if (!label || !position || !title || !href) return null;
+		return {
+			href,
+			position,
+			title
+		};
+	};
+	var RE_CRLF = /\r\n?/gu;
+	var RE_LINE_EDGE_HSPACE = /^[ \t\u00A0\u3000]+|[ \t\u00A0\u3000]+$/gu;
+	var extractRating$1 = (doc) => {
+		const raw = safeText($("strong.rating_num", doc) || $("strong[property=\"v:average\"]", doc));
+		const score = raw ? Number(raw) : NaN;
+		if (!score || Number.isNaN(score) || score <= 0) return null;
+		const votesEl = $("span[property=\"v:votes\"]", doc) || $(".rating_people span", doc);
+		return {
+			count: votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0,
+			score
+		};
+	};
+	var normalizeSummaryText = (text) => text.replace(RE_CRLF, "\n").split("\n").map((line) => line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")).join("\n").replace(RE_NL_MULTI, "\n").trim();
+	var extractSummary = (doc) => {
+		const summary = $("span[property=\"v:summary\"]", doc);
+		if (!summary) return null;
+		return normalizeSummaryText(summary.textContent || "") || null;
+	};
+	var extractReviewRating = (item) => {
+		let stars = 0;
+		let ratingWord = "";
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (ratingEl) {
+			const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+			if (rm) stars = Math.trunc(Number(rm[1])) / 10;
+			ratingWord = ratingEl.getAttribute("title") || "";
+		}
+		if (stars === 0) {
+			const titleRating = $(".main-title-rating", item);
+			if (titleRating) ratingWord = titleRating.getAttribute("title") || "";
+		}
+		return {
+			ratingWord,
+			stars
+		};
+	};
+	var extractReviewContent = (item) => {
+		const shortContent = $(".review-short .short-content", item);
+		if (shortContent) {
+			const contentCopy = shortContent.cloneNode(true);
+			contentCopy.querySelector("a.unfold")?.remove();
+			return safeText(contentCopy).replace(/[\s\u00A0]*\(\)[\s\u00A0]*$/u, "").trim();
+		}
+		const mainBd = $(".main-bd", item);
+		return mainBd ? safeText(mainBd) : "";
+	};
+	var extractReviewVotes = (item) => {
+		const action = $(".action", item);
+		if (!action) return {
+			usefulCount: 0,
+			uselessCount: 0
+		};
+		const upEl = $(".action-btn.up", action);
+		const downEl = $(".action-btn.down", action);
+		return {
+			usefulCount: Math.trunc(Number((upEl?.textContent ?? "").trim())) || 0,
+			uselessCount: Math.trunc(Number((downEl?.textContent ?? "").trim())) || 0
+		};
+	};
+	var extractReviewItem = (item) => {
+		const title = safeText($(".main-bd h2 a", item));
+		if (!title) return null;
+		const nameLink = $(".main-hd a.name", item);
+		const name = safeText(nameLink);
+		if (!name) return null;
+		const avatarImg = $(".main-hd .avator img", item);
+		const avatar = avatarImg ? encodeURI(avatarImg.src || avatarImg.dataset.original || avatarImg.dataset.src || "") : "";
+		const { stars, ratingWord } = extractReviewRating(item);
+		const time = safeText($(".main-hd .main-meta", item));
+		const content = extractReviewContent(item);
+		const { usefulCount, uselessCount } = extractReviewVotes(item);
+		const spoiler = !!$(".spoiler-tip", item);
+		return {
+			avatar,
+			content,
+			id: item.id || "",
+			link: nameLink?.href ?? "",
+			name,
+			ratingWord,
+			spoiler,
+			stars,
+			time,
+			title,
+			usefulCount,
+			uselessCount
+		};
+	};
+	var extractReviews = (doc) => {
+		const items = $$("#reviews-wrapper .review-item", doc);
+		const out = [];
+		for (const item of items) {
+			const review = extractReviewItem(item);
+			if (review) out.push(review);
+		}
+		return out;
+	};
+	var CN_DIGIT = {
+		一: 1,
+		七: 7,
+		三: 3,
+		九: 9,
+		二: 2,
+		五: 5,
+		八: 8,
+		六: 6,
+		四: 4
+	};
+	var parseCnNum = (s) => {
+		const arabic = Math.trunc(Number(s));
+		if (!Number.isNaN(arabic)) return arabic;
+		const parts = s.split("十");
+		if (parts.length === 2) {
+			const tens = parts[0] ? CN_DIGIT[parts[0]] ?? 1 : 1;
+			const ones = parts[1] ? CN_DIGIT[parts[1]] ?? 0 : 0;
+			return tens * 10 + ones;
+		}
+		if (s === "十") return 10;
+		return CN_DIGIT[s] ?? 0;
+	};
+	var seasonNum = (title) => {
+		const m = title.match(/第\s*(?<num>[\d一二三四五六七八九十百]+)\s*季/u);
+		if (!m?.groups?.num) return 0;
+		return parseCnNum(m.groups.num);
+	};
+	var extractSeries = (doc) => {
+		const container = $("#series-items .items-swiper", doc);
+		if (!container) return [];
+		const seen = new Set();
+		const items = $$(".items-swiper-item", container);
+		const out = [];
+		for (const el of items) {
+			const linkEl = $(".items-swiper-item-pic a", el);
+			const imgEl = $(".items-swiper-item-pic a img", el);
+			const titleEl = $(".items-swiper-item-title a", el);
+			const ratingEl = $(".items-swiper-item-rating", el);
+			const link = linkEl ? linkEl.href : "";
+			if (!link || seen.has(link)) continue;
+			seen.add(link);
+			out.push({
+				link,
+				poster: imgEl ? imgEl.src || imgEl.dataset.src || "" : "",
+				rating: safeText(ratingEl),
+				title: safeText(titleEl)
+			});
+		}
+		return [...out].toSorted((a, b) => seasonNum(a.title) - seasonNum(b.title));
+	};
+	var extractRecommendations = (doc) => $$(".recommendations-bd dl", doc).map((dl) => {
+		const linkEl = $("dt a", dl);
+		const imgEl = $("dt a img", dl);
+		const titleEl = $("dd a", dl);
+		const rawPoster = imgEl ? imgEl.src || imgEl.dataset.src || "" : "";
+		return {
+			link: linkEl ? linkEl.href : "",
+			poster: upgradePoster(rawPoster) || "",
+			title: safeText(titleEl)
+		};
+	}).filter((r) => r.title);
+	var extractRating = (item) => {
+		const ratingEl = $("[class*=\"allstar\"]", item);
+		if (!ratingEl) return {
+			ratingWord: "",
+			stars: 0
+		};
+		const rm = (ratingEl.className || "").match(RE_ALLSTAR);
+		return {
+			ratingWord: ratingEl.getAttribute("title") || "",
+			stars: rm ? Math.trunc(Number(rm[1])) / 10 : 0
+		};
+	};
+	var extractTime = (item) => {
+		const timeEl = $(".comment-time", item);
+		return timeEl ? timeEl.getAttribute("title") || safeText(timeEl) : "";
+	};
+	var extractVotes = (item) => {
+		const votesEl = $(".vote-count", item) ?? $(".votes", item);
+		return votesEl ? Math.trunc(Number(safeText(votesEl).replace(RE_NON_DIGIT, ""))) || 0 : 0;
+	};
+	var extractAvatar = (item) => {
+		const img = $(".avatar img", item);
+		if (!img) return "";
+		return encodeURI(img.src || img.dataset.original || img.dataset.src || "");
+	};
+	var extractVoted = (item) => {
+		if (item.querySelector(".j.vote-comment")) return false;
+		const voteArea = $(".comment-vote", item);
+		return /已投票|已赞|已推荐/u.test(safeText(voteArea));
+	};
+	var extractComments = (doc) => {
+		const items = $$("#hot-comments .comment-item", doc);
+		const out = [];
+		for (const item of items) {
+			const authorEl = $(".comment-info a", item);
+			const name = safeText(authorEl);
+			if (!name) continue;
+			const content = safeText($(".full", item) ?? $(".short", item) ?? $(".comment-content", item));
+			if (!content) continue;
+			const { stars, ratingWord } = extractRating(item);
+			out.push({
+				avatar: extractAvatar(item),
+				cid: item.dataset.cid ?? "",
+				content,
+				link: authorEl?.href ?? "",
+				name,
+				ratingWord,
+				stars,
+				time: extractTime(item),
+				voted: extractVoted(item),
+				votes: extractVotes(item)
+			});
+		}
+		return out;
+	};
+	var isRealUrl = (href) => RE_HTTP.test(href);
+	var parseLegacyPlaySources = (doc) => {
+		const srcScript = $$("script:not([src])", doc).find((s) => RE_SOURCES_SCRIPT.test(s.textContent || ""));
+		if (!srcScript) return {};
+		const txt = srcScript.textContent;
+		const map = {};
+		let m = RE_PLAY_SOURCES.exec(txt);
+		while (m) {
+			const [, sourceId, playLink] = m;
+			if (!sourceId || !playLink) {
+				m = RE_PLAY_SOURCES.exec(txt);
+				continue;
+			}
+			const decodedPlayLink = playLink.replaceAll("&amp;", "&");
+			if (!map[sourceId]) map[sourceId] = decodedPlayLink;
+			m = RE_PLAY_SOURCES.exec(txt);
+		}
+		return map;
+	};
+	var extractStreaming = (doc) => {
+		const seen = new Set();
+		const out = [];
+		const sourcesMap = parseLegacyPlaySources(doc);
+		const playBtns = $$("a.playBtn", doc);
+		for (const a of playBtns) {
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name)) continue;
+			let { href } = a;
+			if (!isRealUrl(href)) {
+				const sourceId = a.dataset.source;
+				const mappedHref = sourceId ? sourcesMap[sourceId] : void 0;
+				if (!mappedHref || !isRealUrl(mappedHref)) continue;
+				href = mappedHref;
+			}
+			seen.add(name);
+			const iconUrl = a.dataset.pic;
+			out.push({
+				href,
+				...iconUrl ? { iconUrl } : {},
+				name
+			});
+		}
+		for (const a of $$("a", doc)) {
+			if (!RE_ONLINE_VIDEO.test(a.href || "")) continue;
+			const name = (a.dataset.cn || a.textContent || "").trim();
+			if (!name || seen.has(name) || !isRealUrl(a.href)) continue;
+			seen.add(name);
+			out.push({
+				href: a.href,
+				name
+			});
+		}
+		return out;
+	};
+	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
+	var extractDoubanData = (doc) => {
+		const info = extractInfo(doc);
+		const isTV = isTVInfo(info);
+		return {
+			awards: extractAwards(doc),
+			celebrities: extractCelebrities(doc),
+			comments: extractComments(doc),
+			discussions: extractDiscussions(doc),
+			info,
+			interest: extractInterestState(doc),
+			isTV,
+			photos: extractPhotos(doc),
+			poster: extractPoster(doc),
+			rankLabel: extractRankLabel(doc),
+			rating: extractRating$1(doc),
+			recommendations: extractRecommendations(doc),
+			reviews: extractReviews(doc),
+			series: extractSeries(doc),
+			streaming: extractStreaming(doc),
+			subjectId: extractSubjectId(doc),
+			summary: extractSummary(doc),
+			title: extractTitle(doc),
+			trailers: extractTrailers(doc),
+			year: extractYear(doc)
+		};
+	};
+	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
+	var delay = (ms) => new Promise((resolve) => {
+		setTimeout(resolve, ms);
+	});
+	var getXhr = () => {
+		const g = _GM_xmlhttpRequest;
+		if (!g) throw new Error("[DOUBAN-PLUS] GM_xmlhttpRequest unavailable");
+		return g;
+	};
+	var gmRequest = (method, url, referer, extraHeaders, data) => {
+		const headers = {
+			"Content-Type": "application/x-www-form-urlencoded",
+			...extraHeaders
+		};
+		if (referer) headers.Referer = referer;
+		return new Promise((resolve, reject) => {
+			getXhr()({
+				...data === void 0 ? {} : { data },
+				headers,
+				method,
+				onerror: () => reject(new Error("GM_xmlhttpRequest failed")),
+				onload: (r) => resolve(r.responseText),
+				url
+			});
+		});
+	};
+	var gmPostOnce = (url, data, referer, extraHeaders) => gmRequest("POST", url, referer, extraHeaders, data);
+	var RETRY_DELAYS = [
+		300,
+		800,
+		2e3
+	];
+	var gmPost = async (url, data, referer, extraHeaders) => {
+		for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) try {
+			return await gmPostOnce(url, data, referer, extraHeaders);
+		} catch (error) {
+			if (attempt < RETRY_DELAYS.length) {
+				console.warn("[GM] POST failed (attempt", attempt + 1, "), retrying in", RETRY_DELAYS[attempt] ?? 0, "ms —", error.message);
+				await delay(RETRY_DELAYS[attempt] ?? 0);
+			} else throw error;
+		}
+		throw new Error("[GM] POST failed after all retries");
+	};
+	var gmGet = (url, referer) => gmRequest("GET", url, referer);
+	var getCk = () => (document.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+	var API_VOTE = "https://movie.douban.com/j/comment/vote";
+	var postVote = async (cid, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(API_VOTE, `id=${cid}&ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0);
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				count: data.count,
+				ok: true
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postVote error:", error);
+			return { ok: false };
+		}
+	};
+	var API_INTEREST = "https://movie.douban.com/j/subject";
+	var API_REMOVE = "https://movie.douban.com/subject";
+	var isInterestStatus = (value) => value === "wish" || value === "do" || value === "collect";
+	var snapshotStatus = (value) => {
+		if (value === "" || value === null || value === void 0) return "none";
+		if (isInterestStatus(value)) return value;
+		throw new Error("返回的作品标记状态无效");
+	};
+	var formSettingsFromHtml = (html) => {
+		if (typeof html !== "string") return {
+			isPrivate: false,
+			shareToBroadcast: false
+		};
+		const doc = new DOMParser().parseFromString(html, "text/html");
+		return {
+			isPrivate: !!doc.querySelector("#inp-private")?.checked,
+			shareToBroadcast: !!doc.querySelector("#share-shuo")?.checked
+		};
+	};
+	var fetchInterestSnapshot = async (subjectId) => {
+		if (!getCk()) throw new Error("未登录");
+		try {
+			const response = JSON.parse(await gmGet(`${API_INTEREST}/${subjectId}/interest`, `https://movie.douban.com/subject/${subjectId}/`));
+			return {
+				...formSettingsFromHtml(response.html),
+				myTags: normalizeInterestTags(Array.isArray(response.my_tags) ? response.my_tags : []),
+				popularTags: normalizeInterestTags(Array.isArray(response.popular_tags) ? response.popular_tags : []),
+				status: snapshotStatus(response.interest_status),
+				tags: normalizeInterestTags(Array.isArray(response.tags) ? response.tags : [])
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] fetchInterestSnapshot error:", error);
+			throw new Error("无法读取完整标记", { cause: error });
+		}
+	};
+	var postInterest = async (subjectId, interest, options) => {
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({
+			ck,
+			comment: options?.comment ?? "",
+			foldcollect: "F",
+			interest,
+			rating: typeof options?.rating === "number" ? String(options.rating) : "",
+			tags: options?.tags?.join(" ") ?? "",
+			...options?.isPrivate ? { private: "on" } : {},
+			...options?.shareToBroadcast && !options.isPrivate ? { "share-shuo": "douban" } : {}
+		});
+		try {
+			const text = await gmPost(`${API_INTEREST}/${subjectId}/interest`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			const data = JSON.parse(text);
+			if (data.r === 0) return { ok: true };
+			return {
+				error: data.msg || "操作失败",
+				ok: false
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] postInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var removeInterest = async (subjectId, currentStatus) => {
+		if (currentStatus === "none") return { ok: true };
+		const ck = getCk();
+		if (!ck) return {
+			error: "未登录",
+			ok: false
+		};
+		const params = new URLSearchParams({ ck });
+		try {
+			await gmPost(`${API_REMOVE}/${subjectId}/remove`, params.toString(), `https://movie.douban.com/subject/${subjectId}/`);
+			return { ok: true };
+		} catch (error) {
+			console.warn("[ATV-Douban] removeInterest error:", error);
+			return {
+				error: String(error),
+				ok: false
+			};
+		}
+	};
+	var API_REVIEW_VOTE = "https://movie.douban.com/j/review";
+	var postReviewVote = async (rid, type, subjectId) => {
+		const ck = getCk();
+		if (!ck) return { ok: false };
+		try {
+			const text = await gmPost(`${API_REVIEW_VOTE}/${rid}/${type}`, `ck=${ck}`, subjectId ? `https://movie.douban.com/subject/${subjectId}/` : void 0, { "x-csrf-token": `${ck} ck` });
+			const data = JSON.parse(text);
+			if (data.r === 0) return {
+				ok: true,
+				usefulCount: data.useful_count,
+				uselessCount: data.useless_count
+			};
+			return { ok: false };
+		} catch (error) {
+			console.warn("[ATV-Douban] postReviewVote error:", error);
+			return { ok: false };
+		}
+	};
+	var SECTION_COPY = {
+		cast: {
+			navLabel: "演职员",
+			sectionTitle: "演职员"
+		},
+		comments: {
+			navLabel: "短评",
+			sectionTitle: "热门短评"
+		},
+		details: {
+			navLabel: "详情",
+			sectionTitle: "详细信息"
+		},
+		discussions: {
+			navLabel: "小组讨论",
+			sectionTitle: "小组讨论"
+		},
+		media: {
+			navLabel: "影像",
+			sectionTitle: "影像"
+		},
+		movieReviews: {
+			navLabel: "影评",
+			sectionTitle: "热门影评"
+		},
+		recommendations: {
+			navLabel: "相似作品",
+			sectionTitle: "相似作品"
+		},
+		series: {
+			navLabel: "同系列",
+			sectionTitle: "同系列作品"
+		},
+		streaming: {
+			navLabel: "观看平台",
+			sectionTitle: "观看平台"
+		},
+		tvReviews: {
+			navLabel: "剧评",
+			sectionTitle: "热门剧评"
+		}
+	};
+	var getSubjectSectionCopy = (section) => SECTION_COPY[section];
+	var computeNavSections = (data) => {
+		const sections = [];
+		if (data.streaming.length > 0) sections.push({
+			id: "atv-stream",
+			label: getSubjectSectionCopy("streaming").navLabel
+		});
+		if (data.series.length > 0) sections.push({
+			id: "atv-series",
+			label: getSubjectSectionCopy("series").navLabel
+		});
+		if (data.celebrities.length > 0) sections.push({
+			id: "atv-cast",
+			label: getSubjectSectionCopy("cast").navLabel
+		});
+		if (data.photos.length > 0 || data.trailers.length > 0) sections.push({
+			id: "atv-photos",
+			label: getSubjectSectionCopy("media").navLabel
+		});
+		if (data.comments.length > 0) sections.push({
+			id: "atv-comments",
+			label: getSubjectSectionCopy("comments").navLabel
+		});
+		if (data.reviews.length > 0) sections.push({
+			id: "atv-reviews",
+			label: getSubjectSectionCopy(data.isTV ? "tvReviews" : "movieReviews").navLabel
+		});
+		if (data.discussions.topics.length > 0) sections.push({
+			id: "atv-discussions",
+			label: getSubjectSectionCopy("discussions").navLabel
+		});
+		if (data.recommendations.length > 0) sections.push({
+			id: "atv-recs",
+			label: getSubjectSectionCopy("recommendations").navLabel
+		});
+		sections.push({
+			id: "atv-info",
+			label: getSubjectSectionCopy("details").navLabel
+		});
+		return sections;
 	};
 	var starComponents = (score, outOfFive = false) => {
 		const normalized = outOfFive ? score : score / 2;
@@ -11114,16 +11232,6 @@ input::placeholder {
 			})
 		]
 	});
-	var useModalRequest = () => {
-		const [active, setActive] = d(null);
-		return {
-			active,
-			handleClose: q(() => setActive(null), []),
-			handleOpen: q((value) => {
-				setActive({ value });
-			}, [])
-		};
-	};
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("fieldset", {
 		class: "atv-interest-modal-rating",
 		children: [
