@@ -47,6 +47,32 @@ describe(extractPersonageProfile, () => {
         "彼特·丁拉基是一位美国演员，以细腻而有力量的表演闻名。",
         "他因出演《权力的游戏》中的提利昂·兰尼斯特而广为人知。",
       ],
+      collaborators: [
+        {
+          avatar: "https://img.example.com/b.jpg",
+          href: "https://www.douban.com/personage/2",
+          name: "合作者乙",
+          sharedWorkCount: 20,
+          sharedWorksHref:
+            "http://localhost:3000/personage/27224733/partners#2",
+        },
+        {
+          avatar: "https://img.example.com/a.jpg",
+          href: "https://www.douban.com/personage/1",
+          name: "合作者甲",
+          sharedWorkCount: 12,
+          sharedWorksHref:
+            "http://localhost:3000/personage/27224733/partners#1",
+        },
+        {
+          avatar: "https://img.example.com/c.jpg",
+          href: "https://www.douban.com/personage/3",
+          name: "合作者丙",
+          sharedWorkCount: 12,
+          sharedWorksHref:
+            "http://localhost:3000/personage/27224733/partners#3",
+        },
+      ],
       facts: [
         { label: "性别", value: "男" },
         { label: "出生日期", value: "1969-06-11" },
@@ -134,6 +160,26 @@ describe(extractPersonageProfile, () => {
       allImagesHref: "http://localhost:3000/personage/27260187/photos",
       images: [],
     });
+
+    missing.cleanup();
+    empty.cleanup();
+  });
+
+  it("keeps missing and explicitly empty native collaborator sources distinct", () => {
+    const missing = createTestDoc(
+      '<div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>',
+      "/personage/27260187/"
+    );
+    const empty = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>
+        <section class="partners-mod-mod subject-mod"><ul class="partners-mod-list"></ul></section>
+      `,
+      "/personage/27260187/"
+    );
+
+    expect(extractPersonageProfile(missing.doc)?.collaborators).toBeNull();
+    expect(extractPersonageProfile(empty.doc)?.collaborators).toStrictEqual([]);
 
     missing.cleanup();
     empty.cleanup();
@@ -245,6 +291,7 @@ describe(mountPersonage, () => {
     mountPersonage(doc);
 
     const sections = [
+      "atv-personage-collaborators",
       "atv-personage-gallery",
       "atv-personage-recent-works",
       "atv-personage-representative-works",
@@ -252,16 +299,17 @@ describe(mountPersonage, () => {
     ].map((id) => doc.querySelector<HTMLElement>(`#${id}`));
 
     expect(sections.map((section) => section?.id)).toStrictEqual([
+      "atv-personage-collaborators",
       "atv-personage-gallery",
       "atv-personage-recent-works",
       "atv-personage-representative-works",
       "atv-personage-awards",
     ]);
     expect(
-      sections[1]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
+      sections[2]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
     ).toBe("http://localhost:3000/creations?sortby=time&type=filmmaker");
     expect(
-      sections[2]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
+      sections[3]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
     ).toBe("http://localhost:3000/creations?sortby=collection&type=filmmaker");
 
     cleanup();
@@ -397,6 +445,10 @@ describe(mountPersonage, () => {
         toggle.textContent = "(收起)";
       }
     });
+    Object.defineProperty(doc, "readyState", {
+      configurable: true,
+      value: "complete",
+    });
 
     mountPersonage(doc);
 
@@ -405,6 +457,74 @@ describe(mountPersonage, () => {
         doc.querySelector(".atv-personage-biography-content")?.textContent
       ).toBe("原生展开后才提供的完整人物简介")
     );
+
+    cleanup();
+  });
+
+  it("adopts a biography only after the page-load boundary makes native expansion available", async () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">冯小刚 Xiaogang Feng</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"><p>截断的原生简介</p></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27481219/"
+    );
+    const source = doc.querySelector<HTMLElement>(".subject-intro .content");
+    const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
+
+    Object.defineProperty(doc, "readyState", {
+      configurable: true,
+      value: "interactive",
+    });
+    mountPersonage(doc);
+
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+
+    toggle?.addEventListener("click", () => {
+      source?.replaceChildren(
+        Object.assign(doc.createElement("p"), {
+          textContent: "延后绑定后提供的完整人物简介",
+        })
+      );
+      if (toggle) {
+        toggle.textContent = "(折叠)";
+      }
+    });
+    doc.defaultView?.dispatchEvent(new Event("load"));
+
+    await vi.waitFor(() =>
+      expect(
+        doc.querySelector(".atv-personage-biography-content")?.textContent
+      ).toBe("延后绑定后提供的完整人物简介")
+    );
+
+    cleanup();
+  });
+
+  it("keeps the native page visible when biography expansion cannot complete", () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">冯小刚 Xiaogang Feng</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"><p>截断的原生简介</p></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27481219/"
+    );
+
+    Object.defineProperty(doc, "readyState", {
+      configurable: true,
+      value: "interactive",
+    });
+    mountPersonage(doc);
+    doc.defaultView?.dispatchEvent(new Event("load"));
+
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+    expect(doc.body.classList).not.toContain("atv-enhanced");
 
     cleanup();
   });

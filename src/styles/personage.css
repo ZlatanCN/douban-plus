@@ -136,6 +136,143 @@
   font: inherit;
 }
 
+.atv-personage-collaborators {
+  display: grid;
+  padding: 0;
+  border-top: 1px solid var(--atv-border-subtle);
+  margin: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+}
+
+.atv-personage-collaborator {
+  display: grid;
+  min-height: 104px;
+  align-items: center;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  color: var(--atv-text-secondary);
+  column-gap: 14px;
+  grid-template-columns: 24px 48px minmax(0, 1fr);
+}
+
+.atv-personage-collaborator:nth-child(odd) {
+  padding-right: 28px;
+}
+
+.atv-personage-collaborator:nth-child(even) {
+  padding-left: 28px;
+}
+
+.atv-personage-collaborator[data-leading="true"] {
+  color: var(--atv-text-primary);
+}
+
+.atv-personage-collaborator[data-leading="true"]
+  .atv-personage-collaborator-rank {
+  color: var(--atv-accent-bright);
+}
+
+.atv-personage-collaborator-rank {
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.atv-personage-collaborator img,
+.atv-personage-collaborator-avatar {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--atv-border-medium);
+  border-radius: 50%;
+  background: var(--atv-bg-tertiary);
+  object-fit: cover;
+}
+
+.atv-personage-collaborator-avatar {
+  display: grid;
+  color: var(--atv-text-primary);
+  place-items: center;
+}
+
+.atv-personage-collaborator-identity {
+  min-width: 0;
+}
+
+.atv-personage-collaborator-identity h3,
+.atv-personage-collaborator-identity p {
+  margin: 0;
+}
+
+.atv-personage-collaborator-identity h3 {
+  overflow: hidden;
+  color: var(--atv-text-primary);
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-personage-collaborator-identity p {
+  display: flex;
+  align-items: baseline;
+  margin-top: 5px;
+  gap: 5px;
+}
+
+.atv-personage-collaborator-identity strong {
+  color: var(--atv-accent-bright);
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.atv-personage-collaborator[data-leading="true"]
+  .atv-personage-collaborator-identity
+  strong {
+  font-size: 30px;
+}
+
+.atv-personage-collaborator-identity p span {
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+}
+
+.atv-personage-collaborator-actions {
+  display: flex;
+  margin-top: 8px;
+  gap: 14px;
+  grid-column: 3;
+}
+
+.atv-personage-collaborator-actions a {
+  color: var(--atv-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color var(--atv-duration-hover) ease;
+}
+
+.atv-personage-collaborator-actions a:focus-visible {
+  border-radius: 2px;
+  color: var(--atv-accent-bright);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator-actions a:hover {
+    color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-actions a:active {
+  transform: scale(0.97);
+}
+
 .atv-personage .atv-section {
   padding-right: 0;
   padding-left: 0;
@@ -356,6 +493,40 @@
     grid-column: 1 / -1;
   }
 
+  .atv-personage-collaborators {
+    grid-template-columns: 1fr;
+  }
+
+  .atv-personage-collaborator {
+    min-height: 90px;
+    padding: 14px 0;
+    column-gap: 12px;
+    grid-template-columns: 20px 42px minmax(0, 1fr);
+  }
+
+  .atv-personage-collaborator:nth-child(odd),
+  .atv-personage-collaborator:nth-child(even) {
+    padding-right: 0;
+    padding-left: 0;
+  }
+
+  .atv-personage-collaborator img,
+  .atv-personage-collaborator-avatar {
+    width: 42px;
+    height: 42px;
+  }
+
+  .atv-personage-collaborator-identity h3 {
+    font-size: 15px;
+  }
+
+  .atv-personage-collaborator-identity strong,
+  .atv-personage-collaborator[data-leading="true"]
+    .atv-personage-collaborator-identity
+    strong {
+    font-size: 22px;
+  }
+
   .atv-personage-gallery-rail li {
     height: 160px;
   }
@@ -380,13 +551,15 @@
 @media (prefers-reduced-motion: reduce) {
   .atv-personage-portrait-trigger,
   .atv-personage-gallery-rail button,
-  .atv-personage-work-card {
+  .atv-personage-work-card,
+  .atv-personage-collaborator-actions a {
     transition: none;
   }
 
   .atv-personage-portrait-trigger:active,
   .atv-personage-gallery-rail button:active,
-  .atv-personage-work-card:active {
+  .atv-personage-work-card:active,
+  .atv-personage-collaborator-actions a:active {
     transform: none;
   }
 }

@@ -3,6 +3,7 @@ import { $$, safeText } from "@/utils/dom";
 import type {
   PersonageAward,
   PersonageAwards,
+  PersonageCollaborator,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,
@@ -44,6 +45,47 @@ const extractBiography = (doc: Document): string[] | null => {
     .map(safeText)
     .filter((paragraph) => paragraph && paragraph !== "暂无");
   return biography.length > 0 ? biography : null;
+};
+
+const extractCollaborators = (
+  doc: Document
+): PersonageCollaborator[] | null => {
+  const source = doc.querySelector(".partners-mod-mod");
+  if (!source) {
+    return null;
+  }
+
+  return $$<HTMLLIElement>(".partners-mod-item", source)
+    .flatMap((item, nativeIndex) => {
+      const profileLink = item.querySelector<HTMLAnchorElement>(
+        ".partners-mod-info a[title][href]"
+      );
+      const sharedWorksLink = item.querySelector<HTMLAnchorElement>(
+        '.partners-mod-info a[href*="partners#"]'
+      );
+      const name = safeText(profileLink);
+      const sharedWorkCount = Number(safeText(sharedWorksLink));
+      if (!(profileLink && name && Number.isFinite(sharedWorkCount))) {
+        return [];
+      }
+
+      return [
+        {
+          avatar: imageUrl(item.querySelector("img")),
+          href: profileLink.href,
+          name,
+          nativeIndex,
+          sharedWorkCount,
+          sharedWorksHref: sharedWorksLink?.href ?? null,
+        },
+      ];
+    })
+    .toSorted(
+      (left, right) =>
+        right.sharedWorkCount - left.sharedWorkCount ||
+        left.nativeIndex - right.nativeIndex
+    )
+    .map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
 };
 
 const hrefOf = (element: Element | undefined): string | null =>
@@ -169,6 +211,7 @@ const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   return {
     awards: extractAwards(doc),
     biography: extractBiography(doc),
+    collaborators: extractCollaborators(doc),
     facts: extractFacts(target),
     gallery: extractGallery(doc, id),
     id,

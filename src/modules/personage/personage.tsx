@@ -5,6 +5,7 @@ import type { ImageModalSource } from "@/components/modal";
 import { useModalRequest } from "@/hooks/use-modal-request";
 
 import { PersonageAwardsSection } from "./awards";
+import { PersonageCollaborators } from "./collaborators";
 import { PersonageGallerySection } from "./gallery";
 import type { PersonageProfile } from "./types";
 import { PersonageWorkRail } from "./works";
@@ -160,6 +161,7 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
             ) : null}
           </div>
         </section>
+        <PersonageCollaborators collaborators={profile.collaborators} />
         <PersonageGallerySection
           gallery={profile.gallery}
           name={primaryName}

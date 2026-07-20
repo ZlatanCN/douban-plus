@@ -15,21 +15,10 @@ const isDynamicPersonageSourceOrDescendant = (node: Node): boolean => {
   }
 
   return (
-    node.matches(".subject-awards, .subject-creations, .subject-intro") ||
-    node.closest(".subject-awards, .subject-creations, .subject-intro") !==
-      null ||
-    node.querySelector(
-      ".subject-awards, .subject-creations, .subject-intro"
-    ) !== null
+    node.matches(".subject-awards, .subject-creations") ||
+    node.closest(".subject-awards, .subject-creations") !== null ||
+    node.querySelector(".subject-awards, .subject-creations") !== null
   );
-};
-
-const expandNativeBiography = (doc: Document): void => {
-  const trigger = [
-    ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
-  ].find((element) => element.textContent?.includes("展开"));
-
-  trigger?.click();
 };
 
 const hasDynamicPersonageSourceMutation = (
@@ -61,8 +50,6 @@ const PersonagePageRuntime = ({
       }
     });
     observer.observe(doc.body, { childList: true, subtree: true });
-    expandNativeBiography(doc);
-    refreshProfile();
 
     return () => observer.disconnect();
   }, [doc]);

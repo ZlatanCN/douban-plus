@@ -40,9 +40,18 @@ type PersonageAwards = {
   awards: PersonageAward[];
 };
 
+type PersonageCollaborator = {
+  avatar: string | null;
+  href: string;
+  name: string;
+  sharedWorkCount: number;
+  sharedWorksHref: string | null;
+};
+
 type PersonageProfile = {
   awards: PersonageAwards | null;
   biography: string[] | null;
+  collaborators: PersonageCollaborator[] | null;
   facts: PersonageFact[];
   gallery: PersonageGallery | null;
   id: string;
@@ -55,6 +64,7 @@ type PersonageProfile = {
 export type {
   PersonageAward,
   PersonageAwards,
+  PersonageCollaborator,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,
