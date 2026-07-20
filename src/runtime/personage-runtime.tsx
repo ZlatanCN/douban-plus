@@ -9,23 +9,36 @@ type PersonagePageRuntimeProps = {
   initialProfile: PersonageProfile;
 };
 
-const isWorkSourceOrDescendant = (node: Node): boolean => {
+const isDynamicPersonageSourceOrDescendant = (node: Node): boolean => {
   if (!(node instanceof Element)) {
     return false;
   }
 
   return (
-    node.matches(".subject-creations") ||
-    node.closest(".subject-creations") !== null ||
-    node.querySelector(".subject-creations") !== null
+    node.matches(".subject-awards, .subject-creations, .subject-intro") ||
+    node.closest(".subject-awards, .subject-creations, .subject-intro") !==
+      null ||
+    node.querySelector(
+      ".subject-awards, .subject-creations, .subject-intro"
+    ) !== null
   );
 };
 
-const hasWorkSourceMutation = (mutations: MutationRecord[]): boolean =>
+const expandNativeBiography = (doc: Document): void => {
+  const trigger = [
+    ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
+  ].find((element) => element.textContent?.includes("展开"));
+
+  trigger?.click();
+};
+
+const hasDynamicPersonageSourceMutation = (
+  mutations: MutationRecord[]
+): boolean =>
   mutations.some(
     (mutation) =>
-      isWorkSourceOrDescendant(mutation.target) ||
-      [...mutation.addedNodes].some(isWorkSourceOrDescendant)
+      isDynamicPersonageSourceOrDescendant(mutation.target) ||
+      [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant)
   );
 
 const PersonagePageRuntime = ({
@@ -42,13 +55,14 @@ const PersonagePageRuntime = ({
       }
     };
 
-    refreshProfile();
     const observer = new MutationObserver((mutations) => {
-      if (hasWorkSourceMutation(mutations)) {
+      if (hasDynamicPersonageSourceMutation(mutations)) {
         refreshProfile();
       }
     });
     observer.observe(doc.body, { childList: true, subtree: true });
+    expandNativeBiography(doc);
+    refreshProfile();
 
     return () => observer.disconnect();
   }, [doc]);

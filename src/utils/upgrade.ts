@@ -26,6 +26,17 @@ const upgradePhoto = (url?: string | null): string | null => {
   return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
 };
 
+/**
+ * Replace Douban's square crop with a proportion-preserving rail thumbnail.
+ */
+const thumbnailPhoto = (url?: string | null): string | null => {
+  if (!url) {
+    return null;
+  }
+
+  return encodeURI(url.replace("/sqxs/", "/photo/"));
+};
+
 /* ── Exports ─────────────────────────────────────────── */
 
-export { upgradePhoto, upgradePoster };
+export { thumbnailPhoto, upgradePhoto, upgradePoster };

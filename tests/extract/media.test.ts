@@ -84,7 +84,9 @@ describe(extractPhotos, () => {
 </body></html>`);
     const result = extractPhotos(doc);
     expect(result).toHaveLength(2);
-    expect(result[0].thumbUrl).toContain("p1.jpg");
+    expect(result[0].thumbUrl).toBe(
+      "https://img1.doubanio.com/view/photo/photo/public/p1.jpg"
+    );
     expect(result[0].hdUrl).toContain("/large/");
     expect(result[0].link).toContain("/photo/123/");
   });

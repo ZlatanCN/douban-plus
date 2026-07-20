@@ -26,7 +26,22 @@ type PersonageWorkRail = {
   works: PersonageWork[];
 };
 
+type PersonageAward = {
+  award: string;
+  ceremony: string;
+  ceremonyHref: string | null;
+  work: string | null;
+  workHref: string | null;
+  year: string;
+};
+
+type PersonageAwards = {
+  allAwardsHref: string | null;
+  awards: PersonageAward[];
+};
+
 type PersonageProfile = {
+  awards: PersonageAwards | null;
   biography: string[] | null;
   facts: PersonageFact[];
   gallery: PersonageGallery | null;
@@ -38,6 +53,8 @@ type PersonageProfile = {
 };
 
 export type {
+  PersonageAward,
+  PersonageAwards,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,

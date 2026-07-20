@@ -30,6 +30,19 @@ describe(extractPersonageProfile, () => {
     );
 
     expect(extractPersonageProfile(doc)).toStrictEqual({
+      awards: {
+        allAwardsHref: "http://localhost:3000/awards",
+        awards: [
+          {
+            award: "最佳男演员 (提名)",
+            ceremony: "示例电影节",
+            ceremonyHref: "https://movie.douban.com/awards/example/1/",
+            work: "代表作品",
+            workHref: "https://movie.douban.com/subject/20002/",
+            year: "2024年",
+          },
+        ],
+      },
       biography: [
         "彼特·丁拉基是一位美国演员，以细腻而有力量的表演闻名。",
         "他因出演《权力的游戏》中的提利昂·兰尼斯特而广为人知。",
@@ -126,6 +139,32 @@ describe(extractPersonageProfile, () => {
     empty.cleanup();
   });
 
+  it("keeps missing and explicitly empty native award sections distinct", () => {
+    const missing = createTestDoc(
+      '<div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>',
+      "/personage/27260187/"
+    );
+    const empty = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>
+        <section class="subject-mod subject-awards">
+          <h2>获奖情况 <a href="awards">全部 0</a></h2>
+          <ul></ul>
+        </section>
+      `,
+      "/personage/27260187/"
+    );
+
+    expect(extractPersonageProfile(missing.doc)?.awards).toBeNull();
+    expect(extractPersonageProfile(empty.doc)?.awards).toStrictEqual({
+      allAwardsHref: "http://localhost:3000/awards",
+      awards: [],
+    });
+
+    missing.cleanup();
+    empty.cleanup();
+  });
+
   it("keeps an empty recent-work source distinct from a populated representative-work source", () => {
     const { cleanup, doc } = createTestDoc(
       `
@@ -171,6 +210,7 @@ describe(extractPersonageProfile, () => {
 describe(mountPersonage, () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     document.body.innerHTML = "";
   });
 
@@ -208,12 +248,14 @@ describe(mountPersonage, () => {
       "atv-personage-gallery",
       "atv-personage-recent-works",
       "atv-personage-representative-works",
+      "atv-personage-awards",
     ].map((id) => doc.querySelector<HTMLElement>(`#${id}`));
 
     expect(sections.map((section) => section?.id)).toStrictEqual([
       "atv-personage-gallery",
       "atv-personage-recent-works",
       "atv-personage-representative-works",
+      "atv-personage-awards",
     ]);
     expect(
       sections[1]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
@@ -331,6 +373,42 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
+  it("adopts a biography that the native source expands after mounting", async () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">张艺谋 Yimou Zhang</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"><p>截断的原生简介</p></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27260166/"
+    );
+    const source = doc.querySelector<HTMLElement>(".subject-intro .content");
+    const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
+
+    toggle?.addEventListener("click", () => {
+      source?.replaceChildren(
+        Object.assign(doc.createElement("p"), {
+          textContent: "原生展开后才提供的完整人物简介",
+        })
+      );
+      if (toggle) {
+        toggle.textContent = "(收起)";
+      }
+    });
+
+    mountPersonage(doc);
+
+    await vi.waitFor(() =>
+      expect(
+        doc.querySelector(".atv-personage-biography-content")?.textContent
+      ).toBe("原生展开后才提供的完整人物简介")
+    );
+
+    cleanup();
+  });
+
   it("expands the biography inside the Hero", async () => {
     const { cleanup, doc } = createTestDoc(
       personageFixture,
@@ -339,7 +417,11 @@ describe(mountPersonage, () => {
 
     mockBiographyLayout(112);
     mountPersonage(doc);
-    await Promise.resolve();
+    await vi.waitFor(() =>
+      expect(
+        doc.querySelector(".atv-personage-biography button")
+      ).not.toBeNull()
+    );
     const button = doc.querySelector<HTMLButtonElement>(
       ".atv-personage-biography button"
     );

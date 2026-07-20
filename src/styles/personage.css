@@ -270,6 +270,73 @@
   white-space: nowrap;
 }
 
+.atv-personage-awards-list {
+  display: grid;
+  padding: 0;
+  margin: 0;
+  gap: 12px;
+  list-style: none;
+}
+
+.atv-personage-awards-list li {
+  display: grid;
+  padding: 18px 20px;
+  border-radius: var(--atv-radius-sm);
+  background: var(--atv-bg-secondary);
+  gap: 18px;
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.atv-personage-award-year {
+  padding-top: 2px;
+  color: var(--atv-accent-bright);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.atv-personage-award-detail {
+  min-width: 0;
+}
+
+.atv-personage-award-ceremony,
+.atv-personage-award-ceremony a {
+  color: var(--atv-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.atv-personage-award-name {
+  margin: 6px 0 0;
+  color: var(--atv-text-primary);
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.atv-personage-award-work {
+  margin: 6px 0 0;
+  color: var(--atv-text-tertiary);
+  font-size: 14px;
+}
+
+.atv-personage-award-work a {
+  color: inherit;
+}
+
+.atv-personage-award-ceremony a:hover,
+.atv-personage-award-work a:hover {
+  color: var(--atv-accent-bright);
+}
+
+.atv-personage-awards-empty {
+  padding: 24px;
+  border-radius: var(--atv-radius-sm);
+  margin: 0;
+  background: var(--atv-bg-secondary);
+  color: var(--atv-text-tertiary);
+}
+
 @media (width <= 640px) {
   .atv-personage-hero {
     gap: 24px;
@@ -291,6 +358,16 @@
 
   .atv-personage-gallery-rail li {
     height: 160px;
+  }
+
+  .atv-personage-awards-list li {
+    padding: 16px;
+    gap: 8px;
+    grid-template-columns: 1fr;
+  }
+
+  .atv-personage-award-year {
+    padding-top: 0;
   }
 }
 

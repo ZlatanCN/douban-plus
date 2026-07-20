@@ -4,7 +4,7 @@
 import { RE_BG_URL } from "@/constants";
 import type { Celebrity, Photo, Trailer } from "@/types";
 import { $, $$, safeText } from "@/utils/dom";
-import { upgradePhoto } from "@/utils/upgrade";
+import { thumbnailPhoto, upgradePhoto } from "@/utils/upgrade";
 
 /**
  * Extract cast/crew from the "#celebrities" list.
@@ -51,7 +51,7 @@ const extractPhotos = (doc: Document): Photo[] =>
       return {
         hdUrl: upgradePhoto(thumb) || "",
         link: a ? (a as HTMLAnchorElement).href : "",
-        thumbUrl: encodeURI(thumb),
+        thumbUrl: thumbnailPhoto(thumb) ?? "",
       };
     })
     .filter((p) => p.thumbUrl);

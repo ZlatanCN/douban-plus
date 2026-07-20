@@ -1,6 +1,8 @@
 import { $$, safeText } from "@/utils/dom";
 
 import type {
+  PersonageAward,
+  PersonageAwards,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,
@@ -42,6 +44,45 @@ const extractBiography = (doc: Document): string[] | null => {
     .map(safeText)
     .filter((paragraph) => paragraph && paragraph !== "暂无");
   return biography.length > 0 ? biography : null;
+};
+
+const hrefOf = (element: Element | undefined): string | null =>
+  element?.localName === "a" ? (element as HTMLAnchorElement).href : null;
+
+const extractAwards = (doc: Document): PersonageAwards | null => {
+  const source = doc.querySelector(".subject-awards");
+  if (!source) {
+    return null;
+  }
+
+  const awards = $$<HTMLLIElement>("li", source).flatMap((item) => {
+    const [yearElement, ceremonyElement, awardElement, workElement] = [
+      ...item.children,
+    ];
+    const year = safeText(yearElement);
+    const ceremony = safeText(ceremonyElement);
+    const award = safeText(awardElement);
+    if (!(year && ceremony && award)) {
+      return [];
+    }
+
+    return [
+      {
+        award,
+        ceremony,
+        ceremonyHref: hrefOf(ceremonyElement),
+        work: safeText(workElement) || null,
+        workHref: hrefOf(workElement),
+        year,
+      } satisfies PersonageAward,
+    ];
+  });
+
+  return {
+    allAwardsHref:
+      source.querySelector<HTMLAnchorElement>("h2 a[href]")?.href ?? null,
+    awards,
+  };
 };
 
 const extractGallery = (
@@ -126,6 +167,7 @@ const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   }
 
   return {
+    awards: extractAwards(doc),
     biography: extractBiography(doc),
     facts: extractFacts(target),
     gallery: extractGallery(doc, id),

@@ -4,6 +4,7 @@ import { ModalSession, PosterModal } from "@/components/modal";
 import type { ImageModalSource } from "@/components/modal";
 import { useModalRequest } from "@/hooks/use-modal-request";
 
+import { PersonageAwardsSection } from "./awards";
 import { PersonageGallerySection } from "./gallery";
 import type { PersonageProfile } from "./types";
 import { PersonageWorkRail } from "./works";
@@ -30,14 +31,28 @@ const biographyPreviewLineCount = 3;
 
 const useBiographyDisclosure = (biography: string[] | null) => {
   const contentRef = useRef<HTMLDivElement>(null);
+  const biographyKey = biography?.join("\n") ?? "";
+  const previousBiographyKeyRef = useRef(biographyKey);
   const [canExpand, setCanExpand] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
   useLayoutEffect(() => {
-    const content = contentRef.current;
-    if (!content || !biography?.length) {
+    if (previousBiographyKeyRef.current !== biographyKey) {
+      previousBiographyKeyRef.current = biographyKey;
       setCanExpand(false);
       setIsExpanded(false);
+    }
+  }, [biographyKey]);
+
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content || !biographyKey) {
+      setCanExpand(false);
+      setIsExpanded(false);
+      return;
+    }
+
+    if (canExpand) {
       return;
     }
 
@@ -58,9 +73,17 @@ const useBiographyDisclosure = (biography: string[] | null) => {
 
     measureOverflow();
     const frame = window.requestAnimationFrame(measureOverflow);
+    const observer =
+      typeof ResizeObserver === "undefined"
+        ? null
+        : new ResizeObserver(measureOverflow);
+    observer?.observe(content);
 
-    return () => window.cancelAnimationFrame(frame);
-  }, [biography]);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, [biographyKey, canExpand]);
 
   return { canExpand, contentRef, isExpanded, setIsExpanded };
 };
@@ -152,6 +175,7 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
           rail={profile.representativeWorks}
           title="代表作品"
         />
+        <PersonageAwardsSection awards={profile.awards} />
       </main>
       {activeImage.active ? (
         <ModalSession request={activeImage.active}>
