@@ -2,6 +2,7 @@ import { useState } from "preact/hooks";
 
 import { PlayIcon } from "@/components/common/icons";
 import { Section } from "@/components/layout/section";
+import type { ImageModalSource } from "@/components/modal";
 import type { ResolvedPhoto } from "@/modules/subject/types";
 import type { Trailer } from "@/types";
 
@@ -13,7 +14,7 @@ type PhotosSectionProps = {
     subjectId: string;
     trailers: Trailer[];
   };
-  onOpenPoster?: (src: string, alt: string) => void;
+  onOpenImage?: (image: ImageModalSource) => void;
   onOpenVideo?: (trailer: Trailer) => void;
   resolvingPhotos?: boolean;
 };
@@ -24,16 +25,22 @@ const PhotoTile = ({
   onOpenPoster,
   photo,
 }: {
-  onOpenPoster: (src: string, alt: string) => void;
+  onOpenPoster: (image: ImageModalSource) => void;
   photo: ResolvedPhoto;
 }) => {
-  const primarySrc = photo.hdUrl || photo.thumbUrl;
+  const primarySrc = photo.thumbUrl || photo.hdUrl;
   const [displaySrc, setDisplaySrc] = useState(primarySrc);
 
   return (
     <button
       class="atv-photo-tile"
-      onClick={() => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照")}
+      onClick={() =>
+        onOpenPoster({
+          alt: "剧照",
+          previewSrc: photo.thumbUrl,
+          src: photo.hdUrl || photo.thumbUrl,
+        })
+      }
       style={{ "--atv-photo-aspect-ratio": String(photo.aspectRatio) }}
       type="button"
     >
@@ -41,8 +48,8 @@ const PhotoTile = ({
         alt="剧照"
         loading="lazy"
         onError={() => {
-          if (photo.thumbUrl && displaySrc !== photo.thumbUrl) {
-            setDisplaySrc(photo.thumbUrl);
+          if (photo.hdUrl && displaySrc !== photo.hdUrl) {
+            setDisplaySrc(photo.hdUrl);
           }
         }}
         src={displaySrc}
@@ -53,7 +60,7 @@ const PhotoTile = ({
 
 const PhotosSection = ({
   data,
-  onOpenPoster = noop,
+  onOpenImage = noop,
   onOpenVideo = noop,
   resolvingPhotos = false,
 }: PhotosSectionProps) => {
@@ -106,7 +113,7 @@ const PhotosSection = ({
           : data.photos.map((photo) => (
               <PhotoTile
                 key={photo.link}
-                onOpenPoster={onOpenPoster}
+                onOpenPoster={onOpenImage}
                 photo={photo}
               />
             ))}

@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import type { ImageModalSource } from "@/components/modal";
 import { PhotosSection } from "@/modules/subject/media";
 import type { ResolvedPhoto } from "@/modules/subject/types";
 import type { Trailer } from "@/types";
@@ -107,7 +108,31 @@ describe(PhotosSection, () => {
 
     image?.dispatchEvent(new Event("error", { bubbles: true }));
     await Promise.resolve();
-    expect(image?.getAttribute("src")).toBe("https://example.com/thumb.jpg");
+    expect(image?.getAttribute("src")).toBe("https://example.com/hd.jpg");
+  });
+
+  it("keeps the rail on thumbnails and defers the full image to the preview", () => {
+    const onOpenImage = vi.fn<(image: ImageModalSource) => void>();
+    const root = renderIntoRoot(
+      <PhotosSection
+        data={makeData({ photos: [makePhoto()] })}
+        onOpenImage={onOpenImage}
+      />
+    );
+
+    const tile = root.querySelector<HTMLButtonElement>(".atv-photo-tile");
+
+    expect(tile?.querySelector("img")?.getAttribute("src")).toBe(
+      "https://example.com/thumb.jpg"
+    );
+
+    tile?.click();
+
+    expect(onOpenImage).toHaveBeenCalledExactlyOnceWith({
+      alt: "剧照",
+      previewSrc: "https://example.com/thumb.jpg",
+      src: "https://example.com/hd.jpg",
+    });
   });
 
   it("reserves the stable rail height while photos resolve without a trailer", () => {

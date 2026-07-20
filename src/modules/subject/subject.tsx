@@ -1,6 +1,7 @@
 import { useState } from "preact/hooks";
 
 import { ModalSession, PosterModal } from "@/components/modal";
+import type { ImageModalSource } from "@/components/modal";
 import { useModalRequest } from "@/hooks/use-modal-request";
 import type { Comment, DoubanData, HeroData, Review, Trailer } from "@/types";
 
@@ -34,7 +35,7 @@ type SubjectPageProps = {
 };
 
 type ActiveMediaModal =
-  | { alt: string; src: string; type: "poster" }
+  | { image: ImageModalSource; type: "poster" }
   | { trailer: Trailer; type: "video" };
 
 const toHeroData = (
@@ -111,7 +112,10 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>
-          activeMediaModal.handleOpen({ alt, src, type: "poster" })
+          activeMediaModal.handleOpen({
+            image: { alt, src },
+            type: "poster",
+          })
         }
       />
       <StreamingSection streaming={data.streaming} />
@@ -128,8 +132,8 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
           subjectId: data.subjectId,
           trailers: data.trailers,
         }}
-        onOpenPoster={(src, alt) =>
-          activeMediaModal.handleOpen({ alt, src, type: "poster" })
+        onOpenImage={(image) =>
+          activeMediaModal.handleOpen({ image, type: "poster" })
         }
         onOpenVideo={(trailer) =>
           activeMediaModal.handleOpen({ trailer, type: "video" })
@@ -190,9 +194,12 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
       {activeMediaModal.active?.value.type === "poster" ? (
         <ModalSession request={activeMediaModal.active}>
           <PosterModal
-            alt={activeMediaModal.active.value.alt}
+            alt={activeMediaModal.active.value.image.alt}
             onClose={activeMediaModal.handleClose}
-            src={activeMediaModal.active.value.src}
+            {...(activeMediaModal.active.value.image.previewSrc
+              ? { previewSrc: activeMediaModal.active.value.image.previewSrc }
+              : {})}
+            src={activeMediaModal.active.value.image.src}
           />
         </ModalSession>
       ) : null}

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { extractPersonageProfile } from "@/modules/personage/extract";
 import { isPersonageHomepage, mountPersonage } from "@/runtime/personage-mount";
@@ -12,6 +12,15 @@ const personageFixture = readFileSync(
   path.resolve(process.cwd(), "tests/fixtures/personage-full.html"),
   "utf-8"
 );
+
+const mockBiographyLayout = (scrollHeight: number, lineHeight = 28) => {
+  vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockReturnValue(
+    scrollHeight
+  );
+  vi.spyOn(window, "getComputedStyle").mockReturnValue({
+    lineHeight: `${lineHeight}px`,
+  } as CSSStyleDeclaration);
+};
 
 describe(extractPersonageProfile, () => {
   it("extracts the Hero identity, facts, portrait, and biography from a personage document", () => {
@@ -50,6 +59,30 @@ describe(extractPersonageProfile, () => {
       id: "27224733",
       name: "彼特·丁拉基 Peter Dinklage",
       portrait: "https://img.example.com/peter.jpg",
+      recentWorks: {
+        allWorksHref:
+          "http://localhost:3000/creations?sortby=time&type=filmmaker",
+        works: [
+          {
+            href: "https://movie.douban.com/subject/10001/",
+            poster: "https://img.example.com/recent.jpg",
+            rating: "8.2",
+            title: "近期作品",
+          },
+        ],
+      },
+      representativeWorks: {
+        allWorksHref:
+          "http://localhost:3000/creations?sortby=collection&type=filmmaker",
+        works: [
+          {
+            href: "https://movie.douban.com/subject/20002/",
+            poster: "https://img.example.com/representative.jpg",
+            rating: "9.1",
+            title: "代表作品",
+          },
+        ],
+      },
     });
 
     cleanup();
@@ -92,10 +125,52 @@ describe(extractPersonageProfile, () => {
     missing.cleanup();
     empty.cleanup();
   });
+
+  it("keeps an empty recent-work source distinct from a populated representative-work source", () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>
+        <section class="subject-mod subject-creations">
+          <h2>最近的 5 部作品 <a href="creations?sortby=time">更多影视作品</a></h2>
+          <ul class="works"></ul>
+        </section>
+        <section class="subject-mod subject-creations">
+          <h2>收藏人数最多的 5 部作品 <a href="creations?sortby=collection">更多影视作品</a></h2>
+          <ul class="works">
+            <li class="creation">
+              <a class="movie img_wrap" href="https://movie.douban.com/subject/3/" title="活着">
+                <img src="https://img.example.com/to-live.jpg" />
+              </a>
+            </li>
+          </ul>
+        </section>
+      `,
+      "/personage/27260187/"
+    );
+
+    expect(extractPersonageProfile(doc)?.recentWorks).toStrictEqual({
+      allWorksHref: "http://localhost:3000/creations?sortby=time",
+      works: [],
+    });
+    expect(extractPersonageProfile(doc)?.representativeWorks).toStrictEqual({
+      allWorksHref: "http://localhost:3000/creations?sortby=collection",
+      works: [
+        {
+          href: "https://movie.douban.com/subject/3/",
+          poster: "https://img.example.com/to-live.jpg",
+          rating: null,
+          title: "活着",
+        },
+      ],
+    });
+
+    cleanup();
+  });
 });
 
 describe(mountPersonage, () => {
   afterEach(() => {
+    vi.restoreAllMocks();
     document.body.innerHTML = "";
   });
 
@@ -117,6 +192,35 @@ describe(mountPersonage, () => {
     ]).toStrictEqual(["彼特·丁拉基", "Peter Dinklage"]);
     expect(doc.querySelectorAll(".atv-personage-biography p")).toHaveLength(2);
     expect(doc.title).toBe("彼特·丁拉基 Peter Dinklage · 豆瓣");
+
+    cleanup();
+  });
+
+  it("renders the two work rails after images in the confirmed reading order", () => {
+    const { cleanup, doc } = createTestDoc(
+      personageFixture,
+      "/personage/27224733/"
+    );
+
+    mountPersonage(doc);
+
+    const sections = [
+      "atv-personage-gallery",
+      "atv-personage-recent-works",
+      "atv-personage-representative-works",
+    ].map((id) => doc.querySelector<HTMLElement>(`#${id}`));
+
+    expect(sections.map((section) => section?.id)).toStrictEqual([
+      "atv-personage-gallery",
+      "atv-personage-recent-works",
+      "atv-personage-representative-works",
+    ]);
+    expect(
+      sections[1]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
+    ).toBe("http://localhost:3000/creations?sortby=time&type=filmmaker");
+    expect(
+      sections[2]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
+    ).toBe("http://localhost:3000/creations?sortby=collection&type=filmmaker");
 
     cleanup();
   });
@@ -154,13 +258,88 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
+  it("renders a populated representative-work rail when the recent-work rail is empty", () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>
+        <section class="subject-mod subject-creations">
+          <h2>最近的 5 部作品</h2><ul class="works"></ul>
+        </section>
+        <section class="subject-mod subject-creations">
+          <h2>收藏人数最多的 5 部作品</h2>
+          <ul class="works">
+            <li class="creation">
+              <a class="movie img_wrap" href="https://movie.douban.com/subject/3/" title="活着">
+                <img src="https://img.example.com/to-live.jpg" />
+              </a>
+            </li>
+          </ul>
+        </section>
+      `,
+      "/personage/27260187/"
+    );
+
+    mountPersonage(doc);
+
+    expect(doc.querySelector("#atv-personage-recent-works")).toBeNull();
+    expect(
+      doc.querySelector("#atv-personage-representative-works h2")?.textContent
+    ).toBe("代表作品");
+
+    cleanup();
+  });
+
+  it("adopts work rails that arrive after the personage page first mounts", async () => {
+    const { cleanup, doc } = createTestDoc(
+      '<div class="subject-target"><div class="subject-name">郭涛 Tao Guo</div></div>',
+      "/personage/27260187/"
+    );
+
+    mountPersonage(doc);
+    doc.body.insertAdjacentHTML(
+      "beforeend",
+      `
+        <section class="subject-mod subject-creations">
+          <h2>最近的 5 部作品</h2>
+          <ul class="works">
+            <li class="creation">
+              <a class="movie img_wrap" href="https://movie.douban.com/subject/3/" title="活着">
+                <img src="https://img.example.com/to-live.jpg" />
+              </a>
+            </li>
+          </ul>
+        </section>
+        <section class="subject-mod subject-creations">
+          <h2>收藏人数最多的 5 部作品</h2>
+          <ul class="works">
+            <li class="creation">
+              <a class="movie img_wrap" href="https://movie.douban.com/subject/4/" title="霸王别姬">
+                <img src="https://img.example.com/farewell.jpg" />
+              </a>
+            </li>
+          </ul>
+        </section>
+      `
+    );
+    await vi.waitFor(() =>
+      expect(doc.querySelector("#atv-personage-recent-works")).not.toBeNull()
+    );
+    expect(
+      doc.querySelector("#atv-personage-representative-works")
+    ).not.toBeNull();
+
+    cleanup();
+  });
+
   it("expands the biography inside the Hero", async () => {
     const { cleanup, doc } = createTestDoc(
       personageFixture,
       "/personage/27224733/"
     );
 
+    mockBiographyLayout(112);
     mountPersonage(doc);
+    await Promise.resolve();
     const button = doc.querySelector<HTMLButtonElement>(
       ".atv-personage-biography button"
     );
@@ -168,8 +347,32 @@ describe(mountPersonage, () => {
     button?.click();
     await Promise.resolve();
 
-    expect(button?.getAttribute("aria-expanded")).toBe("true");
-    expect(button?.textContent).toBe("收起");
+    expect(
+      doc
+        .querySelector<HTMLButtonElement>(".atv-personage-biography button")
+        ?.getAttribute("aria-expanded")
+    ).toBe("true");
+    expect(
+      doc.querySelector<HTMLButtonElement>(".atv-personage-biography button")
+        ?.textContent
+    ).toBe("收起");
+
+    cleanup();
+  });
+
+  it("does not render an expand control when the biography fits three lines", () => {
+    const { cleanup, doc } = createTestDoc(
+      personageFixture,
+      "/personage/27224733/"
+    );
+
+    mockBiographyLayout(84);
+    mountPersonage(doc);
+
+    expect(doc.querySelector(".atv-personage-biography button")).toBeNull();
+    expect(
+      doc.querySelector(".atv-personage-biography-content")?.classList
+    ).toContain("is-expanded");
 
     cleanup();
   });

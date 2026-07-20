@@ -1,10 +1,10 @@
 import { render } from "preact";
 
 import { extractPersonageProfile } from "@/modules/personage/extract";
-import { PersonagePage } from "@/modules/personage/personage";
 
 import { installEnhancedRoot } from "./enhanced-document";
 import type { PageLocation } from "./page-mount";
+import { PersonagePageRuntime } from "./personage-runtime";
 
 const isPersonageHomepage = (location: PageLocation): boolean =>
   location.hostname === "www.douban.com" &&
@@ -22,7 +22,7 @@ const mountPersonage = (doc: Document = document): void => {
 
   if (
     installEnhancedRoot(doc, (root) =>
-      render(<PersonagePage profile={profile} />, root)
+      render(<PersonagePageRuntime doc={doc} initialProfile={profile} />, root)
     )
   ) {
     doc.title = `${profile.name} · 豆瓣`;

@@ -5,6 +5,8 @@ import type {
   PersonageGallery,
   PersonageGalleryImage,
   PersonageProfile,
+  PersonageWork,
+  PersonageWorkRail,
 } from "./types";
 
 const personageIdFromPath = (pathname: string): string | null =>
@@ -79,6 +81,42 @@ const extractGallery = (
   };
 };
 
+const extractWorkRail = (
+  doc: Document,
+  matchesHeading: (heading: string) => boolean
+): PersonageWorkRail | null => {
+  const source = $$<HTMLElement>(".subject-creations", doc).find((section) =>
+    matchesHeading(safeText(section.querySelector("h2")))
+  );
+  if (!source) {
+    return null;
+  }
+
+  const works = $$<HTMLElement>("li.creation", source).flatMap((item) => {
+    const posterLink =
+      item.querySelector<HTMLAnchorElement>("a.img_wrap[href]");
+    const title = posterLink?.title.trim() ?? "";
+    if (!posterLink || !title) {
+      return [];
+    }
+
+    return [
+      {
+        href: posterLink.href,
+        poster: imageUrl(posterLink.querySelector("img")) ?? "",
+        rating: safeText(item.querySelector(".rating-val")) || null,
+        title,
+      } satisfies PersonageWork,
+    ];
+  });
+
+  const allWorksHref = $$<HTMLAnchorElement>("a[href]", source).find((link) =>
+    new URL(link.href).pathname.includes("/creations")
+  )?.href;
+
+  return { allWorksHref: allWorksHref ?? null, works };
+};
+
 const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   const target = doc.querySelector(".subject-target");
   const name = safeText(target?.querySelector(".subject-name"));
@@ -96,6 +134,10 @@ const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
     portrait: imageUrl(
       target.querySelector(".avatar img, .subject-avatar img") ??
         target.querySelector(".avatar, .subject-avatar")
+    ),
+    recentWorks: extractWorkRail(doc, (heading) => heading.includes("最近")),
+    representativeWorks: extractWorkRail(doc, (heading) =>
+      heading.includes("收藏人数最多")
     ),
   };
 };

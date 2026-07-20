@@ -192,6 +192,84 @@
   color: var(--atv-text-tertiary);
 }
 
+.atv-personage-work-rail {
+  gap: 16px;
+}
+
+.atv-personage-work-rail.is-complete .atv-personage-work-card {
+  flex: 1 1 0;
+}
+
+.atv-personage-work-card {
+  min-width: 0;
+  flex: 0 0 158px;
+  color: inherit;
+  cursor: pointer;
+  scroll-snap-align: start;
+  text-decoration: none;
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+.atv-personage-work-card:active {
+  transform: scale(0.97);
+}
+
+.atv-personage-work-card:focus-visible {
+  border-radius: var(--atv-radius-sm);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+.atv-personage-work-poster {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--atv-radius-sm);
+  aspect-ratio: 2 / 3;
+  background: var(--atv-bg-tertiary);
+}
+
+.atv-personage-work-poster img,
+.atv-personage-work-poster .atv-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.atv-personage-work-rating {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  min-width: 28px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  background: rgb(0 0 0 / 65%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.atv-personage-work-title {
+  display: block;
+  overflow: hidden;
+  margin-top: 10px;
+  color: var(--atv-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (width <= 640px) {
   .atv-personage-hero {
     gap: 24px;
@@ -216,14 +294,22 @@
   }
 }
 
+@media (width <= 900px) {
+  .atv-personage-work-rail.is-complete .atv-personage-work-card {
+    flex: 0 0 132px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .atv-personage-portrait-trigger,
-  .atv-personage-gallery-rail button {
+  .atv-personage-gallery-rail button,
+  .atv-personage-work-card {
     transition: none;
   }
 
   .atv-personage-portrait-trigger:active,
-  .atv-personage-gallery-rail button:active {
+  .atv-personage-gallery-rail button:active,
+  .atv-personage-work-card:active {
     transform: none;
   }
 }

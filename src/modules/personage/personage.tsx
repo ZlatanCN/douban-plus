@@ -1,19 +1,18 @@
-import { useState } from "preact/hooks";
+import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
 import { ModalSession, PosterModal } from "@/components/modal";
+import type { ImageModalSource } from "@/components/modal";
 import { useModalRequest } from "@/hooks/use-modal-request";
 
 import { PersonageGallerySection } from "./gallery";
 import type { PersonageProfile } from "./types";
+import { PersonageWorkRail } from "./works";
 
 type PersonagePageProps = {
   profile: PersonageProfile;
 };
 
-type ActivePersonageImage = {
-  alt: string;
-  src: string;
-};
+type ActivePersonageImage = ImageModalSource;
 
 const splitPersonageName = (name: string) => {
   const originalNameStart = name.search(/\p{Script=Latin}/u);
@@ -27,8 +26,48 @@ const splitPersonageName = (name: string) => {
   };
 };
 
+const biographyPreviewLineCount = 3;
+
+const useBiographyDisclosure = (biography: string[] | null) => {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [canExpand, setCanExpand] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  useLayoutEffect(() => {
+    const content = contentRef.current;
+    if (!content || !biography?.length) {
+      setCanExpand(false);
+      setIsExpanded(false);
+      return;
+    }
+
+    const measureOverflow = () => {
+      const lineHeight = Number(
+        window.getComputedStyle(content).lineHeight.replace("px", "")
+      );
+      const fullHeight = content.scrollHeight;
+      const hasHiddenContent =
+        Number.isFinite(lineHeight) &&
+        fullHeight > lineHeight * biographyPreviewLineCount + 1;
+
+      setCanExpand(hasHiddenContent);
+      if (!hasHiddenContent) {
+        setIsExpanded(false);
+      }
+    };
+
+    measureOverflow();
+    const frame = window.requestAnimationFrame(measureOverflow);
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [biography]);
+
+  return { canExpand, contentRef, isExpanded, setIsExpanded };
+};
+
 const PersonagePage = ({ profile }: PersonagePageProps) => {
-  const [biographyExpanded, setBiographyExpanded] = useState(false);
+  const { canExpand, contentRef, isExpanded, setIsExpanded } =
+    useBiographyDisclosure(profile.biography);
   const activeImage = useModalRequest<ActivePersonageImage>();
   const { originalName, primaryName } = splitPersonageName(profile.name);
 
@@ -75,18 +114,25 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
             ) : null}
             {profile.biography?.length ? (
               <div class="atv-personage-biography">
-                <div class={biographyExpanded ? "is-expanded" : "is-clamped"}>
+                <div
+                  class={`atv-personage-biography-content ${
+                    canExpand && !isExpanded ? "is-clamped" : "is-expanded"
+                  }`}
+                  ref={contentRef}
+                >
                   {profile.biography.map((paragraph, index) => (
                     <p key={`${index}-${paragraph}`}>{paragraph}</p>
                   ))}
                 </div>
-                <button
-                  aria-expanded={biographyExpanded}
-                  onClick={() => setBiographyExpanded((expanded) => !expanded)}
-                  type="button"
-                >
-                  {biographyExpanded ? "收起" : "展开"}
-                </button>
+                {canExpand ? (
+                  <button
+                    aria-expanded={isExpanded}
+                    onClick={() => setIsExpanded((expanded) => !expanded)}
+                    type="button"
+                  >
+                    {isExpanded ? "收起" : "展开"}
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>
@@ -94,7 +140,17 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
         <PersonageGallerySection
           gallery={profile.gallery}
           name={primaryName}
-          onOpenImage={(src, alt) => activeImage.handleOpen({ alt, src })}
+          onOpenImage={activeImage.handleOpen}
+        />
+        <PersonageWorkRail
+          id="atv-personage-recent-works"
+          rail={profile.recentWorks}
+          title="近期作品"
+        />
+        <PersonageWorkRail
+          id="atv-personage-representative-works"
+          rail={profile.representativeWorks}
+          title="代表作品"
         />
       </main>
       {activeImage.active ? (
@@ -102,6 +158,9 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
           <PosterModal
             alt={activeImage.active.value.alt}
             onClose={activeImage.handleClose}
+            {...(activeImage.active.value.previewSrc
+              ? { previewSrc: activeImage.active.value.previewSrc }
+              : {})}
             src={activeImage.active.value.src}
           />
         </ModalSession>

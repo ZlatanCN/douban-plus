@@ -1,20 +1,21 @@
 import { useState } from "preact/hooks";
 
 import { Section } from "@/components/layout/section";
+import type { ImageModalSource } from "@/components/modal";
 
 import type { PersonageGallery } from "./types";
 
 type PersonageGallerySectionProps = {
   gallery: PersonageGallery | null;
   name: string;
-  onOpenImage?: (src: string, alt: string) => void;
+  onOpenImage?: (image: ImageModalSource) => void;
 };
 
 const noop = (): undefined => undefined;
 
 type PersonageGalleryImageTileProps = {
   alt: string;
-  onOpenImage: (src: string, alt: string) => void;
+  onOpenImage: (image: ImageModalSource) => void;
   src: string;
   largeSrc: string;
 };
@@ -39,7 +40,7 @@ const PersonageGalleryImageTile = ({
     >
       <button
         aria-label={`查看${alt}`}
-        onClick={() => onOpenImage(largeSrc, alt)}
+        onClick={() => onOpenImage({ alt, previewSrc: src, src: largeSrc })}
         type="button"
       >
         <img

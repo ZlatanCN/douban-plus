@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { ImageModalSource } from "@/components/modal";
 import { PersonageGallerySection } from "@/modules/personage/gallery";
 import type { PersonageGallery } from "@/modules/personage/types";
 
@@ -53,7 +54,7 @@ describe(PersonageGallerySection, () => {
   });
 
   it("opens a selected image in the shared preview flow", () => {
-    const onOpenImage = vi.fn<(src: string, alt: string) => void>();
+    const onOpenImage = vi.fn<(image: ImageModalSource) => void>();
     const root = renderIntoRoot(
       <PersonageGallerySection
         gallery={populatedGallery}
@@ -71,10 +72,11 @@ describe(PersonageGallerySection, () => {
 
     expect(images).toHaveLength(2);
     expect(images[1]?.alt).toBe("郭涛的图片 2");
-    expect(onOpenImage).toHaveBeenCalledExactlyOnceWith(
-      "https://img.example.com/view/photo/l/public/guo-2.webp",
-      "郭涛的图片 2"
-    );
+    expect(onOpenImage).toHaveBeenCalledExactlyOnceWith({
+      alt: "郭涛的图片 2",
+      previewSrc: "https://img.example.com/view/photo/photo/public/guo-2.webp",
+      src: "https://img.example.com/view/photo/l/public/guo-2.webp",
+    });
     expect(root.querySelectorAll(".atv-personage-gallery-rail a")).toHaveLength(
       0
     );
