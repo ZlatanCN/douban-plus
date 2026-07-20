@@ -63,7 +63,8 @@ const InterestFormContent = ({
   const [loading, setLoading] = useState(false);
   const [confirmingRemoval, setConfirmingRemoval] = useState(false);
   const [error, setError] = useState("");
-  const disabled = loading || source.kind !== "ready";
+  const disabled =
+    loading || source.kind !== "ready" || snapshot !== loadedSnapshot;
   const isExistingMark = snapshot ? snapshot.status !== "none" : state.marked;
 
   useEffect(() => {
@@ -224,5 +225,5 @@ const InterestForm = ({
   </ModalShell>
 );
 
-export { InterestForm, initialStatus };
+export { initialStatus, InterestForm };
 export type { InterestFormProps };

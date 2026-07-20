@@ -121,7 +121,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
           ? { moreLink: runtime.seriesMoreLink }
           : {})}
       />
-      <CastSection celebrities={data.celebrities} />
+      <CastSection celebrities={data.celebrities} subjectId={data.subjectId} />
       <PhotosSection
         data={{
           photos: runtime.photoResolution.photos,

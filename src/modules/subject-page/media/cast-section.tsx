@@ -5,11 +5,23 @@ import { getSubjectSectionCopy } from "../section-copy";
 
 type CastSectionProps = {
   celebrities: Celebrity[];
+  subjectId: string;
 };
 
-const CastSection = ({ celebrities }: CastSectionProps) =>
+const CastSection = ({ celebrities, subjectId }: CastSectionProps) =>
   celebrities.length ? (
-    <Section id="atv-cast" title={getSubjectSectionCopy("cast").sectionTitle}>
+    <Section
+      id="atv-cast"
+      {...(subjectId
+        ? {
+            moreLink: {
+              href: `https://movie.douban.com/subject/${subjectId}/celebrities`,
+              text: "查看全部 →",
+            },
+          }
+        : {})}
+      title={getSubjectSectionCopy("cast").sectionTitle}
+    >
       <div class="atv-carousel atv-cast-carousel">
         {celebrities.map((person) => {
           const content = (
