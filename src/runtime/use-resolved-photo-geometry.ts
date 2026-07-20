@@ -1,10 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { fetchPhotoGeometry } from "@/api/photo-geometry";
-import type {
-  PhotoResolution,
-  ResolvedPhoto,
-} from "@/modules/subject-page/types";
+import type { PhotoResolution, ResolvedPhoto } from "@/modules/subject/types";
 import type { Photo } from "@/types";
 
 const FALLBACK_ASPECT_RATIO = 16 / 9;

@@ -363,6 +363,13 @@ input::placeholder {
 		style.id = LOGIN_FRAME_STYLE_ID;
 		style.textContent = LOGIN_FRAME_CSS;
 		(doc.head ?? doc.documentElement).append(style);
+	};
+	var hasMatchingPage = (pages, location = window.location) => pages.some(({ matches }) => matches(location));
+	var mountMatchingPage = (pages, doc, location = window.location) => {
+		const page = pages.find(({ matches }) => matches(location));
+		if (!page) return false;
+		page.mount(doc);
+		return true;
 	}, n, l$1, u$2, i$2, r$1, o$2, e$1, f$2, c$1, a$1, s$1, h$1, p$1, v$1, y$1, d$1 = {}, w$1 = [], _$1 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i, g$1 = Array.isArray;
 	function m$1(n, l) {
 		for (var u in l) n[u] = l[u];
@@ -1860,65 +1867,6 @@ input::placeholder {
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
-	var computeIndicatorMetrics = (activeEl, containerEl) => {
-		const containerRect = containerEl.getBoundingClientRect();
-		const activeRect = activeEl.getBoundingClientRect();
-		return {
-			left: activeRect.left - containerRect.left,
-			width: activeRect.width
-		};
-	};
-	var StickyNav = ({ activeSectionId = "", navRef, onJump, scrolling = false, sections, subjectSwitcherOpen = false, subjectSwitcher, title, visible = false }) => {
-		const markerRef = A(null);
-		_(() => {
-			if (!activeSectionId) return;
-			const nav = navRef?.current;
-			const marker = markerRef.current;
-			if (!nav || !marker) return;
-			const container = nav.querySelector(".atv-stickynav-jumps");
-			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
-			if (!container || !activeLink) return;
-			const frame = requestAnimationFrame(() => {
-				const { left, width } = computeIndicatorMetrics(activeLink, container);
-				marker.style.transform = `translateX(${left}px)`;
-				marker.style.width = `${width}px`;
-			});
-			return () => {
-				cancelAnimationFrame(frame);
-			};
-		}, [activeSectionId, navRef]);
-		return u("nav", {
-			...navRef ? { ref: navRef } : {},
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${subjectSwitcherOpen ? " has-subject-switcher-open" : ""}`,
-			children: [
-				u("div", {
-					class: "atv-stickynav-title",
-					children: subjectSwitcherOpen ? "上一部" : title.primary || title.full
-				}),
-				subjectSwitcher ? u("div", {
-					class: "atv-stickynav-subject-switcher",
-					children: subjectSwitcher
-				}) : null,
-				u("div", {
-					class: "atv-stickynav-jumps",
-					children: [sections.map((section) => u("a", {
-						class: activeSectionId === section.id ? "is-active" : void 0,
-						"data-section-id": section.id,
-						href: `#${section.id}`,
-						onClick: (event) => {
-							event.preventDefault();
-							onJump(section.id);
-						},
-						children: section.label
-					}, section.id)), u("div", {
-						"aria-hidden": "true",
-						class: "atv-stickynav-marker",
-						ref: markerRef
-					})]
-				})
-			]
-		});
-	};
 	var IconStarFull = (props) => u("svg", {
 		viewBox: "0 0 16 16",
 		width: "16",
@@ -11381,7 +11329,7 @@ input::placeholder {
 		const [loading, setLoading] = d(false);
 		const [confirmingRemoval, setConfirmingRemoval] = d(false);
 		const [error, setError] = d("");
-		const disabled = loading || source.kind !== "ready";
+		const disabled = loading || source.kind !== "ready" || snapshot !== loadedSnapshot;
 		const isExistingMark = snapshot ? snapshot.status !== "none" : state.marked;
 		h(() => {
 			if (snapshot && snapshot !== loadedSnapshot) {
@@ -11831,8 +11779,12 @@ input::placeholder {
 			})
 		});
 	};
-	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
+	var CastSection = ({ celebrities, subjectId }) => celebrities.length ? u(Section, {
 		id: "atv-cast",
+		...subjectId ? { moreLink: {
+			href: `https://movie.douban.com/subject/${subjectId}/celebrities`,
+			text: "查看全部 →"
+		} } : {},
 		title: getSubjectSectionCopy("cast").sectionTitle,
 		children: u("div", {
 			class: "atv-carousel atv-cast-carousel",
@@ -13043,6 +12995,71 @@ input::placeholder {
 			})
 		});
 	};
+	var computeIndicatorMetrics = (activeEl, containerEl) => {
+		const containerRect = containerEl.getBoundingClientRect();
+		const activeRect = activeEl.getBoundingClientRect();
+		return {
+			left: activeRect.left - containerRect.left,
+			width: activeRect.width
+		};
+	};
+	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
+		const markerRef = A(null);
+		_(() => {
+			if (!activeSectionId) return;
+			const nav = navRef?.current;
+			const marker = markerRef.current;
+			if (!nav || !marker) return;
+			const container = nav.querySelector(".atv-stickynav-jumps");
+			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
+			if (!container || !activeLink) return;
+			const frame = requestAnimationFrame(() => {
+				const { left, width } = computeIndicatorMetrics(activeLink, container);
+				marker.style.transform = `translateX(${left}px)`;
+				marker.style.width = `${width}px`;
+			});
+			return () => {
+				cancelAnimationFrame(frame);
+			};
+		}, [activeSectionId, navRef]);
+		return u("nav", {
+			...navRef ? { ref: navRef } : {},
+			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
+			children: [
+				u("div", {
+					class: "atv-stickynav-title",
+					children: title
+				}),
+				accessory,
+				u("div", {
+					class: "atv-stickynav-jumps",
+					children: [sections.map((section) => u("a", {
+						class: activeSectionId === section.id ? "is-active" : void 0,
+						"data-section-id": section.id,
+						href: `#${section.id}`,
+						onClick: (event) => {
+							event.preventDefault();
+							onJump(section.id);
+						},
+						children: section.label
+					}, section.id)), u("div", {
+						"aria-hidden": "true",
+						class: "atv-stickynav-marker",
+						ref: markerRef
+					})]
+				})
+			]
+		});
+	};
+	var SubjectStickyNav = ({ subjectSwitcher, subjectSwitcherOpen = false, title, ...navigation }) => u(StickyNav, {
+		...navigation,
+		accessory: subjectSwitcher ? u("div", {
+			class: "atv-stickynav-subject-switcher",
+			children: subjectSwitcher
+		}) : null,
+		className: subjectSwitcherOpen ? "has-subject-switcher-open" : "",
+		title: subjectSwitcherOpen ? "上一部" : title.primary || title.full
+	});
 	var toInitialStates = (items, api) => Object.fromEntries(items.map((item) => [api.key(item), api.initial(item)]));
 	var useVoteState = (items, api) => {
 		const [states, setStates] = d(() => toInitialStates(items, api));
@@ -13112,7 +13129,7 @@ input::placeholder {
 			return true;
 		};
 		return u(S, { children: [
-			u(StickyNav, {
+			u(SubjectStickyNav, {
 				...runtime.navigation,
 				subjectSwitcher: u(SubjectSwitcher, { onOpenChange: setSubjectSwitcherOpen }),
 				subjectSwitcherOpen,
@@ -13134,7 +13151,10 @@ input::placeholder {
 				items: runtime.series,
 				...runtime.seriesMoreLink ? { moreLink: runtime.seriesMoreLink } : {}
 			}),
-			u(CastSection, { celebrities: data.celebrities }),
+			u(CastSection, {
+				celebrities: data.celebrities,
+				subjectId: data.subjectId
+			}),
 			u(PhotosSection, {
 				data: {
 					photos: runtime.photoResolution.photos,
@@ -14012,7 +14032,7 @@ input::placeholder {
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
 	};
-	var mountSubjectPage = (doc = document) => {
+	var mountSubject = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
 		if (!doc.querySelector("#content h1")) {
 			console.warn("[ATV-Douban] 未找到内容区域，跳过渲染");
@@ -14036,11 +14056,16 @@ input::placeholder {
 		}), root);
 		doc.body.insertBefore(root, doc.body.firstChild);
 	};
-	var mountSubjectPageWhenReady = async () => {
+	var pageMounts = [{
+		matches: (location) => location.hostname === "movie.douban.com" && /^\/subject\/[^/]+\/?$/u.test(location.pathname),
+		mount: mountSubject
+	}];
+	var mountPageWhenReady = async () => {
+		if (!hasMatchingPage(pageMounts)) return;
 		await _css(styles_default);
-		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountSubjectPage(), { once: true });
-		else mountSubjectPage();
+		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountMatchingPage(pageMounts, document), { once: true });
+		else mountMatchingPage(pageMounts, document);
 	};
 	if (isDoubanLoginFrame()) installLoginFrameTheme();
-	else mountSubjectPageWhenReady();
+	else mountPageWhenReady();
 })();

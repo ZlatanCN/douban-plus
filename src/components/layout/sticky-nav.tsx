@@ -1,7 +1,7 @@
 import type { ComponentChild } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
 
-import type { NavSection, TitleInfo } from "@/types";
+import type { NavSection } from "@/types";
 
 type IndicatorMetrics = {
   left: number;
@@ -27,24 +27,24 @@ const computeIndicatorMetrics = (
 
 type StickyNavProps = {
   activeSectionId?: string;
+  accessory?: ComponentChild;
+  className?: string;
   navRef?: { current: HTMLElement | null };
   onJump: (sectionId: string) => void;
   scrolling?: boolean;
   sections: NavSection[];
-  subjectSwitcherOpen?: boolean;
-  subjectSwitcher?: ComponentChild;
-  title: Pick<TitleInfo, "full" | "primary">;
+  title: string;
   visible?: boolean;
 };
 
 const StickyNav = ({
   activeSectionId = "",
+  accessory,
+  className = "",
   navRef,
   onJump,
   scrolling = false,
   sections,
-  subjectSwitcherOpen = false,
-  subjectSwitcher,
   title,
   visible = false,
 }: StickyNavProps) => {
@@ -83,14 +83,10 @@ const StickyNav = ({
   return (
     <nav
       {...(navRef ? { ref: navRef } : {})}
-      class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${subjectSwitcherOpen ? " has-subject-switcher-open" : ""}`}
+      class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`}
     >
-      <div class="atv-stickynav-title">
-        {subjectSwitcherOpen ? "上一部" : title.primary || title.full}
-      </div>
-      {subjectSwitcher ? (
-        <div class="atv-stickynav-subject-switcher">{subjectSwitcher}</div>
-      ) : null}
+      <div class="atv-stickynav-title">{title}</div>
+      {accessory}
       <div class="atv-stickynav-jumps">
         {sections.map((section) => (
           <a

@@ -55,7 +55,7 @@ src/
   extract/             # 只读解析豆瓣 DOM
   resolve/             # 外部评分的并行解析调度
   api/                 # 网络请求、缓存和站点解析
-  modules/subject-page/ # 页面体验模块
+  modules/subject/      # 页面体验模块
     hero/              # Hero、海报、元数据、简介和操作
     ratings/           # 豆瓣与外部评分
     media/             # 平台、演员、剧照、推荐和剧集
@@ -70,9 +70,9 @@ tests/
   screenshots/         # Hero、整页和移动端视觉回归截图
 ```
 
-页面流程为：`extractDoubanData()` 读取当前文档 → `mountSubjectPage()` 创建 Preact 根节点 → `SubjectPageRuntime` 管理异步评分、首播平台、导航和媒体生命周期 → `SubjectPage` 渲染页面体验。外部评分在 `resolveAll()` 中并行获取，单个来源失败不会影响其余来源或首屏。
+页面流程为：`extractDoubanData()` 读取当前文档 → `mountSubject()` 创建 Preact 根节点 → `SubjectPageRuntime` 管理异步评分、首播平台、导航和媒体生命周期 → `SubjectPage` 渲染页面体验。外部评分在 `resolveAll()` 中并行获取，单个来源失败不会影响其余来源或首屏。
 
-`src/build/` 是已退役的 DOM-builder 层。新增界面应进入 `src/modules/subject-page/` 或共享 Preact 组件，不要重建 imperative DOM UI。
+`src/build/` 是已退役的 DOM-builder 层。新增界面应进入 `src/modules/subject/` 或共享 Preact 组件，不要重建 imperative DOM UI。
 
 ## 验证
 

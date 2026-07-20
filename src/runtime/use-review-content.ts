@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
 import { sanitizeHtml } from "@/components/common/html-content";
-import { reviewNumericId } from "@/modules/subject-page/reviews/review-identity";
+import { reviewNumericId } from "@/modules/subject/reviews/review-identity";
 
 type ReviewContentState =
   | { html: null; status: "loading" }

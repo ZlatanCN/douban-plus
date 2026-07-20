@@ -30,6 +30,22 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **页面标题**: 页面分区内容上方的描述性标题，可以在对应导航标签上增加“热门”“详细”“作品”等范围修饰词。 _Avoid_: 为追求逐字一致而牺牲上下文
 
+**人物页**: 对豆瓣 `www.douban.com/personage/<id>/` 演职人员资料的独立增强页面；它提取并重新编排核心人物与作品数据，而非复刻原生社交、关注或维护功能。 _Avoid_: 原生人物页美化、人物页镜像
+
+**人物 Hero**: 人物页的身份起点，组合肖像、姓名、关键资料与人物简介的三行摘要；简介可在 Hero 内展开，不重复建立单独的简介分区。 _Avoid_: 作品海报 Hero、重复的人物简介区
+
+**人物页分区顺序**: 人物 Hero、协作关系图、图片、近期作品、代表作品、获奖。图片、近期作品、代表作品和获奖均保留各自的原生“查看全部”入口。顺序沿用作品页从人物/关系、影像、探索到详情收尾的阅读节奏。 _Avoid_: 按原生 DOM 顺序复刻、让协作关系图退居作品轨之后、在重构页复制完整目录
+
+**人物页导航标签**: 固定导航使用紧凑标签“关系 / 图片 / 近期 / 代表 / 获奖”，对应分区标题保持完整的“协作关系图 / 图片 / 近期作品 / 代表作品 / 获奖”。 _Avoid_: 与分区无关的别名、在导航中重复“作品”等范围修饰词
+
+**页面模块所有权**: `subject` 与 `personage` 各自拥有页面组件、数据类型、DOM 提取、运行时补全和页面专属样式；共享层只承载不含豆瓣页面语义的设计 token、基础布局、通用导航、模态与小型交互原语。顶层入口只根据 URL 选择并挂载页面运行时。 _Avoid_: 让人物页复用 subject 的数据契约、让共享组件导入页面分区文案、在入口层堆积页面数据判断
+
+**人物页路由与挂载**: 脚本元数据覆盖 `www.douban.com/personage/*`，但只在规范人物主页 `/personage/<数字 ID>/`（允许尾随斜杠与查询参数）挂载；照片、全部作品等二级原生页保持原样。`subject` 与 `personage` 分别公开自己的挂载函数，顶层入口只做路径分发。每个模块仅在数据提取成功后创建增强根节点并隐藏原生 `#wrapper`；原生 DOM 随后仅作为数据源和“查看全部”出口。 _Avoid_: 在二级页重构、先隐藏原生页再尝试提取、跨页面共享挂载函数
+
+**近期作品 / 代表作品**: 人物页中并列的两条作品轨：近期作品按时间呈现人物正在参与的项目，代表作品按收藏热度呈现优先值得了解的项目。两者均不承担完整履历的职责。 _Avoid_: 单一“作品”轨、完整影视履历
+
+**协作关系图**: 人物页以当前人物为中心、按共同作品关系连接当前主页已加载的常见合作者的可探索关系分区；它紧随人物 Hero 出现，不额外请求完整合作者列表。合作者按共同作品数降序排列，同数时保留原生顺序，关系越强越接近中心。连线只用弱、中、强三档视觉权重，准确共同作品数在节点聚焦后显示。选择节点只聚焦其关系和共同作品信息，必须经明确的“查看人物”入口才离开当前图谱。协作节点按数据顺序进入标准 Tab 焦点；聚焦、`Enter` 或空格只选择关系，“查看人物”是独立焦点。移动端保留静态径向上下文，不允许画布拖拽或平移，并以聚焦关系列表提供阅读与跳转。它是页面唯一的标志性可视化，但静态状态也必须可读，不以持续动画充当数据表达。 _Avoid_: 合作者横向轨、完整名单抓取、连续线宽、点击即跳转、方向键空间导航、可拖拽画布、装饰性动态网络图
+
 **观看平台**: 提供当前作品观看入口的第三方视频服务商，例如爱奇艺、腾讯视频或 Netflix。 _Avoid_: 播放源、在哪儿看、播放平台
 
 **已解析评论**: 保留原始短评字段、并带有已解析头像的短评呈现数据；页面分区与短评弹窗只消费该结果。 _Avoid_: 可变原始短评
@@ -54,9 +70,9 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 ## Architecture
 
-GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject-page UI uses traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
+GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject UI uses traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
 
-`src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject-page/` or shared Preact primitives under `src/components/`.
+`src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. UI work should enter through `src/modules/subject/` or shared Preact primitives under `src/components/`.
 
 External rating data flows through **extract → resolve → Preact render**. The `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. `src/runtime/use-external-ratings.ts` owns the runtime lifecycle; there is no DOM `apply.ts` bridge.
 
@@ -65,9 +81,9 @@ External rating data flows through **extract → resolve → Preact render**. Th
 ```
 src/
   modules/
-    subject-page/      — active Preact page module and domain UI experiences
-      subject-page.tsx   — pure page composition seam; runtime passes data + runtime value
-      types.ts           — subject-page runtime data and action contracts
+    subject/           — active Preact page module and domain UI experiences
+      subject.tsx        — pure page composition seam; runtime passes data + runtime value
+      types.ts           — subject runtime data and action contracts
       hero/              — hero background, poster, metadata, summary, actions
       ratings/           — Douban panel plus unified IMDb / Metacritic / Rotten Tomatoes external rating display
       media/             — streaming, series, cast, photos, recommendations; `streaming-provider.tsx` keeps curated-name and decoded-host adapters behind `resolveStreamingProvider(item)`
@@ -80,7 +96,7 @@ src/
       use-vote-state.ts  — shared keyed owner-state hook for card/modal vote synchronization
   components/
     common/            — reusable leaf UI such as poster and stars
-    layout/            — Section, sticky nav, nav-section calculation
+    layout/            — Section and host-agnostic sticky nav
     modal/             — canonical Preact modal shell, close button, focus trap, poster/video imperative openers
   styles.css           — single stylesheet manifest imported by main.ts
   styles/              — ownership-oriented CSS files ordered by the manifest
@@ -101,9 +117,9 @@ src/
     rating-fetcher.ts    — shared slug/cache/sequential-fallback fetcher factory for external rating pages
     metacritic.ts        — fetchMcRating() via Metacritic URL config + JSON-LD parser
     rotten.ts            — fetchRtRating() via Rotten Tomatoes URL config + script JSON parser
-  runtime/             — subject page runtime module (deepened 2026-07-08)
-    mount.tsx            — external runtime interface: extract → render SubjectPageRuntime
-    subject-page-runtime.tsx — deep host integration module: lifecycle, requests, browser state → SubjectPage runtime value
+  runtime/             — page runtime modules (deepened 2026-07-08)
+    subject-mount.tsx    — subject external runtime interface: extract → render SubjectPageRuntime
+    subject-runtime.tsx  — subject host integration module: lifecycle, requests, browser state → SubjectPage runtime value
     extract-data.ts      — assembles DoubanData from extract modules
     login-frame-theme.ts — account-origin ATV CSS injection for Douban's login iframe
     use-resolved-comments.ts — Preact hook: profile lookup, parsing, cache, fallback and cancellation → resolved comments
@@ -123,7 +139,7 @@ src/
 2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
 3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
 
-`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The subject-page runtime module loads async results; `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
+`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The subject runtime module loads async results; `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
 
 ### Resolution seam tests (18 tests across 2 files)
 
@@ -180,11 +196,11 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 ### Current deep modules
 
-1. **Subject page Preact module (2026-07-08)** — `src/modules/subject-page/` owns the active UI:
+1. **Subject page Preact module (2026-07-08)** — `src/modules/subject/` owns the active UI:
    - External seam is `SubjectPage({ data, runtime })`; runtime passes extracted `DoubanData`, resolved host data, and user actions without leaking the Douban document.
    - Internal modules follow user-facing experiences: `hero`, `ratings`, `media`, `details`, `comments`, `reviews`, `interest`, and `login`.
    - Shared leaf primitives live in `src/components/common`, `src/components/layout`, and `src/components/modal`.
-   - Tests live under `tests/modules/subject-page/` and exercise module interfaces, not retired builder internals.
+   - Tests live under `tests/modules/subject/` and exercise module interfaces, not retired builder internals.
    - External rating display uses one deep module, `ratings/external-rating.tsx`: callers pass `source`, `rating`, and `resolved`; source-specific score renderers stay internal so skeleton/empty/loaded behavior has one owner.
    - Review-content acquisition uses one deep runtime module, `runtime/use-review-content.ts`: native page HTML and fetched review-page HTML are internal adapters; `reviews/review-content-modal.tsx` passes its result to the visual `ReviewModal`, which receives only loading, loaded sanitized 影评正文, or error state.
    - `SubjectPage` owns cross-surface UI state that must stay synchronized between cards and modals. The vote-state machine has one owner: `createVoteState` in `vote-state.ts` produces a `VoteApi`; `use-vote-state.ts` and `use-vote-action.ts` both consume that `VoteApi` directly — no hand-assembled strategy shape at the composition root. `comments/comment-vote-state.ts` exports `commentVoteApi`; `reviews/review-vote-state.ts` exports `reviewVoteApi`.
@@ -192,7 +208,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 2. **Resolved-comment runtime hook (2026-07-16)** — `runtime/use-resolved-comments.ts` remains a Preact hook and owns profile-link deduplication, GM profile fetches, detached HTML parsing, cache reads/writes, cancellation, avatar fallback, and the resolved-comment projection. `SubjectPageRuntime` supplies resolved comments through the runtime value; the page only renders those values in comment cards and the comment modal. No profile lookup, profile-link key, avatar Map, document, or network lifecycle leaks through the page-composition seam.
 
-3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. The subject-page media module owns the `TrailerModal` wrapper that passes the selected trailer to that hook; `VideoModal` remains in the generic modal module, receives only an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
+3. **Trailer acquisition runtime hook (2026-07-13)** — `runtime/use-trailer-acquisition.ts` owns trailer-page fetches, detached LD+JSON parsing, cancellation, failure fallback, and native-window opening while retaining Preact's lifecycle. The subject media module owns the `TrailerModal` wrapper that passes the selected trailer to that hook; `VideoModal` remains in the generic modal module, receives only an acquisition result, renders controlled visual state, and routes the hook's dismissal signal through the canonical modal close lifecycle without host/network knowledge.
 
 4. **Native-summary adoption runtime hook (2026-07-16)** — `runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
 
@@ -208,12 +224,12 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
 7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade over `src/runtime/`:
-   - External runtime seam is `mountSubjectPage(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
+   - External runtime seam is `mountSubject(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, review-content and late-series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module
    - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/runtime/`; `useSeriesRuntime` owns the initial/late series result, current-series identity, more-link adoption, DOM observation, and cleanup
    - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
-8. **作品标记 module (2026-07-12)** — `src/modules/subject-page/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
+8. **作品标记 module (2026-07-12)** — `src/modules/subject/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
    - External seam is `useInterestMarking({ subjectId, subjectTitle, loggedIn, onLoginRequired, adapters })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes.
    - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads after every successful write; `SubjectPage` does not maintain optimistic interest state.
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
@@ -225,20 +241,20 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-10. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject-page/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject-page/login/` for login presentation:
+10. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject/login/` for login presentation:
 
 - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
   - `mountNativeLoginFrame` has three fallback layers: (1) find a recognized dialog wrapper via `nativeDialogSelector`, (2) search for a pre-rendered login iframe directly by `src` pattern, (3) trigger Douban's `.a_show_login` click handler and poll for the dialog. Layer 3 is the primary path on most Douban pages.
   - `triggerNativeLoginDialog` restricts its search to `.a_show_login` and `.j.a_show_login` only (not generic `a[href*='register']` etc.) because ATV's own DOM also contains register links that would be clicked instead. Hidden elements (inside `#wrapper` with `display: none`) are intentionally included — `element.click()` fires JS event handlers regardless of CSS visibility, and Douban's `.a_show_login` handlers create the login dialog.
   - When clicking an `<a>` trigger, a `once` `preventDefault` listener is attached first to prevent navigation away from ATV, then `click()` is called. This is safe because Douban's own handler also calls `preventDefault`.
-  - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject-page app in the account origin
+  - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject app in the account origin
   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
   - API modules still keep their `ck` checks as the final safety net
 
 ### Resolved-comment host integration
 
-`runtime/use-resolved-comments.ts` is the explicit host integration owner for resolved comments while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns comments with resolved-avatar fallback applied to `SubjectPageRuntime`. The page-composition seam receives resolved comments and never starts requests, reads browser globals, or selects profile-link keys. Runtime tests cover profile lookup and fallback through the rendered page; Subject-page tests pass resolved comments directly.
+`runtime/use-resolved-comments.ts` is the explicit host integration owner for resolved comments while retaining Preact's hook lifecycle. It uses the host document only for the profile-request referer, parses profile HTML into detached documents, and returns comments with resolved-avatar fallback applied to `SubjectPageRuntime`. The page-composition seam receives resolved comments and never starts requests, reads browser globals, or selects profile-link keys. Runtime tests cover profile lookup and fallback through the rendered page; Subject tests pass resolved comments directly.
 
 ### InfoBlock extraction
 
@@ -247,7 +263,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 ### Key design decisions
 
 - **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
-- **Deep subject-page seam**: Runtime calls `SubjectPageRuntime({ data, doc })`, which calls `SubjectPage({ data, runtime })`; Subject page internals own layout, local UI state, modals, voting affordances, and rating panels without touching the Douban document or network.
+- **Deep subject seam**: Runtime calls `SubjectPageRuntime({ data, doc })`, which calls `SubjectPage({ data, runtime })`; Subject page internals own layout, local UI state, modals, voting affordances, and rating panels without touching the Douban document or network.
 - **Style ownership boundary**: CSS is split under `src/styles/` by UI experience and imported only through `src/styles.css`. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Shared modal visual tokens such as the accent bar and base close button styling live in `src/styles/modals.css`; experience files should keep only positioning or state-specific overrides.
 - **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.

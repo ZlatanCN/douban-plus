@@ -4,10 +4,10 @@
 import { render } from "preact";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { computeNavSections } from "@/components/layout/nav";
 import { StickyNav } from "@/components/layout/sticky-nav";
-import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageRuntime } from "@/modules/subject-page/types";
+import { computeNavSections } from "@/modules/subject/navigation";
+import { SubjectPage } from "@/modules/subject/subject";
+import type { SubjectPageRuntime } from "@/modules/subject/types";
 import type { DoubanData, InfoBlock } from "@/types";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
@@ -216,7 +216,7 @@ const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
     <StickyNav
       onJump={() => {}}
       sections={computeNavSections(data)}
-      title={data.title}
+      title={data.title.primary || data.title.full}
     />,
     stickyNav
   );

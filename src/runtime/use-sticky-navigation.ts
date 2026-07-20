@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
-import type { SubjectPageNavigation } from "@/modules/subject-page/types";
+import type { SubjectPageNavigation } from "@/modules/subject/types";
 import type { NavSection } from "@/types";
 import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 

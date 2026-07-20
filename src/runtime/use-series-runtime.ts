@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
 import { extractSeries } from "@/extract/series";
-import type { ResolvedSeriesItem } from "@/modules/subject-page/types";
+import type { ResolvedSeriesItem } from "@/modules/subject/types";
 import type { SeriesItem } from "@/types";
 
 type SeriesMoreLink = { href: string; text: string };
