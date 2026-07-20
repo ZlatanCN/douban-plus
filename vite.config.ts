@@ -49,6 +49,7 @@ export default defineConfig({
         include: ["https://accounts.douban.com/passport/login*"],
         match: [
           "*://movie.douban.com/subject/*",
+          "*://www.douban.com/personage/*",
           "*://accounts.douban.com/passport/login*",
         ],
         name: "Douban Plus",

@@ -1,20 +1,21 @@
-body > #wrapper {
+body.atv-enhanced > #wrapper {
   display: none !important;
 }
 
-body {
+body.atv-enhanced {
   padding: 0 !important;
   margin: 0 !important;
   background: #000 !important;
 }
 
-#db-global-nav,
-#db-nav-movie {
+body.atv-enhanced #db-global-nav,
+body.atv-enhanced #db-nav-movie,
+body.atv-enhanced #db-nav-sns {
   display: none !important;
 }
 
-[id^="dale_"],
-[class*="dale_"] {
+body.atv-enhanced [id^="dale_"],
+body.atv-enhanced [class*="dale_"] {
   display: none !important;
 }
 

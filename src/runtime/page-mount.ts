@@ -25,4 +25,4 @@ const mountMatchingPage = (
 };
 
 export { hasMatchingPage, mountMatchingPage };
-export type { PageMount };
+export type { PageLocation, PageMount };

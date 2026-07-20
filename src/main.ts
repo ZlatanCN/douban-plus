@@ -4,6 +4,7 @@ import {
 } from "@/runtime/login-frame-theme";
 import { hasMatchingPage, mountMatchingPage } from "@/runtime/page-mount";
 import type { PageMount } from "@/runtime/page-mount";
+import { isPersonageHomepage, mountPersonage } from "@/runtime/personage-mount";
 import { mountSubject } from "@/runtime/subject-mount";
 
 const pageMounts: readonly PageMount[] = [
@@ -13,6 +14,7 @@ const pageMounts: readonly PageMount[] = [
       /^\/subject\/[^/]+\/?$/u.test(location.pathname),
     mount: mountSubject,
   },
+  { matches: isPersonageHomepage, mount: mountPersonage },
 ];
 
 const mountPageWhenReady = async (): Promise<void> => {

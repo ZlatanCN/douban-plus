@@ -99,6 +99,12 @@ const waitForForm = async (root: HTMLElement): Promise<void> => {
   await vi.waitFor(() =>
     expect(root.querySelector(".atv-interest-modal-tag-input")).not.toBeNull()
   );
+  await vi.waitFor(() =>
+    expect(
+      root.querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+        ?.disabled
+    ).toBeFalsy()
+  );
 };
 
 describe("Interest marking", () => {

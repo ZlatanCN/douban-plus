@@ -427,6 +427,12 @@ describe(SubjectPage, () => {
     await vi.waitFor(() =>
       expect(root.querySelector(".atv-interest-modal-tag-input")).not.toBeNull()
     );
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+          ?.disabled
+      ).toBeFalsy()
+    );
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();

@@ -1,5 +1,6 @@
 import { render } from "preact";
 
+import { installEnhancedRoot } from "./enhanced-document";
 import { extractDoubanData } from "./extract-data";
 import { SubjectPageRuntime } from "./subject-runtime";
 
@@ -35,11 +36,13 @@ const mountSubject = (doc: Document = document): void => {
     return;
   }
 
-  setSubjectTitle(doc, data);
-  const root = doc.createElement("div");
-  root.id = "atv-douban-root";
-  render(<SubjectPageRuntime data={data} doc={doc} />, root);
-  doc.body.insertBefore(root, doc.body.firstChild);
+  if (
+    installEnhancedRoot(doc, (root) =>
+      render(<SubjectPageRuntime data={data} doc={doc} />, root)
+    )
+  ) {
+    setSubjectTitle(doc, data);
+  }
 };
 
 export { mountSubject };

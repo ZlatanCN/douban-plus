@@ -14,6 +14,7 @@
 // @updateURL    https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.meta.js
 // @include      https://accounts.douban.com/passport/login*
 // @match        *://movie.douban.com/subject/*
+// @match        *://www.douban.com/personage/*
 // @match        *://accounts.douban.com/passport/login*
 // @exclude      *://movie.douban.com/subject/*/all_photos
 // @exclude      *://movie.douban.com/subject/*/photos*

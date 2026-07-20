@@ -1,0 +1,122 @@
+.atv-personage {
+  min-height: 100vh;
+  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;
+}
+
+.atv-personage-hero {
+  display: grid;
+  width: min(100%, 1120px);
+  align-items: start;
+  margin: 0 auto;
+  gap: clamp(28px, 5vw, 68px);
+  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+}
+
+.atv-personage-portrait {
+  width: 100%;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  background: var(--atv-bg-tertiary);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 42%);
+  object-fit: cover;
+}
+
+.atv-personage-portrait.is-empty {
+  background: radial-gradient(
+    circle at 30% 25%,
+    #4a4a4d,
+    var(--atv-bg-tertiary) 62%
+  );
+}
+
+.atv-personage-kicker {
+  margin: 4px 0 12px;
+  color: var(--atv-accent-bright);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.atv-personage-identity h1 {
+  margin: 0;
+  color: var(--atv-text-primary);
+  font-size: clamp(44px, 7vw, 84px);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.atv-personage-facts {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 28px 0 0;
+  gap: 10px 22px;
+}
+
+.atv-personage-facts div {
+  display: flex;
+  gap: 8px;
+}
+
+.atv-personage-facts dt {
+  color: var(--atv-text-tertiary);
+}
+
+.atv-personage-facts dd {
+  margin: 0;
+  color: var(--atv-text-secondary);
+}
+
+.atv-personage-biography {
+  max-width: 720px;
+  margin-top: 32px;
+}
+
+.atv-personage-biography > div {
+  color: var(--atv-text-secondary);
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.atv-personage-biography p {
+  margin: 0;
+}
+
+.atv-personage-biography p + p {
+  margin-top: 1em;
+}
+
+.atv-personage-biography > div.is-clamped {
+  overflow: hidden;
+  max-height: 5.25em;
+}
+
+.atv-personage-biography button {
+  padding: 0;
+  border: 0;
+  margin-top: 12px;
+  appearance: none;
+  background: transparent;
+  color: var(--atv-accent-bright);
+  cursor: pointer;
+  font: inherit;
+}
+
+@media (width <= 640px) {
+  .atv-personage-hero {
+    gap: 24px;
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .atv-personage-identity h1 {
+    font-size: clamp(34px, 10vw, 50px);
+  }
+
+  .atv-personage-facts {
+    margin-top: 20px;
+  }
+
+  .atv-personage-biography {
+    margin-top: 0;
+    grid-column: 1 / -1;
+  }
+}
