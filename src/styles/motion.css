@@ -56,7 +56,37 @@
   display: block;
 }
 
+/* Shared affordance for every control that opens the image-preview modal. */
+.atv-image-preview-trigger {
+  box-shadow: 0 16px 40px rgb(0 0 0 / 46%);
+  transition:
+    transform var(--atv-duration-hover) var(--atv-ease-out),
+    box-shadow var(--atv-duration-hover) var(--atv-ease-out);
+  will-change: transform;
+}
+
+.atv-image-preview-trigger:focus-visible {
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-image-preview-trigger:hover {
+    box-shadow: 0 24px 64px rgb(0 0 0 / 56%);
+    transform: translateY(-3px);
+  }
+}
+
+.atv-image-preview-trigger:active {
+  transform: scale(0.97);
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .atv-image-preview-trigger {
+    transition: none;
+    will-change: auto;
+  }
+
   .atv-carousel {
     scroll-behavior: auto;
   }
@@ -73,7 +103,8 @@
   .atv-btn-secondary:hover,
   .atv-btn:active,
   .atv-modal-close:active,
-  .atv-poster-card:hover,
+  .atv-image-preview-trigger:hover,
+  .atv-image-preview-trigger:active,
   .atv-comment-card:hover,
   .atv-comment-votes:active,
   .atv-comment-overlay-votes:active,
@@ -93,7 +124,6 @@
   .atv-discussion-row:active,
   .atv-series-card:hover,
   .atv-cast-card:hover,
-  .atv-photo-tile:hover,
   .atv-rec-card:hover .atv-rec-poster,
   .atv-trailer-tile:hover,
   .atv-hero-more.is-open svg {

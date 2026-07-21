@@ -193,12 +193,6 @@ a.atv-discussion-author:focus-visible {
     transform var(--atv-duration-hover) var(--atv-ease-out);
 }
 
-.atv-discussion-footer a:hover {
-  color: var(--atv-accent-bright);
-  text-decoration: underline;
-  transform: translateX(2px);
-}
-
 .atv-discussion-footer a:focus-visible {
   color: var(--atv-accent-bright);
   outline: 2px solid var(--atv-accent-bright);
@@ -215,7 +209,6 @@ a.atv-discussion-author:focus-visible {
   transform: scaleY(1);
 }
 
-.atv-discussion-row:hover .atv-discussion-title,
 .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)
   .atv-discussion-title,
 .atv-discussion-row:has(.atv-discussion-author:focus-visible)
@@ -223,13 +216,29 @@ a.atv-discussion-author:focus-visible {
   color: #fff;
 }
 
-.atv-discussion-row:hover .atv-discussion-arrow,
 .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)
   .atv-discussion-arrow,
 .atv-discussion-row:has(.atv-discussion-author:focus-visible)
   .atv-discussion-arrow {
   opacity: 1;
   transform: translateX(0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-discussion-footer a:hover {
+    color: var(--atv-accent-bright);
+    text-decoration: underline;
+    transform: translateX(2px);
+  }
+
+  .atv-discussion-row:hover .atv-discussion-title {
+    color: #fff;
+  }
+
+  .atv-discussion-row:hover .atv-discussion-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 /* ---------- Mobile (<=768px) ---------- */

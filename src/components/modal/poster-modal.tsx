@@ -20,9 +20,9 @@ type PosterModalProps = ImageModalSource & {
 const PosterModalContent = ({ alt, previewSrc, src }: ImageModalSource) => {
   const close = useModalClose();
   const hasPreview = Boolean(previewSrc && previewSrc !== src);
-  const [imageState, setImageState] = useState<"failed" | "loaded" | "loading">(
-    hasPreview ? "loading" : "loaded"
-  );
+  const [imageState, setImageState] = useState<
+    "loaded" | "loading" | "preview"
+  >(hasPreview ? "loading" : "loaded");
 
   return (
     <div class={`atv-image-modal-frame is-${imageState}`}>
@@ -44,7 +44,7 @@ const PosterModalContent = ({ alt, previewSrc, src }: ImageModalSource) => {
         class="atv-modal-img"
         onError={() => {
           if (hasPreview) {
-            setImageState("failed");
+            setImageState("preview");
           }
         }}
         onLoad={() => setImageState("loaded")}
@@ -54,11 +54,6 @@ const PosterModalContent = ({ alt, previewSrc, src }: ImageModalSource) => {
         <output aria-live="polite" class="atv-image-modal-loading">
           <span aria-hidden="true" class="atv-spinner" />
           <span>加载图片中…</span>
-        </output>
-      ) : null}
-      {imageState === "failed" ? (
-        <output aria-live="polite" class="atv-image-modal-error">
-          高清图片加载失败
         </output>
       ) : null}
     </div>

@@ -130,7 +130,7 @@ const PersonageHeroPortrait = ({
   return (
     <button
       aria-label={`查看${primaryName}的头像`}
-      class="atv-personage-portrait-trigger"
+      class="atv-personage-portrait-trigger atv-image-preview-trigger"
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       type="button"

@@ -174,11 +174,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
                 </div>
               ) : null}
               {displayedRequest.status === "ready" && suggestions.length ? (
-                <div
-                  class="atv-subject-suggestion-results"
-                  key={displayedRequest.query}
-                  role="presentation"
-                >
+                <div role="presentation">
                   {suggestions.map((suggestion, index) => (
                     <SuggestionRow
                       active={index === nav.activeIndex}

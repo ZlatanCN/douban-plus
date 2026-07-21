@@ -4,7 +4,10 @@ import type { ComponentChild } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ModalSession, ModalShell } from "@/components/modal";
-import type { SwipeToDismissOptions } from "@/components/modal/use-swipe-to-dismiss";
+import type {
+  SwipeDismissDetails,
+  SwipeToDismissOptions,
+} from "@/components/modal/use-swipe-to-dismiss";
 import type { animateWithReducedMotion } from "@/utils/springs";
 
 import { renderIntoRoot } from "../helpers/render";
@@ -31,7 +34,9 @@ const trackedRenderModal = (onClose: () => void, request: object = {}) =>
   );
 
 const swipeCallbacks = vi.hoisted(() => {
-  const callbacks: { onDismiss?: () => void } = {};
+  const callbacks: {
+    onDismiss?: (details: SwipeDismissDetails) => void;
+  } = {};
   return callbacks;
 });
 const swipeRef = vi.hoisted(() => vi.fn<(el: HTMLElement | null) => void>());
@@ -311,7 +316,7 @@ describe(ModalShell, () => {
       // The swipe callback should be captured
       expect(swipeCallbacks.onDismiss).toBeDefined();
 
-      swipeCallbacks.onDismiss?.();
+      swipeCallbacks.onDismiss?.({ position: 90, velocity: 640 });
 
       // After dismiss, motion.animate should have been called 4 times
       expect(motion.animate).toHaveBeenCalledTimes(4);
@@ -323,10 +328,15 @@ describe(ModalShell, () => {
       expect(motion.animate).toHaveBeenNthCalledWith(4, surface, {
         properties: {
           opacity: 0,
-          transform: "translateY(120px)",
+          transform: "translateY(100dvh)",
         },
         reducedMotionProperties: { opacity: 0 },
-        springConfig: { bounce: 0.2, duration: 0.4, type: "spring" },
+        springConfig: {
+          bounce: 0.2,
+          duration: 0.4,
+          type: "spring",
+          velocity: 640,
+        },
       });
     });
 

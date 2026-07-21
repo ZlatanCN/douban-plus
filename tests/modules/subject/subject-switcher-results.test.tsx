@@ -22,7 +22,7 @@ describe(SubjectSwitcher, () => {
     cleanupSwitcherTests();
   });
 
-  it("mounts returned catalog rows in a results group after loading", async () => {
+  it("mounts returned catalog rows without a transient results wrapper", async () => {
     const pendingSuggestions = Promise.withResolvers<SubjectSuggestion[]>();
     fetchSuggestions.mockReturnValueOnce(pendingSuggestions.promise);
     const root = renderSwitcher();
@@ -33,14 +33,16 @@ describe(SubjectSwitcher, () => {
       expect(fetchSuggestions).toHaveBeenCalledOnce();
     });
 
-    expect(root.querySelector(".atv-subject-suggestion-results")).toBeNull();
+    expect(root.querySelector('[role="presentation"]')).toBeNull();
 
     pendingSuggestions.resolve([suggestion]);
 
     await vi.waitFor(() => {
       expect(
-        root.querySelector(".atv-subject-suggestion-results")?.textContent
+        root.querySelector('[role="presentation"]')?.textContent
       ).toContain("权力的游戏 第一季");
     });
+
+    expect(root.querySelector(".atv-subject-suggestion-results")).toBeNull();
   });
 });

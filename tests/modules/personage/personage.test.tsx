@@ -359,6 +359,9 @@ describe(mountPersonage, () => {
     expect(
       doc.querySelector("#atv-poster-modal .atv-modal-img")?.getAttribute("src")
     ).toBe("https://img.example.com/peter.jpg");
+    expect(
+      doc.querySelector(".atv-personage-portrait-trigger")?.classList
+    ).toContain("atv-image-preview-trigger");
 
     cleanup();
   });

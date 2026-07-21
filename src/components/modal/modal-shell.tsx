@@ -12,7 +12,6 @@ import { animateWithReducedMotion, springConfigs } from "@/utils/springs";
 import {
   ENTERING_SURFACE_TRANSFORM,
   EXITING_SURFACE_TRANSFORM,
-  SWIPE_DISMISS_DISTANCE,
   finishClosingAnimation,
   prefersReducedMotion,
   reducedMotionQuery,
@@ -22,6 +21,7 @@ import { ModalCloseContext } from "./modal-close-context";
 import { useModalSession } from "./modal-session";
 import { useModalAccessibility } from "./use-modal-accessibility";
 import { useSwipeToDismiss } from "./use-swipe-to-dismiss";
+import type { SwipeDismissDetails } from "./use-swipe-to-dismiss";
 
 type ModalPhase = "open" | "closing";
 
@@ -51,6 +51,7 @@ const ModalShell = ({
   const overlayRef = useRef<HTMLDialogElement>(null);
   const surfaceRef = useRef<HTMLDivElement>(null);
   const closeSourceRef = useRef<"standard" | "swipe">("standard");
+  const swipeDismissRef = useRef<SwipeDismissDetails | null>(null);
   const realOnCloseRef = useRef(onClose);
   const [phase, setPhase] = useState<ModalPhase>("open");
   const [reducedMotion, setReducedMotion] = useState(prefersReducedMotion);
@@ -105,14 +106,18 @@ const ModalShell = ({
       });
       const surfaceExitTransform =
         closeSourceRef.current === "swipe"
-          ? `translateY(${SWIPE_DISMISS_DISTANCE}px)`
+          ? "translateY(100dvh)"
           : EXITING_SURFACE_TRANSFORM;
       const surfaceSpring =
         closeSourceRef.current === "swipe"
-          ? springConfigs.swipeDismissExit
+          ? {
+              ...springConfigs.swipeDismissExit,
+              velocity: swipeDismissRef.current?.velocity ?? 0,
+            }
           : springConfigs.modalSurface;
       if (!opening) {
         closeSourceRef.current = "standard";
+        swipeDismissRef.current = null;
       }
       const surfaceAnimation = animateWithReducedMotion(surface, {
         properties: {
@@ -155,14 +160,18 @@ const ModalShell = ({
     animateModal("closed");
   }, [animateModal]);
 
-  const handleSwipeDismiss = useCallback(() => {
-    closeSourceRef.current = "swipe";
-    handleClose();
-  }, [handleClose]);
+  const handleSwipeDismiss = useCallback(
+    (details: SwipeDismissDetails) => {
+      closeSourceRef.current = "swipe";
+      swipeDismissRef.current = details;
+      handleClose();
+    },
+    [handleClose]
+  );
   const swipe = useSwipeToDismiss({
     onDismiss: dismissable
       ? handleSwipeDismiss
-      : () => {
+      : (_details: SwipeDismissDetails) => {
           void 0;
         },
   });

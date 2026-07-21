@@ -2,7 +2,6 @@ import type { animateWithReducedMotion } from "@/utils/springs";
 
 const ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
 const EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
-const SWIPE_DISMISS_DISTANCE = 120;
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 
 type ModalAnimation = ReturnType<typeof animateWithReducedMotion>;
@@ -29,7 +28,6 @@ const finishClosingAnimation = async (
 export {
   ENTERING_SURFACE_TRANSFORM,
   EXITING_SURFACE_TRANSFORM,
-  SWIPE_DISMISS_DISTANCE,
   finishClosingAnimation,
   prefersReducedMotion,
   reducedMotionQuery,

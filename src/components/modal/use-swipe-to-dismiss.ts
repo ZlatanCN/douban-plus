@@ -6,8 +6,33 @@ import { springConfigs } from "@/utils/springs";
 export type SwipeToDismissOptions = {
   dismissThreshold?: number;
   velocityThreshold?: number;
-  onDismiss: () => void;
+  onDismiss: (details: SwipeDismissDetails) => void;
 };
+
+export type SwipeDismissDetails = {
+  position: number;
+  velocity: number;
+};
+
+const readTranslateY = (element: HTMLElement): number => {
+  const computedTransform = getComputedStyle(element).transform;
+  const transform = element.style.transform || computedTransform;
+  const translateMatch = transform.match(
+    /translateY\((?<translateY>-?[\d.]+)px\)/u
+  );
+  if (translateMatch?.groups?.translateY) {
+    return Number(translateMatch.groups.translateY);
+  }
+
+  const matrixMatch = transform.match(
+    /^matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*(?<translateY>-?[\d.]+)\)$/u
+  );
+  return matrixMatch?.groups?.translateY
+    ? Number(matrixMatch.groups.translateY)
+    : 0;
+};
+
+const rubberBand = (distance: number): number => -Math.min(distance * 0.35, 96);
 
 const useSwipeToDismiss = (
   options: SwipeToDismissOptions
@@ -20,7 +45,10 @@ const useSwipeToDismiss = (
   }, [options]);
 
   const startYRef = useRef(0);
+  const baseTranslationRef = useRef(0);
   const currentDeltaRef = useRef(0);
+  const currentPositionRef = useRef(0);
+  const activePointerIdRef = useRef<number | null>(null);
   const pointerHistoryRef = useRef<{ y: number; time: number }[]>([]);
   const animationRef = useRef<ReturnType<typeof animate> | null>(null);
   const animationGenerationRef = useRef(0);
@@ -34,12 +62,20 @@ const useSwipeToDismiss = (
 
   const handlePointerDown = useCallback(
     (event: PointerEvent) => {
+      if (activePointerIdRef.current !== null) {
+        return;
+      }
       stopAnimation();
       const element = event.currentTarget as HTMLElement;
       elementRef.current = element;
       startYRef.current = event.clientY;
+      baseTranslationRef.current = readTranslateY(element);
       currentDeltaRef.current = 0;
-      pointerHistoryRef.current = [];
+      currentPositionRef.current = baseTranslationRef.current;
+      pointerHistoryRef.current = [
+        { time: performance.now(), y: event.clientY },
+      ];
+      activePointerIdRef.current = event.pointerId;
       element.setPointerCapture(event.pointerId);
     },
     [stopAnimation]
@@ -51,12 +87,19 @@ const useSwipeToDismiss = (
       return;
     }
 
-    const delta = event.clientY - startYRef.current;
-    if (delta < 0) {
+    if (event.pointerId !== activePointerIdRef.current) {
       return;
     }
 
-    currentDeltaRef.current = delta;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
+    const position =
+      baseTranslationRef.current + event.clientY - startYRef.current;
+    currentPositionRef.current =
+      position < 0 ? rubberBand(-position) : position;
+    currentDeltaRef.current = Math.max(0, position);
 
     const history = pointerHistoryRef.current;
     history.push({ time: performance.now(), y: event.clientY });
@@ -64,14 +107,17 @@ const useSwipeToDismiss = (
       history.shift();
     }
 
-    element.style.transform = `translateY(${delta}px)`;
+    element.style.transform = `translateY(${currentPositionRef.current}px)`;
   }, []);
 
   const settlePointer = useCallback((element: HTMLElement) => {
     const delta = currentDeltaRef.current;
+    const position = currentPositionRef.current;
     const history = pointerHistoryRef.current;
 
     currentDeltaRef.current = 0;
+    currentPositionRef.current = 0;
+    baseTranslationRef.current = 0;
 
     const {
       dismissThreshold = 80,
@@ -92,7 +138,7 @@ const useSwipeToDismiss = (
     }
 
     if (delta > dismissThreshold || velocity > velocityThreshold) {
-      onDismiss();
+      onDismiss({ position, velocity });
       return;
     }
 
@@ -129,12 +175,16 @@ const useSwipeToDismiss = (
     }
   }, []);
 
-  const handlePointerEnd = useCallback(() => {
-    const element = elementRef.current;
-    if (element) {
-      settlePointer(element);
-    }
-  }, [settlePointer]);
+  const handlePointerEnd = useCallback(
+    (event: PointerEvent) => {
+      const element = elementRef.current;
+      if (element && event.pointerId === activePointerIdRef.current) {
+        activePointerIdRef.current = null;
+        settlePointer(element);
+      }
+    },
+    [settlePointer]
+  );
 
   const ref = useCallback(
     (el: HTMLElement | null) => {

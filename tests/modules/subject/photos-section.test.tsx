@@ -100,6 +100,8 @@ describe(PhotosSection, () => {
     expect(tile?.querySelector("img")?.getAttribute("src")).toBe(
       "https://example.com/thumb.jpg"
     );
+    expect(tile?.classList).toContain("atv-image-preview-trigger");
+    expect(tile?.querySelector(".atv-photo-tile-content")).not.toBeNull();
     expect(tile?.style.getPropertyValue("--atv-photo-aspect-ratio")).toBe(
       "0.75"
     );

@@ -143,17 +143,6 @@
   appearance: none;
   aspect-ratio: 2 / 3;
   background: var(--atv-bg-tertiary);
-  box-shadow: 0 32px 80px rgb(0 0 0 / 65%);
-  transition:
-    transform var(--atv-duration-hover) var(--atv-ease-out),
-    box-shadow var(--atv-duration-hover) var(--atv-ease-out);
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .atv-poster-card:hover {
-    box-shadow: 0 48px 128px rgb(0 0 0 / 75%);
-    transform: translateY(-8px);
-  }
 }
 
 .atv-poster-card img {

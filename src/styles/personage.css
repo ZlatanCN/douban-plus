@@ -36,11 +36,7 @@
   border-radius: 50%;
   aspect-ratio: 1;
   background: var(--atv-bg-tertiary);
-  box-shadow:
-    0 32px 80px rgb(0 0 0 / 48%),
-    0 0 0 1px rgb(255 255 255 / 10%) inset;
   object-fit: cover;
-  transition: box-shadow 200ms ease;
 }
 
 .atv-personage-portrait.is-empty {
@@ -56,22 +52,11 @@
   width: 100%;
   padding: 0;
   border: 0;
+  border-radius: 50%;
   margin: 0;
   appearance: none;
   background: transparent;
   cursor: pointer;
-  transition: transform 160ms var(--atv-ease-out);
-  will-change: transform;
-}
-
-.atv-personage-portrait-trigger:focus-visible {
-  border-radius: 50%;
-  outline: 2px solid var(--atv-accent-bright);
-  outline-offset: 4px;
-}
-
-.atv-personage-portrait-trigger:active {
-  transform: scale(0.97);
 }
 
 .atv-personage-kicker {
@@ -227,16 +212,6 @@
 
 /* ---------- Hover ---------- */
 @media (hover: hover) and (pointer: fine) {
-  .atv-personage-portrait-trigger:hover {
-    transform: scale(1.03);
-  }
-
-  .atv-personage-portrait-trigger:hover .atv-personage-portrait {
-    box-shadow:
-      0 48px 104px rgb(0 0 0 / 56%),
-      0 0 0 1px rgb(255 255 255 / 12%) inset;
-  }
-
   .atv-personage-biography button:hover {
     opacity: 0.8;
   }
@@ -258,11 +233,14 @@
   align-items: center;
   padding: 14px 12px;
   border-radius: var(--atv-radius-sm, 8px);
-  animation: atv-collaborator-in 400ms var(--atv-ease-out) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
   gap: 14px;
   grid-template-columns: 28px 48px 1fr auto;
   transition: background 160ms ease;
+}
+
+.atv-section-reveal.is-revealed .atv-personage-collaborator {
+  animation: atv-collaborator-in 200ms var(--atv-ease-out) both;
+  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -474,10 +452,13 @@
   min-width: 0;
   height: 256px;
   flex: 0 0 auto;
-  animation: atv-gallery-tile-in 400ms var(--atv-ease-out) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
   aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);
   scroll-snap-align: start;
+}
+
+.atv-section-reveal.is-revealed .atv-personage-gallery-rail li {
+  animation: atv-gallery-tile-in 200ms var(--atv-ease-out) both;
+  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);
 }
 
 .atv-personage-gallery-rail button {
@@ -488,39 +469,16 @@
   height: 100%;
   padding: 0;
   border: 0;
-  border: 1px solid transparent;
   border-radius: var(--atv-radius-sm);
   appearance: none;
   background: var(--atv-bg-tertiary);
   cursor: pointer;
-  transition:
-    transform var(--atv-duration-hover) var(--atv-ease-out),
-    border-color var(--atv-duration-hover) ease,
-    box-shadow var(--atv-duration-hover) ease;
-  will-change: transform;
-}
-
-.atv-personage-gallery-rail button:focus-visible {
-  outline: 2px solid var(--atv-accent-bright);
-  outline-offset: 3px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .atv-personage-gallery-rail button:hover {
-    border-color: rgb(255 255 255 / 12%);
-    box-shadow: 0 8px 24px rgb(0 0 0 / 36%);
-    transform: translateY(-3px);
-  }
 }
 
 .atv-personage-gallery-rail img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-}
-
-.atv-personage-gallery-rail button:active {
-  transform: scale(0.97);
 }
 
 /* ---------- SafeImage shared styles ---------- */
@@ -751,8 +709,8 @@
 }
 
 .atv-section-reveal.is-revealed .atv-timeline-year-num {
-  animation: atv-timeline-year-in 300ms var(--atv-ease-out) both;
-  animation-delay: calc(var(--group-index, 0) * 60ms + 50ms);
+  animation: atv-timeline-year-in 200ms var(--atv-ease-out) both;
+  animation-delay: min(calc(var(--group-index, 0) * 40ms + 20ms), 100ms);
 }
 
 @keyframes atv-timeline-year-in {
@@ -790,15 +748,19 @@
   min-width: 120px;
   max-width: 200px;
   flex: 1 1 160px;
-  animation: atv-timeline-card-in 300ms var(--atv-ease-out) both;
-  animation-delay: calc(
-    var(--stagger-index, 0) * 60ms + var(--group-index, 0) * 60ms + 100ms
-  );
   color: inherit;
   cursor: pointer;
   text-decoration: none;
   transition: transform var(--atv-duration-hover) var(--atv-ease-out);
   will-change: transform;
+}
+
+.atv-section-reveal.is-revealed .atv-timeline-card {
+  animation: atv-timeline-card-in 200ms var(--atv-ease-out) both;
+  animation-delay: min(
+    calc(var(--stagger-index, 0) * 40ms + var(--group-index, 0) * 40ms + 20ms),
+    100ms
+  );
 }
 
 .atv-timeline-card:active {
@@ -1047,39 +1009,21 @@
     transition: none;
   }
 
-  .atv-timeline-year-num {
+  .atv-section-reveal.is-revealed .atv-timeline-year-num {
     animation: none;
     opacity: 1;
   }
 
   .atv-personage-work-card,
-  .atv-timeline-card {
+  .atv-section-reveal.is-revealed .atv-timeline-card {
     animation: none;
     opacity: 1;
     transform: none;
   }
 
-  .atv-personage-portrait-trigger:active,
-  .atv-personage-portrait-trigger:hover {
-    transform: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    .atv-personage-gallery-rail button:hover {
-      transform: none;
-    }
-  }
-
-  .atv-personage-portrait-trigger,
-  .atv-personage-gallery-rail button,
   .atv-personage-work-card,
   .atv-timeline-card {
     transition: none;
     will-change: auto;
-  }
-
-  .atv-personage-portrait-trigger:active,
-  .atv-personage-gallery-rail button:active {
-    transform: none;
   }
 }

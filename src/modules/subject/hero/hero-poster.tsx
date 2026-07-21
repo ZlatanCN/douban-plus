@@ -20,7 +20,7 @@ const HeroPoster = ({
 
   return (
     <button
-      class="atv-poster-card"
+      class="atv-poster-card atv-image-preview-trigger"
       onClick={() => {
         if (poster) {
           onOpenPoster(poster, title.primary || "");

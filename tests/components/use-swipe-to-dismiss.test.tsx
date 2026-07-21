@@ -3,7 +3,10 @@ import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useSwipeToDismiss } from "@/components/modal/use-swipe-to-dismiss";
-import type { SwipeToDismissOptions } from "@/components/modal/use-swipe-to-dismiss";
+import type {
+  SwipeDismissDetails,
+  SwipeToDismissOptions,
+} from "@/components/modal/use-swipe-to-dismiss";
 import { springConfigs } from "@/utils/springs";
 
 import { renderIntoRoot } from "../helpers/render";
@@ -42,7 +45,7 @@ vi.mock(import("motion"), () => ({
 
 type PartialOptions = Partial<
   Pick<SwipeToDismissOptions, "dismissThreshold" | "velocityThreshold">
-> & { onDismiss: () => void };
+> & { onDismiss: (details: SwipeDismissDetails) => void };
 
 const TestComponent = ({ onDismiss, ...rest }: PartialOptions) => {
   const { ref } = useSwipeToDismiss({
@@ -75,7 +78,7 @@ describe(useSwipeToDismiss, () => {
   /* ── Threshold: dismiss ───────────────────────────────── */
 
   it("calls onDismiss when downward drag exceeds dismissThreshold", () => {
-    const onDismiss = vi.fn<() => void>();
+    const onDismiss = vi.fn<(details: SwipeDismissDetails) => void>();
     const root = renderIntoRoot(
       <TestComponent onDismiss={onDismiss} dismissThreshold={80} />
     );
@@ -101,7 +104,66 @@ describe(useSwipeToDismiss, () => {
       new PointerEvent("pointerup", { bubbles: true, pointerId: 1 })
     );
 
-    expect(onDismiss).toHaveBeenCalledOnce();
+    expect(onDismiss).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ position: 100, velocity: expect.any(Number) })
+    );
+  });
+
+  it("continues a new drag from the interrupted presentation position", () => {
+    const root = renderIntoRoot(
+      <TestComponent
+        onDismiss={vi.fn<(details: SwipeDismissDetails) => void>()}
+      />
+    );
+    const element = root.querySelector<HTMLElement>(
+      "[data-testid=swipe-area]"
+    ) as HTMLElement;
+    element.style.transform = "translateY(48px)";
+
+    element.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        clientY: 120,
+        pointerId: 1,
+      })
+    );
+
+    expect(element.style.transform).toBe("translateY(68px)");
+  });
+
+  it("rubber-bands upward drags instead of ignoring them", () => {
+    const root = renderIntoRoot(
+      <TestComponent
+        onDismiss={vi.fn<(details: SwipeDismissDetails) => void>()}
+      />
+    );
+    const element = root.querySelector<HTMLElement>(
+      "[data-testid=swipe-area]"
+    ) as HTMLElement;
+
+    element.dispatchEvent(
+      new PointerEvent("pointerdown", {
+        bubbles: true,
+        clientY: 100,
+        pointerId: 1,
+      })
+    );
+    element.dispatchEvent(
+      new PointerEvent("pointermove", {
+        bubbles: true,
+        clientY: 60,
+        pointerId: 1,
+      })
+    );
+
+    expect(element.style.transform).toMatch(/^translateY\(-/u);
   });
 
   /* ── Threshold: snap back ─────────────────────────────── */
@@ -433,9 +495,9 @@ describe(useSwipeToDismiss, () => {
     expect(element.style.transform).toBe("");
   });
 
-  /* ── Upward drag ignored ──────────────────────────────── */
+  /* ── Upward drag resistance ───────────────────────────── */
 
-  it("ignores upward (negative deltaY) movement", () => {
+  it("settles an upward rubber-banded drag without dismissing", () => {
     const onDismiss = vi.fn<() => void>();
     const root = renderIntoRoot(<TestComponent onDismiss={onDismiss} />);
     const element = root.querySelector<HTMLElement>(
@@ -449,7 +511,7 @@ describe(useSwipeToDismiss, () => {
         pointerId: 1,
       })
     );
-    // Move UP (clientY decreases) → deltaY < 0 → should be ignored
+    // Move UP (clientY decreases) → drag is resisted but still settles.
     element.dispatchEvent(
       new PointerEvent("pointermove", {
         bubbles: true,
@@ -462,8 +524,7 @@ describe(useSwipeToDismiss, () => {
     );
 
     expect(onDismiss).not.toHaveBeenCalled();
-    // Since pointermove returned early, the transform was never set
-    expect(element.style.transform).toBe("");
+    expect(element.style.transform).toMatch(/^translateY\(-/u);
   });
 
   /* ── Cleanup on unmount ───────────────────────────────── */

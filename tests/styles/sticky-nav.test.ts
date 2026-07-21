@@ -25,9 +25,7 @@ describe("sticky navigation styles", () => {
     expect(stickyNavCss).toMatch(
       /transition:\s*transform var\(--atv-duration-feedback\) var\(--atv-ease-in-out\)/u
     );
-    expect(stickyNavCss).toMatch(
-      /width var\(--atv-duration-feedback\) var\(--atv-ease-in-out\)/u
-    );
+    expect(stickyNavCss).not.toMatch(/width var\(--atv-duration-feedback\)/u);
   });
 
   it("drops the marker's sliding transition under reduced motion", () => {

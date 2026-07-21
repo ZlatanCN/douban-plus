@@ -30,7 +30,7 @@ const PhotoTile = ({
   staggerIndex?: number;
 }) => (
   <button
-    class="atv-photo-tile"
+    class="atv-photo-tile atv-image-preview-trigger"
     onClick={() =>
       onOpenPoster({
         alt: "剧照",
@@ -44,12 +44,14 @@ const PhotoTile = ({
     }}
     type="button"
   >
-    <SafeImage
-      alt="剧照"
-      aspectRatio={photo.aspectRatio}
-      loading="lazy"
-      src={photo.thumbUrl || photo.hdUrl}
-    />
+    <span class="atv-photo-tile-content">
+      <SafeImage
+        alt="剧照"
+        aspectRatio={photo.aspectRatio}
+        loading="lazy"
+        src={photo.thumbUrl || photo.hdUrl}
+      />
+    </span>
   </button>
 );
 

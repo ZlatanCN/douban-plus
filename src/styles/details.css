@@ -7,11 +7,11 @@
 
 /* Each row = label + value. We alternate even/odd children.
    The grid children are label/value siblings, so row pairs are (4n+1, 4n+2).
-   Stagger: each row enters 40ms after the previous one.
+   Stagger: each row enters 24ms after the previous one, capped at 120ms.
    The animation itself is handled by the section-reveal —
    this just adds per-row delay on top. */
-.atv-info-grid > * {
-  animation: atv-info-row-enter 500ms var(--atv-ease-out) both;
+.atv-section-reveal.is-revealed .atv-info-grid > * {
+  animation: atv-info-row-enter 180ms var(--atv-ease-out) both;
 }
 
 .atv-info-grid > :nth-child(1),
@@ -21,47 +21,47 @@
 
 .atv-info-grid > :nth-child(3),
 .atv-info-grid > :nth-child(4) {
-  animation-delay: 40ms;
+  animation-delay: 24ms;
 }
 
 .atv-info-grid > :nth-child(5),
 .atv-info-grid > :nth-child(6) {
-  animation-delay: 80ms;
+  animation-delay: 48ms;
 }
 
 .atv-info-grid > :nth-child(7),
 .atv-info-grid > :nth-child(8) {
-  animation-delay: 120ms;
+  animation-delay: 72ms;
 }
 
 .atv-info-grid > :nth-child(9),
 .atv-info-grid > :nth-child(10) {
-  animation-delay: 160ms;
+  animation-delay: 96ms;
 }
 
 .atv-info-grid > :nth-child(11),
 .atv-info-grid > :nth-child(12) {
-  animation-delay: 200ms;
+  animation-delay: 120ms;
 }
 
 .atv-info-grid > :nth-child(13),
 .atv-info-grid > :nth-child(14) {
-  animation-delay: 240ms;
+  animation-delay: 120ms;
 }
 
 .atv-info-grid > :nth-child(15),
 .atv-info-grid > :nth-child(16) {
-  animation-delay: 280ms;
+  animation-delay: 120ms;
 }
 
 .atv-info-grid > :nth-child(17),
 .atv-info-grid > :nth-child(18) {
-  animation-delay: 320ms;
+  animation-delay: 120ms;
 }
 
 .atv-info-grid > :nth-child(19),
 .atv-info-grid > :nth-child(20) {
-  animation-delay: 360ms;
+  animation-delay: 120ms;
 }
 
 @keyframes atv-info-row-enter {
@@ -134,7 +134,7 @@
 
 /* ---------- Reduced motion ---------- */
 @media (prefers-reduced-motion: reduce) {
-  .atv-info-grid > * {
+  .atv-section-reveal.is-revealed .atv-info-grid > * {
     animation: none;
     opacity: 1;
     transform: none;
@@ -152,7 +152,7 @@
     padding-top: 0;
   }
 
-  .atv-info-grid > * {
+  .atv-section-reveal.is-revealed .atv-info-grid > * {
     animation: none;
     opacity: 1;
     transform: none;

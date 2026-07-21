@@ -46,4 +46,26 @@ describe(PosterModal, () => {
     expect(root.querySelector(".atv-modal-preview")).toBeNull();
     expect(root.querySelector(".atv-image-modal-loading")).toBeNull();
   });
+
+  it("falls back to the thumbnail when the full image fails", async () => {
+    const root = renderIntoRoot(
+      <PosterModal
+        alt="剧照"
+        onClose={() => {}}
+        previewSrc="https://img.example.com/thumb.jpg"
+        src="https://img.example.com/full.jpg"
+      />
+    );
+    const fullImage = root.querySelector<HTMLImageElement>(".atv-modal-img");
+
+    fullImage?.dispatchEvent(new Event("error", { bubbles: true }));
+    await Promise.resolve();
+
+    expect(root.querySelector(".atv-image-modal-frame")?.classList).toContain(
+      "is-preview"
+    );
+    expect(root.querySelector(".atv-image-modal-loading")).toBeNull();
+    expect(root.querySelector(".atv-image-modal-error")).toBeNull();
+    expect(root.querySelector(".atv-modal-preview")).not.toBeNull();
+  });
 });

@@ -62,9 +62,11 @@
   white-space: nowrap;
 }
 
-.atv-section-more:hover {
-  color: var(--atv-accent-bright);
-  transform: translateX(3px);
+@media (hover: hover) and (pointer: fine) {
+  .atv-section-more:hover {
+    color: var(--atv-accent-bright);
+    transform: translateX(3px);
+  }
 }
 
 .atv-section-more:focus-visible {

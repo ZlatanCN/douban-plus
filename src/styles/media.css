@@ -171,14 +171,19 @@
   padding: 0;
   border: none;
   border-radius: var(--atv-radius-md);
-  animation: atv-photo-in 400ms var(--atv-ease-out) both;
-  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
   appearance: none;
   aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);
   background: var(--atv-bg-tertiary);
   cursor: pointer;
   scroll-snap-align: start;
-  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+.atv-photo-tile-content {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation: atv-photo-in 400ms var(--atv-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
 }
 
 .atv-photo-tile img {

@@ -42,6 +42,7 @@ const PersonageGalleryImageTile = ({
     >
       <button
         aria-label={`查看${alt}`}
+        class="atv-image-preview-trigger"
         onClick={() => onOpenImage({ alt, previewSrc: src, src: largeSrc })}
         type="button"
       >

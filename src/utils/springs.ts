@@ -19,6 +19,7 @@ const springConfigs = {
 };
 
 type SpringConfig = (typeof springConfigs)[keyof typeof springConfigs];
+type MotionSpringConfig = SpringConfig & { velocity?: number };
 
 /* ── Reduced‑Motion Utility ──────────────────────────── */
 
@@ -30,7 +31,7 @@ const animateWithReducedMotion = (
       string,
       string | number | (string | number)[]
     >;
-    springConfig?: SpringConfig;
+    springConfig?: MotionSpringConfig;
   }
 ) => {
   const prefersReduced = window.matchMedia(

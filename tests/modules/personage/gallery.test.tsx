@@ -71,6 +71,7 @@ describe(PersonageGallerySection, () => {
     buttons[1]?.click();
 
     expect(images).toHaveLength(2);
+    expect(buttons[0]?.classList).toContain("atv-image-preview-trigger");
     expect(images[1]?.alt).toBe("郭涛的图片 2");
     expect(onOpenImage).toHaveBeenCalledExactlyOnceWith({
       alt: "郭涛的图片 2",
