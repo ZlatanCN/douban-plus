@@ -151,6 +151,18 @@
   gap: 12px;
 }
 
+@keyframes atv-photo-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .atv-photo-tile {
   display: flex;
   overflow: hidden;
@@ -159,6 +171,8 @@
   padding: 0;
   border: none;
   border-radius: var(--atv-radius-md);
+  animation: atv-photo-in 400ms var(--atv-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
   appearance: none;
   aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);
   background: var(--atv-bg-tertiary);

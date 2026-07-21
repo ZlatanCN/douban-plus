@@ -20,7 +20,11 @@ const textValue = (text: string) => <div class="atv-info-value">{text}</div>;
 
 const linkParts = (items: { text: string; href?: string }[]) =>
   items.flatMap((item, index) => [
-    index > 0 ? <span key={`sep-${index}`}> / </span> : null,
+    index > 0 ? (
+      <span key={`sep-${index}`} class="atv-info-sep">
+        ·
+      </span>
+    ) : null,
     item.href ? (
       <a href={item.href} key={`link-${index}`} rel="noopener" target="_blank">
         {item.text}
@@ -85,7 +89,7 @@ const collectTimeRows = (
 const awardRows = (awards: Award[]): DetailRow[] =>
   awards.map((award) => ({
     label: (
-      <div class="atv-info-label" style={{ color: "var(--atv-rating-gold)" }}>
+      <div class="atv-info-label atv-info-label-award">
         {award.orgLink ? (
           <a
             href={award.orgLink}

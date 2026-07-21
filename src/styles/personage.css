@@ -1,15 +1,34 @@
-.atv-personage {
-  min-height: 100vh;
+/* ---------- Personage hero ---------- */
+.atv-personage-hero {
+  position: relative;
+  min-height: 70vh;
   padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;
 }
 
-.atv-personage-hero {
+.atv-personage-hero::after {
+  position: absolute;
+  right: max(28px, 7vw);
+  bottom: 0;
+  left: max(28px, 7vw);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-border-subtle) 20%,
+    var(--atv-border-subtle) 80%,
+    transparent
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.atv-personage-hero-inner {
   display: grid;
   width: min(100%, 1120px);
   align-items: start;
   margin: 0 auto;
-  gap: clamp(28px, 5vw, 68px);
-  grid-template-columns: minmax(140px, 220px) minmax(0, 1fr);
+  gap: clamp(32px, 5vw, 72px);
+  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
 }
 
 .atv-personage-portrait {
@@ -17,18 +36,32 @@
   border-radius: 50%;
   aspect-ratio: 1;
   background: var(--atv-bg-tertiary);
-  box-shadow: 0 24px 60px rgb(0 0 0 / 42%);
+  box-shadow:
+    0 32px 80px rgb(0 0 0 / 48%),
+    0 0 0 1px rgb(255 255 255 / 10%) inset;
   object-fit: cover;
+  transition: box-shadow 200ms ease;
+}
+
+.atv-personage-portrait.is-empty {
+  background: radial-gradient(
+    circle at 30% 25%,
+    #4a4a4d,
+    var(--atv-bg-tertiary) 62%
+  );
 }
 
 .atv-personage-portrait-trigger {
+  display: block;
   width: 100%;
   padding: 0;
   border: 0;
+  margin: 0;
   appearance: none;
   background: transparent;
   cursor: pointer;
-  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+  transition: transform 160ms var(--atv-ease-out);
+  will-change: transform;
 }
 
 .atv-personage-portrait-trigger:focus-visible {
@@ -41,20 +74,13 @@
   transform: scale(0.97);
 }
 
-.atv-personage-portrait.is-empty {
-  background: radial-gradient(
-    circle at 30% 25%,
-    #4a4a4d,
-    var(--atv-bg-tertiary) 62%
-  );
-}
-
 .atv-personage-kicker {
-  margin: 4px 0 12px;
+  margin: 2px 0 16px;
   color: var(--atv-accent-bright);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .atv-personage-identity h1 {
@@ -66,19 +92,19 @@
 }
 
 .atv-personage-original-name {
-  margin: 14px 0 0;
+  margin: 18px 0 0;
   color: var(--atv-text-secondary);
   font-size: clamp(19px, 2.1vw, 28px);
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
   line-height: 1.2;
 }
 
 .atv-personage-facts {
   display: flex;
   flex-wrap: wrap;
-  margin: 28px 0 0;
-  gap: 10px 22px;
+  margin: 32px 0 0;
+  gap: 12px 32px;
 }
 
 .atv-personage-facts div {
@@ -88,37 +114,44 @@
 
 .atv-personage-facts dt {
   color: var(--atv-text-tertiary);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
 }
 
 .atv-personage-facts dd {
   margin: 0;
   color: var(--atv-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .atv-personage-biography {
-  max-width: 720px;
-  margin-top: 32px;
+  max-width: 680px;
+  margin-top: 36px;
 }
 
-.atv-personage-biography > div {
+.atv-personage-biography-content {
   color: var(--atv-text-secondary);
-  font-size: 17px;
-  line-height: 1.75;
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1.8;
 }
 
-.atv-personage-biography p {
+.atv-personage-biography-content p {
   margin: 0;
 }
 
-.atv-personage-biography p + p {
+.atv-personage-biography-content p + p {
   margin-top: 1em;
 }
 
-.atv-personage-biography > div.is-clamped > p:not(:first-child) {
+.atv-personage-biography-content.is-clamped > p:not(:first-child) {
   display: none;
 }
 
-.atv-personage-biography > div.is-clamped > p:first-child {
+.atv-personage-biography-content.is-clamped > p:first-child {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
@@ -134,148 +167,290 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
+  transition: opacity 160ms ease;
 }
 
+/* ---------- Entrance ---------- */
+@keyframes atv-hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes atv-hero-portrait-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.atv-personage-hero.is-revealed .atv-personage-portrait {
+  animation: atv-hero-portrait-in 500ms var(--atv-ease-out) both;
+  animation-delay: 80ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-identity h1 {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 180ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-kicker {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 260ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-original-name {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 260ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-facts div {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: calc(340ms + var(--fact-index, 0) * 60ms);
+}
+
+.atv-personage-hero.is-revealed .atv-personage-biography {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 500ms;
+}
+
+/* ---------- Hover ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-portrait-trigger:hover {
+    transform: scale(1.03);
+  }
+
+  .atv-personage-portrait-trigger:hover .atv-personage-portrait {
+    box-shadow:
+      0 48px 104px rgb(0 0 0 / 56%),
+      0 0 0 1px rgb(255 255 255 / 12%) inset;
+  }
+
+  .atv-personage-biography button:hover {
+    opacity: 0.8;
+  }
+}
+
+/* ---------- Collaborators ---------- */
 .atv-personage-collaborators {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   padding: 0;
-  border-top: 1px solid var(--atv-border-subtle);
-  margin: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 20px 0 0;
   list-style: none;
 }
 
 .atv-personage-collaborator {
+  position: relative;
   display: grid;
-  min-height: 104px;
+  overflow: hidden;
   align-items: center;
-  padding: 18px 0;
-  border-bottom: 1px solid var(--atv-border-subtle);
-  color: var(--atv-text-secondary);
-  column-gap: 14px;
-  grid-template-columns: 24px 48px minmax(0, 1fr);
+  padding: 14px 12px;
+  border-radius: var(--atv-radius-sm, 8px);
+  animation: atv-collaborator-in 400ms var(--atv-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
+  gap: 14px;
+  grid-template-columns: 28px 48px 1fr auto;
+  transition: background 160ms ease;
 }
 
-.atv-personage-collaborator:nth-child(odd) {
-  padding-right: 28px;
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator:hover {
+    background: var(--atv-bg-secondary);
+  }
+
+  .atv-personage-collaborator::before {
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--atv-accent);
+    content: "";
+    opacity: 0;
+    transform: scaleY(0.35);
+    transition:
+      opacity var(--atv-duration-feedback) ease,
+      transform var(--atv-duration-hover) var(--atv-ease-out);
+  }
+
+  .atv-personage-collaborator:hover::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
 }
 
-.atv-personage-collaborator:nth-child(even) {
-  padding-left: 28px;
+.atv-personage-collaborator:active {
+  transform: scale(0.98);
 }
 
-.atv-personage-collaborator[data-leading="true"] {
-  color: var(--atv-text-primary);
-}
+@keyframes atv-collaborator-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 
-.atv-personage-collaborator[data-leading="true"]
-  .atv-personage-collaborator-rank {
-  color: var(--atv-accent-bright);
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .atv-personage-collaborator-rank {
+  display: flex;
+  justify-content: flex-end;
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-.atv-personage-collaborator img,
 .atv-personage-collaborator-avatar {
   width: 48px;
   height: 48px;
-  border: 1px solid var(--atv-border-medium);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 50%;
   background: var(--atv-bg-tertiary);
   object-fit: cover;
+  transition: border-color 160ms ease;
 }
 
-.atv-personage-collaborator-avatar {
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator:hover .atv-personage-collaborator-avatar {
+    border-color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-avatar.is-fallback {
   display: grid;
   color: var(--atv-text-primary);
+  font-size: 18px;
+  font-weight: 600;
   place-items: center;
 }
 
-.atv-personage-collaborator-identity {
+.atv-personage-collaborator-info {
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  gap: 2px;
 }
 
-.atv-personage-collaborator-identity h3,
-.atv-personage-collaborator-identity p {
-  margin: 0;
-}
-
-.atv-personage-collaborator-identity h3 {
+.atv-personage-collaborator-name {
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 650;
   letter-spacing: -0.01em;
+  text-decoration: none;
   text-overflow: ellipsis;
+  transition: color 160ms ease;
   white-space: nowrap;
 }
 
-.atv-personage-collaborator-identity p {
-  display: flex;
-  align-items: baseline;
-  margin-top: 5px;
-  gap: 5px;
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator-name:hover {
+    color: var(--atv-accent-bright);
+  }
 }
 
-.atv-personage-collaborator-identity strong {
-  color: var(--atv-accent-bright);
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 1;
-}
-
-.atv-personage-collaborator[data-leading="true"]
-  .atv-personage-collaborator-identity
-  strong {
-  font-size: 30px;
-}
-
-.atv-personage-collaborator-identity p span {
+.atv-personage-collaborator-count {
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: 11px;
+  font-weight: 400;
 }
 
-.atv-personage-collaborator-actions {
-  display: flex;
-  margin-top: 8px;
-  gap: 14px;
-  grid-column: 3;
-}
-
-.atv-personage-collaborator-actions a {
+.atv-personage-collaborator-action {
+  flex-shrink: 0;
   color: var(--atv-text-secondary);
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
-  transition: color var(--atv-duration-hover) ease;
+  transition:
+    color 160ms ease,
+    opacity 200ms var(--atv-ease-out),
+    transform 200ms var(--atv-ease-out);
+  white-space: nowrap;
 }
 
-.atv-personage-collaborator-actions a:focus-visible {
+.atv-personage-collaborator-arrow {
+  display: inline-block;
+  transition:
+    opacity var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator-action {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(8px);
+  }
+
+  .atv-personage-collaborator-arrow {
+    opacity: 0.35;
+    transform: translate(1px, -2px);
+  }
+
+  .atv-personage-collaborator:hover .atv-personage-collaborator-action {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .atv-personage-collaborator-action:hover {
+    color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-action:focus-visible {
   border-radius: 2px;
   color: var(--atv-accent-bright);
   outline: 2px solid var(--atv-accent-bright);
   outline-offset: 3px;
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .atv-personage-collaborator-actions a:hover {
-    color: var(--atv-accent-bright);
-  }
-}
-
-.atv-personage-collaborator-actions a:active {
-  transform: scale(0.97);
-}
-
 .atv-personage .atv-section {
-  padding-right: 0;
+  padding: 36px 0;
+}
+
+.atv-personage .atv-section + .atv-section {
+  padding-top: 0;
+}
+
+.atv-personage .atv-section-h {
   padding-left: 0;
+  margin-bottom: 28px;
+  color: var(--atv-text-secondary);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.atv-personage .atv-section-h::before {
+  display: none;
+}
+
+.atv-personage .atv-section-h-row {
+  margin-bottom: 28px;
 }
 
 .atv-personage-gallery-rail {
@@ -283,10 +458,24 @@
   list-style: none;
 }
 
+@keyframes atv-gallery-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .atv-personage-gallery-rail li {
   min-width: 0;
   height: 256px;
   flex: 0 0 auto;
+  animation: atv-gallery-tile-in 400ms var(--atv-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);
   aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);
   scroll-snap-align: start;
 }
@@ -299,16 +488,29 @@
   height: 100%;
   padding: 0;
   border: 0;
+  border: 1px solid transparent;
   border-radius: var(--atv-radius-sm);
   appearance: none;
   background: var(--atv-bg-tertiary);
   cursor: pointer;
-  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+  transition:
+    transform var(--atv-duration-hover) var(--atv-ease-out),
+    border-color var(--atv-duration-hover) ease,
+    box-shadow var(--atv-duration-hover) ease;
+  will-change: transform;
 }
 
 .atv-personage-gallery-rail button:focus-visible {
   outline: 2px solid var(--atv-accent-bright);
   outline-offset: 3px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-gallery-rail button:hover {
+    border-color: rgb(255 255 255 / 12%);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 36%);
+    transform: translateY(-3px);
+  }
 }
 
 .atv-personage-gallery-rail img {
@@ -321,6 +523,25 @@
   transform: scale(0.97);
 }
 
+/* ---------- SafeImage shared styles ---------- */
+.atv-safe-image-container {
+  width: 100%;
+  height: 100%;
+}
+
+.atv-safe-image-container > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.atv-safe-image-fallback {
+  width: 100%;
+  height: 100%;
+  min-height: 48px;
+  background: var(--atv-bg-tertiary);
+}
+
 .atv-personage-gallery-empty {
   padding: 24px;
   border-radius: var(--atv-radius-sm);
@@ -329,26 +550,30 @@
   color: var(--atv-text-tertiary);
 }
 
-.atv-personage-work-rail {
-  gap: 16px;
-}
+/* ---------- WorkRail (代表作品) ---------- */
 
-.atv-personage-work-rail.is-complete .atv-personage-work-card {
-  flex: 1 1 0;
+.atv-personage-work-rail {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
 }
 
 .atv-personage-work-card {
-  min-width: 0;
-  flex: 0 0 158px;
+  min-width: 140px;
+  flex: 1 1 0;
   color: inherit;
   cursor: pointer;
-  scroll-snap-align: start;
+  opacity: 0;
   text-decoration: none;
-  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+  transform: translateY(8px);
+  transition:
+    opacity 400ms var(--atv-ease-out) 200ms,
+    transform 400ms var(--atv-ease-out) 200ms;
 }
 
-.atv-personage-work-card:active {
-  transform: scale(0.97);
+.atv-section-reveal.is-revealed .atv-personage-work-card {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .atv-personage-work-card:focus-visible {
@@ -373,7 +598,242 @@
   object-fit: cover;
 }
 
-.atv-personage-work-rating {
+/* Index number badge — 1‑based order on the card poster */
+.atv-work-index {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 4px 4px 0;
+  backdrop-filter: blur(2px);
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-family:
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* Rating badge — pill badge on the card poster */
+.atv-work-rating {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  min-width: 28px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  background: rgb(0 0 0 / 65%);
+  color: #fff;
+  font-family:
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.atv-personage-work-title {
+  display: block;
+  overflow: hidden;
+  margin-top: 10px;
+  color: var(--atv-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-personage-work-year {
+  display: block;
+  margin-top: 4px;
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ---------- Timeline (Axis + Dots) ---------- */
+
+/* Vertical axis line — accent at top fades into the dark background toward
+   the past, so newer years read as more present. */
+.atv-timeline {
+  position: relative;
+  margin-top: 20px;
+  font-size: clamp(28px, 3.5vw, 40px);
+}
+
+.atv-timeline::before {
+  position: absolute;
+  z-index: 0;
+  top: calc(0.5em);
+  bottom: 10px;
+  left: 15px;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    var(--atv-accent-bright) 0%,
+    var(--atv-accent) 35%,
+    var(--atv-border-subtle) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.atv-timeline-year-group {
+  position: relative;
+  padding-bottom: 24px;
+  padding-left: 44px;
+  font-size: clamp(28px, 3.5vw, 40px);
+}
+
+.atv-timeline-year-group:last-child {
+  padding-bottom: 0;
+}
+
+.atv-timeline-year-group::before {
+  position: absolute;
+  z-index: 1;
+  top: calc(0.5em - 5px);
+  left: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--atv-accent-bright);
+  box-shadow: 0 0 0 transparent;
+  content: "";
+  opacity: 0;
+  transform: scale(0.5);
+  transition:
+    opacity 400ms var(--atv-ease-out),
+    transform 400ms var(--atv-ease-out),
+    box-shadow 400ms var(--atv-ease-out);
+  transition-delay: calc(var(--group-index, 0) * 60ms);
+}
+
+.atv-section-reveal.is-revealed .atv-timeline-year-group::before {
+  box-shadow:
+    0 0 10px var(--atv-accent),
+    0 0 24px color-mix(in srgb, var(--atv-accent) 25%, transparent);
+  opacity: 1;
+  transform: scale(1);
+}
+
+.atv-timeline-year-num {
+  display: block;
+  margin-bottom: 16px;
+  color: var(--atv-text-primary);
+  font-size: clamp(28px, 3.5vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.atv-section-reveal.is-revealed .atv-timeline-year-num {
+  animation: atv-timeline-year-in 300ms var(--atv-ease-out) both;
+  animation-delay: calc(var(--group-index, 0) * 60ms + 50ms);
+}
+
+@keyframes atv-timeline-year-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card row */
+.atv-timeline-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+@keyframes atv-timeline-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.atv-timeline-card {
+  min-width: 120px;
+  max-width: 200px;
+  flex: 1 1 160px;
+  animation: atv-timeline-card-in 300ms var(--atv-ease-out) both;
+  animation-delay: calc(
+    var(--stagger-index, 0) * 60ms + var(--group-index, 0) * 60ms + 100ms
+  );
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+  will-change: transform;
+}
+
+.atv-timeline-card:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-timeline-card:hover {
+    transform: translateY(-3px);
+  }
+}
+
+.atv-timeline-card:focus-visible {
+  border-radius: var(--atv-radius-sm);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+.atv-timeline-card-poster {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--atv-radius-sm);
+  aspect-ratio: 2 / 3;
+  background: var(--atv-bg-tertiary);
+}
+
+.atv-timeline-card-poster img,
+.atv-timeline-card-poster .atv-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.atv-timeline-card-rating {
   position: absolute;
   z-index: 1;
   top: 8px;
@@ -394,11 +854,11 @@
   line-height: 1;
 }
 
-.atv-personage-work-title {
+.atv-timeline-card-title {
   display: block;
   overflow: hidden;
   margin-top: 10px;
-  color: var(--atv-text-primary);
+  color: var(--atv-text-secondary);
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -408,39 +868,56 @@
 }
 
 .atv-personage-awards-list {
-  display: grid;
   padding: 0;
   margin: 0;
-  gap: 12px;
   list-style: none;
 }
 
 .atv-personage-awards-list li {
   display: grid;
-  padding: 18px 20px;
-  border-radius: var(--atv-radius-sm);
-  background: var(--atv-bg-secondary);
-  gap: 18px;
-  grid-template-columns: 72px minmax(0, 1fr);
+  padding: 20px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  gap: 24px;
+  grid-template-columns: minmax(84px, auto) 1fr;
+}
+
+.atv-personage-awards-list li:last-child {
+  border-bottom: none;
 }
 
 .atv-personage-award-year {
-  padding-top: 2px;
-  color: var(--atv-accent-bright);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
+  padding-top: 4px;
+  color: var(--atv-text-tertiary);
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .atv-personage-award-detail {
+  position: relative;
   min-width: 0;
+  padding-left: 16px;
+  border-left: 2px solid var(--atv-accent);
 }
 
 .atv-personage-award-ceremony,
 .atv-personage-award-ceremony a {
-  color: var(--atv-text-secondary);
-  font-size: 14px;
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
   font-weight: 600;
+}
+
+.atv-personage-award-ceremony a {
+  border-bottom: 1px solid transparent;
+  transition:
+    color var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease;
+}
+
+.atv-personage-award-ceremony a:hover {
+  border-bottom-color: var(--atv-accent-bright);
+  color: var(--atv-accent-bright);
 }
 
 .atv-personage-award-name {
@@ -458,24 +935,34 @@
 }
 
 .atv-personage-award-work a {
+  border-bottom: 1px solid transparent;
   color: inherit;
+  transition:
+    color var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease;
 }
 
-.atv-personage-award-ceremony a:hover,
 .atv-personage-award-work a:hover {
+  border-bottom-color: var(--atv-accent-bright);
   color: var(--atv-accent-bright);
 }
 
 .atv-personage-awards-empty {
-  padding: 24px;
-  border-radius: var(--atv-radius-sm);
+  padding: 24px 0;
   margin: 0;
-  background: var(--atv-bg-secondary);
   color: var(--atv-text-tertiary);
 }
 
 @media (width <= 640px) {
-  .atv-personage-hero {
+  .atv-personage-hero-bg-image {
+    filter: blur(40px) saturate(1.25) brightness(0.5);
+  }
+
+  .atv-personage-hero-bg {
+    height: 60vh;
+  }
+
+  .atv-personage-hero-inner {
     gap: 24px;
     grid-template-columns: 112px minmax(0, 1fr);
   }
@@ -493,38 +980,16 @@
     grid-column: 1 / -1;
   }
 
-  .atv-personage-collaborators {
-    grid-template-columns: 1fr;
-  }
-
   .atv-personage-collaborator {
-    min-height: 90px;
-    padding: 14px 0;
-    column-gap: 12px;
-    grid-template-columns: 20px 42px minmax(0, 1fr);
+    padding: 14px 8px;
+    gap: 10px;
+    grid-template-columns: 20px 42px 1fr auto;
   }
 
-  .atv-personage-collaborator:nth-child(odd),
-  .atv-personage-collaborator:nth-child(even) {
-    padding-right: 0;
-    padding-left: 0;
-  }
-
-  .atv-personage-collaborator img,
-  .atv-personage-collaborator-avatar {
+  .atv-personage-collaborator-avatar,
+  .atv-personage-collaborator-avatar.is-fallback {
     width: 42px;
     height: 42px;
-  }
-
-  .atv-personage-collaborator-identity h3 {
-    font-size: 15px;
-  }
-
-  .atv-personage-collaborator-identity strong,
-  .atv-personage-collaborator[data-leading="true"]
-    .atv-personage-collaborator-identity
-    strong {
-    font-size: 22px;
   }
 
   .atv-personage-gallery-rail li {
@@ -532,34 +997,89 @@
   }
 
   .atv-personage-awards-list li {
-    padding: 16px;
-    gap: 8px;
+    padding: 16px 0;
+    gap: 10px;
     grid-template-columns: 1fr;
   }
 
   .atv-personage-award-year {
     padding-top: 0;
+    font-size: 14px;
+    font-weight: 600;
   }
-}
 
-@media (width <= 900px) {
-  .atv-personage-work-rail.is-complete .atv-personage-work-card {
-    flex: 0 0 132px;
+  .atv-personage-award-detail {
+    padding-left: 12px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .atv-personage-portrait-trigger,
-  .atv-personage-gallery-rail button,
-  .atv-personage-work-card,
-  .atv-personage-collaborator-actions a {
+  .atv-personage-hero .atv-personage-portrait,
+  .atv-personage-hero .atv-personage-identity h1,
+  .atv-personage-hero .atv-personage-original-name,
+  .atv-personage-hero .atv-personage-facts div,
+  .atv-personage-hero .atv-personage-biography {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .atv-personage-collaborator {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .atv-personage-collaborator:active {
+    transform: none;
+  }
+
+  .atv-personage-gallery-rail li {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Timeline: dots always visible, no entrance animations */
+  .atv-timeline-year-group::before {
+    opacity: 1;
+    transform: scale(1);
     transition: none;
   }
 
+  .atv-timeline-year-num {
+    animation: none;
+    opacity: 1;
+  }
+
+  .atv-personage-work-card,
+  .atv-timeline-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .atv-personage-portrait-trigger:active,
-  .atv-personage-gallery-rail button:active,
-  .atv-personage-work-card:active,
-  .atv-personage-collaborator-actions a:active {
+  .atv-personage-portrait-trigger:hover {
+    transform: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .atv-personage-gallery-rail button:hover {
+      transform: none;
+    }
+  }
+
+  .atv-personage-portrait-trigger,
+  .atv-personage-gallery-rail button,
+  .atv-personage-work-card,
+  .atv-timeline-card {
+    transition: none;
+    will-change: auto;
+  }
+
+  .atv-personage-portrait-trigger:active,
+  .atv-personage-gallery-rail button:active {
     transform: none;
   }
 }

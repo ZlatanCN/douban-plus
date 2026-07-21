@@ -42,37 +42,43 @@ describe(extractPersonageProfile, () => {
             year: "2024年",
           },
         ],
+        totalCount: 2,
       },
       biography: [
         "彼特·丁拉基是一位美国演员，以细腻而有力量的表演闻名。",
         "他因出演《权力的游戏》中的提利昂·兰尼斯特而广为人知。",
       ],
-      collaborators: [
-        {
-          avatar: "https://img.example.com/b.jpg",
-          href: "https://www.douban.com/personage/2",
-          name: "合作者乙",
-          sharedWorkCount: 20,
-          sharedWorksHref:
-            "http://localhost:3000/personage/27224733/partners#2",
-        },
-        {
-          avatar: "https://img.example.com/a.jpg",
-          href: "https://www.douban.com/personage/1",
-          name: "合作者甲",
-          sharedWorkCount: 12,
-          sharedWorksHref:
-            "http://localhost:3000/personage/27224733/partners#1",
-        },
-        {
-          avatar: "https://img.example.com/c.jpg",
-          href: "https://www.douban.com/personage/3",
-          name: "合作者丙",
-          sharedWorkCount: 12,
-          sharedWorksHref:
-            "http://localhost:3000/personage/27224733/partners#3",
-        },
-      ],
+      collaborators: {
+        allCollaboratorsHref:
+          "http://localhost:3000/personage/27224733/partners",
+        collaborators: [
+          {
+            avatar: "https://img.example.com/b.jpg",
+            href: "https://www.douban.com/personage/2",
+            name: "合作者乙",
+            sharedWorkCount: 20,
+            sharedWorksHref:
+              "http://localhost:3000/personage/27224733/partners#2",
+          },
+          {
+            avatar: "https://img.example.com/a.jpg",
+            href: "https://www.douban.com/personage/1",
+            name: "合作者甲",
+            sharedWorkCount: 12,
+            sharedWorksHref:
+              "http://localhost:3000/personage/27224733/partners#1",
+          },
+          {
+            avatar: "https://img.example.com/c.jpg",
+            href: "https://www.douban.com/personage/3",
+            name: "合作者丙",
+            sharedWorkCount: 12,
+            sharedWorksHref:
+              "http://localhost:3000/personage/27224733/partners#3",
+          },
+        ],
+        totalCount: 3,
+      },
       facts: [
         { label: "性别", value: "男" },
         { label: "出生日期", value: "1969-06-11" },
@@ -101,24 +107,28 @@ describe(extractPersonageProfile, () => {
       recentWorks: {
         allWorksHref:
           "http://localhost:3000/creations?sortby=time&type=filmmaker",
+        totalCount: 2,
         works: [
           {
             href: "https://movie.douban.com/subject/10001/",
             poster: "https://img.example.com/recent.jpg",
             rating: "8.2",
             title: "近期作品",
+            year: "2011",
           },
         ],
       },
       representativeWorks: {
         allWorksHref:
           "http://localhost:3000/creations?sortby=collection&type=filmmaker",
+        totalCount: 2,
         works: [
           {
             href: "https://movie.douban.com/subject/20002/",
             poster: "https://img.example.com/representative.jpg",
             rating: "9.1",
             title: "代表作品",
+            year: "1999",
           },
         ],
       },
@@ -179,7 +189,10 @@ describe(extractPersonageProfile, () => {
     );
 
     expect(extractPersonageProfile(missing.doc)?.collaborators).toBeNull();
-    expect(extractPersonageProfile(empty.doc)?.collaborators).toStrictEqual([]);
+    expect(extractPersonageProfile(empty.doc)?.collaborators).toStrictEqual({
+      allCollaboratorsHref: null,
+      collaborators: [],
+    });
 
     missing.cleanup();
     empty.cleanup();
@@ -205,6 +218,7 @@ describe(extractPersonageProfile, () => {
     expect(extractPersonageProfile(empty.doc)?.awards).toStrictEqual({
       allAwardsHref: "http://localhost:3000/awards",
       awards: [],
+      totalCount: 0,
     });
 
     missing.cleanup();
@@ -245,6 +259,7 @@ describe(extractPersonageProfile, () => {
           poster: "https://img.example.com/to-live.jpg",
           rating: null,
           title: "活着",
+          year: null,
         },
       ],
     });
@@ -374,7 +389,7 @@ describe(mountPersonage, () => {
     expect(doc.querySelector("#atv-personage-recent-works")).toBeNull();
     expect(
       doc.querySelector("#atv-personage-representative-works h2")?.textContent
-    ).toBe("代表作品");
+    ).toBe("作品选");
 
     cleanup();
   });

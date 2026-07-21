@@ -3,7 +3,7 @@ import { $$, safeText } from "@/utils/dom";
 import type {
   PersonageAward,
   PersonageAwards,
-  PersonageCollaborator,
+  PersonageCollaborators,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,
@@ -30,8 +30,14 @@ const imageUrl = (element: Element | null): string | null => {
   );
 };
 
-const largePhotoUrl = (src: string): string =>
-  src.replace("/view/photo/photo/", "/view/photo/l/");
+const largePhotoUrl = (src: string): string => {
+  // Only replace known medium-photo path; return as-is if pattern doesn't match
+  // to avoid corrupting already-large or differently-formatted URLs
+  if (src.includes("/view/photo/photo/")) {
+    return src.replace("/view/photo/photo/", "/view/photo/l/");
+  }
+  return src;
+};
 
 const extractFacts = (target: Element): PersonageFact[] =>
   $$<HTMLLIElement>(".subject-property li", target).flatMap((item) => {
@@ -47,15 +53,13 @@ const extractBiography = (doc: Document): string[] | null => {
   return biography.length > 0 ? biography : null;
 };
 
-const extractCollaborators = (
-  doc: Document
-): PersonageCollaborator[] | null => {
+const extractCollaborators = (doc: Document): PersonageCollaborators | null => {
   const source = doc.querySelector(".partners-mod-mod");
   if (!source) {
     return null;
   }
 
-  return $$<HTMLLIElement>(".partners-mod-item", source)
+  const collaborators = $$<HTMLLIElement>(".partners-mod-item", source)
     .flatMap((item, nativeIndex) => {
       const profileLink = item.querySelector<HTMLAnchorElement>(
         ".partners-mod-info a[title][href]"
@@ -86,6 +90,18 @@ const extractCollaborators = (
         left.nativeIndex - right.nativeIndex
     )
     .map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
+
+  const allCollaboratorsHref =
+    source.querySelector<HTMLAnchorElement>("h2 a[href]")?.href ?? null;
+  const totalCountMatch = source
+    .querySelector<HTMLAnchorElement>("h2 a[href]")
+    ?.textContent?.match(/\d+/u)?.[0];
+
+  return {
+    allCollaboratorsHref,
+    ...(totalCountMatch ? { totalCount: Number(totalCountMatch) } : {}),
+    collaborators,
+  };
 };
 
 const hrefOf = (element: Element | undefined): string | null =>
@@ -120,9 +136,13 @@ const extractAwards = (doc: Document): PersonageAwards | null => {
     ];
   });
 
+  const allAwardsLink = source.querySelector<HTMLAnchorElement>("h2 a[href]");
+  const allAwardsHref = allAwardsLink?.href ?? null;
+  const awardsCountMatch = allAwardsLink?.textContent?.match(/\d+/u)?.[0];
+
   return {
-    allAwardsHref:
-      source.querySelector<HTMLAnchorElement>("h2 a[href]")?.href ?? null,
+    allAwardsHref,
+    ...(awardsCountMatch ? { totalCount: Number(awardsCountMatch) } : {}),
     awards,
   };
 };
@@ -175,6 +195,7 @@ const extractWorkRail = (
     return null;
   }
 
+  let lastYear: string | null = null;
   const works = $$<HTMLElement>("li.creation", source).flatMap((item) => {
     const posterLink =
       item.querySelector<HTMLAnchorElement>("a.img_wrap[href]");
@@ -183,21 +204,41 @@ const extractWorkRail = (
       return [];
     }
 
+    // Year: recent works use .timeline-year, representative works use .pl
+    // The year element only appears on the first work of each year group;
+    // subsequent works in the same year inherit from it.
+    const yearElement =
+      item.querySelector<HTMLElement>(".timeline-year") ??
+      item.querySelector<HTMLElement>(".pl");
+    const rawYear = yearElement ? safeText(yearElement).trim() : "";
+    // Only accept 4-digit year-like values to avoid false positives
+    const currentYear = /^\d{4}$/u.test(rawYear) ? rawYear : lastYear;
+    if (/^\d{4}$/u.test(rawYear)) {
+      lastYear = rawYear;
+    }
+
     return [
       {
         href: posterLink.href,
         poster: imageUrl(posterLink.querySelector("img")) ?? "",
         rating: safeText(item.querySelector(".rating-val")) || null,
         title,
+        year: currentYear,
       } satisfies PersonageWork,
     ];
   });
 
-  const allWorksHref = $$<HTMLAnchorElement>("a[href]", source).find((link) =>
+  const allWorksLink = $$<HTMLAnchorElement>("a[href]", source).find((link) =>
     new URL(link.href).pathname.includes("/creations")
-  )?.href;
+  );
+  const allWorksHref = allWorksLink?.href;
+  const totalCountMatch = allWorksLink?.textContent?.match(/\d+/u)?.[0];
 
-  return { allWorksHref: allWorksHref ?? null, works };
+  return {
+    allWorksHref: allWorksHref ?? null,
+    ...(totalCountMatch ? { totalCount: Number(totalCountMatch) } : {}),
+    works,
+  };
 };
 
 const extractPersonageProfile = (doc: Document): PersonageProfile | null => {

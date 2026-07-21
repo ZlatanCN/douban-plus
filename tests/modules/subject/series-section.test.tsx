@@ -28,7 +28,7 @@ describe(SeriesSection, () => {
     expect(section?.tagName).toBe("SECTION");
     expect(section?.classList.contains("atv-section")).toBeTruthy();
     expect(section?.querySelector("h2.atv-section-h")?.textContent).toBe(
-      "同系列作品"
+      "系列"
     );
   });
 

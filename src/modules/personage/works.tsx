@@ -27,10 +27,8 @@ const PersonageWorkRail = ({ id, rail, title }: PersonageWorkRailProps) => {
         : {})}
       title={title}
     >
-      <div
-        class={`atv-carousel atv-personage-work-rail${rail.works.length === 5 ? " is-complete" : ""}`}
-      >
-        {rail.works.map((work) => (
+      <div class="atv-personage-work-rail">
+        {rail.works.map((work, index) => (
           <a
             class="atv-personage-work-card"
             href={work.href}
@@ -39,12 +37,16 @@ const PersonageWorkRail = ({ id, rail, title }: PersonageWorkRailProps) => {
             target="_blank"
           >
             <div class="atv-personage-work-poster">
-              <PosterImage alt={work.title} poster={work.poster} />
+              <span class="atv-work-index">{index + 1}</span>
               {work.rating ? (
-                <span class="atv-personage-work-rating">{work.rating}</span>
+                <span class="atv-work-rating">{work.rating}</span>
               ) : null}
+              <PosterImage alt={work.title} poster={work.poster} />
             </div>
             <span class="atv-personage-work-title">{work.title}</span>
+            {work.year ? (
+              <span class="atv-personage-work-year">{work.year}</span>
+            ) : null}
           </a>
         ))}
       </div>

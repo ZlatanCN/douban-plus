@@ -99,6 +99,6 @@ describe("motion style contract", () => {
       ".atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;"
     );
     expect(responsiveCss).not.toContain(".atv-photo-tile.is-portrait");
-    expect(mediaCss).not.toContain("@keyframes");
+    expect(mediaCss).toContain("@keyframes atv-photo-in");
   });
 });

@@ -15,15 +15,15 @@ describe(getSubjectSectionCopy, () => {
       getSubjectSectionCopy("recommendations"),
       getSubjectSectionCopy("details"),
     ]).toStrictEqual([
-      { navLabel: "观看平台", sectionTitle: "观看平台" },
-      { navLabel: "同系列", sectionTitle: "同系列作品" },
+      { navLabel: "片源", sectionTitle: "片源" },
+      { navLabel: "系列", sectionTitle: "系列" },
       { navLabel: "演职员", sectionTitle: "演职员" },
       { navLabel: "影像", sectionTitle: "影像" },
-      { navLabel: "短评", sectionTitle: "热门短评" },
-      { navLabel: "影评", sectionTitle: "热门影评" },
-      { navLabel: "剧评", sectionTitle: "热门剧评" },
-      { navLabel: "相似作品", sectionTitle: "相似作品" },
-      { navLabel: "详情", sectionTitle: "详细信息" },
+      { navLabel: "短评", sectionTitle: "短评" },
+      { navLabel: "影评", sectionTitle: "影评" },
+      { navLabel: "剧评", sectionTitle: "剧评" },
+      { navLabel: "推荐", sectionTitle: "推荐" },
+      { navLabel: "详情", sectionTitle: "详情" },
     ]);
   });
 });

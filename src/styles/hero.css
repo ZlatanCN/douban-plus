@@ -21,7 +21,7 @@
   left: 0;
   overflow: hidden;
   height: 75vh;
-  background: #000;
+  background: #0c0a09;
 }
 
 .atv-hero-still {
@@ -119,7 +119,7 @@
     rgb(0 0 0 / 45%) 0%,
     transparent 28%,
     transparent 55%,
-    #000 100%
+    #0c0a09 100%
   );
 }
 
@@ -129,7 +129,7 @@
   max-width: 1100px;
   align-items: flex-start;
   margin: 0 auto;
-  gap: 56px;
+  gap: 64px;
 }
 
 .atv-poster-card {
@@ -143,10 +143,17 @@
   appearance: none;
   aspect-ratio: 2 / 3;
   background: var(--atv-bg-tertiary);
-  box-shadow:
-    0 24px 60px rgb(0 0 0 / 60%),
-    0 0 0 1px var(--atv-border-subtle) inset;
-  transition: transform var(--atv-duration-hover) var(--atv-ease-out);
+  box-shadow: 0 32px 80px rgb(0 0 0 / 65%);
+  transition:
+    transform var(--atv-duration-hover) var(--atv-ease-out),
+    box-shadow var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-poster-card:hover {
+    box-shadow: 0 48px 128px rgb(0 0 0 / 75%);
+    transform: translateY(-8px);
+  }
 }
 
 .atv-poster-card img {
@@ -168,20 +175,18 @@
 .atv-hero-title {
   margin: 0 0 8px;
   color: #fff;
-  font-size: clamp(44px, 5.5vw, 72px);
+  font-size: clamp(44px, 5.5vw, 80px);
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  text-shadow:
-    0 2px 20px rgb(0 0 0 / 70%),
-    0 0 60px rgb(0 0 0 / 30%);
+  letter-spacing: clamp(-0.035em, -0.03em, -0.025em);
+  line-height: 1;
+  text-shadow: 0 4px 30px rgb(0 0 0 / 50%);
 }
 
 .atv-hero-orig {
   margin-bottom: 22px;
   color: var(--atv-text-secondary);
   font-size: clamp(18px, 1.6vw, 22px);
-  font-weight: 400;
+  font-weight: 300;
   letter-spacing: -0.01em;
   opacity: 0.85;
 }
@@ -376,8 +381,6 @@
   padding: 4px 11px;
   border: 1px solid var(--atv-border-subtle);
   border-radius: 999px;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
   background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
   font-size: 12px;

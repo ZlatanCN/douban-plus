@@ -1,20 +1,20 @@
 /* ---------- Comments ---------- */
 .atv-comments {
   display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .atv-comment-card {
   display: flex;
   flex-direction: column;
-  padding: 18px 20px;
-  border: 1px solid rgb(255 255 255 / 6%);
-  border-radius: var(--atv-radius-md);
+  padding: 16px 20px;
+  border: none;
+  border-radius: var(--atv-radius-sm);
   background: #121214;
   transition:
     transform var(--atv-duration-hover) var(--atv-ease-out),
-    border-color var(--atv-duration-hover) ease;
+    background var(--atv-duration-hover) ease;
 }
 
 .atv-comment-top {
@@ -32,16 +32,14 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgb(255 255 255 / 6%);
+  border: 1px solid rgb(255 255 255 / 6%);
   border-radius: 50%;
   background-color: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
   color: #fff;
   font-size: 15px;
   font-weight: 600;
-  transition: border-color var(--atv-duration-feedback) ease;
 }
 
 .atv-comment-meta {
@@ -94,7 +92,7 @@ a.atv-comment-author:hover {
   cursor: pointer;
   font: inherit;
   font-size: 15px;
-  line-height: 1.5;
+  line-height: 1.65;
   overflow-wrap: break-word;
   text-align: left;
 }
@@ -123,7 +121,7 @@ a.atv-comment-author:hover {
   align-items: center;
   padding: 4px 10px;
   border: 1px solid rgb(255 255 255 / 8%);
-  border-radius: 100px;
+  border-radius: 8px;
   background: none;
   color: var(--atv-text-tertiary);
   cursor: pointer;
@@ -179,13 +177,13 @@ a.atv-comment-author:hover {
 
 .atv-comment-expand {
   display: none;
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 1px solid rgb(255 255 255 / 6%);
-  border-radius: 50%;
+  border-radius: 6px;
   appearance: none;
   backdrop-filter: blur(4px);
   background: rgb(0 0 0 / 30%);

@@ -96,7 +96,7 @@ describe(StreamingSection, () => {
     );
 
     const cards = root.querySelectorAll<HTMLAnchorElement>(".atv-stream-card");
-    expect(root.querySelector("h2")?.textContent).toBe("观看平台");
+    expect(root.querySelector("h2")?.textContent).toBe("片源");
     expect(cards).toHaveLength(2);
     expect(root.querySelectorAll(".atv-stream-logo")).toHaveLength(0);
     expect(root.querySelector(".atv-stream-arrow")).toBeNull();

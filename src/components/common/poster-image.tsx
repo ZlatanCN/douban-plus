@@ -1,6 +1,5 @@
-import { useState } from "preact/hooks";
-
 import { PosterPlaceholder } from "./poster-placeholder";
+import { SafeImage } from "./safe-image";
 
 type PosterImageProps = {
   alt: string;
@@ -8,23 +7,15 @@ type PosterImageProps = {
   poster: string;
 };
 
-const PosterImage = ({ alt, className, poster }: PosterImageProps) => {
-  const [failed, setFailed] = useState(false);
-
-  if (!poster || failed) {
-    return <PosterPlaceholder />;
-  }
-
-  return (
-    <img
-      alt={alt}
-      class={className}
-      loading="lazy"
-      onError={() => setFailed(true)}
-      src={poster}
-    />
-  );
-};
+const PosterImage = ({ alt, className, poster }: PosterImageProps) => (
+  <SafeImage
+    alt={alt}
+    {...(className ? { className } : {})}
+    fallback={<PosterPlaceholder />}
+    loading="lazy"
+    src={poster}
+  />
+);
 
 export { PosterImage };
 export type { PosterImageProps };

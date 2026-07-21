@@ -81,7 +81,7 @@ describe(CommentsSection, () => {
     const author = root.querySelector<HTMLAnchorElement>(".atv-comment-author");
 
     expect(section?.tagName).toBe("SECTION");
-    expect(section?.querySelector("h2")?.textContent).toBe("热门短评");
+    expect(section?.querySelector("h2")?.textContent).toBe("短评");
     expect(card?.dataset.cid).toBe("c123");
     expect(author?.href).toBe("https://douban.com/people/u1/");
     expect(author?.target).toBe("_blank");

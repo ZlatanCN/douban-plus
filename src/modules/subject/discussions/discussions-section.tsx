@@ -98,7 +98,12 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
               target="_blank"
             />
             <div class="atv-discussion-copy">
-              <h3 class="atv-discussion-title">{topic.title}</h3>
+              <div class="atv-discussion-title-row">
+                <h3 class="atv-discussion-title">{topic.title}</h3>
+                <span aria-hidden="true" class="atv-discussion-arrow">
+                  ↗
+                </span>
+              </div>
               <DiscussionMetadata
                 {...(topic.activity ? { activity: topic.activity } : {})}
                 {...(topic.author ? { author: topic.author } : {})}
@@ -107,9 +112,6 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
                   : { replies: topic.replies })}
               />
             </div>
-            <span aria-hidden="true" class="atv-discussion-arrow">
-              ↗
-            </span>
           </article>
         ))}
       </div>

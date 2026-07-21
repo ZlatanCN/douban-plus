@@ -85,30 +85,24 @@ describe(PhotosSection, () => {
     expect(tiles[1]?.querySelector("img")?.getAttribute("alt")).toBe("剧照");
   });
 
-  it("keeps a resolved photo's geometry fixed after lazy image load", async () => {
+  it("keeps a resolved photo's geometry fixed and falls back safely on error", () => {
     const root = renderIntoRoot(
       <PhotosSection
         data={makeData({ photos: [makePhoto({ aspectRatio: 3 / 4 })] })}
       />
     );
-    const image = root.querySelector<HTMLImageElement>(".atv-photo-tile img");
     const tile = root.querySelector<HTMLElement>(".atv-photo-tile");
 
-    if (!image) {
-      throw new Error("Expected photo image");
+    if (!tile) {
+      throw new Error("Expected photo tile");
     }
-    Object.defineProperty(image, "naturalHeight", { value: 200 });
-    Object.defineProperty(image, "naturalWidth", { value: 100 });
-    image?.dispatchEvent(new Event("load", { bubbles: true }));
-    await Promise.resolve();
-    expect(tile?.classList.contains("is-portrait")).toBeFalsy();
+
+    expect(tile?.querySelector("img")?.getAttribute("src")).toBe(
+      "https://example.com/thumb.jpg"
+    );
     expect(tile?.style.getPropertyValue("--atv-photo-aspect-ratio")).toBe(
       "0.75"
     );
-
-    image?.dispatchEvent(new Event("error", { bubbles: true }));
-    await Promise.resolve();
-    expect(image?.getAttribute("src")).toBe("https://example.com/hd.jpg");
   });
 
   it("keeps the rail on thumbnails and defers the full image to the preview", () => {

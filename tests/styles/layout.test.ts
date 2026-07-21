@@ -29,3 +29,10 @@ describe("section reveal styles", () => {
     expect(layoutCss).toContain("transition: none;");
   });
 });
+
+describe("carousel scroll-snap", () => {
+  it("allows free scrolling without snap-back on small gestures", () => {
+    expect(layoutCss).toContain(".atv-carousel {");
+    expect(layoutCss).not.toMatch(/scroll-snap-type/u);
+  });
+});

@@ -1,36 +1,160 @@
 /* ---------- Info grid ---------- */
 .atv-info-grid {
   display: grid;
-  gap: 16px 32px;
-  grid-template-columns: 200px 1fr;
+  gap: 20px 48px;
+  grid-template-columns: 140px 1fr;
 }
 
+/* Each row = label + value. We alternate even/odd children.
+   The grid children are label/value siblings, so row pairs are (4n+1, 4n+2).
+   Stagger: each row enters 40ms after the previous one.
+   The animation itself is handled by the section-reveal —
+   this just adds per-row delay on top. */
+.atv-info-grid > * {
+  animation: atv-info-row-enter 500ms var(--atv-ease-out) both;
+}
+
+.atv-info-grid > :nth-child(1),
+.atv-info-grid > :nth-child(2) {
+  animation-delay: 0ms;
+}
+
+.atv-info-grid > :nth-child(3),
+.atv-info-grid > :nth-child(4) {
+  animation-delay: 40ms;
+}
+
+.atv-info-grid > :nth-child(5),
+.atv-info-grid > :nth-child(6) {
+  animation-delay: 80ms;
+}
+
+.atv-info-grid > :nth-child(7),
+.atv-info-grid > :nth-child(8) {
+  animation-delay: 120ms;
+}
+
+.atv-info-grid > :nth-child(9),
+.atv-info-grid > :nth-child(10) {
+  animation-delay: 160ms;
+}
+
+.atv-info-grid > :nth-child(11),
+.atv-info-grid > :nth-child(12) {
+  animation-delay: 200ms;
+}
+
+.atv-info-grid > :nth-child(13),
+.atv-info-grid > :nth-child(14) {
+  animation-delay: 240ms;
+}
+
+.atv-info-grid > :nth-child(15),
+.atv-info-grid > :nth-child(16) {
+  animation-delay: 280ms;
+}
+
+.atv-info-grid > :nth-child(17),
+.atv-info-grid > :nth-child(18) {
+  animation-delay: 320ms;
+}
+
+.atv-info-grid > :nth-child(19),
+.atv-info-grid > :nth-child(20) {
+  animation-delay: 360ms;
+}
+
+@keyframes atv-info-row-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- Labels ---------- */
 .atv-info-label {
-  padding-top: 2px;
-  color: rgb(255 255 255 / 55%);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.05em;
+  padding-top: 3px;
+  color: rgb(255 255 255 / 40%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
+/* ---------- Values ---------- */
 .atv-info-value {
-  color: var(--atv-text-primary);
+  color: rgb(255 255 255 / 82%);
   font-size: 15px;
   font-weight: 400;
-  line-height: 1.5;
+  line-height: 1.65;
   overflow-wrap: break-word;
 }
 
+/* Links inside values — subtle underline that glows on hover */
 .atv-info-value a {
-  border-bottom: 1px solid var(--atv-border-medium);
-  color: var(--atv-text-primary);
+  border-bottom: 1px solid rgb(255 255 255 / 12%);
+  color: inherit;
+  text-decoration: none;
   transition:
-    color var(--atv-duration-feedback) ease,
-    border-color var(--atv-duration-feedback) ease;
+    border-color var(--atv-duration-feedback) ease,
+    color var(--atv-duration-feedback) ease;
 }
 
 .atv-info-value a:hover {
   border-color: var(--atv-accent-bright);
   color: var(--atv-accent-bright);
+}
+
+/* Separator between linked items: a thin middle-dot */
+.atv-info-sep {
+  margin: 0 2px;
+  color: rgb(255 255 255 / 18%);
+}
+
+/* ---------- Awards (gold accent row) ---------- */
+.atv-info-label-award {
+  color: var(--atv-rating-gold);
+}
+
+.atv-info-label-award a {
+  border-bottom: 1px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color var(--atv-duration-feedback) ease;
+}
+
+.atv-info-label-award a:hover {
+  border-color: var(--atv-rating-gold);
+}
+
+/* ---------- Reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .atv-info-grid > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------- Mobile (<=768px) ---------- */
+@media (width <= 768px) {
+  .atv-info-grid {
+    gap: 14px 0;
+    grid-template-columns: 1fr;
+  }
+
+  .atv-info-label {
+    padding-top: 0;
+  }
+
+  .atv-info-grid > * {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }

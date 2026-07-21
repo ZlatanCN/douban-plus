@@ -95,10 +95,8 @@ describe(ReviewsSection, () => {
     const tv = renderReviews(makeData({ isTV: true }));
     const more = movie.querySelector<HTMLAnchorElement>(".atv-section-more");
 
-    expect(movie.querySelector("#atv-reviews h2")?.textContent).toBe(
-      "热门影评"
-    );
-    expect(tv.querySelector("#atv-reviews h2")?.textContent).toBe("热门剧评");
+    expect(movie.querySelector("#atv-reviews h2")?.textContent).toBe("影评");
+    expect(tv.querySelector("#atv-reviews h2")?.textContent).toBe("剧评");
     expect(more?.href).toBe("https://movie.douban.com/subject/1292052/reviews");
   });
 

@@ -26,7 +26,7 @@ describe(PersonageAwardsSection, () => {
     );
     const exit = root.querySelector<HTMLAnchorElement>(".atv-section-more");
 
-    expect(root.querySelector("h2")?.textContent).toBe("获奖");
+    expect(root.querySelector("h2")?.textContent).toBe("荣誉");
     expect(root.querySelector(".atv-personage-award-year")?.textContent).toBe(
       "2026年"
     );

@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 
+import { SafeImage } from "@/components/common/safe-image";
 import { Section } from "@/components/layout/section";
 import type { ImageModalSource } from "@/components/modal";
 
@@ -15,9 +16,10 @@ const noop = (): undefined => undefined;
 
 type PersonageGalleryImageTileProps = {
   alt: string;
+  largeSrc: string;
   onOpenImage: (image: ImageModalSource) => void;
   src: string;
-  largeSrc: string;
+  staggerIndex: number;
 };
 
 const PersonageGalleryImageTile = ({
@@ -25,33 +27,28 @@ const PersonageGalleryImageTile = ({
   largeSrc,
   onOpenImage,
   src,
+  staggerIndex,
 }: PersonageGalleryImageTileProps) => {
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   return (
     <li
-      {...(aspectRatio
-        ? {
-            style: {
-              "--atv-personage-gallery-aspect-ratio": String(aspectRatio),
-            },
-          }
-        : {})}
+      style={{
+        "--stagger-index": String(staggerIndex),
+        ...(aspectRatio
+          ? { "--atv-personage-gallery-aspect-ratio": String(aspectRatio) }
+          : {}),
+      }}
     >
       <button
         aria-label={`查看${alt}`}
         onClick={() => onOpenImage({ alt, previewSrc: src, src: largeSrc })}
         type="button"
       >
-        <img
+        <SafeImage
           alt={alt}
           loading="lazy"
-          onLoad={(event) => {
-            const image = event.currentTarget;
-            if (image.naturalWidth && image.naturalHeight) {
-              setAspectRatio(image.naturalWidth / image.naturalHeight);
-            }
-          }}
+          onLoad={({ width, height }) => setAspectRatio(width / height)}
           src={src}
         />
       </button>
@@ -79,7 +76,7 @@ const PersonageGallerySection = ({
             },
           }
         : {})}
-      title="图片"
+      title="图集"
     >
       {gallery.images.length > 0 ? (
         <ul
@@ -96,6 +93,7 @@ const PersonageGallerySection = ({
                 largeSrc={image.largeSrc}
                 onOpenImage={onOpenImage}
                 src={image.src}
+                staggerIndex={index}
               />
             );
           })}

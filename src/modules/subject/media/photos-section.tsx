@@ -1,6 +1,5 @@
-import { useState } from "preact/hooks";
-
 import { PlayIcon } from "@/components/common/icons";
+import { SafeImage } from "@/components/common/safe-image";
 import { Section } from "@/components/layout/section";
 import type { ImageModalSource } from "@/components/modal";
 import type { ResolvedPhoto } from "@/modules/subject/types";
@@ -24,39 +23,35 @@ const noop = (): undefined => undefined;
 const PhotoTile = ({
   onOpenPoster,
   photo,
+  staggerIndex = 0,
 }: {
   onOpenPoster: (image: ImageModalSource) => void;
   photo: ResolvedPhoto;
-}) => {
-  const primarySrc = photo.thumbUrl || photo.hdUrl;
-  const [displaySrc, setDisplaySrc] = useState(primarySrc);
-
-  return (
-    <button
-      class="atv-photo-tile"
-      onClick={() =>
-        onOpenPoster({
-          alt: "剧照",
-          previewSrc: photo.thumbUrl,
-          src: photo.hdUrl || photo.thumbUrl,
-        })
-      }
-      style={{ "--atv-photo-aspect-ratio": String(photo.aspectRatio) }}
-      type="button"
-    >
-      <img
-        alt="剧照"
-        loading="lazy"
-        onError={() => {
-          if (photo.hdUrl && displaySrc !== photo.hdUrl) {
-            setDisplaySrc(photo.hdUrl);
-          }
-        }}
-        src={displaySrc}
-      />
-    </button>
-  );
-};
+  staggerIndex?: number;
+}) => (
+  <button
+    class="atv-photo-tile"
+    onClick={() =>
+      onOpenPoster({
+        alt: "剧照",
+        previewSrc: photo.thumbUrl,
+        src: photo.hdUrl || photo.thumbUrl,
+      })
+    }
+    style={{
+      "--atv-photo-aspect-ratio": String(photo.aspectRatio),
+      "--stagger-index": String(staggerIndex),
+    }}
+    type="button"
+  >
+    <SafeImage
+      alt="剧照"
+      aspectRatio={photo.aspectRatio}
+      loading="lazy"
+      src={photo.thumbUrl || photo.hdUrl}
+    />
+  </button>
+);
 
 const PhotosSection = ({
   data,
@@ -110,11 +105,12 @@ const PhotosSection = ({
         ) : null}
         {resolvingPhotos
           ? null
-          : data.photos.map((photo) => (
+          : data.photos.map((photo, index) => (
               <PhotoTile
                 key={photo.link}
                 onOpenPoster={onOpenImage}
                 photo={photo}
+                staggerIndex={index}
               />
             ))}
       </div>

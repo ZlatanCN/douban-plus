@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { PersonageCollaborators } from "@/modules/personage/collaborators";
-import type { PersonageCollaborator } from "@/modules/personage/types";
+import type {
+  PersonageCollaborator,
+  PersonageCollaborators as PersonageCollaboratorsData,
+} from "@/modules/personage/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 
-const collaborators: PersonageCollaborator[] = [
+const entries: PersonageCollaborator[] = [
   {
     avatar: "https://img.example.com/a.jpg",
     href: "https://www.douban.com/personage/1",
@@ -29,29 +32,43 @@ const collaborators: PersonageCollaborator[] = [
   },
 ];
 
+const collaborators: PersonageCollaboratorsData = {
+  allCollaboratorsHref: "https://www.douban.com/personage/0/partners",
+  collaborators: entries,
+};
+
 describe(PersonageCollaborators, () => {
   it("presents loaded collaborators as an ordered credit list", () => {
     const root = renderIntoRoot(
       <PersonageCollaborators collaborators={collaborators} />
     );
-    const entries = [
+    const renderedEntries = [
       ...root.querySelectorAll<HTMLElement>(".atv-personage-collaborator"),
     ];
 
     expect(
       root.querySelector("#atv-personage-collaborators h2")?.textContent
-    ).toBe("常合作的人");
+    ).toBe("合作");
     expect(
-      entries.map((entry) => [
+      root.querySelector<HTMLAnchorElement>(
+        "#atv-personage-collaborators .atv-section-more"
+      )
+    ).toMatchObject({
+      href: "https://www.douban.com/personage/0/partners",
+      target: "_blank",
+      textContent: "查看全部 →",
+    });
+    expect(
+      renderedEntries.map((entry) => [
         entry.querySelector(".atv-personage-collaborator-rank")?.textContent,
-        entry.querySelector("h3")?.textContent,
-        entry.querySelector("strong")?.textContent,
+        entry.querySelector(".atv-personage-collaborator-name")?.textContent,
+        entry.querySelector(".atv-personage-collaborator-count")?.textContent,
         [...entry.querySelectorAll("a")].map((link) => link.textContent),
       ])
     ).toStrictEqual([
-      ["01", "合作者甲", "20", ["查看共同作品", "查看人物"]],
-      ["02", "合作者乙", "12", ["查看共同作品", "查看人物"]],
-      ["03", "合作者丙", "9", ["查看共同作品", "查看人物"]],
+      ["1", "合作者甲", "20 次合作", ["合作者甲", "查看共同作品 ↗"]],
+      ["2", "合作者乙", "12 次合作", ["合作者乙", "查看共同作品 ↗"]],
+      ["3", "合作者丙", "9 次合作", ["合作者丙", "查看共同作品 ↗"]],
     ]);
     expect(root.querySelector("svg")).toBeNull();
     expect(root.querySelector("button")).toBeNull();
@@ -69,24 +86,24 @@ describe(PersonageCollaborators, () => {
         ),
       ].map((link) => [link.textContent, link.href, link.target])
     ).toStrictEqual([
+      ["合作者甲", "https://www.douban.com/personage/1", "_blank"],
       [
-        "查看共同作品",
+        "查看共同作品 ↗",
         "https://www.douban.com/personage/0/partners#1",
         "_blank",
       ],
-      ["查看人物", "https://www.douban.com/personage/1", "_blank"],
+      ["合作者乙", "https://www.douban.com/personage/2", "_blank"],
       [
-        "查看共同作品",
+        "查看共同作品 ↗",
         "https://www.douban.com/personage/0/partners#2",
         "_blank",
       ],
-      ["查看人物", "https://www.douban.com/personage/2", "_blank"],
+      ["合作者丙", "https://www.douban.com/personage/3", "_blank"],
       [
-        "查看共同作品",
+        "查看共同作品 ↗",
         "https://www.douban.com/personage/0/partners#3",
         "_blank",
       ],
-      ["查看人物", "https://www.douban.com/personage/3", "_blank"],
     ]);
   });
 });

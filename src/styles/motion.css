@@ -12,15 +12,15 @@
   }
 
   .atv-comment-card:hover {
-    border-color: rgb(255 255 255 / 12%);
+    background: rgb(255 255 255 / 3%);
   }
 
   .atv-review-card:hover {
-    border-color: rgb(255 255 255 / 12%);
+    background: rgb(255 255 255 / 3%);
   }
 
   .atv-review-card:hover .atv-review-readmore {
-    opacity: 0.7;
+    opacity: 1;
     transform: translateX(0);
   }
 
@@ -37,6 +37,10 @@
     transform: scale(1.15);
   }
 
+  .atv-discussion-row:hover {
+    background: rgb(255 255 255 / 3%);
+  }
+
   .atv-discussion-row:hover::before {
     opacity: 1;
     transform: scaleY(1);
@@ -44,7 +48,7 @@
 
   .atv-discussion-row:hover .atv-discussion-arrow {
     opacity: 1;
-    transform: none;
+    transform: translateX(0);
   }
 }
 
@@ -86,12 +90,19 @@
   .atv-discussion-row:hover::before,
   .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,
   .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,
+  .atv-discussion-row:active,
   .atv-series-card:hover,
   .atv-cast-card:hover,
   .atv-photo-tile:hover,
   .atv-rec-card:hover .atv-rec-poster,
   .atv-trailer-tile:hover,
   .atv-hero-more.is-open svg {
+    transform: none;
+  }
+
+  .atv-photo-tile {
+    animation: none;
+    opacity: 1;
     transform: none;
   }
 
@@ -164,6 +175,10 @@
   }
 
   .atv-comment-card,
+  .atv-review-card {
+    background: #181818;
+  }
+
   .atv-review-card,
   .atv-stream-card,
   .atv-chip,
@@ -172,7 +187,9 @@
   }
 
   .atv-discussion-row {
-    border-bottom-color: rgb(255 255 255 / 25%);
+    border: 1px solid rgb(255 255 255 / 20%);
+    border-radius: var(--atv-radius-sm);
+    background: #181818;
   }
 
   .atv-chip {
@@ -199,10 +216,6 @@
 }
 
 /* ---------- Card press states ---------- */
-.atv-discussion-row {
-  transition: transform var(--atv-duration-press) var(--atv-ease-out);
-}
-
 .atv-poster-card:active {
   transform: scale(0.97);
 }

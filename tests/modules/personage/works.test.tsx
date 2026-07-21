@@ -14,6 +14,7 @@ const recentWorks: PersonageWorkRailData = {
       poster: "https://img.example.com/recent.jpg",
       rating: "8.2",
       title: "近期作品",
+      year: "2011",
     },
   ],
 };
@@ -50,7 +51,7 @@ describe(PersonageWorkRail, () => {
     expect(root.firstElementChild).toBeNull();
   });
 
-  it("marks a complete five-work source for the desktop shelf layout", () => {
+  it("wraps five work cards in a flex-wrap layout without overflow clipping", () => {
     const root = renderIntoRoot(
       <PersonageWorkRail
         id="atv-personage-recent-works"
@@ -59,16 +60,15 @@ describe(PersonageWorkRail, () => {
           works: Array.from({ length: 5 }, (_, index) => ({
             ...recentWorks.works[0],
             href: `https://movie.douban.com/subject/${index}/`,
+            title: `Work ${index + 1}`,
           })),
         }}
         title="近期作品"
       />
     );
 
-    expect(
-      root
-        .querySelector(".atv-personage-work-rail")
-        ?.classList.contains("is-complete")
-    ).toBeTruthy();
+    const rail = root.querySelector(".atv-personage-work-rail");
+    expect(rail).not.toBeNull();
+    expect(rail?.querySelectorAll(".atv-personage-work-card")).toHaveLength(5);
   });
 });

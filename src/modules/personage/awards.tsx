@@ -37,7 +37,7 @@ const PersonageAwardsSection = ({ awards }: PersonageAwardsSectionProps) => {
             },
           }
         : {})}
-      title="获奖"
+      title="荣誉"
     >
       {awards.awards.length ? (
         <ul class="atv-personage-awards-list">

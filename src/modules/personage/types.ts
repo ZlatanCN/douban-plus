@@ -19,10 +19,13 @@ type PersonageWork = {
   poster: string;
   rating: string | null;
   title: string;
+  /** 作品上映/发布年份，从豆瓣 DOM 解析 */
+  year: string | null;
 };
 
 type PersonageWorkRail = {
   allWorksHref: string | null;
+  totalCount?: number;
   works: PersonageWork[];
 };
 
@@ -38,6 +41,7 @@ type PersonageAward = {
 type PersonageAwards = {
   allAwardsHref: string | null;
   awards: PersonageAward[];
+  totalCount?: number;
 };
 
 type PersonageCollaborator = {
@@ -48,10 +52,16 @@ type PersonageCollaborator = {
   sharedWorksHref: string | null;
 };
 
+type PersonageCollaborators = {
+  allCollaboratorsHref: string | null;
+  collaborators: PersonageCollaborator[];
+  totalCount?: number;
+};
+
 type PersonageProfile = {
   awards: PersonageAwards | null;
   biography: string[] | null;
-  collaborators: PersonageCollaborator[] | null;
+  collaborators: PersonageCollaborators | null;
   facts: PersonageFact[];
   gallery: PersonageGallery | null;
   id: string;
@@ -65,6 +75,7 @@ export type {
   PersonageAward,
   PersonageAwards,
   PersonageCollaborator,
+  PersonageCollaborators,
   PersonageFact,
   PersonageGallery,
   PersonageGalleryImage,

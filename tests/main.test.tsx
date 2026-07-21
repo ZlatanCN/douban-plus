@@ -232,9 +232,9 @@ const S = {
   info: { id: "atv-info", label: "详情" },
   movieReviews: { id: "atv-reviews", label: "影评" },
   photos: { id: "atv-photos", label: "影像" },
-  recs: { id: "atv-recs", label: "相似作品" },
-  series: { id: "atv-series", label: "同系列" },
-  stream: { id: "atv-stream", label: "观看平台" },
+  recs: { id: "atv-recs", label: "推荐" },
+  series: { id: "atv-series", label: "系列" },
+  stream: { id: "atv-stream", label: "片源" },
   tvReviews: { id: "atv-reviews", label: "剧评" },
 } as const;
 
@@ -554,9 +554,7 @@ describe(SubjectPage, () => {
       ...root.querySelectorAll<HTMLAnchorElement>(".atv-stickynav-jumps a"),
     ]
       .map((link) => link.textContent)
-      .filter((label) =>
-        ["影评", "小组讨论", "相似作品"].includes(label ?? "")
-      );
+      .filter((label) => ["影评", "讨论", "推荐"].includes(label ?? ""));
 
     expect({
       heading: root.querySelector("#atv-discussions h2")?.textContent,
@@ -569,8 +567,8 @@ describe(SubjectPage, () => {
         target: topicLink?.target,
       },
     }).toStrictEqual({
-      heading: "小组讨论",
-      navOrder: ["影评", "小组讨论", "相似作品"],
+      heading: "讨论",
+      navOrder: ["影评", "讨论", "推荐"],
       sectionOrder: ["atv-reviews", "atv-discussions", "atv-recs"],
       topic: {
         href: "https://www.douban.com/group/topic/480926084/",
@@ -820,6 +818,6 @@ describe(SubjectPage, () => {
     expect({
       nav: root.querySelector('a[href="#atv-discussions"]')?.textContent,
       section: root.querySelector("#atv-discussions h2")?.textContent,
-    }).toStrictEqual({ nav: "小组讨论", section: "小组讨论" });
+    }).toStrictEqual({ nav: "讨论", section: "讨论" });
   });
 });

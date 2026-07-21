@@ -41,7 +41,7 @@ describe(PersonageGallerySection, () => {
     const exit = root.querySelector<HTMLAnchorElement>(".atv-section-more");
 
     expect(root.querySelector("#atv-personage-gallery h2")?.textContent).toBe(
-      "图片"
+      "图集"
     );
     expect(
       root.querySelector(".atv-personage-gallery-empty")?.textContent
