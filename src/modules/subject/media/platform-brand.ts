@@ -40,7 +40,7 @@ import {
   LogoYouku,
   LogoYoukuCombined,
   LogoYouTube,
-} from "@/shared/components/common/icons";
+} from "./platform-brand-icons";
 
 type PlatformBrandKey =
   | "abc"
@@ -115,7 +115,12 @@ const PLATFORM_BRANDS: PlatformBrand[] = [
   },
   {
     Icon: LogoDiscoveryPlus,
-    aliases: ["discovery+", "discovery plus", "discoveryplus"],
+    aliases: [
+      "discovery+",
+      "discovery plus",
+      "discoveryplus",
+      "discoverchannel",
+    ],
     color: "#34A65C",
     colorMode: "intrinsic",
     key: "discovery-plus",
