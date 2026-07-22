@@ -482,6 +482,48 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
+  it("waits for an asynchronously expanded native biography before mounting", async () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">张艺谋 Yimou Zhang</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"><p>截断的原生简介</p></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27260166/"
+    );
+    const source = doc.querySelector<HTMLElement>(".subject-intro .content");
+    const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
+
+    toggle?.addEventListener("click", () => {
+      if (toggle) {
+        toggle.textContent = "(收起)";
+      }
+      queueMicrotask(() => {
+        source?.replaceChildren(
+          Object.assign(doc.createElement("p"), {
+            textContent: "异步展开后提供的完整人物简介",
+          })
+        );
+      });
+    });
+    Object.defineProperty(doc, "readyState", {
+      configurable: true,
+      value: "complete",
+    });
+
+    mountPersonage(doc);
+
+    await vi.waitFor(() =>
+      expect(
+        doc.querySelector(".atv-personage-biography-content")?.textContent
+      ).toBe("异步展开后提供的完整人物简介")
+    );
+
+    cleanup();
+  });
+
   it("adopts a biography only after the page-load boundary makes native expansion available", async () => {
     const { cleanup, doc } = createTestDoc(
       `

@@ -5937,16 +5937,42 @@
 		};
 	};
 	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
-	var adoptPersonageProfile = (doc) => {
-		const initialProfile = extractPersonageProfile(doc);
-		if (!initialProfile || !isBiographyExpansionPending(doc)) return initialProfile;
-		[...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"))?.click();
-		return isBiographyExpansionPending(doc) ? null : extractPersonageProfile(doc);
+	var waitForExpandedBiography = (doc, onExpanded) => {
+		const source = doc.querySelector(".subject-intro");
+		const view = doc.defaultView;
+		if (!source || !view) return;
+		let frame = null;
+		let observer = null;
+		const finishAdoption = () => {
+			frame = null;
+			observer?.disconnect();
+			if (isBiographyExpansionPending(doc)) return;
+			const profile = extractPersonageProfile(doc);
+			if (profile) onExpanded(profile);
+		};
+		const scheduleAdoption = () => {
+			if (frame !== null) view.cancelAnimationFrame(frame);
+			frame = view.requestAnimationFrame(finishAdoption);
+		};
+		observer = new MutationObserver(scheduleAdoption);
+		observer.observe(source, {
+			characterData: true,
+			childList: true,
+			subtree: true
+		});
+		scheduleAdoption();
 	};
 	var adoptPersonageProfileWhenReady = (doc, onAdopted) => {
 		const adopt = () => {
-			const profile = adoptPersonageProfile(doc);
-			if (profile) onAdopted(profile);
+			const initialProfile = extractPersonageProfile(doc);
+			if (!initialProfile) return;
+			if (!isBiographyExpansionPending(doc)) {
+				onAdopted(initialProfile);
+				return;
+			}
+			const trigger = [...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"));
+			waitForExpandedBiography(doc, onAdopted);
+			trigger?.click();
 		};
 		if (doc.readyState === "complete" || !isBiographyExpansionPending(doc)) {
 			adopt();
