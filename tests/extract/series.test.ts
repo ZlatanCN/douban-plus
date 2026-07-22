@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractSeries } from "@/extract/series";
+import { extractSeries } from "@/modules/subject/extract/series";
 
 import { buildDoc } from "../helpers/doc";
 

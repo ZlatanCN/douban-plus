@@ -4,7 +4,10 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractH1, extractYearFromH1 } from "@/extract/title-helpers";
+import {
+  extractH1,
+  extractYearFromH1,
+} from "@/modules/subject/extract/title-helpers";
 
 import { buildDoc } from "../helpers/doc";
 

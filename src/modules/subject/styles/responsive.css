@@ -1,0 +1,282 @@
+/* ---------- Responsive ---------- */
+@media (width <= 1024px) {
+  .atv-hero {
+    min-height: 64vh;
+    padding: 104px 24px 48px;
+  }
+
+  .atv-hero-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 28px;
+  }
+
+  .atv-poster-card {
+    width: 220px;
+  }
+
+  .atv-section {
+    padding: 44px 24px;
+  }
+
+  .atv-info-grid {
+    column-gap: 24px;
+    grid-template-columns: 160px 1fr;
+  }
+}
+
+@media (width <= 768px) {
+  .atv-hero {
+    min-height: 56vh;
+    padding: 88px 20px 40px;
+  }
+
+  .atv-poster-card {
+    width: 180px;
+  }
+
+  .atv-section {
+    padding: 36px 20px;
+  }
+
+  .atv-info-grid {
+    grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+
+  .atv-info-label {
+    padding-top: 12px;
+  }
+
+  .atv-recs {
+    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  .atv-cast-card {
+    flex-basis: 120px;
+  }
+
+  .atv-cast-avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .atv-series-card {
+    flex-basis: 120px;
+  }
+
+  .atv-photo-tile:not(.atv-trailer-tile),
+  .atv-photo-rail-reserve {
+    height: 157.5px;
+  }
+
+  .atv-rating-panel .atv-rating-panel-score {
+    font-size: 32px;
+  }
+
+  .atv-rating-panel-douban,
+  .atv-rating-panel-imdb,
+  .atv-rating-panel-rt,
+  .atv-rating-panel-mc {
+    padding: 12px 14px 10px;
+  }
+
+  .atv-rating-panel {
+    min-width: 0;
+  }
+
+  .atv-comments {
+    grid-template-columns: 1fr;
+  }
+
+  .atv-comment-overlay-inner {
+    max-width: 95vw;
+    border-radius: 16px;
+  }
+
+  .atv-comment-overlay-top {
+    padding: 24px 20px 0;
+  }
+
+  .atv-comment-overlay-body {
+    padding: 16px 20px;
+    font-size: 14px;
+  }
+
+  .atv-comment-overlay-foot {
+    padding: 0 20px 24px;
+  }
+
+  .atv-reviews {
+    grid-template-columns: 1fr;
+  }
+
+  .atv-review-modal-scroll {
+    max-width: 100vw;
+    max-height: 92vh;
+    padding: 24px 18px 22px;
+    border-radius: 20px 20px 0 0;
+  }
+
+  .atv-review-modal {
+    align-items: flex-end;
+    padding: 0;
+    overscroll-behavior: contain;
+  }
+
+  .atv-review-modal .atv-modal-close {
+    top: 14px;
+    right: 14px;
+  }
+
+  .atv-review-modal-body blockquote {
+    padding: 12px 14px;
+    margin: 16px 0;
+  }
+
+  .atv-review-modal-body blockquote blockquote {
+    padding: 10px 12px;
+  }
+
+  .atv-review-modal-body .image-container {
+    margin: 16px 0;
+  }
+
+  .atv-review-modal-body .image-container.image-float-left,
+  .atv-review-modal-body .image-container.image-float-right {
+    max-width: 100%;
+    margin: 16px 0;
+    float: none;
+  }
+
+  .atv-review-modal-body .subject-wrapper > a {
+    padding: 10px;
+    gap: 10px;
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  .atv-review-modal-body .subject-cover {
+    width: 44px;
+    height: 66px;
+  }
+
+  .atv-review-modal-body .subject-title {
+    font-size: 15px;
+  }
+
+  .atv-review-modal-body .subject-caption-wrapper {
+    padding: 0 10px 10px 66px;
+  }
+
+  /* Review content typography — responsive */
+  .atv-review-modal-body h3 {
+    margin-top: 22px;
+  }
+
+  .atv-review-modal-body h4 {
+    margin-top: 18px;
+  }
+
+  .atv-review-modal-body hr {
+    margin: 22px 0;
+  }
+
+  .atv-review-modal-body pre {
+    padding: 12px 16px;
+  }
+
+  .atv-review-modal-body th,
+  .atv-review-modal-body td {
+    padding: 8px 10px;
+  }
+
+  .atv-login-modal {
+    align-items: flex-end;
+    padding: 16px;
+  }
+
+  .atv-login-modal-inner {
+    width: 100%;
+    padding: 28px 20px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-section {
+    animation: none;
+  }
+
+  .atv-trailer-tile,
+  .atv-trailer-tile:hover {
+    filter: none;
+    transform: none;
+  }
+
+  .atv-trailer-play-overlay {
+    transition: none;
+  }
+
+  .atv-trailer-play-btn {
+    transition: none;
+  }
+
+  .atv-trailer-tile:hover .atv-trailer-play-btn {
+    box-shadow: none;
+    transform: none;
+  }
+
+  .atv-modal-overlay.is-open .atv-modal-video {
+    transform: none;
+  }
+
+  .atv-review-card,
+  .atv-review-card:hover,
+  .atv-review-card:active {
+    box-shadow: none;
+    transform: none;
+    transition: none;
+  }
+
+  .atv-review-modal-scroll {
+    transform: none;
+    transition: none;
+  }
+
+  .atv-review-modal.is-open .atv-review-modal-scroll {
+    transform: none;
+  }
+
+  .atv-review-modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    transition: none;
+  }
+
+  /* Modal overlay fades */
+  .atv-modal-overlay,
+  .atv-comment-overlay,
+  .atv-interest-modal,
+  .atv-login-modal {
+    transition: none;
+  }
+
+  .atv-login-modal-inner,
+  .atv-login-modal.is-open .atv-login-modal-inner {
+    transform: none;
+    transition: none;
+  }
+
+  /* Accent edge glow */
+  .atv-modal-accent-bar {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
+
+@media (width <= 768px) {
+  .atv-trailer-tile {
+    height: 157.5px;
+    flex-basis: 280px;
+  }
+}

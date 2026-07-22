@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { $, $$, safeText } from "@/utils/dom";
+import { $, $$, safeText } from "@/shared/utils/dom";
 
 import { buildDoc } from "../helpers/doc";
 

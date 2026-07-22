@@ -1,14 +1,14 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useStickyNavigation } from "@/runtime/use-sticky-navigation";
-import type { animateWithReducedMotion } from "@/utils/springs";
+import { useStickyNavigation } from "@/modules/subject/runtime/use-sticky-navigation";
+import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => ({
   animate: vi.fn<typeof animateWithReducedMotion>(),
 }));
 
-vi.mock(import("@/utils/springs"), async (importOriginal) => ({
+vi.mock(import("@/shared/utils/springs"), async (importOriginal) => ({
   ...(await importOriginal()),
   animateWithReducedMotion: motion.animate,
 }));

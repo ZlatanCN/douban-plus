@@ -1,0 +1,123 @@
+/* ---------- WorkRail (代表作品) ---------- */
+
+.atv-personage-work-rail {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 20px;
+}
+
+.atv-personage-work-card {
+  min-width: 140px;
+  flex: 1 1 0;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  text-decoration: none;
+  transform: translateY(8px);
+  transition:
+    opacity 400ms var(--atv-ease-out) 200ms,
+    transform 400ms var(--atv-ease-out) 200ms;
+}
+
+.atv-section-reveal.is-revealed .atv-personage-work-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.atv-personage-work-card:focus-visible {
+  border-radius: var(--atv-radius-sm);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+.atv-personage-work-poster {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border-radius: var(--atv-radius-sm);
+  aspect-ratio: 2 / 3;
+  background: var(--atv-bg-tertiary);
+}
+
+.atv-personage-work-poster img,
+.atv-personage-work-poster .atv-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Index number badge — 1‑based order on the card poster */
+.atv-work-index {
+  position: absolute;
+  z-index: 1;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 4px 4px 0;
+  backdrop-filter: blur(2px);
+  background: rgb(0 0 0 / 60%);
+  color: #fff;
+  font-family:
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+/* Rating badge — pill badge on the card poster */
+.atv-work-rating {
+  position: absolute;
+  z-index: 1;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  min-width: 28px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 7px;
+  border-radius: 20px;
+  backdrop-filter: blur(4px);
+  background: rgb(0 0 0 / 65%);
+  color: #fff;
+  font-family:
+    "SF Pro Display",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.atv-personage-work-title {
+  display: block;
+  overflow: hidden;
+  margin-top: 10px;
+  color: var(--atv-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-personage-work-year {
+  display: block;
+  margin-top: 4px;
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  font-weight: 500;
+}

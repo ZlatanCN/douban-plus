@@ -6,7 +6,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { getCk, gmGet, gmPost } from "@/utils/request";
+import { getCk, gmGet, gmPost } from "@/shared/utils/request";
 
 import { mockCookie } from "../helpers/doc";
 

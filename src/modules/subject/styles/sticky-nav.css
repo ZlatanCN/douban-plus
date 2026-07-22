@@ -1,0 +1,109 @@
+/* ---------- Sticky nav ---------- */
+.atv-stickynav {
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: flex;
+  height: 56px;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 max(28px, 5vw);
+  border-bottom: 1px solid rgb(255 255 255 / 6%);
+  background: rgb(10 10 12 / 95%);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
+  gap: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-100%);
+}
+
+/* Frosted glass effect only when NOT actively scrolling — Apple-style.
+   The backdrop-filter forces per-frame compositing; dropping it during
+   scroll eliminates the main source of scroll jank. */
+.atv-stickynav.is-visible:not(.is-scrolling) {
+  -webkit-backdrop-filter: saturate(180%) blur(24px);
+  backdrop-filter: saturate(180%) blur(24px);
+  background: rgb(10 10 12 / 74%);
+}
+
+.atv-stickynav.is-visible {
+  pointer-events: auto;
+}
+
+.atv-stickynav-title {
+  overflow: hidden;
+  min-width: 0;
+  flex: 0 1 auto;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-stickynav-jumps {
+  position: relative;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 24px;
+}
+
+.atv-stickynav-jumps a {
+  position: relative;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  transition: color var(--atv-duration-feedback) ease;
+  white-space: nowrap;
+}
+
+#atv-douban-root .atv-stickynav-jumps a {
+  color: rgb(255 255 255 / 70%);
+}
+
+#atv-douban-root .atv-stickynav-jumps a:hover {
+  background: transparent;
+  color: var(--atv-accent-bright);
+}
+
+#atv-douban-root .atv-stickynav-jumps a.is-active {
+  color: var(--atv-accent-bright);
+}
+
+.atv-stickynav-marker {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: var(--atv-accent-bright);
+  transform: translateX(0);
+  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);
+}
+
+@media (width <= 768px) {
+  .atv-stickynav-title {
+    font-size: 14px;
+  }
+
+  .atv-stickynav-jumps {
+    gap: 14px;
+  }
+
+  .atv-stickynav-jumps a {
+    font-size: 12px;
+  }
+}
+
+/* The sliding active marker jumps to the active item without sliding
+   motion under reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .atv-stickynav-marker {
+    transition: none;
+  }
+}

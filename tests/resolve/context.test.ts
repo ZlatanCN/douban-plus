@@ -5,7 +5,8 @@
 import { describe, it, expect } from "vitest";
 
 // Import after mocking
-const { buildContext } = await import("../../src/resolve/context");
+const { buildContext } =
+  await import("../../src/modules/subject/resolve/context");
 
 /* ── Suite ────────────────────────────────────────────── */
 

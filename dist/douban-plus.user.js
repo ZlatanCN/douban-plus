@@ -1,12 +1,20 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.4.1
+// @version      1.5.0
 // @author       Gabriel Zhu
-// @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
+// @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
+// @copyright    Gabriel Zhu (MIT)
+// @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iOTQiIGhlaWdodD0iOTQiIHJ4PSIyMCIgZmlsbD0iIzFjMWMxZSIvPgogIDxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjUyIiByeD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iNjIiIHI9IjgiIGZpbGw9IiM0MmJkNTYiLz4KPC9zdmc+Cg==
+// @icon64       data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iOTQiIGhlaWdodD0iOTQiIHJ4PSIyMCIgZmlsbD0iIzFjMWMxZSIvPgogIDxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjUyIiByeD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iNjIiIHI9IjgiIGZpbGw9IiM0MmJkNTYiLz4KPC9zdmc+Cg==
+// @homepageURL  https://github.com/ZlatanCN/douban-plus
+// @supportURL   https://github.com/ZlatanCN/douban-plus/issues
+// @downloadURL  https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.user.js
+// @updateURL    https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.meta.js
 // @include      https://accounts.douban.com/passport/login*
 // @match        *://movie.douban.com/subject/*
+// @match        *://www.douban.com/personage/*
 // @match        *://accounts.douban.com/passport/login*
 // @exclude      *://movie.douban.com/subject/*/all_photos
 // @exclude      *://movie.douban.com/subject/*/photos*
@@ -15,6 +23,22 @@
 // @exclude      *://movie.douban.com/subject/*/comments[?]*
 // @exclude      *://movie.douban.com/subject/*/reviews*
 // @exclude      *://movie.douban.com/subject/*/reviews[?]*
+// @tag          douban
+// @tag          豆瓣
+// @tag          movie
+// @tag          电影
+// @tag          enhancement
+// @tag          增强
+// @tag          rating
+// @tag          评分
+// @tag          apple-tv
+// @tag          dark-mode
+// @tag          暗色模式
+// @tag          redesign
+// @tag          tampermonkey
+// @tag          scriptcat
+// @tag          userscript
+// @tag          油猴脚本
 // @connect      douban.com
 // @connect      movie.douban.com
 // @connect      graphql.imdb.com
@@ -23,6 +47,7 @@
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @run-at       document-start
+// @noframes
 // ==/UserScript==
 
 (function() {
@@ -36,7 +61,5971 @@
 			else (document.head || document.documentElement).appendChild(document.createElement("style")).append(c);
 		})(t);
 	};
-	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #000;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody > #wrapper {\n  display: none !important;\n}\n\nbody {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\n#db-global-nav,\n#db-nav-movie {\n  display: none !important;\n}\n\n[id^=\"dale_\"],\n[class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition:\n    transform var(--atv-duration-feedback) var(--atv-ease-in-out),\n    width var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n/* ---------- Subject suggestion results ---------- */\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion-results {\n  animation: atv-subject-suggestion-results-enter var(--atv-duration-feedback)\n    var(--atv-ease-out) both;\n}\n\n@keyframes atv-subject-suggestion-results-enter {\n  from {\n    opacity: 0;\n    transform: translateY(-4px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n\n  .atv-subject-suggestion-results {\n    animation: atv-subject-suggestion-results-fade-in\n      var(--atv-duration-feedback) var(--atv-ease-out) both;\n  }\n}\n\n@keyframes atv-subject-suggestion-results-fade-in {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #000;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #000 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 56px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  box-shadow:\n    0 24px 60px rgb(0 0 0 / 60%),\n    0 0 0 1px var(--atv-border-subtle) inset;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 72px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1.05;\n  text-shadow:\n    0 2px 20px rgb(0 0 0 / 70%),\n    0 0 60px rgb(0 0 0 / 30%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 14%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, \"Cascadia Code\", monospace;\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 700;\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 22%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  -webkit-backdrop-filter: blur(8px);\n  backdrop-filter: blur(8px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 16px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.01em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 4px;\n  height: 24px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  flex: 0 0 auto;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-section-more:hover {\n  color: var(--atv-accent-bright);\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scroll-snap-type: x mandatory;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  flex: 0 0 400px;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-tile.is-portrait {\n  flex: 0 0 240px;\n  aspect-ratio: 3 / 4;\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 16px 32px;\n  grid-template-columns: 200px 1fr;\n}\n\n.atv-info-label {\n  padding-top: 2px;\n  color: rgb(255 255 255 / 55%);\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.05em;\n  text-transform: uppercase;\n}\n\n.atv-info-value {\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n}\n\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: var(--atv-text-primary);\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 18px;\n  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 22px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n/* ---------- Poster Modal ---------- */\n\n.atv-poster-card {\n  cursor: pointer;\n}\n\n.atv-modal-overlay,\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n/* ---------- Video modal spinner ---------- */\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n/* ---------- Footer spacer ---------- */\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 600;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  background: rgb(255 255 255 / 4%);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 13px;\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 5%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: rgb(65 190 93 / 45%);\n  background: rgb(65 190 93 / 16%);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: rgb(65 190 93 / 38%);\n  background: rgb(65 190 93 / 12%);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 255 255 / 3%);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: 13px;\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 6%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: rgb(255 69 58 / 35%);\n  background: rgb(255 69 58 / 18%);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  overflow: hidden;\n  min-width: 0;\n  max-width: 36ch;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 22px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    border-color var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  border-color: rgb(65 190 93 / 45%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.7;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  overflow: hidden;\n  border: 1px solid rgb(255 255 255 / 7%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  min-height: 66px;\n  align-items: center;\n  padding: 16px 22px;\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  gap: 3px 24px;\n  grid-template-columns: minmax(0, 1fr) minmax(106px, max-content) 17px;\n  grid-template-rows: auto auto;\n  isolation: isolate;\n}\n\n.atv-discussion-row:last-child {\n  border-bottom: 0;\n}\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0.35);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n.atv-discussion-title {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  margin: 0;\n  color: rgb(255 255 255 / 90%);\n  font-size: 16px;\n  font-weight: 600;\n  grid-column: 1;\n  grid-row: 1;\n  letter-spacing: -0.01em;\n  line-height: 1.45;\n  pointer-events: none;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-discussion-copy {\n  display: contents;\n  pointer-events: none;\n}\n\n.atv-discussion-meta {\n  display: contents;\n}\n\n.atv-discussion-author {\n  position: relative;\n  z-index: 2;\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  grid-column: 1;\n  grid-row: 2;\n  line-height: 1.35;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n.atv-discussion-activity {\n  position: relative;\n  z-index: 2;\n  display: grid;\n  min-width: 106px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 3px;\n  grid-column: 2;\n  grid-row: 1 / span 2;\n  line-height: 1.35;\n  pointer-events: none;\n  text-align: right;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-time {\n  display: grid;\n  font-variant-numeric: tabular-nums;\n  gap: 1px;\n  white-space: nowrap;\n}\n\n.atv-discussion-footer {\n  margin-top: 14px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-discussion-footer a:hover,\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  text-decoration: underline;\n}\n\n.atv-discussion-footer a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-discussion-arrow {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-accent-bright);\n  font-size: 17px;\n  grid-column: 3;\n  grid-row: 1 / span 2;\n  opacity: 0.35;\n  pointer-events: none;\n  transform: translate(-3px, 3px);\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:hover .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:hover .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-activity,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-activity {\n  color: var(--atv-accent-bright);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: none;\n}\n\n@media (width <= 768px) {\n  .atv-discussion-row {\n    min-height: 0;\n    align-items: start;\n    padding: 14px 16px;\n    gap: 6px 14px;\n    grid-template-columns: minmax(0, 1fr) 17px;\n    grid-template-rows: auto;\n  }\n\n  .atv-discussion-copy {\n    position: relative;\n    z-index: 2;\n    display: block;\n    min-width: 0;\n    grid-column: 1;\n    pointer-events: none;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n    text-overflow: clip;\n    white-space: normal;\n  }\n\n  .atv-discussion-meta {\n    display: flex;\n    min-width: 0;\n    flex-wrap: wrap;\n    align-items: center;\n    margin-top: 6px;\n    color: var(--atv-text-tertiary);\n    font-size: 12px;\n    gap: 8px;\n    line-height: 1.35;\n  }\n\n  .atv-discussion-author {\n    min-width: 0;\n    max-width: 100%;\n    flex: 0 1 auto;\n    margin-top: 0;\n  }\n\n  .atv-discussion-activity {\n    display: flex;\n    min-width: 0;\n    align-items: center;\n    color: inherit;\n    font-size: inherit;\n    gap: 8px;\n    line-height: inherit;\n    text-align: left;\n  }\n\n  .atv-discussion-author + .atv-discussion-activity::before {\n    width: 1px;\n    height: 1em;\n    background: rgb(255 255 255 / 18%);\n    content: \"\";\n  }\n\n  .atv-discussion-time {\n    display: inline-flex;\n    gap: 3px;\n  }\n\n  .atv-discussion-arrow {\n    align-self: center;\n    grid-column: 2;\n    grid-row: 1;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-activity,\n  .atv-discussion-arrow,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before,\n  .atv-discussion-arrow {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile {\n    flex-basis: 280px;\n  }\n\n  .atv-photo-tile.is-portrait {\n    flex-basis: 170px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover {\n    border-color: rgb(255 255 255 / 12%);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 0.7;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: none;\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-poster-card:hover,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-photo-tile:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border-bottom-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-discussion-row {\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
+	var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  --atv-bg-primary: #0c0a09;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-text-primary: #fff;\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 45%);\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-rating-gold: #ffb800;\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n  --atv-radius-xl: 24px;\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n  --atv-duration-overlay: 200ms;\n  --atv-duration-modal-backdrop: 400ms;\n  --atv-duration-modal-surface: 350ms;\n}\n\nbody.atv-enhanced > #wrapper {\n  display: none !important;\n}\n\nbody.atv-enhanced {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\nbody.atv-enhanced #db-global-nav,\nbody.atv-enhanced #db-nav-movie,\nbody.atv-enhanced #db-nav-sns {\n  display: none !important;\n}\n\nbody.atv-enhanced [id^=\"dale_\"],\nbody.atv-enhanced [class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  font-feature-settings: \"ss01\", \"cv11\";\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid rgb(255 255 255 / 6%);\n  background: rgb(10 10 12 / 95%);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: rgb(10 10 12 / 74%);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: #fff;\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  flex: 0 0 auto;\n  gap: 24px;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: 14px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: rgb(255 255 255 / 70%);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    font-size: 14px;\n  }\n\n  .atv-stickynav-jumps {\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: 12px;\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Subject switcher ---------- */\n\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 7%);\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease;\n}\n\n.atv-subject-switcher-trigger:hover,\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: rgb(255 255 255 / 22%);\n  background: rgb(255 255 255 / 12%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-expanded {\n  position: relative;\n  display: flex;\n  width: min(44vw, 520px);\n  height: 38px;\n  align-items: center;\n  border: 1px solid rgb(255 255 255 / 22%);\n  border-radius: 999px;\n  background: rgb(255 255 255 / 10%);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {\n  display: none;\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n  position: absolute;\n  left: 50%;\n  margin: 0;\n  transform: translateX(-50%);\n}\n\n.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n  width: min(56vw, 620px);\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 14px;\n  outline: 0;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: rgb(255 255 255 / 10%);\n  color: var(--atv-text-tertiary);\n  font-size: 10px;\n  font-weight: 700;\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover,\n.atv-subject-switcher-close:focus-visible {\n  background: rgb(255 255 255 / 18%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {\n    display: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {\n    position: relative;\n    left: auto;\n    width: 100%;\n    margin: 0;\n    transform: none;\n  }\n\n  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {\n    width: 100%;\n  }\n}\n\n/* ---------- Subject suggestion results ---------- */\n\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: var(--atv-radius-md);\n  background: rgb(21 21 23 / 96%);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid rgb(255 255 255 / 7%);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 650;\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: rgb(255 255 255 / 8%);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Hero ---------- */\n\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: #0c0a09;\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    #0c0a09 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 64px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: #fff;\n  font-size: clamp(44px, 5.5vw, 80px);\n  font-weight: 700;\n  letter-spacing: clamp(-0.035em, -0.03em, -0.025em);\n  line-height: 1;\n  text-shadow: 0 4px 30px rgb(0 0 0 / 50%);\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: clamp(18px, 1.6vw, 22px);\n  font-weight: 300;\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 14%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, \"Cascadia Code\", monospace;\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 700;\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 400;\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    rgb(255 184 0 / 22%) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 10px 14px;\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 13%);\n  border-radius: 9px;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform-mark.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  margin-right: 14px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ---------- Personage hero ---------- */\n\n.atv-personage-hero {\n  position: relative;\n  min-height: 70vh;\n  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;\n}\n\n.atv-personage-hero::after {\n  position: absolute;\n  right: max(28px, 7vw);\n  bottom: 0;\n  left: max(28px, 7vw);\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-border-subtle) 20%,\n    var(--atv-border-subtle) 80%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-personage-hero-inner {\n  display: grid;\n  width: min(100%, 1120px);\n  align-items: start;\n  margin: 0 auto;\n  gap: clamp(32px, 5vw, 72px);\n  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);\n}\n\n.atv-personage-portrait {\n  width: 100%;\n  border-radius: 50%;\n  aspect-ratio: 1;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n}\n\n.atv-personage-portrait.is-empty {\n  background: radial-gradient(\n    circle at 30% 25%,\n    #4a4a4d,\n    var(--atv-bg-tertiary) 62%\n  );\n}\n\n.atv-personage-portrait-trigger {\n  display: block;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: 50%;\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n}\n\n.atv-personage-kicker {\n  margin: 2px 0 16px;\n  color: var(--atv-accent-bright);\n  font-size: 11px;\n  font-weight: 600;\n  letter-spacing: 0.16em;\n  text-transform: uppercase;\n}\n\n.atv-personage-identity h1 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: clamp(44px, 7vw, 84px);\n  letter-spacing: -0.04em;\n  line-height: 0.98;\n}\n\n.atv-personage-original-name {\n  margin: 18px 0 0;\n  color: var(--atv-text-secondary);\n  font-size: clamp(19px, 2.1vw, 28px);\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1.2;\n}\n\n.atv-personage-facts {\n  display: flex;\n  flex-wrap: wrap;\n  margin: 32px 0 0;\n  gap: 12px 32px;\n}\n\n.atv-personage-facts div {\n  display: flex;\n  gap: 8px;\n}\n\n.atv-personage-facts dt {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  letter-spacing: 0.03em;\n  opacity: 0.7;\n}\n\n.atv-personage-facts dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-personage-biography {\n  max-width: 680px;\n  margin-top: 36px;\n}\n\n.atv-personage-biography-content {\n  color: var(--atv-text-secondary);\n  font-size: 16px;\n  letter-spacing: 0.01em;\n  line-height: 1.8;\n}\n\n.atv-personage-biography-content p {\n  margin: 0;\n}\n\n.atv-personage-biography-content p + p {\n  margin-top: 1em;\n}\n\n.atv-personage-biography-content.is-clamped > p:not(:first-child) {\n  display: none;\n}\n\n.atv-personage-biography-content.is-clamped > p:first-child {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 3;\n}\n\n.atv-personage-biography button {\n  padding: 0;\n  border: 0;\n  margin-top: 12px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  transition: opacity 160ms ease;\n}\n\n/* ---------- Entrance ---------- */\n\n@keyframes atv-hero-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(12px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-hero-portrait-in {\n  from {\n    opacity: 0;\n    transform: scale(0.92);\n  }\n\n  to {\n    opacity: 1;\n    transform: scale(1);\n  }\n}\n\n.atv-personage-hero.is-revealed .atv-personage-portrait {\n  animation: atv-hero-portrait-in 500ms var(--atv-ease-out) both;\n  animation-delay: 80ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-identity h1 {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 180ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-kicker {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-original-name {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-facts div {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: calc(340ms + var(--fact-index, 0) * 60ms);\n}\n\n.atv-personage-hero.is-revealed .atv-personage-biography {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 500ms;\n}\n\n/* ---------- Hover ---------- */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-biography button:hover {\n    opacity: 0.8;\n  }\n}\n\n/* ---------- Collaborators ---------- */\n\n.atv-personage-collaborators {\n  display: flex;\n  flex-direction: column;\n  padding: 0;\n  margin: 20px 0 0;\n  list-style: none;\n}\n\n.atv-personage-collaborator {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  align-items: center;\n  padding: 14px 12px;\n  border-radius: var(--atv-radius-sm, 8px);\n  gap: 14px;\n  grid-template-columns: 28px 48px 1fr auto;\n  transition: background 160ms ease;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-collaborator {\n  animation: atv-collaborator-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover {\n    background: var(--atv-bg-secondary);\n  }\n\n  .atv-personage-collaborator::before {\n    position: absolute;\n    top: 14px;\n    bottom: 14px;\n    left: 0;\n    width: 3px;\n    border-radius: 0 3px 3px 0;\n    background: var(--atv-accent);\n    content: \"\";\n    opacity: 0;\n    transform: scaleY(0.35);\n    transition:\n      opacity var(--atv-duration-feedback) ease,\n      transform var(--atv-duration-hover) var(--atv-ease-out);\n  }\n\n  .atv-personage-collaborator:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n}\n\n.atv-personage-collaborator:active {\n  transform: scale(0.98);\n}\n\n@keyframes atv-collaborator-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.atv-personage-collaborator-rank {\n  display: flex;\n  justify-content: flex-end;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n}\n\n.atv-personage-collaborator-avatar {\n  width: 48px;\n  height: 48px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n  transition: border-color 160ms ease;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover .atv-personage-collaborator-avatar {\n    border-color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-avatar.is-fallback {\n  display: grid;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  place-items: center;\n}\n\n.atv-personage-collaborator-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 2px;\n}\n\n.atv-personage-collaborator-name {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 650;\n  letter-spacing: -0.01em;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  transition: color 160ms ease;\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-name:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-count {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 400;\n}\n\n.atv-personage-collaborator-action {\n  flex-shrink: 0;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-weight: 600;\n  text-decoration: none;\n  transition:\n    color 160ms ease,\n    opacity 200ms var(--atv-ease-out),\n    transform 200ms var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-personage-collaborator-arrow {\n  display: inline-block;\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-action {\n    opacity: 0;\n    pointer-events: none;\n    transform: translateX(8px);\n  }\n\n  .atv-personage-collaborator-arrow {\n    opacity: 0.35;\n    transform: translate(1px, -2px);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-action {\n    opacity: 1;\n    pointer-events: auto;\n    transform: translateX(0);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow {\n    opacity: 1;\n    transform: translate(0, 0);\n  }\n\n  .atv-personage-collaborator-action:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-action:focus-visible {\n  border-radius: 2px;\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-personage .atv-section {\n  padding: 36px 0;\n}\n\n.atv-personage .atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-personage .atv-section-h {\n  padding-left: 0;\n  margin-bottom: 28px;\n  color: var(--atv-text-secondary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.02em;\n}\n\n.atv-personage .atv-section-h::before {\n  display: none;\n}\n\n.atv-personage .atv-section-h-row {\n  margin-bottom: 28px;\n}\n\n.atv-personage-gallery-rail {\n  gap: 12px;\n  list-style: none;\n}\n\n@keyframes atv-gallery-tile-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-personage-gallery-rail li {\n  min-width: 0;\n  height: 256px;\n  flex: 0 0 auto;\n  aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);\n  scroll-snap-align: start;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-gallery-rail li {\n  animation: atv-gallery-tile-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n.atv-personage-gallery-rail button {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-personage-gallery-rail img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-personage-gallery-empty {\n  padding: 24px;\n  border-radius: var(--atv-radius-sm);\n  margin: 0;\n  background: var(--atv-bg-secondary);\n  color: var(--atv-text-tertiary);\n}\n\n/* ---------- WorkRail (代表作品) ---------- */\n\n.atv-personage-work-rail {\n  display: flex;\n  flex-wrap: nowrap;\n  gap: 20px;\n}\n\n.atv-personage-work-card {\n  min-width: 140px;\n  flex: 1 1 0;\n  color: inherit;\n  cursor: pointer;\n  opacity: 0;\n  text-decoration: none;\n  transform: translateY(8px);\n  transition:\n    opacity 400ms var(--atv-ease-out) 200ms,\n    transform 400ms var(--atv-ease-out) 200ms;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-work-card {\n  opacity: 1;\n  transform: translateY(0);\n}\n\n.atv-personage-work-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-personage-work-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-personage-work-poster img,\n.atv-personage-work-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* Index number badge — 1‑based order on the card poster */\n\n.atv-work-index {\n  position: absolute;\n  z-index: 1;\n  bottom: 0;\n  left: 0;\n  display: flex;\n  width: 28px;\n  height: 28px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 0 4px 4px 0;\n  backdrop-filter: blur(2px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 13px;\n  font-weight: 700;\n  letter-spacing: 0.01em;\n  line-height: 1;\n}\n\n/* Rating badge — pill badge on the card poster */\n\n.atv-work-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-work-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-work-year {\n  display: block;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n}\n\n/* ---------- Timeline (Axis + Dots) ---------- */\n\n/* Vertical axis line — accent at top fades into the dark background toward\n   the past, so newer years read as more present. */\n\n.atv-timeline {\n  position: relative;\n  margin-top: 20px;\n  font-size: clamp(28px, 3.5vw, 40px);\n}\n\n.atv-timeline::before {\n  position: absolute;\n  z-index: 0;\n  top: calc(0.5em);\n  bottom: 10px;\n  left: 15px;\n  width: 1px;\n  background: linear-gradient(\n    to bottom,\n    var(--atv-accent-bright) 0%,\n    var(--atv-accent) 35%,\n    var(--atv-border-subtle) 100%\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-timeline-year-group {\n  position: relative;\n  padding-bottom: 24px;\n  padding-left: 44px;\n  font-size: clamp(28px, 3.5vw, 40px);\n}\n\n.atv-timeline-year-group:last-child {\n  padding-bottom: 0;\n}\n\n.atv-timeline-year-group::before {\n  position: absolute;\n  z-index: 1;\n  top: calc(0.5em - 5px);\n  left: 10px;\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 0 transparent;\n  content: \"\";\n  opacity: 0;\n  transform: scale(0.5);\n  transition:\n    opacity 400ms var(--atv-ease-out),\n    transform 400ms var(--atv-ease-out),\n    box-shadow 400ms var(--atv-ease-out);\n  transition-delay: calc(var(--group-index, 0) * 60ms);\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-group::before {\n  box-shadow:\n    0 0 10px var(--atv-accent),\n    0 0 24px color-mix(in srgb, var(--atv-accent) 25%, transparent);\n  opacity: 1;\n  transform: scale(1);\n}\n\n.atv-timeline-year-num {\n  display: block;\n  margin-bottom: 16px;\n  color: var(--atv-text-primary);\n  font-size: clamp(28px, 3.5vw, 40px);\n  font-weight: 700;\n  letter-spacing: -0.02em;\n  line-height: 1;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-num {\n  animation: atv-timeline-year-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--group-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@keyframes atv-timeline-year-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* Card row */\n\n.atv-timeline-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n}\n\n@keyframes atv-timeline-card-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-timeline-card {\n  min-width: 120px;\n  max-width: 200px;\n  flex: 1 1 160px;\n  color: inherit;\n  cursor: pointer;\n  text-decoration: none;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-card {\n  animation: atv-timeline-card-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(\n    calc(var(--stagger-index, 0) * 40ms + var(--group-index, 0) * 40ms + 20ms),\n    100ms\n  );\n}\n\n.atv-timeline-card:active {\n  transform: scale(0.97);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-timeline-card:hover {\n    transform: translateY(-3px);\n  }\n}\n\n.atv-timeline-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-timeline-card-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-timeline-card-poster img,\n.atv-timeline-card-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-timeline-card-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-timeline-card-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-awards-list {\n  padding: 0;\n  margin: 0;\n  list-style: none;\n}\n\n.atv-personage-awards-list li {\n  display: grid;\n  padding: 20px 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  gap: 24px;\n  grid-template-columns: minmax(84px, auto) 1fr;\n}\n\n.atv-personage-awards-list li:last-child {\n  border-bottom: none;\n}\n\n.atv-personage-award-year {\n  padding-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: 26px;\n  font-weight: 300;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-award-detail {\n  position: relative;\n  min-width: 0;\n  padding-left: 16px;\n  border-left: 2px solid var(--atv-accent);\n}\n\n.atv-personage-award-ceremony,\n.atv-personage-award-ceremony a {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 600;\n}\n\n.atv-personage-award-ceremony a {\n  border-bottom: 1px solid transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-ceremony a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n.atv-personage-award-name {\n  margin: 6px 0 0;\n  color: var(--atv-text-primary);\n  font-size: 17px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-personage-award-work {\n  margin: 6px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n}\n\n.atv-personage-award-work a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-work a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n.atv-personage-awards-empty {\n  padding: 24px 0;\n  margin: 0;\n  color: var(--atv-text-tertiary);\n}\n\n@media (width <= 640px) {\n  .atv-personage-hero-bg-image {\n    filter: blur(40px) saturate(1.25) brightness(0.5);\n  }\n\n  .atv-personage-hero-bg {\n    height: 60vh;\n  }\n\n  .atv-personage-hero-inner {\n    gap: 24px;\n    grid-template-columns: 112px minmax(0, 1fr);\n  }\n\n  .atv-personage-identity h1 {\n    font-size: clamp(34px, 10vw, 50px);\n  }\n\n  .atv-personage-facts {\n    margin-top: 20px;\n  }\n\n  .atv-personage-biography {\n    margin-top: 0;\n    grid-column: 1 / -1;\n  }\n\n  .atv-personage-collaborator {\n    padding: 14px 8px;\n    gap: 10px;\n    grid-template-columns: 20px 42px 1fr auto;\n  }\n\n  .atv-personage-collaborator-avatar,\n  .atv-personage-collaborator-avatar.is-fallback {\n    width: 42px;\n    height: 42px;\n  }\n\n  .atv-personage-gallery-rail li {\n    height: 160px;\n  }\n\n  .atv-personage-awards-list li {\n    padding: 16px 0;\n    gap: 10px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-personage-award-year {\n    padding-top: 0;\n    font-size: 14px;\n    font-weight: 600;\n  }\n\n  .atv-personage-award-detail {\n    padding-left: 12px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-personage-hero .atv-personage-portrait,\n  .atv-personage-hero .atv-personage-identity h1,\n  .atv-personage-hero .atv-personage-original-name,\n  .atv-personage-hero .atv-personage-facts div,\n  .atv-personage-hero .atv-personage-biography {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator:active {\n    transform: none;\n  }\n\n  .atv-personage-gallery-rail li {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  /* Timeline: dots always visible, no entrance animations */\n  .atv-timeline-year-group::before {\n    opacity: 1;\n    transform: scale(1);\n    transition: none;\n  }\n\n  .atv-section-reveal.is-revealed .atv-timeline-year-num {\n    animation: none;\n    opacity: 1;\n  }\n\n  .atv-personage-work-card,\n  .atv-section-reveal.is-revealed .atv-timeline-card {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-work-card,\n  .atv-timeline-card {\n    transition: none;\n    will-change: auto;\n  }\n}\n\n/* Shared SafeImage implementation styles.\n   Page modules own crop, geometry, and motion around this primitive. */\n\n.atv-safe-image-container {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-container > img {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-fallback {\n  width: 100%;\n  height: 100%;\n  min-height: 48px;\n  background: var(--atv-bg-tertiary);\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: rgb(255 255 255 / 3%);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid rgb(255 255 255 / 6%);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 38px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: #3bb33b;\n}\n\n.atv-rating-panel-score.is-medium {\n  color: #ffb800;\n}\n\n.atv-rating-panel-score.is-low {\n  color: #fa320a;\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: rgb(255 255 255 / 10%);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: #3bb33b;\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: #ffb800;\n}\n\n.atv-mc-bar-fill.is-low {\n  background: #fa320a;\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family:\n    \"SF Pro Display\",\n    -apple-system,\n    BlinkMacSystemFont,\n    system-ui,\n    sans-serif;\n  font-size: 30px;\n  font-weight: 700;\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: #ffb800;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: rgb(255 255 255 / 12%);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: 10px;\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 14px;\n  font-weight: 600;\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border-color: transparent;\n  background: var(--atv-accent);\n  box-shadow: 0 6px 20px var(--atv-accent-glow);\n  color: #fff;\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Section ---------- */\n\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 14px;\n  margin: 0 0 24px;\n  font-size: 24px;\n  font-weight: 700;\n  letter-spacing: -0.02em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 3px;\n  height: 20px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  display: inline-flex;\n  flex: 0 0 auto;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 14px;\n  font-weight: 500;\n  gap: 4px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-section-more:hover {\n    color: var(--atv-accent-bright);\n    transform: translateX(3px);\n  }\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: #1c1c1e;\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c #1c1c1e;\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: #fff;\n  font-size: 11px;\n  font-weight: 700;\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 55%);\n  font-size: 13px;\n  font-weight: 400;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n\n.atv-photos {\n  gap: 12px;\n}\n\n@keyframes atv-photo-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  height: 225px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n}\n\n.atv-photo-tile-content {\n  display: block;\n  width: 100%;\n  height: 100%;\n  animation: atv-photo-in 400ms var(--atv-ease-out) both;\n  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-photo-rail-reserve {\n  height: 225px;\n  flex: 0 0 100%;\n}\n\n/* ---------- Recommendations ---------- */\n\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: 15px;\n  font-weight: 600;\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n\n.atv-info-grid {\n  display: grid;\n  gap: 20px 48px;\n  grid-template-columns: 140px 1fr;\n}\n\n/* Each row = label + value. We alternate even/odd children.\n   The grid children are label/value siblings, so row pairs are (4n+1, 4n+2).\n   Stagger: each row enters 24ms after the previous one, capped at 120ms.\n   The animation itself is handled by the section-reveal —\n   this just adds per-row delay on top. */\n\n.atv-section-reveal.is-revealed .atv-info-grid > * {\n  animation: atv-info-row-enter 180ms var(--atv-ease-out) both;\n}\n\n.atv-info-grid > :nth-child(1),\n.atv-info-grid > :nth-child(2) {\n  animation-delay: 0ms;\n}\n\n.atv-info-grid > :nth-child(3),\n.atv-info-grid > :nth-child(4) {\n  animation-delay: 24ms;\n}\n\n.atv-info-grid > :nth-child(5),\n.atv-info-grid > :nth-child(6) {\n  animation-delay: 48ms;\n}\n\n.atv-info-grid > :nth-child(7),\n.atv-info-grid > :nth-child(8) {\n  animation-delay: 72ms;\n}\n\n.atv-info-grid > :nth-child(9),\n.atv-info-grid > :nth-child(10) {\n  animation-delay: 96ms;\n}\n\n.atv-info-grid > :nth-child(11),\n.atv-info-grid > :nth-child(12) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(13),\n.atv-info-grid > :nth-child(14) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(15),\n.atv-info-grid > :nth-child(16) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(17),\n.atv-info-grid > :nth-child(18) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(19),\n.atv-info-grid > :nth-child(20) {\n  animation-delay: 120ms;\n}\n\n@keyframes atv-info-row-enter {\n  from {\n    opacity: 0;\n    transform: translateY(6px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* ---------- Labels ---------- */\n\n.atv-info-label {\n  padding-top: 3px;\n  color: rgb(255 255 255 / 40%);\n  font-size: 12px;\n  font-weight: 600;\n  letter-spacing: 0.1em;\n  text-transform: uppercase;\n}\n\n/* ---------- Values ---------- */\n\n.atv-info-value {\n  color: rgb(255 255 255 / 82%);\n  font-size: 15px;\n  font-weight: 400;\n  line-height: 1.65;\n  overflow-wrap: break-word;\n}\n\n/* Links inside values — subtle underline that glows on hover */\n\n.atv-info-value a {\n  border-bottom: 1px solid rgb(255 255 255 / 12%);\n  color: inherit;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* Separator between linked items: a thin middle-dot */\n\n.atv-info-sep {\n  margin: 0 2px;\n  color: rgb(255 255 255 / 18%);\n}\n\n/* ---------- Awards (gold accent row) ---------- */\n\n.atv-info-label-award {\n  color: var(--atv-rating-gold);\n}\n\n.atv-info-label-award a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  text-decoration: none;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-label-award a:hover {\n  border-color: var(--atv-rating-gold);\n}\n\n/* ---------- Reduced motion ---------- */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Mobile (<=768px) ---------- */\n\n@media (width <= 768px) {\n  .atv-info-grid {\n    gap: 14px 0;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-info-label {\n    padding-top: 0;\n  }\n\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Streaming ---------- */\n\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 20px;\n  font-weight: 600;\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    rgb(255 255 255 / 5%);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo.is-surface-paper {\n  border-color: rgb(255 255 255 / 34%);\n  background: #d9dce3;\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 56%),\n    0 8px 18px rgb(0 0 0 / 18%);\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: 15px;\n  font-weight: 800;\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n\n.atv-comments {\n  display: grid;\n  gap: 16px;\n  grid-template-columns: repeat(2, 1fr);\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 16px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: #121214;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 15px;\n  font-weight: 600;\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 85%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 15px;\n  line-height: 1.65;\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-weight: 500;\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 8px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 24px;\n  height: 24px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 6px;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 10%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 20px;\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: #fff;\n  font-size: 18px;\n  font-weight: 600;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: rgb(255 255 255 / 85%);\n  font-size: 15px;\n  line-height: 1.75;\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 100px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 500;\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 4%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: rgb(65 190 93 / 25%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: rgb(0 0 0 / 78%);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame {\n  position: relative;\n  display: grid;\n  max-width: 90vw;\n  max-height: 90vh;\n  place-items: center;\n}\n\n.atv-image-modal-frame > .atv-modal-img,\n.atv-image-modal-frame > .atv-modal-preview,\n.atv-image-modal-loading {\n  grid-area: 1 / 1;\n}\n\n.atv-modal-preview {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition:\n    filter var(--atv-duration-feedback) ease,\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-preview {\n  filter: blur(10px) saturate(0.82);\n  opacity: 0.72;\n  transform: scale(1.02);\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-img {\n  opacity: 0;\n}\n\n.atv-image-modal-frame.is-preview > .atv-modal-img {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-frame.is-loaded > .atv-modal-preview {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-loading {\n  z-index: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 14px;\n  gap: 10px;\n  text-shadow: 0 1px 8px rgb(0 0 0 / 65%);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid rgb(255 255 255 / 18%);\n  border-radius: 50%;\n  appearance: none;\n  background: rgb(255 255 255 / 8%);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close.atv-image-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n}\n\n.atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n  color: #fff;\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n.atv-comment-overlay,\n.atv-interest-modal,\n.atv-login-modal,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid rgb(255 255 255 / 20%);\n  border-radius: 50%;\n  border-top-color: #41be5d;\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: #fff;\n  font-size: 15px;\n  gap: 16px;\n}\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\n\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 8%),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  font-family:\n    -apple-system, BlinkMacSystemFont, \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", Inter, system-ui, sans-serif;\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 650;\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: rgb(255 255 255 / 3.5%);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Interest Modal ---------- */\n\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: 20px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 600;\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: rgb(255 255 255 / 30%);\n  background: rgb(255 255 255 / 16%);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: rgb(255 255 255 / 20%);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: 13px;\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: #fff;\n  cursor: pointer;\n  font: inherit;\n  font-size: 14px;\n  -webkit-font-smoothing: antialiased;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: rgb(255 255 255 / 15%);\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: #ff453a;\n  font-size: 12px;\n  font-weight: 500;\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: rgb(255 69 58 / 8%);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 10px;\n  background: rgb(255 255 255 / 4%);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 6%);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: 13px;\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 5%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: rgb(65 190 93 / 45%);\n  background: rgb(65 190 93 / 16%);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: rgb(65 190 93 / 38%);\n  background: rgb(65 190 93 / 12%);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: 11px;\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 255 255 / 3%);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: rgb(255 255 255 / 8%);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: 13px;\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid rgb(255 69 58 / 22%);\n  border-radius: 10px;\n  background: rgb(255 69 58 / 8%);\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid rgb(255 255 255 / 12%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 6%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: rgb(255 69 58 / 35%);\n  background: rgb(255 69 58 / 18%);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n/* ---------- Interest Panel (S3 marked state) ---------- */\n\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  overflow: hidden;\n  min-width: 0;\n  max-width: 36ch;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  letter-spacing: 0.02em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Trailer Tile ---------- */\n\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: #fff;\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: #fff;\n  font-size: 12px;\n  font-weight: 500;\n}\n\n/* ---------- Video Modal ---------- */\n\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: #121214;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  background: rgb(255 255 255 / 4%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 14px;\n  font-weight: 600;\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: 14px;\n  font-weight: 600;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: #f0f0f0;\n  font-size: 16px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 72%);\n  font-size: 14px;\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid rgb(255 255 255 / 5%);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: rgb(255 255 255 / 35%);\n  font-size: 12px;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: 11px;\n  font-weight: 500;\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore,\n.atv-review-card:hover .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  background: rgb(255 255 255 / 4%);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: 8px;\n  appearance: none;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 55%);\n  cursor: pointer;\n  font: inherit;\n  font-size: 12px;\n  font-weight: 500;\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid rgb(65 190 93 / 75%);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: 14px;\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: #ff453a;\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: rgb(65 190 93 / 20%);\n  background: rgb(65 190 93 / 6%);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: rgb(255 69 58 / 22%);\n  background: rgb(255 69 58 / 6%);\n  color: #ff453a;\n}\n\n/* ---------- Review Modal ---------- */\n\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: rgb(0 0 0 / 72%);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: rgb(255 255 255 / 10%);\n  background: rgb(255 255 255 / 6%);\n  color: rgb(255 255 255 / 60%);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: rgb(255 255 255 / 20%);\n  background: rgb(255 255 255 / 12%);\n  color: #fff;\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-lg);\n  background: #121214;\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: rgb(255 255 255 / 12%) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-header {\n  padding-bottom: 14px;\n  border-bottom: 1px solid rgb(255 255 255 / 5%);\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: #f0f0f0;\n  font-size: 24px;\n  font-weight: 600;\n  letter-spacing: -0.01em;\n  line-height: 1.32;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  margin-top: 4px;\n  gap: 10px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid rgb(255 255 255 / 6%);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: #fff;\n  font-size: 12px;\n  font-weight: 600;\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: 13px;\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: rgb(255 255 255 / 82%);\n  font-size: 16px;\n  line-height: 1.85;\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: #f0f0f0;\n  font-size: 20px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: rgb(255 255 255 / 3%);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: normal;\n  font-weight: 500;\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: rgb(255 255 255 / 20%);\n  margin-left: 0;\n  background: rgb(255 255 255 / 6%);\n}\n\n/* ---------- Group discussions ---------- */\n\n.atv-discussion-board {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: flex;\n  overflow: hidden;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: #121214;\n  gap: 6px;\n  isolation: isolate;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n/* Accent bar — reveals on hover/focus */\n\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0);\n  transform-origin: top;\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Entire row is clickable */\n\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n/* ---------- Copy (title + metadata) ---------- */\n\n.atv-discussion-copy {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n  pointer-events: none;\n}\n\n/* Title + arrow in one row */\n\n.atv-discussion-title-row {\n  display: flex;\n  align-items: flex-start;\n  gap: 12px;\n}\n\n.atv-discussion-title {\n  display: -webkit-box;\n  overflow: hidden;\n  min-width: 0;\n  flex: 1;\n  margin: 0;\n  -webkit-box-orient: vertical;\n  color: rgb(255 255 255 / 90%);\n  font-size: 15px;\n  font-weight: 500;\n  letter-spacing: -0.015em;\n  -webkit-line-clamp: 2;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  transition: color var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Arrow — always in flow, hidden until hover */\n\n.atv-discussion-arrow {\n  flex-shrink: 0;\n  color: var(--atv-text-tertiary);\n  font-size: 15px;\n  line-height: 1.5;\n  opacity: 0;\n  transform: translateX(-6px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ---------- Metadata row ---------- */\n\n.atv-discussion-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  gap: 0;\n  line-height: 1.35;\n}\n\n.atv-discussion-author {\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n/* Activity wraps replies + time inline */\n\n.atv-discussion-activity {\n  display: inline;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: none;\n}\n\n/* Replies — plain text, no pill */\n\n.atv-discussion-replies {\n  font-variant-numeric: tabular-nums;\n  letter-spacing: 0.01em;\n  white-space: nowrap;\n}\n\n/* Time — date + time on one line */\n\n.atv-discussion-time {\n  display: inline-flex;\n  align-items: center;\n  font-variant-numeric: tabular-nums;\n  gap: 3px;\n  white-space: nowrap;\n}\n\n/* ---------- Dot separators ---------- */\n\n.atv-discussion-author + .atv-discussion-activity::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n.atv-discussion-replies + .atv-discussion-time::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n/* ---------- Footer ---------- */\n\n.atv-discussion-footer {\n  margin-top: 20px;\n  text-align: right;\n}\n\n.atv-discussion-footer a {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  font-size: 13px;\n  font-weight: 500;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  text-decoration: none;\n  transition:\n    color var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-discussion-footer a:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n  text-decoration: underline;\n}\n\n/* ---------- Interactive states ---------- */\n\n/* Row hover → accent bar reveals, bg lifts */\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: #fff;\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-discussion-footer a:hover {\n    color: var(--atv-accent-bright);\n    text-decoration: underline;\n    transform: translateX(2px);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-title {\n    color: #fff;\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n/* ---------- Mobile (<=768px) ---------- */\n\n@media (width <= 768px) {\n  .atv-discussion-board {\n    gap: 6px;\n  }\n\n  .atv-discussion-row {\n    padding: 14px 16px;\n    gap: 5px;\n  }\n\n  .atv-discussion-copy {\n    gap: 5px;\n  }\n\n  .atv-discussion-title-row {\n    gap: 8px;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n  }\n\n  .atv-discussion-arrow {\n    font-size: 14px;\n    line-height: 1.45;\n  }\n\n  .atv-discussion-meta {\n    flex-wrap: wrap;\n    row-gap: 2px;\n  }\n}\n\n/* ---------- Reduced motion ---------- */\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-arrow,\n  .atv-discussion-row,\n  .atv-discussion-footer a {\n    transition: none;\n  }\n\n  .atv-discussion-row::before {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n    opacity: 1;\n  }\n\n  .atv-discussion-arrow {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n  }\n\n  .atv-discussion-row:active {\n    transform: none;\n  }\n\n  .atv-discussion-footer a:hover {\n    transform: none;\n  }\n}\n\n/* ── Review content images (Douban image-container) ── */\n\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-style: italic;\n  font-weight: 400;\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid rgb(255 255 255 / 8%);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    rgb(65 190 93 / 7%),\n    rgb(18 18 20 / 94%) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: rgb(255 255 255 / 3%);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 650;\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: 13px;\n  font-weight: 500;\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: 13px;\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    rgb(255 255 255 / 18%) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: rgb(255 255 255 / 18%);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: 12px;\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: 12px;\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid rgb(65 190 93 / 25%);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: 18px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: 16px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 600;\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: rgb(255 255 255 / 92%);\n  font-weight: 700;\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  font-family:\n    \"SF Mono\", Monaco, \"Cascadia Code\", \"JetBrains Mono\", \"Fira Code\", Consolas,\n    monospace;\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: rgb(0 0 0 / 40%);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: 14px;\n  word-break: normal;\n}\n\n/* --- Tables --- */\n\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: 600;\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: rgb(255 255 255 / 82%);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: #ff9f0a;\n  font-size: 13px;\n  font-weight: 600;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: 14px;\n  font-weight: 500;\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid rgb(255 255 255 / 4%);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n.atv-review-modal-link {\n  display: flex;\n  align-items: center;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n  font-size: 13px;\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: rgb(255 255 255 / 50%);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  margin: 0 0 4px;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-skeleton {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-skeleton::before,\n.atv-review-modal-body.is-skeleton::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: rgb(255 255 255 / 6%);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-skeleton::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-skeleton::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal-retry {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 18px;\n  border: 1px solid rgb(255 255 255 / 10%);\n  border-radius: 999px;\n  appearance: none;\n  background: rgb(255 255 255 / 4%);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: 13px;\n  font-weight: 600;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-retry:hover,\n.atv-review-modal-retry:focus-visible {\n  border-color: rgb(65 190 93 / 35%);\n  background: rgb(65 190 93 / 8%);\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-retry:focus-visible,\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  .atv-info-grid {\n    column-gap: 24px;\n    grid-template-columns: 160px 1fr;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: 14px;\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: 15px;\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal {\n    transition: none;\n  }\n\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: rgb(255 255 255 / 12%);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    background: rgb(255 255 255 / 3%);\n  }\n\n  .atv-review-card:hover {\n    background: rgb(255 255 255 / 3%);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 1;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: rgb(255 255 255 / 18%);\n    background: rgb(255 255 255 / 9%);\n  }\n\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n\n  .atv-discussion-row:hover {\n    background: rgb(255 255 255 / 3%);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n/* Shared affordance for every control that opens the image-preview modal. */\n\n.atv-image-preview-trigger {\n  box-shadow: 0 16px 40px rgb(0 0 0 / 46%);\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    box-shadow var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-image-preview-trigger:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-image-preview-trigger:hover {\n    box-shadow: 0 24px 64px rgb(0 0 0 / 56%);\n    transform: translateY(-3px);\n  }\n}\n\n.atv-image-preview-trigger:active {\n  transform: scale(0.97);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-image-preview-trigger {\n    transition: none;\n    will-change: auto;\n  }\n\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-image-preview-trigger:hover,\n  .atv-image-preview-trigger:active,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-discussion-row:active,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-photo-tile {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: rgb(255 255 255 / 12%);\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: #0a0a0c;\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 90%);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 80%);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-interest-modal,\n  .atv-login-modal,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: rgb(0 0 0 / 92%);\n  }\n\n  .atv-comment-card,\n  .atv-review-card {\n    background: #181818;\n  }\n\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: rgb(255 255 255 / 25%);\n  }\n\n  .atv-discussion-row {\n    border: 1px solid rgb(255 255 255 / 20%);\n    border-radius: var(--atv-radius-sm);\n    background: #181818;\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: rgb(255 255 255 / 25%);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: rgb(255 255 255 / 30%);\n    background: rgb(255 255 255 / 12%);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n", n, l$1, u$2, i$2, r$1, o$2, e$1, f$2, c$1, a$1, s$1, h$1, p$1, v$1, y$1, d$1 = {}, w$1 = [], _$1 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i, g$1 = Array.isArray;
+	function m$1(n, l) {
+		for (var u in l) n[u] = l[u];
+		return n;
+	}
+	function b(n) {
+		n && n.parentNode && n.parentNode.removeChild(n);
+	}
+	function k$1(l, u, t) {
+		var i, r, o, e = {};
+		for (o in u) "key" == o ? i = u[o] : "ref" == o ? r = u[o] : e[o] = u[o];
+		if (arguments.length > 2 && (e.children = arguments.length > 3 ? n.call(arguments, 2) : t), "function" == typeof l && null != l.defaultProps) for (o in l.defaultProps) void 0 === e[o] && (e[o] = l.defaultProps[o]);
+		return x$1(l, e, i, r, null);
+	}
+	function x$1(n, t, i, r, o) {
+		var e = {
+			type: n,
+			props: t,
+			key: i,
+			ref: r,
+			__k: null,
+			__: null,
+			__b: 0,
+			__e: null,
+			__c: null,
+			constructor: void 0,
+			__v: null == o ? ++u$2 : o,
+			__i: -1,
+			__u: 0
+		};
+		return null == o && null != l$1.vnode && l$1.vnode(e), e;
+	}
+	function S(n) {
+		return n.children;
+	}
+	function C$1(n, l) {
+		this.props = n, this.context = l;
+	}
+	function $$1(n, l) {
+		if (null == l) return n.__ ? $$1(n.__, n.__i + 1) : null;
+		for (var u; l < n.__k.length; l++) if (null != (u = n.__k[l]) && null != u.__e) return u.__e;
+		return "function" == typeof n.type ? $$1(n) : null;
+	}
+	function I(n) {
+		if (n.__P && n.__d) {
+			var u = n.__v, t = u.__e, i = [], r = [], o = m$1({}, u);
+			o.__v = u.__v + 1, l$1.vnode && l$1.vnode(o), q$1(n.__P, o, u, n.__n, n.__P.namespaceURI, 32 & u.__u ? [t] : null, i, null == t ? $$1(u) : t, !!(32 & u.__u), r), o.__v = u.__v, o.__.__k[o.__i] = o, D$1(i, o, r), u.__e = u.__ = null, o.__e != t && P(o);
+		}
+	}
+	function P(n) {
+		if (null != (n = n.__) && null != n.__c) return n.__e = n.__c.base = null, n.__k.some(function(l) {
+			if (null != l && null != l.__e) return n.__e = n.__c.base = l.__e;
+		}), P(n);
+	}
+	function A$1(n) {
+		(!n.__d && (n.__d = !0) && i$2.push(n) && !H.__r++ || r$1 != l$1.debounceRendering) && ((r$1 = l$1.debounceRendering) || o$2)(H);
+	}
+	function H() {
+		try {
+			for (var n, l = 1; i$2.length;) i$2.length > l && i$2.sort(e$1), n = i$2.shift(), l = i$2.length, I(n);
+		} finally {
+			i$2.length = H.__r = 0;
+		}
+	}
+	function L(n, l, u, t, i, r, o, e, f, c, a) {
+		var s, h, p, v, y, _, g, m = t && t.__k || w$1, b = l.length;
+		for (f = T$1(u, l, m, f, b), s = 0; s < b; s++) null != (p = u.__k[s]) && (h = -1 != p.__i && m[p.__i] || d$1, p.__i = s, _ = q$1(n, p, h, i, r, o, e, f, c, a), v = p.__e, p.ref && h.ref != p.ref && (h.ref && J(h.ref, null, p), a.push(p.ref, p.__c || v, p)), null == y && null != v && (y = v), (g = !!(4 & p.__u)) || h.__k === p.__k ? (f = j$1(p, f, n, g), g && h.__e && (h.__e = null)) : "function" == typeof p.type && void 0 !== _ ? f = _ : v && (f = v.nextSibling), p.__u &= -7);
+		return u.__e = y, f;
+	}
+	function T$1(n, l, u, t, i) {
+		var r, o, e, f, c, a = u.length, s = a, h = 0;
+		for (n.__k = new Array(i), r = 0; r < i; r++) null != (o = l[r]) && "boolean" != typeof o && "function" != typeof o ? ("string" == typeof o || "number" == typeof o || "bigint" == typeof o || o.constructor == String ? o = n.__k[r] = x$1(null, o, null, null, null) : g$1(o) ? o = n.__k[r] = x$1(S, { children: o }, null, null, null) : void 0 === o.constructor && o.__b > 0 ? o = n.__k[r] = x$1(o.type, o.props, o.key, o.ref ? o.ref : null, o.__v) : n.__k[r] = o, f = r + h, o.__ = n, o.__b = n.__b + 1, e = null, -1 != (c = o.__i = O(o, u, f, s)) && (s--, (e = u[c]) && (e.__u |= 2)), null == e || null == e.__v ? (-1 == c && (i > a ? h-- : i < a && h++), "function" != typeof o.type && (o.__u |= 4)) : c != f && (c == f - 1 ? h-- : c == f + 1 ? h++ : (c > f ? h-- : h++, o.__u |= 4))) : n.__k[r] = null;
+		if (s) for (r = 0; r < a; r++) null != (e = u[r]) && 0 == (2 & e.__u) && (e.__e == t && (t = $$1(e)), K(e, e));
+		return t;
+	}
+	function j$1(n, l, u, t) {
+		var i, r;
+		if ("function" == typeof n.type) {
+			for (i = n.__k, r = 0; i && r < i.length; r++) i[r] && (i[r].__ = n, l = j$1(i[r], l, u, t));
+			return l;
+		}
+		n.__e != l && (t && (l && n.type && !l.parentNode && (l = $$1(n)), u.insertBefore(n.__e, l || null)), l = n.__e);
+		do
+			l = l && l.nextSibling;
+		while (null != l && 8 == l.nodeType);
+		return l;
+	}
+	function O(n, l, u, t) {
+		var i, r, o, e = n.key, f = n.type, c = l[u], a = null != c && 0 == (2 & c.__u);
+		if (null === c && null == e || a && e == c.key && f == c.type) return u;
+		if (t > (a ? 1 : 0)) {
+			for (i = u - 1, r = u + 1; i >= 0 || r < l.length;) if (null != (c = l[o = i >= 0 ? i-- : r++]) && 0 == (2 & c.__u) && e == c.key && f == c.type) return o;
+		}
+		return -1;
+	}
+	function z$1(n, l, u) {
+		"-" == l[0] ? n.setProperty(l, null == u ? "" : u) : n[l] = null == u ? "" : "number" != typeof u || _$1.test(l) ? u : u + "px";
+	}
+	function N(n, l, u, t, i) {
+		var r, o;
+		n: if ("style" == l) if ("string" == typeof u) n.style.cssText = u;
+		else {
+			if ("string" == typeof t && (n.style.cssText = t = ""), t) for (l in t) u && l in u || z$1(n.style, l, "");
+			if (u) for (l in u) t && u[l] == t[l] || z$1(n.style, l, u[l]);
+		}
+		else if ("o" == l[0] && "n" == l[1]) r = l != (l = l.replace(s$1, "$1")), o = l.toLowerCase(), l = o in n || "onFocusOut" == l || "onFocusIn" == l ? o.slice(2) : l.slice(2), n.l || (n.l = {}), n.l[l + r] = u, u ? t ? u[a$1] = t[a$1] : (u[a$1] = h$1, n.addEventListener(l, r ? v$1 : p$1, r)) : n.removeEventListener(l, r ? v$1 : p$1, r);
+		else {
+			if ("http://www.w3.org/2000/svg" == i) l = l.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
+			else if ("width" != l && "height" != l && "href" != l && "list" != l && "form" != l && "tabIndex" != l && "download" != l && "rowSpan" != l && "colSpan" != l && "role" != l && "popover" != l && l in n) try {
+				n[l] = null == u ? "" : u;
+				break n;
+			} catch (n) {}
+			"function" == typeof u || (null == u || !1 === u && "-" != l[4] ? n.removeAttribute(l) : n.setAttribute(l, "popover" == l && 1 == u ? "" : u));
+		}
+	}
+	function V(n) {
+		return function(u) {
+			if (this.l) {
+				var t = this.l[u.type + n];
+				if (null == u[c$1]) u[c$1] = h$1++;
+				else if (u[c$1] < t[a$1]) return;
+				return t(l$1.event ? l$1.event(u) : u);
+			}
+		};
+	}
+	function q$1(n, u, t, i, r, o, e, f, c, a) {
+		var s, h, p, v, y, d, _, k, x, M, $, I, P, A, H, T, j = u.type;
+		if (void 0 !== u.constructor) return null;
+		128 & t.__u && (c = !!(32 & t.__u), o = [f = u.__e = t.__e]), (s = l$1.__b) && s(u);
+		n: if ("function" == typeof j) {
+			h = e.length;
+			try {
+				if (x = u.props, M = j.prototype && j.prototype.render, $ = (s = j.contextType) && i[s.__c], I = s ? $ ? $.props.value : s.__ : i, t.__c ? k = (p = u.__c = t.__c).__ = p.__E : (M ? u.__c = p = new j(x, I) : (u.__c = p = new C$1(x, I), p.constructor = j, p.render = Q), $ && $.sub(p), p.state || (p.state = {}), p.__n = i, v = p.__d = !0, p.__h = [], p._sb = []), M && null == p.__s && (p.__s = p.state), M && null != j.getDerivedStateFromProps && (p.__s == p.state && (p.__s = m$1({}, p.__s)), m$1(p.__s, j.getDerivedStateFromProps(x, p.__s))), y = p.props, d = p.state, p.__v = u, v) M && null == j.getDerivedStateFromProps && null != p.componentWillMount && p.componentWillMount(), M && null != p.componentDidMount && p.__h.push(p.componentDidMount);
+				else {
+					if (M && null == j.getDerivedStateFromProps && x !== y && null != p.componentWillReceiveProps && p.componentWillReceiveProps(x, I), u.__v == t.__v || !p.__e && null != p.shouldComponentUpdate && !1 === p.shouldComponentUpdate(x, p.__s, I)) {
+						u.__v != t.__v && (p.props = x, p.state = p.__s, p.__d = !1), u.__e = t.__e, u.__k = t.__k, u.__k.some(function(n) {
+							n && (n.__ = u);
+						}), w$1.push.apply(p.__h, p._sb), p._sb = [], p.__h.length && e.push(p);
+						break n;
+					}
+					null != p.componentWillUpdate && p.componentWillUpdate(x, p.__s, I), M && null != p.componentDidUpdate && p.__h.push(function() {
+						p.componentDidUpdate(y, d, _);
+					});
+				}
+				if (p.context = I, p.props = x, p.__P = n, p.__e = !1, P = l$1.__r, A = 0, M) p.state = p.__s, p.__d = !1, P && P(u), s = p.render(p.props, p.state, p.context), w$1.push.apply(p.__h, p._sb), p._sb = [];
+				else do
+					p.__d = !1, P && P(u), s = p.render(p.props, p.state, p.context), p.state = p.__s;
+				while (p.__d && ++A < 25);
+				p.state = p.__s, null != p.getChildContext && (i = m$1(m$1({}, i), p.getChildContext())), M && !v && null != p.getSnapshotBeforeUpdate && (_ = p.getSnapshotBeforeUpdate(y, d)), H = null != s && s.type === S && null == s.key ? E(s.props.children) : s, f = L(n, g$1(H) ? H : [H], u, t, i, r, o, e, f, c, a), p.base = u.__e, u.__u &= -161, p.__h.length && e.push(p), k && (p.__E = p.__ = null);
+			} catch (n) {
+				if (e.length = h, u.__v = null, c || null != o) {
+					if (n.then) {
+						for (u.__u |= c ? 160 : 128; f && 8 == f.nodeType && f.nextSibling;) f = f.nextSibling;
+						null != o && (o[o.indexOf(f)] = null), u.__e = f;
+					} else if (null != o) for (T = o.length; T--;) b(o[T]);
+				} else u.__e = t.__e;
+				u.__k ??= t.__k || [], n.then || B$1(u), l$1.__e(n, u, t);
+			}
+		} else null == o && u.__v == t.__v ? (u.__k = t.__k, u.__e = t.__e) : f = u.__e = G(t.__e, u, t, i, r, o, e, c, a);
+		return (s = l$1.diffed) && s(u), 128 & u.__u ? void 0 : f;
+	}
+	function B$1(n) {
+		n && (n.__c && (n.__c.__e = !0), n.__k && n.__k.some(B$1));
+	}
+	function D$1(n, u, t) {
+		for (var i = 0; i < t.length; i++) J(t[i], t[++i], t[++i]);
+		l$1.__c && l$1.__c(u, n), n.some(function(u) {
+			try {
+				n = u.__h, u.__h = [], n.some(function(n) {
+					n.call(u);
+				});
+			} catch (n) {
+				l$1.__e(n, u.__v);
+			}
+		});
+	}
+	function E(n) {
+		return "object" != typeof n || null == n || n.__b > 0 ? n : g$1(n) ? n.map(E) : void 0 !== n.constructor ? null : m$1({}, n);
+	}
+	function G(u, t, i, r, o, e, f, c, a) {
+		var s, h, p, v, y, w, _, m = i.props || d$1, k = t.props, x = t.type;
+		if ("svg" == x ? o = "http://www.w3.org/2000/svg" : "math" == x ? o = "http://www.w3.org/1998/Math/MathML" : o || (o = "http://www.w3.org/1999/xhtml"), null != e) {
+			for (s = 0; s < e.length; s++) if ((y = e[s]) && "setAttribute" in y == !!x && (x ? y.localName == x : 3 == y.nodeType)) {
+				u = y, e[s] = null;
+				break;
+			}
+		}
+		if (null == u) {
+			if (null == x) return document.createTextNode(k);
+			u = document.createElementNS(o, x, k.is && k), c && (l$1.__m && l$1.__m(t, e), c = !1), e = null;
+		}
+		if (null == x) m === k || c && u.data == k || (u.data = k);
+		else {
+			if (e = "textarea" == x && null != k.defaultValue ? null : e && n.call(u.childNodes), !c && null != e) for (m = {}, s = 0; s < u.attributes.length; s++) m[(y = u.attributes[s]).name] = y.value;
+			for (s in m) y = m[s], "dangerouslySetInnerHTML" == s ? p = y : "children" == s || s in k || "value" == s && "defaultValue" in k || "checked" == s && "defaultChecked" in k || N(u, s, null, y, o);
+			for (s in k) y = k[s], "children" == s ? v = y : "dangerouslySetInnerHTML" == s ? h = y : "value" == s ? w = y : "checked" == s ? _ = y : c && "function" != typeof y || m[s] === y || N(u, s, y, m[s], o);
+			if (h) c || p && (h.__html == p.__html || h.__html == u.innerHTML) || (u.innerHTML = h.__html), t.__k = [];
+			else if (p && (u.innerHTML = ""), L("template" == t.type ? u.content : u, g$1(v) ? v : [v], t, i, r, "foreignObject" == x ? "http://www.w3.org/1999/xhtml" : o, e, f, e ? e[0] : i.__k && $$1(i, 0), c, a), null != e) for (s = e.length; s--;) b(e[s]);
+			c && "textarea" != x || (s = "value", "progress" == x && null == w ? u.removeAttribute("value") : null != w && (w !== u[s] || "progress" == x && !w || "option" == x && w != m[s]) && N(u, s, w, m[s], o), s = "checked", null != _ && _ != u[s] && N(u, s, _, m[s], o));
+		}
+		return u;
+	}
+	function J(n, u, t) {
+		try {
+			if ("function" == typeof n) {
+				var i = "function" == typeof n.__u;
+				i && n.__u(), i && null == u || (n.__u = n(u));
+			} else n.current = u;
+		} catch (n) {
+			l$1.__e(n, t);
+		}
+	}
+	function K(n, u, t) {
+		var i, r;
+		if (l$1.unmount && l$1.unmount(n), (i = n.ref) && (i.current && i.current != n.__e || J(i, null, u)), null != (i = n.__c)) {
+			if (i.componentWillUnmount) try {
+				i.componentWillUnmount();
+			} catch (n) {
+				l$1.__e(n, u);
+			}
+			i.base = i.__P = i.__n = null;
+		}
+		if (i = n.__k) for (r = 0; r < i.length; r++) i[r] && K(i[r], u, t || "function" != typeof n.type);
+		t || b(n.__e), n.__c = n.__ = n.__e = void 0;
+	}
+	function Q(n, l, u) {
+		return this.constructor(n, u);
+	}
+	function R(u, t, i) {
+		var r, o, e, f;
+		t == document && (t = document.documentElement), l$1.__ && l$1.__(u, t), o = (r = "function" == typeof i) ? null : i && i.__k || t.__k, e = [], f = [], q$1(t, u = (!r && i || t).__k = k$1(S, null, [u]), o || d$1, d$1, t.namespaceURI, !r && i ? [i] : o ? null : t.firstChild ? n.call(t.childNodes) : null, e, !r && i ? i : o ? o.__e : t.firstChild, r, f), D$1(e, u, f), u.props.children = null;
+	}
+	function X(n) {
+		function l(n) {
+			var u, t;
+			return this.getChildContext || (u = new Set(), (t = {})[l.__c] = this, this.getChildContext = function() {
+				return t;
+			}, this.componentWillUnmount = function() {
+				u = null;
+			}, this.shouldComponentUpdate = function(n) {
+				this.props.value != n.value && u.forEach(function(n) {
+					n.__e = !0, A$1(n);
+				});
+			}, this.sub = function(n) {
+				u.add(n);
+				var l = n.componentWillUnmount;
+				n.componentWillUnmount = function() {
+					u && u.delete(n), l && l.call(n);
+				};
+			}), n.children;
+		}
+		return l.__c = "__cC" + y$1++, l.__ = n, l.Provider = l.__l = (l.Consumer = function(n, l) {
+			return n.children(l);
+		}).contextType = l, l;
+	}
+	n = w$1.slice, l$1 = { __e: function(n, l, u, t) {
+		for (var i, r, o; l = l.__;) if ((i = l.__c) && !i.__) try {
+			if ((r = i.constructor) && null != r.getDerivedStateFromError && (i.setState(r.getDerivedStateFromError(n)), o = i.__d), null != i.componentDidCatch && (i.componentDidCatch(n, t || {}), o = i.__d), o) return i.__E = i;
+		} catch (l) {
+			n = l;
+		}
+		throw n;
+	} }, u$2 = 0, C$1.prototype.setState = function(n, l) {
+		var u = null != this.__s && this.__s != this.state ? this.__s : this.__s = m$1({}, this.state);
+		"function" == typeof n && (n = n(m$1({}, u), this.props)), n && m$1(u, n), null != n && this.__v && (l && this._sb.push(l), A$1(this));
+	}, C$1.prototype.forceUpdate = function(n) {
+		this.__v && (this.__e = !0, n && this.__h.push(n), A$1(this));
+	}, C$1.prototype.render = S, i$2 = [], o$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n, l) {
+		return n.__v.__b - l.__v.__b;
+	}, H.__r = 0, f$2 = Math.random().toString(8), c$1 = "__d" + f$2, a$1 = "__a" + f$2, s$1 = /(PointerCapture)$|Capture$/i, h$1 = 0, p$1 = V(!1), v$1 = V(!0), y$1 = 0;
+	var activateEnhancedDocument = (doc) => {
+		doc.body.classList.add("atv-enhanced");
+	};
+	var installEnhancedRoot = (doc, renderRoot) => {
+		const root = doc.createElement("div");
+		root.id = "atv-douban-root";
+		try {
+			renderRoot(root);
+			doc.body.insertBefore(root, doc.body.firstChild);
+		} catch (error) {
+			root.remove();
+			console.warn("[ATV-Douban] 页面挂载失败：", error);
+			return false;
+		}
+		activateEnhancedDocument(doc);
+		return true;
+	};
+	var t, r, u$1, i$1, o$1 = 0, f$1 = [], c = l$1, e = c.__b, a = c.__r, v = c.diffed, l = c.__c, m = c.unmount, p = c.__;
+	function s(n, t) {
+		c.__h && c.__h(r, n, o$1 || t), o$1 = 0;
+		var u = r.__H || (r.__H = {
+			__: [],
+			__h: []
+		});
+		return n >= u.__.length && u.__.push({}), u.__[n];
+	}
+	function d(n) {
+		return o$1 = 1, y(D, n);
+	}
+	function y(n, u, i) {
+		var o = s(t++, 2);
+		if (o.t = n, !o.__c && (o.__ = [i ? i(u) : D(void 0, u), function(n) {
+			var t = o.__N ? o.__N[0] : o.__[0], r = o.t(t, n);
+			t !== r && (o.__N = [r, o.__[1]], o.__c.setState({}));
+		}], o.__c = r, !r.__f)) {
+			var f = function(n, t, r) {
+				if (!o.__c.__H) return !0;
+				var u = !1, i = o.__c.props !== n;
+				if (o.__c.__H.__.some(function(n) {
+					if (n.__N) {
+						u = !0;
+						var t = n.__[0];
+						n.__ = n.__N, n.__N = void 0, t !== n.__[0] && (i = !0);
+					}
+				}), c) {
+					var f = c.call(this, n, t, r);
+					return u ? f || i : f;
+				}
+				return !u || i;
+			};
+			r.__f = !0;
+			var c = r.shouldComponentUpdate, e = r.componentWillUpdate;
+			r.componentWillUpdate = function(n, t, r) {
+				if (this.__e) {
+					var u = c;
+					c = void 0, f(n, t, r), c = u;
+				}
+				e && e.call(this, n, t, r);
+			}, r.shouldComponentUpdate = f;
+		}
+		return o.__N || o.__;
+	}
+	function h(n, u) {
+		var i = s(t++, 3);
+		!c.__s && C(i.__H, u) && (i.__ = n, i.u = u, r.__H.__h.push(i));
+	}
+	function _(n, u) {
+		var i = s(t++, 4);
+		!c.__s && C(i.__H, u) && (i.__ = n, i.u = u, r.__h.push(i));
+	}
+	function A(n) {
+		return o$1 = 5, T(function() {
+			return { current: n };
+		}, []);
+	}
+	function T(n, r) {
+		var u = s(t++, 7);
+		return C(u.__H, r) && (u.__ = n(), u.__H = r, u.__h = n), u.__;
+	}
+	function q(n, t) {
+		return o$1 = 8, T(function() {
+			return n;
+		}, t);
+	}
+	function x(n) {
+		var u = r.context[n.__c], i = s(t++, 9);
+		return i.c = n, u ? (i.__ ?? (i.__ = !0, u.sub(r)), u.props.value) : n.__;
+	}
+	function g() {
+		var n = s(t++, 11);
+		if (!n.__) {
+			for (var u = r.__v; null !== u && !u.__m && null !== u.__;) u = u.__;
+			var i = u.__m || (u.__m = [0, 0]);
+			n.__ = "P" + i[0] + "-" + i[1]++;
+		}
+		return n.__;
+	}
+	function j() {
+		for (var n; n = f$1.shift();) {
+			var t = n.__H;
+			if (n.__P && t) try {
+				t.__h.some(z), t.__h.some(B), t.__h = [];
+			} catch (r) {
+				t.__h = [], c.__e(r, n.__v);
+			}
+		}
+	}
+	c.__b = function(n) {
+		r = null, e && e(n);
+	}, c.__ = function(n, t) {
+		n && t.__k && t.__k.__m && (n.__m = t.__k.__m), p && p(n, t);
+	}, c.__r = function(n) {
+		a && a(n), t = 0;
+		var i = (r = n.__c).__H;
+		i && (u$1 === r ? (i.__h = [], r.__h = [], i.__.some(function(n) {
+			n.__N && (n.__ = n.__N), n.u = n.__N = void 0;
+		})) : (i.__h.some(z), i.__h.some(B), i.__h = [], t = 0)), u$1 = r;
+	}, c.diffed = function(n) {
+		v && v(n);
+		var t = n.__c;
+		t && t.__H && (t.__H.__h.length && (1 !== f$1.push(t) && i$1 === c.requestAnimationFrame || ((i$1 = c.requestAnimationFrame) || w)(j)), t.__H.__.some(function(n) {
+			n.u && (n.__H = n.u, n.u = void 0);
+		})), u$1 = r = null;
+	}, c.__c = function(n, t) {
+		t.some(function(n) {
+			try {
+				n.__h.some(z), n.__h = n.__h.filter(function(n) {
+					return !n.__ || B(n);
+				});
+			} catch (r) {
+				t.some(function(n) {
+					n.__h && (n.__h = []);
+				}), t = [], c.__e(r, n.__v);
+			}
+		}), l && l(n, t);
+	}, c.unmount = function(n) {
+		m && m(n);
+		var t, r = n.__c;
+		r && r.__H && (r.__H.__.some(function(n) {
+			try {
+				z(n);
+			} catch (n) {
+				t = n;
+			}
+		}), r.__H = void 0, t && c.__e(t, r.__v));
+	};
+	var k = "function" == typeof requestAnimationFrame;
+	function w(n) {
+		var t, r = function() {
+			clearTimeout(u), k && cancelAnimationFrame(t), setTimeout(n);
+		}, u = setTimeout(r, 35);
+		k && (t = requestAnimationFrame(r));
+	}
+	function z(n) {
+		var t = r, u = n.__c;
+		"function" == typeof u && (n.__c = void 0, u()), r = t;
+	}
+	function B(n) {
+		var t = r;
+		n.__c = n.__(), r = t;
+	}
+	function C(n, t) {
+		return !n || n.length !== t.length || t.some(function(t, r) {
+			return t !== n[r];
+		});
+	}
+	function D(n, t) {
+		return "function" == typeof t ? t(n) : t;
+	}
+	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
+	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
+	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var personageIdFromPath = (pathname) => pathname.match(/^\/personage\/(?<id>\d+)\/?$/u)?.groups?.id ?? null;
+	var imageUrl = (element) => {
+		if (!element) return null;
+		if (element.localName === "img") {
+			const image = element;
+			return image.currentSrc || image.src || null;
+		}
+		return (element.getAttribute("style") ?? "").match(/url\(["']?(?<url>[^"')]+)["']?\)/u)?.groups?.url ?? null;
+	};
+	var largePhotoUrl = (src) => {
+		if (src.includes("/view/photo/photo/")) return src.replace("/view/photo/photo/", "/view/photo/l/");
+		return src;
+	};
+	var extractFacts = (target) => $$(".subject-property li", target).flatMap((item) => {
+		const label = safeText(item.querySelector(".label"));
+		const value = safeText(item.querySelector(".value"));
+		return label && value ? [{
+			label,
+			value
+		}] : [];
+	});
+	var extractBiography = (doc) => {
+		const biography = $$(".subject-intro p", doc).map(safeText).filter((paragraph) => paragraph && paragraph !== "暂无");
+		return biography.length > 0 ? biography : null;
+	};
+	var extractCollaborators = (doc) => {
+		const source = doc.querySelector(".partners-mod-mod");
+		if (!source) return null;
+		const collaborators = $$(".partners-mod-item", source).flatMap((item, nativeIndex) => {
+			const profileLink = item.querySelector(".partners-mod-info a[title][href]");
+			const sharedWorksLink = item.querySelector(".partners-mod-info a[href*=\"partners#\"]");
+			const name = safeText(profileLink);
+			const sharedWorkCount = Number(safeText(sharedWorksLink));
+			if (!(profileLink && name && Number.isFinite(sharedWorkCount))) return [];
+			return [{
+				avatar: imageUrl(item.querySelector("img")),
+				href: profileLink.href,
+				name,
+				nativeIndex,
+				sharedWorkCount,
+				sharedWorksHref: sharedWorksLink?.href ?? null
+			}];
+		}).toSorted((left, right) => right.sharedWorkCount - left.sharedWorkCount || left.nativeIndex - right.nativeIndex).map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
+		const allCollaboratorsHref = source.querySelector("h2 a[href]")?.href ?? null;
+		const totalCountMatch = source.querySelector("h2 a[href]")?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allCollaboratorsHref,
+			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
+			collaborators
+		};
+	};
+	var hrefOf = (element) => element?.localName === "a" ? element.href : null;
+	var extractAwards$1 = (doc) => {
+		const source = doc.querySelector(".subject-awards");
+		if (!source) return null;
+		const awards = $$("li", source).flatMap((item) => {
+			const [yearElement, ceremonyElement, awardElement, workElement] = [...item.children];
+			const year = safeText(yearElement);
+			const ceremony = safeText(ceremonyElement);
+			const award = safeText(awardElement);
+			if (!(year && ceremony && award)) return [];
+			return [{
+				award,
+				ceremony,
+				ceremonyHref: hrefOf(ceremonyElement),
+				work: safeText(workElement) || null,
+				workHref: hrefOf(workElement),
+				year
+			}];
+		});
+		const allAwardsLink = source.querySelector("h2 a[href]");
+		const allAwardsHref = allAwardsLink?.href ?? null;
+		const awardsCountMatch = allAwardsLink?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allAwardsHref,
+			...awardsCountMatch ? { totalCount: Number(awardsCountMatch) } : {},
+			awards
+		};
+	};
+	var extractGallery = (doc, personageId) => {
+		const galleryPath = `/personage/${personageId}/photos`;
+		const source = doc.querySelector(".subject-picture");
+		if (!source) return null;
+		const allImagesLink = $$("a[href]", source).find((link) => new URL(link.getAttribute("href") ?? "", doc.baseURI).pathname.replace(/\/$/u, "") === galleryPath);
+		const images = $$("li.picture", source).flatMap((image) => {
+			const src = imageUrl(image);
+			if (!src) return [];
+			return [{
+				alt: image.getAttribute("aria-label")?.trim() ?? "",
+				largeSrc: largePhotoUrl(src),
+				src
+			}];
+		});
+		return {
+			allImagesHref: allImagesLink?.href ?? null,
+			images
+		};
+	};
+	var extractWorkRail = (doc, matchesHeading) => {
+		const source = $$(".subject-creations", doc).find((section) => matchesHeading(safeText(section.querySelector("h2"))));
+		if (!source) return null;
+		let lastYear = null;
+		const works = $$("li.creation", source).flatMap((item) => {
+			const posterLink = item.querySelector("a.img_wrap[href]");
+			const title = posterLink?.title.trim() ?? "";
+			if (!posterLink || !title) return [];
+			const yearElement = item.querySelector(".timeline-year") ?? item.querySelector(".pl");
+			const rawYear = yearElement ? safeText(yearElement).trim() : "";
+			const currentYear = /^\d{4}$/u.test(rawYear) ? rawYear : lastYear;
+			if (/^\d{4}$/u.test(rawYear)) lastYear = rawYear;
+			return [{
+				href: posterLink.href,
+				poster: imageUrl(posterLink.querySelector("img")) ?? "",
+				rating: safeText(item.querySelector(".rating-val")) || null,
+				title,
+				year: currentYear
+			}];
+		});
+		const allWorksLink = $$("a[href]", source).find((link) => new URL(link.href).pathname.includes("/creations"));
+		const allWorksHref = allWorksLink?.href;
+		const totalCountMatch = allWorksLink?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allWorksHref: allWorksHref ?? null,
+			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
+			works
+		};
+	};
+	var extractPersonageProfile = (doc) => {
+		const target = doc.querySelector(".subject-target");
+		const name = safeText(target?.querySelector(".subject-name"));
+		const id = personageIdFromPath(doc.defaultView?.location.pathname ?? "");
+		if (!target || !name || !id) return null;
+		return {
+			awards: extractAwards$1(doc),
+			biography: extractBiography(doc),
+			collaborators: extractCollaborators(doc),
+			facts: extractFacts(target),
+			gallery: extractGallery(doc, id),
+			id,
+			name,
+			portrait: imageUrl(target.querySelector(".avatar img, .subject-avatar img") ?? target.querySelector(".avatar, .subject-avatar")),
+			recentWorks: extractWorkRail(doc, (heading) => heading.includes("最近")),
+			representativeWorks: extractWorkRail(doc, (heading) => heading.includes("收藏人数最多"))
+		};
+	}, f = 0;
+	Array.isArray;
+	function u(e, t, n, o, i, u) {
+		t || (t = {});
+		var a, c, p = t;
+		if ("ref" in p) for (c in p = {}, t) "ref" == c ? a = t[c] : p[c] = t[c];
+		var l = {
+			type: e,
+			props: p,
+			key: n,
+			ref: a,
+			__k: null,
+			__: null,
+			__b: 0,
+			__e: null,
+			__c: null,
+			constructor: void 0,
+			__v: --f,
+			__i: -1,
+			__u: 0,
+			__source: i,
+			__self: u
+		};
+		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
+		return l$1.vnode && l$1.vnode(l), l;
+	}
+	var IconStarFull = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "16",
+		height: "16",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+		})
+	});
+	var IconStarHalf = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "16",
+		height: "16",
+		"aria-hidden": "true",
+		...props,
+		children: [u("defs", { children: u("linearGradient", {
+			id: "atvHalfStar",
+			children: [u("stop", {
+				offset: "50%",
+				"stop-color": "currentColor"
+			}), u("stop", {
+				offset: "50%",
+				"stop-color": "currentColor",
+				"stop-opacity": "0.22"
+			})]
+		}) }), u("path", {
+			fill: "url(#atvHalfStar)",
+			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+		})]
+	});
+	var IconStarEmpty = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "16",
+		height: "16",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			"fill-opacity": "0.22",
+			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+		})
+	});
+	var IconPlay = (props) => u("svg", {
+		viewBox: "0 0 14 14",
+		width: "14",
+		height: "14",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			d: "M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"
+		})
+	});
+	var IconCheck = (props) => u("svg", {
+		viewBox: "0 0 14 14",
+		width: "14",
+		height: "14",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "none",
+			stroke: "currentColor",
+			"stroke-width": "2",
+			"stroke-linecap": "round",
+			"stroke-linejoin": "round",
+			d: "M2.5 7.5l3 3 6-7"
+		})
+	});
+	var IconChevron = (props) => u("svg", {
+		viewBox: "0 0 12 12",
+		width: "10",
+		height: "10",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "none",
+			stroke: "currentColor",
+			"stroke-width": "1.6",
+			"stroke-linecap": "round",
+			"stroke-linejoin": "round",
+			d: "M2.5 4l3.5 4 3.5-4"
+		})
+	});
+	var IconArrow = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "15",
+		height: "15",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "none",
+			stroke: "currentColor",
+			"stroke-width": "1.8",
+			"stroke-linecap": "round",
+			"stroke-linejoin": "round",
+			d: "M3 8h9m0 0l-3.5-3.5M12 8l-3.5 3.5"
+		})
+	});
+	var IconThumb = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "13",
+		height: "13",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			d: "M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"
+		})
+	});
+	var IconVoteTriangle = (props) => u("svg", {
+		viewBox: "0 0 12 12",
+		width: "12",
+		height: "12",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			d: "M6 2.2 10.4 9H1.6L6 2.2z"
+		})
+	});
+	var IconExpand = (props) => u("svg", {
+		viewBox: "0 0 14 14",
+		width: "12",
+		height: "12",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "none",
+			stroke: "currentColor",
+			"stroke-width": "1.5",
+			"stroke-linecap": "round",
+			"stroke-linejoin": "round",
+			d: "M3 5.5l4 4 4-4"
+		})
+	});
+	var IconTomato = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "16",
+		height: "16",
+		"aria-hidden": "true",
+		...props,
+		children: u("circle", {
+			cx: "8",
+			cy: "8",
+			r: "5.5",
+			fill: "currentColor"
+		})
+	});
+	var IconPopcorn = (props) => u("svg", {
+		viewBox: "0 0 16 16",
+		width: "16",
+		height: "16",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "currentColor",
+			d: "M8 2l6 6-6 6-6-6z"
+		})
+	});
+	var IconClose = ({ size = 22, ...props }) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: size,
+		height: size,
+		fill: "none",
+		stroke: "currentColor",
+		"stroke-width": "2",
+		"stroke-linecap": "round",
+		...props,
+		children: u("path", { d: "M6 6l12 12M18 6l-12 12" })
+	});
+	var IconFilmPlaceholder = (props) => u("svg", {
+		viewBox: "0 0 64 96",
+		width: "100%",
+		height: "100%",
+		preserveAspectRatio: "xMidYMid slice",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("defs", { children: u("linearGradient", {
+				id: "atvFilmGrad",
+				x1: "0",
+				y1: "0",
+				x2: "1",
+				y2: "1",
+				children: [u("stop", {
+					offset: "0%",
+					"stop-color": "#2c2c2e"
+				}), u("stop", {
+					offset: "100%",
+					"stop-color": "#1c1c1e"
+				})]
+			}) }),
+			u("rect", {
+				width: "64",
+				height: "96",
+				fill: "url(#atvFilmGrad)"
+			}),
+			u("g", {
+				fill: "rgba(255,255,255,0.12)",
+				children: [
+					u("rect", {
+						x: "4",
+						y: "6",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "18",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "30",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "42",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "54",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "66",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "4",
+						y: "78",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "6",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "18",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "30",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "42",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "54",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "66",
+						width: "6",
+						height: "6",
+						rx: "1"
+					}),
+					u("rect", {
+						x: "54",
+						y: "78",
+						width: "6",
+						height: "6",
+						rx: "1"
+					})
+				]
+			}),
+			u("path", {
+				d: "M26 38l14 10-14 10z",
+				fill: "rgba(255,255,255,0.28)"
+			})
+		]
+	});
+	var LogoDouban = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		"aria-label": "豆瓣",
+		fill: "#2D963D",
+		...props,
+		children: u("path", { d: "M.51 3.06h22.98V.755H.51V3.06Zm20.976 2.537v9.608h-2.137l-1.669 5.76H24v2.28H0v-2.28h6.32l-1.67-5.76H2.515V5.597h18.972Zm-5.066 9.608H7.58l1.67 5.76h5.501l1.67-5.76ZM18.367 7.9H5.634v5.025h12.733V7.9Z" })
+	});
+	var LogoImdb = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		"aria-label": "IMDb",
+		fill: "#F5C518",
+		...props,
+		children: u("path", { d: "M22.3781 0H1.6218C.7411.0583.0587.7437.0018 1.5953l-.001 20.783c.0585.8761.7125 1.543 1.5559 1.6191A.337.337 0 0 0 1.6016 24h20.7971a.4579.4579 0 0 0 .0437-.002c.8727-.0768 1.5568-.8271 1.5568-1.7085V1.7098c0-.8914-.696-1.6416-1.584-1.7078A.3294.3294 0 0 0 22.3781 0zm0 .496a1.2144 1.2144 0 0 1 1.1252 1.2139v20.5797c0 .6377-.4875 1.1602-1.1045 1.2145H1.6016c-.5967-.0543-1.0645-.5297-1.1053-1.1258V1.6284C.5371 1.0185 1.0184.5364 1.6217.496h20.7564zM4.7954 8.2603v7.3636H2.8899V8.2603h1.9055zm6.5367 0v7.3636H9.6707v-4.9704l-.6711 4.9704H7.813l-.6986-4.8618-.0066 4.8618h-1.668V8.2603h2.468c.0748.4476.1492.9694.2307 1.5734l.2712 1.8713.4407-3.4447h2.4817zm2.9772 1.3289c.0742.0404.122.108.1417.2034.0279.0953.0345.3118.0345.6442v2.8548c0 .4881-.0345.7867-.0955.8954-.0609.1152-.2304.1695-.5018.1695V9.5211c.204 0 .3457.0205.4211.0681zm-.0211 6.0347c.4543 0 .8006-.0265 1.0245-.0742.2304-.0477.4204-.1357.5694-.2648.1556-.1218.2642-.298.3251-.5219.0611-.2238.1021-.6648.1021-1.3224v-2.5832c0-.6986-.0271-1.1668-.0742-1.4039-.041-.237-.1431-.4543-.3126-.6437-.1695-.1973-.4198-.3324-.7456-.421-.3191-.0808-.8542-.1285-1.7694-.1285h-1.4244v7.3636h2.3051zm5.14-1.7827c0 .3523-.0199.5762-.0544.6708-.033.0947-.1894.1424-.3046.1424-.1086 0-.19-.0477-.2238-.1351-.041-.0887-.0609-.2986-.0609-.6238v-1.9469c0-.3324.0199-.5423.0543-.6237.0338-.0808.1086-.122.2171-.122.1153 0 .2709.0412.3114.1425.041.0947.0609.2986.0609.6032v1.8926zm-2.4747-5.5809v7.3636h1.7157l.1152-.4675c.1556.1894.3251.3324.5152.4271.1828.0881.4608.1357.678.1357.3047 0 .5629-.0748.7802-.237.2165-.1562.3589-.3462.4198-.5628.0543-.2173.0887-.543.0887-.9841v-2.0675c0-.4409-.0139-.7324-.0344-.8681-.0199-.1357-.0742-.2781-.1695-.4204-.1021-.1425-.2437-.251-.4272-.3325-.1834-.0742-.3999-.1152-.6576-.1152-.2172 0-.4952.0477-.6846.1285-.1835.0887-.353.2238-.5086.4007V8.2603h-1.8309z" })
+	});
+	var LogoMetacritic = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		"aria-label": "Metacritic",
+		fill: "#FFD500",
+		...props,
+		children: u("path", { d: "M11.99 0A12 12 0 1 0 24 12v-.014A12 12 0 0 0 11.99 0Zm-.055 2.564a9.399 9.399 0 0 1 9.407 9.389v.01a9.399 9.399 0 1 1-9.408-9.399Zm-1.61 17.198 2.046-2.046-3.94-3.94c-.165-.166-.345-.373-.442-.608-.221-.47-.318-1.203.221-1.742.664-.664 1.548-.387 2.406.47l3.788 3.788 2.046-2.046-3.954-3.954a2.48 2.48 0 0 1-.456-.622c-.263-.539-.25-1.216.235-1.7.677-.678 1.562-.429 2.544.553l3.677 3.677 2.046-2.046-3.982-3.982c-2.018-2.018-3.912-1.949-5.212-.65-.498.499-.802 1.024-.954 1.618a4.026 4.026 0 0 0-.055 1.686l-.027.028c-.996-.414-2.13-.166-3 .705-1.162 1.161-1.12 2.392-.982 3.11l-.042.043-1.009-.816-1.77 1.77a64.1 64.1 0 0 1 2.213 2.1z" })
+	});
+	var LogoRT = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		"aria-label": "Rotten Tomatoes",
+		fill: "#FA320A",
+		...props,
+		children: u("path", { d: "M5.866 0L4.335 1.262l2.082 1.8c-2.629-.989-4.842 1.4-5.012 2.338 1.384-.323 2.24-.422 3.344-.335-7.042 4.634-4.978 13.148-1.434 16.094 5.784 4.612 13.77 3.202 17.91-1.316C27.26 13.363 22.993.65 10.86 2.766c.107-1.17.633-1.503 1.243-1.602-.89-1.493-3.67-.734-4.556 1.374C7.52 2.602 5.866 0 5.866 0zM4.422 7.217H6.9c2.673 0 2.898.012 3.55.202 1.06.307 1.868.973 2.313 1.904.05.106.092.206.13.305l7.623.008.027 2.912-2.745-.024v7.549l-2.982-.016v-7.522l-2.127.016a2.92 2.92 0 0 1-1.056 1.134c-.287.176-.3.19-.254.264.127.2 2.125 3.642 2.125 3.659l-3.39.019-2.013-3.376c-.034-.047-.122-.068-.344-.084l-.297-.02.037 3.48-3.075-.038zm3.016 2.288l.024.338c.014.186.024.729.024 1.206v.867l.582-.025c.32-.013.695-.049.833-.078.694-.146 1.048-.478 1.087-1.018.027-.378-.063-.636-.303-.87-.318-.309-.761-.416-1.733-.418Z" })
+	});
+	var PlayIcon = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		width: "24",
+		height: "24",
+		fill: "none",
+		stroke: "white",
+		"stroke-width": "2",
+		"stroke-linecap": "round",
+		"stroke-linejoin": "round",
+		...props,
+		children: u("polygon", {
+			points: "6 3 20 12 6 21 6 3",
+			fill: "white",
+			stroke: "none"
+		})
+	});
+	var ModalCloseButton = ({ ariaLabel, className = "atv-modal-close", onClick, size = 22 }) => {
+		return u("button", {
+			"aria-label": ariaLabel,
+			class: className.split(/\s+/u).includes("atv-modal-close") ? className : `atv-modal-close ${className}`,
+			onClick,
+			type: "button",
+			children: u(IconClose, { size })
+		});
+	};
+	var ModalSessionContext = X(0);
+	var ModalSession = ({ children, request }) => {
+		const [session, setSession] = d({
+			request,
+			sequence: 0
+		});
+		_(() => {
+			setSession((current) => current.request === request ? current : {
+				request,
+				sequence: current.sequence + 1
+			});
+		}, [request]);
+		return u(ModalSessionContext.Provider, {
+			value: session.sequence,
+			children
+		});
+	};
+	var useModalSession = () => x(ModalSessionContext);
+	var ModalSessionContent = ({ children }) => u(S, { children }, useModalSession());
+	function addUniqueItem(arr, item) {
+		if (arr.indexOf(item) === -1) arr.push(item);
+	}
+	function removeItem(arr, item) {
+		const index = arr.indexOf(item);
+		if (index > -1) arr.splice(index, 1);
+	}
+	var clamp = (min, max, v) => {
+		if (v > max) return max;
+		if (v < min) return min;
+		return v;
+	};
+	var MotionGlobalConfig = {};
+	var isNumericalString = (v) => /^-?(?:\d+(?:\.\d+)?|\.\d+)$/u.test(v);
+	var isObject = (value) => typeof value === "object" && value !== null;
+	var isZeroValueString = (v) => /^0[^.\s]+$/u.test(v);
+	function memo(callback) {
+		let result;
+		return () => {
+			if (result === void 0) result = callback();
+			return result;
+		};
+	}
+	var noop$4 = (any) => any;
+	var pipe = (...transformers) => transformers.reduce((a, b) => (v) => b(a(v)));
+	var progress = (from, to, value) => {
+		const range = to - from;
+		return range ? (value - from) / range : 1;
+	};
+	var SubscriptionManager = class {
+		constructor() {
+			this.subscriptions = [];
+		}
+		add(handler) {
+			addUniqueItem(this.subscriptions, handler);
+			return () => removeItem(this.subscriptions, handler);
+		}
+		notify(a, b, c) {
+			const numSubscriptions = this.subscriptions.length;
+			if (!numSubscriptions) return;
+			if (numSubscriptions === 1) this.subscriptions[0](a, b, c);
+			else for (let i = 0; i < numSubscriptions; i++) {
+				const handler = this.subscriptions[i];
+				handler && handler(a, b, c);
+			}
+		}
+		getSize() {
+			return this.subscriptions.length;
+		}
+		clear() {
+			this.subscriptions.length = 0;
+		}
+	};
+	var secondsToMilliseconds = (seconds) => seconds * 1e3;
+	var millisecondsToSeconds = (milliseconds) => milliseconds / 1e3;
+	var velocityPerSecond = (velocity, frameDuration) => frameDuration ? velocity * (1e3 / frameDuration) : 0;
+	var wrap = (min, max, v) => {
+		const rangeSize = max - min;
+		return ((v - min) % rangeSize + rangeSize) % rangeSize + min;
+	};
+	var calcBezier = (t, a1, a2) => (((1 - 3 * a2 + 3 * a1) * t + (3 * a2 - 6 * a1)) * t + 3 * a1) * t;
+	var subdivisionPrecision = 1e-7;
+	var subdivisionMaxIterations = 12;
+	function binarySubdivide(x, lowerBound, upperBound, mX1, mX2) {
+		let currentX;
+		let currentT;
+		let i = 0;
+		do {
+			currentT = lowerBound + (upperBound - lowerBound) / 2;
+			currentX = calcBezier(currentT, mX1, mX2) - x;
+			if (currentX > 0) upperBound = currentT;
+			else lowerBound = currentT;
+		} while (Math.abs(currentX) > subdivisionPrecision && ++i < subdivisionMaxIterations);
+		return currentT;
+	}
+	function cubicBezier(mX1, mY1, mX2, mY2) {
+		if (mX1 === mY1 && mX2 === mY2) return noop$4;
+		const getTForX = (aX) => binarySubdivide(aX, 0, 1, mX1, mX2);
+		return (t) => t === 0 || t === 1 ? t : calcBezier(getTForX(t), mY1, mY2);
+	}
+	var mirrorEasing = (easing) => (p) => p <= .5 ? easing(2 * p) / 2 : (2 - easing(2 * (1 - p))) / 2;
+	var reverseEasing = (easing) => (p) => 1 - easing(1 - p);
+	var backOut = cubicBezier(.33, 1.53, .69, .99);
+	var backIn = reverseEasing(backOut);
+	var backInOut = mirrorEasing(backIn);
+	var anticipate = (p) => p >= 1 ? 1 : (p *= 2) < 1 ? .5 * backIn(p) : .5 * (2 - Math.pow(2, -10 * (p - 1)));
+	var circIn = (p) => 1 - Math.sin(Math.acos(p));
+	var circOut = reverseEasing(circIn);
+	var circInOut = mirrorEasing(circIn);
+	var easeIn = cubicBezier(.42, 0, 1, 1);
+	var easeOut = cubicBezier(0, 0, .58, 1);
+	var easeInOut = cubicBezier(.42, 0, .58, 1);
+	var isEasingArray = (ease) => {
+		return Array.isArray(ease) && typeof ease[0] !== "number";
+	};
+	function getEasingForSegment(easing, i) {
+		return isEasingArray(easing) ? easing[wrap(0, easing.length, i)] : easing;
+	}
+	var isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
+	var easingLookup = {
+		linear: noop$4,
+		easeIn,
+		easeInOut,
+		easeOut,
+		circIn,
+		circInOut,
+		circOut,
+		backIn,
+		backInOut,
+		backOut,
+		anticipate
+	};
+	var isValidEasing = (easing) => {
+		return typeof easing === "string";
+	};
+	var easingDefinitionToFunction = (definition) => {
+		if (isBezierDefinition(definition)) {
+			definition.length;
+			const [x1, y1, x2, y2] = definition;
+			return cubicBezier(x1, y1, x2, y2);
+		} else if (isValidEasing(definition)) {
+			easingLookup[definition], `${definition}`;
+			return easingLookup[definition];
+		}
+		return definition;
+	};
+	var stepsOrder = [
+		"setup",
+		"read",
+		"resolveKeyframes",
+		"preUpdate",
+		"update",
+		"preRender",
+		"render",
+		"postRender"
+	];
+	function createRenderStep(runNextFrame) {
+		let thisFrame = new Set();
+		let nextFrame = new Set();
+		let isProcessing = false;
+		let flushNextFrame = false;
+		const toKeepAlive = new WeakSet();
+		let latestFrameData = {
+			delta: 0,
+			timestamp: 0,
+			isProcessing: false
+		};
+		function triggerCallback(callback) {
+			if (toKeepAlive.has(callback)) {
+				step.schedule(callback);
+				runNextFrame();
+			}
+			callback(latestFrameData);
+		}
+		const step = {
+			schedule: (callback, keepAlive = false, immediate = false) => {
+				const queue = immediate && isProcessing ? thisFrame : nextFrame;
+				if (keepAlive) toKeepAlive.add(callback);
+				queue.add(callback);
+				return callback;
+			},
+			cancel: (callback) => {
+				nextFrame.delete(callback);
+				toKeepAlive.delete(callback);
+			},
+			process: (frameData) => {
+				latestFrameData = frameData;
+				if (isProcessing) {
+					flushNextFrame = true;
+					return;
+				}
+				isProcessing = true;
+				const prevFrame = thisFrame;
+				thisFrame = nextFrame;
+				nextFrame = prevFrame;
+				thisFrame.forEach(triggerCallback);
+				thisFrame.clear();
+				isProcessing = false;
+				if (flushNextFrame) {
+					flushNextFrame = false;
+					step.process(frameData);
+				}
+			}
+		};
+		return step;
+	}
+	var maxElapsed = 40;
+	function createRenderBatcher(scheduleNextBatch, allowKeepAlive) {
+		let runNextFrame = false;
+		let useDefaultElapsed = true;
+		const state = {
+			delta: 0,
+			timestamp: 0,
+			isProcessing: false
+		};
+		const flagRunNextFrame = () => runNextFrame = true;
+		const steps = stepsOrder.reduce((acc, key) => {
+			acc[key] = createRenderStep(flagRunNextFrame);
+			return acc;
+		}, {});
+		const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps;
+		const processBatch = () => {
+			const useManualTiming = MotionGlobalConfig.useManualTiming;
+			const timestamp = useManualTiming ? state.timestamp : performance.now();
+			runNextFrame = false;
+			if (!useManualTiming) state.delta = useDefaultElapsed ? 1e3 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1);
+			state.timestamp = timestamp;
+			state.isProcessing = true;
+			setup.process(state);
+			read.process(state);
+			resolveKeyframes.process(state);
+			preUpdate.process(state);
+			update.process(state);
+			preRender.process(state);
+			render.process(state);
+			postRender.process(state);
+			state.isProcessing = false;
+			if (runNextFrame && allowKeepAlive) {
+				useDefaultElapsed = false;
+				scheduleNextBatch(processBatch);
+			}
+		};
+		const wake = () => {
+			runNextFrame = true;
+			useDefaultElapsed = true;
+			if (!state.isProcessing) scheduleNextBatch(processBatch);
+		};
+		const schedule = stepsOrder.reduce((acc, key) => {
+			const step = steps[key];
+			acc[key] = (process, keepAlive = false, immediate = false) => {
+				if (!runNextFrame) wake();
+				return step.schedule(process, keepAlive, immediate);
+			};
+			return acc;
+		}, {});
+		const cancel = (process) => {
+			for (let i = 0; i < stepsOrder.length; i++) steps[stepsOrder[i]].cancel(process);
+		};
+		return {
+			schedule,
+			cancel,
+			state,
+			steps
+		};
+	}
+	var { schedule: frame, cancel: cancelFrame, state: frameData, steps: frameSteps } = createRenderBatcher(typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : noop$4, true);
+	var now;
+	function clearTime() {
+		now = void 0;
+	}
+	var time = {
+		now: () => {
+			if (now === void 0) time.set(frameData.isProcessing || MotionGlobalConfig.useManualTiming ? frameData.timestamp : performance.now());
+			return now;
+		},
+		set: (newTime) => {
+			now = newTime;
+			queueMicrotask(clearTime);
+		}
+	};
+	var checkStringStartsWith = (token) => (key) => typeof key === "string" && key.startsWith(token);
+	var isCSSVariableName = checkStringStartsWith("--");
+	var startsAsVariableToken = checkStringStartsWith("var(--");
+	var isCSSVariableToken = (value) => {
+		if (!startsAsVariableToken(value)) return false;
+		return singleCssVariableRegex.test(value.split("/*")[0].trim());
+	};
+	var singleCssVariableRegex = /var\(--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)$/iu;
+	function containsCSSVariable(value) {
+		if (typeof value !== "string") return false;
+		return value.split("/*")[0].includes("var(--");
+	}
+	var number = {
+		test: (v) => typeof v === "number",
+		parse: parseFloat,
+		transform: (v) => v
+	};
+	var alpha = {
+		...number,
+		transform: (v) => clamp(0, 1, v)
+	};
+	var scale = {
+		...number,
+		default: 1
+	};
+	var sanitize = (v) => Math.round(v * 1e5) / 1e5;
+	var floatRegex = /-?(?:\d+(?:\.\d+)?|\.\d+)/gu;
+	function isNullish(v) {
+		return v == null;
+	}
+	var singleColorRegex = /^(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))$/iu;
+	var isColorString = (type, testProp) => (v) => {
+		return Boolean(typeof v === "string" && singleColorRegex.test(v) && v.startsWith(type) || testProp && !isNullish(v) && Object.prototype.hasOwnProperty.call(v, testProp));
+	};
+	var splitColor = (aName, bName, cName) => (v) => {
+		if (typeof v !== "string") return v;
+		const [a, b, c, alpha] = v.match(floatRegex);
+		return {
+			[aName]: parseFloat(a),
+			[bName]: parseFloat(b),
+			[cName]: parseFloat(c),
+			alpha: alpha !== void 0 ? parseFloat(alpha) : 1
+		};
+	};
+	var clampRgbUnit = (v) => clamp(0, 255, v);
+	var rgbUnit = {
+		...number,
+		transform: (v) => Math.round(clampRgbUnit(v))
+	};
+	var rgba = {
+		test: isColorString("rgb", "red"),
+		parse: splitColor("red", "green", "blue"),
+		transform: ({ red, green, blue, alpha: alpha$1 = 1 }) => "rgba(" + rgbUnit.transform(red) + ", " + rgbUnit.transform(green) + ", " + rgbUnit.transform(blue) + ", " + sanitize(alpha.transform(alpha$1)) + ")"
+	};
+	function parseHex(v) {
+		let r = "";
+		let g = "";
+		let b = "";
+		let a = "";
+		if (v.length > 5) {
+			r = v.substring(1, 3);
+			g = v.substring(3, 5);
+			b = v.substring(5, 7);
+			a = v.substring(7, 9);
+		} else {
+			r = v.substring(1, 2);
+			g = v.substring(2, 3);
+			b = v.substring(3, 4);
+			a = v.substring(4, 5);
+			r += r;
+			g += g;
+			b += b;
+			a += a;
+		}
+		return {
+			red: parseInt(r, 16),
+			green: parseInt(g, 16),
+			blue: parseInt(b, 16),
+			alpha: a ? parseInt(a, 16) / 255 : 1
+		};
+	}
+	var hex = {
+		test: isColorString("#"),
+		parse: parseHex,
+		transform: rgba.transform
+	};
+	var createUnitType = (unit) => ({
+		test: (v) => typeof v === "string" && v.endsWith(unit) && v.split(" ").length === 1,
+		parse: parseFloat,
+		transform: (v) => `${v}${unit}`
+	});
+	var degrees = createUnitType("deg");
+	var percent = createUnitType("%");
+	var px = createUnitType("px");
+	var vh = createUnitType("vh");
+	var vw = createUnitType("vw");
+	var progressPercentage = (() => ({
+		...percent,
+		parse: (v) => percent.parse(v) / 100,
+		transform: (v) => percent.transform(v * 100)
+	}))();
+	var hsla = {
+		test: isColorString("hsl", "hue"),
+		parse: splitColor("hue", "saturation", "lightness"),
+		transform: ({ hue, saturation, lightness, alpha: alpha$1 = 1 }) => {
+			return "hsla(" + Math.round(hue) + ", " + percent.transform(sanitize(saturation)) + ", " + percent.transform(sanitize(lightness)) + ", " + sanitize(alpha.transform(alpha$1)) + ")";
+		}
+	};
+	var color = {
+		test: (v) => rgba.test(v) || hex.test(v) || hsla.test(v),
+		parse: (v) => {
+			if (rgba.test(v)) return rgba.parse(v);
+			else if (hsla.test(v)) return hsla.parse(v);
+			else return hex.parse(v);
+		},
+		transform: (v) => {
+			return typeof v === "string" ? v : v.hasOwnProperty("red") ? rgba.transform(v) : hsla.transform(v);
+		},
+		getAnimatableNone: (v) => {
+			const parsed = color.parse(v);
+			parsed.alpha = 0;
+			return color.transform(parsed);
+		}
+	};
+	var colorRegex = /(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))/giu;
+	function test(v) {
+		return isNaN(v) && typeof v === "string" && (v.match(floatRegex)?.length || 0) + (v.match(colorRegex)?.length || 0) > 0;
+	}
+	var NUMBER_TOKEN = "number";
+	var COLOR_TOKEN = "color";
+	var VAR_TOKEN = "var";
+	var VAR_FUNCTION_TOKEN = "var(";
+	var SPLIT_TOKEN = "${}";
+	var complexRegex = /var\s*\(\s*--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)|#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\)|-?(?:\d+(?:\.\d+)?|\.\d+)/giu;
+	function analyseComplexValue(value) {
+		const originalValue = value.toString();
+		const values = [];
+		const indexes = {
+			color: [],
+			number: [],
+			var: []
+		};
+		const types = [];
+		let i = 0;
+		return {
+			values,
+			split: originalValue.replace(complexRegex, (parsedValue) => {
+				if (color.test(parsedValue)) {
+					indexes.color.push(i);
+					types.push(COLOR_TOKEN);
+					values.push(color.parse(parsedValue));
+				} else if (parsedValue.startsWith(VAR_FUNCTION_TOKEN)) {
+					indexes.var.push(i);
+					types.push(VAR_TOKEN);
+					values.push(parsedValue);
+				} else {
+					indexes.number.push(i);
+					types.push(NUMBER_TOKEN);
+					values.push(parseFloat(parsedValue));
+				}
+				++i;
+				return SPLIT_TOKEN;
+			}).split(SPLIT_TOKEN),
+			indexes,
+			types
+		};
+	}
+	function parseComplexValue(v) {
+		return analyseComplexValue(v).values;
+	}
+	function buildTransformer({ split, types }) {
+		const numSections = split.length;
+		return (v) => {
+			let output = "";
+			for (let i = 0; i < numSections; i++) {
+				output += split[i];
+				if (v[i] !== void 0) {
+					const type = types[i];
+					if (type === NUMBER_TOKEN) output += sanitize(v[i]);
+					else if (type === COLOR_TOKEN) output += color.transform(v[i]);
+					else output += v[i];
+				}
+			}
+			return output;
+		};
+	}
+	function createTransformer(source) {
+		return buildTransformer(analyseComplexValue(source));
+	}
+	var convertNumbersToZero = (v) => typeof v === "number" ? 0 : color.test(v) ? color.getAnimatableNone(v) : v;
+	var convertToZero = (value, splitBefore) => {
+		if (typeof value === "number") return splitBefore?.trim().endsWith("/") ? value : 0;
+		return convertNumbersToZero(value);
+	};
+	function getAnimatableNone$1(v) {
+		const info = analyseComplexValue(v);
+		return buildTransformer(info)(info.values.map((value, i) => convertToZero(value, info.split[i])));
+	}
+	var complex = {
+		test,
+		parse: parseComplexValue,
+		createTransformer,
+		getAnimatableNone: getAnimatableNone$1
+	};
+	function hueToRgb(p, q, t) {
+		if (t < 0) t += 1;
+		if (t > 1) t -= 1;
+		if (t < 1 / 6) return p + (q - p) * 6 * t;
+		if (t < 1 / 2) return q;
+		if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+		return p;
+	}
+	function hslaToRgba({ hue, saturation, lightness, alpha }) {
+		hue /= 360;
+		saturation /= 100;
+		lightness /= 100;
+		let red = 0;
+		let green = 0;
+		let blue = 0;
+		if (!saturation) red = green = blue = lightness;
+		else {
+			const q = lightness < .5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
+			const p = 2 * lightness - q;
+			red = hueToRgb(p, q, hue + 1 / 3);
+			green = hueToRgb(p, q, hue);
+			blue = hueToRgb(p, q, hue - 1 / 3);
+		}
+		return {
+			red: Math.round(red * 255),
+			green: Math.round(green * 255),
+			blue: Math.round(blue * 255),
+			alpha
+		};
+	}
+	function mixImmediate(a, b) {
+		return (p) => p > 0 ? b : a;
+	}
+	var mixNumber$1 = (from, to, progress) => {
+		return from + (to - from) * progress;
+	};
+	var mixLinearColor = (from, to, v) => {
+		const fromExpo = from * from;
+		const expo = v * (to * to - fromExpo) + fromExpo;
+		return expo < 0 ? 0 : Math.sqrt(expo);
+	};
+	var colorTypes = [
+		hex,
+		rgba,
+		hsla
+	];
+	var getColorType = (v) => colorTypes.find((type) => type.test(v));
+	function asRGBA(color) {
+		const type = getColorType(color);
+		`${color}`;
+		if (!Boolean(type)) return false;
+		let model = type.parse(color);
+		if (type === hsla) model = hslaToRgba(model);
+		return model;
+	}
+	var mixColor = (from, to) => {
+		const fromRGBA = asRGBA(from);
+		const toRGBA = asRGBA(to);
+		if (!fromRGBA || !toRGBA) return mixImmediate(from, to);
+		const blended = { ...fromRGBA };
+		return (v) => {
+			blended.red = mixLinearColor(fromRGBA.red, toRGBA.red, v);
+			blended.green = mixLinearColor(fromRGBA.green, toRGBA.green, v);
+			blended.blue = mixLinearColor(fromRGBA.blue, toRGBA.blue, v);
+			blended.alpha = mixNumber$1(fromRGBA.alpha, toRGBA.alpha, v);
+			return rgba.transform(blended);
+		};
+	};
+	var invisibleValues = new Set(["none", "hidden"]);
+	function mixVisibility(origin, target) {
+		if (invisibleValues.has(origin)) return (p) => p <= 0 ? origin : target;
+		else return (p) => p >= 1 ? target : origin;
+	}
+	function mixNumber(a, b) {
+		return (p) => mixNumber$1(a, b, p);
+	}
+	function getMixer(a) {
+		if (typeof a === "number") return mixNumber;
+		else if (typeof a === "string") return isCSSVariableToken(a) ? mixImmediate : color.test(a) ? mixColor : mixComplex;
+		else if (Array.isArray(a)) return mixArray;
+		else if (typeof a === "object") return color.test(a) ? mixColor : mixObject;
+		return mixImmediate;
+	}
+	function mixArray(a, b) {
+		const output = [...a];
+		const numValues = output.length;
+		const blendValue = a.map((v, i) => getMixer(v)(v, b[i]));
+		return (p) => {
+			for (let i = 0; i < numValues; i++) output[i] = blendValue[i](p);
+			return output;
+		};
+	}
+	function mixObject(a, b) {
+		const output = {
+			...a,
+			...b
+		};
+		const blendValue = {};
+		for (const key in output) if (a[key] !== void 0 && b[key] !== void 0) blendValue[key] = getMixer(a[key])(a[key], b[key]);
+		return (v) => {
+			for (const key in blendValue) output[key] = blendValue[key](v);
+			return output;
+		};
+	}
+	function matchOrder(origin, target) {
+		const orderedOrigin = [];
+		const pointers = {
+			color: 0,
+			var: 0,
+			number: 0
+		};
+		for (let i = 0; i < target.values.length; i++) {
+			const type = target.types[i];
+			const originIndex = origin.indexes[type][pointers[type]];
+			orderedOrigin[i] = origin.values[originIndex] ?? 0;
+			pointers[type]++;
+		}
+		return orderedOrigin;
+	}
+	var mixComplex = (origin, target) => {
+		const template = complex.createTransformer(target);
+		const originStats = analyseComplexValue(origin);
+		const targetStats = analyseComplexValue(target);
+		if (originStats.indexes.var.length === targetStats.indexes.var.length && originStats.indexes.color.length === targetStats.indexes.color.length && originStats.indexes.number.length >= targetStats.indexes.number.length) {
+			if (invisibleValues.has(origin) && !targetStats.values.length || invisibleValues.has(target) && !originStats.values.length) return mixVisibility(origin, target);
+			return pipe(mixArray(matchOrder(originStats, targetStats), targetStats.values), template);
+		} else {
+			`${origin}${target}`;
+			return mixImmediate(origin, target);
+		}
+	};
+	function mix(from, to, p) {
+		if (typeof from === "number" && typeof to === "number" && typeof p === "number") return mixNumber$1(from, to, p);
+		return getMixer(from)(from, to);
+	}
+	var frameloopDriver = (update) => {
+		const passTimestamp = ({ timestamp }) => update(timestamp);
+		return {
+			start: (keepAlive = true) => frame.update(passTimestamp, keepAlive),
+			stop: () => cancelFrame(passTimestamp),
+			now: () => frameData.isProcessing ? frameData.timestamp : time.now()
+		};
+	};
+	var generateLinearEasing = (easing, duration, resolution = 10) => {
+		let points = "";
+		const numPoints = Math.max(Math.round(duration / resolution), 2);
+		for (let i = 0; i < numPoints; i++) points += Math.round(easing(i / (numPoints - 1)) * 1e4) / 1e4 + ", ";
+		return `linear(${points.substring(0, points.length - 2)})`;
+	};
+	var maxGeneratorDuration = 2e4;
+	function calcGeneratorDuration(generator) {
+		let duration = 0;
+		const timeStep = 50;
+		let state = generator.next(duration);
+		while (!state.done && duration < 2e4) {
+			duration += timeStep;
+			state = generator.next(duration);
+		}
+		return duration >= 2e4 ? Infinity : duration;
+	}
+	function createGeneratorEasing(options, scale = 100, createGenerator) {
+		const generator = createGenerator({
+			...options,
+			keyframes: [0, scale]
+		});
+		const duration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
+		return {
+			type: "keyframes",
+			ease: (progress) => {
+				return generator.next(duration * progress).value / scale;
+			},
+			duration: millisecondsToSeconds(duration)
+		};
+	}
+	var springDefaults = {
+		stiffness: 100,
+		damping: 10,
+		mass: 1,
+		velocity: 0,
+		duration: 800,
+		bounce: .3,
+		visualDuration: .3,
+		restSpeed: {
+			granular: .01,
+			default: 2
+		},
+		restDelta: {
+			granular: .005,
+			default: .5
+		},
+		minDuration: .01,
+		maxDuration: 10,
+		minDamping: .05,
+		maxDamping: 1
+	};
+	function calcAngularFreq(undampedFreq, dampingRatio) {
+		return undampedFreq * Math.sqrt(1 - dampingRatio * dampingRatio);
+	}
+	var rootIterations = 12;
+	function approximateRoot(envelope, derivative, initialGuess) {
+		let result = initialGuess;
+		for (let i = 1; i < rootIterations; i++) result = result - envelope(result) / derivative(result);
+		return result;
+	}
+	var safeMin = .001;
+	function findSpring({ duration = springDefaults.duration, bounce = springDefaults.bounce, velocity = springDefaults.velocity, mass = springDefaults.mass }) {
+		let envelope;
+		let derivative;
+		springDefaults.maxDuration;
+		let dampingRatio = 1 - bounce;
+		dampingRatio = clamp(springDefaults.minDamping, springDefaults.maxDamping, dampingRatio);
+		duration = clamp(springDefaults.minDuration, springDefaults.maxDuration, millisecondsToSeconds(duration));
+		if (dampingRatio < 1) {
+			envelope = (undampedFreq) => {
+				const exponentialDecay = undampedFreq * dampingRatio;
+				const delta = exponentialDecay * duration;
+				const a = exponentialDecay - velocity;
+				const b = calcAngularFreq(undampedFreq, dampingRatio);
+				const c = Math.exp(-delta);
+				return safeMin - a / b * c;
+			};
+			derivative = (undampedFreq) => {
+				const delta = undampedFreq * dampingRatio * duration;
+				const d = delta * velocity + velocity;
+				const e = Math.pow(dampingRatio, 2) * Math.pow(undampedFreq, 2) * duration;
+				const f = Math.exp(-delta);
+				const g = calcAngularFreq(Math.pow(undampedFreq, 2), dampingRatio);
+				return (-envelope(undampedFreq) + safeMin > 0 ? -1 : 1) * ((d - e) * f) / g;
+			};
+		} else {
+			envelope = (undampedFreq) => {
+				return -.001 + Math.exp(-undampedFreq * duration) * ((undampedFreq - velocity) * duration + 1);
+			};
+			derivative = (undampedFreq) => {
+				return Math.exp(-undampedFreq * duration) * ((velocity - undampedFreq) * (duration * duration));
+			};
+		}
+		const initialGuess = 5 / duration;
+		const undampedFreq = approximateRoot(envelope, derivative, initialGuess);
+		duration = secondsToMilliseconds(duration);
+		if (isNaN(undampedFreq)) return {
+			stiffness: springDefaults.stiffness,
+			damping: springDefaults.damping,
+			duration
+		};
+		else {
+			const stiffness = Math.pow(undampedFreq, 2) * mass;
+			return {
+				stiffness,
+				damping: dampingRatio * 2 * Math.sqrt(mass * stiffness),
+				duration
+			};
+		}
+	}
+	var durationKeys = ["duration", "bounce"];
+	var physicsKeys = [
+		"stiffness",
+		"damping",
+		"mass"
+	];
+	function isSpringType(options, keys) {
+		return keys.some((key) => options[key] !== void 0);
+	}
+	function getSpringOptions(options) {
+		let springOptions = {
+			velocity: springDefaults.velocity,
+			stiffness: springDefaults.stiffness,
+			damping: springDefaults.damping,
+			mass: springDefaults.mass,
+			isResolvedFromDuration: false,
+			...options
+		};
+		if (!isSpringType(options, physicsKeys) && isSpringType(options, durationKeys)) {
+			springOptions.velocity = 0;
+			if (options.visualDuration) {
+				const visualDuration = options.visualDuration;
+				const root = 2 * Math.PI / (visualDuration * 1.2);
+				const stiffness = root * root;
+				const damping = 2 * clamp(.05, 1, 1 - (options.bounce || 0)) * Math.sqrt(stiffness);
+				springOptions = {
+					...springOptions,
+					mass: springDefaults.mass,
+					stiffness,
+					damping
+				};
+			} else {
+				const derived = findSpring({
+					...options,
+					velocity: 0
+				});
+				springOptions = {
+					...springOptions,
+					...derived,
+					mass: springDefaults.mass
+				};
+				springOptions.isResolvedFromDuration = true;
+			}
+		}
+		return springOptions;
+	}
+	function spring(optionsOrVisualDuration = springDefaults.visualDuration, bounce = springDefaults.bounce) {
+		const options = typeof optionsOrVisualDuration !== "object" ? {
+			visualDuration: optionsOrVisualDuration,
+			keyframes: [0, 1],
+			bounce
+		} : optionsOrVisualDuration;
+		let { restSpeed, restDelta } = options;
+		const origin = options.keyframes[0];
+		const target = options.keyframes[options.keyframes.length - 1];
+		const state = {
+			done: false,
+			value: origin
+		};
+		const { stiffness, damping, mass, duration, velocity, isResolvedFromDuration } = getSpringOptions({
+			...options,
+			velocity: -millisecondsToSeconds(options.velocity || 0)
+		});
+		const initialVelocity = velocity || 0;
+		const dampingRatio = damping / (2 * Math.sqrt(stiffness * mass));
+		const initialDelta = target - origin;
+		const undampedAngularFreq = millisecondsToSeconds(Math.sqrt(stiffness / mass));
+		const isGranularScale = Math.abs(initialDelta) < 5;
+		restSpeed || (restSpeed = isGranularScale ? springDefaults.restSpeed.granular : springDefaults.restSpeed.default);
+		restDelta || (restDelta = isGranularScale ? springDefaults.restDelta.granular : springDefaults.restDelta.default);
+		let resolveSpring;
+		let resolveVelocity;
+		let angularFreq;
+		let A;
+		let sinCoeff;
+		let cosCoeff;
+		if (dampingRatio < 1) {
+			angularFreq = calcAngularFreq(undampedAngularFreq, dampingRatio);
+			A = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / angularFreq;
+			resolveSpring = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				return target - envelope * (A * Math.sin(angularFreq * t) + initialDelta * Math.cos(angularFreq * t));
+			};
+			sinCoeff = dampingRatio * undampedAngularFreq * A + initialDelta * angularFreq;
+			cosCoeff = dampingRatio * undampedAngularFreq * initialDelta - A * angularFreq;
+			resolveVelocity = (t) => {
+				return Math.exp(-dampingRatio * undampedAngularFreq * t) * (sinCoeff * Math.sin(angularFreq * t) + cosCoeff * Math.cos(angularFreq * t));
+			};
+		} else if (dampingRatio === 1) {
+			resolveSpring = (t) => target - Math.exp(-undampedAngularFreq * t) * (initialDelta + (initialVelocity + undampedAngularFreq * initialDelta) * t);
+			const C = initialVelocity + undampedAngularFreq * initialDelta;
+			resolveVelocity = (t) => Math.exp(-undampedAngularFreq * t) * (undampedAngularFreq * C * t - initialVelocity);
+		} else {
+			const dampedAngularFreq = undampedAngularFreq * Math.sqrt(dampingRatio * dampingRatio - 1);
+			resolveSpring = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				const freqForT = Math.min(dampedAngularFreq * t, 300);
+				return target - envelope * ((initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) * Math.sinh(freqForT) + dampedAngularFreq * initialDelta * Math.cosh(freqForT)) / dampedAngularFreq;
+			};
+			const P = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / dampedAngularFreq;
+			const sinhCoeff = dampingRatio * undampedAngularFreq * P - initialDelta * dampedAngularFreq;
+			const coshCoeff = dampingRatio * undampedAngularFreq * initialDelta - P * dampedAngularFreq;
+			resolveVelocity = (t) => {
+				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+				const freqForT = Math.min(dampedAngularFreq * t, 300);
+				return envelope * (sinhCoeff * Math.sinh(freqForT) + coshCoeff * Math.cosh(freqForT));
+			};
+		}
+		const generator = {
+			calculatedDuration: isResolvedFromDuration ? duration || null : null,
+			velocity: (t) => secondsToMilliseconds(resolveVelocity(t)),
+			next: (t) => {
+				if (!isResolvedFromDuration && dampingRatio < 1) {
+					const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
+					const sin = Math.sin(angularFreq * t);
+					const cos = Math.cos(angularFreq * t);
+					const current = target - envelope * (A * sin + initialDelta * cos);
+					const currentVelocity = secondsToMilliseconds(envelope * (sinCoeff * sin + cosCoeff * cos));
+					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
+					state.value = state.done ? target : current;
+					return state;
+				}
+				const current = resolveSpring(t);
+				if (!isResolvedFromDuration) {
+					const currentVelocity = secondsToMilliseconds(resolveVelocity(t));
+					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
+				} else state.done = t >= duration;
+				state.value = state.done ? target : current;
+				return state;
+			},
+			toString: () => {
+				const calculatedDuration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
+				const easing = generateLinearEasing((progress) => generator.next(calculatedDuration * progress).value, calculatedDuration, 30);
+				return calculatedDuration + "ms " + easing;
+			},
+			toTransition: () => {}
+		};
+		return generator;
+	}
+	spring.applyToOptions = (options) => {
+		const generatorOptions = createGeneratorEasing(options, 100, spring);
+		options.ease = generatorOptions.ease;
+		options.duration = secondsToMilliseconds(generatorOptions.duration);
+		options.type = "keyframes";
+		return options;
+	};
+	var velocitySampleDuration = 5;
+	function getGeneratorVelocity(resolveValue, t, current) {
+		const prevT = Math.max(t - velocitySampleDuration, 0);
+		return velocityPerSecond(current - resolveValue(prevT), t - prevT);
+	}
+	function inertia({ keyframes, velocity = 0, power = .8, timeConstant = 325, bounceDamping = 10, bounceStiffness = 500, modifyTarget, min, max, restDelta = .5, restSpeed }) {
+		const origin = keyframes[0];
+		const state = {
+			done: false,
+			value: origin
+		};
+		const isOutOfBounds = (v) => min !== void 0 && v < min || max !== void 0 && v > max;
+		const nearestBoundary = (v) => {
+			if (min === void 0) return max;
+			if (max === void 0) return min;
+			return Math.abs(min - v) < Math.abs(max - v) ? min : max;
+		};
+		let amplitude = power * velocity;
+		const ideal = origin + amplitude;
+		const target = modifyTarget === void 0 ? ideal : modifyTarget(ideal);
+		if (target !== ideal) amplitude = target - origin;
+		const calcDelta = (t) => -amplitude * Math.exp(-t / timeConstant);
+		const calcLatest = (t) => target + calcDelta(t);
+		const applyFriction = (t) => {
+			const delta = calcDelta(t);
+			const latest = calcLatest(t);
+			state.done = Math.abs(delta) <= restDelta;
+			state.value = state.done ? target : latest;
+		};
+		let timeReachedBoundary;
+		let spring$1;
+		const checkCatchBoundary = (t) => {
+			if (!isOutOfBounds(state.value)) return;
+			timeReachedBoundary = t;
+			spring$1 = spring({
+				keyframes: [state.value, nearestBoundary(state.value)],
+				velocity: getGeneratorVelocity(calcLatest, t, state.value),
+				damping: bounceDamping,
+				stiffness: bounceStiffness,
+				restDelta,
+				restSpeed
+			});
+		};
+		checkCatchBoundary(0);
+		return {
+			calculatedDuration: null,
+			next: (t) => {
+				let hasUpdatedFrame = false;
+				if (!spring$1 && timeReachedBoundary === void 0) {
+					hasUpdatedFrame = true;
+					applyFriction(t);
+					checkCatchBoundary(t);
+				}
+				if (timeReachedBoundary !== void 0 && t >= timeReachedBoundary) return spring$1.next(t - timeReachedBoundary);
+				else {
+					!hasUpdatedFrame && applyFriction(t);
+					return state;
+				}
+			}
+		};
+	}
+	function createMixers(output, ease, customMixer) {
+		const mixers = [];
+		const mixerFactory = customMixer || MotionGlobalConfig.mix || mix;
+		const numMixers = output.length - 1;
+		for (let i = 0; i < numMixers; i++) {
+			let mixer = mixerFactory(output[i], output[i + 1]);
+			if (ease) mixer = pipe(Array.isArray(ease) ? ease[i] || noop$4 : ease, mixer);
+			mixers.push(mixer);
+		}
+		return mixers;
+	}
+	function interpolate(input, output, { clamp: isClamp = true, ease, mixer } = {}) {
+		const inputLength = input.length;
+		output.length;
+		if (inputLength === 1) return () => output[0];
+		if (inputLength === 2 && output[0] === output[1]) return () => output[1];
+		const isZeroDeltaRange = input[0] === input[1];
+		if (input[0] > input[inputLength - 1]) {
+			input = [...input].reverse();
+			output = [...output].reverse();
+		}
+		const mixers = createMixers(output, ease, mixer);
+		const numMixers = mixers.length;
+		const interpolator = (v) => {
+			if (isZeroDeltaRange && v < input[0]) return output[0];
+			let i = 0;
+			if (numMixers > 1) {
+				for (; i < input.length - 2; i++) if (v < input[i + 1]) break;
+			}
+			const progressInRange = progress(input[i], input[i + 1], v);
+			return mixers[i](progressInRange);
+		};
+		return isClamp ? (v) => interpolator(clamp(input[0], input[inputLength - 1], v)) : interpolator;
+	}
+	function fillOffset(offset, remaining) {
+		const min = offset[offset.length - 1];
+		for (let i = 1; i <= remaining; i++) {
+			const offsetProgress = progress(0, remaining, i);
+			offset.push(mixNumber$1(min, 1, offsetProgress));
+		}
+	}
+	function defaultOffset(arr) {
+		const offset = [0];
+		fillOffset(offset, arr.length - 1);
+		return offset;
+	}
+	function convertOffsetToTimes(offset, duration) {
+		return offset.map((o) => o * duration);
+	}
+	function defaultEasing(values, easing) {
+		return values.map(() => easing || easeInOut).splice(0, values.length - 1);
+	}
+	function keyframes({ duration = 300, keyframes: keyframeValues, times, ease = "easeInOut" }) {
+		const easingFunctions = isEasingArray(ease) ? ease.map(easingDefinitionToFunction) : easingDefinitionToFunction(ease);
+		const state = {
+			done: false,
+			value: keyframeValues[0]
+		};
+		const mapTimeToKeyframe = interpolate(convertOffsetToTimes(times && times.length === keyframeValues.length ? times : defaultOffset(keyframeValues), duration), keyframeValues, { ease: Array.isArray(easingFunctions) ? easingFunctions : defaultEasing(keyframeValues, easingFunctions) });
+		return {
+			calculatedDuration: duration,
+			next: (t) => {
+				state.value = mapTimeToKeyframe(t);
+				state.done = t >= duration;
+				return state;
+			}
+		};
+	}
+	var isNotNull = (value) => value !== null;
+	function getFinalKeyframe(keyframes, { repeat, repeatType = "loop" }, finalKeyframe, speed = 1) {
+		const resolvedKeyframes = keyframes.filter(isNotNull);
+		const index = speed < 0 || repeat && repeatType !== "loop" && repeat % 2 === 1 ? 0 : resolvedKeyframes.length - 1;
+		return !index || finalKeyframe === void 0 ? resolvedKeyframes[index] : finalKeyframe;
+	}
+	var transitionTypeMap = {
+		decay: inertia,
+		inertia,
+		tween: keyframes,
+		keyframes,
+		spring
+	};
+	function replaceTransitionType(transition) {
+		if (typeof transition.type === "string") transition.type = transitionTypeMap[transition.type];
+	}
+	var WithPromise = class {
+		constructor() {
+			this.updateFinished();
+		}
+		get finished() {
+			return this._finished;
+		}
+		updateFinished() {
+			this._finished = new Promise((resolve) => {
+				this.resolve = resolve;
+			});
+		}
+		notifyFinished() {
+			this.resolve();
+		}
+		then(onResolve, onReject) {
+			return this.finished.then(onResolve, onReject);
+		}
+	};
+	var percentToProgress = (percent) => percent / 100;
+	var JSAnimation = class extends WithPromise {
+		constructor(options) {
+			super();
+			this.state = "idle";
+			this.startTime = null;
+			this.isStopped = false;
+			this.currentTime = 0;
+			this.holdTime = null;
+			this.playbackSpeed = 1;
+			this.delayState = {
+				done: false,
+				value: void 0
+			};
+			this.stop = () => {
+				const { motionValue } = this.options;
+				if (motionValue && motionValue.updatedAt !== time.now()) this.tick(time.now());
+				this.isStopped = true;
+				if (this.state === "idle") return;
+				this.teardown();
+				this.options.onStop?.();
+			};
+			this.options = options;
+			this.initAnimation();
+			this.play();
+			if (options.autoplay === false) this.pause();
+		}
+		initAnimation() {
+			const { options } = this;
+			replaceTransitionType(options);
+			const { type = keyframes, repeat = 0, repeatDelay = 0, repeatType, velocity = 0 } = options;
+			let { keyframes: keyframes$1 } = options;
+			const generatorFactory = type || keyframes;
+			if (generatorFactory !== keyframes && typeof keyframes$1[0] !== "number") {
+				this.mixKeyframes = pipe(percentToProgress, mix(keyframes$1[0], keyframes$1[1]));
+				keyframes$1 = [0, 100];
+			}
+			const generator = generatorFactory({
+				...options,
+				keyframes: keyframes$1
+			});
+			if (repeatType === "mirror") this.mirroredGenerator = generatorFactory({
+				...options,
+				keyframes: [...keyframes$1].reverse(),
+				velocity: -velocity
+			});
+			if (generator.calculatedDuration === null) generator.calculatedDuration = calcGeneratorDuration(generator);
+			const { calculatedDuration } = generator;
+			this.calculatedDuration = calculatedDuration;
+			this.resolvedDuration = calculatedDuration + repeatDelay;
+			this.totalDuration = this.resolvedDuration * (repeat + 1) - repeatDelay;
+			this.generator = generator;
+		}
+		updateTime(timestamp) {
+			const animationTime = Math.round(timestamp - this.startTime) * this.playbackSpeed;
+			if (this.holdTime !== null) this.currentTime = this.holdTime;
+			else this.currentTime = animationTime;
+		}
+		tick(timestamp, sample = false) {
+			const { generator, totalDuration, mixKeyframes, mirroredGenerator, resolvedDuration, calculatedDuration } = this;
+			if (this.startTime === null) return generator.next(0);
+			const { delay = 0, keyframes, repeat, repeatType, repeatDelay, type, onUpdate, finalKeyframe } = this.options;
+			if (this.speed > 0) this.startTime = Math.min(this.startTime, timestamp);
+			else if (this.speed < 0) this.startTime = Math.min(timestamp - totalDuration / this.speed, this.startTime);
+			if (sample) this.currentTime = timestamp;
+			else this.updateTime(timestamp);
+			const timeWithoutDelay = this.currentTime - delay * (this.playbackSpeed >= 0 ? 1 : -1);
+			const isInDelayPhase = this.playbackSpeed >= 0 ? timeWithoutDelay < 0 : timeWithoutDelay > totalDuration;
+			this.currentTime = Math.max(timeWithoutDelay, 0);
+			if (this.state === "finished" && this.holdTime === null) this.currentTime = totalDuration;
+			let elapsed = this.currentTime;
+			let frameGenerator = generator;
+			if (repeat) {
+				const progress = Math.min(this.currentTime, totalDuration) / resolvedDuration;
+				let currentIteration = Math.floor(progress);
+				let iterationProgress = progress % 1;
+				if (!iterationProgress && progress >= 1) iterationProgress = 1;
+				iterationProgress === 1 && currentIteration--;
+				currentIteration = Math.min(currentIteration, repeat + 1);
+				if (Boolean(currentIteration % 2)) {
+					if (repeatType === "reverse") {
+						iterationProgress = 1 - iterationProgress;
+						if (repeatDelay) iterationProgress -= repeatDelay / resolvedDuration;
+					} else if (repeatType === "mirror") frameGenerator = mirroredGenerator;
+				}
+				elapsed = clamp(0, 1, iterationProgress) * resolvedDuration;
+			}
+			let state;
+			if (isInDelayPhase) {
+				this.delayState.value = keyframes[0];
+				state = this.delayState;
+			} else state = frameGenerator.next(elapsed);
+			if (mixKeyframes && !isInDelayPhase) state.value = mixKeyframes(state.value);
+			let { done } = state;
+			if (!isInDelayPhase && calculatedDuration !== null) done = this.playbackSpeed >= 0 ? this.currentTime >= totalDuration : this.currentTime <= 0;
+			const isAnimationFinished = this.holdTime === null && (this.state === "finished" || this.state === "running" && done);
+			if (isAnimationFinished && type !== inertia) state.value = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
+			if (onUpdate) onUpdate(state.value);
+			if (isAnimationFinished) this.finish();
+			return state;
+		}
+		then(resolve, reject) {
+			return this.finished.then(resolve, reject);
+		}
+		get duration() {
+			return millisecondsToSeconds(this.calculatedDuration);
+		}
+		get iterationDuration() {
+			const { delay = 0 } = this.options || {};
+			return this.duration + millisecondsToSeconds(delay);
+		}
+		get time() {
+			return millisecondsToSeconds(this.currentTime);
+		}
+		set time(newTime) {
+			newTime = secondsToMilliseconds(newTime);
+			this.currentTime = newTime;
+			if (this.startTime === null || this.holdTime !== null || this.playbackSpeed === 0) this.holdTime = newTime;
+			else if (this.driver) this.startTime = this.driver.now() - newTime / this.playbackSpeed;
+			if (this.driver) this.driver.start(false);
+			else {
+				this.startTime = 0;
+				this.state = "paused";
+				this.holdTime = newTime;
+				this.tick(newTime);
+			}
+		}
+		getGeneratorVelocity() {
+			const t = this.currentTime;
+			if (t <= 0) return this.options.velocity || 0;
+			if (this.generator.velocity) return this.generator.velocity(t);
+			const current = this.generator.next(t).value;
+			return getGeneratorVelocity((s) => this.generator.next(s).value, t, current);
+		}
+		get speed() {
+			return this.playbackSpeed;
+		}
+		set speed(newSpeed) {
+			const hasChanged = this.playbackSpeed !== newSpeed;
+			if (hasChanged && this.driver) this.updateTime(time.now());
+			this.playbackSpeed = newSpeed;
+			if (hasChanged && this.driver) this.time = millisecondsToSeconds(this.currentTime);
+		}
+		play() {
+			if (this.isStopped) return;
+			const { driver = frameloopDriver, startTime } = this.options;
+			if (!this.driver) this.driver = driver((timestamp) => this.tick(timestamp));
+			this.options.onPlay?.();
+			const now = this.driver.now();
+			if (this.state === "finished") {
+				this.updateFinished();
+				this.startTime = now;
+			} else if (this.holdTime !== null) this.startTime = now - this.holdTime;
+			else if (!this.startTime) this.startTime = startTime ?? now;
+			if (this.state === "finished" && this.speed < 0) this.startTime += this.calculatedDuration;
+			this.holdTime = null;
+			this.state = "running";
+			this.driver.start();
+		}
+		pause() {
+			this.state = "paused";
+			this.updateTime(time.now());
+			this.holdTime = this.currentTime;
+		}
+		complete() {
+			if (this.state !== "running") this.play();
+			this.state = "finished";
+			this.holdTime = null;
+		}
+		finish() {
+			this.notifyFinished();
+			this.teardown();
+			this.state = "finished";
+			this.options.onComplete?.();
+		}
+		cancel() {
+			this.holdTime = null;
+			this.startTime = 0;
+			this.tick(0);
+			this.teardown();
+			this.options.onCancel?.();
+		}
+		teardown() {
+			this.state = "idle";
+			this.stopDriver();
+			this.startTime = this.holdTime = null;
+		}
+		stopDriver() {
+			if (!this.driver) return;
+			this.driver.stop();
+			this.driver = void 0;
+		}
+		sample(sampleTime) {
+			this.startTime = 0;
+			return this.tick(sampleTime, true);
+		}
+		attachTimeline(timeline) {
+			if (this.options.allowFlatten) {
+				this.options.type = "keyframes";
+				this.options.ease = "linear";
+				this.initAnimation();
+			}
+			this.driver?.stop();
+			return timeline.observe(this);
+		}
+	};
+	function fillWildcards(keyframes) {
+		for (let i = 1; i < keyframes.length; i++) keyframes[i] ?? (keyframes[i] = keyframes[i - 1]);
+	}
+	var radToDeg = (rad) => rad * 180 / Math.PI;
+	var rotate = (v) => {
+		return rebaseAngle(radToDeg(Math.atan2(v[1], v[0])));
+	};
+	var matrix2dParsers = {
+		x: 4,
+		y: 5,
+		translateX: 4,
+		translateY: 5,
+		scaleX: 0,
+		scaleY: 3,
+		scale: (v) => (Math.abs(v[0]) + Math.abs(v[3])) / 2,
+		rotate,
+		rotateZ: rotate,
+		skewX: (v) => radToDeg(Math.atan(v[1])),
+		skewY: (v) => radToDeg(Math.atan(v[2])),
+		skew: (v) => (Math.abs(v[1]) + Math.abs(v[2])) / 2
+	};
+	var rebaseAngle = (angle) => {
+		angle = angle % 360;
+		if (angle < 0) angle += 360;
+		return angle;
+	};
+	var rotateZ = rotate;
+	var scaleX = (v) => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
+	var scaleY = (v) => Math.sqrt(v[4] * v[4] + v[5] * v[5]);
+	var matrix3dParsers = {
+		x: 12,
+		y: 13,
+		z: 14,
+		translateX: 12,
+		translateY: 13,
+		translateZ: 14,
+		scaleX,
+		scaleY,
+		scale: (v) => (scaleX(v) + scaleY(v)) / 2,
+		rotateX: (v) => rebaseAngle(radToDeg(Math.atan2(v[6], v[5]))),
+		rotateY: (v) => rebaseAngle(radToDeg(Math.atan2(-v[2], v[0]))),
+		rotateZ,
+		rotate: rotateZ,
+		skewX: (v) => radToDeg(Math.atan(v[4])),
+		skewY: (v) => radToDeg(Math.atan(v[1])),
+		skew: (v) => (Math.abs(v[1]) + Math.abs(v[4])) / 2
+	};
+	function defaultTransformValue(name) {
+		return name.includes("scale") ? 1 : 0;
+	}
+	function parseValueFromTransform(transform, name) {
+		if (!transform || transform === "none") return defaultTransformValue(name);
+		const matrix3dMatch = transform.match(/^matrix3d\(([-\d.e\s,]+)\)$/u);
+		let parsers;
+		let match;
+		if (matrix3dMatch) {
+			parsers = matrix3dParsers;
+			match = matrix3dMatch;
+		} else {
+			const matrix2dMatch = transform.match(/^matrix\(([-\d.e\s,]+)\)$/u);
+			parsers = matrix2dParsers;
+			match = matrix2dMatch;
+		}
+		if (!match) return defaultTransformValue(name);
+		const valueParser = parsers[name];
+		const values = match[1].split(",").map(convertTransformToNumber);
+		return typeof valueParser === "function" ? valueParser(values) : values[valueParser];
+	}
+	var readTransformValue = (instance, name) => {
+		const { transform = "none" } = getComputedStyle(instance);
+		return parseValueFromTransform(transform, name);
+	};
+	function convertTransformToNumber(value) {
+		return parseFloat(value.trim());
+	}
+	var transformPropOrder = [
+		"transformPerspective",
+		"x",
+		"y",
+		"z",
+		"translateX",
+		"translateY",
+		"translateZ",
+		"scale",
+		"scaleX",
+		"scaleY",
+		"rotate",
+		"rotateX",
+		"rotateY",
+		"rotateZ",
+		"skew",
+		"skewX",
+		"skewY"
+	];
+	var transformProps = (() => new Set([...transformPropOrder, "pathRotation"]))();
+	var isNumOrPxType = (v) => v === number || v === px;
+	var transformKeys = new Set([
+		"x",
+		"y",
+		"z"
+	]);
+	var nonTranslationalTransformKeys = transformPropOrder.filter((key) => !transformKeys.has(key));
+	function removeNonTranslationalTransform(visualElement) {
+		const removedTransforms = [];
+		nonTranslationalTransformKeys.forEach((key) => {
+			const value = visualElement.getValue(key);
+			if (value !== void 0) {
+				removedTransforms.push([key, value.get()]);
+				value.set(key.startsWith("scale") ? 1 : 0);
+			}
+		});
+		return removedTransforms;
+	}
+	var positionalValues = {
+		width: ({ x }, { paddingLeft = "0", paddingRight = "0", boxSizing }) => {
+			const width = x.max - x.min;
+			return boxSizing === "border-box" ? width : width - parseFloat(paddingLeft) - parseFloat(paddingRight);
+		},
+		height: ({ y }, { paddingTop = "0", paddingBottom = "0", boxSizing }) => {
+			const height = y.max - y.min;
+			return boxSizing === "border-box" ? height : height - parseFloat(paddingTop) - parseFloat(paddingBottom);
+		},
+		top: (_bbox, { top }) => parseFloat(top),
+		left: (_bbox, { left }) => parseFloat(left),
+		bottom: ({ y }, { top }) => parseFloat(top) + (y.max - y.min),
+		right: ({ x }, { left }) => parseFloat(left) + (x.max - x.min),
+		x: (_bbox, { transform }) => parseValueFromTransform(transform, "x"),
+		y: (_bbox, { transform }) => parseValueFromTransform(transform, "y")
+	};
+	positionalValues.translateX = positionalValues.x;
+	positionalValues.translateY = positionalValues.y;
+	var toResolve = new Set();
+	var isScheduled = false;
+	var anyNeedsMeasurement = false;
+	var isForced = false;
+	function measureAllKeyframes() {
+		if (anyNeedsMeasurement) {
+			const resolversToMeasure = Array.from(toResolve).filter((resolver) => resolver.needsMeasurement);
+			const elementsToMeasure = new Set(resolversToMeasure.map((resolver) => resolver.element));
+			const transformsToRestore = new Map();
+			elementsToMeasure.forEach((element) => {
+				const removedTransforms = removeNonTranslationalTransform(element);
+				if (!removedTransforms.length) return;
+				transformsToRestore.set(element, removedTransforms);
+				element.render();
+			});
+			resolversToMeasure.forEach((resolver) => resolver.measureInitialState());
+			elementsToMeasure.forEach((element) => {
+				element.render();
+				const restore = transformsToRestore.get(element);
+				if (restore) restore.forEach(([key, value]) => {
+					element.getValue(key)?.set(value);
+				});
+			});
+			resolversToMeasure.forEach((resolver) => resolver.measureEndState());
+			resolversToMeasure.forEach((resolver) => {
+				if (resolver.suspendedScrollY !== void 0) window.scrollTo(0, resolver.suspendedScrollY);
+			});
+		}
+		anyNeedsMeasurement = false;
+		isScheduled = false;
+		toResolve.forEach((resolver) => resolver.complete(isForced));
+		toResolve.clear();
+	}
+	function readAllKeyframes() {
+		toResolve.forEach((resolver) => {
+			resolver.readKeyframes();
+			if (resolver.needsMeasurement) anyNeedsMeasurement = true;
+		});
+	}
+	function flushKeyframeResolvers() {
+		isForced = true;
+		readAllKeyframes();
+		measureAllKeyframes();
+		isForced = false;
+	}
+	var KeyframeResolver = class {
+		constructor(unresolvedKeyframes, onComplete, name, motionValue, element, isAsync = false) {
+			this.state = "pending";
+			this.isAsync = false;
+			this.needsMeasurement = false;
+			this.unresolvedKeyframes = [...unresolvedKeyframes];
+			this.onComplete = onComplete;
+			this.name = name;
+			this.motionValue = motionValue;
+			this.element = element;
+			this.isAsync = isAsync;
+		}
+		scheduleResolve() {
+			this.state = "scheduled";
+			if (this.isAsync) {
+				toResolve.add(this);
+				if (!isScheduled) {
+					isScheduled = true;
+					frame.read(readAllKeyframes);
+					frame.resolveKeyframes(measureAllKeyframes);
+				}
+			} else {
+				this.readKeyframes();
+				this.complete();
+			}
+		}
+		readKeyframes() {
+			const { unresolvedKeyframes, name, element, motionValue } = this;
+			if (unresolvedKeyframes[0] === null) {
+				const currentValue = motionValue?.get();
+				const finalKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
+				if (currentValue !== void 0) unresolvedKeyframes[0] = currentValue;
+				else if (element && name) {
+					const valueAsRead = element.readValue(name, finalKeyframe);
+					if (valueAsRead !== void 0 && valueAsRead !== null) unresolvedKeyframes[0] = valueAsRead;
+				}
+				if (unresolvedKeyframes[0] === void 0) unresolvedKeyframes[0] = finalKeyframe;
+				if (motionValue && currentValue === void 0) motionValue.set(unresolvedKeyframes[0]);
+			}
+			fillWildcards(unresolvedKeyframes);
+		}
+		setFinalKeyframe() {}
+		measureInitialState() {}
+		renderEndStyles() {}
+		measureEndState() {}
+		complete(isForcedComplete = false) {
+			this.state = "complete";
+			this.onComplete(this.unresolvedKeyframes, this.finalKeyframe, isForcedComplete);
+			toResolve.delete(this);
+		}
+		cancel() {
+			if (this.state === "scheduled") {
+				toResolve.delete(this);
+				this.state = "pending";
+			}
+		}
+		resume() {
+			if (this.state === "pending") this.scheduleResolve();
+		}
+	};
+	var isCSSVar = (name) => name.startsWith("--");
+	function setStyle(element, name, value) {
+		isCSSVar(name) ? element.style.setProperty(name, value) : element.style[name] = value;
+	}
+	var supportsFlags = {};
+	function memoSupports(callback, supportsFlag) {
+		const memoized = memo(callback);
+		return () => supportsFlags[supportsFlag] ?? memoized();
+	}
+	var supportsScrollTimeline = memoSupports(() => window.ScrollTimeline !== void 0, "scrollTimeline");
+	var supportsLinearEasing = memoSupports(() => {
+		try {
+			document.createElement("div").animate({ opacity: 0 }, { easing: "linear(0, 1)" });
+		} catch (e) {
+			return false;
+		}
+		return true;
+	}, "linearEasing");
+	var cubicBezierAsString = ([a, b, c, d]) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
+	var supportedWaapiEasing = {
+		linear: "linear",
+		ease: "ease",
+		easeIn: "ease-in",
+		easeOut: "ease-out",
+		easeInOut: "ease-in-out",
+		circIn: cubicBezierAsString([
+			0,
+			.65,
+			.55,
+			1
+		]),
+		circOut: cubicBezierAsString([
+			.55,
+			0,
+			1,
+			.45
+		]),
+		backIn: cubicBezierAsString([
+			.31,
+			.01,
+			.66,
+			-.59
+		]),
+		backOut: cubicBezierAsString([
+			.33,
+			1.53,
+			.69,
+			.99
+		])
+	};
+	function mapEasingToNativeEasing(easing, duration) {
+		if (!easing) return;
+		else if (typeof easing === "function") return supportsLinearEasing() ? generateLinearEasing(easing, duration) : "ease-out";
+		else if (isBezierDefinition(easing)) return cubicBezierAsString(easing);
+		else if (Array.isArray(easing)) return easing.map((segmentEasing) => mapEasingToNativeEasing(segmentEasing, duration) || supportedWaapiEasing.easeOut);
+		else return supportedWaapiEasing[easing];
+	}
+	function startWaapiAnimation(element, valueName, keyframes, { delay = 0, duration = 300, repeat = 0, repeatType = "loop", ease = "easeOut", times } = {}, pseudoElement = void 0) {
+		const keyframeOptions = { [valueName]: keyframes };
+		if (times) keyframeOptions.offset = times;
+		const easing = mapEasingToNativeEasing(ease, duration);
+		if (Array.isArray(easing)) keyframeOptions.easing = easing;
+		const options = {
+			delay,
+			duration,
+			easing: !Array.isArray(easing) ? easing : "linear",
+			fill: "both",
+			iterations: repeat + 1,
+			direction: repeatType === "reverse" ? "alternate" : "normal"
+		};
+		if (pseudoElement) options.pseudoElement = pseudoElement;
+		return element.animate(keyframeOptions, options);
+	}
+	function isGenerator(type) {
+		return typeof type === "function" && "applyToOptions" in type;
+	}
+	function applyGeneratorOptions({ type, ...options }) {
+		if (isGenerator(type) && supportsLinearEasing()) return type.applyToOptions(options);
+		else {
+			options.duration ?? (options.duration = 300);
+			options.ease ?? (options.ease = "easeOut");
+		}
+		return options;
+	}
+	var NativeAnimation = class extends WithPromise {
+		constructor(options) {
+			super();
+			this.finishedTime = null;
+			this.isStopped = false;
+			this.manualStartTime = null;
+			if (!options) return;
+			const { element, name, keyframes, pseudoElement, allowFlatten = false, finalKeyframe, onComplete } = options;
+			this.isPseudoElement = Boolean(pseudoElement);
+			this.allowFlatten = allowFlatten;
+			this.options = options;
+			options.type;
+			const transition = applyGeneratorOptions(options);
+			this.animation = startWaapiAnimation(element, name, keyframes, transition, pseudoElement);
+			if (transition.autoplay === false) this.animation.pause();
+			this.animation.onfinish = () => {
+				this.finishedTime = this.time;
+				if (!pseudoElement) {
+					const keyframe = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
+					if (this.updateMotionValue) this.updateMotionValue(keyframe);
+					setStyle(element, name, keyframe);
+					this.animation.cancel();
+				}
+				onComplete?.();
+				this.notifyFinished();
+			};
+		}
+		play() {
+			if (this.isStopped) return;
+			this.manualStartTime = null;
+			this.animation.play();
+			if (this.state === "finished") this.updateFinished();
+		}
+		pause() {
+			this.animation.pause();
+		}
+		complete() {
+			this.animation.finish?.();
+		}
+		cancel() {
+			try {
+				this.animation.cancel();
+			} catch (e) {}
+		}
+		stop() {
+			if (this.isStopped) return;
+			this.isStopped = true;
+			const { state } = this;
+			if (state === "idle" || state === "finished") return;
+			if (this.updateMotionValue) this.updateMotionValue();
+			else this.commitStyles();
+			if (!this.isPseudoElement) this.cancel();
+		}
+		commitStyles() {
+			const element = this.options?.element;
+			if (!this.isPseudoElement && element?.isConnected) this.animation.commitStyles?.();
+		}
+		get duration() {
+			const duration = this.animation.effect?.getComputedTiming?.().duration || 0;
+			return millisecondsToSeconds(Number(duration));
+		}
+		get iterationDuration() {
+			const { delay = 0 } = this.options || {};
+			return this.duration + millisecondsToSeconds(delay);
+		}
+		get time() {
+			return millisecondsToSeconds(Number(this.animation.currentTime) || 0);
+		}
+		set time(newTime) {
+			const wasFinished = this.finishedTime !== null;
+			this.manualStartTime = null;
+			this.finishedTime = null;
+			this.animation.currentTime = secondsToMilliseconds(newTime);
+			if (wasFinished) this.animation.pause();
+		}
+		get speed() {
+			return this.animation.playbackRate;
+		}
+		set speed(newSpeed) {
+			if (newSpeed < 0) this.finishedTime = null;
+			this.animation.playbackRate = newSpeed;
+		}
+		get state() {
+			return this.finishedTime !== null ? "finished" : this.animation.playState;
+		}
+		get startTime() {
+			return this.manualStartTime ?? Number(this.animation.startTime);
+		}
+		set startTime(newStartTime) {
+			this.manualStartTime = this.animation.startTime = newStartTime;
+		}
+		attachTimeline({ timeline, rangeStart, rangeEnd, observe }) {
+			if (this.allowFlatten) this.animation.effect?.updateTiming({ easing: "linear" });
+			this.animation.onfinish = null;
+			if (timeline && supportsScrollTimeline()) {
+				this.animation.timeline = timeline;
+				if (rangeStart) this.animation.rangeStart = rangeStart;
+				if (rangeEnd) this.animation.rangeEnd = rangeEnd;
+				return noop$4;
+			} else return observe(this);
+		}
+	};
+	var unsupportedEasingFunctions = {
+		anticipate,
+		backInOut,
+		circInOut
+	};
+	function isUnsupportedEase(key) {
+		return key in unsupportedEasingFunctions;
+	}
+	function replaceStringEasing(transition) {
+		if (typeof transition.ease === "string" && isUnsupportedEase(transition.ease)) transition.ease = unsupportedEasingFunctions[transition.ease];
+	}
+	var sampleDelta = 10;
+	var NativeAnimationExtended = class extends NativeAnimation {
+		constructor(options) {
+			replaceStringEasing(options);
+			replaceTransitionType(options);
+			super(options);
+			if (options.startTime !== void 0 && options.autoplay !== false) this.startTime = options.startTime;
+			this.options = options;
+		}
+		updateMotionValue(value) {
+			const { motionValue, onUpdate, onComplete, element, ...options } = this.options;
+			if (!motionValue) return;
+			if (value !== void 0) {
+				motionValue.set(value);
+				return;
+			}
+			const sampleAnimation = new JSAnimation({
+				...options,
+				autoplay: false
+			});
+			const sampleTime = Math.max(sampleDelta, time.now() - this.startTime);
+			const delta = clamp(0, sampleDelta, sampleTime - sampleDelta);
+			const current = sampleAnimation.sample(sampleTime).value;
+			const { name } = this.options;
+			if (element && name) setStyle(element, name, current);
+			motionValue.setWithVelocity(sampleAnimation.sample(Math.max(0, sampleTime - delta)).value, current, delta);
+			sampleAnimation.stop();
+		}
+	};
+	var isAnimatable = (value, name) => {
+		if (name === "zIndex") return false;
+		if (typeof value === "number" || Array.isArray(value)) return true;
+		if (typeof value === "string" && (complex.test(value) || value === "0") && !value.startsWith("url(")) return true;
+		return false;
+	};
+	function hasKeyframesChanged(keyframes) {
+		const current = keyframes[0];
+		if (keyframes.length === 1) return true;
+		for (let i = 0; i < keyframes.length; i++) if (keyframes[i] !== current) return true;
+	}
+	function canAnimate(keyframes, name, type, velocity) {
+		const originKeyframe = keyframes[0];
+		if (originKeyframe === null) return false;
+		if (name === "display" || name === "visibility") return true;
+		const targetKeyframe = keyframes[keyframes.length - 1];
+		const isOriginAnimatable = isAnimatable(originKeyframe, name);
+		const isTargetAnimatable = isAnimatable(targetKeyframe, name);
+		`${name}${originKeyframe}${targetKeyframe}${isOriginAnimatable ? targetKeyframe : originKeyframe}`;
+		if (!isOriginAnimatable || !isTargetAnimatable) return false;
+		return hasKeyframesChanged(keyframes) || (type === "spring" || isGenerator(type)) && velocity;
+	}
+	function makeAnimationInstant(options) {
+		options.duration = 0;
+		options.type = "keyframes";
+	}
+	var acceleratedValues = new Set([
+		"opacity",
+		"clipPath",
+		"filter",
+		"transform"
+	]);
+	var browserColorFunctions = /^(?:oklch|oklab|lab|lch|color|color-mix|light-dark)\(/;
+	function hasBrowserOnlyColors(keyframes) {
+		for (let i = 0; i < keyframes.length; i++) if (typeof keyframes[i] === "string" && browserColorFunctions.test(keyframes[i])) return true;
+		return false;
+	}
+	var colorProperties = new Set([
+		"color",
+		"backgroundColor",
+		"outlineColor",
+		"fill",
+		"stroke",
+		"borderColor",
+		"borderTopColor",
+		"borderRightColor",
+		"borderBottomColor",
+		"borderLeftColor"
+	]);
+	var supportsWaapi = memo(() => Object.hasOwnProperty.call(Element.prototype, "animate"));
+	function supportsBrowserAnimation(options) {
+		const { motionValue, name, repeatDelay, repeatType, damping, type, keyframes } = options;
+		if (!(motionValue?.owner?.current instanceof HTMLElement)) return false;
+		const { onUpdate, transformTemplate } = motionValue.owner.getProps();
+		return supportsWaapi() && name && (acceleratedValues.has(name) || colorProperties.has(name) && hasBrowserOnlyColors(keyframes)) && (name !== "transform" || !transformTemplate) && !onUpdate && !repeatDelay && repeatType !== "mirror" && damping !== 0 && type !== "inertia";
+	}
+	var MAX_RESOLVE_DELAY = 40;
+	var AsyncMotionValueAnimation = class extends WithPromise {
+		constructor({ autoplay = true, delay = 0, type = "keyframes", repeat = 0, repeatDelay = 0, repeatType = "loop", keyframes, name, motionValue, element, ...options }) {
+			super();
+			this.stop = () => {
+				if (this._animation) {
+					this._animation.stop();
+					this.stopTimeline?.();
+				}
+				this.keyframeResolver?.cancel();
+			};
+			this.createdAt = time.now();
+			const optionsWithDefaults = {
+				autoplay,
+				delay,
+				type,
+				repeat,
+				repeatDelay,
+				repeatType,
+				name,
+				motionValue,
+				element,
+				...options
+			};
+			const KeyframeResolver$1 = element?.KeyframeResolver || KeyframeResolver;
+			this.keyframeResolver = new KeyframeResolver$1(keyframes, (resolvedKeyframes, finalKeyframe, forced) => this.onKeyframesResolved(resolvedKeyframes, finalKeyframe, optionsWithDefaults, !forced), name, motionValue, element);
+			this.keyframeResolver?.scheduleResolve();
+		}
+		onKeyframesResolved(keyframes, finalKeyframe, options, sync) {
+			this.keyframeResolver = void 0;
+			const { name, type, velocity, delay, isHandoff, onUpdate } = options;
+			this.resolvedAt = time.now();
+			let canAnimateValue = true;
+			if (!canAnimate(keyframes, name, type, velocity)) {
+				canAnimateValue = false;
+				if (MotionGlobalConfig.instantAnimations || !delay) onUpdate?.(getFinalKeyframe(keyframes, options, finalKeyframe));
+				keyframes[0] = keyframes[keyframes.length - 1];
+				makeAnimationInstant(options);
+				options.repeat = 0;
+			}
+			const resolvedOptions = {
+				startTime: sync ? !this.resolvedAt ? this.createdAt : this.resolvedAt - this.createdAt > MAX_RESOLVE_DELAY ? this.resolvedAt : this.createdAt : void 0,
+				finalKeyframe,
+				...options,
+				keyframes
+			};
+			const useWaapi = canAnimateValue && !isHandoff && supportsBrowserAnimation(resolvedOptions);
+			const element = resolvedOptions.motionValue?.owner?.current;
+			let animation;
+			if (useWaapi) try {
+				animation = new NativeAnimationExtended({
+					...resolvedOptions,
+					element
+				});
+			} catch {
+				animation = new JSAnimation(resolvedOptions);
+			}
+			else animation = new JSAnimation(resolvedOptions);
+			animation.finished.then(() => {
+				this.notifyFinished();
+			}).catch(noop$4);
+			if (this.pendingTimeline) {
+				this.stopTimeline = animation.attachTimeline(this.pendingTimeline);
+				this.pendingTimeline = void 0;
+			}
+			this._animation = animation;
+		}
+		get finished() {
+			if (!this._animation) return this._finished;
+			else return this.animation.finished;
+		}
+		then(onResolve, _onReject) {
+			return this.finished.finally(onResolve).then(() => {});
+		}
+		get animation() {
+			if (!this._animation) {
+				this.keyframeResolver?.resume();
+				flushKeyframeResolvers();
+			}
+			return this._animation;
+		}
+		get duration() {
+			return this.animation.duration;
+		}
+		get iterationDuration() {
+			return this.animation.iterationDuration;
+		}
+		get time() {
+			return this.animation.time;
+		}
+		set time(newTime) {
+			this.animation.time = newTime;
+		}
+		get speed() {
+			return this.animation.speed;
+		}
+		get state() {
+			return this.animation.state;
+		}
+		set speed(newSpeed) {
+			this.animation.speed = newSpeed;
+		}
+		get startTime() {
+			return this.animation.startTime;
+		}
+		attachTimeline(timeline) {
+			if (this._animation) this.stopTimeline = this.animation.attachTimeline(timeline);
+			else this.pendingTimeline = timeline;
+			return () => this.stop();
+		}
+		play() {
+			this.animation.play();
+		}
+		pause() {
+			this.animation.pause();
+		}
+		complete() {
+			this.animation.complete();
+		}
+		cancel() {
+			if (this._animation) this.animation.cancel();
+			this.keyframeResolver?.cancel();
+		}
+	};
+	var GroupAnimation = class {
+		constructor(animations) {
+			this.stop = () => this.runAll("stop");
+			this.animations = animations.filter(Boolean);
+		}
+		get finished() {
+			return Promise.all(this.animations.map((animation) => animation.finished));
+		}
+		getAll(propName) {
+			return this.animations[0][propName];
+		}
+		setAll(propName, newValue) {
+			for (let i = 0; i < this.animations.length; i++) this.animations[i][propName] = newValue;
+		}
+		attachTimeline(timeline) {
+			const subscriptions = this.animations.map((animation) => animation.attachTimeline(timeline));
+			return () => {
+				subscriptions.forEach((cancel, i) => {
+					cancel && cancel();
+					this.animations[i].stop();
+				});
+			};
+		}
+		get time() {
+			return this.getAll("time");
+		}
+		set time(time) {
+			this.setAll("time", time);
+		}
+		get speed() {
+			return this.getAll("speed");
+		}
+		set speed(speed) {
+			this.setAll("speed", speed);
+		}
+		get state() {
+			return this.getAll("state");
+		}
+		get startTime() {
+			return this.getAll("startTime");
+		}
+		get duration() {
+			return getMax(this.animations, "duration");
+		}
+		get iterationDuration() {
+			return getMax(this.animations, "iterationDuration");
+		}
+		runAll(methodName) {
+			this.animations.forEach((controls) => controls[methodName]());
+		}
+		play() {
+			this.runAll("play");
+		}
+		pause() {
+			this.runAll("pause");
+		}
+		cancel() {
+			this.runAll("cancel");
+		}
+		complete() {
+			this.runAll("complete");
+		}
+	};
+	function getMax(animations, propName) {
+		let max = 0;
+		for (let i = 0; i < animations.length; i++) {
+			const value = animations[i][propName];
+			if (value !== null && value > max) max = value;
+		}
+		return max;
+	}
+	var GroupAnimationWithThen = class extends GroupAnimation {
+		then(onResolve, _onReject) {
+			return this.finished.finally(onResolve).then(() => {});
+		}
+	};
+	var MAX_VELOCITY_DELTA = 30;
+	var isFloat = (value) => {
+		return !isNaN(parseFloat(value));
+	};
+	var collectMotionValues = { current: void 0 };
+	var MotionValue = class {
+		constructor(init, options = {}) {
+			this.canTrackVelocity = null;
+			this.events = {};
+			this.updateAndNotify = (v) => {
+				const currentTime = time.now();
+				if (this.updatedAt !== currentTime) this.setPrevFrameValue();
+				this.prev = this.current;
+				this.setCurrent(v);
+				if (this.current !== this.prev) {
+					this.events.change?.notify(this.current);
+					if (this.dependents) for (const dependent of this.dependents) dependent.dirty();
+				}
+			};
+			this.hasAnimated = false;
+			this.setCurrent(init);
+			this.owner = options.owner;
+		}
+		setCurrent(current) {
+			this.current = current;
+			this.updatedAt = time.now();
+			if (this.canTrackVelocity === null && current !== void 0) this.canTrackVelocity = isFloat(this.current);
+		}
+		setPrevFrameValue(prevFrameValue = this.current) {
+			this.prevFrameValue = prevFrameValue;
+			this.prevUpdatedAt = this.updatedAt;
+		}
+		onChange(subscription) {
+			return this.on("change", subscription);
+		}
+		on(eventName, callback) {
+			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
+			const unsubscribe = this.events[eventName].add(callback);
+			if (eventName === "change") return () => {
+				unsubscribe();
+				frame.read(() => {
+					if (!this.events.change.getSize()) this.stop();
+				});
+			};
+			return unsubscribe;
+		}
+		clearListeners() {
+			for (const eventManagers in this.events) this.events[eventManagers].clear();
+		}
+		attach(passiveEffect, stopPassiveEffect) {
+			this.passiveEffect = passiveEffect;
+			this.stopPassiveEffect = stopPassiveEffect;
+		}
+		set(v) {
+			if (!this.passiveEffect) this.updateAndNotify(v);
+			else this.passiveEffect(v, this.updateAndNotify);
+		}
+		setWithVelocity(prev, current, delta) {
+			this.set(current);
+			this.prev = void 0;
+			this.prevFrameValue = prev;
+			this.prevUpdatedAt = this.updatedAt - delta;
+		}
+		jump(v, endAnimation = true) {
+			this.updateAndNotify(v);
+			this.prev = v;
+			this.prevUpdatedAt = this.prevFrameValue = void 0;
+			endAnimation && this.stop();
+			if (this.stopPassiveEffect) this.stopPassiveEffect();
+		}
+		dirty() {
+			this.events.change?.notify(this.current);
+		}
+		addDependent(dependent) {
+			if (!this.dependents) this.dependents = new Set();
+			this.dependents.add(dependent);
+		}
+		removeDependent(dependent) {
+			if (this.dependents) this.dependents.delete(dependent);
+		}
+		get() {
+			if (collectMotionValues.current) collectMotionValues.current.push(this);
+			return this.current;
+		}
+		getPrevious() {
+			return this.prev;
+		}
+		getVelocity() {
+			const currentTime = time.now();
+			if (!this.canTrackVelocity || this.prevFrameValue === void 0 || currentTime - this.updatedAt > MAX_VELOCITY_DELTA) return 0;
+			const delta = Math.min(this.updatedAt - this.prevUpdatedAt, MAX_VELOCITY_DELTA);
+			return velocityPerSecond(parseFloat(this.current) - parseFloat(this.prevFrameValue), delta);
+		}
+		start(startAnimation) {
+			this.stop();
+			return new Promise((resolve) => {
+				this.hasAnimated = true;
+				this.animation = startAnimation(resolve);
+				if (this.events.animationStart) this.events.animationStart.notify();
+			}).then(() => {
+				if (this.events.animationComplete) this.events.animationComplete.notify();
+				this.clearAnimation();
+			});
+		}
+		stop() {
+			if (this.animation) {
+				this.animation.stop();
+				if (this.events.animationCancel) this.events.animationCancel.notify();
+			}
+			this.clearAnimation();
+		}
+		isAnimating() {
+			return !!this.animation;
+		}
+		clearAnimation() {
+			delete this.animation;
+		}
+		destroy() {
+			this.dependents?.clear();
+			this.events.destroy?.notify();
+			this.clearListeners();
+			this.stop();
+			if (this.stopPassiveEffect) this.stopPassiveEffect();
+		}
+	};
+	function motionValue(init, options) {
+		return new MotionValue(init, options);
+	}
+	function resolveTransition(transition, parentTransition) {
+		if (transition?.inherit && parentTransition) {
+			const { inherit: _, ...rest } = transition;
+			return {
+				...parentTransition,
+				...rest
+			};
+		}
+		return transition;
+	}
+	function getValueTransition$1(transition, key) {
+		const valueTransition = transition?.[key] ?? transition?.["default"] ?? transition;
+		if (valueTransition !== transition) return resolveTransition(valueTransition, transition);
+		return valueTransition;
+	}
+	var underDampedSpring = {
+		type: "spring",
+		stiffness: 500,
+		damping: 25,
+		restSpeed: 10
+	};
+	var criticallyDampedSpring = (target) => ({
+		type: "spring",
+		stiffness: 550,
+		damping: target === 0 ? 2 * Math.sqrt(550) : 30,
+		restSpeed: 10
+	});
+	var keyframesTransition = {
+		type: "keyframes",
+		duration: .8
+	};
+	var ease = {
+		type: "keyframes",
+		ease: [
+			.25,
+			.1,
+			.35,
+			1
+		],
+		duration: .3
+	};
+	var getDefaultTransition = (valueKey, { keyframes }) => {
+		if (keyframes.length > 2) return keyframesTransition;
+		else if (transformProps.has(valueKey)) return valueKey.startsWith("scale") ? criticallyDampedSpring(keyframes[1]) : underDampedSpring;
+		return ease;
+	};
+	var orchestrationKeys = new Set([
+		"when",
+		"delay",
+		"delayChildren",
+		"staggerChildren",
+		"staggerDirection",
+		"repeat",
+		"repeatType",
+		"repeatDelay",
+		"from",
+		"elapsed"
+	]);
+	function isTransitionDefined(transition) {
+		for (const key in transition) if (!orchestrationKeys.has(key)) return true;
+		return false;
+	}
+	var animateMotionValue = (name, value, target, transition = {}, element, isHandoff) => (onComplete) => {
+		const valueTransition = getValueTransition$1(transition, name) || {};
+		const delay = valueTransition.delay || transition.delay || 0;
+		let { elapsed = 0 } = transition;
+		elapsed = elapsed - secondsToMilliseconds(delay);
+		const options = {
+			keyframes: Array.isArray(target) ? target : [null, target],
+			ease: "easeOut",
+			velocity: value.getVelocity(),
+			...valueTransition,
+			delay: -elapsed,
+			onUpdate: (v) => {
+				value.set(v);
+				valueTransition.onUpdate && valueTransition.onUpdate(v);
+			},
+			onComplete: () => {
+				onComplete();
+				valueTransition.onComplete && valueTransition.onComplete();
+			},
+			name,
+			motionValue: value,
+			element: isHandoff ? void 0 : element
+		};
+		if (!isTransitionDefined(valueTransition)) Object.assign(options, getDefaultTransition(name, options));
+		options.duration && (options.duration = secondsToMilliseconds(options.duration));
+		options.repeatDelay && (options.repeatDelay = secondsToMilliseconds(options.repeatDelay));
+		if (options.from !== void 0) options.keyframes[0] = options.from;
+		let shouldSkip = false;
+		if (options.type === false || options.duration === 0 && !options.repeatDelay) {
+			makeAnimationInstant(options);
+			if (options.delay === 0) shouldSkip = true;
+		}
+		if (MotionGlobalConfig.instantAnimations || MotionGlobalConfig.skipAnimations || element?.shouldSkipAnimations || valueTransition.skipAnimations) {
+			shouldSkip = true;
+			makeAnimationInstant(options);
+			options.delay = 0;
+		}
+		options.allowFlatten = !valueTransition.type && !valueTransition.ease;
+		if (shouldSkip && !isHandoff && value.get() !== void 0) {
+			const finalKeyframe = getFinalKeyframe(options.keyframes, valueTransition);
+			if (finalKeyframe !== void 0) {
+				frame.update(() => {
+					options.onUpdate(finalKeyframe);
+					options.onComplete();
+				});
+				return;
+			}
+		}
+		return valueTransition.isSync ? new JSAnimation(options) : new AsyncMotionValueAnimation(options);
+	};
+	var splitCSSVariableRegex = /^var\(--(?:([\w-]+)|([\w-]+), ?([a-zA-Z\d ()%#.,-]+))\)/u;
+	function parseCSSVariable(current) {
+		const match = splitCSSVariableRegex.exec(current);
+		if (!match) return [,];
+		const [, token1, token2, fallback] = match;
+		return [`--${token1 ?? token2}`, fallback];
+	}
+	function getVariableValue(current, element, depth = 1) {
+		`${current}`;
+		const [token, fallback] = parseCSSVariable(current);
+		if (!token) return;
+		const resolved = window.getComputedStyle(element).getPropertyValue(token);
+		if (resolved) {
+			const trimmed = resolved.trim();
+			return isNumericalString(trimmed) ? parseFloat(trimmed) : trimmed;
+		}
+		return isCSSVariableToken(fallback) ? getVariableValue(fallback, element, depth + 1) : fallback;
+	}
+	function getValueState(visualElement) {
+		const state = [{}, {}];
+		visualElement?.values.forEach((value, key) => {
+			state[0][key] = value.get();
+			state[1][key] = value.getVelocity();
+		});
+		return state;
+	}
+	function resolveVariantFromProps(props, definition, custom, visualElement) {
+		if (typeof definition === "function") {
+			const [current, velocity] = getValueState(visualElement);
+			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
+		}
+		if (typeof definition === "string") definition = props.variants && props.variants[definition];
+		if (typeof definition === "function") {
+			const [current, velocity] = getValueState(visualElement);
+			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
+		}
+		return definition;
+	}
+	function resolveVariant(visualElement, definition, custom) {
+		const props = visualElement.getProps();
+		return resolveVariantFromProps(props, definition, custom !== void 0 ? custom : props.custom, visualElement);
+	}
+	var positionalKeys = new Set([
+		"width",
+		"height",
+		"top",
+		"left",
+		"right",
+		"bottom",
+		...transformPropOrder
+	]);
+	var isKeyframesTarget = (v) => {
+		return Array.isArray(v);
+	};
+	function setMotionValue(visualElement, key, value) {
+		if (visualElement.hasValue(key)) visualElement.getValue(key).set(value);
+		else visualElement.addValue(key, motionValue(value));
+	}
+	function resolveFinalValueInKeyframes(v) {
+		return isKeyframesTarget(v) ? v[v.length - 1] || 0 : v;
+	}
+	function setTarget(visualElement, definition) {
+		let { transitionEnd = {}, transition = {}, ...target } = resolveVariant(visualElement, definition) || {};
+		target = {
+			...target,
+			...transitionEnd
+		};
+		for (const key in target) setMotionValue(visualElement, key, resolveFinalValueInKeyframes(target[key]));
+	}
+	var isMotionValue = (value) => Boolean(value && value.getVelocity);
+	function isWillChangeMotionValue(value) {
+		return Boolean(isMotionValue(value) && value.add);
+	}
+	function addValueToWillChange(visualElement, key) {
+		const willChange = visualElement.getValue("willChange");
+		if (isWillChangeMotionValue(willChange)) return willChange.add(key);
+		else if (!willChange && MotionGlobalConfig.WillChange) {
+			const newWillChange = new MotionGlobalConfig.WillChange("auto");
+			visualElement.addValue("willChange", newWillChange);
+			newWillChange.add(key);
+		}
+	}
+	function camelToDash(str) {
+		return str.replace(/([A-Z])/g, (match) => `-${match.toLowerCase()}`);
+	}
+	var optimizedAppearDataAttribute = "data-" + camelToDash("framerAppearId");
+	function getOptimisedAppearId(visualElement) {
+		return visualElement.props[optimizedAppearDataAttribute];
+	}
+	function shouldBlockAnimation({ protectedKeys, needsAnimating }, key) {
+		const shouldBlock = protectedKeys.hasOwnProperty(key) && needsAnimating[key] !== true;
+		needsAnimating[key] = false;
+		return shouldBlock;
+	}
+	function animateTarget(visualElement, targetAndTransition, { delay = 0, transitionOverride, type } = {}) {
+		let { transition, transitionEnd, ...target } = targetAndTransition;
+		const defaultTransition = visualElement.getDefaultTransition();
+		transition = transition ? resolveTransition(transition, defaultTransition) : defaultTransition;
+		const reduceMotion = transition?.reduceMotion;
+		const skipAnimations = transition?.skipAnimations;
+		if (transitionOverride) transition = transitionOverride;
+		const animations = [];
+		const animationTypeState = type && visualElement.animationState && visualElement.animationState.getState()[type];
+		const path = transition?.path;
+		if (path) path.animateVisualElement(visualElement, target, transition, delay, animations);
+		for (const key in target) {
+			const value = visualElement.getValue(key, visualElement.latestValues[key] ?? null);
+			const valueTarget = target[key];
+			if (valueTarget === void 0 || animationTypeState && shouldBlockAnimation(animationTypeState, key)) continue;
+			const valueTransition = {
+				delay,
+				...getValueTransition$1(transition || {}, key)
+			};
+			if (skipAnimations) valueTransition.skipAnimations = true;
+			const currentValue = value.get();
+			if (currentValue !== void 0 && !value.isAnimating() && !Array.isArray(valueTarget) && valueTarget === currentValue && !valueTransition.velocity) {
+				frame.update(() => value.set(valueTarget));
+				continue;
+			}
+			let isHandoff = false;
+			if (window.MotionHandoffAnimation) {
+				const appearId = getOptimisedAppearId(visualElement);
+				if (appearId) {
+					const startTime = window.MotionHandoffAnimation(appearId, key, frame);
+					if (startTime !== null) {
+						valueTransition.startTime = startTime;
+						isHandoff = true;
+					}
+				}
+			}
+			addValueToWillChange(visualElement, key);
+			const shouldReduceMotion = reduceMotion ?? visualElement.shouldReduceMotion;
+			value.start(animateMotionValue(key, value, valueTarget, shouldReduceMotion && positionalKeys.has(key) ? { type: false } : valueTransition, visualElement, isHandoff));
+			const animation = value.animation;
+			if (animation) animations.push(animation);
+		}
+		if (transitionEnd) {
+			const applyTransitionEnd = () => frame.update(() => {
+				transitionEnd && setTarget(visualElement, transitionEnd);
+			});
+			if (animations.length) Promise.all(animations).then(applyTransitionEnd);
+			else applyTransitionEnd();
+		}
+		return animations;
+	}
+	var auto = {
+		test: (v) => v === "auto",
+		parse: (v) => v
+	};
+	var testValueType = (v) => (type) => type.test(v);
+	var dimensionValueTypes = [
+		number,
+		px,
+		percent,
+		degrees,
+		vw,
+		vh,
+		auto
+	];
+	var findDimensionValueType = (v) => dimensionValueTypes.find(testValueType(v));
+	function isNone(value) {
+		if (typeof value === "number") return value === 0;
+		else if (value !== null) return value === "none" || value === "0" || isZeroValueString(value);
+		else return true;
+	}
+	var maxDefaults = new Set([
+		"brightness",
+		"contrast",
+		"saturate",
+		"opacity"
+	]);
+	function applyDefaultFilter(v) {
+		const [name, value] = v.slice(0, -1).split("(");
+		if (name === "drop-shadow") return v;
+		const [number] = value.match(floatRegex) || [];
+		if (!number) return v;
+		const unit = value.replace(number, "");
+		let defaultValue = maxDefaults.has(name) ? 1 : 0;
+		if (number !== value) defaultValue *= 100;
+		return name + "(" + defaultValue + unit + ")";
+	}
+	var functionRegex = /\b([a-z-]*)\(.*?\)/gu;
+	var filter = {
+		...complex,
+		getAnimatableNone: (v) => {
+			const functions = v.match(functionRegex);
+			return functions ? functions.map(applyDefaultFilter).join(" ") : v;
+		}
+	};
+	var mask = {
+		...complex,
+		getAnimatableNone: (v) => {
+			const parsed = complex.parse(v);
+			return complex.createTransformer(v)(parsed.map((v) => typeof v === "number" ? 0 : typeof v === "object" ? {
+				...v,
+				alpha: 1
+			} : v));
+		}
+	};
+	var int = {
+		...number,
+		transform: Math.round
+	};
+	var numberValueTypes = {
+		borderWidth: px,
+		borderTopWidth: px,
+		borderRightWidth: px,
+		borderBottomWidth: px,
+		borderLeftWidth: px,
+		borderRadius: px,
+		borderTopLeftRadius: px,
+		borderTopRightRadius: px,
+		borderBottomRightRadius: px,
+		borderBottomLeftRadius: px,
+		width: px,
+		maxWidth: px,
+		height: px,
+		maxHeight: px,
+		top: px,
+		right: px,
+		bottom: px,
+		left: px,
+		inset: px,
+		insetBlock: px,
+		insetBlockStart: px,
+		insetBlockEnd: px,
+		insetInline: px,
+		insetInlineStart: px,
+		insetInlineEnd: px,
+		padding: px,
+		paddingTop: px,
+		paddingRight: px,
+		paddingBottom: px,
+		paddingLeft: px,
+		paddingBlock: px,
+		paddingBlockStart: px,
+		paddingBlockEnd: px,
+		paddingInline: px,
+		paddingInlineStart: px,
+		paddingInlineEnd: px,
+		margin: px,
+		marginTop: px,
+		marginRight: px,
+		marginBottom: px,
+		marginLeft: px,
+		marginBlock: px,
+		marginBlockStart: px,
+		marginBlockEnd: px,
+		marginInline: px,
+		marginInlineStart: px,
+		marginInlineEnd: px,
+		fontSize: px,
+		backgroundPositionX: px,
+		backgroundPositionY: px,
+		rotate: degrees,
+		pathRotation: degrees,
+		rotateX: degrees,
+		rotateY: degrees,
+		rotateZ: degrees,
+		scale,
+		scaleX: scale,
+		scaleY: scale,
+		scaleZ: scale,
+		skew: degrees,
+		skewX: degrees,
+		skewY: degrees,
+		distance: px,
+		translateX: px,
+		translateY: px,
+		translateZ: px,
+		x: px,
+		y: px,
+		z: px,
+		perspective: px,
+		transformPerspective: px,
+		opacity: alpha,
+		originX: progressPercentage,
+		originY: progressPercentage,
+		originZ: px,
+		zIndex: int,
+		fillOpacity: alpha,
+		strokeOpacity: alpha,
+		numOctaves: int
+	};
+	var defaultValueTypes = {
+		...numberValueTypes,
+		color,
+		backgroundColor: color,
+		outlineColor: color,
+		fill: color,
+		stroke: color,
+		borderColor: color,
+		borderTopColor: color,
+		borderRightColor: color,
+		borderBottomColor: color,
+		borderLeftColor: color,
+		filter,
+		WebkitFilter: filter,
+		mask,
+		WebkitMask: mask
+	};
+	var getDefaultValueType = (key) => defaultValueTypes[key];
+	var customTypes = new Set([filter, mask]);
+	function getAnimatableNone(key, value) {
+		let defaultValueType = getDefaultValueType(key);
+		if (!customTypes.has(defaultValueType)) defaultValueType = complex;
+		return defaultValueType.getAnimatableNone ? defaultValueType.getAnimatableNone(value) : void 0;
+	}
+	var invalidTemplates = new Set([
+		"auto",
+		"none",
+		"0"
+	]);
+	function makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name) {
+		let i = 0;
+		let animatableTemplate = void 0;
+		while (i < unresolvedKeyframes.length && !animatableTemplate) {
+			const keyframe = unresolvedKeyframes[i];
+			if (typeof keyframe === "string" && !invalidTemplates.has(keyframe) && analyseComplexValue(keyframe).values.length) animatableTemplate = unresolvedKeyframes[i];
+			i++;
+		}
+		if (animatableTemplate && name) for (const noneIndex of noneKeyframeIndexes) unresolvedKeyframes[noneIndex] = getAnimatableNone(name, animatableTemplate);
+	}
+	var DOMKeyframesResolver = class extends KeyframeResolver {
+		constructor(unresolvedKeyframes, onComplete, name, motionValue, element) {
+			super(unresolvedKeyframes, onComplete, name, motionValue, element, true);
+		}
+		readKeyframes() {
+			const { unresolvedKeyframes, element, name } = this;
+			if (!element || !element.current) return;
+			super.readKeyframes();
+			for (let i = 0; i < unresolvedKeyframes.length; i++) {
+				let keyframe = unresolvedKeyframes[i];
+				if (typeof keyframe === "string") {
+					keyframe = keyframe.trim();
+					if (isCSSVariableToken(keyframe)) {
+						const resolved = getVariableValue(keyframe, element.current);
+						if (resolved !== void 0) unresolvedKeyframes[i] = resolved;
+						if (i === unresolvedKeyframes.length - 1) this.finalKeyframe = keyframe;
+					}
+				}
+			}
+			this.resolveNoneKeyframes();
+			if (!positionalKeys.has(name) || unresolvedKeyframes.length !== 2) return;
+			const [origin, target] = unresolvedKeyframes;
+			const originType = findDimensionValueType(origin);
+			const targetType = findDimensionValueType(target);
+			if (containsCSSVariable(origin) !== containsCSSVariable(target) && positionalValues[name]) {
+				this.needsMeasurement = true;
+				return;
+			}
+			if (originType === targetType) return;
+			if (isNumOrPxType(originType) && isNumOrPxType(targetType)) for (let i = 0; i < unresolvedKeyframes.length; i++) {
+				const value = unresolvedKeyframes[i];
+				if (typeof value === "string") unresolvedKeyframes[i] = parseFloat(value);
+			}
+			else if (positionalValues[name]) this.needsMeasurement = true;
+		}
+		resolveNoneKeyframes() {
+			const { unresolvedKeyframes, name } = this;
+			const noneKeyframeIndexes = [];
+			for (let i = 0; i < unresolvedKeyframes.length; i++) if (unresolvedKeyframes[i] === null || isNone(unresolvedKeyframes[i])) noneKeyframeIndexes.push(i);
+			if (noneKeyframeIndexes.length) makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name);
+		}
+		measureInitialState() {
+			const { element, unresolvedKeyframes, name } = this;
+			if (!element || !element.current) return;
+			if (name === "height") this.suspendedScrollY = window.pageYOffset;
+			this.measuredOrigin = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
+			unresolvedKeyframes[0] = this.measuredOrigin;
+			const measureKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
+			if (measureKeyframe !== void 0) element.getValue(name, measureKeyframe).jump(measureKeyframe, false);
+		}
+		measureEndState() {
+			const { element, name, unresolvedKeyframes } = this;
+			if (!element || !element.current) return;
+			const value = element.getValue(name);
+			value && value.jump(this.measuredOrigin, false);
+			const finalKeyframeIndex = unresolvedKeyframes.length - 1;
+			const finalKeyframe = unresolvedKeyframes[finalKeyframeIndex];
+			unresolvedKeyframes[finalKeyframeIndex] = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
+			if (finalKeyframe !== null && this.finalKeyframe === void 0) this.finalKeyframe = finalKeyframe;
+			if (this.removedTransforms?.length) this.removedTransforms.forEach(([unsetTransformName, unsetTransformValue]) => {
+				element.getValue(unsetTransformName).set(unsetTransformValue);
+			});
+			this.resolveNoneKeyframes();
+		}
+	};
+	var cornerRadiusProps = [
+		"borderTopLeftRadius",
+		"borderTopRightRadius",
+		"borderBottomRightRadius",
+		"borderBottomLeftRadius"
+	];
+	function resolveElements(elementOrSelector, scope, selectorCache) {
+		if (elementOrSelector == null) return [];
+		if (elementOrSelector instanceof EventTarget) return [elementOrSelector];
+		else if (typeof elementOrSelector === "string") {
+			let root = document;
+			if (scope) root = scope.current;
+			const elements = selectorCache?.[elementOrSelector] ?? root.querySelectorAll(elementOrSelector);
+			return elements ? Array.from(elements) : [];
+		}
+		return Array.from(elementOrSelector).filter((element) => element != null);
+	}
+	var getValueAsType = (value, type) => {
+		return type && typeof value === "number" ? type.transform(value) : value;
+	};
+	var { schedule: microtask, cancel: cancelMicrotask } = createRenderBatcher(queueMicrotask, false);
+	function isSVGElement(element) {
+		return isObject(element) && "ownerSVGElement" in element;
+	}
+	function isSVGSVGElement(element) {
+		return isSVGElement(element) && element.tagName === "svg";
+	}
+	var valueTypes = [
+		...dimensionValueTypes,
+		color,
+		complex
+	];
+	var findValueType = (v) => valueTypes.find(testValueType(v));
+	var createAxis = () => ({
+		min: 0,
+		max: 0
+	});
+	var createBox = () => ({
+		x: createAxis(),
+		y: createAxis()
+	});
+	var visualElementStore = new WeakMap();
+	function isAnimationControls(v) {
+		return v !== null && typeof v === "object" && typeof v.start === "function";
+	}
+	function isVariantLabel(v) {
+		return typeof v === "string" || Array.isArray(v);
+	}
+	var variantProps = ["initial", ...[
+		"animate",
+		"whileInView",
+		"whileFocus",
+		"whileHover",
+		"whileTap",
+		"whileDrag",
+		"exit"
+	]];
+	function isControllingVariants(props) {
+		return isAnimationControls(props.animate) || variantProps.some((name) => isVariantLabel(props[name]));
+	}
+	function isVariantNode(props) {
+		return Boolean(isControllingVariants(props) || props.variants);
+	}
+	function updateMotionValuesFromProps(element, next, prev) {
+		for (const key in next) {
+			const nextValue = next[key];
+			const prevValue = prev[key];
+			if (isMotionValue(nextValue)) element.addValue(key, nextValue);
+			else if (isMotionValue(prevValue)) element.addValue(key, motionValue(nextValue, { owner: element }));
+			else if (prevValue !== nextValue) if (element.hasValue(key)) {
+				const existingValue = element.getValue(key);
+				if (existingValue.liveStyle === true) existingValue.jump(nextValue);
+				else if (!existingValue.hasAnimated) existingValue.set(nextValue);
+			} else {
+				const latestValue = element.getStaticValue(key);
+				element.addValue(key, motionValue(latestValue !== void 0 ? latestValue : nextValue, { owner: element }));
+			}
+		}
+		for (const key in prev) if (next[key] === void 0) element.removeValue(key);
+		return next;
+	}
+	var prefersReducedMotion$1 = { current: null };
+	var hasReducedMotionListener = { current: false };
+	var isBrowser = typeof window !== "undefined";
+	function initPrefersReducedMotion() {
+		hasReducedMotionListener.current = true;
+		if (!isBrowser) return;
+		if (window.matchMedia) {
+			const motionMediaQuery = window.matchMedia("(prefers-reduced-motion)");
+			const setReducedMotionPreferences = () => prefersReducedMotion$1.current = motionMediaQuery.matches;
+			motionMediaQuery.addEventListener("change", setReducedMotionPreferences);
+			setReducedMotionPreferences();
+		} else prefersReducedMotion$1.current = false;
+	}
+	var propEventHandlers = [
+		"AnimationStart",
+		"AnimationComplete",
+		"Update",
+		"BeforeLayoutMeasure",
+		"LayoutMeasure",
+		"LayoutAnimationStart",
+		"LayoutAnimationComplete"
+	];
+	var featureDefinitions = {};
+	var VisualElement = class {
+		scrapeMotionValuesFromProps(_props, _prevProps, _visualElement) {
+			return {};
+		}
+		constructor({ parent, props, presenceContext, reducedMotionConfig, skipAnimations, blockInitialAnimation, visualState }, options = {}) {
+			this.current = null;
+			this.children = new Set();
+			this.isVariantNode = false;
+			this.isControllingVariants = false;
+			this.shouldReduceMotion = null;
+			this.shouldSkipAnimations = false;
+			this.values = new Map();
+			this.KeyframeResolver = KeyframeResolver;
+			this.features = {};
+			this.valueSubscriptions = new Map();
+			this.prevMotionValues = {};
+			this.hasBeenMounted = false;
+			this.events = {};
+			this.propEventSubscriptions = {};
+			this.notifyUpdate = () => this.notify("Update", this.latestValues);
+			this.render = () => {
+				if (!this.current) return;
+				this.triggerBuild();
+				this.renderInstance(this.current, this.renderState, this.props.style, this.projection);
+			};
+			this.renderScheduledAt = 0;
+			this.scheduleRender = () => {
+				const now = time.now();
+				if (this.renderScheduledAt < now) {
+					this.renderScheduledAt = now;
+					frame.render(this.render, false, true);
+				}
+			};
+			const { latestValues, renderState } = visualState;
+			this.latestValues = latestValues;
+			this.baseTarget = { ...latestValues };
+			this.initialValues = props.initial ? { ...latestValues } : {};
+			this.renderState = renderState;
+			this.parent = parent;
+			this.props = props;
+			this.presenceContext = presenceContext;
+			this.depth = parent ? parent.depth + 1 : 0;
+			this.reducedMotionConfig = reducedMotionConfig;
+			this.skipAnimationsConfig = skipAnimations;
+			this.options = options;
+			this.blockInitialAnimation = Boolean(blockInitialAnimation);
+			this.isControllingVariants = isControllingVariants(props);
+			this.isVariantNode = isVariantNode(props);
+			if (this.isVariantNode) this.variantChildren = new Set();
+			this.manuallyAnimateOnMount = Boolean(parent && parent.current);
+			const { willChange, ...initialMotionValues } = this.scrapeMotionValuesFromProps(props, {}, this);
+			for (const key in initialMotionValues) {
+				const value = initialMotionValues[key];
+				if (latestValues[key] !== void 0 && isMotionValue(value)) value.set(latestValues[key]);
+			}
+		}
+		mount(instance) {
+			if (this.hasBeenMounted) for (const key in this.initialValues) {
+				this.values.get(key)?.jump(this.initialValues[key]);
+				this.latestValues[key] = this.initialValues[key];
+			}
+			this.current = instance;
+			visualElementStore.set(instance, this);
+			if (this.projection && !this.projection.instance) this.projection.mount(instance);
+			if (this.parent && this.isVariantNode && !this.isControllingVariants) this.removeFromVariantTree = this.parent.addVariantChild(this);
+			this.values.forEach((value, key) => this.bindToMotionValue(key, value));
+			if (this.reducedMotionConfig === "never") this.shouldReduceMotion = false;
+			else if (this.reducedMotionConfig === "always") this.shouldReduceMotion = true;
+			else {
+				if (!hasReducedMotionListener.current) initPrefersReducedMotion();
+				this.shouldReduceMotion = prefersReducedMotion$1.current;
+			}
+			this.shouldSkipAnimations = this.skipAnimationsConfig ?? false;
+			this.parent?.addChild(this);
+			this.update(this.props, this.presenceContext);
+			this.hasBeenMounted = true;
+		}
+		unmount() {
+			this.projection && this.projection.unmount();
+			cancelFrame(this.notifyUpdate);
+			cancelFrame(this.render);
+			this.valueSubscriptions.forEach((remove) => remove());
+			this.valueSubscriptions.clear();
+			this.removeFromVariantTree && this.removeFromVariantTree();
+			this.parent?.removeChild(this);
+			for (const key in this.events) this.events[key].clear();
+			for (const key in this.features) {
+				const feature = this.features[key];
+				if (feature) {
+					feature.unmount();
+					feature.isMounted = false;
+				}
+			}
+			this.current = null;
+		}
+		addChild(child) {
+			this.children.add(child);
+			this.enteringChildren ?? (this.enteringChildren = new Set());
+			this.enteringChildren.add(child);
+		}
+		removeChild(child) {
+			this.children.delete(child);
+			this.enteringChildren && this.enteringChildren.delete(child);
+		}
+		bindToMotionValue(key, value) {
+			if (this.valueSubscriptions.has(key)) this.valueSubscriptions.get(key)();
+			if (value.accelerate && acceleratedValues.has(key) && this.current instanceof HTMLElement) {
+				const { factory, keyframes, times, ease, duration } = value.accelerate;
+				const animation = new NativeAnimation({
+					element: this.current,
+					name: key,
+					keyframes,
+					times,
+					ease,
+					duration: secondsToMilliseconds(duration)
+				});
+				const cleanup = factory(animation);
+				this.valueSubscriptions.set(key, () => {
+					cleanup();
+					animation.cancel();
+				});
+				return;
+			}
+			const valueIsTransform = transformProps.has(key);
+			if (valueIsTransform && this.onBindTransform) this.onBindTransform();
+			const removeOnChange = value.on("change", (latestValue) => {
+				this.latestValues[key] = latestValue;
+				this.props.onUpdate && frame.preRender(this.notifyUpdate);
+				if (valueIsTransform && this.projection) this.projection.isTransformDirty = true;
+				this.scheduleRender();
+			});
+			let removeSyncCheck;
+			if (typeof window !== "undefined" && window.MotionCheckAppearSync) removeSyncCheck = window.MotionCheckAppearSync(this, key, value);
+			this.valueSubscriptions.set(key, () => {
+				removeOnChange();
+				if (removeSyncCheck) removeSyncCheck();
+			});
+		}
+		sortNodePosition(other) {
+			if (!this.current || !this.sortInstanceNodePosition || this.type !== other.type) return 0;
+			return this.sortInstanceNodePosition(this.current, other.current);
+		}
+		updateFeatures() {
+			let key = "animation";
+			for (key in featureDefinitions) {
+				const featureDefinition = featureDefinitions[key];
+				if (!featureDefinition) continue;
+				const { isEnabled, Feature: FeatureConstructor } = featureDefinition;
+				if (!this.features[key] && FeatureConstructor && isEnabled(this.props)) this.features[key] = new FeatureConstructor(this);
+				if (this.features[key]) {
+					const feature = this.features[key];
+					if (feature.isMounted) feature.update();
+					else {
+						feature.mount();
+						feature.isMounted = true;
+					}
+				}
+			}
+		}
+		triggerBuild() {
+			this.build(this.renderState, this.latestValues, this.props);
+		}
+		measureViewportBox() {
+			return this.current ? this.measureInstanceViewportBox(this.current, this.props) : createBox();
+		}
+		getStaticValue(key) {
+			return this.latestValues[key];
+		}
+		setStaticValue(key, value) {
+			this.latestValues[key] = value;
+		}
+		update(props, presenceContext) {
+			if (props.transformTemplate || this.props.transformTemplate) this.scheduleRender();
+			this.prevProps = this.props;
+			this.props = props;
+			this.prevPresenceContext = this.presenceContext;
+			this.presenceContext = presenceContext;
+			for (let i = 0; i < propEventHandlers.length; i++) {
+				const key = propEventHandlers[i];
+				if (this.propEventSubscriptions[key]) {
+					this.propEventSubscriptions[key]();
+					delete this.propEventSubscriptions[key];
+				}
+				const listener = props["on" + key];
+				if (listener) this.propEventSubscriptions[key] = this.on(key, listener);
+			}
+			this.prevMotionValues = updateMotionValuesFromProps(this, this.scrapeMotionValuesFromProps(props, this.prevProps || {}, this), this.prevMotionValues);
+			if (this.handleChildMotionValue) this.handleChildMotionValue();
+		}
+		getProps() {
+			return this.props;
+		}
+		getVariant(name) {
+			return this.props.variants ? this.props.variants[name] : void 0;
+		}
+		getDefaultTransition() {
+			return this.props.transition;
+		}
+		getTransformPagePoint() {
+			return this.props.transformPagePoint;
+		}
+		getClosestVariantNode() {
+			return this.isVariantNode ? this : this.parent ? this.parent.getClosestVariantNode() : void 0;
+		}
+		addVariantChild(child) {
+			const closestVariantNode = this.getClosestVariantNode();
+			if (closestVariantNode) {
+				closestVariantNode.variantChildren && closestVariantNode.variantChildren.add(child);
+				return () => closestVariantNode.variantChildren.delete(child);
+			}
+		}
+		addValue(key, value) {
+			const existingValue = this.values.get(key);
+			if (value !== existingValue) {
+				if (existingValue) this.removeValue(key);
+				this.bindToMotionValue(key, value);
+				this.values.set(key, value);
+				this.latestValues[key] = value.get();
+			}
+		}
+		removeValue(key) {
+			this.values.delete(key);
+			const unsubscribe = this.valueSubscriptions.get(key);
+			if (unsubscribe) {
+				unsubscribe();
+				this.valueSubscriptions.delete(key);
+			}
+			delete this.latestValues[key];
+			this.removeValueFromRenderState(key, this.renderState);
+		}
+		hasValue(key) {
+			return this.values.has(key);
+		}
+		getValue(key, defaultValue) {
+			if (this.props.values && this.props.values[key]) return this.props.values[key];
+			let value = this.values.get(key);
+			if (value === void 0 && defaultValue !== void 0) {
+				value = motionValue(defaultValue === null ? void 0 : defaultValue, { owner: this });
+				this.addValue(key, value);
+			}
+			return value;
+		}
+		readValue(key, target) {
+			let value = this.latestValues[key] !== void 0 || !this.current ? this.latestValues[key] : this.getBaseTargetFromProps(this.props, key) ?? this.readValueFromInstance(this.current, key, this.options);
+			if (value !== void 0 && value !== null) {
+				if (typeof value === "string" && (isNumericalString(value) || isZeroValueString(value))) value = parseFloat(value);
+				else if (!findValueType(value) && complex.test(target)) value = getAnimatableNone(key, target);
+				this.setBaseTarget(key, isMotionValue(value) ? value.get() : value);
+			}
+			return isMotionValue(value) ? value.get() : value;
+		}
+		setBaseTarget(key, value) {
+			this.baseTarget[key] = value;
+		}
+		getBaseTarget(key) {
+			const { initial } = this.props;
+			let valueFromInitial;
+			if (typeof initial === "string" || typeof initial === "object") {
+				const variant = resolveVariantFromProps(this.props, initial, this.presenceContext?.custom);
+				if (variant) valueFromInitial = variant[key];
+			}
+			if (initial && valueFromInitial !== void 0) return valueFromInitial;
+			const target = this.getBaseTargetFromProps(this.props, key);
+			if (target !== void 0 && !isMotionValue(target)) return target;
+			return this.initialValues[key] !== void 0 && valueFromInitial === void 0 ? void 0 : this.baseTarget[key];
+		}
+		on(eventName, callback) {
+			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
+			return this.events[eventName].add(callback);
+		}
+		notify(eventName, ...args) {
+			if (this.events[eventName]) this.events[eventName].notify(...args);
+		}
+		scheduleRenderMicrotask() {
+			microtask.render(this.render);
+		}
+	};
+	var DOMVisualElement = class extends VisualElement {
+		constructor() {
+			super(...arguments);
+			this.KeyframeResolver = DOMKeyframesResolver;
+		}
+		sortInstanceNodePosition(a, b) {
+			return a.compareDocumentPosition(b) & 2 ? 1 : -1;
+		}
+		getBaseTargetFromProps(props, key) {
+			const style = props.style;
+			return style ? style[key] : void 0;
+		}
+		removeValueFromRenderState(key, { vars, style }) {
+			delete vars[key];
+			delete style[key];
+		}
+		handleChildMotionValue() {
+			if (this.childSubscription) {
+				this.childSubscription();
+				delete this.childSubscription;
+			}
+			const { children } = this.props;
+			if (isMotionValue(children)) this.childSubscription = children.on("change", (latest) => {
+				if (this.current) this.current.textContent = `${latest}`;
+			});
+		}
+	};
+	function convertBoundingBoxToBox({ top, left, right, bottom }) {
+		return {
+			x: {
+				min: left,
+				max: right
+			},
+			y: {
+				min: top,
+				max: bottom
+			}
+		};
+	}
+	function transformBoxPoints(point, transformPoint) {
+		if (!transformPoint) return point;
+		const topLeft = transformPoint({
+			x: point.left,
+			y: point.top
+		});
+		const bottomRight = transformPoint({
+			x: point.right,
+			y: point.bottom
+		});
+		return {
+			top: topLeft.y,
+			left: topLeft.x,
+			bottom: bottomRight.y,
+			right: bottomRight.x
+		};
+	}
+	function measureViewportBox(instance, transformPoint) {
+		return convertBoundingBoxToBox(transformBoxPoints(instance.getBoundingClientRect(), transformPoint));
+	}
+	var translateAlias = {
+		x: "translateX",
+		y: "translateY",
+		z: "translateZ",
+		transformPerspective: "perspective"
+	};
+	var numTransforms = transformPropOrder.length;
+	function buildTransform(latestValues, transform, transformTemplate) {
+		let transformString = "";
+		let transformIsDefault = true;
+		for (let i = 0; i < numTransforms; i++) {
+			const key = transformPropOrder[i];
+			const value = latestValues[key];
+			if (value === void 0) continue;
+			let valueIsDefault = true;
+			if (typeof value === "number") valueIsDefault = value === (key.startsWith("scale") ? 1 : 0);
+			else {
+				const parsed = parseFloat(value);
+				valueIsDefault = key.startsWith("scale") ? parsed === 1 : parsed === 0;
+			}
+			if (!valueIsDefault || transformTemplate) {
+				const valueAsType = getValueAsType(value, numberValueTypes[key]);
+				if (!valueIsDefault) {
+					transformIsDefault = false;
+					const transformName = translateAlias[key] || key;
+					transformString += `${transformName}(${valueAsType}) `;
+				}
+				if (transformTemplate) transform[key] = valueAsType;
+			}
+		}
+		const pathRotation = latestValues.pathRotation;
+		if (pathRotation) {
+			transformIsDefault = false;
+			transformString += `rotate(${getValueAsType(pathRotation, numberValueTypes.pathRotation)}) `;
+		}
+		transformString = transformString.trim();
+		if (transformTemplate) transformString = transformTemplate(transform, transformIsDefault ? "" : transformString);
+		else if (transformIsDefault) transformString = "none";
+		return transformString;
+	}
+	function buildHTMLStyles(state, latestValues, transformTemplate) {
+		const { style, vars, transformOrigin } = state;
+		let hasTransform = false;
+		let hasTransformOrigin = false;
+		for (const key in latestValues) {
+			const value = latestValues[key];
+			if (transformProps.has(key)) {
+				hasTransform = true;
+				continue;
+			} else if (isCSSVariableName(key)) {
+				vars[key] = value;
+				continue;
+			} else {
+				const valueAsType = getValueAsType(value, numberValueTypes[key]);
+				if (key.startsWith("origin")) {
+					hasTransformOrigin = true;
+					transformOrigin[key] = valueAsType;
+				} else style[key] = valueAsType;
+			}
+		}
+		if (!latestValues.transform) {
+			if (hasTransform || transformTemplate) style.transform = buildTransform(latestValues, state.transform, transformTemplate);
+			else if (style.transform) style.transform = "none";
+		}
+		if (hasTransformOrigin) {
+			const { originX = "50%", originY = "50%", originZ = 0 } = transformOrigin;
+			style.transformOrigin = `${originX} ${originY} ${originZ}`;
+		}
+	}
+	function renderHTML(element, { style, vars }, styleProp, projection) {
+		const elementStyle = element.style;
+		let key;
+		for (key in style) elementStyle[key] = style[key];
+		projection?.applyProjectionStyles(elementStyle, styleProp);
+		for (key in vars) elementStyle.setProperty(key, vars[key]);
+	}
+	function pixelsToPercent(pixels, axis) {
+		if (axis.max === axis.min) return 0;
+		return pixels / (axis.max - axis.min) * 100;
+	}
+	var correctBorderRadius = { correct: (latest, node) => {
+		if (!node.target) return latest;
+		if (typeof latest === "string") if (px.test(latest)) latest = parseFloat(latest);
+		else return latest;
+		return `${pixelsToPercent(latest, node.target.x)}% ${pixelsToPercent(latest, node.target.y)}%`;
+	} };
+	var correctBoxShadow = { correct: (latest, { treeScale, projectionDelta }) => {
+		const original = latest;
+		const shadow = complex.parse(latest);
+		if (shadow.length > 5) return original;
+		const template = complex.createTransformer(latest);
+		const offset = typeof shadow[0] !== "number" ? 1 : 0;
+		const xScale = projectionDelta.x.scale * treeScale.x;
+		const yScale = projectionDelta.y.scale * treeScale.y;
+		shadow[0 + offset] /= xScale;
+		shadow[1 + offset] /= yScale;
+		const averageScale = mixNumber$1(xScale, yScale, .5);
+		if (typeof shadow[2 + offset] === "number") shadow[2 + offset] /= averageScale;
+		if (typeof shadow[3 + offset] === "number") shadow[3 + offset] /= averageScale;
+		return template(shadow);
+	} };
+	var scaleCorrectors = {
+		borderRadius: {
+			...correctBorderRadius,
+			applyTo: [...cornerRadiusProps]
+		},
+		borderTopLeftRadius: correctBorderRadius,
+		borderTopRightRadius: correctBorderRadius,
+		borderBottomLeftRadius: correctBorderRadius,
+		borderBottomRightRadius: correctBorderRadius,
+		boxShadow: correctBoxShadow
+	};
+	function isForcedMotionValue(key, { layout, layoutId }) {
+		return transformProps.has(key) || key.startsWith("origin") || (layout || layoutId !== void 0) && (!!scaleCorrectors[key] || key === "opacity");
+	}
+	function scrapeMotionValuesFromProps$1(props, prevProps, visualElement) {
+		const style = props.style;
+		const prevStyle = prevProps?.style;
+		const newValues = {};
+		if (!style) return newValues;
+		for (const key in style) if (isMotionValue(style[key]) || prevStyle && isMotionValue(prevStyle[key]) || isForcedMotionValue(key, props) || visualElement?.getValue(key)?.liveStyle !== void 0) newValues[key] = style[key];
+		return newValues;
+	}
+	function getComputedStyle$1(element) {
+		return window.getComputedStyle(element);
+	}
+	var HTMLVisualElement = class extends DOMVisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "html";
+			this.renderInstance = renderHTML;
+		}
+		readValueFromInstance(instance, key) {
+			if (transformProps.has(key)) return this.projection?.isProjecting ? defaultTransformValue(key) : readTransformValue(instance, key);
+			else {
+				const computedStyle = getComputedStyle$1(instance);
+				const value = (isCSSVariableName(key) ? computedStyle.getPropertyValue(key) : computedStyle[key]) || 0;
+				return typeof value === "string" ? value.trim() : value;
+			}
+		}
+		measureInstanceViewportBox(instance, { transformPagePoint }) {
+			return measureViewportBox(instance, transformPagePoint);
+		}
+		build(renderState, latestValues, props) {
+			buildHTMLStyles(renderState, latestValues, props.transformTemplate);
+		}
+		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+			return scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
+		}
+	};
+	function isObjectKey(key, object) {
+		return key in object;
+	}
+	var ObjectVisualElement = class extends VisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "object";
+		}
+		readValueFromInstance(instance, key) {
+			if (isObjectKey(key, instance)) {
+				const value = instance[key];
+				if (typeof value === "string" || typeof value === "number") return value;
+			}
+		}
+		getBaseTargetFromProps() {}
+		removeValueFromRenderState(key, renderState) {
+			delete renderState.output[key];
+		}
+		measureInstanceViewportBox() {
+			return createBox();
+		}
+		build(renderState, latestValues) {
+			Object.assign(renderState.output, latestValues);
+		}
+		renderInstance(instance, { output }) {
+			Object.assign(instance, output);
+		}
+		sortInstanceNodePosition() {
+			return 0;
+		}
+	};
+	var dashKeys = {
+		offset: "stroke-dashoffset",
+		array: "stroke-dasharray"
+	};
+	var camelKeys = {
+		offset: "strokeDashoffset",
+		array: "strokeDasharray"
+	};
+	function buildSVGPath(attrs, length, spacing = 1, offset = 0, useDashCase = true) {
+		attrs.pathLength = 1;
+		const keys = useDashCase ? dashKeys : camelKeys;
+		attrs[keys.offset] = `${-offset}`;
+		attrs[keys.array] = `${length} ${spacing}`;
+	}
+	var cssMotionPathProperties = [
+		"offsetDistance",
+		"offsetPath",
+		"offsetRotate",
+		"offsetAnchor"
+	];
+	function buildSVGAttrs(state, { attrX, attrY, attrScale, pathLength, pathSpacing = 1, pathOffset = 0, ...latest }, isSVGTag, transformTemplate, styleProp) {
+		buildHTMLStyles(state, latest, transformTemplate);
+		if (isSVGTag) {
+			if (state.style.viewBox) state.attrs.viewBox = state.style.viewBox;
+			return;
+		}
+		state.attrs = state.style;
+		state.style = {};
+		const { attrs, style } = state;
+		if (attrs.transform) {
+			style.transform = attrs.transform;
+			delete attrs.transform;
+		}
+		if (style.transform || attrs.transformOrigin) {
+			style.transformOrigin = attrs.transformOrigin ?? "50% 50%";
+			delete attrs.transformOrigin;
+		}
+		if (style.transform) {
+			style.transformBox = styleProp?.transformBox ?? "fill-box";
+			delete attrs.transformBox;
+		}
+		for (const key of cssMotionPathProperties) if (attrs[key] !== void 0) {
+			style[key] = attrs[key];
+			delete attrs[key];
+		}
+		if (attrX !== void 0) attrs.x = attrX;
+		if (attrY !== void 0) attrs.y = attrY;
+		if (attrScale !== void 0) attrs.scale = attrScale;
+		if (pathLength !== void 0) buildSVGPath(attrs, pathLength, pathSpacing, pathOffset, false);
+	}
+	var camelCaseAttributes = new Set([
+		"baseFrequency",
+		"diffuseConstant",
+		"kernelMatrix",
+		"kernelUnitLength",
+		"keySplines",
+		"keyTimes",
+		"limitingConeAngle",
+		"markerHeight",
+		"markerWidth",
+		"numOctaves",
+		"targetX",
+		"targetY",
+		"surfaceScale",
+		"specularConstant",
+		"specularExponent",
+		"stdDeviation",
+		"tableValues",
+		"viewBox",
+		"gradientTransform",
+		"pathLength",
+		"startOffset",
+		"textLength",
+		"lengthAdjust"
+	]);
+	var isSVGTag = (tag) => typeof tag === "string" && tag.toLowerCase() === "svg";
+	function renderSVG(element, renderState, _styleProp, projection) {
+		renderHTML(element, renderState, void 0, projection);
+		for (const key in renderState.attrs) element.setAttribute(!camelCaseAttributes.has(key) ? camelToDash(key) : key, renderState.attrs[key]);
+	}
+	function scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+		const newValues = scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
+		for (const key in props) if (isMotionValue(props[key]) || isMotionValue(prevProps[key])) {
+			const targetKey = transformPropOrder.indexOf(key) !== -1 ? "attr" + key.charAt(0).toUpperCase() + key.substring(1) : key;
+			newValues[targetKey] = props[key];
+		}
+		return newValues;
+	}
+	var SVGVisualElement = class extends DOMVisualElement {
+		constructor() {
+			super(...arguments);
+			this.type = "svg";
+			this.isSVGTag = false;
+			this.measureInstanceViewportBox = createBox;
+		}
+		getBaseTargetFromProps(props, key) {
+			return props[key];
+		}
+		readValueFromInstance(instance, key) {
+			if (transformProps.has(key)) {
+				const defaultType = getDefaultValueType(key);
+				return defaultType ? defaultType.default || 0 : 0;
+			}
+			key = !camelCaseAttributes.has(key) ? camelToDash(key) : key;
+			return instance.getAttribute(key);
+		}
+		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
+			return scrapeMotionValuesFromProps(props, prevProps, visualElement);
+		}
+		build(renderState, latestValues, props) {
+			buildSVGAttrs(renderState, latestValues, this.isSVGTag, props.transformTemplate, props.style);
+		}
+		renderInstance(instance, renderState, styleProp, projection) {
+			renderSVG(instance, renderState, styleProp, projection);
+		}
+		mount(instance) {
+			this.isSVGTag = isSVGTag(instance.tagName);
+			super.mount(instance);
+		}
+	};
+	function animateSingleValue(value, keyframes, options) {
+		const motionValue$1 = isMotionValue(value) ? value : motionValue(value);
+		motionValue$1.start(animateMotionValue("", motionValue$1, keyframes, options));
+		return motionValue$1.animation;
+	}
+	function isDOMKeyframes(keyframes) {
+		return typeof keyframes === "object" && !Array.isArray(keyframes);
+	}
+	function resolveSubjects(subject, keyframes, scope, selectorCache) {
+		if (subject == null) return [];
+		if (typeof subject === "string" && isDOMKeyframes(keyframes)) return resolveElements(subject, scope, selectorCache);
+		else if (subject instanceof NodeList) return Array.from(subject);
+		else if (Array.isArray(subject)) return subject.filter((s) => s != null);
+		else return [subject];
+	}
+	function calculateRepeatDuration(duration, repeat, repeatDelay) {
+		return duration * (repeat + 1) + repeatDelay * repeat;
+	}
+	function calcNextTime(current, next, prev, labels) {
+		if (typeof next === "number") return next;
+		else if (next.startsWith("-") || next.startsWith("+")) return Math.max(0, current + parseFloat(next));
+		else if (next === "<") return prev;
+		else if (next.startsWith("<")) return Math.max(0, prev + parseFloat(next.slice(1)));
+		else return labels.get(next) ?? current;
+	}
+	function eraseKeyframes(sequence, startTime, endTime) {
+		for (let i = 0; i < sequence.length; i++) {
+			const keyframe = sequence[i];
+			if (keyframe.at > startTime && keyframe.at < endTime) {
+				removeItem(sequence, keyframe);
+				i--;
+			}
+		}
+	}
+	function addKeyframes(sequence, keyframes, easing, offset, startTime, endTime) {
+		eraseKeyframes(sequence, startTime, endTime);
+		for (let i = 0; i < keyframes.length; i++) sequence.push({
+			value: keyframes[i],
+			at: mixNumber$1(startTime, endTime, offset[i]),
+			easing: getEasingForSegment(easing, i)
+		});
+	}
+	function normalizeTimes(times, repeat, repeatDelayUnits = 0) {
+		const totalUnits = repeat + 1 + repeat * repeatDelayUnits;
+		for (let i = 0; i < times.length; i++) times[i] = times[i] / totalUnits;
+	}
+	function compareByTime(a, b) {
+		if (a.at === b.at) {
+			if (a.value === null) return 1;
+			if (b.value === null) return -1;
+			return 0;
+		} else return a.at - b.at;
+	}
+	var defaultSegmentEasing = "easeInOut";
+	var MAX_REPEAT = 20;
+	function createAnimationsFromSequence(sequence, { defaultTransition = {}, ...sequenceTransition } = {}, scope, generators) {
+		const defaultDuration = defaultTransition.duration || .3;
+		const animationDefinitions = new Map();
+		const sequences = new Map();
+		const elementCache = {};
+		const timeLabels = new Map();
+		let prevTime = 0;
+		let currentTime = 0;
+		let totalDuration = 0;
+		for (let i = 0; i < sequence.length; i++) {
+			const segment = sequence[i];
+			if (typeof segment === "string") {
+				timeLabels.set(segment, currentTime);
+				continue;
+			} else if (!Array.isArray(segment)) {
+				timeLabels.set(segment.name, calcNextTime(currentTime, segment.at, prevTime, timeLabels));
+				continue;
+			}
+			let [subject, keyframes, transition = {}] = segment;
+			if (transition.at !== void 0) currentTime = calcNextTime(currentTime, transition.at, prevTime, timeLabels);
+			let maxDuration = 0;
+			const resolveValueSequence = (valueKeyframes, valueTransition, valueSequence, elementIndex = 0, numSubjects = 0) => {
+				const valueKeyframesAsList = keyframesAsList(valueKeyframes);
+				const { delay = 0, times = defaultOffset(valueKeyframesAsList), type = defaultTransition.type || "keyframes", repeat, repeatType, repeatDelay = 0, ...remainingTransition } = valueTransition;
+				let { ease = defaultTransition.ease || "easeOut", duration } = valueTransition;
+				const calculatedDelay = typeof delay === "function" ? delay(elementIndex, numSubjects) : delay;
+				const numKeyframes = valueKeyframesAsList.length;
+				const createGenerator = isGenerator(type) ? type : generators?.[type || "keyframes"];
+				if (numKeyframes <= 2 && createGenerator) {
+					let absoluteDelta = 100;
+					if (numKeyframes === 2 && isNumberKeyframesArray(valueKeyframesAsList)) {
+						const delta = valueKeyframesAsList[1] - valueKeyframesAsList[0];
+						absoluteDelta = Math.abs(delta);
+					}
+					const springTransition = {
+						...defaultTransition,
+						...remainingTransition
+					};
+					if (duration !== void 0) springTransition.duration = secondsToMilliseconds(duration);
+					const springEasing = createGeneratorEasing(springTransition, absoluteDelta, createGenerator);
+					ease = springEasing.ease;
+					duration = springEasing.duration;
+				}
+				duration ?? (duration = defaultDuration);
+				const startTime = currentTime + calculatedDelay;
+				if (times.length === 1 && times[0] === 0) times[1] = 1;
+				const remainder = times.length - valueKeyframesAsList.length;
+				remainder > 0 && fillOffset(times, remainder);
+				valueKeyframesAsList.length === 1 && valueKeyframesAsList.unshift(null);
+				if (repeat) `${repeat}${MAX_REPEAT}`;
+				if (repeat && repeat < MAX_REPEAT) {
+					const repeatDelayUnits = duration > 0 ? repeatDelay / duration : 0;
+					duration = calculateRepeatDuration(duration, repeat, repeatDelay);
+					const originalKeyframes = [...valueKeyframesAsList];
+					const originalTimes = [...times];
+					ease = Array.isArray(ease) ? [...ease] : [ease];
+					const originalEase = [...ease];
+					const isFlipping = repeatType === "reverse" || repeatType === "mirror";
+					let flippedKeyframes = originalKeyframes;
+					let flippedEases = originalEase;
+					if (isFlipping) {
+						flippedKeyframes = [...originalKeyframes].reverse();
+						if (repeatType === "reverse") flippedEases = [...originalEase].reverse().map((e) => typeof e === "function" ? reverseEasing(e) : e);
+					}
+					for (let repeatIndex = 0; repeatIndex < repeat; repeatIndex++) {
+						const isFlipped = isFlipping && repeatIndex % 2 === 0;
+						const iterKeyframes = isFlipped ? flippedKeyframes : originalKeyframes;
+						const iterEase = isFlipped ? flippedEases : originalEase;
+						const iterStartOffset = (repeatIndex + 1) * (1 + repeatDelayUnits);
+						if (repeatDelayUnits > 0) {
+							valueKeyframesAsList.push(valueKeyframesAsList[valueKeyframesAsList.length - 1]);
+							times.push(iterStartOffset);
+							ease.push("linear");
+						}
+						valueKeyframesAsList.push(...iterKeyframes);
+						for (let keyframeIndex = 0; keyframeIndex < iterKeyframes.length; keyframeIndex++) {
+							times.push(originalTimes[keyframeIndex] + iterStartOffset);
+							ease.push(keyframeIndex === 0 ? "linear" : getEasingForSegment(iterEase, keyframeIndex - 1));
+						}
+					}
+					normalizeTimes(times, repeat, repeatDelayUnits);
+				}
+				const targetTime = startTime + duration;
+				addKeyframes(valueSequence, valueKeyframesAsList, ease, times, startTime, targetTime);
+				maxDuration = Math.max(calculatedDelay + duration, maxDuration);
+				totalDuration = Math.max(targetTime, totalDuration);
+			};
+			if (isMotionValue(subject)) {
+				const subjectSequence = getSubjectSequence(subject, sequences);
+				resolveValueSequence(keyframes, transition, getValueSequence("default", subjectSequence));
+			} else {
+				const subjects = resolveSubjects(subject, keyframes, scope, elementCache);
+				const numSubjects = subjects.length;
+				for (let subjectIndex = 0; subjectIndex < numSubjects; subjectIndex++) {
+					keyframes = keyframes;
+					transition = transition;
+					const thisSubject = subjects[subjectIndex];
+					const subjectSequence = getSubjectSequence(thisSubject, sequences);
+					for (const key in keyframes) resolveValueSequence(keyframes[key], getValueTransition(transition, key), getValueSequence(key, subjectSequence), subjectIndex, numSubjects);
+				}
+			}
+			prevTime = currentTime;
+			currentTime += maxDuration;
+		}
+		sequences.forEach((valueSequences, element) => {
+			for (const key in valueSequences) {
+				const valueSequence = valueSequences[key];
+				valueSequence.sort(compareByTime);
+				const keyframes = [];
+				const valueOffset = [];
+				const valueEasing = [];
+				for (let i = 0; i < valueSequence.length; i++) {
+					const { at, value, easing } = valueSequence[i];
+					keyframes.push(value);
+					valueOffset.push(progress(0, totalDuration, at));
+					valueEasing.push(easing || "easeOut");
+				}
+				if (valueOffset[0] !== 0) {
+					valueOffset.unshift(0);
+					keyframes.unshift(keyframes[0]);
+					valueEasing.unshift(defaultSegmentEasing);
+				}
+				if (valueOffset[valueOffset.length - 1] !== 1) {
+					valueOffset.push(1);
+					keyframes.push(null);
+				}
+				if (!animationDefinitions.has(element)) animationDefinitions.set(element, {
+					keyframes: {},
+					transition: {}
+				});
+				const definition = animationDefinitions.get(element);
+				definition.keyframes[key] = keyframes;
+				const { type: _type, ...remainingDefaultTransition } = defaultTransition;
+				definition.transition[key] = {
+					...remainingDefaultTransition,
+					duration: totalDuration,
+					ease: valueEasing,
+					times: valueOffset,
+					...sequenceTransition
+				};
+			}
+		});
+		return animationDefinitions;
+	}
+	function getSubjectSequence(subject, sequences) {
+		!sequences.has(subject) && sequences.set(subject, {});
+		return sequences.get(subject);
+	}
+	function getValueSequence(name, sequences) {
+		if (!sequences[name]) sequences[name] = [];
+		return sequences[name];
+	}
+	function keyframesAsList(keyframes) {
+		return Array.isArray(keyframes) ? keyframes : [keyframes];
+	}
+	function getValueTransition(transition, key) {
+		return transition && transition[key] ? {
+			...transition,
+			...transition[key]
+		} : { ...transition };
+	}
+	var isNumber = (keyframe) => typeof keyframe === "number";
+	var isNumberKeyframesArray = (keyframes) => keyframes.every(isNumber);
+	function createDOMVisualElement(element) {
+		const options = {
+			presenceContext: null,
+			props: {},
+			visualState: {
+				renderState: {
+					transform: {},
+					transformOrigin: {},
+					style: {},
+					vars: {},
+					attrs: {}
+				},
+				latestValues: {}
+			}
+		};
+		const node = isSVGElement(element) && !isSVGSVGElement(element) ? new SVGVisualElement(options) : new HTMLVisualElement(options);
+		node.mount(element);
+		visualElementStore.set(element, node);
+	}
+	function createObjectVisualElement(subject) {
+		const node = new ObjectVisualElement({
+			presenceContext: null,
+			props: {},
+			visualState: {
+				renderState: { output: {} },
+				latestValues: {}
+			}
+		});
+		node.mount(subject);
+		visualElementStore.set(subject, node);
+	}
+	function isSingleValue(subject, keyframes) {
+		return isMotionValue(subject) || typeof subject === "number" || typeof subject === "string" && !isDOMKeyframes(keyframes);
+	}
+	function animateSubject(subject, keyframes, options, scope) {
+		const animations = [];
+		if (isSingleValue(subject, keyframes)) animations.push(animateSingleValue(subject, isDOMKeyframes(keyframes) ? keyframes.default || keyframes : keyframes, options ? options.default || options : options));
+		else {
+			if (subject == null) return animations;
+			const subjects = resolveSubjects(subject, keyframes, scope);
+			const numSubjects = subjects.length;
+			for (let i = 0; i < numSubjects; i++) {
+				const thisSubject = subjects[i];
+				const createVisualElement = thisSubject instanceof Element ? createDOMVisualElement : createObjectVisualElement;
+				if (!visualElementStore.has(thisSubject)) createVisualElement(thisSubject);
+				const visualElement = visualElementStore.get(thisSubject);
+				const transition = { ...options };
+				if ("delay" in transition && typeof transition.delay === "function") transition.delay = transition.delay(i, numSubjects);
+				animations.push(...animateTarget(visualElement, {
+					...keyframes,
+					transition
+				}, {}));
+			}
+		}
+		return animations;
+	}
+	function animateSequence(sequence, options, scope) {
+		const animations = [];
+		createAnimationsFromSequence(sequence.map((segment) => {
+			if (Array.isArray(segment) && typeof segment[0] === "function") {
+				const callback = segment[0];
+				const mv = motionValue(0);
+				mv.on("change", callback);
+				if (segment.length === 1) return [mv, [0, 1]];
+				else if (segment.length === 2) return [
+					mv,
+					[0, 1],
+					segment[1]
+				];
+				else return [
+					mv,
+					segment[1],
+					segment[2]
+				];
+			}
+			return segment;
+		}), options, scope, { spring }).forEach(({ keyframes, transition }, subject) => {
+			animations.push(...animateSubject(subject, keyframes, transition));
+		});
+		return animations;
+	}
+	function isSequence(value) {
+		return Array.isArray(value) && value.some(Array.isArray);
+	}
+	function createScopedAnimate(options = {}) {
+		const { scope, reduceMotion, skipAnimations } = options;
+		function scopedAnimate(subjectOrSequence, optionsOrKeyframes, options) {
+			let animations = [];
+			let animationOnComplete;
+			const inherited = {};
+			if (reduceMotion !== void 0) inherited.reduceMotion = reduceMotion;
+			if (skipAnimations !== void 0) inherited.skipAnimations = skipAnimations;
+			if (isSequence(subjectOrSequence)) {
+				const { onComplete, ...sequenceOptions } = optionsOrKeyframes || {};
+				if (typeof onComplete === "function") animationOnComplete = onComplete;
+				animations = animateSequence(subjectOrSequence, {
+					...inherited,
+					...sequenceOptions
+				}, scope);
+			} else {
+				const { onComplete, ...rest } = options || {};
+				if (typeof onComplete === "function") animationOnComplete = onComplete;
+				animations = animateSubject(subjectOrSequence, optionsOrKeyframes, {
+					...inherited,
+					...rest
+				}, scope);
+			}
+			const animation = new GroupAnimationWithThen(animations);
+			if (animationOnComplete) animation.finished.then(animationOnComplete);
+			if (scope) {
+				scope.animations.push(animation);
+				animation.finished.then(() => {
+					removeItem(scope.animations, animation);
+				});
+			}
+			return animation;
+		}
+		return scopedAnimate;
+	}
+	var animate = createScopedAnimate();
+	var springConfigs = {
+		carouselSnap: {
+			damping: 18,
+			stiffness: 200,
+			type: "spring"
+		},
+		contentEntrance: {
+			damping: 28,
+			stiffness: 300,
+			type: "spring"
+		},
+		modalBackdrop: {
+			bounce: 0,
+			duration: .4,
+			type: "spring"
+		},
+		modalSurface: {
+			bounce: 0,
+			duration: .35,
+			type: "spring"
+		},
+		ratingEntrance: {
+			bounce: 0,
+			duration: .3,
+			type: "spring"
+		},
+		reviewBodyEntrance: {
+			bounce: 0,
+			duration: .3,
+			type: "spring"
+		},
+		stickyNav: {
+			bounce: 0,
+			duration: .3,
+			type: "spring"
+		},
+		summaryEntrance: {
+			bounce: 0,
+			duration: .3,
+			type: "spring"
+		},
+		swipeDismissExit: {
+			bounce: .2,
+			duration: .4,
+			type: "spring"
+		},
+		swipeSettleBack: {
+			damping: 15,
+			stiffness: 180,
+			type: "spring"
+		}
+	};
+	var animateWithReducedMotion = (element, options) => {
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return animate(element, options.reducedMotionProperties ?? options.properties, { duration: .2 });
+		return animate(element, options.properties, options.springConfig ?? springConfigs.contentEntrance);
+	};
+	var playEntrance = (element, springConfig) => animateWithReducedMotion(element, {
+		properties: {
+			opacity: [0, 1],
+			transform: ["translateY(4px)", "translateY(0)"]
+		},
+		reducedMotionProperties: { opacity: [0, 1] },
+		springConfig
+	});
+	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
+	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
+	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+	var prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
+	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
+		try {
+			await Promise.all(animations.map((animation) => animation.finished));
+			if (animationId === animationIdRef.current) finishClose();
+		} catch {}
+	};
+	var ModalCloseContext = X(null);
+	var useModalClose = () => {
+		const close = x(ModalCloseContext);
+		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
+		return close;
+	};
+	var focusableSelector = [
+		"button:not([disabled])",
+		"iframe",
+		"a[href]",
+		"input:not([disabled])",
+		"select:not([disabled])",
+		"textarea:not([disabled])",
+		"[tabindex]:not([tabindex='-1'])"
+	].join(", ");
+	var focusableElements = (root) => [...root.querySelectorAll(focusableSelector)].filter((node) => !node.hasAttribute("disabled") && node.getAttribute("aria-hidden") !== "true");
+	var trapFocus = (event, root) => {
+		if (event.key !== "Tab") return;
+		const focusable = focusableElements(root);
+		if (!focusable.length) {
+			event.preventDefault();
+			root.focus();
+			return;
+		}
+		const [first] = focusable;
+		if (!first) return;
+		const last = focusable.at(-1);
+		const active = document.activeElement;
+		if (event.shiftKey && active === first) {
+			event.preventDefault();
+			last?.focus();
+			return;
+		}
+		if (!event.shiftKey && active === last) {
+			event.preventDefault();
+			first.focus();
+		}
+	};
+	var useModalAccessibility = ({ onClose, overlayRef, surfaceRef }) => {
+		h(() => {
+			const previousOverflow = document.body.style.overflow;
+			document.body.style.overflow = "hidden";
+			const onKeydown = (event) => {
+				if (event.key === "Escape") {
+					onClose();
+					return;
+				}
+				const surface = surfaceRef.current;
+				if (surface) trapFocus(event, surface);
+			};
+			document.addEventListener("keydown", onKeydown);
+			requestAnimationFrame(() => surfaceRef.current?.focus());
+			return () => {
+				document.removeEventListener("keydown", onKeydown);
+				document.body.style.overflow = previousOverflow;
+			};
+		}, [onClose, surfaceRef]);
+		h(() => {
+			const overlay = overlayRef.current;
+			if (!overlay) return;
+			const onClick = (event) => {
+				if (event.target === overlay) onClose();
+			};
+			overlay.addEventListener("click", onClick);
+			return () => overlay.removeEventListener("click", onClick);
+		}, [onClose, overlayRef]);
+	};
+	var readTranslateY = (element) => {
+		const computedTransform = getComputedStyle(element).transform;
+		const transform = element.style.transform || computedTransform;
+		const translateMatch = transform.match(/translateY\((?<translateY>-?[\d.]+)px\)/u);
+		if (translateMatch?.groups?.translateY) return Number(translateMatch.groups.translateY);
+		const matrixMatch = transform.match(/^matrix\([^,]+,[^,]+,[^,]+,[^,]+,[^,]+,\s*(?<translateY>-?[\d.]+)\)$/u);
+		return matrixMatch?.groups?.translateY ? Number(matrixMatch.groups.translateY) : 0;
+	};
+	var rubberBand = (distance) => -Math.min(distance * .35, 96);
+	var useSwipeToDismiss = (options) => {
+		const optionsRef = A(options);
+		h(() => {
+			optionsRef.current = options;
+		}, [options]);
+		const startYRef = A(0);
+		const baseTranslationRef = A(0);
+		const currentDeltaRef = A(0);
+		const currentPositionRef = A(0);
+		const activePointerIdRef = A(null);
+		const pointerHistoryRef = A([]);
+		const animationRef = A(null);
+		const animationGenerationRef = A(0);
+		const elementRef = A(null);
+		const stopAnimation = q(() => {
+			animationGenerationRef.current += 1;
+			animationRef.current?.stop();
+			animationRef.current = null;
+		}, []);
+		const handlePointerDown = q((event) => {
+			if (activePointerIdRef.current !== null) return;
+			stopAnimation();
+			const element = event.currentTarget;
+			elementRef.current = element;
+			startYRef.current = event.clientY;
+			baseTranslationRef.current = readTranslateY(element);
+			currentDeltaRef.current = 0;
+			currentPositionRef.current = baseTranslationRef.current;
+			pointerHistoryRef.current = [{
+				time: performance.now(),
+				y: event.clientY
+			}];
+			activePointerIdRef.current = event.pointerId;
+			element.setPointerCapture(event.pointerId);
+		}, [stopAnimation]);
+		const handlePointerMove = q((event) => {
+			const element = elementRef.current;
+			if (!element) return;
+			if (event.pointerId !== activePointerIdRef.current) return;
+			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+			const position = baseTranslationRef.current + event.clientY - startYRef.current;
+			currentPositionRef.current = position < 0 ? rubberBand(-position) : position;
+			currentDeltaRef.current = Math.max(0, position);
+			const history = pointerHistoryRef.current;
+			history.push({
+				time: performance.now(),
+				y: event.clientY
+			});
+			if (history.length > 5) history.shift();
+			element.style.transform = `translateY(${currentPositionRef.current}px)`;
+		}, []);
+		const settlePointer = q((element) => {
+			const delta = currentDeltaRef.current;
+			const position = currentPositionRef.current;
+			const history = pointerHistoryRef.current;
+			currentDeltaRef.current = 0;
+			currentPositionRef.current = 0;
+			baseTranslationRef.current = 0;
+			const { dismissThreshold = 80, velocityThreshold = 300, onDismiss } = optionsRef.current;
+			let velocity = 0;
+			if (history.length >= 2) {
+				const [first] = history;
+				const last = history.at(-1);
+				if (first && last) {
+					const dt = (last.time - first.time) / 1e3;
+					if (dt > 0) velocity = (last.y - first.y) / dt;
+				}
+			}
+			if (delta > dismissThreshold || velocity > velocityThreshold) {
+				onDismiss({
+					position,
+					velocity
+				});
+				return;
+			}
+			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) element.style.transform = "";
+			else {
+				const animationGeneration = animationGenerationRef.current + 1;
+				animationGenerationRef.current = animationGeneration;
+				const anim = animate(element, { transform: "translateY(0)" }, springConfigs.swipeSettleBack);
+				animationRef.current = anim;
+				(async () => {
+					try {
+						await anim.finished;
+						if (animationGenerationRef.current !== animationGeneration || animationRef.current !== anim) return;
+						animationRef.current = null;
+						element.style.transform = "";
+					} catch {}
+				})();
+			}
+		}, []);
+		const handlePointerEnd = q((event) => {
+			const element = elementRef.current;
+			if (element && event.pointerId === activePointerIdRef.current) {
+				activePointerIdRef.current = null;
+				settlePointer(element);
+			}
+		}, [settlePointer]);
+		return { ref: q((el) => {
+			stopAnimation();
+			const prevEl = elementRef.current;
+			if (prevEl) {
+				prevEl.removeEventListener("pointerdown", handlePointerDown);
+				prevEl.removeEventListener("pointermove", handlePointerMove);
+				prevEl.removeEventListener("pointerup", handlePointerEnd);
+				prevEl.removeEventListener("pointercancel", handlePointerEnd);
+			}
+			if (el) {
+				el.addEventListener("pointerdown", handlePointerDown);
+				el.addEventListener("pointermove", handlePointerMove);
+				el.addEventListener("pointerup", handlePointerEnd);
+				el.addEventListener("pointercancel", handlePointerEnd);
+				elementRef.current = el;
+			} else elementRef.current = null;
+		}, [
+			handlePointerDown,
+			handlePointerEnd,
+			handlePointerMove,
+			stopAnimation
+		]) };
+	};
+	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, dismissable = false, id, onClose, surfaceClassName }) => {
+		const overlayRef = A(null);
+		const surfaceRef = A(null);
+		const closeSourceRef = A("standard");
+		const swipeDismissRef = A(null);
+		const realOnCloseRef = A(onClose);
+		const [phase, setPhase] = d("open");
+		const [reducedMotion, setReducedMotion] = d(prefersReducedMotion);
+		const didFinishCloseRef = A(false);
+		const animationIdRef = A(0);
+		const animationsRef = A([]);
+		const session = useModalSession();
+		const previousSessionRef = A(session);
+		h(() => {
+			realOnCloseRef.current = onClose;
+		}, [onClose]);
+		h(() => {
+			const mediaQuery = window.matchMedia?.(reducedMotionQuery);
+			if (!mediaQuery) return;
+			const updateReducedMotion = () => setReducedMotion(mediaQuery.matches);
+			mediaQuery.addEventListener("change", updateReducedMotion);
+			return () => mediaQuery.removeEventListener("change", updateReducedMotion);
+		}, []);
+		const finishClose = q(() => {
+			if (didFinishCloseRef.current) return;
+			didFinishCloseRef.current = true;
+			realOnCloseRef.current();
+		}, []);
+		const animateModal = q((state) => {
+			const overlay = overlayRef.current;
+			const surface = surfaceRef.current;
+			if (!overlay || !surface) return;
+			for (const animation of animationsRef.current) animation.stop();
+			const animationId = animationIdRef.current + 1;
+			animationIdRef.current = animationId;
+			const opening = state === "open";
+			const backdropAnimation = animateWithReducedMotion(overlay, {
+				properties: { opacity: opening ? 1 : 0 },
+				reducedMotionProperties: { opacity: opening ? 1 : 0 },
+				springConfig: springConfigs.modalBackdrop
+			});
+			const surfaceExitTransform = closeSourceRef.current === "swipe" ? "translateY(100dvh)" : EXITING_SURFACE_TRANSFORM;
+			const surfaceSpring = closeSourceRef.current === "swipe" ? {
+				...springConfigs.swipeDismissExit,
+				velocity: swipeDismissRef.current?.velocity ?? 0
+			} : springConfigs.modalSurface;
+			if (!opening) {
+				closeSourceRef.current = "standard";
+				swipeDismissRef.current = null;
+			}
+			const surfaceAnimation = animateWithReducedMotion(surface, {
+				properties: {
+					opacity: opening ? 1 : 0,
+					transform: opening ? "scale(1) translateY(0)" : surfaceExitTransform
+				},
+				reducedMotionProperties: { opacity: opening ? 1 : 0 },
+				springConfig: surfaceSpring
+			});
+			animationsRef.current = [backdropAnimation, surfaceAnimation];
+			if (!opening) finishClosingAnimation(animationId, [backdropAnimation, surfaceAnimation], animationIdRef, finishClose);
+		}, [finishClose]);
+		_(() => {
+			if (previousSessionRef.current === session) return;
+			previousSessionRef.current = session;
+			didFinishCloseRef.current = false;
+			setPhase("open");
+			animateModal("open");
+		}, [animateModal, session]);
+		const handleClose = q(() => {
+			if (didFinishCloseRef.current) return;
+			didFinishCloseRef.current = false;
+			setPhase("closing");
+			animateModal("closed");
+		}, [animateModal]);
+		const handleSwipeDismiss = q((details) => {
+			closeSourceRef.current = "swipe";
+			swipeDismissRef.current = details;
+			handleClose();
+		}, [handleClose]);
+		const swipe = useSwipeToDismiss({ onDismiss: dismissable ? handleSwipeDismiss : (_details) => {} });
+		const surfaceRefCallback = q((el) => {
+			surfaceRef.current = el;
+			if (dismissable) swipe.ref(el);
+		}, [dismissable, swipe]);
+		h(() => {
+			const frame = requestAnimationFrame(() => {
+				if (!overlayRef.current) return;
+				animateModal("open");
+			});
+			return () => {
+				cancelAnimationFrame(frame);
+				for (const animation of animationsRef.current) animation.stop();
+			};
+		}, [animateModal]);
+		useModalAccessibility({
+			onClose: handleClose,
+			overlayRef,
+			surfaceRef
+		});
+		return u(ModalCloseContext.Provider, {
+			value: handleClose,
+			children: u("dialog", {
+				"aria-describedby": ariaDescribedBy,
+				"aria-label": ariaLabel,
+				"aria-labelledby": ariaLabelledBy,
+				"aria-modal": "true",
+				class: className,
+				id,
+				open: true,
+				ref: overlayRef,
+				style: {
+					opacity: 0,
+					pointerEvents: phase === "open" ? "auto" : "none"
+				},
+				children: u("div", {
+					class: surfaceClassName,
+					onClick: (event) => event.stopPropagation(),
+					ref: dismissable ? surfaceRefCallback : surfaceRef,
+					role: "none",
+					style: {
+						opacity: 0,
+						transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
+						...dismissable ? { touchAction: "pan-x" } : {}
+					},
+					tabindex: -1,
+					children
+				})
+			})
+		});
+	};
+	var MODAL_ID$1 = "atv-poster-modal";
+	var PosterModalContent = ({ alt, previewSrc, src }) => {
+		const close = useModalClose();
+		const hasPreview = Boolean(previewSrc && previewSrc !== src);
+		const [imageState, setImageState] = d(hasPreview ? "loading" : "loaded");
+		return u("div", {
+			class: `atv-image-modal-frame is-${imageState}`,
+			children: [
+				u(ModalCloseButton, {
+					ariaLabel: "关闭图片预览",
+					className: "atv-image-modal-close",
+					onClick: close
+				}),
+				hasPreview ? u("img", {
+					alt: "",
+					"aria-hidden": "true",
+					class: "atv-modal-preview",
+					src: previewSrc
+				}) : null,
+				u("img", {
+					alt: alt || "",
+					class: "atv-modal-img",
+					onError: () => {
+						if (hasPreview) setImageState("preview");
+					},
+					onLoad: () => setImageState("loaded"),
+					src
+				}),
+				imageState === "loading" ? u("output", {
+					"aria-live": "polite",
+					class: "atv-image-modal-loading",
+					children: [u("span", {
+						"aria-hidden": "true",
+						class: "atv-spinner"
+					}), u("span", { children: "加载图片中…" })]
+				}) : null
+			]
+		});
+	};
+	var PosterModal = ({ alt, onClose, previewSrc, src }) => u(ModalShell, {
+		ariaLabel: "海报预览",
+		className: "atv-modal-overlay",
+		id: MODAL_ID$1,
+		onClose,
+		surfaceClassName: "atv-modal-surface",
+		children: u(PosterModalContent, {
+			alt,
+			...previewSrc ? { previewSrc } : {},
+			src
+		}, src)
+	});
+	var useModalRequest = () => {
+		const [active, setActive] = d(null);
+		return {
+			active,
+			handleClose: q(() => setActive(null), []),
+			handleOpen: q((value) => {
+				setActive({ value });
+			}, [])
+		};
+	};
+	var REVEAL_THRESHOLD = 0;
+	var useSectionReveal = (ref) => {
+		h(() => {
+			const element = ref.current;
+			if (!element) return;
+			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") {
+				element.classList.add("is-revealed");
+				return;
+			}
+			const observer = new IntersectionObserver((entries) => {
+				for (const entry of entries) if (entry.isIntersecting) {
+					element.classList.add("is-revealed");
+					observer.unobserve(element);
+				}
+			}, { threshold: [REVEAL_THRESHOLD] });
+			observer.observe(element);
+			return () => {
+				observer.disconnect();
+			};
+		}, [ref]);
+	};
+	var Section = ({ children, id, moreLink, title }) => {
+		const ref = A(null);
+		useSectionReveal(ref);
+		return u("section", {
+			class: "atv-section atv-section-reveal",
+			"data-atv-section-reveal": true,
+			id,
+			ref,
+			children: [moreLink ? u("div", {
+				class: "atv-section-h-row",
+				children: [u("h2", {
+					class: "atv-section-h",
+					children: title
+				}), u("a", {
+					class: "atv-section-more",
+					href: moreLink.href,
+					rel: "noopener",
+					target: "_blank",
+					children: moreLink.text
+				})]
+			}) : u("h2", {
+				class: "atv-section-h",
+				children: title
+			}), children]
+		});
+	};
+	var AwardLink = ({ children, href }) => href ? u("a", {
+		href,
+		rel: "noreferrer",
+		target: "_blank",
+		children
+	}) : u("span", { children });
+	var PersonageAwardsSection = ({ awards }) => {
+		if (!awards) return null;
+		return u(Section, {
+			id: "atv-personage-awards",
+			...awards.allAwardsHref ? { moreLink: {
+				href: awards.allAwardsHref,
+				text: "查看全部 →"
+			} } : {},
+			title: "荣誉",
+			children: awards.awards.length ? u("ul", {
+				class: "atv-personage-awards-list",
+				children: awards.awards.map((award) => u("li", { children: [u("time", {
+					class: "atv-personage-award-year",
+					children: award.year
+				}), u("div", {
+					class: "atv-personage-award-detail",
+					children: [
+						u("span", {
+							class: "atv-personage-award-ceremony",
+							children: u(AwardLink, {
+								href: award.ceremonyHref,
+								children: award.ceremony
+							})
+						}),
+						u("p", {
+							class: "atv-personage-award-name",
+							children: award.award
+						}),
+						award.work ? u("p", {
+							class: "atv-personage-award-work",
+							children: u(AwardLink, {
+								href: award.workHref,
+								children: award.work
+							})
+						}) : null
+					]
+				})] }, `${award.year}-${award.ceremony}-${award.award}`))
+			}) : u("p", {
+				class: "atv-personage-awards-empty",
+				children: "暂无公开获奖记录"
+			})
+		});
+	};
+	var formatAspectRatio = (ratio) => {
+		const fraction = ratio.toFixed(4);
+		if (fraction.endsWith("6667")) return "2 / 3";
+		if (fraction.endsWith("7500")) return "3 / 4";
+		if (fraction.endsWith("3333")) return "4 / 3";
+		if (fraction.endsWith("5000")) return "3 / 2";
+		if (fraction.endsWith("0000")) return `${Math.round(ratio)}`;
+		return String(ratio);
+	};
+	var SafeImage = ({ src, alt, className, loading = "lazy", aspectRatio, staggerIndex, onLoad, fallback }) => {
+		const [failed, setFailed] = d(false);
+		if (!src) return fallback ?? u("div", {
+			"aria-hidden": "true",
+			class: "atv-safe-image-fallback"
+		});
+		if (failed) return fallback ?? u("div", {
+			"aria-hidden": "true",
+			class: "atv-safe-image-fallback"
+		});
+		const img = u("img", {
+			alt,
+			class: className,
+			loading,
+			onError: () => setFailed(true),
+			onLoad: (event) => {
+				const image = event.currentTarget;
+				if (image.naturalWidth && image.naturalHeight) onLoad?.({
+					height: image.naturalHeight,
+					width: image.naturalWidth
+				});
+			},
+			src
+		});
+		if (aspectRatio !== void 0 || staggerIndex !== void 0) {
+			const vars = {};
+			if (aspectRatio !== void 0) vars.aspectRatio = formatAspectRatio(aspectRatio);
+			if (staggerIndex !== void 0) vars["--stagger-index"] = String(staggerIndex);
+			return u("div", {
+				class: "atv-safe-image-container",
+				style: vars,
+				children: img
+			});
+		}
+		return img;
+	};
+	var PersonageCollaborators = ({ collaborators }) => {
+		if (!collaborators?.collaborators.length) return null;
+		const { allCollaboratorsHref, collaborators: entries } = collaborators;
+		return u(Section, {
+			id: "atv-personage-collaborators",
+			title: "合作",
+			...allCollaboratorsHref ? { moreLink: {
+				href: allCollaboratorsHref,
+				text: "查看全部 →"
+			} } : {},
+			children: u("ol", {
+				class: "atv-personage-collaborators",
+				children: entries.map((collaborator, index) => u("li", {
+					class: "atv-personage-collaborator",
+					"data-leading": index === 0 ? "true" : void 0,
+					style: { "--stagger-index": String(index) },
+					children: [
+						u("span", {
+							"aria-hidden": "true",
+							class: "atv-personage-collaborator-rank",
+							children: index + 1
+						}),
+						collaborator.avatar ? u(SafeImage, {
+							alt: "",
+							className: "atv-personage-collaborator-avatar",
+							fallback: u("span", {
+								"aria-hidden": "true",
+								class: "atv-personage-collaborator-avatar is-fallback",
+								children: collaborator.name.slice(0, 1)
+							}),
+							src: collaborator.avatar
+						}) : u("span", {
+							"aria-hidden": "true",
+							class: "atv-personage-collaborator-avatar is-fallback",
+							children: collaborator.name.slice(0, 1)
+						}),
+						u("div", {
+							class: "atv-personage-collaborator-info",
+							children: [u("a", {
+								class: "atv-personage-collaborator-name",
+								href: collaborator.href,
+								rel: "noopener",
+								target: "_blank",
+								children: collaborator.name
+							}), u("span", {
+								class: "atv-personage-collaborator-count",
+								children: [collaborator.sharedWorkCount, " 次合作"]
+							})]
+						}),
+						collaborator.sharedWorksHref ? u("a", {
+							class: "atv-personage-collaborator-action",
+							href: collaborator.sharedWorksHref,
+							rel: "noopener",
+							target: "_blank",
+							children: ["查看共同作品", u("span", {
+								class: "atv-personage-collaborator-arrow",
+								"aria-hidden": "true",
+								children: [" ", "↗"]
+							})]
+						}) : null
+					]
+				}, collaborator.href))
+			})
+		});
+	};
+	var noop$3 = () => void 0;
+	var PersonageGalleryImageTile = ({ alt, largeSrc, onOpenImage, src, staggerIndex }) => {
+		const [aspectRatio, setAspectRatio] = d(null);
+		return u("li", {
+			style: {
+				"--stagger-index": String(staggerIndex),
+				...aspectRatio ? { "--atv-personage-gallery-aspect-ratio": String(aspectRatio) } : {}
+			},
+			children: u("button", {
+				"aria-label": `查看${alt}`,
+				class: "atv-image-preview-trigger",
+				onClick: () => onOpenImage({
+					alt,
+					previewSrc: src,
+					src: largeSrc
+				}),
+				type: "button",
+				children: u(SafeImage, {
+					alt,
+					loading: "lazy",
+					onLoad: ({ width, height }) => setAspectRatio(width / height),
+					src
+				})
+			})
+		});
+	};
+	var PersonageGallerySection = ({ gallery, name, onOpenImage = noop$3 }) => {
+		if (!gallery) return null;
+		return u(Section, {
+			id: "atv-personage-gallery",
+			...gallery.allImagesHref ? { moreLink: {
+				href: gallery.allImagesHref,
+				text: "查看全部 →"
+			} } : {},
+			title: "图集",
+			children: gallery.images.length > 0 ? u("ul", {
+				"aria-label": `${name}的图片`,
+				class: "atv-carousel atv-personage-gallery-rail",
+				children: gallery.images.map((image, index) => {
+					return u(PersonageGalleryImageTile, {
+						alt: image.alt || `${name}的图片 ${index + 1}`,
+						largeSrc: image.largeSrc,
+						onOpenImage,
+						src: image.src,
+						staggerIndex: index
+					}, image.src);
+				})
+			}) : u("p", {
+				class: "atv-personage-gallery-empty",
+				children: "暂无公开图片"
+			})
+		});
+	};
+	var splitPersonageName = (name) => {
+		const originalNameStart = name.search(/\p{Script=Latin}/u);
+		if (originalNameStart <= 0) return {
+			originalName: null,
+			primaryName: name
+		};
+		return {
+			originalName: name.slice(originalNameStart).trim(),
+			primaryName: name.slice(0, originalNameStart).trim()
+		};
+	};
+	var biographyPreviewLineCount = 3;
+	var useBiographyDisclosure = (biography) => {
+		const contentRef = A(null);
+		const biographyKey = biography?.join("\n") ?? "";
+		const previousBiographyKeyRef = A(biographyKey);
+		const [canExpand, setCanExpand] = d(false);
+		const [isExpanded, setIsExpanded] = d(false);
+		_(() => {
+			if (previousBiographyKeyRef.current !== biographyKey) {
+				previousBiographyKeyRef.current = biographyKey;
+				setCanExpand(false);
+				setIsExpanded(false);
+			}
+		}, [biographyKey]);
+		_(() => {
+			const content = contentRef.current;
+			if (!content || !biographyKey) {
+				setCanExpand(false);
+				setIsExpanded(false);
+				return;
+			}
+			if (canExpand) return;
+			const measureOverflow = () => {
+				const lineHeight = Number(window.getComputedStyle(content).lineHeight.replace("px", ""));
+				const fullHeight = content.scrollHeight;
+				const hasHiddenContent = Number.isFinite(lineHeight) && fullHeight > lineHeight * biographyPreviewLineCount + 1;
+				setCanExpand(hasHiddenContent);
+				if (!hasHiddenContent) setIsExpanded(false);
+			};
+			measureOverflow();
+			const frame = window.requestAnimationFrame(measureOverflow);
+			const observer = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(measureOverflow);
+			observer?.observe(content);
+			return () => {
+				window.cancelAnimationFrame(frame);
+				observer?.disconnect();
+			};
+		}, [biographyKey, canExpand]);
+		return {
+			canExpand,
+			contentRef,
+			isExpanded,
+			setIsExpanded
+		};
+	};
+	var computeStatsKicker = (profile) => {
+		const totalWorks = profile.recentWorks?.totalCount ?? profile.representativeWorks?.totalCount ?? 0;
+		const totalAwards = profile.awards?.totalCount ?? profile.awards?.awards.length ?? 0;
+		if (totalWorks === 0 && totalAwards === 0) return null;
+		const parts = [];
+		if (totalWorks > 0) parts.push(`${totalWorks} 部作品`);
+		if (totalAwards > 0) parts.push(`${totalAwards} 项荣誉`);
+		return parts.join(" · ");
+	};
+	var PersonageHeroPortrait = ({ portrait, primaryName, onOpenPortrait }) => {
+		const handleClick = () => {
+			onOpenPortrait(portrait, `${primaryName}的头像`);
+		};
+		const handleKeyDown = (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				handleClick();
+			}
+		};
+		return u("button", {
+			"aria-label": `查看${primaryName}的头像`,
+			class: "atv-personage-portrait-trigger atv-image-preview-trigger",
+			onClick: handleClick,
+			onKeyDown: handleKeyDown,
+			type: "button",
+			children: u(SafeImage, {
+				alt: "",
+				className: "atv-personage-portrait",
+				fallback: u("div", {
+					"aria-hidden": "true",
+					class: "atv-personage-portrait is-empty"
+				}),
+				loading: "eager",
+				src: portrait
+			})
+		});
+	};
+	var PersonageBiography = ({ biography, canExpand, contentRef, isExpanded, setIsExpanded }) => u("div", {
+		class: "atv-personage-biography",
+		children: [u("div", {
+			class: `atv-personage-biography-content ${canExpand && !isExpanded ? "is-clamped" : "is-expanded"}`,
+			ref: contentRef,
+			children: biography.map((paragraph, index) => u("p", { children: paragraph }, `${index}-${paragraph}`))
+		}), canExpand ? u("button", {
+			"aria-expanded": isExpanded,
+			onClick: () => setIsExpanded((expanded) => !expanded),
+			type: "button",
+			children: isExpanded ? "收起" : "展开"
+		}) : null]
+	});
+	var PersonageHero = ({ profile, onOpenPortrait }) => {
+		const { canExpand, contentRef, isExpanded, setIsExpanded } = useBiographyDisclosure(profile.biography);
+		const { originalName, primaryName } = splitPersonageName(profile.name);
+		const [isRevealed, setIsRevealed] = d(false);
+		h(() => {
+			const frame = requestAnimationFrame(() => {
+				setIsRevealed(true);
+			});
+			return () => cancelAnimationFrame(frame);
+		}, []);
+		const statsKicker = computeStatsKicker(profile);
+		return u("section", {
+			class: `atv-personage-hero${isRevealed ? " is-revealed" : ""}`,
+			children: u("div", {
+				class: "atv-personage-hero-inner",
+				children: [profile.portrait ? u(PersonageHeroPortrait, {
+					portrait: profile.portrait,
+					primaryName,
+					onOpenPortrait
+				}) : u("div", {
+					"aria-hidden": "true",
+					class: "atv-personage-portrait is-empty"
+				}), u("div", {
+					class: "atv-personage-identity",
+					children: [
+						statsKicker ? u("p", {
+							class: "atv-personage-kicker",
+							children: statsKicker
+						}) : null,
+						u("h1", { children: primaryName }),
+						originalName ? u("p", {
+							class: "atv-personage-original-name",
+							children: originalName
+						}) : null,
+						profile.facts.length > 0 ? u("dl", {
+							class: "atv-personage-facts",
+							children: profile.facts.map((fact, index) => u("div", {
+								style: { "--fact-index": String(index) },
+								children: [u("dt", { children: fact.label }), u("dd", { children: fact.value })]
+							}, fact.label))
+						}) : null,
+						profile.biography?.length ? u(PersonageBiography, {
+							biography: profile.biography,
+							canExpand,
+							contentRef,
+							isExpanded,
+							setIsExpanded
+						}) : null
+					]
+				})]
+			})
+		});
+	};
+	var computeIndicatorMetrics = (activeEl, containerEl) => {
+		const containerRect = containerEl.getBoundingClientRect();
+		const activeRect = activeEl.getBoundingClientRect();
+		return {
+			left: activeRect.left - containerRect.left,
+			width: activeRect.width
+		};
+	};
+	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
+		const markerRef = A(null);
+		_(() => {
+			if (!activeSectionId) return;
+			const nav = navRef?.current;
+			const marker = markerRef.current;
+			if (!nav || !marker) return;
+			const container = nav.querySelector(".atv-stickynav-jumps");
+			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
+			if (!container || !activeLink) return;
+			const frame = requestAnimationFrame(() => {
+				const { left, width } = computeIndicatorMetrics(activeLink, container);
+				marker.style.transform = `translateX(${left}px)`;
+				marker.style.width = `${width}px`;
+			});
+			return () => {
+				cancelAnimationFrame(frame);
+			};
+		}, [activeSectionId, navRef]);
+		return u("nav", {
+			...navRef ? { ref: navRef } : {},
+			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
+			children: [
+				u("div", {
+					class: "atv-stickynav-title",
+					children: title
+				}),
+				accessory,
+				u("div", {
+					class: "atv-stickynav-jumps",
+					children: [sections.map((section) => u("a", {
+						class: activeSectionId === section.id ? "is-active" : void 0,
+						"data-section-id": section.id,
+						href: `#${section.id}`,
+						onClick: (event) => {
+							event.preventDefault();
+							onJump(section.id);
+						},
+						children: section.label
+					}, section.id)), u("div", {
+						"aria-hidden": "true",
+						class: "atv-stickynav-marker",
+						ref: markerRef
+					})]
+				})
+			]
+		});
+	};
+	var PersonageStickyNav = ({ name, ...navigation }) => u(StickyNav, {
+		...navigation,
+		title: name
+	});
+	var PosterPlaceholder = () => u("div", {
+		class: "atv-poster-placeholder",
+		children: u(IconFilmPlaceholder, {})
+	});
+	var PosterImage = ({ alt, className, poster }) => u(SafeImage, {
+		alt,
+		...className ? { className } : {},
+		fallback: u(PosterPlaceholder, {}),
+		loading: "lazy",
+		src: poster
+	});
+	var groupByYear = (works) => {
+		const map = new Map();
+		for (const work of works) {
+			const key = work.year ?? "其他";
+			let group = map.get(key);
+			if (!group) {
+				group = [];
+				map.set(key, group);
+			}
+			group.push(work);
+		}
+		return [...map.entries()].toSorted(([a], [b]) => {
+			if (a === "其他") return 1;
+			if (b === "其他") return -1;
+			return Number(b) - Number(a);
+		});
+	};
+	var WorkCard = ({ index, work }) => u("a", {
+		class: "atv-timeline-card",
+		href: work.href,
+		rel: "noopener",
+		style: { "--stagger-index": String(index) },
+		target: "_blank",
+		children: [u("div", {
+			class: "atv-timeline-card-poster",
+			children: [u(PosterImage, {
+				alt: work.title,
+				poster: work.poster
+			}), work.rating ? u("span", {
+				class: "atv-timeline-card-rating",
+				children: work.rating
+			}) : null]
+		}), u("span", {
+			class: "atv-timeline-card-title",
+			children: work.title
+		})]
+	});
+	var PersonageTimeline = ({ id, rail, title }) => {
+		if (!rail?.works.length) return null;
+		const groups = groupByYear(rail.works);
+		return u(Section, {
+			id,
+			...rail.allWorksHref ? { moreLink: {
+				href: rail.allWorksHref,
+				text: "查看全部 →"
+			} } : {},
+			title,
+			children: u("div", {
+				class: "atv-timeline",
+				style: { "--group-count": String(groups.length) },
+				children: groups.map(([year, works], gi) => u("div", {
+					class: "atv-timeline-year-group",
+					style: { "--group-index": String(gi) },
+					children: [u("span", {
+						class: "atv-timeline-year-num",
+						children: year
+					}), u("div", {
+						class: "atv-timeline-row",
+						children: works.map((work, wi) => u(WorkCard, {
+							index: wi,
+							work
+						}, work.href))
+					})]
+				}, year))
+			})
+		});
+	};
+	var PersonageWorkRail = ({ id, rail, title }) => {
+		if (!rail?.works.length) return null;
+		return u(Section, {
+			id,
+			...rail.allWorksHref ? { moreLink: {
+				href: rail.allWorksHref,
+				text: "查看全部 →"
+			} } : {},
+			title,
+			children: u("div", {
+				class: "atv-personage-work-rail",
+				children: rail.works.map((work, index) => u("a", {
+					class: "atv-personage-work-card",
+					href: work.href,
+					rel: "noopener",
+					target: "_blank",
+					children: [
+						u("div", {
+							class: "atv-personage-work-poster",
+							children: [
+								u("span", {
+									class: "atv-work-index",
+									children: index + 1
+								}),
+								work.rating ? u("span", {
+									class: "atv-work-rating",
+									children: work.rating
+								}) : null,
+								u(PosterImage, {
+									alt: work.title,
+									poster: work.poster
+								})
+							]
+						}),
+						u("span", {
+							class: "atv-personage-work-title",
+							children: work.title
+						}),
+						work.year ? u("span", {
+							class: "atv-personage-work-year",
+							children: work.year
+						}) : null
+					]
+				}, work.href))
+			})
+		});
+	};
+	var extractPrimaryName = (name) => {
+		const originalNameStart = name.search(/\p{Script=Latin}/u);
+		if (originalNameStart <= 0) return name;
+		return name.slice(0, originalNameStart).trim();
+	};
+	var PersonagePage = ({ navigation, profile }) => {
+		const activeImage = useModalRequest();
+		const primaryName = extractPrimaryName(profile.name);
+		const handleOpenPortrait = (src, alt) => {
+			activeImage.handleOpen({
+				alt,
+				src
+			});
+		};
+		return u(S, { children: [
+			navigation ? u(PersonageStickyNav, {
+				...navigation,
+				name: primaryName
+			}) : null,
+			u("main", {
+				class: "atv-personage",
+				children: [
+					u(PersonageHero, {
+						profile,
+						onOpenPortrait: handleOpenPortrait
+					}),
+					u(PersonageAwardsSection, { awards: profile.awards }),
+					u(PersonageTimeline, {
+						id: "atv-personage-recent-works",
+						rail: profile.recentWorks,
+						title: "近作"
+					}),
+					u(PersonageWorkRail, {
+						id: "atv-personage-representative-works",
+						rail: profile.representativeWorks,
+						title: "作品选"
+					}),
+					u(PersonageCollaborators, { collaborators: profile.collaborators }),
+					u(PersonageGallerySection, {
+						gallery: profile.gallery,
+						name: primaryName,
+						onOpenImage: activeImage.handleOpen
+					})
+				]
+			}),
+			activeImage.active ? u(ModalSession, {
+				request: activeImage.active,
+				children: u(PosterModal, {
+					alt: activeImage.active.value.alt,
+					onClose: activeImage.handleClose,
+					...activeImage.active.value.previewSrc ? { previewSrc: activeImage.active.value.previewSrc } : {},
+					src: activeImage.active.value.src
+				})
+			}) : null
+		] });
+	};
+	var usePersonageStickyNavigation = (doc, sections) => {
+		const [activeSectionId, setActiveSectionId] = d("");
+		const [visible, setVisible] = d(false);
+		const [scrolling, setScrolling] = d(false);
+		const lastVisibleRef = A(false);
+		const navRef = A(null);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			let scrollTimer;
+			const handleScroll = () => {
+				const isVisible = view.scrollY > 300;
+				if (isVisible !== lastVisibleRef.current) {
+					lastVisibleRef.current = isVisible;
+					setVisible(isVisible);
+				}
+				setScrolling(true);
+				view.clearTimeout(scrollTimer);
+				scrollTimer = view.setTimeout(() => setScrolling(false), 150);
+			};
+			view.addEventListener("scroll", handleScroll, { passive: true });
+			handleScroll();
+			return () => {
+				view.removeEventListener("scroll", handleScroll);
+				view.clearTimeout(scrollTimer);
+			};
+		}, [doc]);
+		h(() => {
+			const nav = navRef.current;
+			if (!nav) return;
+			animateWithReducedMotion(nav, {
+				properties: visible ? {
+					opacity: 1,
+					transform: "translateY(0)"
+				} : {
+					opacity: 0,
+					transform: "translateY(-100%)"
+				},
+				reducedMotionProperties: { opacity: visible ? 1 : 0 },
+				springConfig: springConfigs.stickyNav
+			});
+		}, [visible]);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			const elements = new Map();
+			for (const section of sections) {
+				const element = doc.querySelector(`#${section.id}`);
+				if (element) elements.set(section.id, element);
+			}
+			let pending = false;
+			const pick = () => {
+				let activeId = "";
+				let bestScore = -Infinity;
+				for (const section of sections) {
+					const element = elements.get(section.id);
+					if (!element) continue;
+					const rect = element.getBoundingClientRect();
+					const visibleTop = Math.max(rect.top, 56);
+					const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
+					const score = Math.max(0, visibleBottom - visibleTop);
+					if (score > bestScore) {
+						activeId = section.id;
+						bestScore = score;
+					}
+				}
+				setActiveSectionId(activeId);
+				pending = false;
+			};
+			const observer = new view.IntersectionObserver(() => {
+				if (pending) return;
+				pending = true;
+				view.requestAnimationFrame(pick);
+			}, { threshold: [
+				0,
+				.25,
+				.5
+			] });
+			for (const element of elements.values()) observer.observe(element);
+			pick();
+			return () => observer.disconnect();
+		}, [doc, sections]);
+		return {
+			activeSectionId,
+			navRef,
+			onJump: q((sectionId) => {
+				const prefersReducedMotion = (doc.defaultView ?? window).matchMedia("(prefers-reduced-motion: reduce)").matches;
+				doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+					behavior: prefersReducedMotion ? "auto" : "smooth",
+					block: "start"
+				});
+			}, [doc]),
+			scrolling,
+			sections,
+			visible
+		};
+	};
+	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
+	var adoptPersonageProfile = (doc) => {
+		const initialProfile = extractPersonageProfile(doc);
+		if (!initialProfile || !isBiographyExpansionPending(doc)) return initialProfile;
+		[...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"))?.click();
+		return isBiographyExpansionPending(doc) ? null : extractPersonageProfile(doc);
+	};
+	var adoptPersonageProfileWhenReady = (doc, onAdopted) => {
+		const adopt = () => {
+			const profile = adoptPersonageProfile(doc);
+			if (profile) onAdopted(profile);
+		};
+		if (doc.readyState === "complete" || !isBiographyExpansionPending(doc)) {
+			adopt();
+			return;
+		}
+		const view = doc.defaultView;
+		if (!view) {
+			adopt();
+			return;
+		}
+		view.addEventListener("load", adopt, { once: true });
+	};
+	var isDynamicPersonageSourceOrDescendant = (node) => {
+		if (!(node instanceof Element)) return false;
+		return node.matches(".subject-awards, .subject-creations") || node.closest(".subject-awards, .subject-creations") !== null || node.querySelector(".subject-awards, .subject-creations") !== null;
+	};
+	var hasDynamicPersonageSourceMutation = (mutations) => mutations.some((mutation) => isDynamicPersonageSourceOrDescendant(mutation.target) || [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant));
+	var computePersonageNavSections = (profile) => {
+		const sections = [];
+		if (profile.awards?.awards.length) sections.push({
+			id: "atv-personage-awards",
+			label: "荣誉"
+		});
+		if (profile.recentWorks?.works.length) sections.push({
+			id: "atv-personage-recent-works",
+			label: "近作"
+		});
+		if (profile.representativeWorks?.works.length) sections.push({
+			id: "atv-personage-representative-works",
+			label: "作品选"
+		});
+		if (profile.collaborators?.collaborators.length) sections.push({
+			id: "atv-personage-collaborators",
+			label: "合作"
+		});
+		if (profile.gallery?.images.length) sections.push({
+			id: "atv-personage-gallery",
+			label: "图集"
+		});
+		return sections;
+	};
+	var PersonageProfileAdoption = ({ doc, initialProfile }) => {
+		const [profile, setProfile] = d(initialProfile);
+		const sections = T(() => computePersonageNavSections(profile), [profile]);
+		const navigation = usePersonageStickyNavigation(doc, sections);
+		_(() => {
+			const refreshProfile = () => {
+				const nextProfile = extractPersonageProfile(doc);
+				if (nextProfile) setProfile(nextProfile);
+			};
+			const observer = new MutationObserver((mutations) => {
+				if (hasDynamicPersonageSourceMutation(mutations)) refreshProfile();
+			});
+			observer.observe(doc.body, {
+				childList: true,
+				subtree: true
+			});
+			return () => observer.disconnect();
+		}, [doc]);
+		return u(PersonagePage, {
+			navigation: sections.length > 0 ? navigation : void 0,
+			profile
+		});
+	};
+	var isPersonageHomepage = (location) => location.hostname === "www.douban.com" && /^\/personage\/\d+\/?$/u.test(location.pathname);
+	var mountPersonage = (doc = document) => {
+		if (doc.querySelector("#atv-douban-root")) return;
+		adoptPersonageProfileWhenReady(doc, (profile) => {
+			if (doc.querySelector("#atv-douban-root")) return;
+			if (installEnhancedRoot(doc, (root) => R(u(PersonageProfileAdoption, {
+				doc,
+				initialProfile: profile
+			}), root))) doc.title = `${profile.name} · 豆瓣`;
+		});
+	};
+	var personagePage = {
+		matches: isPersonageHomepage,
+		mount: mountPersonage
+	};
 	var LOGIN_FRAME_STYLE_ID = "atv-login-frame-theme";
 	var LOGIN_FRAME_CSS = `
 :root {
@@ -339,279 +6328,7 @@ input::placeholder {
 		style.id = LOGIN_FRAME_STYLE_ID;
 		style.textContent = LOGIN_FRAME_CSS;
 		(doc.head ?? doc.documentElement).append(style);
-	}, n, l$1, u$2, i$2, r$1, o$2, e$1, f$2, c$1, a$1, s$1, h$1, p$1, v$1, y$1, d$1 = {}, w$1 = [], _$1 = /acit|ex(?:s|g|n|p|$)|rph|grid|ows|mnc|ntw|ine[ch]|zoo|^ord|itera/i, g$1 = Array.isArray;
-	function m$1(n, l) {
-		for (var u in l) n[u] = l[u];
-		return n;
-	}
-	function b(n) {
-		n && n.parentNode && n.parentNode.removeChild(n);
-	}
-	function k$1(l, u, t) {
-		var i, r, o, e = {};
-		for (o in u) "key" == o ? i = u[o] : "ref" == o ? r = u[o] : e[o] = u[o];
-		if (arguments.length > 2 && (e.children = arguments.length > 3 ? n.call(arguments, 2) : t), "function" == typeof l && null != l.defaultProps) for (o in l.defaultProps) void 0 === e[o] && (e[o] = l.defaultProps[o]);
-		return x$1(l, e, i, r, null);
-	}
-	function x$1(n, t, i, r, o) {
-		var e = {
-			type: n,
-			props: t,
-			key: i,
-			ref: r,
-			__k: null,
-			__: null,
-			__b: 0,
-			__e: null,
-			__c: null,
-			constructor: void 0,
-			__v: null == o ? ++u$2 : o,
-			__i: -1,
-			__u: 0
-		};
-		return null == o && null != l$1.vnode && l$1.vnode(e), e;
-	}
-	function S(n) {
-		return n.children;
-	}
-	function C$1(n, l) {
-		this.props = n, this.context = l;
-	}
-	function $$1(n, l) {
-		if (null == l) return n.__ ? $$1(n.__, n.__i + 1) : null;
-		for (var u; l < n.__k.length; l++) if (null != (u = n.__k[l]) && null != u.__e) return u.__e;
-		return "function" == typeof n.type ? $$1(n) : null;
-	}
-	function I(n) {
-		if (n.__P && n.__d) {
-			var u = n.__v, t = u.__e, i = [], r = [], o = m$1({}, u);
-			o.__v = u.__v + 1, l$1.vnode && l$1.vnode(o), q$1(n.__P, o, u, n.__n, n.__P.namespaceURI, 32 & u.__u ? [t] : null, i, null == t ? $$1(u) : t, !!(32 & u.__u), r), o.__v = u.__v, o.__.__k[o.__i] = o, D$1(i, o, r), u.__e = u.__ = null, o.__e != t && P(o);
-		}
-	}
-	function P(n) {
-		if (null != (n = n.__) && null != n.__c) return n.__e = n.__c.base = null, n.__k.some(function(l) {
-			if (null != l && null != l.__e) return n.__e = n.__c.base = l.__e;
-		}), P(n);
-	}
-	function A$1(n) {
-		(!n.__d && (n.__d = !0) && i$2.push(n) && !H.__r++ || r$1 != l$1.debounceRendering) && ((r$1 = l$1.debounceRendering) || o$2)(H);
-	}
-	function H() {
-		try {
-			for (var n, l = 1; i$2.length;) i$2.length > l && i$2.sort(e$1), n = i$2.shift(), l = i$2.length, I(n);
-		} finally {
-			i$2.length = H.__r = 0;
-		}
-	}
-	function L(n, l, u, t, i, r, o, e, f, c, a) {
-		var s, h, p, v, y, _, g, m = t && t.__k || w$1, b = l.length;
-		for (f = T$1(u, l, m, f, b), s = 0; s < b; s++) null != (p = u.__k[s]) && (h = -1 != p.__i && m[p.__i] || d$1, p.__i = s, _ = q$1(n, p, h, i, r, o, e, f, c, a), v = p.__e, p.ref && h.ref != p.ref && (h.ref && J(h.ref, null, p), a.push(p.ref, p.__c || v, p)), null == y && null != v && (y = v), (g = !!(4 & p.__u)) || h.__k === p.__k ? (f = j$1(p, f, n, g), g && h.__e && (h.__e = null)) : "function" == typeof p.type && void 0 !== _ ? f = _ : v && (f = v.nextSibling), p.__u &= -7);
-		return u.__e = y, f;
-	}
-	function T$1(n, l, u, t, i) {
-		var r, o, e, f, c, a = u.length, s = a, h = 0;
-		for (n.__k = new Array(i), r = 0; r < i; r++) null != (o = l[r]) && "boolean" != typeof o && "function" != typeof o ? ("string" == typeof o || "number" == typeof o || "bigint" == typeof o || o.constructor == String ? o = n.__k[r] = x$1(null, o, null, null, null) : g$1(o) ? o = n.__k[r] = x$1(S, { children: o }, null, null, null) : void 0 === o.constructor && o.__b > 0 ? o = n.__k[r] = x$1(o.type, o.props, o.key, o.ref ? o.ref : null, o.__v) : n.__k[r] = o, f = r + h, o.__ = n, o.__b = n.__b + 1, e = null, -1 != (c = o.__i = O(o, u, f, s)) && (s--, (e = u[c]) && (e.__u |= 2)), null == e || null == e.__v ? (-1 == c && (i > a ? h-- : i < a && h++), "function" != typeof o.type && (o.__u |= 4)) : c != f && (c == f - 1 ? h-- : c == f + 1 ? h++ : (c > f ? h-- : h++, o.__u |= 4))) : n.__k[r] = null;
-		if (s) for (r = 0; r < a; r++) null != (e = u[r]) && 0 == (2 & e.__u) && (e.__e == t && (t = $$1(e)), K(e, e));
-		return t;
-	}
-	function j$1(n, l, u, t) {
-		var i, r;
-		if ("function" == typeof n.type) {
-			for (i = n.__k, r = 0; i && r < i.length; r++) i[r] && (i[r].__ = n, l = j$1(i[r], l, u, t));
-			return l;
-		}
-		n.__e != l && (t && (l && n.type && !l.parentNode && (l = $$1(n)), u.insertBefore(n.__e, l || null)), l = n.__e);
-		do
-			l = l && l.nextSibling;
-		while (null != l && 8 == l.nodeType);
-		return l;
-	}
-	function O(n, l, u, t) {
-		var i, r, o, e = n.key, f = n.type, c = l[u], a = null != c && 0 == (2 & c.__u);
-		if (null === c && null == e || a && e == c.key && f == c.type) return u;
-		if (t > (a ? 1 : 0)) {
-			for (i = u - 1, r = u + 1; i >= 0 || r < l.length;) if (null != (c = l[o = i >= 0 ? i-- : r++]) && 0 == (2 & c.__u) && e == c.key && f == c.type) return o;
-		}
-		return -1;
-	}
-	function z$1(n, l, u) {
-		"-" == l[0] ? n.setProperty(l, null == u ? "" : u) : n[l] = null == u ? "" : "number" != typeof u || _$1.test(l) ? u : u + "px";
-	}
-	function N(n, l, u, t, i) {
-		var r, o;
-		n: if ("style" == l) if ("string" == typeof u) n.style.cssText = u;
-		else {
-			if ("string" == typeof t && (n.style.cssText = t = ""), t) for (l in t) u && l in u || z$1(n.style, l, "");
-			if (u) for (l in u) t && u[l] == t[l] || z$1(n.style, l, u[l]);
-		}
-		else if ("o" == l[0] && "n" == l[1]) r = l != (l = l.replace(s$1, "$1")), o = l.toLowerCase(), l = o in n || "onFocusOut" == l || "onFocusIn" == l ? o.slice(2) : l.slice(2), n.l || (n.l = {}), n.l[l + r] = u, u ? t ? u[a$1] = t[a$1] : (u[a$1] = h$1, n.addEventListener(l, r ? v$1 : p$1, r)) : n.removeEventListener(l, r ? v$1 : p$1, r);
-		else {
-			if ("http://www.w3.org/2000/svg" == i) l = l.replace(/xlink(H|:h)/, "h").replace(/sName$/, "s");
-			else if ("width" != l && "height" != l && "href" != l && "list" != l && "form" != l && "tabIndex" != l && "download" != l && "rowSpan" != l && "colSpan" != l && "role" != l && "popover" != l && l in n) try {
-				n[l] = null == u ? "" : u;
-				break n;
-			} catch (n) {}
-			"function" == typeof u || (null == u || !1 === u && "-" != l[4] ? n.removeAttribute(l) : n.setAttribute(l, "popover" == l && 1 == u ? "" : u));
-		}
-	}
-	function V(n) {
-		return function(u) {
-			if (this.l) {
-				var t = this.l[u.type + n];
-				if (null == u[c$1]) u[c$1] = h$1++;
-				else if (u[c$1] < t[a$1]) return;
-				return t(l$1.event ? l$1.event(u) : u);
-			}
-		};
-	}
-	function q$1(n, u, t, i, r, o, e, f, c, a) {
-		var s, h, p, v, y, d, _, k, x, M, $, I, P, A, H, T, j = u.type;
-		if (void 0 !== u.constructor) return null;
-		128 & t.__u && (c = !!(32 & t.__u), o = [f = u.__e = t.__e]), (s = l$1.__b) && s(u);
-		n: if ("function" == typeof j) {
-			h = e.length;
-			try {
-				if (x = u.props, M = j.prototype && j.prototype.render, $ = (s = j.contextType) && i[s.__c], I = s ? $ ? $.props.value : s.__ : i, t.__c ? k = (p = u.__c = t.__c).__ = p.__E : (M ? u.__c = p = new j(x, I) : (u.__c = p = new C$1(x, I), p.constructor = j, p.render = Q), $ && $.sub(p), p.state || (p.state = {}), p.__n = i, v = p.__d = !0, p.__h = [], p._sb = []), M && null == p.__s && (p.__s = p.state), M && null != j.getDerivedStateFromProps && (p.__s == p.state && (p.__s = m$1({}, p.__s)), m$1(p.__s, j.getDerivedStateFromProps(x, p.__s))), y = p.props, d = p.state, p.__v = u, v) M && null == j.getDerivedStateFromProps && null != p.componentWillMount && p.componentWillMount(), M && null != p.componentDidMount && p.__h.push(p.componentDidMount);
-				else {
-					if (M && null == j.getDerivedStateFromProps && x !== y && null != p.componentWillReceiveProps && p.componentWillReceiveProps(x, I), u.__v == t.__v || !p.__e && null != p.shouldComponentUpdate && !1 === p.shouldComponentUpdate(x, p.__s, I)) {
-						u.__v != t.__v && (p.props = x, p.state = p.__s, p.__d = !1), u.__e = t.__e, u.__k = t.__k, u.__k.some(function(n) {
-							n && (n.__ = u);
-						}), w$1.push.apply(p.__h, p._sb), p._sb = [], p.__h.length && e.push(p);
-						break n;
-					}
-					null != p.componentWillUpdate && p.componentWillUpdate(x, p.__s, I), M && null != p.componentDidUpdate && p.__h.push(function() {
-						p.componentDidUpdate(y, d, _);
-					});
-				}
-				if (p.context = I, p.props = x, p.__P = n, p.__e = !1, P = l$1.__r, A = 0, M) p.state = p.__s, p.__d = !1, P && P(u), s = p.render(p.props, p.state, p.context), w$1.push.apply(p.__h, p._sb), p._sb = [];
-				else do
-					p.__d = !1, P && P(u), s = p.render(p.props, p.state, p.context), p.state = p.__s;
-				while (p.__d && ++A < 25);
-				p.state = p.__s, null != p.getChildContext && (i = m$1(m$1({}, i), p.getChildContext())), M && !v && null != p.getSnapshotBeforeUpdate && (_ = p.getSnapshotBeforeUpdate(y, d)), H = null != s && s.type === S && null == s.key ? E(s.props.children) : s, f = L(n, g$1(H) ? H : [H], u, t, i, r, o, e, f, c, a), p.base = u.__e, u.__u &= -161, p.__h.length && e.push(p), k && (p.__E = p.__ = null);
-			} catch (n) {
-				if (e.length = h, u.__v = null, c || null != o) {
-					if (n.then) {
-						for (u.__u |= c ? 160 : 128; f && 8 == f.nodeType && f.nextSibling;) f = f.nextSibling;
-						null != o && (o[o.indexOf(f)] = null), u.__e = f;
-					} else if (null != o) for (T = o.length; T--;) b(o[T]);
-				} else u.__e = t.__e;
-				u.__k ??= t.__k || [], n.then || B$1(u), l$1.__e(n, u, t);
-			}
-		} else null == o && u.__v == t.__v ? (u.__k = t.__k, u.__e = t.__e) : f = u.__e = G(t.__e, u, t, i, r, o, e, c, a);
-		return (s = l$1.diffed) && s(u), 128 & u.__u ? void 0 : f;
-	}
-	function B$1(n) {
-		n && (n.__c && (n.__c.__e = !0), n.__k && n.__k.some(B$1));
-	}
-	function D$1(n, u, t) {
-		for (var i = 0; i < t.length; i++) J(t[i], t[++i], t[++i]);
-		l$1.__c && l$1.__c(u, n), n.some(function(u) {
-			try {
-				n = u.__h, u.__h = [], n.some(function(n) {
-					n.call(u);
-				});
-			} catch (n) {
-				l$1.__e(n, u.__v);
-			}
-		});
-	}
-	function E(n) {
-		return "object" != typeof n || null == n || n.__b > 0 ? n : g$1(n) ? n.map(E) : void 0 !== n.constructor ? null : m$1({}, n);
-	}
-	function G(u, t, i, r, o, e, f, c, a) {
-		var s, h, p, v, y, w, _, m = i.props || d$1, k = t.props, x = t.type;
-		if ("svg" == x ? o = "http://www.w3.org/2000/svg" : "math" == x ? o = "http://www.w3.org/1998/Math/MathML" : o || (o = "http://www.w3.org/1999/xhtml"), null != e) {
-			for (s = 0; s < e.length; s++) if ((y = e[s]) && "setAttribute" in y == !!x && (x ? y.localName == x : 3 == y.nodeType)) {
-				u = y, e[s] = null;
-				break;
-			}
-		}
-		if (null == u) {
-			if (null == x) return document.createTextNode(k);
-			u = document.createElementNS(o, x, k.is && k), c && (l$1.__m && l$1.__m(t, e), c = !1), e = null;
-		}
-		if (null == x) m === k || c && u.data == k || (u.data = k);
-		else {
-			if (e = "textarea" == x && null != k.defaultValue ? null : e && n.call(u.childNodes), !c && null != e) for (m = {}, s = 0; s < u.attributes.length; s++) m[(y = u.attributes[s]).name] = y.value;
-			for (s in m) y = m[s], "dangerouslySetInnerHTML" == s ? p = y : "children" == s || s in k || "value" == s && "defaultValue" in k || "checked" == s && "defaultChecked" in k || N(u, s, null, y, o);
-			for (s in k) y = k[s], "children" == s ? v = y : "dangerouslySetInnerHTML" == s ? h = y : "value" == s ? w = y : "checked" == s ? _ = y : c && "function" != typeof y || m[s] === y || N(u, s, y, m[s], o);
-			if (h) c || p && (h.__html == p.__html || h.__html == u.innerHTML) || (u.innerHTML = h.__html), t.__k = [];
-			else if (p && (u.innerHTML = ""), L("template" == t.type ? u.content : u, g$1(v) ? v : [v], t, i, r, "foreignObject" == x ? "http://www.w3.org/1999/xhtml" : o, e, f, e ? e[0] : i.__k && $$1(i, 0), c, a), null != e) for (s = e.length; s--;) b(e[s]);
-			c && "textarea" != x || (s = "value", "progress" == x && null == w ? u.removeAttribute("value") : null != w && (w !== u[s] || "progress" == x && !w || "option" == x && w != m[s]) && N(u, s, w, m[s], o), s = "checked", null != _ && _ != u[s] && N(u, s, _, m[s], o));
-		}
-		return u;
-	}
-	function J(n, u, t) {
-		try {
-			if ("function" == typeof n) {
-				var i = "function" == typeof n.__u;
-				i && n.__u(), i && null == u || (n.__u = n(u));
-			} else n.current = u;
-		} catch (n) {
-			l$1.__e(n, t);
-		}
-	}
-	function K(n, u, t) {
-		var i, r;
-		if (l$1.unmount && l$1.unmount(n), (i = n.ref) && (i.current && i.current != n.__e || J(i, null, u)), null != (i = n.__c)) {
-			if (i.componentWillUnmount) try {
-				i.componentWillUnmount();
-			} catch (n) {
-				l$1.__e(n, u);
-			}
-			i.base = i.__P = i.__n = null;
-		}
-		if (i = n.__k) for (r = 0; r < i.length; r++) i[r] && K(i[r], u, t || "function" != typeof n.type);
-		t || b(n.__e), n.__c = n.__ = n.__e = void 0;
-	}
-	function Q(n, l, u) {
-		return this.constructor(n, u);
-	}
-	function R(u, t, i) {
-		var r, o, e, f;
-		t == document && (t = document.documentElement), l$1.__ && l$1.__(u, t), o = (r = "function" == typeof i) ? null : i && i.__k || t.__k, e = [], f = [], q$1(t, u = (!r && i || t).__k = k$1(S, null, [u]), o || d$1, d$1, t.namespaceURI, !r && i ? [i] : o ? null : t.firstChild ? n.call(t.childNodes) : null, e, !r && i ? i : o ? o.__e : t.firstChild, r, f), D$1(e, u, f), u.props.children = null;
-	}
-	function X(n) {
-		function l(n) {
-			var u, t;
-			return this.getChildContext || (u = new Set(), (t = {})[l.__c] = this, this.getChildContext = function() {
-				return t;
-			}, this.componentWillUnmount = function() {
-				u = null;
-			}, this.shouldComponentUpdate = function(n) {
-				this.props.value != n.value && u.forEach(function(n) {
-					n.__e = !0, A$1(n);
-				});
-			}, this.sub = function(n) {
-				u.add(n);
-				var l = n.componentWillUnmount;
-				n.componentWillUnmount = function() {
-					u && u.delete(n), l && l.call(n);
-				};
-			}), n.children;
-		}
-		return l.__c = "__cC" + y$1++, l.__ = n, l.Provider = l.__l = (l.Consumer = function(n, l) {
-			return n.children(l);
-		}).contextType = l, l;
-	}
-	n = w$1.slice, l$1 = { __e: function(n, l, u, t) {
-		for (var i, r, o; l = l.__;) if ((i = l.__c) && !i.__) try {
-			if ((r = i.constructor) && null != r.getDerivedStateFromError && (i.setState(r.getDerivedStateFromError(n)), o = i.__d), null != i.componentDidCatch && (i.componentDidCatch(n, t || {}), o = i.__d), o) return i.__E = i;
-		} catch (l) {
-			n = l;
-		}
-		throw n;
-	} }, u$2 = 0, C$1.prototype.setState = function(n, l) {
-		var u = null != this.__s && this.__s != this.state ? this.__s : this.__s = m$1({}, this.state);
-		"function" == typeof n && (n = n(m$1({}, u), this.props)), n && m$1(u, n), null != n && this.__v && (l && this._sb.push(l), A$1(this));
-	}, C$1.prototype.forceUpdate = function(n) {
-		this.__v && (this.__e = !0, n && this.__h.push(n), A$1(this));
-	}, C$1.prototype.render = S, i$2 = [], o$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n, l) {
-		return n.__v.__b - l.__v.__b;
-	}, H.__r = 0, f$2 = Math.random().toString(8), c$1 = "__d" + f$2, a$1 = "__a" + f$2, s$1 = /(PointerCapture)$|Capture$/i, h$1 = 0, p$1 = V(!1), v$1 = V(!0), y$1 = 0;
-	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
-	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
-	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	};
 	var extractAwards = (doc) => $$("ul.award", doc).map((ul) => {
 		const lis = $$("li", ul);
 		const orgEl = lis[0] ? $("a", lis[0]) : null;
@@ -656,6 +6373,10 @@ input::placeholder {
 	var upgradePhoto = (url) => {
 		if (!url) return null;
 		return encodeURI(url.replace("/sqxs/", "/large/").replace("/m/", "/l/"));
+	};
+	var thumbnailPhoto = (url) => {
+		if (!url) return null;
+		return encodeURI(url.replace("/sqxs/", "/photo/"));
 	};
 	var extractTitle = (doc) => {
 		const h1 = $("#content h1", doc);
@@ -1092,7 +6813,7 @@ input::placeholder {
 		return {
 			hdUrl: upgradePhoto(thumb) || "",
 			link: a ? a.href : "",
-			thumbUrl: encodeURI(thumb)
+			thumbUrl: thumbnailPhoto(thumb) ?? ""
 		};
 	}).filter((p) => p.thumbUrl);
 	var extractTrailers = (doc) => $$("#related-pic li.label-trailer a.related-pic-video", doc).map((a) => {
@@ -1410,158 +7131,6 @@ input::placeholder {
 			year: extractYear(doc)
 		};
 	};
-	var t, r, u$1, i$1, o$1 = 0, f$1 = [], c = l$1, e = c.__b, a = c.__r, v = c.diffed, l = c.__c, m = c.unmount, p = c.__;
-	function s(n, t) {
-		c.__h && c.__h(r, n, o$1 || t), o$1 = 0;
-		var u = r.__H || (r.__H = {
-			__: [],
-			__h: []
-		});
-		return n >= u.__.length && u.__.push({}), u.__[n];
-	}
-	function d(n) {
-		return o$1 = 1, y(D, n);
-	}
-	function y(n, u, i) {
-		var o = s(t++, 2);
-		if (o.t = n, !o.__c && (o.__ = [i ? i(u) : D(void 0, u), function(n) {
-			var t = o.__N ? o.__N[0] : o.__[0], r = o.t(t, n);
-			t !== r && (o.__N = [r, o.__[1]], o.__c.setState({}));
-		}], o.__c = r, !r.__f)) {
-			var f = function(n, t, r) {
-				if (!o.__c.__H) return !0;
-				var u = !1, i = o.__c.props !== n;
-				if (o.__c.__H.__.some(function(n) {
-					if (n.__N) {
-						u = !0;
-						var t = n.__[0];
-						n.__ = n.__N, n.__N = void 0, t !== n.__[0] && (i = !0);
-					}
-				}), c) {
-					var f = c.call(this, n, t, r);
-					return u ? f || i : f;
-				}
-				return !u || i;
-			};
-			r.__f = !0;
-			var c = r.shouldComponentUpdate, e = r.componentWillUpdate;
-			r.componentWillUpdate = function(n, t, r) {
-				if (this.__e) {
-					var u = c;
-					c = void 0, f(n, t, r), c = u;
-				}
-				e && e.call(this, n, t, r);
-			}, r.shouldComponentUpdate = f;
-		}
-		return o.__N || o.__;
-	}
-	function h(n, u) {
-		var i = s(t++, 3);
-		!c.__s && C(i.__H, u) && (i.__ = n, i.u = u, r.__H.__h.push(i));
-	}
-	function _(n, u) {
-		var i = s(t++, 4);
-		!c.__s && C(i.__H, u) && (i.__ = n, i.u = u, r.__h.push(i));
-	}
-	function A(n) {
-		return o$1 = 5, T(function() {
-			return { current: n };
-		}, []);
-	}
-	function T(n, r) {
-		var u = s(t++, 7);
-		return C(u.__H, r) && (u.__ = n(), u.__H = r, u.__h = n), u.__;
-	}
-	function q(n, t) {
-		return o$1 = 8, T(function() {
-			return n;
-		}, t);
-	}
-	function x(n) {
-		var u = r.context[n.__c], i = s(t++, 9);
-		return i.c = n, u ? (i.__ ?? (i.__ = !0, u.sub(r)), u.props.value) : n.__;
-	}
-	function g() {
-		var n = s(t++, 11);
-		if (!n.__) {
-			for (var u = r.__v; null !== u && !u.__m && null !== u.__;) u = u.__;
-			var i = u.__m || (u.__m = [0, 0]);
-			n.__ = "P" + i[0] + "-" + i[1]++;
-		}
-		return n.__;
-	}
-	function j() {
-		for (var n; n = f$1.shift();) {
-			var t = n.__H;
-			if (n.__P && t) try {
-				t.__h.some(z), t.__h.some(B), t.__h = [];
-			} catch (r) {
-				t.__h = [], c.__e(r, n.__v);
-			}
-		}
-	}
-	c.__b = function(n) {
-		r = null, e && e(n);
-	}, c.__ = function(n, t) {
-		n && t.__k && t.__k.__m && (n.__m = t.__k.__m), p && p(n, t);
-	}, c.__r = function(n) {
-		a && a(n), t = 0;
-		var i = (r = n.__c).__H;
-		i && (u$1 === r ? (i.__h = [], r.__h = [], i.__.some(function(n) {
-			n.__N && (n.__ = n.__N), n.u = n.__N = void 0;
-		})) : (i.__h.some(z), i.__h.some(B), i.__h = [], t = 0)), u$1 = r;
-	}, c.diffed = function(n) {
-		v && v(n);
-		var t = n.__c;
-		t && t.__H && (t.__H.__h.length && (1 !== f$1.push(t) && i$1 === c.requestAnimationFrame || ((i$1 = c.requestAnimationFrame) || w)(j)), t.__H.__.some(function(n) {
-			n.u && (n.__H = n.u, n.u = void 0);
-		})), u$1 = r = null;
-	}, c.__c = function(n, t) {
-		t.some(function(n) {
-			try {
-				n.__h.some(z), n.__h = n.__h.filter(function(n) {
-					return !n.__ || B(n);
-				});
-			} catch (r) {
-				t.some(function(n) {
-					n.__h && (n.__h = []);
-				}), t = [], c.__e(r, n.__v);
-			}
-		}), l && l(n, t);
-	}, c.unmount = function(n) {
-		m && m(n);
-		var t, r = n.__c;
-		r && r.__H && (r.__H.__.some(function(n) {
-			try {
-				z(n);
-			} catch (n) {
-				t = n;
-			}
-		}), r.__H = void 0, t && c.__e(t, r.__v));
-	};
-	var k = "function" == typeof requestAnimationFrame;
-	function w(n) {
-		var t, r = function() {
-			clearTimeout(u), k && cancelAnimationFrame(t), setTimeout(n);
-		}, u = setTimeout(r, 35);
-		k && (t = requestAnimationFrame(r));
-	}
-	function z(n) {
-		var t = r, u = n.__c;
-		"function" == typeof u && (n.__c = void 0, u()), r = t;
-	}
-	function B(n) {
-		var t = r;
-		n.__c = n.__(), r = t;
-	}
-	function C(n, t) {
-		return !n || n.length !== t.length || t.some(function(t, r) {
-			return t !== n[r];
-		});
-	}
-	function D(n, t) {
-		return "function" == typeof t ? t(n) : t;
-	}
 	var _GM_xmlhttpRequest = (() => typeof GM_xmlhttpRequest != "undefined" ? GM_xmlhttpRequest : void 0)();
 	var delay = (ms) => new Promise((resolve) => {
 		setTimeout(resolve, ms);
@@ -1735,15 +7304,15 @@ input::placeholder {
 		},
 		comments: {
 			navLabel: "短评",
-			sectionTitle: "热门短评"
+			sectionTitle: "短评"
 		},
 		details: {
 			navLabel: "详情",
-			sectionTitle: "详细信息"
+			sectionTitle: "详情"
 		},
 		discussions: {
-			navLabel: "小组讨论",
-			sectionTitle: "小组讨论"
+			navLabel: "讨论",
+			sectionTitle: "讨论"
 		},
 		media: {
 			navLabel: "影像",
@@ -1751,23 +7320,23 @@ input::placeholder {
 		},
 		movieReviews: {
 			navLabel: "影评",
-			sectionTitle: "热门影评"
+			sectionTitle: "影评"
 		},
 		recommendations: {
-			navLabel: "相似作品",
-			sectionTitle: "相似作品"
+			navLabel: "推荐",
+			sectionTitle: "推荐"
 		},
 		series: {
-			navLabel: "同系列",
-			sectionTitle: "同系列作品"
+			navLabel: "系列",
+			sectionTitle: "系列"
 		},
 		streaming: {
-			navLabel: "观看平台",
-			sectionTitle: "观看平台"
+			navLabel: "片源",
+			sectionTitle: "片源"
 		},
 		tvReviews: {
 			navLabel: "剧评",
-			sectionTitle: "热门剧评"
+			sectionTitle: "剧评"
 		}
 	};
 	var getSubjectSectionCopy = (section) => SECTION_COPY[section];
@@ -1810,451 +7379,865 @@ input::placeholder {
 			label: getSubjectSectionCopy("details").navLabel
 		});
 		return sections;
-	}, f = 0;
-	Array.isArray;
-	function u(e, t, n, o, i, u) {
-		t || (t = {});
-		var a, c, p = t;
-		if ("ref" in p) for (c in p = {}, t) "ref" == c ? a = t[c] : p[c] = t[c];
-		var l = {
-			type: e,
-			props: p,
-			key: n,
-			ref: a,
-			__k: null,
-			__: null,
-			__b: 0,
-			__e: null,
-			__c: null,
-			constructor: void 0,
-			__v: --f,
-			__i: -1,
-			__u: 0,
-			__source: i,
-			__self: u
-		};
-		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
-		return l$1.vnode && l$1.vnode(l), l;
-	}
-	var computeIndicatorMetrics = (activeEl, containerEl) => {
-		const containerRect = containerEl.getBoundingClientRect();
-		const activeRect = activeEl.getBoundingClientRect();
+	};
+	var starComponents = (score, outOfFive = false) => {
+		const normalized = outOfFive ? score : score / 2;
+		return Array.from({ length: 5 }, (_, index) => {
+			const position = index + 1;
+			if (normalized >= position - .25) return IconStarFull;
+			if (normalized >= position - .5) return IconStarHalf;
+			return IconStarEmpty;
+		});
+	};
+	var Stars = ({ className = "atv-rating-stars", outOfFive = false, score }) => u("span", {
+		class: className,
+		children: starComponents(score, outOfFive).map((Icon, index) => u(Icon, {}, index))
+	});
+	var CommentAvatar = ({ className, comment }) => u("div", {
+		class: className,
+		"data-cid": comment.cid || void 0,
+		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
+		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
+	});
+	var useVoteAction = (api, wiring) => {
+		const { canVote, getState, onVote, setState } = wiring;
+		const [loading, setLoading] = d(false);
 		return {
-			left: activeRect.left - containerRect.left,
-			width: activeRect.width
+			loading,
+			vote: q(async (dir) => {
+				if (loading || api.votedOf(getState()) === dir) return;
+				if (canVote && !canVote()) return;
+				const previous = getState();
+				setLoading(true);
+				const optimisticState = api.optimistic(previous, dir);
+				setState(optimisticState);
+				const result = await onVote(dir);
+				if (result.ok) setState(api.resolve(optimisticState, dir, result), { persist: true });
+				else setState(previous);
+				setLoading(false);
+			}, [
+				api,
+				canVote,
+				getState,
+				loading,
+				onVote,
+				setState
+			])
 		};
 	};
-	var StickyNav = ({ activeSectionId = "", navRef, onJump, scrolling = false, sections, subjectSwitcherOpen = false, subjectSwitcher, title, visible = false }) => {
-		const markerRef = A(null);
-		_(() => {
-			if (!activeSectionId) return;
-			const nav = navRef?.current;
-			const marker = markerRef.current;
-			if (!nav || !marker) return;
-			const container = nav.querySelector(".atv-stickynav-jumps");
-			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
-			if (!container || !activeLink) return;
-			const frame = requestAnimationFrame(() => {
-				const { left, width } = computeIndicatorMetrics(activeLink, container);
-				marker.style.transform = `translateX(${left}px)`;
-				marker.style.width = `${width}px`;
-			});
-			return () => {
-				cancelAnimationFrame(frame);
+	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
+		const load = () => {
+			try {
+				const raw = localStorage.getItem(storageKey);
+				if (!raw) return new Map();
+				const parsed = JSON.parse(raw);
+				return new Map(parsed);
+			} catch {
+				return new Map();
+			}
+		};
+		const persist = (entries) => {
+			try {
+				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
+			} catch {}
+		};
+		return {
+			get(key) {
+				const entries = load();
+				const entry = entries.get(key);
+				if (!entry) return;
+				if (Date.now() > entry.expiresAt) {
+					entries.delete(key);
+					persist(entries);
+					return;
+				}
+				return entry.value;
+			},
+			set(key, value) {
+				const entries = load();
+				entries.set(key, {
+					expiresAt: Date.now() + ttlMs,
+					value
+				});
+				persist(entries);
+			}
+		};
+	};
+	var createVoteState = (config) => {
+		const optimistic = (state, dir) => {
+			const countKey = config.countKey(dir);
+			const next = {
+				...state,
+				[countKey]: state[countKey] + 1
 			};
-		}, [activeSectionId, navRef]);
-		return u("nav", {
-			...navRef ? { ref: navRef } : {},
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${subjectSwitcherOpen ? " has-subject-switcher-open" : ""}`,
+			return config.withVoted(next, dir);
+		};
+		const resolve = (optimisticState, dir, result) => config.mergeResult(optimisticState, dir, result);
+		const initial = (item) => {
+			const base = config.initial(item);
+			const { persistence } = config;
+			if (!persistence) return base;
+			const stored = persistence.cache.get(config.key(item));
+			return stored ? {
+				...base,
+				...persistence.hydrate(stored)
+			} : base;
+		};
+		const persist = (item, state) => {
+			const { persistence } = config;
+			if (!persistence) return;
+			if (!config.votedOf(state)) return;
+			persistence.cache.set(config.key(item), persistence.serialize(state));
+		};
+		return {
+			initial,
+			key: config.key,
+			optimistic,
+			persist,
+			resolve,
+			toItem: config.toItem,
+			votedOf: config.votedOf
+		};
+	};
+	var commentVoteCache = createCache("atv:comment:vote", 365 * 24 * 60 * 60 * 1e3);
+	var commentVoteKey = (comment) => comment.cid || comment.link;
+	var baseInitialCommentVoteState = (comment) => ({
+		count: comment.votes,
+		voted: comment.voted
+	});
+	var commentWithVoteState = (comment, state) => ({
+		...comment,
+		voted: state.voted,
+		votes: state.count
+	});
+	var commentVoteApi = createVoteState({
+		countKey: () => "count",
+		initial: baseInitialCommentVoteState,
+		key: commentVoteKey,
+		mergeResult: (state, _dir, result) => ({
+			...state,
+			count: result.count ?? state.count,
+			voted: true
+		}),
+		persistence: {
+			cache: commentVoteCache,
+			hydrate: (stored) => {
+				const hydrated = { voted: true };
+				if (typeof stored.count === "number") hydrated.count = stored.count;
+				return hydrated;
+			},
+			serialize: (state) => ({
+				count: state.count,
+				type: "up"
+			})
+		},
+		toItem: commentWithVoteState,
+		votedOf: (state) => state.voted ? "up" : null,
+		withVoted: (state, dir) => ({
+			...state,
+			voted: dir === "up"
+		})
+	});
+	var CommentVoteButton = ({ canVote, cid, className, count, onStateChange, onVote, state, voted }) => {
+		const [localState, setLocalState] = d({
+			count,
+			voted
+		});
+		const voteState = state ?? localState;
+		const setVoteState = (nextState, options) => {
+			if (onStateChange) onStateChange(nextState, options);
+			else setLocalState(nextState);
+		};
+		const { loading, vote } = useVoteAction(commentVoteApi, {
+			...canVote ? { canVote } : {},
+			getState: () => voteState,
+			onVote: () => onVote(cid),
+			setState: setVoteState
+		});
+		const handleVote = () => {
+			if (!cid) return;
+			vote("up");
+		};
+		return u("button", {
+			"aria-label": `有用，${voteState.count} 人觉得有用`,
+			"aria-pressed": voteState.voted,
+			class: `${className}${voteState.voted ? " is-voted" : ""}`,
+			disabled: loading || voteState.voted || !cid,
+			onClick: (event) => {
+				event.stopPropagation();
+				handleVote();
+			},
+			type: "button",
+			children: [u(IconThumb, {}), u("span", {
+				class: "atv-vote-count",
+				children: voteState.count
+			})]
+		});
+	};
+	var CommentCard = ({ canVote, comment, onOpen, onVote, onVoteStateChange, voteState }) => {
+		const bodyRef = A(null);
+		const [isOverflowing, setIsOverflowing] = d(false);
+		_(() => {
+			const body = bodyRef.current;
+			if (!body) return;
+			const measure = () => {
+				setIsOverflowing(body.scrollHeight > body.clientHeight);
+			};
+			measure();
+			const observer = typeof ResizeObserver === "undefined" ? void 0 : new ResizeObserver(measure);
+			observer?.observe(body);
+			return () => observer?.disconnect();
+		}, [comment.content]);
+		return u("div", {
+			class: `atv-comment-card${isOverflowing ? " has-overflow" : ""}`,
+			"data-cid": comment.cid || void 0,
 			children: [
 				u("div", {
-					class: "atv-stickynav-title",
-					children: subjectSwitcherOpen ? "上一部" : title.primary || title.full
+					class: "atv-comment-top",
+					children: [u(CommentAvatar, {
+						className: "atv-comment-avatar",
+						comment
+					}), u("div", {
+						class: "atv-comment-meta",
+						children: [comment.link ? u("a", {
+							class: "atv-comment-author",
+							href: comment.link,
+							rel: "noopener",
+							target: "_blank",
+							children: comment.name
+						}) : u("div", {
+							class: "atv-comment-author",
+							children: comment.name
+						}), comment.stars > 0 ? u(Stars, {
+							className: "atv-comment-stars",
+							outOfFive: true,
+							score: comment.stars
+						}) : null]
+					})]
 				}),
-				subjectSwitcher ? u("div", {
-					class: "atv-stickynav-subject-switcher",
-					children: subjectSwitcher
-				}) : null,
+				u("button", {
+					class: "atv-comment-body",
+					onClick: () => {
+						if (isOverflowing) onOpen(comment);
+					},
+					type: "button",
+					children: u("span", {
+						class: "atv-comment-body-text",
+						ref: bodyRef,
+						children: comment.content
+					})
+				}),
 				u("div", {
-					class: "atv-stickynav-jumps",
-					children: [sections.map((section) => u("a", {
-						class: activeSectionId === section.id ? "is-active" : void 0,
-						"data-section-id": section.id,
-						href: `#${section.id}`,
-						onClick: (event) => {
-							event.preventDefault();
-							onJump(section.id);
-						},
-						children: section.label
-					}, section.id)), u("div", {
-						"aria-hidden": "true",
-						class: "atv-stickynav-marker",
-						ref: markerRef
+					class: "atv-comment-foot",
+					children: [u("span", { children: comment.time || "" }), u("div", {
+						class: "atv-comment-foot-right",
+						children: [u("button", {
+							"aria-label": "展开短评",
+							class: "atv-comment-expand",
+							onClick: (event) => {
+								event.stopPropagation();
+								onOpen(comment);
+							},
+							type: "button",
+							children: u(IconExpand, {})
+						}), u(CommentVoteButton, {
+							...canVote ? { canVote } : {},
+							cid: comment.cid,
+							className: "atv-comment-votes",
+							count: comment.votes,
+							...onVoteStateChange ? { onStateChange: (state, options) => onVoteStateChange(comment, state, options) } : {},
+							onVote,
+							...voteState ? { state: voteState } : {},
+							voted: comment.voted
+						})]
 					})]
 				})
 			]
 		});
 	};
-	var IconStarFull = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "16",
-		height: "16",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
+		if (!comments.length) return null;
+		return u(Section, {
+			id: "atv-comments",
+			...subjectId ? { moreLink: {
+				href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
+				text: "查看全部 →"
+			} } : {},
+			title: getSubjectSectionCopy("comments").sectionTitle,
+			children: u("div", {
+				class: "atv-comments",
+				children: comments.map((comment) => {
+					const voteState = getVoteState?.(comment);
+					return k$1(CommentCard, {
+						...canVote ? { canVote } : {},
+						comment,
+						key: comment.cid,
+						onOpen,
+						...onVoteStateChange ? { onVoteStateChange } : {},
+						onVote,
+						...voteState ? { voteState } : {}
+					});
+				})
+			})
+		});
+	};
+	var CommentModalContent = ({ canVote, comment, onVoteStateChange, onVote, voteState }) => {
+		const handleClose = useModalClose();
+		return u(S, { children: [
+			u("div", { class: "atv-modal-accent-bar" }),
+			u(ModalCloseButton, {
+				ariaLabel: "关闭短评",
+				className: "atv-comment-overlay-close",
+				onClick: handleClose,
+				size: 16
+			}),
+			u("div", {
+				class: "atv-comment-overlay-top",
+				children: [u(CommentAvatar, {
+					className: "atv-comment-overlay-avatar",
+					comment
+				}), u("div", {
+					class: "atv-comment-overlay-meta",
+					children: [comment.link ? u("a", {
+						class: "atv-comment-overlay-author",
+						href: comment.link,
+						rel: "noopener",
+						target: "_blank",
+						children: comment.name
+					}) : u("div", {
+						class: "atv-comment-overlay-author",
+						children: comment.name
+					}), comment.stars > 0 ? u(Stars, {
+						className: "atv-comment-overlay-stars",
+						outOfFive: true,
+						score: comment.stars
+					}) : null]
+				})]
+			}),
+			u("div", {
+				class: "atv-comment-overlay-body",
+				children: comment.content
+			}),
+			u("div", {
+				class: "atv-comment-overlay-foot",
+				children: [u("span", {
+					class: "atv-comment-overlay-time",
+					children: comment.time || ""
+				}), u(CommentVoteButton, {
+					...canVote ? { canVote } : {},
+					cid: comment.cid,
+					className: "atv-comment-overlay-votes",
+					count: comment.votes,
+					...onVoteStateChange ? { onStateChange: (state) => onVoteStateChange(comment, state) } : {},
+					onVote,
+					...voteState ? { state: voteState } : {},
+					voted: comment.voted
+				})]
+			})
+		] });
+	};
+	var CommentModal = ({ canVote, comment, onClose, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
+		className: "atv-comment-overlay",
+		id: "atv-comment-overlay",
+		onClose,
+		surfaceClassName: "atv-comment-overlay-inner",
+		children: u(CommentModalContent, {
+			...canVote ? { canVote } : {},
+			comment,
+			...onVoteStateChange ? { onVoteStateChange } : {},
+			onVote,
+			...voteState ? { voteState } : {}
 		})
 	});
-	var IconStarHalf = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "16",
-		height: "16",
-		"aria-hidden": "true",
-		...props,
-		children: [u("defs", { children: u("linearGradient", {
-			id: "atvHalfStar",
-			children: [u("stop", {
-				offset: "50%",
-				"stop-color": "currentColor"
-			}), u("stop", {
-				offset: "50%",
-				"stop-color": "currentColor",
-				"stop-opacity": "0.22"
-			})]
-		}) }), u("path", {
-			fill: "url(#atvHalfStar)",
-			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+	var textValue = (text) => u("div", {
+		class: "atv-info-value",
+		children: text
+	});
+	var linkParts = (items) => items.flatMap((item, index) => [index > 0 ? u("span", {
+		class: "atv-info-sep",
+		children: "·"
+	}, `sep-${index}`) : null, item.href ? u("a", {
+		href: item.href,
+		rel: "noopener",
+		target: "_blank",
+		children: item.text
+	}, `link-${index}`) : u("span", { children: item.text }, `text-${index}`)]);
+	var linksValue = (items) => u("div", {
+		class: "atv-info-value",
+		children: linkParts(items)
+	});
+	var imdbValue = (imdb) => u("div", {
+		class: "atv-info-value",
+		children: RE_IMDB_LINK.test(imdb) ? u("a", {
+			href: `https://www.imdb.com/title/${imdb}/`,
+			rel: "noopener",
+			target: "_blank",
+			children: [imdb, u(IconArrow, {})]
+		}) : imdb
+	});
+	var collectTimeRows = (info, isTV, rows) => {
+		if (isTV) {
+			if (info.firstAired) rows.push({
+				label: "首播",
+				value: textValue(info.firstAired)
+			});
+			else if (info.releaseDate) rows.push({
+				label: "首播",
+				value: textValue(info.releaseDate)
+			});
+			if (info.seasons) rows.push({
+				label: "季数",
+				value: textValue(info.seasons)
+			});
+			if (info.episodes) rows.push({
+				label: "集数",
+				value: textValue(info.episodes)
+			});
+			if (info.episodeRuntime) rows.push({
+				label: "单集片长",
+				value: textValue(info.episodeRuntime)
+			});
+			return;
+		}
+		if (info.releaseDate) rows.push({
+			label: "上映日期",
+			value: textValue(info.releaseDate)
+		});
+		if (info.runtime) rows.push({
+			label: "片长",
+			value: textValue(info.runtime)
+		});
+	};
+	var awardRows = (awards) => awards.map((award) => ({
+		label: u("div", {
+			class: "atv-info-label atv-info-label-award",
+			children: award.orgLink ? u("a", {
+				href: award.orgLink,
+				rel: "noopener",
+				style: { color: "inherit" },
+				target: "_blank",
+				children: award.org
+			}) : award.org
+		}),
+		value: u("div", {
+			class: "atv-info-value",
+			children: [award.name ? u("div", { children: award.name }) : null, award.person ? u("div", {
+				style: {
+					color: "var(--atv-text-tertiary)",
+					fontSize: "13px",
+					marginTop: "2px"
+				},
+				children: award.personLink ? u("a", {
+					href: award.personLink,
+					rel: "noopener",
+					target: "_blank",
+					children: award.person
+				}) : award.person
+			}) : null]
+		})
+	}));
+	var collectDetailRows = ({ awards, info, isTV }) => {
+		const rows = [];
+		if (info.director.length) rows.push({
+			label: "导演",
+			value: linksValue(info.director)
+		});
+		if (info.writers.length) rows.push({
+			label: "编剧",
+			value: linksValue(info.writers)
+		});
+		if (info.cast.length) rows.push({
+			label: "主演",
+			value: linksValue(info.cast)
+		});
+		if (info.genres.length) rows.push({
+			label: "类型",
+			value: textValue(info.genres.join(" / "))
+		});
+		if (info.country) rows.push({
+			label: "制片国家/地区",
+			value: textValue(info.country)
+		});
+		if (info.language) rows.push({
+			label: "语言",
+			value: textValue(info.language)
+		});
+		collectTimeRows(info, isTV, rows);
+		if (info.aliases) rows.push({
+			label: "又名",
+			value: textValue(info.aliases)
+		});
+		if (info.imdb) rows.push({
+			label: "IMDb",
+			value: imdbValue(info.imdb)
+		});
+		if (awards.length) rows.push(...awardRows(awards));
+		return rows;
+	};
+	var DetailsSection = ({ data }) => {
+		const rows = collectDetailRows(data);
+		if (!rows.length) return null;
+		return u(Section, {
+			id: "atv-info",
+			title: getSubjectSectionCopy("details").sectionTitle,
+			children: u("div", {
+				class: "atv-info-grid",
+				children: rows.map((row) => u(S, { children: [typeof row.label === "string" ? u("div", {
+					class: "atv-info-label",
+					children: row.label
+				}) : row.label, row.value] }))
+			})
+		});
+	};
+	var DiscussionAuthorLink = ({ author }) => author.href ? u("a", {
+		class: "atv-discussion-author",
+		href: author.href,
+		rel: "noopener",
+		target: "_blank",
+		children: author.name
+	}) : u("span", {
+		class: "atv-discussion-author",
+		children: author.name
+	});
+	var DiscussionActivityTime = ({ activity }) => activity.date && activity.dateTime && activity.time ? u("time", {
+		class: "atv-discussion-time",
+		dateTime: activity.dateTime,
+		title: activity.raw,
+		children: [u("span", { children: activity.date }), u("span", { children: activity.time })]
+	}) : u("time", {
+		class: "atv-discussion-time",
+		title: activity.raw,
+		children: activity.raw
+	});
+	var DiscussionMetadata = ({ activity, author, replies }) => author || replies !== void 0 || activity ? u("div", {
+		class: "atv-discussion-meta",
+		children: [author ? u(DiscussionAuthorLink, { author }) : null, replies !== void 0 || activity ? u("div", {
+			class: "atv-discussion-activity",
+			children: [replies === void 0 ? null : u("span", {
+				class: "atv-discussion-replies",
+				children: `${replies} 回应`
+			}), activity ? u(DiscussionActivityTime, { activity }) : null]
+		}) : null]
+	}) : null;
+	var formatDiscussionTotal = (total) => total === void 0 ? "查看全部讨论 →" : `查看全部 ${total.toLocaleString("en-US")} 条讨论 →`;
+	var DiscussionsSection = ({ discussions }) => discussions.topics.length ? u(Section, {
+		id: "atv-discussions",
+		...discussions.startDiscussionHref ? { moreLink: {
+			href: discussions.startDiscussionHref,
+			text: "发起讨论 ↗"
+		} } : {},
+		title: getSubjectSectionCopy("discussions").sectionTitle,
+		children: [u("div", {
+			class: "atv-discussion-board",
+			children: discussions.topics.map((topic, index) => u("article", {
+				class: "atv-discussion-row",
+				children: [u("a", {
+					"aria-label": `打开讨论：${topic.title}`,
+					class: "atv-discussion-topic-link",
+					href: topic.href,
+					rel: "noopener",
+					target: "_blank"
+				}), u("div", {
+					class: "atv-discussion-copy",
+					children: [u("div", {
+						class: "atv-discussion-title-row",
+						children: [u("h3", {
+							class: "atv-discussion-title",
+							children: topic.title
+						}), u("span", {
+							"aria-hidden": "true",
+							class: "atv-discussion-arrow",
+							children: "↗"
+						})]
+					}), u(DiscussionMetadata, {
+						...topic.activity ? { activity: topic.activity } : {},
+						...topic.author ? { author: topic.author } : {},
+						...topic.replies === void 0 ? {} : { replies: topic.replies }
+					})]
+				})]
+			}, `${topic.href}-${index}`))
+		}), discussions.allDiscussions ? u("footer", {
+			class: "atv-discussion-footer",
+			children: u("a", {
+				href: discussions.allDiscussions.href,
+				rel: "noopener",
+				target: "_blank",
+				children: formatDiscussionTotal(discussions.allDiscussions.total)
+			})
+		}) : null]
+	}) : null;
+	var LOGO_MAP = {
+		douban: u(LogoDouban, {}),
+		imdb: u(LogoImdb, {}),
+		metacritic: u(LogoMetacritic, {}),
+		rt: u(LogoRT, {})
+	};
+	var RatingLogo = ({ name }) => u("div", {
+		class: "atv-rating-panel-logo",
+		children: LOGO_MAP[name]
+	});
+	var DoubanRating = ({ rating }) => u("div", {
+		class: "atv-rating-panel-douban",
+		children: [u(RatingLogo, { name: "douban" }), rating ? u(S, { children: [
+			u("div", {
+				class: "atv-rating-panel-score",
+				children: rating.score.toFixed(1)
+			}),
+			u(Stars, { score: rating.score }),
+			u("div", {
+				class: "atv-rating-panel-count",
+				children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
+			})
+		] }) : u("div", {
+			class: "atv-rating-empty",
+			children: "暂无评分"
 		})]
 	});
-	var IconStarEmpty = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "16",
-		height: "16",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			"fill-opacity": "0.22",
-			d: "M8 1.2l2.06 4.18 4.61.67-3.34 3.25.79 4.6L8 11.74l-4.12 2.16.79-4.6L1.33 6.05l4.61-.67L8 1.2z"
+	var useEntranceExitAnimation = (shouldRender, hasContent, springConfig) => {
+		const [rendered, setRendered] = d(shouldRender);
+		const panelRef = A(null);
+		const animationRef = A(null);
+		const animationGenerationRef = A(0);
+		const desiredRenderRef = A(shouldRender);
+		const pendingEntranceRef = A(false);
+		const prevHasContentRef = A(false);
+		const stopAnimation = q(() => {
+			animationGenerationRef.current += 1;
+			animationRef.current?.stop();
+			animationRef.current = null;
+		}, []);
+		const animateEntrance = q((panel) => {
+			stopAnimation();
+			animationRef.current = animateWithReducedMotion(panel, {
+				properties: {
+					opacity: [0, 1],
+					transform: ["translateY(4px)", "translateY(0)"]
+				},
+				reducedMotionProperties: { opacity: [0, 1] },
+				springConfig
+			});
+		}, [springConfig, stopAnimation]);
+		const animateExit = q((panel) => {
+			stopAnimation();
+			const generation = animationGenerationRef.current;
+			const animation = animateWithReducedMotion(panel, {
+				properties: {
+					opacity: [1, 0],
+					transform: ["translateY(0)", "translateY(-4px)"]
+				},
+				reducedMotionProperties: { opacity: [1, 0] },
+				springConfig
+			});
+			animationRef.current = animation;
+			return {
+				animation,
+				generation
+			};
+		}, [springConfig, stopAnimation]);
+		const setRef = q((element) => {
+			panelRef.current = element;
+			if (element && pendingEntranceRef.current) {
+				pendingEntranceRef.current = false;
+				animateEntrance(element);
+			}
+		}, [animateEntrance]);
+		_(() => {
+			const wasDesired = desiredRenderRef.current;
+			desiredRenderRef.current = shouldRender;
+			const justLoaded = hasContent && !prevHasContentRef.current;
+			prevHasContentRef.current = hasContent;
+			if (shouldRender) {
+				if (!wasDesired) stopAnimation();
+				if (justLoaded) {
+					const panel = panelRef.current;
+					if (panel) animateEntrance(panel);
+					else pendingEntranceRef.current = true;
+				}
+				setRendered(true);
+				return;
+			}
+			pendingEntranceRef.current = false;
+			const panel = panelRef.current;
+			if (!panel) {
+				setRendered(false);
+				return;
+			}
+			const { animation, generation } = animateExit(panel);
+			(async () => {
+				try {
+					await animation.finished;
+					if (animationGenerationRef.current === generation && !desiredRenderRef.current) {
+						animationRef.current = null;
+						setRendered(false);
+					}
+				} catch {}
+			})();
+		}, [
+			animateEntrance,
+			animateExit,
+			hasContent,
+			shouldRender,
+			stopAnimation
+		]);
+		_(() => stopAnimation, [stopAnimation]);
+		return {
+			rendered,
+			setRef
+		};
+	};
+	var scoreClass = (score) => {
+		if (score >= 61) return "is-high";
+		if (score >= 40) return "is-medium";
+		return "is-low";
+	};
+	var mcWordRatingChinese = (score) => {
+		if (score >= 81) return "普遍赞誉";
+		if (score >= 61) return "大体好评";
+		if (score >= 40) return "褒贬不一";
+		if (score >= 20) return "大体差评";
+		return "普遍差评";
+	};
+	var isFresh = (score) => score >= 60;
+	var ratingStateClass = (hasRating, resolved) => {
+		if (hasRating) return "is-loaded";
+		if (resolved) return "is-empty";
+		return "is-loading";
+	};
+	var SOURCE_CLASS = {
+		imdb: "atv-rating-panel-imdb",
+		metacritic: "atv-rating-panel-mc",
+		rt: "atv-rating-panel-rt"
+	};
+	var renderImdbRating = (rating) => u(S, { children: [
+		u("div", {
+			class: "atv-rating-panel-score",
+			children: rating.score.toFixed(1)
+		}),
+		u(Stars, { score: rating.score }),
+		u("div", {
+			class: "atv-rating-panel-count",
+			children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
 		})
-	});
-	var IconPlay = (props) => u("svg", {
-		viewBox: "0 0 14 14",
-		width: "14",
-		height: "14",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			d: "M3 1.6v10.8c0 .8.86 1.27 1.5.83l8.1-5.4a1 1 0 0 0 0-1.66L4.5.77C3.86.33 3 .8 3 1.6z"
+	] });
+	var renderMetacriticRating = (rating) => u(S, { children: [
+		u("div", {
+			class: `atv-rating-panel-score ${scoreClass(rating.score)}`,
+			children: String(rating.score)
+		}),
+		u("div", {
+			class: "atv-mc-label-row",
+			children: [u("span", {
+				class: "atv-mc-bar-track",
+				children: u("span", {
+					class: `atv-mc-bar-fill ${scoreClass(rating.score)}`,
+					style: { width: `${Math.min(100, rating.score)}%` }
+				})
+			}), u("span", {
+				class: "atv-mc-word-label",
+				children: mcWordRatingChinese(rating.score)
+			})]
+		}),
+		u("div", {
+			class: "atv-rating-panel-count",
+			children: rating.reviewCount ? `评价 ${rating.reviewCount.toLocaleString("en-US")}` : "已评分"
 		})
+	] });
+	var RtLabel = ({ className, icon, score, text }) => u("span", {
+		class: `atv-rt-label-item ${className} ${isFresh(score) ? "is-fresh" : "is-rotten"}`,
+		children: [u("span", {
+			class: "atv-rt-score-icon",
+			children: icon
+		}), u("span", {
+			class: "atv-rt-score-label",
+			children: text
+		})]
 	});
-	var IconCheck = (props) => u("svg", {
-		viewBox: "0 0 14 14",
-		width: "14",
-		height: "14",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "none",
-			stroke: "currentColor",
-			"stroke-width": "2",
-			"stroke-linecap": "round",
-			"stroke-linejoin": "round",
-			d: "M2.5 7.5l3 3 6-7"
+	var renderRottenTomatoesRating = (rating) => u(S, { children: [
+		u("div", {
+			class: "atv-rt-score-row",
+			children: [
+				u("div", {
+					class: `atv-rt-score-value ${isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"}`,
+					children: `${rating.criticsScore}%`
+				}),
+				u("div", { class: "atv-rt-divider" }),
+				u("div", {
+					class: `atv-rt-score-value ${isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"}`,
+					children: `${rating.audienceScore}%`
+				})
+			]
+		}),
+		u("div", {
+			class: "atv-rt-label-row",
+			children: [u(RtLabel, {
+				className: "is-critics",
+				icon: u(IconTomato, {}),
+				score: rating.criticsScore,
+				text: "影评人"
+			}), u(RtLabel, {
+				className: "is-audience",
+				icon: u(IconPopcorn, {}),
+				score: rating.audienceScore,
+				text: "观众"
+			})]
+		}),
+		u("div", {
+			class: "atv-rt-count-row",
+			children: [u("span", {
+				class: "atv-rt-count-value",
+				children: `评价 ${rating.criticsCount.toLocaleString("en-US")}`
+			}), u("span", {
+				class: "atv-rt-count-value",
+				children: `评价 ${rating.audienceCount.toLocaleString("en-US")}`
+			})]
 		})
-	});
-	var IconChevron = (props) => u("svg", {
-		viewBox: "0 0 12 12",
-		width: "10",
-		height: "10",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "none",
-			stroke: "currentColor",
-			"stroke-width": "1.6",
-			"stroke-linecap": "round",
-			"stroke-linejoin": "round",
-			d: "M2.5 4l3.5 4 3.5-4"
-		})
-	});
-	var IconArrow = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "15",
-		height: "15",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "none",
-			stroke: "currentColor",
-			"stroke-width": "1.8",
-			"stroke-linecap": "round",
-			"stroke-linejoin": "round",
-			d: "M3 8h9m0 0l-3.5-3.5M12 8l-3.5 3.5"
-		})
-	});
-	var IconThumb = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "13",
-		height: "13",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			d: "M6.3 6.6L9 1.3c.7-.1 1.4.5 1.4 1.3v2.6h3c.9 0 1.5.8 1.3 1.6l-1.2 5.1c-.1.6-.7 1-1.3 1H6.3V6.6zM4.7 6.7v7H2.5c-.6 0-1-.4-1-1v-5c0-.6.4-1 1-1h2.2z"
-		})
-	});
-	var IconVoteTriangle = (props) => u("svg", {
-		viewBox: "0 0 12 12",
-		width: "12",
-		height: "12",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			d: "M6 2.2 10.4 9H1.6L6 2.2z"
-		})
-	});
-	var IconExpand = (props) => u("svg", {
-		viewBox: "0 0 14 14",
-		width: "12",
-		height: "12",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "none",
-			stroke: "currentColor",
-			"stroke-width": "1.5",
-			"stroke-linecap": "round",
-			"stroke-linejoin": "round",
-			d: "M3 5.5l4 4 4-4"
-		})
-	});
-	var IconTomato = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "16",
-		height: "16",
-		"aria-hidden": "true",
-		...props,
-		children: u("circle", {
-			cx: "8",
-			cy: "8",
-			r: "5.5",
-			fill: "currentColor"
-		})
-	});
-	var IconPopcorn = (props) => u("svg", {
-		viewBox: "0 0 16 16",
-		width: "16",
-		height: "16",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "currentColor",
-			d: "M8 2l6 6-6 6-6-6z"
-		})
-	});
-	var IconClose = ({ size = 22, ...props }) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: size,
-		height: size,
-		fill: "none",
-		stroke: "currentColor",
-		"stroke-width": "2",
-		"stroke-linecap": "round",
-		...props,
-		children: u("path", { d: "M6 6l12 12M18 6l-12 12" })
-	});
-	var IconFilmPlaceholder = (props) => u("svg", {
-		viewBox: "0 0 64 96",
-		width: "100%",
-		height: "100%",
-		preserveAspectRatio: "xMidYMid slice",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("defs", { children: u("linearGradient", {
-				id: "atvFilmGrad",
-				x1: "0",
-				y1: "0",
-				x2: "1",
-				y2: "1",
-				children: [u("stop", {
-					offset: "0%",
-					"stop-color": "#2c2c2e"
-				}), u("stop", {
-					offset: "100%",
-					"stop-color": "#1c1c1e"
-				})]
-			}) }),
-			u("rect", {
-				width: "64",
-				height: "96",
-				fill: "url(#atvFilmGrad)"
-			}),
-			u("g", {
-				fill: "rgba(255,255,255,0.12)",
-				children: [
-					u("rect", {
-						x: "4",
-						y: "6",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "18",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "30",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "42",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "54",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "66",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "4",
-						y: "78",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "6",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "18",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "30",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "42",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "54",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "66",
-						width: "6",
-						height: "6",
-						rx: "1"
-					}),
-					u("rect", {
-						x: "54",
-						y: "78",
-						width: "6",
-						height: "6",
-						rx: "1"
-					})
-				]
-			}),
-			u("path", {
-				d: "M26 38l14 10-14 10z",
-				fill: "rgba(255,255,255,0.28)"
-			})
-		]
-	});
-	var LogoDouban = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
-		"aria-label": "豆瓣",
-		fill: "#2D963D",
-		...props,
-		children: u("path", { d: "M.51 3.06h22.98V.755H.51V3.06Zm20.976 2.537v9.608h-2.137l-1.669 5.76H24v2.28H0v-2.28h6.32l-1.67-5.76H2.515V5.597h18.972Zm-5.066 9.608H7.58l1.67 5.76h5.501l1.67-5.76ZM18.367 7.9H5.634v5.025h12.733V7.9Z" })
-	});
-	var LogoImdb = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
-		"aria-label": "IMDb",
-		fill: "#F5C518",
-		...props,
-		children: u("path", { d: "M22.3781 0H1.6218C.7411.0583.0587.7437.0018 1.5953l-.001 20.783c.0585.8761.7125 1.543 1.5559 1.6191A.337.337 0 0 0 1.6016 24h20.7971a.4579.4579 0 0 0 .0437-.002c.8727-.0768 1.5568-.8271 1.5568-1.7085V1.7098c0-.8914-.696-1.6416-1.584-1.7078A.3294.3294 0 0 0 22.3781 0zm0 .496a1.2144 1.2144 0 0 1 1.1252 1.2139v20.5797c0 .6377-.4875 1.1602-1.1045 1.2145H1.6016c-.5967-.0543-1.0645-.5297-1.1053-1.1258V1.6284C.5371 1.0185 1.0184.5364 1.6217.496h20.7564zM4.7954 8.2603v7.3636H2.8899V8.2603h1.9055zm6.5367 0v7.3636H9.6707v-4.9704l-.6711 4.9704H7.813l-.6986-4.8618-.0066 4.8618h-1.668V8.2603h2.468c.0748.4476.1492.9694.2307 1.5734l.2712 1.8713.4407-3.4447h2.4817zm2.9772 1.3289c.0742.0404.122.108.1417.2034.0279.0953.0345.3118.0345.6442v2.8548c0 .4881-.0345.7867-.0955.8954-.0609.1152-.2304.1695-.5018.1695V9.5211c.204 0 .3457.0205.4211.0681zm-.0211 6.0347c.4543 0 .8006-.0265 1.0245-.0742.2304-.0477.4204-.1357.5694-.2648.1556-.1218.2642-.298.3251-.5219.0611-.2238.1021-.6648.1021-1.3224v-2.5832c0-.6986-.0271-1.1668-.0742-1.4039-.041-.237-.1431-.4543-.3126-.6437-.1695-.1973-.4198-.3324-.7456-.421-.3191-.0808-.8542-.1285-1.7694-.1285h-1.4244v7.3636h2.3051zm5.14-1.7827c0 .3523-.0199.5762-.0544.6708-.033.0947-.1894.1424-.3046.1424-.1086 0-.19-.0477-.2238-.1351-.041-.0887-.0609-.2986-.0609-.6238v-1.9469c0-.3324.0199-.5423.0543-.6237.0338-.0808.1086-.122.2171-.122.1153 0 .2709.0412.3114.1425.041.0947.0609.2986.0609.6032v1.8926zm-2.4747-5.5809v7.3636h1.7157l.1152-.4675c.1556.1894.3251.3324.5152.4271.1828.0881.4608.1357.678.1357.3047 0 .5629-.0748.7802-.237.2165-.1562.3589-.3462.4198-.5628.0543-.2173.0887-.543.0887-.9841v-2.0675c0-.4409-.0139-.7324-.0344-.8681-.0199-.1357-.0742-.2781-.1695-.4204-.1021-.1425-.2437-.251-.4272-.3325-.1834-.0742-.3999-.1152-.6576-.1152-.2172 0-.4952.0477-.6846.1285-.1835.0887-.353.2238-.5086.4007V8.2603h-1.8309z" })
-	});
-	var LogoMetacritic = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
-		"aria-label": "Metacritic",
-		fill: "#FFD500",
-		...props,
-		children: u("path", { d: "M11.99 0A12 12 0 1 0 24 12v-.014A12 12 0 0 0 11.99 0Zm-.055 2.564a9.399 9.399 0 0 1 9.407 9.389v.01a9.399 9.399 0 1 1-9.408-9.399Zm-1.61 17.198 2.046-2.046-3.94-3.94c-.165-.166-.345-.373-.442-.608-.221-.47-.318-1.203.221-1.742.664-.664 1.548-.387 2.406.47l3.788 3.788 2.046-2.046-3.954-3.954a2.48 2.48 0 0 1-.456-.622c-.263-.539-.25-1.216.235-1.7.677-.678 1.562-.429 2.544.553l3.677 3.677 2.046-2.046-3.982-3.982c-2.018-2.018-3.912-1.949-5.212-.65-.498.499-.802 1.024-.954 1.618a4.026 4.026 0 0 0-.055 1.686l-.027.028c-.996-.414-2.13-.166-3 .705-1.162 1.161-1.12 2.392-.982 3.11l-.042.043-1.009-.816-1.77 1.77a64.1 64.1 0 0 1 2.213 2.1z" })
-	});
-	var LogoRT = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
-		"aria-label": "Rotten Tomatoes",
-		fill: "#FA320A",
-		...props,
-		children: u("path", { d: "M5.866 0L4.335 1.262l2.082 1.8c-2.629-.989-4.842 1.4-5.012 2.338 1.384-.323 2.24-.422 3.344-.335-7.042 4.634-4.978 13.148-1.434 16.094 5.784 4.612 13.77 3.202 17.91-1.316C27.26 13.363 22.993.65 10.86 2.766c.107-1.17.633-1.503 1.243-1.602-.89-1.493-3.67-.734-4.556 1.374C7.52 2.602 5.866 0 5.866 0zM4.422 7.217H6.9c2.673 0 2.898.012 3.55.202 1.06.307 1.868.973 2.313 1.904.05.106.092.206.13.305l7.623.008.027 2.912-2.745-.024v7.549l-2.982-.016v-7.522l-2.127.016a2.92 2.92 0 0 1-1.056 1.134c-.287.176-.3.19-.254.264.127.2 2.125 3.642 2.125 3.659l-3.39.019-2.013-3.376c-.034-.047-.122-.068-.344-.084l-.297-.02.037 3.48-3.075-.038zm3.016 2.288l.024.338c.014.186.024.729.024 1.206v.867l.582-.025c.32-.013.695-.049.833-.078.694-.146 1.048-.478 1.087-1.018.027-.378-.063-.636-.303-.87-.318-.309-.761-.416-1.733-.418Z" })
-	});
-	var PlayIcon = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		width: "24",
-		height: "24",
-		fill: "none",
-		stroke: "white",
-		"stroke-width": "2",
-		"stroke-linecap": "round",
-		"stroke-linejoin": "round",
-		...props,
-		children: u("polygon", {
-			points: "6 3 20 12 6 21 6 3",
-			fill: "white",
-			stroke: "none"
-		})
-	});
+	] });
+	var renderLoadedRating = (props) => {
+		switch (props.source) {
+			case "imdb": return props.rating ? renderImdbRating(props.rating) : null;
+			case "metacritic": return props.rating ? renderMetacriticRating(props.rating) : null;
+			case "rt": return props.rating ? renderRottenTomatoesRating(props.rating) : null;
+			default: return null;
+		}
+	};
+	var renderExternalRatingContent = (props) => {
+		if (props.rating) return renderLoadedRating(props);
+		if (props.resolved) return null;
+		return u("div", { class: "atv-rating-panel-skeleton" });
+	};
+	var ExternalRating = (props) => {
+		const { rendered, setRef } = useEntranceExitAnimation(!props.resolved || Boolean(props.rating), Boolean(props.rating), springConfigs.ratingEntrance);
+		if (!rendered) return null;
+		return u("div", {
+			ref: setRef,
+			class: `${SOURCE_CLASS[props.source]} ${ratingStateClass(Boolean(props.rating), props.resolved)}`,
+			children: [u(RatingLogo, { name: props.source }), renderExternalRatingContent(props)]
+		});
+	};
+	var RatingPanel = ({ douban, externalRatings, imdbId }) => {
+		if (!douban && !imdbId) return null;
+		const resolved = Boolean(externalRatings);
+		return u("div", {
+			class: "atv-rating-panel",
+			children: [u(DoubanRating, { rating: douban }), imdbId ? u(S, { children: [
+				u(ExternalRating, {
+					rating: externalRatings?.imdb?.rating ?? null,
+					resolved,
+					source: "imdb"
+				}),
+				u(ExternalRating, {
+					rating: externalRatings?.mc ?? null,
+					resolved,
+					source: "metacritic"
+				}),
+				u(ExternalRating, {
+					rating: externalRatings?.rt ?? null,
+					resolved,
+					source: "rt"
+				})
+			] }) : null]
+		});
+	};
 	var LogoNetflix = (props) => {
 		const id = g();
 		const leftGradient = `${id}-netflix-left`;
@@ -2417,6 +8400,636 @@ input::placeholder {
 			transform: "translate(38,11)",
 			d: "M0 0 C1.3921875 0.60134766 1.3921875 0.60134766 2.8125 1.21484375 C11.56889431 5.50597448 21.69367914 13.02146173 26 22 C26.96072448 26.6574252 26.98172251 31.04951501 24.81640625 35.3515625 C20.40729049 40.99776829 14.92832836 43.57624666 8 45 C2.54906569 45.45424453 -2.71529883 45.53668616 -8 44 C-8 44.66 -8 45.32 -8 46 C-9.65 46 -11.3 46 -13 46 C-13.495 43.525 -13.495 43.525 -14 41 C-14.845625 40.79375 -15.69125 40.5875 -16.5625 40.375 C-21.95019437 38.21992225 -25.79243342 34.81134987 -29 30 C-29.0625 27.5625 -29.0625 27.5625 -28 25 C-23.34315146 21.64706905 -19.66970184 20.4628328 -14 20 C-14.04125 18.9275 -14.0825 17.855 -14.125 16.75 C-14.0114175 13.34252515 -13.78726636 11.79260369 -12 9 C-9 10 -9 10 -8 12 C-7.95977609 14.3329866 -7.95679753 16.66706666 -8 19 C-7.030625 18.938125 -6.06125 18.87625 -5.0625 18.8125 C0.71379389 18.82424043 5.98582654 20.51334816 10.625 23.9375 C12 26 12 26 11.875 28.125 C11 30 11 30 9 32 C6.375 32.125 6.375 32.125 4 32 C4.33 30.68 4.66 29.36 5 28 C1.0186217 26.6728739 -2.85045227 26.93084087 -7 27 C-7 30.96 -7 34.92 -7 39 C5.85931116 38.8678016 5.85931116 38.8678016 17 33.25 C18.50330091 29.86757294 18.49071674 27.68037558 18 24 C14.42102235 14.81757249 5.84541891 10.094413 -2.75 6.25 C-11.70685142 2.75267271 -21.33757211 0.25673632 -31 1 C-31.99 1.495 -31.99 1.495 -33 2 C-33 2.66 -33 3.32 -33 4 C-34.65 3.67 -36.3 3.34 -38 3 C-37.75 0.625 -37.75 0.625 -37 -2 C-27.41334426 -8.16463702 -9.56841669 -4.1471806 0 0 Z M-27 28 C-23.59843301 33.3241918 -19.69029074 34.74061985 -14 37 C-14 33.37 -14 29.74 -14 26 C-18.82360189 25.80705592 -22.49646738 26.24252386 -27 28 Z"
 		})
+	});
+	var LogoPrimeVideo = (props) => u("svg", {
+		"aria-hidden": "true",
+		viewBox: "0 0 4605.7 2723.6",
+		fill: "currentColor",
+		...props,
+		children: u("path", { d: "M2246 2723.1a2591.3 2591.3 0 0 1-591.4-83.5 2159.7 2159.7 0 0 1-516.8-208.3A1728.5 1728.5 0 0 1 679.1 2060c-55.6-63.6-86-106.3-101-141.4a93 93 0 0 1-9-35.5c-1.2-22.7 6-36.6 23.6-45.2 6.3-3.2 7-3.3 18.6-3.3a51 51 0 0 1 19 2.3c20.3 6.6 46.1 22.7 79.5 49.4a2069.6 2069.6 0 0 0 372.5 240.3c147.7 74.5 292.3 128.2 473.7 176a3157 3157 0 0 0 627.8 98.4c72.8 4.1 93.8 4.6 189.5 4.6 105.9 0 154.2-1.5 242-7.5 361.5-24.8 718.7-108.9 984.8-231.8a2156 2156 0 0 0 63-31c45.1-22.7 57-28.2 75.7-35 26.3-9.4 44.4-6.3 59.7 10.2a50.4 50.4 0 0 1 14.8 38.5c-5.1 41.5-59 100.4-163.7 179.3-249.6 188-594.4 319.3-974.8 371.2a2718 2718 0 0 1-263.5 22.6 3806 3806 0 0 1-165.4 1zm1615-239.4a51.1 51.1 0 0 1-26.8-24c-7.7-16.8-5.3-31.5 10.4-64.1a572 572 0 0 1 31.9-56.5c41.2-68.3 82.6-159.4 102.1-224.6 19.6-65.4 22-102.6 8-123.8-12-18.2-50.5-29.6-113.2-33.7-24.5-1.6-103.2-.6-126.7 1.5-52.5 4.9-89 10.2-138 20.1-35 7.1-41.8 8-66.5 8-23.9 0-28.8-.7-38.5-5.5a41 41 0 0 1-21-41.6c2.5-13.7 11.4-26.6 27.8-40.3 41.9-35 107.4-69 178.7-92.6a654.9 654.9 0 0 1 232.5-33.3 596 596 0 0 1 133 19.4c71.2 18.4 114.3 42 129.3 71 11.5 22.3 15.8 44.9 15.7 83.6a617 617 0 0 1-33.6 195.2 608 608 0 0 1-156.5 249.2c-53 52.3-89.7 80-119.5 90a57.3 57.3 0 0 1-29 2zm-3838.6-729a39.2 39.2 0 0 1-19.9-17.9l-2.3-4.2-.2-656.5c-.2-594.8-.1-657 1.3-661.9 2-6.9 10.3-16 18.3-19.8l5.6-2.8h181l4.7 2.2a34.4 34.4 0 0 1 16.7 17.1c3.6 7.7 4.7 12.9 19.3 84.5l10.3 50.7h10l4.5-9.7a318.5 318.5 0 0 1 38.7-63.3 322.1 322.1 0 0 1 65.6-59.3 278.7 278.7 0 0 1 218.2-40.6c76.2 16.7 145 67.4 195 143.7 48.3 73.8 82.2 179.6 93 290.7 3.2 33 3.7 42.2 4.2 89.7a905 905 0 0 1-6.7 140.3c-16 127.7-59.3 238.2-122 311a470.3 470.3 0 0 1-46 44.7 285.6 285.6 0 0 1-137 60c-19.6 3-66.8 3.3-85.5.5-72.7-10.9-127.5-44.7-175.8-108.5a491.5 491.5 0 0 1-36-56.4c-2.7-4.7-2.8-4.8-7.7-4.8h-5l-.2 224.3-.3 224.2-3 5.3a40.6 40.6 0 0 1-18.1 16.6c-4.2 1.4-16 1.6-110.8 1.6-86.6 0-106.8-.3-109.9-1.4zM466 1231c38-7.3 68.2-28.8 92-65.5 30-46 47.6-113 52.9-201.8 1.6-26.5.7-105.1-1.5-127.7-4.6-48-12.1-87-23-118.7-25.2-73.5-64.5-114.7-120.4-126a222 222 0 0 0-57.3 0c-45.8 9.2-80.6 38.3-106.3 88.7a346 346 0 0 0-31 94c-12.9 65.2-15.2 163.8-5.5 239.4 8.2 64.1 25.4 116.1 50.7 153.6 27 39.7 60.5 60.9 104.7 66 10.8 1.3 32.9.3 44.7-2zm3677.3 224.4-15.5-1.5a408 408 0 0 1-207.3-78.7 477 477 0 0 1-78.6-75.9c-64-80.8-103.7-183.6-115.5-299.8-3.1-30.9-3.8-50-3.3-92.7a661 661 0 0 1 10.3-120.8c37.3-212.7 172.2-371.6 348-409.8 32.2-7 57.7-9.6 94.4-9.6a382 382 0 0 1 144.5 26.1 505.2 505.2 0 0 1 51.3 24.9 426.6 426.6 0 0 1 135 127.6 588 588 0 0 1 85.6 210.8c10.3 51.4 14 96.8 13.5 167-.3 42.6-.4 43.6-2.6 47.6a31.6 31.6 0 0 1-22.1 17c-4.6 1.1-57.6 1.4-293.5 1.4h-287.8l.6 6.8c8 86.2 23.8 142.4 51.7 184.1 23.3 35 51.9 55 90 63.2 12.2 2.6 41.2 3.6 55.8 2 39.6-4.6 68.5-18 92.6-43.3 19.4-20.3 32.7-45.7 42.3-80.8 4.9-18 6-20.7 10.8-26 5.2-5.8 11-8.3 19.3-8.3 9 0 197.8 42.2 205.6 45.9a24 24 0 0 1 14 25.3c-2 15.6-24.8 68.7-42.6 99.7a387 387 0 0 1-161.5 154.2 437.6 437.6 0 0 1-148.5 41.8c-13.6 1.5-76 2.8-86.5 1.8zm192.1-648.6c-1.3-14-5.7-42.5-9.1-59.7-16.1-79.3-48.4-134.1-92.4-157a133.2 133.2 0 0 0-117.6-.3 133 133 0 0 0-37.5 28.2 173.4 173.4 0 0 0-32.7 43.2c-19 34.3-33.3 80.5-41.2 133.8-1.1 7.4-2 14.7-2 16.3v2.7H4336l-.7-7.2zm-3283 621.4a39 39 0 0 1-18-18.8c-1.4-4.3-1.6-47.8-1.6-499.4 0-447.5.2-495 1.6-499.3a29.4 29.4 0 0 1 15.6-16.3l6.3-2.9 87.5-.3c91-.3 95.3-.2 103.1 3.8 5.5 2.8 12.4 11 14.8 17.7 1.2 3.2 7.8 33.5 14.6 67.3l13 63.8c.6 2 1 2.3 5.6 2l5-.3 5.3-12a330.4 330.4 0 0 1 42.2-71.5c9.5-11.9 30-32 42-41.1 46.7-35.6 96.4-52 158.3-51.9 42 0 79 7.2 113 21.8 11.2 4.8 17.3 9.7 21 16.5 2.4 4.8 2.6 6.1 2.6 16.2 0 11-.1 11.3-24.8 111-13.6 55-25.5 102-26.3 104.2-2 5.2-7.2 10.8-12.2 13a31 31 0 0 1-11.2 1.6c-8.5 0-9.2-.2-43.7-14.2-36.1-14.7-63.3-23.2-84.3-26.2a267.2 267.2 0 0 0-55 .4 142 142 0 0 0-51.7 18.9c-12 7.4-30.7 26-39.5 39.3-24.3 36.9-35.3 79.5-37.8 145.5-.5 13.5-.9 151.7-1 307 0 312.7.6 286.5-6.4 296.1a23.8 23.8 0 0 1-9.2 7.5l-5.9 2.9-108.5.3-108.5.2zm745 1.4c-9.8-3-16.1-9-19.3-18-1.7-4.9-1.8-27.7-1.8-501.1v-496l2.6-5.5c3.3-7 8-11.5 15-14.9l5.4-2.6 105.5-.3c109.3-.3 114.3-.1 122 3.8a30 30 0 0 1 11.8 12.8c1.7 3.5 1.8 30 2 500.7.2 453.3.1 497.4-1.3 502.5a23 23 0 0 1-7.3 11.1c-9.5 9.5-.6 9-123.6 8.8-83.4 0-108-.3-111-1.3zm449.3 0c-8.3-3-15.6-9.5-20-17.8l-2.4-4.3v-994l2.4-5.3a28.2 28.2 0 0 1 15.1-14.1l5.5-2.6h91c84.7 0 91.4.1 95.6 1.8a32 32 0 0 1 19 19.5c1.7 4.6 10.5 46.2 27 128l1 5.2h10.5l3.5-8.8a413.7 413.7 0 0 1 25.1-49.7c40.4-64.6 98.8-104.9 169.8-117 47.2-8.1 99.7-4.2 142.8 10.6 56.5 19.4 103.7 58 138.5 113.4a431.7 431.7 0 0 1 23.4 44.8l2.9 6.7h10l8-12.2c35.9-55 80.4-100.5 124.5-127.2a295 295 0 0 1 194.4-37 258.8 258.8 0 0 1 171.2 103c12 16 21.3 31.3 31.4 51.9 25.9 52.6 42 112.8 48.5 181.7 3.4 35.7 3.7 63.6 3.3 384.3l-.3 317-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4h-219l-4.3-2.3a41.3 41.3 0 0 1-15.7-15.4l-3-5.3-.5-320c-.6-340.2-.4-324.1-5-351-9.7-57.3-35.1-97.2-73.5-115.6-19-9.1-37.6-12.5-63.8-11.6-37 1.3-64.6 12.7-88.1 36.2-28.2 28.1-44.5 69.5-52.3 132.5-1.5 12.3-1.7 42-2.2 321.5l-.6 308-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4h-219l-5.2-3a40.5 40.5 0 0 1-15.4-15.6l-2.4-4.4-.5-320c-.6-340.2-.4-324.1-5-351-9.7-57.3-35.1-97.2-73.5-115.6-19-9.1-37.6-12.5-63.8-11.6-37 1.3-64.6 12.7-88.1 36.2-28.2 28.1-44.5 69.5-52.3 132.5-1.5 12.3-1.7 42-2.2 321.5l-.6 308-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4-108 .2c-86.6.2-108.7 0-111.6-1zM1887.8 309a154 154 0 0 1-94-46.7 139.7 139.7 0 0 1-37-72c-3-15-3.8-44-1.6-60.8 6-45 26.5-79 62.3-103C1869-8 1944.5-9 1995.4 24.2a154 154 0 0 1 48.3 49.5c21.5 36.4 26 93 11.1 137.5a147.5 147.5 0 0 1-85.6 88c-23.8 9.2-54 12.9-81.4 9.8z" })
+	});
+	var LogoYouTube = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" })
+	});
+	var LogoAppleTv = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M20.57 17.735h-1.815l-3.34-9.203h1.633l2.02 5.987c.075.231.273.9.586 2.012l.297-.997.33-1.006 2.094-6.004H24zm-5.344-.066a5.76 5.76 0 0 1-1.55.207c-1.23 0-1.84-.693-1.84-2.087V9.646h-1.063V8.532h1.121V7.081l1.476-.602v2.062h1.707v1.113H13.38v5.805c0 .446.074.75.214.932.14.182.396.264.75.264.207 0 .495-.041.883-.115zm-7.29-5.343c.017 1.764 1.55 2.358 1.567 2.366-.017.042-.248.842-.808 1.658-.487.71-.99 1.418-1.79 1.435-.783.016-1.03-.462-1.93-.462-.89 0-1.17.445-1.913.478-.758.025-1.344-.775-1.838-1.484-.998-1.451-1.765-4.098-.734-5.88.51-.89 1.426-1.451 2.416-1.46.75-.016 1.468.512 1.93.512.461 0 1.327-.627 2.234-.536.38.016 1.452.157 2.136 1.154-.058.033-1.278.743-1.27 2.219M6.468 7.988c.404-.495.685-1.18.61-1.864-.585.025-1.294.388-1.723.883-.38.437-.71 1.138-.619 1.806.652.05 1.328-.338 1.732-.825Z" })
+	});
+	var LogoHbo = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M7.042 16.896H4.414v-3.754H2.708v3.754H.01L0 7.22h2.708v3.6h1.706v-3.6h2.628zm12.043.046C21.795 16.94 24 14.689 24 11.978a4.89 4.89 0 0 0-4.915-4.92c-2.707-.002-4.09 1.991-4.432 2.795.003-1.207-1.187-2.632-2.58-2.634H7.59v9.674l4.181.001c1.686 0 2.886-1.46 2.888-2.713.385.788 1.72 2.762 4.427 2.76zm-7.665-3.936c.387 0 .692.382.692.817 0 .435-.305.817-.692.817h-1.33v-1.634zm.005-3.633c.387 0 .692.382.692.817 0 .436-.305.818-.692.818h-1.33V9.373zm1.77 2.607c.305-.039.813-.387.992-.61-.063.276-.068 1.074.006 1.35-.204-.314-.688-.701-.998-.74zm3.43 0a2.462 2.462 0 1 1 4.924 0 2.462 2.462 0 0 1-4.925 0zm2.462 1.936a1.936 1.936 0 1 0 0-3.872 1.936 1.936 0 0 0 0 3.872Z" })
+	});
+	var LogoHboMax = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M3.784 8.716c-.655 0-1.32.29-2.173.946v-.78H0v6.236h1.715V11.24c.749-.592 1.091-.78 1.372-.78.333 0 .551.209.551.729v3.928h1.715V11.23c.748-.582 1.081-.769 1.372-.769.333 0 .55.208.55.728v3.928H8.99v-4.53c0-1.403-.8-1.871-1.57-1.871-.654 0-1.32.27-2.192.936-.28-.697-.894-.936-1.444-.936zm8.689 0c-1.705 0-3.118 1.466-3.118 3.284 0 1.82 1.413 3.285 3.118 3.285.842 0 1.57-.312 2.131-.988v.82h1.632V8.883h-1.632v.822c-.561-.676-1.29-.988-2.131-.988zm4.064.166c.707 1.102 1.507 2.09 2.443 3.077a26.593 26.593 0 0 0-2.443 3.16h2.069a13.603 13.603 0 0 1 1.673-2.183 14.067 14.067 0 0 1 1.632 2.182H24a25.142 25.142 0 0 0-2.432-3.16A23.918 23.918 0 0 0 24 8.883h-2.047a14.65 14.65 0 0 1-1.674 2.11 13.357 13.357 0 0 1-1.674-2.11zm-3.804 1.279c1.018 0 1.84.82 1.84 1.84a1.837 1.837 0 0 1-1.84 1.839c-1.019 0-1.84-.82-1.84-1.84 0-1.018.821-1.84 1.84-1.84zm0 .415c-.78 0-1.414.633-1.414 1.423s.634 1.424 1.413 1.424c.78 0 1.414-.634 1.414-1.424s-.634-1.424-1.414-1.424z" })
+	});
+	var LogoParamountPlus = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M16.347 21.373c.057-.084.151-.314-.025-.74l-.53-1.428c-.073-.182.084-.293.19-.173 0 0 1.004 1.157 1.264 1.64l.495.822c.425.028 1.6.06 2.732.06a3.26 3.26 0 0 1-.316-.364c-1.93-2.392-3.154-3.724-3.166-3.737-.391-.426-.572-.508-.87-.643a4.82 4.82 0 0 1-.138-.065v.364c0 .047-.057.073-.086.022l-2.846-5.001a1.598 1.598 0 0 0-.508-.587l-.277-.194-1.354 3.123c.212 0 .354.216.27.409l-1.25 2.893h1.147c.443 0 .883.087 1.294.255l.302.125s-.913 1.878-.913 2.867c0 .181.028.362.075.534h2.104l-.096-.595s1.266.294 2.502.413M12 2.437c-6.627 0-12 5.373-12 12 0 2.669.873 5.133 2.346 7.126.503-.218.783-.542.983-.791l2.234-2.858a.467.467 0 0 1 .179-.138l.336-.146 3.674-4.659.534-.417 1.094-1.524a.482.482 0 0 1 .101-.102l.478-.347a.34.34 0 0 1 .398-.004l.578.407c.308.216.557.504.726.84l2.322 4.077c.051.09.09.129.182.174.454.227.732.268 1.33.913.277.304 1.495 1.666 3.203 3.784.236.318.538.588.963.783A11.948 11.948 0 0 0 24 14.437c0-6.627-5.373-12-12-12M3.236 15.1l-.778-.253-.48.662v-.818l-.778-.253.778-.253v-.818l.48.662.778-.253-.48.662Zm-.185 2.676-.252.778-.253-.778h-.818l.661-.481-.253-.777.663.48.66-.48-.252.777.662.481Zm.156-6.195.253.778-.661-.48-.663.48.253-.778-.66-.48h.817l.253-.778.252.777h.818Zm1.314-1.76L4.04 9.16l-.778.253.48-.661-.48-.663.778.254.48-.662v.818l.778.253-.777.252Zm2.045-2.862-.253.777-.252-.777h-.818l.662-.48-.253-.778.661.48.661-.48-.252.777.662.48Zm2.577-1.313-.48.661V5.49l-.779-.254.778-.253v-.817l.48.66.78-.253-.481.663.48.66zm3.265-.75.253.778-.661-.48-.662.48.252-.777-.66-.481h.818L12 3.637l.252.778h.818zm2.93.595v.816l-.481-.661-.777.252.48-.662-.48-.662.777.253.48-.66v.817l.779.252zm5.426 8.285.778.253.48-.662v.818l.778.253-.778.253v.818l-.48-.662-.778.253.48-.662zm-3.077-6.04-.253-.777h-.818l.662-.48-.253-.778.662.48.662-.48-.254.778.662.48h-.818zm1.792 2.086v-.818l-.777-.252.777-.253V7.68l.481.662.777-.254-.48.663.48.66-.777-.252zm1.469 1.278.253-.777.254.777h.816l-.66.481.252.778-.662-.48-.661.48.253-.778-.662-.48zm.506 6.676-.253.778-.253-.778h-.817l.662-.481-.253-.777.66.48.663-.48-.253.777.661.481zm-12.08-.615.76-1.588c.024-.048-.032-.108-.067-.067l-.664.668c-.313.329-.847 1.25-.95 1.421l-.808 1.335a.109.109 0 0 1 .1.162l-.739 1.238c-.18.309.145.523.189.452 1.157-1.868 1.832-1.719 1.832-1.719l.387-.897c.022-.047-.001-.1-.05-.12-.12-.05-.316-.27.01-.885z" })
+	});
+	var LogoTubi = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M16.696 15.272v-.752c.4.548 1.107.917 1.934.917 1.475 0 2.28-.956 2.28-2.865 0-1.714-.893-2.858-2.235-2.858-.851 0-1.55.347-1.979.908v-2.06h-2.674v6.71zm1.57-2.614c0 .827-.337 1.275-.827 1.275-.486 0-.837-.452-.837-1.275s.342-1.28.837-1.28c.495 0 .828.452.828 1.28zM6.94 9.988v3.6c0 1.236.754 1.841 1.955 1.841.959 0 1.625-.396 2.028-1.064v.91h2.597V9.989h-2.675v3.14c0 .493-.346.693-.666.693-.321 0-.568-.192-.568-.655V9.989Zm14.39 0H24v5.276h-2.67ZM6.553 11.136c0 .781-.635 1.415-1.42 1.415-.783 0-1.419-.634-1.419-1.415 0-.782.636-1.415 1.42-1.415.784 0 1.42.633 1.42 1.415zM3.49 9.702v2.668c.005.653.327.924.976.924.225 0 .526-.053.672-.166v1.931c-.49.243-.869.378-1.535.378 0 0-.069 0-.18-.006l-.003.006c-1.614 0-2.51-1.035-2.482-2.686v-.47H0V9.99h.92V8.563h2.569Z" })
+	});
+	var LogoVimeo = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z" })
+	});
+	var LogoIqiyi = (props) => u("svg", {
+		viewBox: "0 0 204 64",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "#00DC5A",
+			d: "M101.138 63.0562C101.143 63.2013 101.206 63.3383 101.312 63.437C101.418 63.5358 101.56 63.5882 101.705 63.5832H115.292C115.595 63.5942 115.85 63.3589 115.863 63.0562V2.15089C115.858 2.00475 115.795 1.8667 115.688 1.76717C115.581 1.66764 115.438 1.61478 115.292 1.61987H101.705C101.403 1.6111 101.151 1.84574 101.138 2.14684V63.0562ZM1.26286 63.0562C1.26601 63.2038 1.3282 63.3439 1.43549 63.4452C1.54278 63.5464 1.68619 63.6004 1.83357 63.5949H15.4174C15.72 63.6064 15.975 63.3711 15.9881 63.0683V24.7089C15.975 24.4061 15.72 24.1709 15.4174 24.1823H1.83357C1.53099 24.1709 1.276 24.4061 1.26286 24.7089V63.0562ZM92.1724 53.1159L85.4493 47.7165C85.3195 47.614 85.2271 47.4717 85.1862 47.3114C85.1524 47.1423 85.1766 46.9667 85.255 46.8132C92.787 32.6123 88.489 15.0168 75.26 5.89462C62.0309 -3.22751 44.0707 -0.980313 33.4931 11.1205C22.9156 23.2213 23.0788 41.3342 33.8727 53.2421C44.6666 65.1501 62.6644 67.0728 75.7269 57.7134C75.993 57.5088 76.3634 57.5088 76.6295 57.7134L83.8383 63.5018C83.9584 63.5968 84.1113 63.6399 84.2633 63.6217C84.4153 63.6034 84.5537 63.5253 84.6479 63.4046L92.2493 53.9261C92.3465 53.8085 92.393 53.657 92.3786 53.5051C92.3642 53.3531 92.29 53.2131 92.1724 53.1159ZM60.5726 50.2278C50.7329 52.0061 41.2493 45.282 39.4319 35.2405C37.6145 25.199 44.1474 15.5747 54.0033 13.7924C63.8593 12.0101 73.3267 18.7342 75.144 28.7797C76.9614 38.8253 70.4286 48.4537 60.5726 50.2278ZM203.041 1.61986H189.453C189.15 1.60883 188.895 1.8441 188.882 2.14684V63.0562C188.895 63.3589 189.15 63.5942 189.453 63.5832H203.041C203.186 63.5882 203.327 63.5358 203.433 63.437C203.539 63.3383 203.602 63.2013 203.607 63.0562V2.15089C203.596 1.84818 203.343 1.61115 203.041 1.61986ZM13.1611 16.3875C17.2132 13.881 18.4678 8.56175 15.9632 4.50659C13.4585 0.451418 8.14324 -0.804043 4.09109 1.70244C0.0389361 4.20891 -1.21559 9.52818 1.28902 13.5833C3.79364 17.6385 9.10894 18.894 13.1611 16.3875ZM181.694 1.62023H167.215C166.972 1.61804 166.746 1.7443 166.62 1.95241L153.17 25.8916C153.17 25.8916 153.073 26.0658 152.939 26.0699C152.806 26.0699 152.709 25.8916 152.709 25.8916L139.258 1.95646C139.134 1.7468 138.907 1.61889 138.663 1.62023H124.185C123.949 1.62089 123.734 1.75276 123.626 1.96228C123.518 2.1718 123.535 2.42411 123.671 2.61671L145.188 38.8496C145.394 39.1994 145.502 39.5982 145.5 40.0041V62.9509C145.497 63.1185 145.56 63.2805 145.676 63.4013C145.792 63.5221 145.952 63.5917 146.119 63.5949H159.735C159.902 63.5949 160.063 63.5282 160.18 63.4096C160.298 63.291 160.364 63.1303 160.363 62.963V40.0041C160.362 39.5978 160.471 39.1991 160.678 38.8496L182.208 2.62076C182.346 2.42809 182.365 2.17416 182.256 1.96321C182.148 1.75225 181.931 1.62023 181.694 1.62023Z"
+		})
+	});
+	var LogoYouku = (props) => u("svg", {
+		viewBox: "0 0 55 66",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("defs", { children: [u("linearGradient", {
+				id: "youkuGrad1",
+				x1: "13.0298",
+				y1: "50.969",
+				x2: "32.0761",
+				y2: "36.5697",
+				gradientUnits: "userSpaceOnUse",
+				children: [u("stop", { "stop-color": "#FF8000" }), u("stop", {
+					offset: "1",
+					"stop-color": "#FF6400"
+				})]
+			}), u("linearGradient", {
+				id: "youkuGrad2",
+				x1: "9.9728",
+				y1: "15.0216",
+				x2: "50.0677",
+				y2: "39.3418",
+				gradientUnits: "userSpaceOnUse",
+				children: [
+					u("stop", { "stop-color": "#00C1FF" }),
+					u("stop", {
+						offset: "0.39753",
+						"stop-color": "#09B2FF"
+					}),
+					u("stop", {
+						offset: "1",
+						"stop-color": "#2C78FF"
+					})
+				]
+			})] }),
+			u("path", {
+				d: "M18.8912 31.7762L20.95 32.9992L46.2122 48.0252L18.9453 64.2541C12.9039 67.8476 5.18024 65.7166 1.69386 59.4894C-1.79252 53.2622 0.27493 45.3011 6.31636 41.7075L18.8561 34.2458C19.2704 33.9949 19.5484 33.5309 19.5484 33C19.5484 32.4843 19.286 32.0317 18.8912 31.7762Z",
+				fill: "url(#youkuGrad1)"
+			}),
+			u("path", {
+				d: "M46.2122 17.9698L18.9453 1.74594C12.9039 -1.84763 5.18024 0.283384 1.69386 6.51057C-1.79252 12.7378 0.27493 20.6989 6.31636 24.2925L20.9543 33.0025L46.2122 48.0302C57.4369 41.3507 57.4369 24.6493 46.2122 17.9698Z",
+				fill: "url(#youkuGrad2)"
+			})
+		]
+	});
+	var LogoTencentTv = (props) => u("svg", {
+		viewBox: "0 0 289 259",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("defs", { children: [
+				u("linearGradient", {
+					id: "tencentGrad1",
+					x1: "112.791",
+					y1: "27.7062",
+					x2: "112.791",
+					y2: "231.592",
+					gradientUnits: "userSpaceOnUse",
+					children: [u("stop", { "stop-color": "#F9B93B" }), u("stop", {
+						offset: "1",
+						"stop-color": "#FA7535"
+					})]
+				}),
+				u("linearGradient", {
+					id: "tencentGrad2",
+					x1: "166.259",
+					y1: "0.00682032",
+					x2: "166.259",
+					y2: "259.007",
+					gradientUnits: "userSpaceOnUse",
+					children: [u("stop", { "stop-color": "#53C4FE" }), u("stop", {
+						offset: "1",
+						"stop-color": "#0D84F4"
+					})]
+				}),
+				u("linearGradient", {
+					id: "tencentGrad3",
+					x1: "134.762",
+					y1: "30.2776",
+					x2: "134.762",
+					y2: "229.032",
+					gradientUnits: "userSpaceOnUse",
+					children: [u("stop", { "stop-color": "#AEF922" }), u("stop", {
+						offset: "1",
+						"stop-color": "#62BB0D"
+					})]
+				}),
+				u("linearGradient", {
+					id: "tencentGrad4",
+					x1: "127.262",
+					y1: "83.0401",
+					x2: "127.262",
+					y2: "175.954",
+					gradientUnits: "userSpaceOnUse",
+					children: [
+						u("stop", { "stop-color": "white" }),
+						u("stop", {
+							offset: "0.6",
+							"stop-color": "white"
+						}),
+						u("stop", {
+							offset: "1",
+							"stop-color": "#E5F6D2"
+						})
+					]
+				})
+			] }),
+			u("path", {
+				d: "M213.376 108.613C190.677 90.3692 163.87 76.2031 135.766 62.6809C109.392 49.588 81.5044 38.8562 52.9682 30.2707C52.9682 30.2707 52.9682 30.2707 52.9682 30.4853C52.1035 30.2707 51.4549 30.056 50.5902 29.6268C32.2146 24.0462 16.0008 30.4853 8.6506 50.232C-0.429097 74.9153 0.0032693 102.603 0.0032693 129.648C0.0032693 156.692 -0.212914 183.951 8.43442 208.634C16.4332 231.386 31.9984 234.82 50.374 229.24C50.8064 229.025 51.8873 228.81 52.752 228.381C52.752 228.596 52.752 228.81 52.752 229.025C81.7206 220.225 110.041 209.064 137.28 195.541C164.735 182.019 191.109 167.639 213.592 149.824C230.455 136.516 228.725 121.062 213.376 108.613Z",
+				fill: "url(#tencentGrad1)"
+			}),
+			u("path", {
+				d: "M275.421 155.19C294.013 135.872 291.851 118.057 275.205 102.818C250.776 80.0666 221.807 61.6077 191.542 44.2221C162.141 27.2658 131.01 13.3143 99.0153 1.93854C80.8559 -4.28595 61.1832 4.94346 54.6977 22.973C54.0491 24.6901 53.6168 26.4072 53.4006 28.1243C40.862 95.0912 40.862 163.775 53.1844 230.742C56.6433 249.415 74.8027 261.864 93.6107 258.43C95.3402 258.001 97.2858 257.572 99.0153 256.928C131.659 245.337 163.006 230.742 192.839 213.356C222.672 196.4 252.289 179.014 275.421 155.19Z",
+				fill: "url(#tencentGrad2)"
+			}),
+			u("path", {
+				d: "M52.9682 30.2707C41.0781 95.9497 40.8619 163.346 52.752 229.025C81.7205 220.225 110.041 209.064 137.28 195.542C164.735 182.019 191.109 167.639 213.592 149.824C230.455 136.516 228.725 121.062 213.376 108.613C190.677 90.3692 163.87 76.2031 135.766 62.6809C109.392 49.5881 81.5044 38.8562 52.9682 30.2707Z",
+				fill: "url(#tencentGrad3)"
+			}),
+			u("path", {
+				d: "M171.653 124.711C171.653 124.711 162.573 116.34 132.524 101.101C102.907 86.0764 90.5841 83.5008 90.5841 83.5008C86.2604 82.213 83.6662 83.5008 82.5853 88.4374C82.5853 88.4374 79.7749 92.5155 79.7749 129.433C79.7749 166.351 82.5853 170.858 82.5853 170.858C83.45 175.366 85.6119 176.868 90.5841 175.795C90.5841 175.795 99.0152 174.507 132.524 157.765C166.032 141.024 171.653 134.584 171.653 134.584C175.328 130.936 176.193 128.575 171.653 124.711Z",
+				fill: "url(#tencentGrad4)"
+			})
+		]
+	});
+	var LogoBilibili = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "#00A1D6",
+			d: "M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z"
+		})
+	});
+	var LogoMangoTv = (props) => u("svg", {
+		viewBox: "0 0 93 90",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "#FF5F00",
+			d: "M92.7 62.7001C92.7 62.4001 92.7 62.4001 92.7 62.4001V34.8001C92.7 32.1001 90.9 29.7001 88.2 29.1L78.6 26.4001L64.8 54.0001L50.7 19.2001L36 15.0001C35.4 14.7001 34.8 14.7001 33.9 14.7001C29.7 14.7001 26.4 17.7001 26.4 21.9001V63.3001C26.7 67.2001 29.7 70.2001 33.6 69.9001C33.9 69.9001 34.2 69.9001 34.2 69.9001L40.2 69.3001V26.1L57.3 67.8001L70.2 66.6001L86.1 34.8001V57.6001V57.9001C85.8 66.3001 79.5 73.5001 71.1 74.4001L30 78.3001C29.7 78.3001 29.4 78.3001 29.1 78.3001C22.2 78.6001 16.2 72.9001 16.2 66.0001V19.8001C15.9 12.3001 22.2 6.30005 30 6.60005C31.5 6.60005 33 6.90005 34.2 7.20005L83.1 20.4001C83.4 20.4001 83.7 20.4001 84 20.4001C85.5 20.4001 86.7 19.2001 86.7 18.0001C86.7 16.8001 86.1 15.9001 84.9 15.6001L31.8 1.50005C29.4 0.60005 26.4 4.98989e-05 23.7 4.98989e-05C11.1 -0.29995 0.6 9.60005 0 22.2001V69.6001C0.3 81.3001 10.2 90.3001 21.6 90.0001C22.2 90.0001 22.8 90.0001 23.4 90.0001L70.5 85.8001C83.1 84.6001 92.4 74.7001 92.7 62.7001Z"
+		})
+	});
+	var LogoIqiyiCombined = (props) => u("svg", {
+		width: "460",
+		height: "72",
+		viewBox: "0 0 460 72",
+		fill: "none",
+		...props,
+		children: [u("path", {
+			d: "M459.147 6.18071H451.607C451.547 6.18463 451.487 6.17624 451.43 6.15606C451.373 6.13588 451.321 6.10432 451.276 6.06333C451.232 6.02233 451.197 5.97275 451.172 5.9176C451.148 5.86246 451.135 5.80292 451.134 5.74261V1.10803C451.135 1.03714 451.122 0.966811 451.095 0.901102C451.069 0.835394 451.029 0.775614 450.979 0.725221C450.93 0.674828 450.87 0.634824 450.805 0.607523C450.739 0.580222 450.669 0.566167 450.598 0.566171H441.156C441.013 0.567689 440.877 0.625447 440.777 0.7269C440.676 0.828354 440.62 0.96531 440.62 1.10803V5.78296C440.608 5.89661 440.553 6.00138 440.466 6.07546C440.379 6.14954 440.267 6.18724 440.153 6.18071H415.614C415.554 6.18463 415.494 6.17624 415.437 6.15606C415.38 6.13588 415.328 6.10432 415.283 6.06333C415.239 6.02233 415.204 5.97275 415.179 5.9176C415.155 5.86246 415.142 5.80292 415.141 5.74261V5.68497C415.139 5.67166 415.139 5.65792 415.141 5.64462V1.10803C415.141 0.96531 415.085 0.828354 414.985 0.7269C414.884 0.625447 414.748 0.567689 414.605 0.566171H405.18C405.037 0.566171 404.899 0.623259 404.797 0.724877C404.696 0.826494 404.639 0.964317 404.639 1.10803V5.78296C404.627 5.89556 404.573 5.99946 404.487 6.0734C404.401 6.14733 404.291 6.18572 404.177 6.18071H396.684C396.622 6.17516 396.56 6.1823 396.502 6.20167C396.443 6.22104 396.39 6.25224 396.344 6.29333C396.298 6.33441 396.261 6.3845 396.235 6.4405C396.209 6.49649 396.195 6.55718 396.194 6.6188V13.7148C396.195 13.8575 396.253 13.9938 396.354 14.0942C396.456 14.1946 396.593 14.2509 396.736 14.2509H404.085C404.5 14.2509 404.598 14.493 404.616 14.6486V20.2805C404.616 20.5802 404.858 20.8223 405.157 20.8223H414.594C414.736 20.8208 414.873 20.763 414.973 20.6616C415.074 20.5601 415.13 20.4232 415.13 20.2805V14.7927C415.128 14.7794 415.128 14.7658 415.13 14.7524V14.6717C415.13 14.516 415.216 14.2394 415.666 14.2336H440.067C440.476 14.2336 440.58 14.4757 440.597 14.6313V20.2632C440.597 20.4059 440.653 20.5428 440.754 20.6443C440.854 20.7457 440.99 20.8035 441.133 20.805H450.569C450.869 20.805 451.111 20.5629 451.111 20.2632V14.6717C451.111 14.516 451.192 14.2394 451.647 14.2336H459.141C459.283 14.2336 459.42 14.1771 459.52 14.0766C459.621 13.976 459.677 13.8397 459.677 13.6975V6.7168C459.677 6.57561 459.622 6.44012 459.522 6.33975C459.423 6.23938 459.288 6.18223 459.147 6.18071ZM255.559 9.63359C255.563 9.74406 255.589 9.85264 255.636 9.95252C255.684 10.0524 255.751 10.1414 255.834 10.2139C255.918 10.2865 256.015 10.341 256.121 10.3741C256.226 10.4071 256.337 10.418 256.447 10.406C261.716 10.406 289.598 9.97945 295.501 9.97945C300.049 9.97945 308.442 9.54712 312.921 8.78622C313.192 8.74011 313.613 8.45765 313.497 7.73133C313.382 7.00502 312.512 2.15715 312.345 1.63835C312.322 1.53223 312.279 1.43174 312.217 1.34295C312.154 1.25416 312.075 1.17892 311.983 1.1218C311.89 1.06467 311.788 1.02684 311.68 1.01061C311.573 0.994366 311.464 1.00005 311.359 1.02732C305.525 1.82651 299.642 2.21177 293.754 2.18021C293.754 2.18021 257.381 2.60677 256.447 2.60677C256.33 2.5961 256.212 2.61042 256.101 2.64881C255.99 2.68719 255.888 2.74875 255.802 2.82941C255.717 2.91007 255.649 3.00799 255.604 3.11669C255.56 3.22538 255.538 3.34237 255.542 3.45991L255.559 9.63359ZM275.055 27.584C275.128 27.5846 275.201 27.6003 275.269 27.63C275.336 27.6597 275.397 27.7028 275.447 27.7568C275.497 27.8107 275.536 27.8744 275.56 27.9438C275.585 28.0132 275.595 28.0869 275.591 28.1604C275.516 28.9501 275.447 29.5093 275.349 30.2644C275.345 30.2967 275.334 30.4489 275.539 30.4489H312.927C313.071 30.4489 313.208 30.506 313.31 30.6076C313.412 30.7092 313.469 30.847 313.469 30.9907V37.591C313.469 37.7312 313.414 37.8658 313.316 37.966C313.218 38.0662 313.084 38.1241 312.944 38.1271H273.965C273.798 38.1271 273.74 38.3288 273.74 38.3288L273.54 39.058C273.335 39.7872 273.115 40.5164 272.881 41.2456C272.872 41.2767 272.835 41.4416 273.083 41.4416H306.459C310.546 41.4416 310.535 45.3614 310.333 46.4682C309.755 49.2941 308.652 51.9865 307.082 54.4058C305.802 56.4521 303.3 59.098 300.994 61.1271C304.246 62.0782 307.572 62.5739 312.806 62.7642C312.884 62.7512 312.965 62.7571 313.041 62.7815C313.117 62.8059 313.186 62.848 313.242 62.9044C313.298 62.9607 313.34 63.0297 313.365 63.1055C313.389 63.1814 313.395 63.262 313.382 63.3406V70.9554C313.382 71.3474 313.117 71.4857 312.806 71.4857C304.807 71.4622 296.872 70.0762 289.339 67.3872C281.228 70.085 271.93 71.601 264.35 71.503C264.096 71.4972 263.583 71.4454 263.583 70.8689V63.3752C263.583 63.2938 263.6 63.2133 263.633 63.1389C263.665 63.0645 263.714 62.9979 263.774 62.9434C263.835 62.889 263.906 62.8479 263.983 62.823C264.061 62.7981 264.142 62.7898 264.223 62.7988C268.906 62.8237 273.574 62.2837 278.127 61.1905C274.995 58.8379 272.31 55.9425 270.201 52.6419C270.154 52.5646 269.407 51.3103 270.61 51.3103H280.537C280.675 51.2945 280.815 51.309 280.948 51.3528C281.08 51.3966 281.201 51.4686 281.303 51.5639C283.477 54.3523 286.301 56.5652 289.529 58.0085L289.823 57.8587L290.221 57.6281C295.132 54.8957 297.311 51.6734 298.245 49.3331C298.343 49.091 298.827 48.2609 297.824 48.2609H270.656C270.27 48.2609 270.184 48.503 270.184 48.503L269.876 49.204C266.571 56.6667 262.367 63.6982 257.358 70.1426C257.262 70.2602 257.125 70.3378 256.975 70.3602C256.825 70.3826 256.671 70.3482 256.545 70.2637C256.387 70.1703 254.609 68.9569 252.825 67.7337L252.469 67.4893C251.326 66.7088 250.187 65.9235 249.051 65.1333C249.051 65.1333 248.625 64.8912 248.982 64.3148C255.502 55.7028 260.303 46.9524 262.817 38.2712C262.851 38.1386 262.684 38.1386 262.684 38.1386H253.121C252.979 38.1386 252.843 38.0821 252.742 37.9816C252.641 37.881 252.585 37.7447 252.585 37.6025V31.0138C252.584 30.9429 252.598 30.8726 252.624 30.8069C252.651 30.7412 252.69 30.6814 252.74 30.631C252.79 30.5806 252.849 30.5406 252.915 30.5133C252.98 30.486 253.05 30.4719 253.121 30.4719H264.321C264.353 30.4754 264.385 30.4665 264.411 30.4473C264.437 30.428 264.454 30.3998 264.46 30.3682V30.397L264.502 30.0465C264.583 29.3686 264.64 28.8129 264.684 28.0912C264.691 27.9791 264.734 27.8722 264.806 27.7857C264.855 27.7219 264.919 27.6705 264.992 27.6355C265.065 27.6005 265.145 27.5828 265.226 27.584H275.055ZM306.384 12.7348C306.457 12.7279 306.53 12.737 306.599 12.7613C306.668 12.7856 306.73 12.8247 306.783 12.8757C306.835 12.9268 306.875 12.9886 306.901 13.0568C306.927 13.1251 306.937 13.1982 306.932 13.2709V17.1792L306.932 17.2213C306.938 17.2703 306.962 17.3154 306.999 17.348C307.036 17.3806 307.084 17.3985 307.134 17.3983H312.541C315.757 17.3983 316.466 19.6406 316.524 22.5689V27.9587C316.517 28.1016 316.457 28.2369 316.356 28.3381C316.254 28.4393 316.119 28.4993 315.976 28.5063H306.488C305.912 28.5063 305.912 27.9298 305.912 27.9298V25.5952C305.912 25.1571 305.808 24.8862 305.231 24.8862H262.165C262.098 24.8823 262.03 24.8922 261.966 24.9153C261.902 24.9384 261.844 24.9742 261.794 25.0205C261.745 25.0669 261.705 25.1228 261.678 25.1849C261.65 25.2471 261.636 25.3141 261.635 25.382V27.5782C261.631 27.7039 261.574 28.1201 261.001 28.1201H251.68C251.596 28.1295 251.511 28.1205 251.431 28.0935C251.351 28.0666 251.278 28.0224 251.217 27.9641C251.156 27.9059 251.109 27.8349 251.078 27.7563C251.047 27.6776 251.035 27.5932 251.04 27.509V18.143C251.046 18.0372 251.073 17.9335 251.12 17.8386C251.167 17.7437 251.233 17.6595 251.314 17.5913C251.395 17.523 251.49 17.4722 251.591 17.442C251.693 17.4117 251.8 17.4028 251.905 17.4155H259.9C259.928 17.4156 259.956 17.4099 259.982 17.3987C260.008 17.3876 260.032 17.3713 260.051 17.3507C260.07 17.3302 260.085 17.306 260.095 17.2795C260.105 17.2529 260.109 17.2247 260.108 17.1965V13.3228C260.108 13.1699 260.168 13.0233 260.276 12.9152C260.384 12.8071 260.531 12.7464 260.684 12.7464H269.527C269.601 12.7348 269.678 12.7403 269.75 12.7626C269.823 12.7848 269.889 12.8232 269.945 12.8748C270 12.9263 270.043 12.9898 270.071 13.0604C270.098 13.1311 270.109 13.207 270.103 13.2825V17.1907L270.104 17.2328C270.11 17.2818 270.133 17.3269 270.171 17.3595C270.208 17.3921 270.255 17.41 270.305 17.4098H278.254C278.282 17.4098 278.31 17.4041 278.336 17.393C278.362 17.3818 278.385 17.3655 278.405 17.345C278.424 17.3245 278.439 17.3002 278.449 17.2737C278.459 17.2472 278.463 17.2189 278.461 17.1907V13.317C278.461 13.1642 278.522 13.0175 278.63 12.9094C278.738 12.8013 278.885 12.7406 279.038 12.7406H288.261C288.335 12.7322 288.41 12.74 288.481 12.7634C288.552 12.7869 288.618 12.8253 288.672 12.8762C288.727 12.9272 288.77 12.9893 288.799 13.0584C288.827 13.1275 288.84 13.202 288.837 13.2767V17.185C288.835 17.2129 288.838 17.241 288.847 17.2675C288.857 17.294 288.871 17.3183 288.89 17.3389C288.909 17.3596 288.932 17.376 288.958 17.3872C288.983 17.3984 289.011 17.4041 289.039 17.404H296.729C296.757 17.4041 296.785 17.3983 296.811 17.3872C296.837 17.3761 296.86 17.3597 296.88 17.3392C296.899 17.3187 296.914 17.2945 296.924 17.2679C296.934 17.2414 296.938 17.2132 296.936 17.185V13.3113C296.936 13.1584 296.997 13.0118 297.105 12.9037C297.213 12.7956 297.36 12.7348 297.513 12.7348H306.384ZM327.073 13.5476H346.389C346.47 13.5476 346.626 13.5476 346.516 13.709C342.135 18.211 334.987 19.8942 328.958 20.8165C328.347 20.9145 327.966 21.0125 327.966 21.7907V27.9587C327.966 28.7196 328.543 28.6043 328.837 28.5697C335.892 27.7684 343.974 25.4742 348.683 22.2692C351.935 20.0556 354.448 18.0842 356.471 15.3519C362.074 23.2607 370.974 27.313 384.797 28.5639C385.063 28.5639 385.599 28.489 385.599 27.9875V21.589C385.599 20.8684 385.195 20.88 384.884 20.8511C377.39 20.0384 369.96 17.5942 366.15 13.709C366.04 13.5649 366.196 13.5419 366.271 13.5419H385.639C385.639 13.5419 386.169 13.5419 386.169 13.0404V5.92131C386.169 5.38522 385.535 5.41404 385.535 5.41404H362.42C362.103 5.41404 362.04 5.18923 362.034 5.07394V0.744868C362.039 0.683462 362.031 0.621737 362.011 0.56352C361.99 0.505304 361.959 0.451838 361.917 0.406438C361.875 0.361037 361.825 0.324671 361.769 0.299594C361.712 0.274517 361.652 0.261264 361.59 0.260657H351.139C351.067 0.258462 350.995 0.272698 350.929 0.302298C350.862 0.331898 350.804 0.376092 350.757 0.431562C350.711 0.487032 350.677 0.552337 350.66 0.622574C350.642 0.692811 350.64 0.766154 350.655 0.837098V5.0797C350.655 5.19499 350.58 5.37945 350.274 5.40828H327.009C326.948 5.40273 326.886 5.40987 326.828 5.42924C326.769 5.44861 326.715 5.47981 326.669 5.5209C326.623 5.56198 326.586 5.61207 326.56 5.66806C326.535 5.72406 326.521 5.78475 326.519 5.84637V13.0634C326.519 13.0634 326.496 13.5476 327.073 13.5476ZM388.521 29.8494C388.663 29.8494 388.8 29.9059 388.9 30.0064C389.001 30.1069 389.057 30.2433 389.057 30.3855V37.4296C389.057 37.5 389.044 37.5697 389.017 37.6347C388.99 37.6998 388.95 37.7589 388.9 37.8087C388.851 37.8584 388.792 37.8979 388.726 37.9249C388.661 37.9518 388.592 37.9657 388.521 37.9657H385.063C384.985 37.9596 384.908 37.9703 384.835 37.9972C384.762 38.024 384.696 38.0663 384.642 38.121C384.587 38.1758 384.545 38.2418 384.518 38.3145C384.491 38.3872 384.48 38.4649 384.486 38.5421C384.498 40.3712 384.514 42.8965 384.525 45.4928L384.527 46.071L384.531 46.9391C384.535 48.0949 384.538 49.2426 384.538 50.3263V51.644C384.536 54.0265 384.522 55.9385 384.486 56.6827C384.163 64.0842 382.757 68.004 376.289 71.307C375.263 71.8662 374.796 71.1629 374.796 71.1629C374.796 71.1629 373.77 69.814 372.665 68.3556L372.427 68.0421C371.275 66.5226 370.11 64.98 369.983 64.7932C369.724 64.4128 370.029 64.0496 370.386 63.8709C373.753 62.2165 374.179 60.4699 374.179 55.478V38.5709C374.186 38.497 374.177 38.4226 374.153 38.3524C374.129 38.2823 374.09 38.2179 374.039 38.1636C373.989 38.1093 373.928 38.0662 373.859 38.037C373.791 38.0079 373.718 37.9934 373.643 37.9945H324.19C324.048 37.9945 323.911 37.9382 323.809 37.8378C323.708 37.7375 323.65 37.6011 323.649 37.4584V30.3855C323.65 30.2428 323.708 30.1064 323.809 30.006C323.911 29.9057 324.048 29.8494 324.19 29.8494H388.521ZM362.178 42.0296C365.352 42.0296 367.93 44.5965 367.942 47.7709V61.9226C367.942 65.1062 365.362 67.687 362.178 67.687H333.811C330.628 67.687 328.047 65.1062 328.047 61.9226V47.794C328.047 44.6103 330.628 42.0296 333.811 42.0296H362.178ZM357.267 48.9642H338.728C338.497 48.9642 338.275 49.0557 338.111 49.2188C337.947 49.3818 337.854 49.6032 337.852 49.8346V59.8243L337.856 59.9108C337.878 60.1266 337.979 60.3267 338.14 60.4717C338.302 60.6167 338.511 60.6962 338.728 60.6947H357.272C357.503 60.6947 357.725 60.603 357.888 60.4398C358.051 60.2766 358.143 60.0552 358.143 59.8243V50.0998L358.137 49.8346L358.132 49.751C358.11 49.5362 358.01 49.3371 357.85 49.1919C357.69 49.0467 357.483 48.9656 357.267 48.9642ZM456.207 62.8449H413.009C412.679 62.8493 412.359 62.7354 412.106 62.5239C411.853 62.3123 411.685 62.0172 411.631 61.692C411.587 61.4151 411.631 61.1314 411.758 60.8811C411.884 60.6308 412.085 60.4265 412.334 60.297L446.344 43.2689L451.209 40.796C452.141 40.3001 453.005 39.6859 453.78 38.9687C454.554 38.2292 455.165 37.3357 455.573 36.3459C455.96 35.3318 456.155 34.2549 456.149 33.1697C456.181 28.874 452.793 25.3301 448.5 25.1687H400.627C400.484 25.1687 400.348 25.2252 400.247 25.3257C400.147 25.4262 400.09 25.5626 400.09 25.7048V33.1985C400.09 33.4925 400.327 33.7317 400.621 33.7346H442.591C442.787 33.7328 442.977 33.8068 443.119 33.941C443.262 34.0752 443.348 34.2594 443.358 34.4551C443.355 34.5891 443.316 34.7199 443.245 34.8335C443.174 34.9472 443.074 35.0395 442.955 35.1008L442.638 35.2737L442.47 35.3659L441.773 35.7348C436.516 38.5421 406.305 53.2587 403.463 55.2589C403.134 55.4607 402.823 55.6739 402.523 55.8872C401.917 56.2966 401.365 56.7808 400.88 57.3283C400.782 57.4379 400.69 57.5474 400.604 57.6627L400.575 57.6973C400.488 57.8023 400.407 57.912 400.333 58.0258L400.298 58.0719C400.217 58.1815 400.148 58.291 400.073 58.4063V58.4524C399.831 58.8351 399.623 59.2382 399.451 59.6572C399.399 59.784 399.347 59.9223 399.295 60.0549L399.26 60.1644C399.22 60.2682 399.191 60.3719 399.157 60.4815L399.116 60.6256C399.116 60.7236 399.064 60.8158 399.041 60.9138C399.018 61.0118 399.041 61.0233 399.001 61.081C398.961 61.1386 398.961 61.2654 398.943 61.3576C398.926 61.4499 398.943 61.4787 398.943 61.5364C398.943 61.594 398.915 61.7266 398.903 61.8188C398.891 61.911 398.903 61.9341 398.903 61.9917C398.903 62.0494 398.903 62.1993 398.874 62.303C398.877 62.3549 398.877 62.4068 398.874 62.4587V63.9286C398.874 63.9805 398.874 64.1073 398.909 64.1937C398.943 64.2802 398.909 64.309 398.938 64.3667C398.966 64.4243 398.938 64.5281 398.978 64.6088C399.018 64.6895 399.007 64.7241 399.018 64.7817L399.07 65.0123L399.122 65.191C399.122 65.2659 399.162 65.3409 399.185 65.41C399.201 65.4706 399.22 65.5305 399.243 65.5887L399.312 65.802L399.381 65.9807C399.381 66.0499 399.433 66.1191 399.462 66.1882L399.537 66.3612C399.537 66.4246 399.595 66.4937 399.629 66.5572C399.664 66.6206 399.681 66.6724 399.71 66.7301C399.739 66.7877 399.779 66.8569 399.808 66.9203C399.837 66.9837 399.871 67.0356 399.906 67.0875L400.01 67.2719L400.114 67.4391L400.223 67.6178L400.333 67.7734L400.454 67.9464L400.575 68.102L400.702 68.2692L400.828 68.4191L400.961 68.5747L401.093 68.7188L401.238 68.8687L401.376 69.007L401.526 69.1511L401.67 69.2837L401.826 69.4163L401.975 69.5431L402.137 69.6699L402.298 69.791L402.465 69.9063L402.627 70.0216L402.8 70.1311L402.973 70.2406L403.146 70.3386L403.324 70.4366L403.503 70.5288L403.687 70.6211L403.872 70.7075L404.062 70.7882L404.247 70.8632L404.443 70.9381L404.633 71.0015L404.835 71.0649L405.031 71.1226L405.232 71.1802L405.434 71.2263L405.636 71.2724L405.843 71.307C405.913 71.307 405.982 71.307 406.051 71.3416H456.27C456.413 71.3416 456.55 71.2853 456.652 71.1849C456.753 71.0846 456.811 70.9482 456.812 70.8055V63.381C456.813 63.3043 456.797 63.2285 456.766 63.1585C456.735 63.0885 456.689 63.026 456.632 62.9752C456.574 62.9244 456.507 62.8864 456.433 62.864C456.36 62.8415 456.283 62.835 456.207 62.8449ZM113.738 70.8747C113.748 71.0352 113.821 71.1854 113.94 71.2931C114.06 71.4008 114.217 71.4575 114.377 71.4511H129.653C129.814 71.4574 129.972 71.4008 130.092 71.2933C130.213 71.1858 130.287 71.0357 130.299 70.8747V2.43384C130.287 2.27284 130.213 2.12277 130.092 2.01524C129.972 1.90772 129.814 1.85113 129.653 1.8574H114.377C114.217 1.8512 114.06 1.90797 113.94 2.01563C113.821 2.12329 113.748 2.27334 113.738 2.43384V70.8747ZM1.41805 70.8747C1.42988 71.0358 1.50383 71.1859 1.6243 71.2935C1.74476 71.401 1.9023 71.4576 2.06366 71.4511H17.3393C17.5001 71.4575 17.657 71.4008 17.7765 71.2931C17.8961 71.1854 17.9688 71.0352 17.9792 70.8747V27.7857C17.9688 27.6252 17.8961 27.475 17.7765 27.3673C17.657 27.2596 17.5001 27.2029 17.3393 27.2093H2.06366C1.90192 27.2014 1.74356 27.2574 1.62277 27.3652C1.50198 27.4731 1.42845 27.6241 1.41805 27.7857V70.8747ZM103.656 59.7033L96.0985 53.6391C95.9468 53.5162 95.8411 53.3455 95.7988 53.1549C95.7519 52.9595 95.7807 52.7535 95.8794 52.5785C104.36 36.6168 99.5318 16.8333 84.6515 6.57326C69.7724 -3.68681 49.5641 -1.16661 37.66 12.4351C25.7565 26.0356 25.9352 46.399 38.0762 59.7886C50.2178 73.1782 70.4665 75.3427 85.1634 64.8226C85.3095 64.7123 85.4876 64.6526 85.6707 64.6526C85.8538 64.6526 86.0319 64.7123 86.1779 64.8226L94.2827 71.3307C94.3499 71.3833 94.4269 71.4222 94.5092 71.4449C94.5915 71.4676 94.6775 71.4738 94.7622 71.4631C94.8469 71.4524 94.9286 71.425 95.0026 71.3824C95.0767 71.3399 95.1415 71.2831 95.1935 71.2154L103.759 60.614C103.866 60.4792 103.914 60.3079 103.895 60.1373C103.875 59.9668 103.789 59.8108 103.656 59.7033ZM68.118 56.4637C57.0677 58.4812 46.3862 50.9125 44.3456 39.6201C42.305 28.3276 49.6489 17.5193 60.7165 15.5191C71.7842 13.5188 82.4311 21.0702 84.489 32.3627C86.5469 43.6551 79.1857 54.4461 68.118 56.4637ZM228.334 1.84011H213.058C212.898 1.8339 212.741 1.89067 212.621 1.99833C212.502 2.106 212.429 2.25605 212.419 2.41655V70.8747C212.429 71.0352 212.502 71.1854 212.621 71.2931C212.741 71.4008 212.898 71.4575 213.058 71.4511H228.334C228.495 71.4573 228.652 71.4006 228.771 71.2929C228.891 71.1852 228.963 71.0352 228.974 70.8747V2.43384C228.971 2.35282 228.952 2.27319 228.918 2.19949C228.885 2.12579 228.837 2.05947 228.777 2.00432C228.718 1.94918 228.648 1.90629 228.572 1.87811C228.496 1.84994 228.415 1.83702 228.334 1.84011ZM9.7015 0.473941C4.34348 0.473941 0 4.81742 0 10.1754C0 15.5335 4.34348 19.8769 9.7015 19.8769C15.0595 19.8769 19.403 15.5335 19.403 10.1754C19.403 8.90142 19.1521 7.63988 18.6645 6.46284C18.177 5.2858 17.4624 4.21631 16.5615 3.31545C15.6606 2.41458 14.5911 1.69997 13.4141 1.21242C12.2371 0.724877 10.9755 0.473941 9.7015 0.473941ZM204.331 1.84011H188.047C187.913 1.83911 187.781 1.87252 187.664 1.93712C187.547 2.00173 187.448 2.09536 187.378 2.20903L172.252 29.0827C172.252 29.0827 172.143 29.2845 171.993 29.2845C171.843 29.2845 171.733 29.0827 171.733 29.0827L156.608 2.20903C156.537 2.09536 156.439 2.00173 156.321 1.93712C156.204 1.87252 156.073 1.83911 155.939 1.84011H139.66C139.531 1.84097 139.404 1.87728 139.293 1.94511C139.183 2.01293 139.093 2.10968 139.034 2.22488C138.974 2.34008 138.948 2.46933 138.956 2.59862C138.965 2.72792 139.009 2.85234 139.084 2.9584L163.294 43.6724C163.525 44.0655 163.647 44.5134 163.646 44.9694V70.7594C163.647 70.9464 163.723 71.1253 163.856 71.257C163.988 71.3888 164.168 71.4627 164.355 71.4627H179.665C179.852 71.4627 180.032 71.3888 180.165 71.257C180.297 71.1253 180.373 70.9464 180.374 70.7594V44.9694C180.373 44.5134 180.495 44.0655 180.726 43.6724L204.936 2.9584C205.013 2.85044 205.058 2.72324 205.065 2.59118C205.073 2.45913 205.044 2.32749 204.981 2.21114C204.918 2.09479 204.824 1.99839 204.709 1.93282C204.594 1.86725 204.463 1.83513 204.331 1.84011Z",
+			fill: "url(#iqiyiGrad)"
+		}), u("defs", { children: u("linearGradient", {
+			id: "iqiyiGrad",
+			x1: "0",
+			y1: "0.26",
+			x2: "459.68",
+			y2: "0.26",
+			gradientUnits: "userSpaceOnUse",
+			children: [u("stop", { "stop-color": "#00DC5A" }), u("stop", {
+				offset: "1",
+				"stop-color": "#00DC5A"
+			})]
+		}) })]
+	});
+	var LogoYoukuCombined = (props) => u("svg", {
+		width: "213",
+		height: "72",
+		viewBox: "0 0 213 72",
+		fill: "none",
+		...props,
+		children: [
+			u("path", {
+				"fill-rule": "evenodd",
+				"clip-rule": "evenodd",
+				d: "M209.481 28.0742V28.0682H201.254V19.9466H208.007V19.9405C209.951 19.9405 211.526 18.3641 211.526 16.4196C211.526 14.4752 209.951 12.8981 208.007 12.8981H201.254V7.45862H201.251C201.236 5.48832 199.637 3.89481 197.663 3.89481C195.69 3.89481 194.092 5.48832 194.076 7.45862H194.074V12.8981H190.475C190.694 12.0213 191.112 9.89813 191.112 9.6275C191.112 7.75896 189.597 6.24355 187.73 6.24355C186.14 6.24355 184.815 7.34586 184.454 8.82552C184.454 8.82552 183.533 13.8899 181.541 19.7018C181.541 19.7018 181.363 20.4257 181.363 20.8146C181.363 22.6242 182.828 24.0907 184.636 24.0907C186.069 24.0907 187.273 23.1649 187.717 21.8833C187.717 21.8833 188 21.1209 188.389 19.9466H194.074V28.0682L184.943 28.0742C182.999 28.0742 181.424 29.6507 181.424 31.5951C181.424 33.5396 182.999 35.1166 184.943 35.1166H209.481C211.424 35.1166 213 33.5396 213 31.5951C213 29.6507 211.424 28.0742 209.481 28.0742ZM163.671 19.6783H165.383V13.2894H163.671V19.6783ZM157.673 60.9243C156.804 60.9243 156.101 60.2208 156.101 59.3523V55.0008H173.025C173.025 55.0008 173.018 59.3468 173.018 59.3523C173.018 60.2208 172.314 60.9243 171.446 60.9243H157.673ZM157.799 30.7669C157.799 35.2185 156.337 38.8967 156.101 39.4617V27.6123C156.101 26.7438 156.804 26.0403 157.673 26.0403H157.799V30.7669ZM165.407 41.4221C165.526 43.4237 167.17 45.0145 169.201 45.0145H173.025V48.6388H156.101V46.0464C156.597 45.6833 163.671 40.3324 163.671 30.7669V26.0403H165.384L165.407 41.4221ZM171.454 26.0403C172.321 26.0403 173.023 26.7427 173.025 27.6096V39.3978H172.137C171.65 39.3978 171.255 39.0029 171.255 38.5161V26.0403H171.454ZM173.834 19.6783H171.255V13.2894H175.62V13.2828C177.563 13.2828 179.139 11.7069 179.139 9.76243C179.139 7.81743 177.563 6.24151 175.62 6.24151H153.192C151.249 6.24151 149.673 7.81743 149.673 9.76243C149.673 11.7069 151.249 13.2828 153.192 13.2828C153.24 13.2828 157.799 13.2894 157.799 13.2894V19.6783H155.292C152.214 19.6783 149.721 22.1558 149.681 25.2251H149.673L149.681 61.7428C149.723 64.7494 152.121 67.1724 155.113 67.2687C155.113 67.2687 173.802 67.2863 173.834 67.2863C176.773 67.2863 179.158 65.0211 179.405 62.1449L179.448 25.2454C179.418 22.1662 176.919 19.6783 173.834 19.6783ZM204.707 59.493C204.707 60.2773 204.071 60.9127 203.287 60.9127H191.33C190.546 60.9127 189.91 60.2773 189.91 59.493V46.6706C189.91 45.8857 190.546 45.2498 191.33 45.2498H203.287C204.071 45.2498 204.707 45.8857 204.707 46.6706V59.493ZM206.265 38.8906H188.352C185.713 38.9742 183.597 41.0672 183.463 43.6953V62.4677C183.597 65.0958 185.713 67.1883 188.352 67.273H206.265C208.904 67.1883 211.02 65.0958 211.154 62.4677V43.6953C211.02 41.0672 208.904 38.9742 206.265 38.8906ZM94.5008 4.62836C96.5745 4.65113 98.348 6.2419 98.2913 8.34972C98.2287 10.6754 94.4524 18.8591 92.4507 22.4416V64.3527C92.4507 66.4253 90.7712 68.1057 88.6998 68.1057C86.6283 68.1057 84.9488 66.4253 84.9488 64.3527V33.5687C83.8339 34.9516 83.1192 35.7249 83.1192 35.7249C82.3089 36.5759 81.3358 37.3465 80.0642 37.3586C77.9905 37.3784 76.404 35.7084 76.2737 33.6375C76.1835 32.1996 77.2825 31.0418 77.2825 31.0418C86.6085 20.3553 89.531 11.3316 90.9307 7.33761C90.9307 7.33761 91.8224 4.59998 94.5008 4.62836ZM112.286 3.97979C114.551 3.97979 116.387 5.81643 116.387 8.08266L116.388 21.3847H136.301C138.229 21.3847 139.791 22.9485 139.791 24.877C139.791 26.8055 138.229 28.3693 136.301 28.3693H126.654V57.1928C126.68 58.4976 127.735 59.5487 129.044 59.5515H132.447C133.773 59.5487 134.847 58.4739 134.847 57.1472C134.847 57.1389 135.29 53.0097 135.29 53.0097C135.576 51.3424 137.018 50.0702 138.766 50.0702C140.72 50.0702 142.303 51.6543 142.303 53.6081C142.303 53.678 142.15 59.1664 140.992 61.8034L140.848 62.0745C139.219 65.0292 136.145 67.0927 132.584 67.2886H127.082C122.702 67.2886 119.152 63.7369 119.152 59.354V28.3693H116.336C115.832 50.4044 103.866 63.3231 101.955 65.2491L101.845 65.3591C101.781 65.422 101.737 65.4641 101.715 65.4851L101.699 65.5009L101.667 65.5294C101.43 65.7415 99.8954 67.0651 98.5243 67.0064C96.2615 66.9101 94.4962 65.1687 94.4231 62.9035C94.3762 61.4354 95.5451 60.1194 95.8264 59.8246L95.8865 59.7633C105.924 48.1136 107.815 36.4414 108.128 28.3693H99.0801C97.1526 28.3693 95.5897 26.8055 95.5897 24.877C95.5897 22.9485 97.1526 21.3847 99.0801 21.3847H108.186V8.08266C108.186 5.81643 110.021 3.97979 112.286 3.97979ZM124.984 4.62325C126.002 4.62325 126.907 5.07429 127.536 5.77782L127.545 5.76956C127.545 5.76956 130.106 8.21462 132.883 10.8485L133.301 11.2447C133.65 11.5756 134.001 11.9077 134.348 12.2366C134.358 12.2454 134.368 12.2536 134.377 12.263C134.383 12.269 134.389 12.2745 134.395 12.28C134.986 12.8901 135.354 13.7184 135.354 14.6348C135.354 16.4957 133.846 18.0039 131.987 18.0039C131.124 18.0039 130.346 17.67 129.75 17.1365L129.742 17.1447C129.742 17.1447 127.073 14.8009 124.252 12.124L123.828 11.7202C123.403 11.3145 122.978 10.9035 122.561 10.494C122.558 10.4913 122.555 10.4891 122.552 10.4869C122.548 10.483 122.545 10.4792 122.541 10.4753C121.929 9.85319 121.55 9.00115 121.55 8.06C121.55 6.16121 123.087 4.62325 124.984 4.62325Z",
+				fill: "white"
+			}),
+			u("path", {
+				d: "M21.0937 34.6649L23.392 35.9999L51.6 52.3911L21.1541 70.0953C14.4083 74.0156 5.78419 71.6909 1.89135 64.8976C-2.0015 58.1043 0.306984 49.4194 7.05277 45.4991L21.0545 37.359C21.517 37.0853 21.8275 36.5792 21.8275 36C21.8275 35.4374 21.5345 34.9436 21.0937 34.6649Z",
+				fill: "url(#youkuGrad1)"
+			}),
+			u("path", {
+				d: "M51.6 19.6034L21.1541 1.90467C14.4083 -2.0156 5.78419 0.309146 1.89135 7.10244C-2.0015 13.8957 0.306984 22.5806 7.05277 26.5009L23.3973 36.0027L51.6 52.3966C64.1333 45.1098 64.1333 26.8902 51.6 19.6034Z",
+				fill: "url(#youkuGrad2)"
+			}),
+			u("defs", { children: [u("linearGradient", {
+				id: "youkuGrad1",
+				x1: "1454.89",
+				y1: "2118.1",
+				x2: "3571.47",
+				y2: "554.74",
+				gradientUnits: "userSpaceOnUse",
+				children: [u("stop", { "stop-color": "#FF8000" }), u("stop", {
+					offset: "1",
+					"stop-color": "#FF6400"
+				})]
+			}), u("linearGradient", {
+				id: "youkuGrad2",
+				x1: "1113.55",
+				y1: "1683.32",
+				x2: "5556.74",
+				y2: "4316.43",
+				gradientUnits: "userSpaceOnUse",
+				children: [
+					u("stop", { "stop-color": "#00C1FF" }),
+					u("stop", {
+						offset: "0.39753",
+						"stop-color": "#09B2FF"
+					}),
+					u("stop", {
+						offset: "1",
+						"stop-color": "#2C78FF"
+					})
+				]
+			})] })
+		]
+	});
+	var LogoTencentCombined = (props) => u("svg", {
+		width: "284",
+		height: "72",
+		viewBox: "0 0 284 72",
+		fill: "none",
+		...props,
+		children: [u("mask", {
+			id: "tencentMask",
+			"mask-type": "luminance",
+			maskUnits: "userSpaceOnUse",
+			x: "2",
+			y: "6",
+			width: "280",
+			height: "63",
+			children: u("path", {
+				d: "M281.75 6.16H2.25v62.46h279.5V6.16Z",
+				fill: "white"
+			})
+		}), u("g", {
+			mask: "url(#tencentMask)",
+			children: [
+				u("path", {
+					d: "M13.8 52.88c1.53 10.3 3.36 18.04 15.28 14.18 11.44-3.68 22.45-10.22 32.11-17.63 3.46-2.97 9.5-7.15 9.62-12.07-.12-4.93-6.16-9.1-9.62-12.07-9.68-7.41-20.67-13.94-32.11-17.63C17.16 3.82 15.33 11.56 13.8 21.85c-1.19 10.31-1.19 20.72 0 31.03Z",
+					fill: "#0098FF"
+				}),
+				u("path", {
+					d: "M3.4 23.77c1.3-6.81 3.27-11.75 12.06-14.06-.76 2.67-1.31 5.39-1.66 8.14-1.18 10.31-1.18 20.72 0 31.03.35 2.75.9 5.47 1.66 8.14-8.8 2.3-10.75-2.65-12.06-9.46l-.1-.49-.17-.98c-1.1-8.04-1.1-16.2 0-24.24l.17-.98.1-.5Z",
+					fill: "#FF8800"
+				}),
+				u("path", {
+					d: "M15.46 13.71c.6.12 1.25.27 1.96.46 10.67 2.88 20.95 7.98 29.97 13.77 3.22 2.32 8.86 5.58 8.97 9.43-.1 3.85-5.75 7.11-8.97 9.43-9.02 5.79-19.3 10.89-29.97 13.77a44.9 44.9 0 0 1-1.96.46 43.2 43.2 0 0 1-1.66-8.14C12.61 42.58 12.61 32.17 13.8 21.86c.35-2.73.9-5.44 1.64-8.09l.02-.06Z",
+					fill: "#43E700"
+				}),
+				u("path", {
+					d: "M21.75 27.58s-.65 1.06-.65 9.8c0 8.75.65 9.75.65 9.75.22 1.09.66 1.43 1.85 1.16 0 0 1.96-.3 9.8-4.29 7.84-3.98 9.15-5.49 9.15-5.49.84-.85 1.07-1.41 0-2.3 0 0-2.15-1.98-9.15-5.6-6.99-3.62-9.8-4.19-9.8-4.19-.96-.27-1.58.04-1.85 1.16Z",
+					fill: "white"
+				}),
+				u("path", {
+					"fill-rule": "evenodd",
+					"clip-rule": "evenodd",
+					d: "M252.64 37.47c-1.33 10.61-5.84 16.19-17.96 17.57l.02 4.59c16.96-1.85 20.82-10.23 22.33-22.16h-4.39Zm3.23 17.69v4.48l.02-.01c6.31-2.18 10.24-5.28 12.38-8.61 2.98 2.5 5.58 5.31 7.81 8.49h5.52c-2.5-3.62-5.52-7-8.57-9.19h-4.34c1.15-2.05 1.65-4.16 1.62-6.19 0-1.16.01-2.36.02-4.08.02-2.17.04-5.17.04-9.98h-3.92c.03 4.2-.09 11.06-.42 15.17-.34 4.51-4.07 7.53-10.17 9.91ZM273.28 28.47v19.77l4.49-.01V27.36c.05-1.47-.15-2.32-.61-2.78-.46-.47-1.26-.67-2.62-.67h-5.03l1.64-4.8h7.7V15.47h-20.96v3.66h8.82l-1.73 4.8H259.1l-.19 24.32h4.12l.18-20.78h9.12c.13-.01.26 0 .38.05.13.04.24.1.34.19.09.1.16.22.2.35.05.13.06.27.05.4ZM237.91 36.06c-.87 3.94-2.08 7.8-3.62 11.52h4.54c1.42-3.74 2.51-7.6 3.27-11.52h-4.19Zm6.91-3.45-1.28 13.6 4.56.03 1.21-13.63h8v-3.79h-7.71v-4.91h6.83v-3.63h-6.83v-5.71h-4.51v14.46h-3.35v-10.02h-4.35v10.02h-2.75v3.8h10.17Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M217.26 59.42c-.46 0-.9-.18-1.22-.5-.32-.32-.5-.75-.5-1.2V47.72l-.56 1.16c-2.09 4.26-8.29 9.74-14.96 10.75v-4.36c6.17-1.43 10.6-6.16 12.54-11.9 1.46-4.24 1.33-9.47 1.18-15.72-.04-1.64-.09-3.36-.1-5.14h4.66c.05 11.31-.28 17.42-1.64 22.3l-.1.35h3.64v9.81h9.96l-.65 4.43-12.25.02ZM190.54 59.42V38.7c-2.04 2.44-4.32 4.67-6.81 6.66v-5.84c9.34-8.6 10.73-12.23 11.42-14.04.03-.08.06-.16.09-.24.02-.06.03-.11.02-.17 0-.06-.03-.11-.06-.16a.39.39 0 0 0-.13-.1.35.35 0 0 0-.16-.04h-10.4v-3.91h14.8c.24 0 .47.05.69.16.22.1.41.26.55.45.14.19.25.41.3.64.05.24.04.48-.02.71-.97 3.64-5.6 10.97-5.6 10.97v.74h3.62c1.1 1.84 2.5 5.23 3.34 7.32h-4.67c-.68-1.98-1.44-3.93-2.28-5.85v23.43h-4.7ZM222.4 44.4V20.25c0-.26-.1-.51-.3-.7-.18-.18-.43-.29-.7-.29h-12.06v25.03h-4.6V15.63h19.6c.73 0 1.44.29 1.96.81.52.52.81 1.22.81 1.95v26.01h-4.71Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M146.72 28.09h-10.33v3.95h5.23l-.49 25.7c0 .21.04.43.12.63.08.2.2.39.35.54.15.16.34.28.54.36.2.09.42.13.64.14h9.07v-4.43h-5.44l.32-25.9Zm1.07-3.19h-5c-.59-1.71-1.2-3.46-1.79-5.12-.58-1.66-1.17-3.33-1.74-4.99h4.76l3.77 10.11ZM176.43 54.97l.2-36.64c0-.4-.08-.81-.23-1.19-.15-.38-.38-.72-.67-1.01-.29-.3-.63-.52-1.01-.68-.38-.16-.79-.24-1.2-.24h-23.29v3.95h20.28c.24 0 .48.1.65.27.17.17.27.4.27.65 0 0-.1 31.84-.15 37.68 0 .22.05.43.13.63.08.2.2.38.35.54.15.15.34.28.54.36.2.08.42.12.64.13h9.42l.65-4.44h-6.57Zm-13.57-34.05-.03 13.32h6.8v4.26h-6.82l-.17 20.92h-5.06l.16-20.92h-6.94v-4.26h6.96l.06-13.35 5.04.03Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M190.99 20.85h4.7l-2.71-6.13h-4.6c.79 1.54 2.24 5.05 2.6 6.13ZM104.69 49.97h18.28v3.45H104.7v-3.45Zm21.33-11.87c2.12 1.21 4.4 2.1 6.79 2.63v-3.99c-2.87-.72-7.21-2.72-8.97-5.13l-.27-.37h8.17v-3.45h-13.02l.08-.35c.05-.22.1-.46.16-.67.14-.54.25-1.09.34-1.64v-.18h10.7v-3.55h-3.03l.12-.37c.6-1.87 1.08-3.78 1.44-5.72h-4.78c-.28 2.01-.71 3.99-1.29 5.94l-.04.15h-2.61v-.31c.09-2.22 0-4.44-.3-6.64h-4.86c.28 2.24.38 4.5.3 6.75v.2h-2.8l-.42-1.07c-.7-1.79-1.3-3.34-1.9-5.02h-4.82l2.3 6.09h-2.26v3.55h9.37l-.07.34c-.15.8-.37 1.6-.66 2.37l-.05.13h-10.06v3.45h8.29l-.38.43c-1.7 1.94-4.83 3.52-8.1 4.48v4.54c1.43-.37 2.82-.88 4.14-1.53l.73-.38h12.63v5.15h-8.39v-3.4h-4.79v6.9h16.87c.18-.02.37 0 .55.07.18.06.34.16.48.28.12.13.2.28.26.45.05.16.07.34.05.52v7.14h-15.34v3.6h20.2c.05-4.52.08-9.66 0-13.43.02-.29-.02-.58-.11-.85-.1-.27-.25-.52-.43-.74-.5-.46-1.38-.55-2.27-.55h-2.36l.09-6.04.34.2Zm-12.77-2.68.5-.46c1.23-1.1 2.35-2.32 3.34-3.65l.07-.1h1.72l.1.14c.85 1.33 1.86 2.55 3 3.65l.46.42-9.19.01Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M88.74 15.74h9.43c1.55 0 2.45.24 2.84.63.4.38.6 1.02.6 2.02v41.12h-4.67l.17-15.87h-3.97v.2c-.12 5.2-.46 10.48-1.01 15.67h-4.55c.65-5.27 1.03-10.57 1.14-15.88V15.74Zm4.41 24.24h3.97l.08-8.62h-4.07l.02 8.62Zm0-12.22h4.07l.09-6.93c.02-.17 0-.34-.05-.5a1.37 1.37 0 0 0-.25-.45.95.95 0 0 0-.51-.26c-.19-.05-.39-.07-.58-.06h-2.77v8.2Z",
+					fill: "white"
+				})
+			]
+		})]
+	});
+	var LogoBilibiliCombined = (props) => u("svg", {
+		width: "140",
+		height: "64",
+		viewBox: "0 0 140 64",
+		fill: "none",
+		...props,
+		children: u("path", {
+			d: "M129.988 57.0979C129.362 57.0979 128.828 57.1479 128.305 57.0879C127.243 56.9659 126.181 56.9899 125.118 56.9579C124.432 56.9399 124.452 56.9399 124.394 56.2761C124.224 54.2507 124.038 52.2273 123.856 50.2039C123.698 48.4264 123.548 46.6469 123.374 44.8714C123.216 43.2439 123.026 41.6204 122.854 39.9949C122.69 38.4673 122.538 36.9377 122.368 35.4122C122.153 33.4919 121.93 31.5725 121.701 29.6539C121.495 27.9584 121.291 26.2588 121.063 24.5653C120.706 21.9396 120.34 19.3151 119.967 16.6916C119.567 13.8964 119.087 11.1152 118.585 8.33805C118.495 7.8402 118.507 7.8222 118.983 7.74223C120.963 7.40432 122.952 7.11641 124.966 7.16039C125.184 7.16639 125.403 7.17039 125.619 7.19838C125.973 7.24237 126.157 7.41432 126.177 7.8262C126.247 9.26178 126.347 10.6974 126.453 12.1309C126.623 14.4803 126.807 16.8296 126.983 19.1769C127.095 20.6885 127.191 22.196 127.305 23.7036C127.487 26.1269 127.679 28.5482 127.863 30.9715C127.975 32.453 128.073 33.9386 128.187 35.4202C128.361 37.5956 128.551 39.7689 128.727 41.9423C128.838 43.3259 128.938 44.7115 129.056 46.0951C129.23 48.1445 129.418 50.1939 129.596 52.2433C129.73 53.8428 129.852 55.4464 129.988 57.0979ZM53.3544 7.18239C53.6443 7.18239 54.0822 7.1504 54.5141 7.19039C55.0639 7.24037 55.1699 7.38233 55.2039 7.93417C55.3618 10.4574 55.5098 12.9827 55.6777 15.508C55.8617 18.2312 56.0636 20.9504 56.2656 23.6696C56.4515 26.1669 56.6374 28.6641 56.8374 31.1614C57.0553 33.9046 57.2973 36.6438 57.5172 39.387C57.6831 41.4884 57.8251 43.5898 57.9971 45.6932C58.161 47.6446 58.353 49.5921 58.5289 51.5415C58.6789 53.219 58.8308 54.8985 58.9768 56.578C59.0228 57.1099 58.9848 57.1439 58.4109 57.1299C56.9094 57.0939 55.4158 56.9179 53.9142 56.9599C53.5703 56.9699 53.4704 56.812 53.4124 56.4861C53.2884 55.7763 53.3084 55.0545 53.2324 54.3367C53.0265 52.4392 52.9085 50.5338 52.7346 48.6323C52.5786 46.9048 52.3907 45.1813 52.2127 43.4558C52.0548 41.8783 51.8988 40.3008 51.7309 38.7212C51.5629 37.1717 51.385 35.6201 51.209 34.0686C51.0471 32.641 50.8891 31.2134 50.7172 29.7858C50.4632 27.6944 50.2113 25.603 49.9354 23.5156C49.6815 21.6002 49.3936 19.6908 49.1236 17.7773C48.7557 15.1781 48.3419 12.5848 47.884 10.0016C47.7793 9.41662 47.6687 8.83276 47.5521 8.25008C47.4921 7.95616 47.5461 7.78621 47.882 7.74023C48.7657 7.62226 49.6475 7.43831 50.5352 7.35234C51.423 7.27036 52.3107 7.10441 53.3544 7.18239ZM116.234 32.3911C117.926 32.3911 117.966 32.4031 118.238 33.9246C118.571 35.8021 118.805 37.6955 119.027 39.589C119.261 41.6064 119.497 43.6238 119.713 45.6432C119.887 47.2687 120.033 48.8983 120.197 50.5238C120.369 52.2273 120.551 53.9248 120.729 55.6263C120.827 56.588 120.919 57.5498 121.029 58.5095C121.061 58.7874 120.977 58.9353 120.703 58.9673C120.125 59.0333 119.551 59.1093 118.975 59.1713C117.92 59.2852 116.862 59.3972 115.804 59.4952C115.258 59.5452 115.222 59.5152 115.12 58.9873C114.193 54.1987 113.263 49.4141 112.343 44.6235C111.731 41.4384 111.136 38.2514 110.536 35.0663C110.455 34.6281 110.381 34.1888 110.312 33.7487C110.272 33.4967 110.34 33.3348 110.626 33.2668C112.531 32.8209 114.457 32.477 116.234 32.3911ZM45.1668 32.3911C46.9763 32.3911 46.9683 32.3971 47.2482 34.0386C47.68 36.5798 47.986 39.1351 48.2599 41.6984C48.5278 44.1856 48.8197 46.6709 49.0816 49.1582C49.2596 50.8597 49.3996 52.5652 49.5655 54.2647C49.6835 55.4744 49.8234 56.68 49.9514 57.8877C49.9674 58.0356 49.9754 58.1836 49.9854 58.3335C50.0114 58.9254 49.9854 58.9733 49.4155 59.0313C48.2859 59.1493 47.1542 59.2473 46.0245 59.3592C45.6147 59.3992 45.2068 59.4592 44.8009 59.4992C44.261 59.5492 44.243 59.5472 44.1371 59.0013C43.7572 57.0839 43.3893 55.1624 43.0174 53.245C42.1257 48.6263 41.2239 44.0117 40.3382 39.393C39.9843 37.5456 39.6804 35.6901 39.3325 33.8406C39.2685 33.5027 39.3165 33.3448 39.6664 33.2628C41.5538 32.8229 43.4533 32.479 45.1668 32.3911ZM69.0498 51.7574V59.5092C69.0498 59.5832 69.0418 59.6591 69.0518 59.7331C69.0898 60.109 68.9519 60.275 68.564 60.259C68.0541 60.237 67.5483 60.251 67.0384 60.263C65.9747 60.283 64.909 60.241 63.8474 60.3629C63.2595 60.4309 63.2715 60.3949 63.2135 59.7751C63.0396 57.8237 62.8496 55.8742 62.6717 53.9228C62.5077 52.1213 62.3598 50.3159 62.1918 48.5144C62.0219 46.6609 61.8319 44.8135 61.66 42.962C61.542 41.7263 61.4381 40.4927 61.3341 39.2571C61.1981 37.6495 61.0722 36.044 60.9302 34.4365C60.8702 33.7587 60.9202 33.6627 61.592 33.5927C63.3252 33.4019 65.0708 33.3477 66.8125 33.4308C67.2464 33.4548 67.6782 33.5387 68.0981 33.6407C68.628 33.7667 68.6859 33.8446 68.7139 34.3985C68.7719 35.5142 68.8299 36.6298 68.8599 37.7475C68.8939 38.9891 68.8659 40.2328 68.9119 41.4744C69.0278 44.8994 69.0098 48.3284 69.0498 51.7574ZM139.975 52.1093V59.4492C139.975 59.5732 139.971 59.6971 139.977 59.8231C140.003 60.145 139.853 60.259 139.547 60.257C138.796 60.251 138.046 60.257 137.296 60.267C136.448 60.275 135.603 60.271 134.757 60.3629C134.199 60.4269 134.195 60.3849 134.145 59.8311C133.915 57.2898 133.673 54.7486 133.441 52.2033C133.229 49.858 133.033 47.5107 132.817 45.1633C132.595 42.7421 132.353 40.3268 132.136 37.9075C132.028 36.6958 131.938 35.4842 131.848 34.2725C131.812 33.7447 131.87 33.6507 132.465 33.6027C133.501 33.5207 134.533 33.3808 135.577 33.3988C136.616 33.4188 137.658 33.3608 138.692 33.5587C139.567 33.7267 139.611 33.7767 139.663 34.7124C139.813 37.4656 139.767 40.2268 139.865 42.98C139.965 45.9111 139.895 48.8423 139.975 52.1093ZM114.469 19.0709C115.08 19.1069 115.562 19.0769 116.042 19.1829C116.348 19.2529 116.502 19.3908 116.532 19.7187C116.676 21.2963 116.832 22.8758 116.99 24.4554C117.116 25.737 117.25 27.0186 117.38 28.3003L117.392 28.3742C117.496 29.182 117.472 29.204 116.686 29.248C115.986 29.286 115.288 29.3479 114.589 29.3899C114.129 29.4179 113.983 29.4959 113.907 28.8261C113.645 26.4628 113.341 24.1055 113.051 21.7442C112.971 21.0805 112.881 20.418 112.783 19.7567C112.725 19.3828 112.871 19.1769 113.221 19.1469C113.681 19.1049 114.141 19.0929 114.469 19.0709ZM43.6312 19.0809C44.1031 19.1069 44.589 19.0709 45.0648 19.1809C45.3367 19.2429 45.4747 19.3569 45.5007 19.6668C45.5587 20.4065 45.6726 21.1443 45.7426 21.8841C45.9646 24.1535 46.1745 26.4248 46.3824 28.6961C46.4264 29.19 46.4164 29.2 45.9546 29.234C45.1348 29.294 44.313 29.3539 43.4913 29.3879C43.0134 29.4099 42.9534 29.3519 42.8934 28.8641C42.6855 27.1926 42.4896 25.5191 42.2896 23.8455C42.1277 22.4659 41.9917 21.0863 41.7958 19.7107C41.7418 19.3309 41.8657 19.2269 42.1697 19.1649C42.6515 19.0669 43.1354 19.0989 43.6312 19.0809ZM68.578 25.3311C68.578 26.7687 68.582 28.2043 68.576 29.6439C68.576 30.2897 68.568 30.2937 67.9262 30.2857C67.1541 30.2897 66.3824 30.2497 65.6148 30.1657C65.119 30.1037 65.109 30.1197 65.095 29.5939C65.045 27.8364 64.993 26.0789 64.957 24.3214C64.931 23.1318 64.917 21.9461 64.8451 20.7564C64.8071 20.1426 64.8411 20.1366 65.4309 20.1286C66.3006 20.1186 67.1684 20.1586 68.0321 20.2906C68.552 20.3706 68.576 20.3706 68.578 20.9464C68.582 22.408 68.582 23.8695 68.582 25.3331H68.578V25.3311ZM139.539 25.3691C139.539 26.8087 139.543 28.2463 139.537 29.6838C139.537 30.2877 139.527 30.2917 138.922 30.2877C138.126 30.2804 137.331 30.243 136.538 30.1757C136.144 30.1457 136.028 29.9798 136.054 29.6219C136.058 29.5719 136.054 29.5219 136.054 29.4719C135.994 26.6967 135.934 23.9235 135.878 21.1483C135.876 21.0004 135.868 20.8524 135.874 20.7025C135.882 20.1426 135.884 20.1286 136.446 20.1326C137.22 20.1366 137.988 20.1766 138.76 20.2526C139.701 20.3466 139.535 20.4625 139.539 21.2063C139.543 22.5919 139.541 23.9815 139.539 25.3691ZM41.6898 28.7441C41.7078 29.5339 41.7078 29.5319 40.952 29.7158C40.4382 29.8418 39.9243 29.9798 39.4065 30.0937C38.9646 30.1937 38.8866 30.1377 38.8106 29.7038C38.2828 26.7607 37.7569 23.8156 37.2331 20.8704C37.1271 20.2606 37.1551 20.2226 37.7549 20.1166C38.4927 19.9867 39.2285 19.8587 39.9663 19.7447C40.4362 19.6708 40.4961 19.6968 40.5901 20.2146C40.7761 21.2603 40.952 22.31 41.09 23.3637C41.3039 25.0312 41.4799 26.7047 41.6718 28.3742C41.6878 28.4962 41.6838 28.6222 41.6898 28.7441ZM108.198 20.2006C109.164 20.0427 110.138 19.8827 111.112 19.7287C111.462 19.6748 111.567 19.8947 111.613 20.2066C111.779 21.3583 111.987 22.5019 112.123 23.6556C112.323 25.3271 112.597 26.9906 112.649 28.6761C112.653 28.8481 112.651 29.024 112.655 29.196C112.665 29.4639 112.531 29.6019 112.283 29.6599C111.623 29.8078 110.964 29.9558 110.306 30.1137C109.99 30.1897 109.884 30.0557 109.832 29.7478C109.634 28.5762 109.406 27.4105 109.204 26.2428C108.862 24.3194 108.53 22.394 108.198 20.4685C108.19 20.3985 108.198 20.3246 108.198 20.2006ZM63.7834 26.9526C63.7554 27.9763 63.8174 28.8681 63.6774 29.7598C63.6354 30.0417 63.5534 30.2237 63.2495 30.2497C62.5977 30.3037 61.9479 30.3557 61.3001 30.4216C60.9862 30.4556 60.8982 30.3197 60.8462 30.0118C60.7003 29.102 60.7263 28.1803 60.6383 27.2666C60.4723 25.5411 60.4024 23.8036 60.2904 22.0721C60.2624 21.6502 60.2204 21.2323 60.1864 20.8104C60.1684 20.5745 60.2624 20.4425 60.5143 20.4325C61.3581 20.3985 62.1978 20.2446 63.0456 20.2746C63.5414 20.2926 63.5834 20.3246 63.6194 20.8244C63.6414 21.1703 63.6354 21.5202 63.6434 21.8681L63.7834 26.9526ZM134.715 25.9609C134.715 27.1526 134.729 28.3442 134.713 29.5359C134.703 30.1557 134.633 30.2097 134.047 30.2637C133.467 30.3177 132.891 30.3617 132.313 30.4236C131.988 30.4576 131.836 30.3617 131.816 29.9878C131.732 28.4042 131.618 26.8207 131.508 25.2391C131.422 23.9275 131.324 22.6179 131.232 21.3083C131.222 21.1583 131.23 21.0084 131.22 20.8604C131.206 20.5985 131.286 20.4445 131.58 20.4345C132.399 20.4065 133.213 20.2486 134.039 20.2786C134.543 20.2966 134.551 20.3046 134.589 20.8284C134.711 22.5359 134.723 24.2474 134.715 25.9609ZM39.2685 47.2607C40.3042 48.4004 40.3562 49.75 40.0143 51.1616C39.6704 52.5732 38.8866 53.7369 37.9369 54.7806C36.3433 56.524 34.4179 57.8117 32.3705 58.9054C28.8455 60.7888 25.1086 62.0404 21.2097 62.7802C18.4046 63.3101 15.5814 63.718 12.7282 63.8739C11.8585 63.9219 10.9907 63.9619 10.121 63.9559C9.49115 63.9559 8.85933 63.9739 8.23151 63.9519C7.69767 63.9319 7.61969 63.8399 7.57571 63.2821C7.41375 61.2807 7.27579 59.2772 7.09785 57.2758C6.88991 54.9565 6.64598 52.6392 6.42204 50.3199C6.25809 48.6423 6.11613 46.9608 5.93618 45.2873C5.72824 43.3159 5.49431 41.3485 5.26638 39.377C5.05844 37.5576 4.8585 35.7341 4.63856 33.9126C4.39263 31.8952 4.13871 29.8818 3.86878 27.8684C3.60459 25.9294 3.32933 23.9919 3.04302 22.0561C2.57759 18.8699 2.07102 15.6899 1.52347 12.5168C1.08039 9.92958 0.587104 7.35118 0.0438953 4.78309C-0.0280837 4.43919 0.075886 4.30123 0.377798 4.17526C3.27096 2.97561 6.15412 1.75397 9.04528 0.548316C9.58312 0.324381 10.135 0.136436 10.7068 0.0304665C11.1027 -0.043512 11.2047 0.0384642 11.1927 0.436349C11.1627 1.45405 11.2047 2.47576 11.1047 3.48946C11.0803 3.7614 11.0669 4.03421 11.0647 4.30722C11.0187 7.95616 10.9747 11.6071 11.0707 15.258C11.1547 18.4571 11.3226 21.6542 11.5086 24.8513C11.6545 27.3745 11.8645 29.8978 12.0804 32.4171C12.2923 34.8863 12.5503 37.3516 12.7922 39.8209C12.8382 40.2908 12.8802 40.3348 13.414 40.2628C14.466 40.1047 15.5274 40.0172 16.5911 40.0009C19.8961 39.9929 23.1472 40.4467 26.3622 41.2085C29.1754 41.8763 31.9126 42.766 34.5359 44.0097C35.8355 44.6255 37.0791 45.3373 38.2128 46.241C38.5987 46.545 38.9426 46.8948 39.2685 47.2607ZM109.696 46.6609C110.976 47.7826 111.442 49.1562 111.078 50.8557C110.776 52.2573 110.092 53.4349 109.18 54.4886C107.717 56.1821 105.939 57.4698 104.016 58.5455C100.245 60.6568 96.2279 62.0285 92.0052 62.8202C89.7004 63.2575 87.3756 63.5818 85.0392 63.7919C83.7156 63.9059 82.386 64.0479 80.9004 63.9559H79.1649C78.827 63.9559 78.6351 63.8499 78.6071 63.448C78.4791 61.6925 78.3311 59.9391 78.1732 58.1856C78.0052 56.3341 77.8193 54.4826 77.6433 52.6312C77.4834 50.9297 77.3354 49.2242 77.1615 47.5227C77.0015 45.9191 76.8176 44.3196 76.6436 42.7181C76.4817 41.2145 76.3257 39.7109 76.1478 38.2094C75.9338 36.3899 75.7079 34.5704 75.482 32.751C75.27 31.0535 75.0601 29.3579 74.8342 27.6624C74.5939 25.8452 74.3407 24.0297 74.0744 22.216C73.7185 19.8627 73.3366 17.5174 72.9607 15.1681C72.4365 11.8412 71.8298 8.52777 71.1412 5.23096C71.1132 5.085 71.0992 4.93504 71.0553 4.79308C70.9513 4.47318 71.0513 4.30322 71.3652 4.17926C74.4383 2.97761 77.4134 1.52803 80.5145 0.384364C80.9204 0.232408 81.3303 0.0624573 81.7681 0.01847C82.162 -0.0215184 82.262 0.042463 82.224 0.462341C82.0161 2.73968 82.136 5.02901 82.0281 7.30835C81.9401 9.16781 81.9501 11.0333 82.0441 12.8947C82.0661 13.3666 82.084 13.8405 82.08 14.3103C82.0561 16.5457 82.174 18.779 82.288 21.0104C82.434 23.9595 82.6479 26.9027 82.8658 29.8478C83.0238 31.9732 83.2297 34.0946 83.4297 36.2179C83.5356 37.3796 83.6496 38.5393 83.7936 39.6949C83.8715 40.3328 83.9035 40.3388 84.5293 40.2548C85.633 40.1048 86.7387 39.9829 87.8544 39.9989C91.7692 40.0488 95.6061 40.6667 99.371 41.7403C101.92 42.4641 104.402 43.3679 106.745 44.6335C107.802 45.1957 108.792 45.8758 109.696 46.6609ZM19.2923 57.6757C20.7399 56.9839 27.7678 51.4915 28.3257 50.5958C24.9147 49.1262 21.4917 47.7606 17.8107 46.6429L19.2923 57.6757ZM99.1171 50.9557C99.2971 50.7617 99.2771 50.6118 99.0331 50.5038C98.5473 50.2819 98.0654 50.0459 97.5735 49.844C94.9483 48.7703 92.3111 47.7306 89.6059 46.8829C89.3699 46.8109 89.128 46.6469 88.8261 46.7869L90.2837 57.6277C90.4996 57.6757 90.5836 57.5757 90.6796 57.5078C93.1368 55.7043 95.6101 53.9228 97.9694 51.9834C98.3673 51.6595 98.7612 51.3336 99.1171 50.9557Z",
+			fill: "#FF5588"
+		})
+	});
+	var LogoMangoTvCombined = (props) => u("svg", {
+		xmlns: "http://www.w3.org/2000/svg",
+		width: "354",
+		height: "90",
+		viewBox: "0 0 354 90",
+		fill: "none",
+		...props,
+		children: [u("g", {
+			"clip-path": "url(#mangoClip)",
+			children: [
+				u("path", {
+					d: "M172.2 18.6001H160.8L159.9 24.3001H125.4L126.3 18.6001H115.2L114.3 24.3001H105.9L105 29.7001H113.4L112.5 36.0001H123.9L124.8 29.7001H159.3L158.4 36.0001H169.5L170.4 29.7001H180.9L181.5 24.3001H171.3L172.2 18.6001Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M252 18.6H199.8C195 18.6 190.5 21.6 189 26.4L188.4 29.4L186.3 44.1L185.7 49.8H195.3H216L215.4 54H185.4L184.8 59.7H198L188.4 69C186.9 70.5 185.4 72 183.9 73.2C183.6 73.5 183 73.5 182.4 73.5L181.5 79.2H186.9C190.5 78 193.5 75.9 195.9 73.2L209.1 59.7H214.2L211.5 79.2H222.6L225.3 59.7H230.1C230.1 59.7 242.1 77.4 246 78.9C246.9 79.2 247.8 79.2 249 79.2H252.6L253.5 73.5C252.6 73.5 251.7 73.5 251.1 73.2C249.6 72 248.4 70.5 247.2 68.7L240.6 59.4H255.6L256.5 53.7H226.5L227.1 49.2H247.5C252.3 49.2 256.8 46.2001 258.3 41.4L258.6 38.4L260.7 24L261.3 18.3L252 18.6ZM216.6 44.1H196.2L196.8 39.6L197.4 36.3001H217.8L216.6 44.1ZM218.4 31.8001H198L198.6 28.5C198.9 26.1 201 24.3001 203.4 24.3001H219.6L218.4 31.8001ZM249 39.9C248.7 42.3 246.6 44.1 244.2 44.1H228L229.2 36.6H249.6L249 39.9ZM250.5 28.5L249.9 31.8001H229.2L230.4 24.3001H251.1L250.5 28.5Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M146.4 36.9001H135.3L137.1 44.7001H103.2L102.3 50.1001H110.7L108.3 67.5001C107.4 74.4001 112.2 78.9001 119.4 79.2001C158.4 79.2001 170.1 79.2001 174 79.2001L174.9 73.8001H124.5C121.2 73.5001 119.1 70.8001 119.1 67.5001L121.5 50.1001H177.9L178.8 44.7001H148.2L146.4 36.9001Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M289.2 18.6001H278.7C278.7 19.8001 277.8 24.3001 277.2 30.3001H267.9C267.6 33.0001 267.3 34.8001 267 36.3001H276C274.2 50.7001 271.8 68.4001 271.5 68.4001C271.2 70.5001 271.5 72.9001 272.4 74.7001C273.3 76.2001 274.5 77.4001 276.3 78.0001C278.7 78.9001 280.8 79.2001 283.2 79.2001C284.1 79.2001 290.4 79.2001 293.4 79.2001L294.3 73.2001H288.9C287.7 73.2001 286.5 72.9001 285.6 72.3001C284.4 71.7001 283.8 70.8001 283.2 69.9001C282.6 68.1001 282.6 66.3001 282.9 64.8001C282.9 64.8001 284.7 49.2001 286.5 36.3001H297L297.6 30.3001H287.1C288.3 24.6001 288.9 19.8001 289.2 18.6001Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M341.4 31.2L323.4 71.3999L312 31.2H301.2L315.6 79.5H324.3C327 79.5 329.7 78 331.2 75.6L353.7 31.2H341.4Z",
+					fill: "white"
+				}),
+				u("path", {
+					d: "M92.7 62.7001C92.7 62.4001 92.7 62.4001 92.7 62.4001V34.8001C92.7 32.1001 90.9 29.7001 88.2 29.1L78.6 26.4001L64.8 54.0001L50.7 19.2001L36 15.0001C35.4 14.7001 34.8 14.7001 33.9 14.7001C29.7 14.7001 26.4 17.7001 26.4 21.9001V63.3001C26.7 67.2001 29.7 70.2001 33.6 69.9001C33.9 69.9001 34.2 69.9001 34.2 69.9001L40.2 69.3001V26.1L57.3 67.8001L70.2 66.6001L86.1 34.8001V57.6001V57.9001C85.8 66.3001 79.5 73.5001 71.1 74.4001L30 78.3001C29.7 78.3001 29.4 78.3001 29.1 78.3001C22.2 78.6001 16.2 72.9001 16.2 66.0001V19.8001C15.9 12.3001 22.2 6.30005 30 6.60005C31.5 6.60005 33 6.90005 34.2 7.20005L83.1 20.4001C83.4 20.4001 83.7 20.4001 84 20.4001C85.5 20.4001 86.7 19.2001 86.7 18.0001C86.7 16.8001 86.1 15.9001 84.9 15.6001L31.8 1.50005C29.4 0.60005 26.4 4.98989e-05 23.7 4.98989e-05C11.1 -0.29995 0.6 9.60005 0 22.2001V69.6001C0.3 81.3001 10.2 90.3001 21.6 90.0001C22.2 90.0001 22.8 90.0001 23.4 90.0001L70.5 85.8001C83.1 84.6001 92.4 74.7001 92.7 62.7001Z",
+					fill: "#FF5F00"
+				})
+			]
+		}), u("defs", { children: u("clipPath", {
+			id: "mangoClip",
+			children: u("rect", {
+				width: "354",
+				height: "90",
+				fill: "white"
+			})
+		}) })]
+	});
+	var LogoCbs = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		xmlns: "http://www.w3.org/2000/svg",
+		...props,
+		children: [u("title", { children: "CBS" }), u("path", { d: "M12 24C5.314 24 .068 18.587.068 11.949.068 5.413 5.314 0 12 0s11.932 5.413 11.932 11.949C23.932 18.587 18.686 24 12 24zm0-5.106c5.452 0 9.36-3.473 11.109-6.945C21.875 9.294 18.172 5.106 12 5.106c-5.452 0-9.36 3.37-11.109 6.843C2.537 15.42 6.548 18.894 12 18.894zm0-.613c-3.497 0-6.377-2.86-6.377-6.332S8.503 5.617 12 5.617s6.377 2.86 6.377 6.332c0 3.574-2.88 6.332-6.377 6.332Z" })]
+	});
+	var LogoCctv = (props) => u("svg", {
+		viewBox: "0 0 1000 230",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("path", {
+				fill: "#000000",
+				d: "M 846.3033,0 c -2.30059,0 -4.36694,1.4075976 -5.20913,3.5484877 L 781.66384,154.62167 723.62941,7.0969831 C 721.94502,2.8151979 717.81233,0 713.21114,0 H 454.91623 v 54.501305 c 0,3.091533 2.50615,5.597718 5.59771,5.597718 h 73.88041 V 227.26075 h 60.43542 c 3.0915,0 5.59772,-2.50619 5.59772,-5.59772 V 60.099023 h 69.06853 c 2.28294,0 4.33711,1.386338 5.19123,3.503463 l 66.02332,163.658254 h 78.12868 c 2.28288,0 4.33705,-1.38632 5.19111,-3.50343 L 914.29901,0 Z"
+			}),
+			u("rect", {
+				fill: "#E80413",
+				width: "87.839653",
+				height: "87.839653",
+				x: "912.16034",
+				y: "140.19064"
+			}),
+			u("path", {
+				fill: "#000000",
+				d: "M 358.42902,168.8641 c -37.23363,0 -68.1357,-24.71578 -68.1357,-54.61957 0,-29.903795 28.53097,-54.145507 63.72586,-54.145507 h 78.11337 c 3.09156,0 5.59772,-2.506154 5.59772,-5.597718 V 0 h -83.71109 c -74.25947,0 -134.45867,51.149038 -134.45867,114.24453 0,63.09549 64.60904,114.66766 138.86851,114.66766 33.06117,0 60.03484,-6.51924 88.27787,-17.45216 l -22.77982,-56.42435 c -21.08711,8.53802 -40.39853,13.82842 -65.49805,13.82842 z"
+			}),
+			u("path", {
+				fill: "#000000",
+				d: "M 138.86851,168.8641 c -37.23363,0 -68.135715,-24.71578 -68.135715,-54.61957 0,-29.903795 28.53097,-54.145507 63.725855,-54.145507 h 78.11338 c 3.09156,0 5.59771,-2.506154 5.59771,-5.597718 V 0 H 134.45865 C 60.199183,0 0,51.149038 0,114.24453 c 0,63.09549 64.609052,114.66766 138.86851,114.66766 33.06117,0 60.03483,-6.51924 88.27786,-17.45216 l -22.77982,-56.42435 c -21.08712,8.53802 -40.39852,13.82842 -65.49804,13.82842 z"
+			})
+		]
+	});
+	var LogoFox = (props) => u("svg", {
+		viewBox: "0 0 1000 434",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("path", {
+				fill: "#FF5027",
+				d: "M 0,434.04061 V 0 H 260.95965 L 269.25166,118.4886 122.85582,118.73828 V 175.34999 L 242.14602,175.64347 V 293.7247 H 121.90528 L 122.42654,434.04061 Z"
+			}),
+			u("path", {
+				fill: "#FF5027",
+				d: "M 803.02858,94.26086 752.9655,0.7578 H 614.30975 L 735.47475,209.79272 607.3406,433.3529 H 741.67295 L 801.52612,323.96229 861.9137,433.3529 H 1000 L 869.3296,208.0143 988.173,0.7578 H 854.1079 Z"
+			}),
+			u("path", {
+				fill: "#FF5027",
+				d: "M 468.73741,6.64938 C 354.30939,6.4435 261.8182,101.06355 261.8182,217.77373 261.8182,334.29117 354.30939,428.56955 468.77245,428.65716 582.54779,428.62211 675.34561,334.29555 675.34561,217.77373 675.35437,101.07231 582.55217,6.43912 468.73741,6.64938 M 469.11412,339.47313 C 449.79237,339.47313 433.85226,323.53302 433.85226,303.81266 V 130.70541 C 433.85226,111.04638 449.79237,93.32784 469.11412,93.32784 488.71183,93.32784 505.40536,111.12084 505.40536,130.91129 V 304.20251 C 505.40536,323.96229 488.53223,339.47313 469.11412,339.47313"
+			})
+		]
+	});
+	var LogoFx = (props) => u("svg", {
+		viewBox: "0 0 1000 597",
+		"aria-hidden": "true",
+		fill: "currentColor",
+		...props,
+		children: u("polygon", { points: "762.825,0 690.039,133.12 615.406,0 379.613,0 379.705,0.092 0,0.092 0,596.773 207.839,596.773 207.839,402.677 410.242,402.677 410.242,240.127 207.839,240.127 207.839,168.175 492.895,168.175 571.953,285.605 380.445,596.773 615.222,596.773 689.854,455.812 763.56,596.773 998.986,596.773 809.413,285.147 1000,0 " })
+	});
+	var LogoAbc = (props) => u("svg", {
+		viewBox: "0 0 978 978",
+		"aria-hidden": "true",
+		...props,
+		children: [u("path", {
+			fill: "#f2f2f2",
+			d: "M 488.906 0 C 218.891 0 0 218.895 0 488.906 C 0 758.934 218.891 977.82 488.906 977.82 C 758.926 977.82 977.82 758.934 977.82 488.906 C 977.82 218.895 758.926 0 488.906 0 Z"
+		}), u("path", {
+			fill: "#07111E",
+			"fill-rule": "evenodd",
+			d: "M 775.977 354.91 C 701.879 354.91 641.809 414.977 641.809 489.078 C 641.809 563.176 701.879 623.242 775.977 623.242 C 843.105 623.168 899.852 573.484 908.785 506.961 L 832.215 506.961 C 824.633 530.809 802.332 548.09 775.977 548.09 C 743.387 548.09 716.977 521.668 716.977 489.086 C 716.977 456.496 743.398 430.086 775.977 430.074 C 802.332 430.074 824.645 447.352 832.215 471.203 L 908.797 471.203 C 899.852 404.66 843.105 354.992 775.977 354.91 Z M 201.215 548.078 C 168.625 548.078 142.215 521.66 142.215 489.062 C 142.215 456.473 168.637 430.062 201.215 430.062 C 233.805 430.062 260.215 456.484 260.215 489.062 C 260.215 521.668 233.793 548.078 201.215 548.078 Z M 335.383 620.973 L 335.383 489.078 C 335.383 414.977 275.312 354.91 201.215 354.91 C 127.117 354.91 67.047 414.977 67.047 489.078 C 67.047 563.176 127.117 623.242 201.215 623.242 C 223.082 623.215 245.742 613.922 261.715 598.477 L 261.715 620.973 Z M 488.301 430.074 C 520.895 430.074 547.301 456.496 547.301 489.086 C 547.301 521.68 520.879 548.09 488.301 548.09 C 455.711 548.09 429.301 521.668 429.301 489.086 C 429.301 456.484 455.711 430.074 488.301 430.074 Z M 354.133 288.875 L 354.133 489.078 C 354.133 563.176 414.203 623.242 488.301 623.242 C 562.406 623.242 622.469 563.176 622.469 489.078 C 622.469 414.977 562.406 354.91 488.301 354.91 C 467.844 354.945 446.664 361.453 429.301 373.215 L 429.301 288.875 Z"
+		})]
+	});
+	var LogoBbc = (props) => u("svg", {
+		viewBox: "0 0 1000 285",
+		"aria-hidden": "true",
+		fill: "currentColor",
+		...props,
+		children: u("path", { d: "M541.817 184.201c0 30.971-38.541 29.133-38.541 29.133h-38.54V157.371h38.54C542.939 157.105 541.817 184.201 541.817 184.201M464.736 72.023h29.368c30.496 1.611 29.345 24.316 29.345 24.316c0 28.216-33.721 28.676-33.721 28.676H464.736V72.023zM534.688 136.02c0 0 26.38-11.241 26.145-41.057c0 0 4.012-48.864-60.729-54.824H428.266v204.849h82.344c0 0 68.802 0.205 68.802-57.799C579.411 187.189 581.038 147.716 534.688 136.02M348.773 0h302.453V285.013H348.773V0zM193.041 184.201c0 30.971-38.541 29.133-38.541 29.133h-38.543V157.371h38.543C194.166 157.105 193.041 184.201 193.041 184.201M115.957 72.023h29.374c30.497 1.611 29.343 24.316 29.343 24.316c0 28.216-33.719 28.676-33.719 28.676h-24.998V72.023zM185.915 136.02c0 0 26.384-11.241 26.147-41.057c0 0 4.009-48.864-60.732-54.824h-71.841v204.849h82.349c0 0 68.801 0.205 68.801-57.799C230.639 187.189 232.26 147.716 185.915 136.02M0 0h302.453V285.013H0V0zM938.301 54.825v37.846c0 0-36.942-22.702-77.764-23.159c0 0-76.161-1.495-79.594 73.005c0 0-2.751 68.513 78.676 72.417c0 0 34.165 4.115 80.514-25.441v39.195c0 0-62.173 36.939-134.197 8.488c0 0-60.545-22.109-62.851-94.659c0 0-2.518-74.619 78.23-99.389c0 0 21.563-8.255 60.313-4.586C881.629 38.541 904.789 40.832 938.301 54.825M697.547 285.013H1000V0H697.547V285.013z" })
+	});
+	var LogoUsa = (props) => u("svg", {
+		viewBox: "0 0 2560 1129",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("path", {
+				d: "",
+				stroke: "none",
+				fill: "#000000",
+				"fill-rule": "evenodd"
+			}),
+			u("path", {
+				stroke: "none",
+				fill: "#f83837",
+				"fill-rule": "evenodd",
+				d: "M 1903.500 1.634 C 1784.314 15.712, 1682.157 73.061, 1605.547 168.898 C 1583.494 196.486, 1562.379 229.271, 1547.518 259 C 1544.906 264.225, 1542.627 268.656, 1542.454 268.847 C 1542.281 269.038, 1536.816 264.538, 1530.310 258.847 C 1469.043 205.257, 1424.232 177.562, 1371.500 160.700 C 1345.317 152.326, 1322.678 148.743, 1296 148.747 C 1273.456 148.751, 1260.348 150.631, 1242.817 156.373 C 1220.347 163.734, 1204.847 173.091, 1188.861 188.947 C 1169.198 208.450, 1158.021 230.596, 1153.996 258.026 C 1152.002 271.613, 1153.135 295.156, 1156.376 307.477 C 1163.448 334.364, 1181.097 357.845, 1207.383 375.336 C 1234.333 393.269, 1265.751 405.637, 1346 429.902 C 1458.722 463.987, 1518.480 492.987, 1568.276 537.771 C 1609.835 575.146, 1641.474 627.241, 1658.302 686 C 1675.147 744.818, 1678.544 811.883, 1667.876 875 C 1663.465 901.099, 1653.448 936.173, 1644.417 957.141 C 1642.437 961.739, 1639.960 967.650, 1638.913 970.277 L 1637.008 975.053 1641.254 979.688 C 1647.854 986.893, 1668.256 1005.248, 1681.500 1015.897 C 1737.638 1061.037, 1808.741 1093.120, 1882.240 1106.475 C 1956.544 1119.977, 2032.078 1114.179, 2098.164 1089.902 C 2144.990 1072.701, 2183.174 1049.736, 2218.250 1017.680 L 2229 1007.856 2229 1052.928 L 2229 1098 2388.010 1098 L 2547.020 1098 2546.766 614.250 C 2546.627 348.188, 2546.390 104.288, 2546.240 72.250 L 2545.968 14 2387.484 14 L 2229 14 2229 59.068 L 2229 104.136 2221.250 97.105 C 2197.436 75.503, 2163.326 52.977, 2132.178 38.285 C 2091.936 19.304, 2047.794 6.756, 2003 1.567 C 1985.150 -0.502, 1921.211 -0.458, 1903.500 1.634 M 0.006 324.747 C 0.011 528.765, 0.385 654.674, 1.024 667 C 5.881 760.611, 21.515 827.216, 53.722 891.495 C 72.426 928.824, 92.738 956.982, 121.909 986.019 C 159.532 1023.470, 203.051 1051.454, 256 1072.244 C 322.087 1098.192, 407.169 1111.410, 497 1109.686 C 530.162 1109.049, 545.853 1108.073, 573.500 1104.926 C 725.362 1087.639, 835.653 1023.944, 900.224 916.237 C 914.746 892.015, 927.544 865.062, 935.293 842.387 C 937.057 837.225, 938.804 833.114, 939.174 833.251 C 939.545 833.388, 946.745 839.870, 955.174 847.656 C 974.075 865.115, 985.044 874.512, 1000.309 886.320 C 1055.703 929.172, 1111.100 954.323, 1166.052 961.569 C 1184.785 964.039, 1216.100 963.091, 1232.889 959.545 C 1279.338 949.735, 1313.122 923.133, 1329.560 883.423 C 1340.388 857.266, 1341.914 824.469, 1333.473 799.324 C 1322.622 767.001, 1298.210 741.676, 1258.874 721.937 C 1236.164 710.540, 1213.372 702.345, 1153.142 683.917 C 1097.314 666.835, 1089.249 664.200, 1065.500 655.279 C 1009.553 634.263, 967.698 611.349, 932.500 582.467 C 920.837 572.897, 900.422 552.164, 890.684 540 C 870.149 514.349, 851.275 479.718, 839.724 446.494 C 816.357 379.282, 811.484 296.670, 826.573 223.500 C 841.637 150.447, 875.816 86.233, 928.349 32.290 C 935.966 24.469, 945.978 14.824, 950.599 10.857 C 955.219 6.890, 959 3.275, 959 2.823 C 959 2.121, 640.260 1.549, 639.856 2.250 C 639.777 2.388, 639.376 143.575, 638.965 316 C 638.464 526.725, 637.866 633.106, 637.143 640.500 C 635.123 661.155, 632.869 677.492, 630.028 692.061 C 612.040 784.322, 564.959 828, 483.500 828 C 423.984 828, 382.393 803.588, 357.529 754.062 C 343.409 725.935, 336.271 696.773, 330.834 645 C 329.930 636.396, 329.484 554.048, 329.063 318 L 328.500 2.500 164.250 2.247 L 0 1.994 0.006 324.747 M 1999.301 286.993 C 1929.027 294.419, 1868.337 337.785, 1829.255 408.500 C 1810.369 442.672, 1797.817 484.868, 1793.914 527.305 C 1792.203 545.908, 1793.250 583.693, 1795.970 601.500 C 1810.075 693.858, 1861.777 770.576, 1933.500 805.572 C 1981.545 829.015, 2033.405 832.210, 2083.876 814.835 C 2136.924 796.573, 2183.258 754.785, 2212.433 698.890 C 2235.040 655.579, 2246.292 608.616, 2246.310 557.500 C 2246.324 519.949, 2241.716 490.480, 2230.519 456.500 C 2200.367 365.001, 2130.965 301.225, 2047.717 288.516 C 2035.198 286.604, 2010.371 285.824, 1999.301 286.993"
+			}),
+			u("path", {
+				d: "",
+				stroke: "none",
+				fill: "#000000",
+				"fill-rule": "evenodd"
+			})
+		]
+	});
+	var LogoPeacock = (props) => u("svg", {
+		viewBox: "0 0 69.5 68.18",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("defs", { children: u("linearGradient", {
+				id: "peacockGrad",
+				x1: "1575.74",
+				x2: "1575.74",
+				y1: "-0.83",
+				y2: "400.19",
+				gradientUnits: "userSpaceOnUse",
+				gradientTransform: "matrix(0.17955816,0,0,0.1704379,-219.04915,0.00749893)",
+				children: [
+					u("stop", { "stop-color": "#ffdc23" }),
+					u("stop", {
+						offset: ".16",
+						"stop-color": "#ff8700"
+					}),
+					u("stop", {
+						offset: ".21",
+						"stop-color": "#ff5401"
+					}),
+					u("stop", {
+						offset: ".37",
+						"stop-color": "#d9005a"
+					}),
+					u("stop", {
+						offset: ".42",
+						"stop-color": "#c814c8"
+					}),
+					u("stop", {
+						offset: ".58",
+						"stop-color": "#8250ff"
+					}),
+					u("stop", {
+						offset: ".63",
+						"stop-color": "#6e64ff"
+					}),
+					u("stop", {
+						offset: ".79",
+						"stop-color": "#00c8ff"
+					}),
+					u("stop", {
+						offset: ".84",
+						"stop-color": "#0c9"
+					}),
+					u("stop", {
+						offset: ".99",
+						"stop-color": "#00a637"
+					})
+				]
+			}) }),
+			u("path", {
+				"stroke-width": "0.222043",
+				d: "m 48.344254,23.376251 c 0,14.582148 -11.296608,26.178142 -36.607947,29.086577 v 15.47688 H 0 V 24.601791 C 0,9.1049395 10.947966,0 24.698431,0 38.448896,0 48.344254,10.24389 48.344254,23.376251 m -11.736307,0.437376 c 0,-7.180057 -5.429566,-12.60618 -12.349215,-12.60618 -6.919641,0 -12.524649,4.902158 -12.524649,13.394344 v 16.71352 C 21.134238,41.04889 36.605731,35.784844 36.605731,23.813627 Z"
+			}),
+			u("path", {
+				fill: "url(#peacockGrad)",
+				d: "m 69.499016,5.333684 c 0,2.9417574 -2.512018,5.326184 -5.611192,5.326184 -3.099174,0 -5.611193,-2.3844266 -5.611193,-5.326184 0,-2.9417581 2.512019,-5.32618468 5.611193,-5.32618468 3.099174,0 5.611192,2.38442658 5.611192,5.32618468 m -5.611192,9.055365 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326185 0,2.941758 2.512019,5.326185 5.611193,5.326185 3.099174,0 5.611192,-2.384427 5.611192,-5.326185 0,-2.941758 -2.512018,-5.326185 -5.611192,-5.326185 m 0,14.379846 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326185 0,2.941758 2.512019,5.326184 5.611193,5.326184 3.099174,0 5.611192,-2.384426 5.611192,-5.326184 0,-2.941758 -2.512018,-5.326185 -5.611192,-5.326185 m 0,14.379845 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326186 0,2.941758 2.512019,5.326184 5.611193,5.326184 3.099174,0 5.611192,-2.384426 5.611192,-5.326184 0,-2.941759 -2.512018,-5.326186 -5.611192,-5.326186 m 0,14.381551 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326184 0,2.941758 2.512019,5.326185 5.611193,5.326185 3.099174,0 5.611192,-2.384427 5.611192,-5.326185 0,-2.941757 -2.512018,-5.326184 -5.611192,-5.326184"
+			})
+		]
+	});
+	var LogoCw = (props) => u("svg", {
+		viewBox: "0 0 634.82 278.47",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "#ff4500",
+			"fill-rule": "evenodd",
+			d: "M 132.45054,0 C 59.024992,0.32967 0,62.2039 0,139.04781 0,216.09719 59.333691,278.12623 133.03254,278.12623 h 89.4401 c 31.40713,0 60.18012,-11.29179 82.88879,-30.1835 18.44963,18.87803 43.97747,30.52429 72.26351,30.52429 29.17254,0 55.38991,-12.41067 73.9559,-32.34304 19.33778,19.93306 46.64489,32.34304 77.03052,32.34304 58.24863,0 105.18745,-45.54729 106.20702,-102.47383 V 0 h -86.51481 c 9.4e-4,198.95195 0.17625,-69.53274 0.17625,162.67998 0,14.63405 -11.78186,26.41583 -26.41583,26.41583 -14.63405,0 -26.41583,-11.78178 -26.41583,-26.41583 0,-232.21269 0.17526,36.27171 0.17605,-162.67998 H 408.1569 c 9.2e-4,198.95162 0.17624,-69.53269 0.17604,162.67998 0,14.63405 -11.78183,26.41583 -26.41581,26.41583 -14.63404,0 -26.41582,-11.78178 -26.41582,-26.41583 0,-232.21267 0.17526,36.27166 0.17604,-162.67998 h -87.49104 v 139.04781 c 0,28.63159 -20.7988,51.68297 -46.63262,51.68297 h -87.66347 c -25.83379,0 -46.632605,-23.05138 -46.632605,-51.68297 0,-28.63166 20.798815,-51.683 46.632605,-51.683 h 85.2168 V 0 Z"
+		})
+	});
+	var LogoItvx = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		xmlns: "http://www.w3.org/2000/svg",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "M15.91 11.018a59.87 59.87 0 0 0-.98-.27c-.1 0-.16.05-.2.17-.35 1.2-.9 2.53-1.38 3.36-.16-.3-.45-.83-.73-1.3l-1.04-1.83c-.22-.34-.36-.43-.64-.43-.57 0-1.42.51-1.42 1 0 .16.04.28.21.57.2.32.3.6.3.92 0 .82-.62 1.56-1.8 1.56-.55 0-.99-.16-1.27-.45-.27-.28-.4-.65-.4-1.27v-1.03c.2.08.44.12.73.12h.93c.13 0 .17-.05.17-.16v-1c0-.11-.04-.17-.17-.17H6.56v-1.63c0-.2-.05-.33-.16-.43-.16-.15-.5-.22-.89-.22-.4 0-.72.07-.89.22-.1.1-.16.24-.16.43v4c0 .66-.1 1.02-.34 1.27-.2.22-.53.34-.88.34s-.66-.12-.84-.31c-.2-.2-.29-.48-.29-.9v-2.6c0-.11-.04-.16-.16-.16H.18c-.12 0-.17.05-.17.16v2.35c0 .94.25 1.47.67 1.9.55.54 1.48.79 2.38.79.88 0 1.81-.32 2.36-.82a4 4 0 0 0 2.6.82c1.42 0 2.47-.6 3.08-1.6.27.43.47.74.67 1.02.28.42.54.58 1.12.58.54 0 .87-.13 1.17-.59.78-1.18 1.44-2.59 1.92-3.88.05-.16.1-.28.1-.35 0-.08-.05-.14-.17-.18zm-14.85-.92c.66 0 1.07-.46 1.07-1.05 0-.6-.4-1.06-1.07-1.06-.65-.01-1.06.46-1.06 1.05 0 .59.4 1.05 1.06 1.05zm22.84 5.1-2.28-3.13c-.05-.07-.05-.14 0-.2l2.1-3.07c.07-.09.11-.15.11-.28 0-.12-.07-.25-.19-.37a.51.51 0 0 0-.39-.17.4.4 0 0 0-.24.1l-2.9 2.22c-.06.05-.13.05-.2 0l-2.89-2.22a.4.4 0 0 0-.25-.1.51.51 0 0 0-.38.17c-.12.12-.2.25-.2.37 0 .13.05.2.11.28l2.11 3.07c.05.06.05.13 0 .2l-2.28 3.13a.42.42 0 0 0-.1.26c0 .14.06.26.18.38.11.11.24.18.38.18.1 0 .17-.04.26-.1l3.06-2.23a.17.17 0 0 1 .2 0l3.07 2.23c.09.06.16.1.26.1.14 0 .27-.07.38-.18.12-.12.18-.24.18-.38 0-.1-.04-.17-.1-.26z" })
+	});
+	var LogoChannel4 = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		xmlns: "http://www.w3.org/2000/svg",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", { d: "m14.309 0-.33.412v4.201l2.382-2.95zm-1.155 1.201L10.707 4.22v8.674h2.447zm3.268 1.701-2.443 3.02v14.81h2.443zM9.887 5.236l-6.201 7.657h3.142L9.887 9.12Zm-6.766 8.48v2.444h10.033v-2.443Zm14.125 0v2.444h3.633v-2.443Zm-6.539 3.268V24h2.443v-7.016Zm-3.271 4.573V24h2.443v-2.443zm6.543 0V24h5.189v-2.443z" })
+	});
+	var LogoSbs = (props) => u("svg", {
+		viewBox: "0 0 90.77 40.55",
+		"aria-hidden": "true",
+		...props,
+		children: [
+			u("path", {
+				fill: "#005293",
+				d: "M22.05,19.14l-9.62-8.82h0a3.18,3.18,0,0,1-1.08-2.39A3.44,3.44,0,0,1,14.87,4.6H25.51V0H9.24C4.19,0,0,3.4,0,8.72a8.41,8.41,0,0,0,2.43,5.89L13.76,25.3A3.46,3.46,0,0,1,15,29c-.67,2.28-3.56,2.28-4.64,2.28H0v9.32H15.73c6.36,0,11.52-4.86,11.52-10.87V29.6c.18-4.49-2.24-7.7-5.2-10.46"
+			}),
+			u("path", {
+				fill: "#005293",
+				d: "M85.55,19.14l-9.61-8.82h0a3.15,3.15,0,0,1-1.09-2.39A3.44,3.44,0,0,1,78.37,4.6H89V0H72.74c-5,0-9.24,3.4-9.24,8.72a8.42,8.42,0,0,0,2.44,5.89L77.26,25.3A3.46,3.46,0,0,1,78.51,29c-.66,2.28-3.56,2.28-4.64,2.28H63.51v9.32H79.24c6.36,0,11.52-4.86,11.52-10.87V29.6c.17-4.48-2.24-7.7-5.21-10.46"
+			}),
+			u("path", {
+				fill: "#005293",
+				d: "M61.31,28.78a11.8,11.8,0,0,0-8.16-11.43A8.3,8.3,0,0,0,59.41,8.8,8.33,8.33,0,0,0,55.93,2C52.87-.11,48.3.05,48.3.05h-18V40.55h19.1a13.64,13.64,0,0,0,7.77-2.77A12,12,0,0,0,61.31,28.78ZM40.06,4.67h4.3c.66,0,5.16,0,5.54,4.39.26,3.14-1.87,5.11-5.33,5.11H40.06Zm5.17,26.56H40.06V20.44h5c.65,0,5.68,0,6,5C51.35,29,48.69,31.23,45.23,31.23Z"
+			})
+		]
+	});
+	var LogoTvn = (props) => u("svg", {
+		viewBox: "0 0 300 121",
+		"aria-hidden": "true",
+		...props,
+		children: u("path", {
+			fill: "#E80328",
+			d: "M 106.234375 121 L 82.542969 55.753906 L 59.488281 55.753906 L 48.011719 121 L 16.882812 121 L 28.359375 55.753906 L 0.152344 55.753906 L 4.640625 30.253906 L 32.851562 30.253906 L 60.996094 0 L 69.300781 0 L 63.980469 30.253906 L 104.566406 30.253906 L 123.8125 83.238281 L 151.921875 30.253906 L 186.035156 30.253906 L 137.886719 121 Z M 246.988281 121 L 222.238281 52.855469 L 210.25 121 L 179.121094 121 L 200.414062 0 L 232.171875 0 L 256.792969 67.792969 L 268.71875 0 L 299.847656 0 L 278.554688 121 Z M 246.988281 121 "
+		})
+	});
+	var LogoNhk = (props) => u("svg", {
+		viewBox: "0 0 1230 354",
+		"aria-hidden": "true",
+		...props,
+		children: u("g", {
+			fill: "#808080",
+			children: [
+				u("path", { d: "m359.6777698651264,7.090877978451821 a51.89632499779503,51.89632499779503 0 0 0 -64.06788575758715,35.84591520466254 l-37.584709598918565,132.54963420828574 l-93.62739045993946,-146.45998936233386 a51.762571582852246,51.762571582852246 0 0 0 -51.093804508138405,-23.94186127475595 a52.29758524262333,52.29758524262333 0 0 0 -42.26607912191553,37.8522164288041 l-69.01676211046966,243.02995495101436 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.407561468969873 a52.030078412737794,52.030078412737794 0 0 0 49.756270358710694,-37.8522164288041 l37.584709598918565,-132.54963420828574 l93.62739045993946,147.12875643704774 a51.62881816790948,51.62881816790948 0 0 0 93.62739045993946,-13.375341494277066 l68.74925528058412,-244.2337356854993 a52.16383182768057,52.16383182768057 0 0 0 -35.578408374777,-64.87040624724375 z" }),
+				u("path", { d: "m782.73982132911,7.090877978451821 a51.762571582852246,51.762571582852246 0 0 0 -64.06788575758715,35.84591520466254 l-24.47687493452704,86.53845946797261 h-116.76673124503881 l16.451670037960792,-57.51396842539139 a51.89632499779503,51.89632499779503 0 1 0 -98.9775270576503,-29.024491042581232 l-69.8192826001263,243.02995495101436 a52.030078412737794,52.030078412737794 0 0 0 49.89002377365347,66.87670747138533 a51.762571582852246,51.762571582852246 0 0 0 49.756270358710694,-37.8522164288041 l24.610628349469803,-86.40470605302984 h116.76673124503881 l-16.451670037960792,57.380215010448616 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.407561468969873 a52.030078412737794,52.030078412737794 0 0 0 49.48876352882515,-37.8522164288041 l69.28426894035522,-243.02995495101436 a52.16383182768057,52.16383182768057 0 0 0 -35.578408374777,-64.87040624724375 z" }),
+				u("path", { d: "m1219.979734777027,25.816356070439717 a51.495064752966705,51.495064752966705 0 0 0 -72.49435089898171,-10.165259535650572 l-146.19248253244834,111.41659464732795 l15.247889303475858,-55.106406956421516 a51.89632499779503,51.89632499779503 0 1 0 -99.64629413236416,-28.623230797752925 l-68.61550186564135,242.62869470618602 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.0063012241415614 a52.030078412737794,52.030078412737794 0 0 0 49.756270358710694,-37.8522164288041 l29.693258117295095,-104.59517048524665 a18.190464432216814,18.190464432216814 0 0 0 1.6050409793132485,1.6050409793132485 c0.6687670747138535,0.8025204896566244 1.0700273195421655,1.7387943942560198 1.7387943942560198,2.407561468969873 l112.35286855192736,121.71560759792132 a51.495064752966705,51.495064752966705 0 0 0 73.16311797369555,2.808821713798184 a52.29758524262333,52.29758524262333 0 0 0 2.6750682988554133,-73.69813163346663 l-73.16311797369555,-79.44952847600578 l113.95790953124062,-86.67221288291539 a52.16383182768057,52.16383182768057 0 0 0 10.031506120707805,-72.89561114381002 z" })
+			]
+		})
+	});
+	var LogoShowtime = (props) => u("svg", {
+		viewBox: "0 0 24 24",
+		xmlns: "http://www.w3.org/2000/svg",
+		...props,
+		children: [u("title", { children: "Showtime" }), u("path", { d: "M16.99 12.167c0-4.808 1.779-7.84 3.903-8.16C18.769 1.397 15.221 0 11.999 0 8.451 0 5.265 1.54 3.07 3.985c2.094.416 2.806 2.174 2.806 4.892H3.314c0-1.605-.334-2.436-1.284-2.436-.427 0-.758.217-.954.587-.027.06-.057.122-.084.184a2.115 2.115 0 0 0-.114.71c0 3.324 5.46 3.159 5.46 8.27 0 1.995-1.53 3.855-3.252 3.855C5.35 22.52 8.441 24 12 24c3.46 0 6.577-1.464 8.766-3.808-2.018-.509-3.776-3.413-3.776-8.025zm-1.142 7.921h-2.746V13.26h-2.967v6.83H7.384V4.327h2.746v6.348h2.972V4.327h2.746v15.761zM2.372 17.58c-1.32 0-2.399-2.32-2.372-5.8 1.905 1.72 3.681 2.11 3.681 4.145 0 .981-.543 1.655-1.309 1.655zM24 12.002c0 2.844-.896 5.409-2.1 5.409-1.445 0-2.181-2.703-2.181-5.498 0-2.654.771-5.308 2.181-5.308 1.676 0 2.1 4.102 2.1 5.397z" })]
 	});
 	var LogoDiscoveryPlus = (props) => u("svg", {
 		width: "237",
@@ -4691,5650 +11304,6 @@ input::placeholder {
 			] })
 		]
 	});
-	var LogoPrimeVideo = (props) => u("svg", {
-		"aria-hidden": "true",
-		viewBox: "0 0 4605.7 2723.6",
-		fill: "currentColor",
-		...props,
-		children: u("path", { d: "M2246 2723.1a2591.3 2591.3 0 0 1-591.4-83.5 2159.7 2159.7 0 0 1-516.8-208.3A1728.5 1728.5 0 0 1 679.1 2060c-55.6-63.6-86-106.3-101-141.4a93 93 0 0 1-9-35.5c-1.2-22.7 6-36.6 23.6-45.2 6.3-3.2 7-3.3 18.6-3.3a51 51 0 0 1 19 2.3c20.3 6.6 46.1 22.7 79.5 49.4a2069.6 2069.6 0 0 0 372.5 240.3c147.7 74.5 292.3 128.2 473.7 176a3157 3157 0 0 0 627.8 98.4c72.8 4.1 93.8 4.6 189.5 4.6 105.9 0 154.2-1.5 242-7.5 361.5-24.8 718.7-108.9 984.8-231.8a2156 2156 0 0 0 63-31c45.1-22.7 57-28.2 75.7-35 26.3-9.4 44.4-6.3 59.7 10.2a50.4 50.4 0 0 1 14.8 38.5c-5.1 41.5-59 100.4-163.7 179.3-249.6 188-594.4 319.3-974.8 371.2a2718 2718 0 0 1-263.5 22.6 3806 3806 0 0 1-165.4 1zm1615-239.4a51.1 51.1 0 0 1-26.8-24c-7.7-16.8-5.3-31.5 10.4-64.1a572 572 0 0 1 31.9-56.5c41.2-68.3 82.6-159.4 102.1-224.6 19.6-65.4 22-102.6 8-123.8-12-18.2-50.5-29.6-113.2-33.7-24.5-1.6-103.2-.6-126.7 1.5-52.5 4.9-89 10.2-138 20.1-35 7.1-41.8 8-66.5 8-23.9 0-28.8-.7-38.5-5.5a41 41 0 0 1-21-41.6c2.5-13.7 11.4-26.6 27.8-40.3 41.9-35 107.4-69 178.7-92.6a654.9 654.9 0 0 1 232.5-33.3 596 596 0 0 1 133 19.4c71.2 18.4 114.3 42 129.3 71 11.5 22.3 15.8 44.9 15.7 83.6a617 617 0 0 1-33.6 195.2 608 608 0 0 1-156.5 249.2c-53 52.3-89.7 80-119.5 90a57.3 57.3 0 0 1-29 2zm-3838.6-729a39.2 39.2 0 0 1-19.9-17.9l-2.3-4.2-.2-656.5c-.2-594.8-.1-657 1.3-661.9 2-6.9 10.3-16 18.3-19.8l5.6-2.8h181l4.7 2.2a34.4 34.4 0 0 1 16.7 17.1c3.6 7.7 4.7 12.9 19.3 84.5l10.3 50.7h10l4.5-9.7a318.5 318.5 0 0 1 38.7-63.3 322.1 322.1 0 0 1 65.6-59.3 278.7 278.7 0 0 1 218.2-40.6c76.2 16.7 145 67.4 195 143.7 48.3 73.8 82.2 179.6 93 290.7 3.2 33 3.7 42.2 4.2 89.7a905 905 0 0 1-6.7 140.3c-16 127.7-59.3 238.2-122 311a470.3 470.3 0 0 1-46 44.7 285.6 285.6 0 0 1-137 60c-19.6 3-66.8 3.3-85.5.5-72.7-10.9-127.5-44.7-175.8-108.5a491.5 491.5 0 0 1-36-56.4c-2.7-4.7-2.8-4.8-7.7-4.8h-5l-.2 224.3-.3 224.2-3 5.3a40.6 40.6 0 0 1-18.1 16.6c-4.2 1.4-16 1.6-110.8 1.6-86.6 0-106.8-.3-109.9-1.4zM466 1231c38-7.3 68.2-28.8 92-65.5 30-46 47.6-113 52.9-201.8 1.6-26.5.7-105.1-1.5-127.7-4.6-48-12.1-87-23-118.7-25.2-73.5-64.5-114.7-120.4-126a222 222 0 0 0-57.3 0c-45.8 9.2-80.6 38.3-106.3 88.7a346 346 0 0 0-31 94c-12.9 65.2-15.2 163.8-5.5 239.4 8.2 64.1 25.4 116.1 50.7 153.6 27 39.7 60.5 60.9 104.7 66 10.8 1.3 32.9.3 44.7-2zm3677.3 224.4-15.5-1.5a408 408 0 0 1-207.3-78.7 477 477 0 0 1-78.6-75.9c-64-80.8-103.7-183.6-115.5-299.8-3.1-30.9-3.8-50-3.3-92.7a661 661 0 0 1 10.3-120.8c37.3-212.7 172.2-371.6 348-409.8 32.2-7 57.7-9.6 94.4-9.6a382 382 0 0 1 144.5 26.1 505.2 505.2 0 0 1 51.3 24.9 426.6 426.6 0 0 1 135 127.6 588 588 0 0 1 85.6 210.8c10.3 51.4 14 96.8 13.5 167-.3 42.6-.4 43.6-2.6 47.6a31.6 31.6 0 0 1-22.1 17c-4.6 1.1-57.6 1.4-293.5 1.4h-287.8l.6 6.8c8 86.2 23.8 142.4 51.7 184.1 23.3 35 51.9 55 90 63.2 12.2 2.6 41.2 3.6 55.8 2 39.6-4.6 68.5-18 92.6-43.3 19.4-20.3 32.7-45.7 42.3-80.8 4.9-18 6-20.7 10.8-26 5.2-5.8 11-8.3 19.3-8.3 9 0 197.8 42.2 205.6 45.9a24 24 0 0 1 14 25.3c-2 15.6-24.8 68.7-42.6 99.7a387 387 0 0 1-161.5 154.2 437.6 437.6 0 0 1-148.5 41.8c-13.6 1.5-76 2.8-86.5 1.8zm192.1-648.6c-1.3-14-5.7-42.5-9.1-59.7-16.1-79.3-48.4-134.1-92.4-157a133.2 133.2 0 0 0-117.6-.3 133 133 0 0 0-37.5 28.2 173.4 173.4 0 0 0-32.7 43.2c-19 34.3-33.3 80.5-41.2 133.8-1.1 7.4-2 14.7-2 16.3v2.7H4336l-.7-7.2zm-3283 621.4a39 39 0 0 1-18-18.8c-1.4-4.3-1.6-47.8-1.6-499.4 0-447.5.2-495 1.6-499.3a29.4 29.4 0 0 1 15.6-16.3l6.3-2.9 87.5-.3c91-.3 95.3-.2 103.1 3.8 5.5 2.8 12.4 11 14.8 17.7 1.2 3.2 7.8 33.5 14.6 67.3l13 63.8c.6 2 1 2.3 5.6 2l5-.3 5.3-12a330.4 330.4 0 0 1 42.2-71.5c9.5-11.9 30-32 42-41.1 46.7-35.6 96.4-52 158.3-51.9 42 0 79 7.2 113 21.8 11.2 4.8 17.3 9.7 21 16.5 2.4 4.8 2.6 6.1 2.6 16.2 0 11-.1 11.3-24.8 111-13.6 55-25.5 102-26.3 104.2-2 5.2-7.2 10.8-12.2 13a31 31 0 0 1-11.2 1.6c-8.5 0-9.2-.2-43.7-14.2-36.1-14.7-63.3-23.2-84.3-26.2a267.2 267.2 0 0 0-55 .4 142 142 0 0 0-51.7 18.9c-12 7.4-30.7 26-39.5 39.3-24.3 36.9-35.3 79.5-37.8 145.5-.5 13.5-.9 151.7-1 307 0 312.7.6 286.5-6.4 296.1a23.8 23.8 0 0 1-9.2 7.5l-5.9 2.9-108.5.3-108.5.2zm745 1.4c-9.8-3-16.1-9-19.3-18-1.7-4.9-1.8-27.7-1.8-501.1v-496l2.6-5.5c3.3-7 8-11.5 15-14.9l5.4-2.6 105.5-.3c109.3-.3 114.3-.1 122 3.8a30 30 0 0 1 11.8 12.8c1.7 3.5 1.8 30 2 500.7.2 453.3.1 497.4-1.3 502.5a23 23 0 0 1-7.3 11.1c-9.5 9.5-.6 9-123.6 8.8-83.4 0-108-.3-111-1.3zm449.3 0c-8.3-3-15.6-9.5-20-17.8l-2.4-4.3v-994l2.4-5.3a28.2 28.2 0 0 1 15.1-14.1l5.5-2.6h91c84.7 0 91.4.1 95.6 1.8a32 32 0 0 1 19 19.5c1.7 4.6 10.5 46.2 27 128l1 5.2h10.5l3.5-8.8a413.7 413.7 0 0 1 25.1-49.7c40.4-64.6 98.8-104.9 169.8-117 47.2-8.1 99.7-4.2 142.8 10.6 56.5 19.4 103.7 58 138.5 113.4a431.7 431.7 0 0 1 23.4 44.8l2.9 6.7h10l8-12.2c35.9-55 80.4-100.5 124.5-127.2a295 295 0 0 1 194.4-37 258.8 258.8 0 0 1 171.2 103c12 16 21.3 31.3 31.4 51.9 25.9 52.6 42 112.8 48.5 181.7 3.4 35.7 3.7 63.6 3.3 384.3l-.3 317-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4h-219l-4.3-2.3a41.3 41.3 0 0 1-15.7-15.4l-3-5.3-.5-320c-.6-340.2-.4-324.1-5-351-9.7-57.3-35.1-97.2-73.5-115.6-19-9.1-37.6-12.5-63.8-11.6-37 1.3-64.6 12.7-88.1 36.2-28.2 28.1-44.5 69.5-52.3 132.5-1.5 12.3-1.7 42-2.2 321.5l-.6 308-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4h-219l-5.2-3a40.5 40.5 0 0 1-15.4-15.6l-2.4-4.4-.5-320c-.6-340.2-.4-324.1-5-351-9.7-57.3-35.1-97.2-73.5-115.6-19-9.1-37.6-12.5-63.8-11.6-37 1.3-64.6 12.7-88.1 36.2-28.2 28.1-44.5 69.5-52.3 132.5-1.5 12.3-1.7 42-2.2 321.5l-.6 308-2.6 5.5a27.7 27.7 0 0 1-14.1 15.1l-5.3 2.4-108 .2c-86.6.2-108.7 0-111.6-1zM1887.8 309a154 154 0 0 1-94-46.7 139.7 139.7 0 0 1-37-72c-3-15-3.8-44-1.6-60.8 6-45 26.5-79 62.3-103C1869-8 1944.5-9 1995.4 24.2a154 154 0 0 1 48.3 49.5c21.5 36.4 26 93 11.1 137.5a147.5 147.5 0 0 1-85.6 88c-23.8 9.2-54 12.9-81.4 9.8z" })
-	});
-	var LogoYouTube = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" })
-	});
-	var LogoAppleTv = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M20.57 17.735h-1.815l-3.34-9.203h1.633l2.02 5.987c.075.231.273.9.586 2.012l.297-.997.33-1.006 2.094-6.004H24zm-5.344-.066a5.76 5.76 0 0 1-1.55.207c-1.23 0-1.84-.693-1.84-2.087V9.646h-1.063V8.532h1.121V7.081l1.476-.602v2.062h1.707v1.113H13.38v5.805c0 .446.074.75.214.932.14.182.396.264.75.264.207 0 .495-.041.883-.115zm-7.29-5.343c.017 1.764 1.55 2.358 1.567 2.366-.017.042-.248.842-.808 1.658-.487.71-.99 1.418-1.79 1.435-.783.016-1.03-.462-1.93-.462-.89 0-1.17.445-1.913.478-.758.025-1.344-.775-1.838-1.484-.998-1.451-1.765-4.098-.734-5.88.51-.89 1.426-1.451 2.416-1.46.75-.016 1.468.512 1.93.512.461 0 1.327-.627 2.234-.536.38.016 1.452.157 2.136 1.154-.058.033-1.278.743-1.27 2.219M6.468 7.988c.404-.495.685-1.18.61-1.864-.585.025-1.294.388-1.723.883-.38.437-.71 1.138-.619 1.806.652.05 1.328-.338 1.732-.825Z" })
-	});
-	var LogoHbo = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M7.042 16.896H4.414v-3.754H2.708v3.754H.01L0 7.22h2.708v3.6h1.706v-3.6h2.628zm12.043.046C21.795 16.94 24 14.689 24 11.978a4.89 4.89 0 0 0-4.915-4.92c-2.707-.002-4.09 1.991-4.432 2.795.003-1.207-1.187-2.632-2.58-2.634H7.59v9.674l4.181.001c1.686 0 2.886-1.46 2.888-2.713.385.788 1.72 2.762 4.427 2.76zm-7.665-3.936c.387 0 .692.382.692.817 0 .435-.305.817-.692.817h-1.33v-1.634zm.005-3.633c.387 0 .692.382.692.817 0 .436-.305.818-.692.818h-1.33V9.373zm1.77 2.607c.305-.039.813-.387.992-.61-.063.276-.068 1.074.006 1.35-.204-.314-.688-.701-.998-.74zm3.43 0a2.462 2.462 0 1 1 4.924 0 2.462 2.462 0 0 1-4.925 0zm2.462 1.936a1.936 1.936 0 1 0 0-3.872 1.936 1.936 0 0 0 0 3.872Z" })
-	});
-	var LogoHboMax = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M3.784 8.716c-.655 0-1.32.29-2.173.946v-.78H0v6.236h1.715V11.24c.749-.592 1.091-.78 1.372-.78.333 0 .551.209.551.729v3.928h1.715V11.23c.748-.582 1.081-.769 1.372-.769.333 0 .55.208.55.728v3.928H8.99v-4.53c0-1.403-.8-1.871-1.57-1.871-.654 0-1.32.27-2.192.936-.28-.697-.894-.936-1.444-.936zm8.689 0c-1.705 0-3.118 1.466-3.118 3.284 0 1.82 1.413 3.285 3.118 3.285.842 0 1.57-.312 2.131-.988v.82h1.632V8.883h-1.632v.822c-.561-.676-1.29-.988-2.131-.988zm4.064.166c.707 1.102 1.507 2.09 2.443 3.077a26.593 26.593 0 0 0-2.443 3.16h2.069a13.603 13.603 0 0 1 1.673-2.183 14.067 14.067 0 0 1 1.632 2.182H24a25.142 25.142 0 0 0-2.432-3.16A23.918 23.918 0 0 0 24 8.883h-2.047a14.65 14.65 0 0 1-1.674 2.11 13.357 13.357 0 0 1-1.674-2.11zm-3.804 1.279c1.018 0 1.84.82 1.84 1.84a1.837 1.837 0 0 1-1.84 1.839c-1.019 0-1.84-.82-1.84-1.84 0-1.018.821-1.84 1.84-1.84zm0 .415c-.78 0-1.414.633-1.414 1.423s.634 1.424 1.413 1.424c.78 0 1.414-.634 1.414-1.424s-.634-1.424-1.414-1.424z" })
-	});
-	var LogoParamountPlus = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M16.347 21.373c.057-.084.151-.314-.025-.74l-.53-1.428c-.073-.182.084-.293.19-.173 0 0 1.004 1.157 1.264 1.64l.495.822c.425.028 1.6.06 2.732.06a3.26 3.26 0 0 1-.316-.364c-1.93-2.392-3.154-3.724-3.166-3.737-.391-.426-.572-.508-.87-.643a4.82 4.82 0 0 1-.138-.065v.364c0 .047-.057.073-.086.022l-2.846-5.001a1.598 1.598 0 0 0-.508-.587l-.277-.194-1.354 3.123c.212 0 .354.216.27.409l-1.25 2.893h1.147c.443 0 .883.087 1.294.255l.302.125s-.913 1.878-.913 2.867c0 .181.028.362.075.534h2.104l-.096-.595s1.266.294 2.502.413M12 2.437c-6.627 0-12 5.373-12 12 0 2.669.873 5.133 2.346 7.126.503-.218.783-.542.983-.791l2.234-2.858a.467.467 0 0 1 .179-.138l.336-.146 3.674-4.659.534-.417 1.094-1.524a.482.482 0 0 1 .101-.102l.478-.347a.34.34 0 0 1 .398-.004l.578.407c.308.216.557.504.726.84l2.322 4.077c.051.09.09.129.182.174.454.227.732.268 1.33.913.277.304 1.495 1.666 3.203 3.784.236.318.538.588.963.783A11.948 11.948 0 0 0 24 14.437c0-6.627-5.373-12-12-12M3.236 15.1l-.778-.253-.48.662v-.818l-.778-.253.778-.253v-.818l.48.662.778-.253-.48.662Zm-.185 2.676-.252.778-.253-.778h-.818l.661-.481-.253-.777.663.48.66-.48-.252.777.662.481Zm.156-6.195.253.778-.661-.48-.663.48.253-.778-.66-.48h.817l.253-.778.252.777h.818Zm1.314-1.76L4.04 9.16l-.778.253.48-.661-.48-.663.778.254.48-.662v.818l.778.253-.777.252Zm2.045-2.862-.253.777-.252-.777h-.818l.662-.48-.253-.778.661.48.661-.48-.252.777.662.48Zm2.577-1.313-.48.661V5.49l-.779-.254.778-.253v-.817l.48.66.78-.253-.481.663.48.66zm3.265-.75.253.778-.661-.48-.662.48.252-.777-.66-.481h.818L12 3.637l.252.778h.818zm2.93.595v.816l-.481-.661-.777.252.48-.662-.48-.662.777.253.48-.66v.817l.779.252zm5.426 8.285.778.253.48-.662v.818l.778.253-.778.253v.818l-.48-.662-.778.253.48-.662zm-3.077-6.04-.253-.777h-.818l.662-.48-.253-.778.662.48.662-.48-.254.778.662.48h-.818zm1.792 2.086v-.818l-.777-.252.777-.253V7.68l.481.662.777-.254-.48.663.48.66-.777-.252zm1.469 1.278.253-.777.254.777h.816l-.66.481.252.778-.662-.48-.661.48.253-.778-.662-.48zm.506 6.676-.253.778-.253-.778h-.817l.662-.481-.253-.777.66.48.663-.48-.253.777.661.481zm-12.08-.615.76-1.588c.024-.048-.032-.108-.067-.067l-.664.668c-.313.329-.847 1.25-.95 1.421l-.808 1.335a.109.109 0 0 1 .1.162l-.739 1.238c-.18.309.145.523.189.452 1.157-1.868 1.832-1.719 1.832-1.719l.387-.897c.022-.047-.001-.1-.05-.12-.12-.05-.316-.27.01-.885z" })
-	});
-	var LogoTubi = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M16.696 15.272v-.752c.4.548 1.107.917 1.934.917 1.475 0 2.28-.956 2.28-2.865 0-1.714-.893-2.858-2.235-2.858-.851 0-1.55.347-1.979.908v-2.06h-2.674v6.71zm1.57-2.614c0 .827-.337 1.275-.827 1.275-.486 0-.837-.452-.837-1.275s.342-1.28.837-1.28c.495 0 .828.452.828 1.28zM6.94 9.988v3.6c0 1.236.754 1.841 1.955 1.841.959 0 1.625-.396 2.028-1.064v.91h2.597V9.989h-2.675v3.14c0 .493-.346.693-.666.693-.321 0-.568-.192-.568-.655V9.989Zm14.39 0H24v5.276h-2.67ZM6.553 11.136c0 .781-.635 1.415-1.42 1.415-.783 0-1.419-.634-1.419-1.415 0-.782.636-1.415 1.42-1.415.784 0 1.42.633 1.42 1.415zM3.49 9.702v2.668c.005.653.327.924.976.924.225 0 .526-.053.672-.166v1.931c-.49.243-.869.378-1.535.378 0 0-.069 0-.18-.006l-.003.006c-1.614 0-2.51-1.035-2.482-2.686v-.47H0V9.99h.92V8.563h2.569Z" })
-	});
-	var LogoVimeo = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M23.9765 6.4168c-.105 2.338-1.739 5.5429-4.894 9.6088-3.2679 4.247-6.0258 6.3699-8.2898 6.3699-1.409 0-2.578-1.294-3.553-3.881l-1.9179-7.1138c-.719-2.584-1.488-3.878-2.312-3.878-.179 0-.806.378-1.8809 1.132l-1.129-1.457a315.06 315.06 0 003.501-3.1279c1.579-1.368 2.765-2.085 3.5539-2.159 1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.5069.5389 2.45 1.1309 3.674 1.7759 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.8679 3.434-5.7568 6.7619-5.6368 2.4729.06 3.6279 1.664 3.4929 4.7969z" })
-	});
-	var LogoIqiyi = (props) => u("svg", {
-		viewBox: "0 0 204 64",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "#00DC5A",
-			d: "M101.138 63.0562C101.143 63.2013 101.206 63.3383 101.312 63.437C101.418 63.5358 101.56 63.5882 101.705 63.5832H115.292C115.595 63.5942 115.85 63.3589 115.863 63.0562V2.15089C115.858 2.00475 115.795 1.8667 115.688 1.76717C115.581 1.66764 115.438 1.61478 115.292 1.61987H101.705C101.403 1.6111 101.151 1.84574 101.138 2.14684V63.0562ZM1.26286 63.0562C1.26601 63.2038 1.3282 63.3439 1.43549 63.4452C1.54278 63.5464 1.68619 63.6004 1.83357 63.5949H15.4174C15.72 63.6064 15.975 63.3711 15.9881 63.0683V24.7089C15.975 24.4061 15.72 24.1709 15.4174 24.1823H1.83357C1.53099 24.1709 1.276 24.4061 1.26286 24.7089V63.0562ZM92.1724 53.1159L85.4493 47.7165C85.3195 47.614 85.2271 47.4717 85.1862 47.3114C85.1524 47.1423 85.1766 46.9667 85.255 46.8132C92.787 32.6123 88.489 15.0168 75.26 5.89462C62.0309 -3.22751 44.0707 -0.980313 33.4931 11.1205C22.9156 23.2213 23.0788 41.3342 33.8727 53.2421C44.6666 65.1501 62.6644 67.0728 75.7269 57.7134C75.993 57.5088 76.3634 57.5088 76.6295 57.7134L83.8383 63.5018C83.9584 63.5968 84.1113 63.6399 84.2633 63.6217C84.4153 63.6034 84.5537 63.5253 84.6479 63.4046L92.2493 53.9261C92.3465 53.8085 92.393 53.657 92.3786 53.5051C92.3642 53.3531 92.29 53.2131 92.1724 53.1159ZM60.5726 50.2278C50.7329 52.0061 41.2493 45.282 39.4319 35.2405C37.6145 25.199 44.1474 15.5747 54.0033 13.7924C63.8593 12.0101 73.3267 18.7342 75.144 28.7797C76.9614 38.8253 70.4286 48.4537 60.5726 50.2278ZM203.041 1.61986H189.453C189.15 1.60883 188.895 1.8441 188.882 2.14684V63.0562C188.895 63.3589 189.15 63.5942 189.453 63.5832H203.041C203.186 63.5882 203.327 63.5358 203.433 63.437C203.539 63.3383 203.602 63.2013 203.607 63.0562V2.15089C203.596 1.84818 203.343 1.61115 203.041 1.61986ZM13.1611 16.3875C17.2132 13.881 18.4678 8.56175 15.9632 4.50659C13.4585 0.451418 8.14324 -0.804043 4.09109 1.70244C0.0389361 4.20891 -1.21559 9.52818 1.28902 13.5833C3.79364 17.6385 9.10894 18.894 13.1611 16.3875ZM181.694 1.62023H167.215C166.972 1.61804 166.746 1.7443 166.62 1.95241L153.17 25.8916C153.17 25.8916 153.073 26.0658 152.939 26.0699C152.806 26.0699 152.709 25.8916 152.709 25.8916L139.258 1.95646C139.134 1.7468 138.907 1.61889 138.663 1.62023H124.185C123.949 1.62089 123.734 1.75276 123.626 1.96228C123.518 2.1718 123.535 2.42411 123.671 2.61671L145.188 38.8496C145.394 39.1994 145.502 39.5982 145.5 40.0041V62.9509C145.497 63.1185 145.56 63.2805 145.676 63.4013C145.792 63.5221 145.952 63.5917 146.119 63.5949H159.735C159.902 63.5949 160.063 63.5282 160.18 63.4096C160.298 63.291 160.364 63.1303 160.363 62.963V40.0041C160.362 39.5978 160.471 39.1991 160.678 38.8496L182.208 2.62076C182.346 2.42809 182.365 2.17416 182.256 1.96321C182.148 1.75225 181.931 1.62023 181.694 1.62023Z"
-		})
-	});
-	var LogoIqiyiCombined = (props) => u("svg", {
-		width: "460",
-		height: "72",
-		viewBox: "0 0 460 72",
-		fill: "none",
-		...props,
-		children: [u("path", {
-			d: "M459.147 6.18071H451.607C451.547 6.18463 451.487 6.17624 451.43 6.15606C451.373 6.13588 451.321 6.10432 451.276 6.06333C451.232 6.02233 451.197 5.97275 451.172 5.9176C451.148 5.86246 451.135 5.80292 451.134 5.74261V1.10803C451.135 1.03714 451.122 0.966811 451.095 0.901102C451.069 0.835394 451.029 0.775614 450.979 0.725221C450.93 0.674828 450.87 0.634824 450.805 0.607523C450.739 0.580222 450.669 0.566167 450.598 0.566171H441.156C441.013 0.567689 440.877 0.625447 440.777 0.7269C440.676 0.828354 440.62 0.96531 440.62 1.10803V5.78296C440.608 5.89661 440.553 6.00138 440.466 6.07546C440.379 6.14954 440.267 6.18724 440.153 6.18071H415.614C415.554 6.18463 415.494 6.17624 415.437 6.15606C415.38 6.13588 415.328 6.10432 415.283 6.06333C415.239 6.02233 415.204 5.97275 415.179 5.9176C415.155 5.86246 415.142 5.80292 415.141 5.74261V5.68497C415.139 5.67166 415.139 5.65792 415.141 5.64462V1.10803C415.141 0.96531 415.085 0.828354 414.985 0.7269C414.884 0.625447 414.748 0.567689 414.605 0.566171H405.18C405.037 0.566171 404.899 0.623259 404.797 0.724877C404.696 0.826494 404.639 0.964317 404.639 1.10803V5.78296C404.627 5.89556 404.573 5.99946 404.487 6.0734C404.401 6.14733 404.291 6.18572 404.177 6.18071H396.684C396.622 6.17516 396.56 6.1823 396.502 6.20167C396.443 6.22104 396.39 6.25224 396.344 6.29333C396.298 6.33441 396.261 6.3845 396.235 6.4405C396.209 6.49649 396.195 6.55718 396.194 6.6188V13.7148C396.195 13.8575 396.253 13.9938 396.354 14.0942C396.456 14.1946 396.593 14.2509 396.736 14.2509H404.085C404.5 14.2509 404.598 14.493 404.616 14.6486V20.2805C404.616 20.5802 404.858 20.8223 405.157 20.8223H414.594C414.736 20.8208 414.873 20.763 414.973 20.6616C415.074 20.5601 415.13 20.4232 415.13 20.2805V14.7927C415.128 14.7794 415.128 14.7658 415.13 14.7524V14.6717C415.13 14.516 415.216 14.2394 415.666 14.2336H440.067C440.476 14.2336 440.58 14.4757 440.597 14.6313V20.2632C440.597 20.4059 440.653 20.5428 440.754 20.6443C440.854 20.7457 440.99 20.8035 441.133 20.805H450.569C450.869 20.805 451.111 20.5629 451.111 20.2632V14.6717C451.111 14.516 451.192 14.2394 451.647 14.2336H459.141C459.283 14.2336 459.42 14.1771 459.52 14.0766C459.621 13.976 459.677 13.8397 459.677 13.6975V6.7168C459.677 6.57561 459.622 6.44012 459.522 6.33975C459.423 6.23938 459.288 6.18223 459.147 6.18071ZM255.559 9.63359C255.563 9.74406 255.589 9.85264 255.636 9.95252C255.684 10.0524 255.751 10.1414 255.834 10.2139C255.918 10.2865 256.015 10.341 256.121 10.3741C256.226 10.4071 256.337 10.418 256.447 10.406C261.716 10.406 289.598 9.97945 295.501 9.97945C300.049 9.97945 308.442 9.54712 312.921 8.78622C313.192 8.74011 313.613 8.45765 313.497 7.73133C313.382 7.00502 312.512 2.15715 312.345 1.63835C312.322 1.53223 312.279 1.43174 312.217 1.34295C312.154 1.25416 312.075 1.17892 311.983 1.1218C311.89 1.06467 311.788 1.02684 311.68 1.01061C311.573 0.994366 311.464 1.00005 311.359 1.02732C305.525 1.82651 299.642 2.21177 293.754 2.18021C293.754 2.18021 257.381 2.60677 256.447 2.60677C256.33 2.5961 256.212 2.61042 256.101 2.64881C255.99 2.68719 255.888 2.74875 255.802 2.82941C255.717 2.91007 255.649 3.00799 255.604 3.11669C255.56 3.22538 255.538 3.34237 255.542 3.45991L255.559 9.63359ZM275.055 27.584C275.128 27.5846 275.201 27.6003 275.269 27.63C275.336 27.6597 275.397 27.7028 275.447 27.7568C275.497 27.8107 275.536 27.8744 275.56 27.9438C275.585 28.0132 275.595 28.0869 275.591 28.1604C275.516 28.9501 275.447 29.5093 275.349 30.2644C275.345 30.2967 275.334 30.4489 275.539 30.4489H312.927C313.071 30.4489 313.208 30.506 313.31 30.6076C313.412 30.7092 313.469 30.847 313.469 30.9907V37.591C313.469 37.7312 313.414 37.8658 313.316 37.966C313.218 38.0662 313.084 38.1241 312.944 38.1271H273.965C273.798 38.1271 273.74 38.3288 273.74 38.3288L273.54 39.058C273.335 39.7872 273.115 40.5164 272.881 41.2456C272.872 41.2767 272.835 41.4416 273.083 41.4416H306.459C310.546 41.4416 310.535 45.3614 310.333 46.4682C309.755 49.2941 308.652 51.9865 307.082 54.4058C305.802 56.4521 303.3 59.098 300.994 61.1271C304.246 62.0782 307.572 62.5739 312.806 62.7642C312.884 62.7512 312.965 62.7571 313.041 62.7815C313.117 62.8059 313.186 62.848 313.242 62.9044C313.298 62.9607 313.34 63.0297 313.365 63.1055C313.389 63.1814 313.395 63.262 313.382 63.3406V70.9554C313.382 71.3474 313.117 71.4857 312.806 71.4857C304.807 71.4622 296.872 70.0762 289.339 67.3872C281.228 70.085 271.93 71.601 264.35 71.503C264.096 71.4972 263.583 71.4454 263.583 70.8689V63.3752C263.583 63.2938 263.6 63.2133 263.633 63.1389C263.665 63.0645 263.714 62.9979 263.774 62.9434C263.835 62.889 263.906 62.8479 263.983 62.823C264.061 62.7981 264.142 62.7898 264.223 62.7988C268.906 62.8237 273.574 62.2837 278.127 61.1905C274.995 58.8379 272.31 55.9425 270.201 52.6419C270.154 52.5646 269.407 51.3103 270.61 51.3103H280.537C280.675 51.2945 280.815 51.309 280.948 51.3528C281.08 51.3966 281.201 51.4686 281.303 51.5639C283.477 54.3523 286.301 56.5652 289.529 58.0085L289.823 57.8587L290.221 57.6281C295.132 54.8957 297.311 51.6734 298.245 49.3331C298.343 49.091 298.827 48.2609 297.824 48.2609H270.656C270.27 48.2609 270.184 48.503 270.184 48.503L269.876 49.204C266.571 56.6667 262.367 63.6982 257.358 70.1426C257.262 70.2602 257.125 70.3378 256.975 70.3602C256.825 70.3826 256.671 70.3482 256.545 70.2637C256.387 70.1703 254.609 68.9569 252.825 67.7337L252.469 67.4893C251.326 66.7088 250.187 65.9235 249.051 65.1333C249.051 65.1333 248.625 64.8912 248.982 64.3148C255.502 55.7028 260.303 46.9524 262.817 38.2712C262.851 38.1386 262.684 38.1386 262.684 38.1386H253.121C252.979 38.1386 252.843 38.0821 252.742 37.9816C252.641 37.881 252.585 37.7447 252.585 37.6025V31.0138C252.584 30.9429 252.598 30.8726 252.624 30.8069C252.651 30.7412 252.69 30.6814 252.74 30.631C252.79 30.5806 252.849 30.5406 252.915 30.5133C252.98 30.486 253.05 30.4719 253.121 30.4719H264.321C264.353 30.4754 264.385 30.4665 264.411 30.4473C264.437 30.428 264.454 30.3998 264.46 30.3682V30.397L264.502 30.0465C264.583 29.3686 264.64 28.8129 264.684 28.0912C264.691 27.9791 264.734 27.8722 264.806 27.7857C264.855 27.7219 264.919 27.6705 264.992 27.6355C265.065 27.6005 265.145 27.5828 265.226 27.584H275.055ZM306.384 12.7348C306.457 12.7279 306.53 12.737 306.599 12.7613C306.668 12.7856 306.73 12.8247 306.783 12.8757C306.835 12.9268 306.875 12.9886 306.901 13.0568C306.927 13.1251 306.937 13.1982 306.932 13.2709V17.1792L306.932 17.2213C306.938 17.2703 306.962 17.3154 306.999 17.348C307.036 17.3806 307.084 17.3985 307.134 17.3983H312.541C315.757 17.3983 316.466 19.6406 316.524 22.5689V27.9587C316.517 28.1016 316.457 28.2369 316.356 28.3381C316.254 28.4393 316.119 28.4993 315.976 28.5063H306.488C305.912 28.5063 305.912 27.9298 305.912 27.9298V25.5952C305.912 25.1571 305.808 24.8862 305.231 24.8862H262.165C262.098 24.8823 262.03 24.8922 261.966 24.9153C261.902 24.9384 261.844 24.9742 261.794 25.0205C261.745 25.0669 261.705 25.1228 261.678 25.1849C261.65 25.2471 261.636 25.3141 261.635 25.382V27.5782C261.631 27.7039 261.574 28.1201 261.001 28.1201H251.68C251.596 28.1295 251.511 28.1205 251.431 28.0935C251.351 28.0666 251.278 28.0224 251.217 27.9641C251.156 27.9059 251.109 27.8349 251.078 27.7563C251.047 27.6776 251.035 27.5932 251.04 27.509V18.143C251.046 18.0372 251.073 17.9335 251.12 17.8386C251.167 17.7437 251.233 17.6595 251.314 17.5913C251.395 17.523 251.49 17.4722 251.591 17.442C251.693 17.4117 251.8 17.4028 251.905 17.4155H259.9C259.928 17.4156 259.956 17.4099 259.982 17.3987C260.008 17.3876 260.032 17.3713 260.051 17.3507C260.07 17.3302 260.085 17.306 260.095 17.2795C260.105 17.2529 260.109 17.2247 260.108 17.1965V13.3228C260.108 13.1699 260.168 13.0233 260.276 12.9152C260.384 12.8071 260.531 12.7464 260.684 12.7464H269.527C269.601 12.7348 269.678 12.7403 269.75 12.7626C269.823 12.7848 269.889 12.8232 269.945 12.8748C270 12.9263 270.043 12.9898 270.071 13.0604C270.098 13.1311 270.109 13.207 270.103 13.2825V17.1907L270.104 17.2328C270.11 17.2818 270.133 17.3269 270.171 17.3595C270.208 17.3921 270.255 17.41 270.305 17.4098H278.254C278.282 17.4098 278.31 17.4041 278.336 17.393C278.362 17.3818 278.385 17.3655 278.405 17.345C278.424 17.3245 278.439 17.3002 278.449 17.2737C278.459 17.2472 278.463 17.2189 278.461 17.1907V13.317C278.461 13.1642 278.522 13.0175 278.63 12.9094C278.738 12.8013 278.885 12.7406 279.038 12.7406H288.261C288.335 12.7322 288.41 12.74 288.481 12.7634C288.552 12.7869 288.618 12.8253 288.672 12.8762C288.727 12.9272 288.77 12.9893 288.799 13.0584C288.827 13.1275 288.84 13.202 288.837 13.2767V17.185C288.835 17.2129 288.838 17.241 288.847 17.2675C288.857 17.294 288.871 17.3183 288.89 17.3389C288.909 17.3596 288.932 17.376 288.958 17.3872C288.983 17.3984 289.011 17.4041 289.039 17.404H296.729C296.757 17.4041 296.785 17.3983 296.811 17.3872C296.837 17.3761 296.86 17.3597 296.88 17.3392C296.899 17.3187 296.914 17.2945 296.924 17.2679C296.934 17.2414 296.938 17.2132 296.936 17.185V13.3113C296.936 13.1584 296.997 13.0118 297.105 12.9037C297.213 12.7956 297.36 12.7348 297.513 12.7348H306.384ZM327.073 13.5476H346.389C346.47 13.5476 346.626 13.5476 346.516 13.709C342.135 18.211 334.987 19.8942 328.958 20.8165C328.347 20.9145 327.966 21.0125 327.966 21.7907V27.9587C327.966 28.7196 328.543 28.6043 328.837 28.5697C335.892 27.7684 343.974 25.4742 348.683 22.2692C351.935 20.0556 354.448 18.0842 356.471 15.3519C362.074 23.2607 370.974 27.313 384.797 28.5639C385.063 28.5639 385.599 28.489 385.599 27.9875V21.589C385.599 20.8684 385.195 20.88 384.884 20.8511C377.39 20.0384 369.96 17.5942 366.15 13.709C366.04 13.5649 366.196 13.5419 366.271 13.5419H385.639C385.639 13.5419 386.169 13.5419 386.169 13.0404V5.92131C386.169 5.38522 385.535 5.41404 385.535 5.41404H362.42C362.103 5.41404 362.04 5.18923 362.034 5.07394V0.744868C362.039 0.683462 362.031 0.621737 362.011 0.56352C361.99 0.505304 361.959 0.451838 361.917 0.406438C361.875 0.361037 361.825 0.324671 361.769 0.299594C361.712 0.274517 361.652 0.261264 361.59 0.260657H351.139C351.067 0.258462 350.995 0.272698 350.929 0.302298C350.862 0.331898 350.804 0.376092 350.757 0.431562C350.711 0.487032 350.677 0.552337 350.66 0.622574C350.642 0.692811 350.64 0.766154 350.655 0.837098V5.0797C350.655 5.19499 350.58 5.37945 350.274 5.40828H327.009C326.948 5.40273 326.886 5.40987 326.828 5.42924C326.769 5.44861 326.715 5.47981 326.669 5.5209C326.623 5.56198 326.586 5.61207 326.56 5.66806C326.535 5.72406 326.521 5.78475 326.519 5.84637V13.0634C326.519 13.0634 326.496 13.5476 327.073 13.5476ZM388.521 29.8494C388.663 29.8494 388.8 29.9059 388.9 30.0064C389.001 30.1069 389.057 30.2433 389.057 30.3855V37.4296C389.057 37.5 389.044 37.5697 389.017 37.6347C388.99 37.6998 388.95 37.7589 388.9 37.8087C388.851 37.8584 388.792 37.8979 388.726 37.9249C388.661 37.9518 388.592 37.9657 388.521 37.9657H385.063C384.985 37.9596 384.908 37.9703 384.835 37.9972C384.762 38.024 384.696 38.0663 384.642 38.121C384.587 38.1758 384.545 38.2418 384.518 38.3145C384.491 38.3872 384.48 38.4649 384.486 38.5421C384.498 40.3712 384.514 42.8965 384.525 45.4928L384.527 46.071L384.531 46.9391C384.535 48.0949 384.538 49.2426 384.538 50.3263V51.644C384.536 54.0265 384.522 55.9385 384.486 56.6827C384.163 64.0842 382.757 68.004 376.289 71.307C375.263 71.8662 374.796 71.1629 374.796 71.1629C374.796 71.1629 373.77 69.814 372.665 68.3556L372.427 68.0421C371.275 66.5226 370.11 64.98 369.983 64.7932C369.724 64.4128 370.029 64.0496 370.386 63.8709C373.753 62.2165 374.179 60.4699 374.179 55.478V38.5709C374.186 38.497 374.177 38.4226 374.153 38.3524C374.129 38.2823 374.09 38.2179 374.039 38.1636C373.989 38.1093 373.928 38.0662 373.859 38.037C373.791 38.0079 373.718 37.9934 373.643 37.9945H324.19C324.048 37.9945 323.911 37.9382 323.809 37.8378C323.708 37.7375 323.65 37.6011 323.649 37.4584V30.3855C323.65 30.2428 323.708 30.1064 323.809 30.006C323.911 29.9057 324.048 29.8494 324.19 29.8494H388.521ZM362.178 42.0296C365.352 42.0296 367.93 44.5965 367.942 47.7709V61.9226C367.942 65.1062 365.362 67.687 362.178 67.687H333.811C330.628 67.687 328.047 65.1062 328.047 61.9226V47.794C328.047 44.6103 330.628 42.0296 333.811 42.0296H362.178ZM357.267 48.9642H338.728C338.497 48.9642 338.275 49.0557 338.111 49.2188C337.947 49.3818 337.854 49.6032 337.852 49.8346V59.8243L337.856 59.9108C337.878 60.1266 337.979 60.3267 338.14 60.4717C338.302 60.6167 338.511 60.6962 338.728 60.6947H357.272C357.503 60.6947 357.725 60.603 357.888 60.4398C358.051 60.2766 358.143 60.0552 358.143 59.8243V50.0998L358.137 49.8346L358.132 49.751C358.11 49.5362 358.01 49.3371 357.85 49.1919C357.69 49.0467 357.483 48.9656 357.267 48.9642ZM456.207 62.8449H413.009C412.679 62.8493 412.359 62.7354 412.106 62.5239C411.853 62.3123 411.685 62.0172 411.631 61.692C411.587 61.4151 411.631 61.1314 411.758 60.8811C411.884 60.6308 412.085 60.4265 412.334 60.297L446.344 43.2689L451.209 40.796C452.141 40.3001 453.005 39.6859 453.78 38.9687C454.554 38.2292 455.165 37.3357 455.573 36.3459C455.96 35.3318 456.155 34.2549 456.149 33.1697C456.181 28.874 452.793 25.3301 448.5 25.1687H400.627C400.484 25.1687 400.348 25.2252 400.247 25.3257C400.147 25.4262 400.09 25.5626 400.09 25.7048V33.1985C400.09 33.4925 400.327 33.7317 400.621 33.7346H442.591C442.787 33.7328 442.977 33.8068 443.119 33.941C443.262 34.0752 443.348 34.2594 443.358 34.4551C443.355 34.5891 443.316 34.7199 443.245 34.8335C443.174 34.9472 443.074 35.0395 442.955 35.1008L442.638 35.2737L442.47 35.3659L441.773 35.7348C436.516 38.5421 406.305 53.2587 403.463 55.2589C403.134 55.4607 402.823 55.6739 402.523 55.8872C401.917 56.2966 401.365 56.7808 400.88 57.3283C400.782 57.4379 400.69 57.5474 400.604 57.6627L400.575 57.6973C400.488 57.8023 400.407 57.912 400.333 58.0258L400.298 58.0719C400.217 58.1815 400.148 58.291 400.073 58.4063V58.4524C399.831 58.8351 399.623 59.2382 399.451 59.6572C399.399 59.784 399.347 59.9223 399.295 60.0549L399.26 60.1644C399.22 60.2682 399.191 60.3719 399.157 60.4815L399.116 60.6256C399.116 60.7236 399.064 60.8158 399.041 60.9138C399.018 61.0118 399.041 61.0233 399.001 61.081C398.961 61.1386 398.961 61.2654 398.943 61.3576C398.926 61.4499 398.943 61.4787 398.943 61.5364C398.943 61.594 398.915 61.7266 398.903 61.8188C398.891 61.911 398.903 61.9341 398.903 61.9917C398.903 62.0494 398.903 62.1993 398.874 62.303C398.877 62.3549 398.877 62.4068 398.874 62.4587V63.9286C398.874 63.9805 398.874 64.1073 398.909 64.1937C398.943 64.2802 398.909 64.309 398.938 64.3667C398.966 64.4243 398.938 64.5281 398.978 64.6088C399.018 64.6895 399.007 64.7241 399.018 64.7817L399.07 65.0123L399.122 65.191C399.122 65.2659 399.162 65.3409 399.185 65.41C399.201 65.4706 399.22 65.5305 399.243 65.5887L399.312 65.802L399.381 65.9807C399.381 66.0499 399.433 66.1191 399.462 66.1882L399.537 66.3612C399.537 66.4246 399.595 66.4937 399.629 66.5572C399.664 66.6206 399.681 66.6724 399.71 66.7301C399.739 66.7877 399.779 66.8569 399.808 66.9203C399.837 66.9837 399.871 67.0356 399.906 67.0875L400.01 67.2719L400.114 67.4391L400.223 67.6178L400.333 67.7734L400.454 67.9464L400.575 68.102L400.702 68.2692L400.828 68.4191L400.961 68.5747L401.093 68.7188L401.238 68.8687L401.376 69.007L401.526 69.1511L401.67 69.2837L401.826 69.4163L401.975 69.5431L402.137 69.6699L402.298 69.791L402.465 69.9063L402.627 70.0216L402.8 70.1311L402.973 70.2406L403.146 70.3386L403.324 70.4366L403.503 70.5288L403.687 70.6211L403.872 70.7075L404.062 70.7882L404.247 70.8632L404.443 70.9381L404.633 71.0015L404.835 71.0649L405.031 71.1226L405.232 71.1802L405.434 71.2263L405.636 71.2724L405.843 71.307C405.913 71.307 405.982 71.307 406.051 71.3416H456.27C456.413 71.3416 456.55 71.2853 456.652 71.1849C456.753 71.0846 456.811 70.9482 456.812 70.8055V63.381C456.813 63.3043 456.797 63.2285 456.766 63.1585C456.735 63.0885 456.689 63.026 456.632 62.9752C456.574 62.9244 456.507 62.8864 456.433 62.864C456.36 62.8415 456.283 62.835 456.207 62.8449ZM113.738 70.8747C113.748 71.0352 113.821 71.1854 113.94 71.2931C114.06 71.4008 114.217 71.4575 114.377 71.4511H129.653C129.814 71.4574 129.972 71.4008 130.092 71.2933C130.213 71.1858 130.287 71.0357 130.299 70.8747V2.43384C130.287 2.27284 130.213 2.12277 130.092 2.01524C129.972 1.90772 129.814 1.85113 129.653 1.8574H114.377C114.217 1.8512 114.06 1.90797 113.94 2.01563C113.821 2.12329 113.748 2.27334 113.738 2.43384V70.8747ZM1.41805 70.8747C1.42988 71.0358 1.50383 71.1859 1.6243 71.2935C1.74476 71.401 1.9023 71.4576 2.06366 71.4511H17.3393C17.5001 71.4575 17.657 71.4008 17.7765 71.2931C17.8961 71.1854 17.9688 71.0352 17.9792 70.8747V27.7857C17.9688 27.6252 17.8961 27.475 17.7765 27.3673C17.657 27.2596 17.5001 27.2029 17.3393 27.2093H2.06366C1.90192 27.2014 1.74356 27.2574 1.62277 27.3652C1.50198 27.4731 1.42845 27.6241 1.41805 27.7857V70.8747ZM103.656 59.7033L96.0985 53.6391C95.9468 53.5162 95.8411 53.3455 95.7988 53.1549C95.7519 52.9595 95.7807 52.7535 95.8794 52.5785C104.36 36.6168 99.5318 16.8333 84.6515 6.57326C69.7724 -3.68681 49.5641 -1.16661 37.66 12.4351C25.7565 26.0356 25.9352 46.399 38.0762 59.7886C50.2178 73.1782 70.4665 75.3427 85.1634 64.8226C85.3095 64.7123 85.4876 64.6526 85.6707 64.6526C85.8538 64.6526 86.0319 64.7123 86.1779 64.8226L94.2827 71.3307C94.3499 71.3833 94.4269 71.4222 94.5092 71.4449C94.5915 71.4676 94.6775 71.4738 94.7622 71.4631C94.8469 71.4524 94.9286 71.425 95.0026 71.3824C95.0767 71.3399 95.1415 71.2831 95.1935 71.2154L103.759 60.614C103.866 60.4792 103.914 60.3079 103.895 60.1373C103.875 59.9668 103.789 59.8108 103.656 59.7033ZM68.118 56.4637C57.0677 58.4812 46.3862 50.9125 44.3456 39.6201C42.305 28.3276 49.6489 17.5193 60.7165 15.5191C71.7842 13.5188 82.4311 21.0702 84.489 32.3627C86.5469 43.6551 79.1857 54.4461 68.118 56.4637ZM228.334 1.84011H213.058C212.898 1.8339 212.741 1.89067 212.621 1.99833C212.502 2.106 212.429 2.25605 212.419 2.41655V70.8747C212.429 71.0352 212.502 71.1854 212.621 71.2931C212.741 71.4008 212.898 71.4575 213.058 71.4511H228.334C228.495 71.4573 228.652 71.4006 228.771 71.2929C228.891 71.1852 228.963 71.0352 228.974 70.8747V2.43384C228.971 2.35282 228.952 2.27319 228.918 2.19949C228.885 2.12579 228.837 2.05947 228.777 2.00432C228.718 1.94918 228.648 1.90629 228.572 1.87811C228.496 1.84994 228.415 1.83702 228.334 1.84011ZM9.7015 0.473941C4.34348 0.473941 0 4.81742 0 10.1754C0 15.5335 4.34348 19.8769 9.7015 19.8769C15.0595 19.8769 19.403 15.5335 19.403 10.1754C19.403 8.90142 19.1521 7.63988 18.6645 6.46284C18.177 5.2858 17.4624 4.21631 16.5615 3.31545C15.6606 2.41458 14.5911 1.69997 13.4141 1.21242C12.2371 0.724877 10.9755 0.473941 9.7015 0.473941ZM204.331 1.84011H188.047C187.913 1.83911 187.781 1.87252 187.664 1.93712C187.547 2.00173 187.448 2.09536 187.378 2.20903L172.252 29.0827C172.252 29.0827 172.143 29.2845 171.993 29.2845C171.843 29.2845 171.733 29.0827 171.733 29.0827L156.608 2.20903C156.537 2.09536 156.439 2.00173 156.321 1.93712C156.204 1.87252 156.073 1.83911 155.939 1.84011H139.66C139.531 1.84097 139.404 1.87728 139.293 1.94511C139.183 2.01293 139.093 2.10968 139.034 2.22488C138.974 2.34008 138.948 2.46933 138.956 2.59862C138.965 2.72792 139.009 2.85234 139.084 2.9584L163.294 43.6724C163.525 44.0655 163.647 44.5134 163.646 44.9694V70.7594C163.647 70.9464 163.723 71.1253 163.856 71.257C163.988 71.3888 164.168 71.4627 164.355 71.4627H179.665C179.852 71.4627 180.032 71.3888 180.165 71.257C180.297 71.1253 180.373 70.9464 180.374 70.7594V44.9694C180.373 44.5134 180.495 44.0655 180.726 43.6724L204.936 2.9584C205.013 2.85044 205.058 2.72324 205.065 2.59118C205.073 2.45913 205.044 2.32749 204.981 2.21114C204.918 2.09479 204.824 1.99839 204.709 1.93282C204.594 1.86725 204.463 1.83513 204.331 1.84011Z",
-			fill: "url(#iqiyiGrad)"
-		}), u("defs", { children: u("linearGradient", {
-			id: "iqiyiGrad",
-			x1: "0",
-			y1: "0.26",
-			x2: "459.68",
-			y2: "0.26",
-			gradientUnits: "userSpaceOnUse",
-			children: [u("stop", { "stop-color": "#00DC5A" }), u("stop", {
-				offset: "1",
-				"stop-color": "#00DC5A"
-			})]
-		}) })]
-	});
-	var LogoYouku = (props) => u("svg", {
-		viewBox: "0 0 55 66",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("defs", { children: [u("linearGradient", {
-				id: "youkuGrad1",
-				x1: "13.0298",
-				y1: "50.969",
-				x2: "32.0761",
-				y2: "36.5697",
-				gradientUnits: "userSpaceOnUse",
-				children: [u("stop", { "stop-color": "#FF8000" }), u("stop", {
-					offset: "1",
-					"stop-color": "#FF6400"
-				})]
-			}), u("linearGradient", {
-				id: "youkuGrad2",
-				x1: "9.9728",
-				y1: "15.0216",
-				x2: "50.0677",
-				y2: "39.3418",
-				gradientUnits: "userSpaceOnUse",
-				children: [
-					u("stop", { "stop-color": "#00C1FF" }),
-					u("stop", {
-						offset: "0.39753",
-						"stop-color": "#09B2FF"
-					}),
-					u("stop", {
-						offset: "1",
-						"stop-color": "#2C78FF"
-					})
-				]
-			})] }),
-			u("path", {
-				d: "M18.8912 31.7762L20.95 32.9992L46.2122 48.0252L18.9453 64.2541C12.9039 67.8476 5.18024 65.7166 1.69386 59.4894C-1.79252 53.2622 0.27493 45.3011 6.31636 41.7075L18.8561 34.2458C19.2704 33.9949 19.5484 33.5309 19.5484 33C19.5484 32.4843 19.286 32.0317 18.8912 31.7762Z",
-				fill: "url(#youkuGrad1)"
-			}),
-			u("path", {
-				d: "M46.2122 17.9698L18.9453 1.74594C12.9039 -1.84763 5.18024 0.283384 1.69386 6.51057C-1.79252 12.7378 0.27493 20.6989 6.31636 24.2925L20.9543 33.0025L46.2122 48.0302C57.4369 41.3507 57.4369 24.6493 46.2122 17.9698Z",
-				fill: "url(#youkuGrad2)"
-			})
-		]
-	});
-	var LogoYoukuCombined = (props) => u("svg", {
-		width: "213",
-		height: "72",
-		viewBox: "0 0 213 72",
-		fill: "none",
-		...props,
-		children: [
-			u("path", {
-				"fill-rule": "evenodd",
-				"clip-rule": "evenodd",
-				d: "M209.481 28.0742V28.0682H201.254V19.9466H208.007V19.9405C209.951 19.9405 211.526 18.3641 211.526 16.4196C211.526 14.4752 209.951 12.8981 208.007 12.8981H201.254V7.45862H201.251C201.236 5.48832 199.637 3.89481 197.663 3.89481C195.69 3.89481 194.092 5.48832 194.076 7.45862H194.074V12.8981H190.475C190.694 12.0213 191.112 9.89813 191.112 9.6275C191.112 7.75896 189.597 6.24355 187.73 6.24355C186.14 6.24355 184.815 7.34586 184.454 8.82552C184.454 8.82552 183.533 13.8899 181.541 19.7018C181.541 19.7018 181.363 20.4257 181.363 20.8146C181.363 22.6242 182.828 24.0907 184.636 24.0907C186.069 24.0907 187.273 23.1649 187.717 21.8833C187.717 21.8833 188 21.1209 188.389 19.9466H194.074V28.0682L184.943 28.0742C182.999 28.0742 181.424 29.6507 181.424 31.5951C181.424 33.5396 182.999 35.1166 184.943 35.1166H209.481C211.424 35.1166 213 33.5396 213 31.5951C213 29.6507 211.424 28.0742 209.481 28.0742ZM163.671 19.6783H165.383V13.2894H163.671V19.6783ZM157.673 60.9243C156.804 60.9243 156.101 60.2208 156.101 59.3523V55.0008H173.025C173.025 55.0008 173.018 59.3468 173.018 59.3523C173.018 60.2208 172.314 60.9243 171.446 60.9243H157.673ZM157.799 30.7669C157.799 35.2185 156.337 38.8967 156.101 39.4617V27.6123C156.101 26.7438 156.804 26.0403 157.673 26.0403H157.799V30.7669ZM165.407 41.4221C165.526 43.4237 167.17 45.0145 169.201 45.0145H173.025V48.6388H156.101V46.0464C156.597 45.6833 163.671 40.3324 163.671 30.7669V26.0403H165.384L165.407 41.4221ZM171.454 26.0403C172.321 26.0403 173.023 26.7427 173.025 27.6096V39.3978H172.137C171.65 39.3978 171.255 39.0029 171.255 38.5161V26.0403H171.454ZM173.834 19.6783H171.255V13.2894H175.62V13.2828C177.563 13.2828 179.139 11.7069 179.139 9.76243C179.139 7.81743 177.563 6.24151 175.62 6.24151H153.192C151.249 6.24151 149.673 7.81743 149.673 9.76243C149.673 11.7069 151.249 13.2828 153.192 13.2828C153.24 13.2828 157.799 13.2894 157.799 13.2894V19.6783H155.292C152.214 19.6783 149.721 22.1558 149.681 25.2251H149.673L149.681 61.7428C149.723 64.7494 152.121 67.1724 155.113 67.2687C155.113 67.2687 173.802 67.2863 173.834 67.2863C176.773 67.2863 179.158 65.0211 179.405 62.1449L179.448 25.2454C179.418 22.1662 176.919 19.6783 173.834 19.6783ZM204.707 59.493C204.707 60.2773 204.071 60.9127 203.287 60.9127H191.33C190.546 60.9127 189.91 60.2773 189.91 59.493V46.6706C189.91 45.8857 190.546 45.2498 191.33 45.2498H203.287C204.071 45.2498 204.707 45.8857 204.707 46.6706V59.493ZM206.265 38.8906H188.352C185.713 38.9742 183.597 41.0672 183.463 43.6953V62.4677C183.597 65.0958 185.713 67.1883 188.352 67.273H206.265C208.904 67.1883 211.02 65.0958 211.154 62.4677V43.6953C211.02 41.0672 208.904 38.9742 206.265 38.8906ZM94.5008 4.62836C96.5745 4.65113 98.348 6.2419 98.2913 8.34972C98.2287 10.6754 94.4524 18.8591 92.4507 22.4416V64.3527C92.4507 66.4253 90.7712 68.1057 88.6998 68.1057C86.6283 68.1057 84.9488 66.4253 84.9488 64.3527V33.5687C83.8339 34.9516 83.1192 35.7249 83.1192 35.7249C82.3089 36.5759 81.3358 37.3465 80.0642 37.3586C77.9905 37.3784 76.404 35.7084 76.2737 33.6375C76.1835 32.1996 77.2825 31.0418 77.2825 31.0418C86.6085 20.3553 89.531 11.3316 90.9307 7.33761C90.9307 7.33761 91.8224 4.59998 94.5008 4.62836ZM112.286 3.97979C114.551 3.97979 116.387 5.81643 116.387 8.08266L116.388 21.3847H136.301C138.229 21.3847 139.791 22.9485 139.791 24.877C139.791 26.8055 138.229 28.3693 136.301 28.3693H126.654V57.1928C126.68 58.4976 127.735 59.5487 129.044 59.5515H132.447C133.773 59.5487 134.847 58.4739 134.847 57.1472C134.847 57.1389 135.29 53.0097 135.29 53.0097C135.576 51.3424 137.018 50.0702 138.766 50.0702C140.72 50.0702 142.303 51.6543 142.303 53.6081C142.303 53.678 142.15 59.1664 140.992 61.8034L140.848 62.0745C139.219 65.0292 136.145 67.0927 132.584 67.2886H127.082C122.702 67.2886 119.152 63.7369 119.152 59.354V28.3693H116.336C115.832 50.4044 103.866 63.3231 101.955 65.2491L101.845 65.3591C101.781 65.422 101.737 65.4641 101.715 65.4851L101.699 65.5009L101.667 65.5294C101.43 65.7415 99.8954 67.0651 98.5243 67.0064C96.2615 66.9101 94.4962 65.1687 94.4231 62.9035C94.3762 61.4354 95.5451 60.1194 95.8264 59.8246L95.8865 59.7633C105.924 48.1136 107.815 36.4414 108.128 28.3693H99.0801C97.1526 28.3693 95.5897 26.8055 95.5897 24.877C95.5897 22.9485 97.1526 21.3847 99.0801 21.3847H108.186V8.08266C108.186 5.81643 110.021 3.97979 112.286 3.97979ZM124.984 4.62325C126.002 4.62325 126.907 5.07429 127.536 5.77782L127.545 5.76956C127.545 5.76956 130.106 8.21462 132.883 10.8485L133.301 11.2447C133.65 11.5756 134.001 11.9077 134.348 12.2366C134.358 12.2454 134.368 12.2536 134.377 12.263C134.383 12.269 134.389 12.2745 134.395 12.28C134.986 12.8901 135.354 13.7184 135.354 14.6348C135.354 16.4957 133.846 18.0039 131.987 18.0039C131.124 18.0039 130.346 17.67 129.75 17.1365L129.742 17.1447C129.742 17.1447 127.073 14.8009 124.252 12.124L123.828 11.7202C123.403 11.3145 122.978 10.9035 122.561 10.494C122.558 10.4913 122.555 10.4891 122.552 10.4869C122.548 10.483 122.545 10.4792 122.541 10.4753C121.929 9.85319 121.55 9.00115 121.55 8.06C121.55 6.16121 123.087 4.62325 124.984 4.62325Z",
-				fill: "white"
-			}),
-			u("path", {
-				d: "M21.0937 34.6649L23.392 35.9999L51.6 52.3911L21.1541 70.0953C14.4083 74.0156 5.78419 71.6909 1.89135 64.8976C-2.0015 58.1043 0.306984 49.4194 7.05277 45.4991L21.0545 37.359C21.517 37.0853 21.8275 36.5792 21.8275 36C21.8275 35.4374 21.5345 34.9436 21.0937 34.6649Z",
-				fill: "url(#youkuGrad1)"
-			}),
-			u("path", {
-				d: "M51.6 19.6034L21.1541 1.90467C14.4083 -2.0156 5.78419 0.309146 1.89135 7.10244C-2.0015 13.8957 0.306984 22.5806 7.05277 26.5009L23.3973 36.0027L51.6 52.3966C64.1333 45.1098 64.1333 26.8902 51.6 19.6034Z",
-				fill: "url(#youkuGrad2)"
-			}),
-			u("defs", { children: [u("linearGradient", {
-				id: "youkuGrad1",
-				x1: "1454.89",
-				y1: "2118.1",
-				x2: "3571.47",
-				y2: "554.74",
-				gradientUnits: "userSpaceOnUse",
-				children: [u("stop", { "stop-color": "#FF8000" }), u("stop", {
-					offset: "1",
-					"stop-color": "#FF6400"
-				})]
-			}), u("linearGradient", {
-				id: "youkuGrad2",
-				x1: "1113.55",
-				y1: "1683.32",
-				x2: "5556.74",
-				y2: "4316.43",
-				gradientUnits: "userSpaceOnUse",
-				children: [
-					u("stop", { "stop-color": "#00C1FF" }),
-					u("stop", {
-						offset: "0.39753",
-						"stop-color": "#09B2FF"
-					}),
-					u("stop", {
-						offset: "1",
-						"stop-color": "#2C78FF"
-					})
-				]
-			})] })
-		]
-	});
-	var LogoTencentTv = (props) => u("svg", {
-		viewBox: "0 0 289 259",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("defs", { children: [
-				u("linearGradient", {
-					id: "tencentGrad1",
-					x1: "112.791",
-					y1: "27.7062",
-					x2: "112.791",
-					y2: "231.592",
-					gradientUnits: "userSpaceOnUse",
-					children: [u("stop", { "stop-color": "#F9B93B" }), u("stop", {
-						offset: "1",
-						"stop-color": "#FA7535"
-					})]
-				}),
-				u("linearGradient", {
-					id: "tencentGrad2",
-					x1: "166.259",
-					y1: "0.00682032",
-					x2: "166.259",
-					y2: "259.007",
-					gradientUnits: "userSpaceOnUse",
-					children: [u("stop", { "stop-color": "#53C4FE" }), u("stop", {
-						offset: "1",
-						"stop-color": "#0D84F4"
-					})]
-				}),
-				u("linearGradient", {
-					id: "tencentGrad3",
-					x1: "134.762",
-					y1: "30.2776",
-					x2: "134.762",
-					y2: "229.032",
-					gradientUnits: "userSpaceOnUse",
-					children: [u("stop", { "stop-color": "#AEF922" }), u("stop", {
-						offset: "1",
-						"stop-color": "#62BB0D"
-					})]
-				}),
-				u("linearGradient", {
-					id: "tencentGrad4",
-					x1: "127.262",
-					y1: "83.0401",
-					x2: "127.262",
-					y2: "175.954",
-					gradientUnits: "userSpaceOnUse",
-					children: [
-						u("stop", { "stop-color": "white" }),
-						u("stop", {
-							offset: "0.6",
-							"stop-color": "white"
-						}),
-						u("stop", {
-							offset: "1",
-							"stop-color": "#E5F6D2"
-						})
-					]
-				})
-			] }),
-			u("path", {
-				d: "M213.376 108.613C190.677 90.3692 163.87 76.2031 135.766 62.6809C109.392 49.588 81.5044 38.8562 52.9682 30.2707C52.9682 30.2707 52.9682 30.2707 52.9682 30.4853C52.1035 30.2707 51.4549 30.056 50.5902 29.6268C32.2146 24.0462 16.0008 30.4853 8.6506 50.232C-0.429097 74.9153 0.0032693 102.603 0.0032693 129.648C0.0032693 156.692 -0.212914 183.951 8.43442 208.634C16.4332 231.386 31.9984 234.82 50.374 229.24C50.8064 229.025 51.8873 228.81 52.752 228.381C52.752 228.596 52.752 228.81 52.752 229.025C81.7206 220.225 110.041 209.064 137.28 195.541C164.735 182.019 191.109 167.639 213.592 149.824C230.455 136.516 228.725 121.062 213.376 108.613Z",
-				fill: "url(#tencentGrad1)"
-			}),
-			u("path", {
-				d: "M275.421 155.19C294.013 135.872 291.851 118.057 275.205 102.818C250.776 80.0666 221.807 61.6077 191.542 44.2221C162.141 27.2658 131.01 13.3143 99.0153 1.93854C80.8559 -4.28595 61.1832 4.94346 54.6977 22.973C54.0491 24.6901 53.6168 26.4072 53.4006 28.1243C40.862 95.0912 40.862 163.775 53.1844 230.742C56.6433 249.415 74.8027 261.864 93.6107 258.43C95.3402 258.001 97.2858 257.572 99.0153 256.928C131.659 245.337 163.006 230.742 192.839 213.356C222.672 196.4 252.289 179.014 275.421 155.19Z",
-				fill: "url(#tencentGrad2)"
-			}),
-			u("path", {
-				d: "M52.9682 30.2707C41.0781 95.9497 40.8619 163.346 52.752 229.025C81.7205 220.225 110.041 209.064 137.28 195.542C164.735 182.019 191.109 167.639 213.592 149.824C230.455 136.516 228.725 121.062 213.376 108.613C190.677 90.3692 163.87 76.2031 135.766 62.6809C109.392 49.5881 81.5044 38.8562 52.9682 30.2707Z",
-				fill: "url(#tencentGrad3)"
-			}),
-			u("path", {
-				d: "M171.653 124.711C171.653 124.711 162.573 116.34 132.524 101.101C102.907 86.0764 90.5841 83.5008 90.5841 83.5008C86.2604 82.213 83.6662 83.5008 82.5853 88.4374C82.5853 88.4374 79.7749 92.5155 79.7749 129.433C79.7749 166.351 82.5853 170.858 82.5853 170.858C83.45 175.366 85.6119 176.868 90.5841 175.795C90.5841 175.795 99.0152 174.507 132.524 157.765C166.032 141.024 171.653 134.584 171.653 134.584C175.328 130.936 176.193 128.575 171.653 124.711Z",
-				fill: "url(#tencentGrad4)"
-			})
-		]
-	});
-	var LogoTencentCombined = (props) => u("svg", {
-		width: "284",
-		height: "72",
-		viewBox: "0 0 284 72",
-		fill: "none",
-		...props,
-		children: [u("mask", {
-			id: "tencentMask",
-			"mask-type": "luminance",
-			maskUnits: "userSpaceOnUse",
-			x: "2",
-			y: "6",
-			width: "280",
-			height: "63",
-			children: u("path", {
-				d: "M281.75 6.16H2.25v62.46h279.5V6.16Z",
-				fill: "white"
-			})
-		}), u("g", {
-			mask: "url(#tencentMask)",
-			children: [
-				u("path", {
-					d: "M13.8 52.88c1.53 10.3 3.36 18.04 15.28 14.18 11.44-3.68 22.45-10.22 32.11-17.63 3.46-2.97 9.5-7.15 9.62-12.07-.12-4.93-6.16-9.1-9.62-12.07-9.68-7.41-20.67-13.94-32.11-17.63C17.16 3.82 15.33 11.56 13.8 21.85c-1.19 10.31-1.19 20.72 0 31.03Z",
-					fill: "#0098FF"
-				}),
-				u("path", {
-					d: "M3.4 23.77c1.3-6.81 3.27-11.75 12.06-14.06-.76 2.67-1.31 5.39-1.66 8.14-1.18 10.31-1.18 20.72 0 31.03.35 2.75.9 5.47 1.66 8.14-8.8 2.3-10.75-2.65-12.06-9.46l-.1-.49-.17-.98c-1.1-8.04-1.1-16.2 0-24.24l.17-.98.1-.5Z",
-					fill: "#FF8800"
-				}),
-				u("path", {
-					d: "M15.46 13.71c.6.12 1.25.27 1.96.46 10.67 2.88 20.95 7.98 29.97 13.77 3.22 2.32 8.86 5.58 8.97 9.43-.1 3.85-5.75 7.11-8.97 9.43-9.02 5.79-19.3 10.89-29.97 13.77a44.9 44.9 0 0 1-1.96.46 43.2 43.2 0 0 1-1.66-8.14C12.61 42.58 12.61 32.17 13.8 21.86c.35-2.73.9-5.44 1.64-8.09l.02-.06Z",
-					fill: "#43E700"
-				}),
-				u("path", {
-					d: "M21.75 27.58s-.65 1.06-.65 9.8c0 8.75.65 9.75.65 9.75.22 1.09.66 1.43 1.85 1.16 0 0 1.96-.3 9.8-4.29 7.84-3.98 9.15-5.49 9.15-5.49.84-.85 1.07-1.41 0-2.3 0 0-2.15-1.98-9.15-5.6-6.99-3.62-9.8-4.19-9.8-4.19-.96-.27-1.58.04-1.85 1.16Z",
-					fill: "white"
-				}),
-				u("path", {
-					"fill-rule": "evenodd",
-					"clip-rule": "evenodd",
-					d: "M252.64 37.47c-1.33 10.61-5.84 16.19-17.96 17.57l.02 4.59c16.96-1.85 20.82-10.23 22.33-22.16h-4.39Zm3.23 17.69v4.48l.02-.01c6.31-2.18 10.24-5.28 12.38-8.61 2.98 2.5 5.58 5.31 7.81 8.49h5.52c-2.5-3.62-5.52-7-8.57-9.19h-4.34c1.15-2.05 1.65-4.16 1.62-6.19 0-1.16.01-2.36.02-4.08.02-2.17.04-5.17.04-9.98h-3.92c.03 4.2-.09 11.06-.42 15.17-.34 4.51-4.07 7.53-10.17 9.91ZM273.28 28.47v19.77l4.49-.01V27.36c.05-1.47-.15-2.32-.61-2.78-.46-.47-1.26-.67-2.62-.67h-5.03l1.64-4.8h7.7V15.47h-20.96v3.66h8.82l-1.73 4.8H259.1l-.19 24.32h4.12l.18-20.78h9.12c.13-.01.26 0 .38.05.13.04.24.1.34.19.09.1.16.22.2.35.05.13.06.27.05.4ZM237.91 36.06c-.87 3.94-2.08 7.8-3.62 11.52h4.54c1.42-3.74 2.51-7.6 3.27-11.52h-4.19Zm6.91-3.45-1.28 13.6 4.56.03 1.21-13.63h8v-3.79h-7.71v-4.91h6.83v-3.63h-6.83v-5.71h-4.51v14.46h-3.35v-10.02h-4.35v10.02h-2.75v3.8h10.17Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M217.26 59.42c-.46 0-.9-.18-1.22-.5-.32-.32-.5-.75-.5-1.2V47.72l-.56 1.16c-2.09 4.26-8.29 9.74-14.96 10.75v-4.36c6.17-1.43 10.6-6.16 12.54-11.9 1.46-4.24 1.33-9.47 1.18-15.72-.04-1.64-.09-3.36-.1-5.14h4.66c.05 11.31-.28 17.42-1.64 22.3l-.1.35h3.64v9.81h9.96l-.65 4.43-12.25.02ZM190.54 59.42V38.7c-2.04 2.44-4.32 4.67-6.81 6.66v-5.84c9.34-8.6 10.73-12.23 11.42-14.04.03-.08.06-.16.09-.24.02-.06.03-.11.02-.17 0-.06-.03-.11-.06-.16a.39.39 0 0 0-.13-.1.35.35 0 0 0-.16-.04h-10.4v-3.91h14.8c.24 0 .47.05.69.16.22.1.41.26.55.45.14.19.25.41.3.64.05.24.04.48-.02.71-.97 3.64-5.6 10.97-5.6 10.97v.74h3.62c1.1 1.84 2.5 5.23 3.34 7.32h-4.67c-.68-1.98-1.44-3.93-2.28-5.85v23.43h-4.7ZM222.4 44.4V20.25c0-.26-.1-.51-.3-.7-.18-.18-.43-.29-.7-.29h-12.06v25.03h-4.6V15.63h19.6c.73 0 1.44.29 1.96.81.52.52.81 1.22.81 1.95v26.01h-4.71Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M146.72 28.09h-10.33v3.95h5.23l-.49 25.7c0 .21.04.43.12.63.08.2.2.39.35.54.15.16.34.28.54.36.2.09.42.13.64.14h9.07v-4.43h-5.44l.32-25.9Zm1.07-3.19h-5c-.59-1.71-1.2-3.46-1.79-5.12-.58-1.66-1.17-3.33-1.74-4.99h4.76l3.77 10.11ZM176.43 54.97l.2-36.64c0-.4-.08-.81-.23-1.19-.15-.38-.38-.72-.67-1.01-.29-.3-.63-.52-1.01-.68-.38-.16-.79-.24-1.2-.24h-23.29v3.95h20.28c.24 0 .48.1.65.27.17.17.27.4.27.65 0 0-.1 31.84-.15 37.68 0 .22.05.43.13.63.08.2.2.38.35.54.15.15.34.28.54.36.2.08.42.12.64.13h9.42l.65-4.44h-6.57Zm-13.57-34.05-.03 13.32h6.8v4.26h-6.82l-.17 20.92h-5.06l.16-20.92h-6.94v-4.26h6.96l.06-13.35 5.04.03Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M190.99 20.85h4.7l-2.71-6.13h-4.6c.79 1.54 2.24 5.05 2.6 6.13ZM104.69 49.97h18.28v3.45H104.7v-3.45Zm21.33-11.87c2.12 1.21 4.4 2.1 6.79 2.63v-3.99c-2.87-.72-7.21-2.72-8.97-5.13l-.27-.37h8.17v-3.45h-13.02l.08-.35c.05-.22.1-.46.16-.67.14-.54.25-1.09.34-1.64v-.18h10.7v-3.55h-3.03l.12-.37c.6-1.87 1.08-3.78 1.44-5.72h-4.78c-.28 2.01-.71 3.99-1.29 5.94l-.04.15h-2.61v-.31c.09-2.22 0-4.44-.3-6.64h-4.86c.28 2.24.38 4.5.3 6.75v.2h-2.8l-.42-1.07c-.7-1.79-1.3-3.34-1.9-5.02h-4.82l2.3 6.09h-2.26v3.55h9.37l-.07.34c-.15.8-.37 1.6-.66 2.37l-.05.13h-10.06v3.45h8.29l-.38.43c-1.7 1.94-4.83 3.52-8.1 4.48v4.54c1.43-.37 2.82-.88 4.14-1.53l.73-.38h12.63v5.15h-8.39v-3.4h-4.79v6.9h16.87c.18-.02.37 0 .55.07.18.06.34.16.48.28.12.13.2.28.26.45.05.16.07.34.05.52v7.14h-15.34v3.6h20.2c.05-4.52.08-9.66 0-13.43.02-.29-.02-.58-.11-.85-.1-.27-.25-.52-.43-.74-.5-.46-1.38-.55-2.27-.55h-2.36l.09-6.04.34.2Zm-12.77-2.68.5-.46c1.23-1.1 2.35-2.32 3.34-3.65l.07-.1h1.72l.1.14c.85 1.33 1.86 2.55 3 3.65l.46.42-9.19.01Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M88.74 15.74h9.43c1.55 0 2.45.24 2.84.63.4.38.6 1.02.6 2.02v41.12h-4.67l.17-15.87h-3.97v.2c-.12 5.2-.46 10.48-1.01 15.67h-4.55c.65-5.27 1.03-10.57 1.14-15.88V15.74Zm4.41 24.24h3.97l.08-8.62h-4.07l.02 8.62Zm0-12.22h4.07l.09-6.93c.02-.17 0-.34-.05-.5a1.37 1.37 0 0 0-.25-.45.95.95 0 0 0-.51-.26c-.19-.05-.39-.07-.58-.06h-2.77v8.2Z",
-					fill: "white"
-				})
-			]
-		})]
-	});
-	var LogoBilibili = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "#00A1D6",
-			d: "M17.813 4.653h.854c1.51.054 2.769.578 3.773 1.574 1.004.995 1.524 2.249 1.56 3.76v7.36c-.036 1.51-.556 2.769-1.56 3.773s-2.262 1.524-3.773 1.56H5.333c-1.51-.036-2.769-.556-3.773-1.56S.036 18.858 0 17.347v-7.36c.036-1.511.556-2.765 1.56-3.76 1.004-.996 2.262-1.52 3.773-1.574h.774l-1.174-1.12a1.234 1.234 0 0 1-.373-.906c0-.356.124-.658.373-.907l.027-.027c.267-.249.573-.373.92-.373.347 0 .653.124.92.373L9.653 4.44c.071.071.134.142.187.213h4.267a.836.836 0 0 1 .16-.213l2.853-2.747c.267-.249.573-.373.92-.373.347 0 .662.151.929.4.267.249.391.551.391.907 0 .355-.124.657-.373.906zM5.333 7.24c-.746.018-1.373.276-1.88.773-.506.498-.769 1.13-.786 1.894v7.52c.017.764.28 1.395.786 1.893.507.498 1.134.756 1.88.773h13.334c.746-.017 1.373-.275 1.88-.773.506-.498.769-1.129.786-1.893v-7.52c-.017-.765-.28-1.396-.786-1.894-.507-.497-1.134-.755-1.88-.773zM8 11.107c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c0-.373.129-.689.386-.947.258-.257.574-.386.947-.386zm8 0c.373 0 .684.124.933.373.25.249.383.569.4.96v1.173c-.017.391-.15.711-.4.96-.249.25-.56.374-.933.374s-.684-.125-.933-.374c-.25-.249-.383-.569-.4-.96V12.44c.017-.391.15-.711.4-.96.249-.249.56-.373.933-.373Z"
-		})
-	});
-	var LogoBilibiliCombined = (props) => u("svg", {
-		width: "140",
-		height: "64",
-		viewBox: "0 0 140 64",
-		fill: "none",
-		...props,
-		children: u("path", {
-			d: "M129.988 57.0979C129.362 57.0979 128.828 57.1479 128.305 57.0879C127.243 56.9659 126.181 56.9899 125.118 56.9579C124.432 56.9399 124.452 56.9399 124.394 56.2761C124.224 54.2507 124.038 52.2273 123.856 50.2039C123.698 48.4264 123.548 46.6469 123.374 44.8714C123.216 43.2439 123.026 41.6204 122.854 39.9949C122.69 38.4673 122.538 36.9377 122.368 35.4122C122.153 33.4919 121.93 31.5725 121.701 29.6539C121.495 27.9584 121.291 26.2588 121.063 24.5653C120.706 21.9396 120.34 19.3151 119.967 16.6916C119.567 13.8964 119.087 11.1152 118.585 8.33805C118.495 7.8402 118.507 7.8222 118.983 7.74223C120.963 7.40432 122.952 7.11641 124.966 7.16039C125.184 7.16639 125.403 7.17039 125.619 7.19838C125.973 7.24237 126.157 7.41432 126.177 7.8262C126.247 9.26178 126.347 10.6974 126.453 12.1309C126.623 14.4803 126.807 16.8296 126.983 19.1769C127.095 20.6885 127.191 22.196 127.305 23.7036C127.487 26.1269 127.679 28.5482 127.863 30.9715C127.975 32.453 128.073 33.9386 128.187 35.4202C128.361 37.5956 128.551 39.7689 128.727 41.9423C128.838 43.3259 128.938 44.7115 129.056 46.0951C129.23 48.1445 129.418 50.1939 129.596 52.2433C129.73 53.8428 129.852 55.4464 129.988 57.0979ZM53.3544 7.18239C53.6443 7.18239 54.0822 7.1504 54.5141 7.19039C55.0639 7.24037 55.1699 7.38233 55.2039 7.93417C55.3618 10.4574 55.5098 12.9827 55.6777 15.508C55.8617 18.2312 56.0636 20.9504 56.2656 23.6696C56.4515 26.1669 56.6374 28.6641 56.8374 31.1614C57.0553 33.9046 57.2973 36.6438 57.5172 39.387C57.6831 41.4884 57.8251 43.5898 57.9971 45.6932C58.161 47.6446 58.353 49.5921 58.5289 51.5415C58.6789 53.219 58.8308 54.8985 58.9768 56.578C59.0228 57.1099 58.9848 57.1439 58.4109 57.1299C56.9094 57.0939 55.4158 56.9179 53.9142 56.9599C53.5703 56.9699 53.4704 56.812 53.4124 56.4861C53.2884 55.7763 53.3084 55.0545 53.2324 54.3367C53.0265 52.4392 52.9085 50.5338 52.7346 48.6323C52.5786 46.9048 52.3907 45.1813 52.2127 43.4558C52.0548 41.8783 51.8988 40.3008 51.7309 38.7212C51.5629 37.1717 51.385 35.6201 51.209 34.0686C51.0471 32.641 50.8891 31.2134 50.7172 29.7858C50.4632 27.6944 50.2113 25.603 49.9354 23.5156C49.6815 21.6002 49.3936 19.6908 49.1236 17.7773C48.7557 15.1781 48.3419 12.5848 47.884 10.0016C47.7793 9.41662 47.6687 8.83276 47.5521 8.25008C47.4921 7.95616 47.5461 7.78621 47.882 7.74023C48.7657 7.62226 49.6475 7.43831 50.5352 7.35234C51.423 7.27036 52.3107 7.10441 53.3544 7.18239ZM116.234 32.3911C117.926 32.3911 117.966 32.4031 118.238 33.9246C118.571 35.8021 118.805 37.6955 119.027 39.589C119.261 41.6064 119.497 43.6238 119.713 45.6432C119.887 47.2687 120.033 48.8983 120.197 50.5238C120.369 52.2273 120.551 53.9248 120.729 55.6263C120.827 56.588 120.919 57.5498 121.029 58.5095C121.061 58.7874 120.977 58.9353 120.703 58.9673C120.125 59.0333 119.551 59.1093 118.975 59.1713C117.92 59.2852 116.862 59.3972 115.804 59.4952C115.258 59.5452 115.222 59.5152 115.12 58.9873C114.193 54.1987 113.263 49.4141 112.343 44.6235C111.731 41.4384 111.136 38.2514 110.536 35.0663C110.455 34.6281 110.381 34.1888 110.312 33.7487C110.272 33.4967 110.34 33.3348 110.626 33.2668C112.531 32.8209 114.457 32.477 116.234 32.3911ZM45.1668 32.3911C46.9763 32.3911 46.9683 32.3971 47.2482 34.0386C47.68 36.5798 47.986 39.1351 48.2599 41.6984C48.5278 44.1856 48.8197 46.6709 49.0816 49.1582C49.2596 50.8597 49.3996 52.5652 49.5655 54.2647C49.6835 55.4744 49.8234 56.68 49.9514 57.8877C49.9674 58.0356 49.9754 58.1836 49.9854 58.3335C50.0114 58.9254 49.9854 58.9733 49.4155 59.0313C48.2859 59.1493 47.1542 59.2473 46.0245 59.3592C45.6147 59.3992 45.2068 59.4592 44.8009 59.4992C44.261 59.5492 44.243 59.5472 44.1371 59.0013C43.7572 57.0839 43.3893 55.1624 43.0174 53.245C42.1257 48.6263 41.2239 44.0117 40.3382 39.393C39.9843 37.5456 39.6804 35.6901 39.3325 33.8406C39.2685 33.5027 39.3165 33.3448 39.6664 33.2628C41.5538 32.8229 43.4533 32.479 45.1668 32.3911ZM69.0498 51.7574V59.5092C69.0498 59.5832 69.0418 59.6591 69.0518 59.7331C69.0898 60.109 68.9519 60.275 68.564 60.259C68.0541 60.237 67.5483 60.251 67.0384 60.263C65.9747 60.283 64.909 60.241 63.8474 60.3629C63.2595 60.4309 63.2715 60.3949 63.2135 59.7751C63.0396 57.8237 62.8496 55.8742 62.6717 53.9228C62.5077 52.1213 62.3598 50.3159 62.1918 48.5144C62.0219 46.6609 61.8319 44.8135 61.66 42.962C61.542 41.7263 61.4381 40.4927 61.3341 39.2571C61.1981 37.6495 61.0722 36.044 60.9302 34.4365C60.8702 33.7587 60.9202 33.6627 61.592 33.5927C63.3252 33.4019 65.0708 33.3477 66.8125 33.4308C67.2464 33.4548 67.6782 33.5387 68.0981 33.6407C68.628 33.7667 68.6859 33.8446 68.7139 34.3985C68.7719 35.5142 68.8299 36.6298 68.8599 37.7475C68.8939 38.9891 68.8659 40.2328 68.9119 41.4744C69.0278 44.8994 69.0098 48.3284 69.0498 51.7574ZM139.975 52.1093V59.4492C139.975 59.5732 139.971 59.6971 139.977 59.8231C140.003 60.145 139.853 60.259 139.547 60.257C138.796 60.251 138.046 60.257 137.296 60.267C136.448 60.275 135.603 60.271 134.757 60.3629C134.199 60.4269 134.195 60.3849 134.145 59.8311C133.915 57.2898 133.673 54.7486 133.441 52.2033C133.229 49.858 133.033 47.5107 132.817 45.1633C132.595 42.7421 132.353 40.3268 132.136 37.9075C132.028 36.6958 131.938 35.4842 131.848 34.2725C131.812 33.7447 131.87 33.6507 132.465 33.6027C133.501 33.5207 134.533 33.3808 135.577 33.3988C136.616 33.4188 137.658 33.3608 138.692 33.5587C139.567 33.7267 139.611 33.7767 139.663 34.7124C139.813 37.4656 139.767 40.2268 139.865 42.98C139.965 45.9111 139.895 48.8423 139.975 52.1093ZM114.469 19.0709C115.08 19.1069 115.562 19.0769 116.042 19.1829C116.348 19.2529 116.502 19.3908 116.532 19.7187C116.676 21.2963 116.832 22.8758 116.99 24.4554C117.116 25.737 117.25 27.0186 117.38 28.3003L117.392 28.3742C117.496 29.182 117.472 29.204 116.686 29.248C115.986 29.286 115.288 29.3479 114.589 29.3899C114.129 29.4179 113.983 29.4959 113.907 28.8261C113.645 26.4628 113.341 24.1055 113.051 21.7442C112.971 21.0805 112.881 20.418 112.783 19.7567C112.725 19.3828 112.871 19.1769 113.221 19.1469C113.681 19.1049 114.141 19.0929 114.469 19.0709ZM43.6312 19.0809C44.1031 19.1069 44.589 19.0709 45.0648 19.1809C45.3367 19.2429 45.4747 19.3569 45.5007 19.6668C45.5587 20.4065 45.6726 21.1443 45.7426 21.8841C45.9646 24.1535 46.1745 26.4248 46.3824 28.6961C46.4264 29.19 46.4164 29.2 45.9546 29.234C45.1348 29.294 44.313 29.3539 43.4913 29.3879C43.0134 29.4099 42.9534 29.3519 42.8934 28.8641C42.6855 27.1926 42.4896 25.5191 42.2896 23.8455C42.1277 22.4659 41.9917 21.0863 41.7958 19.7107C41.7418 19.3309 41.8657 19.2269 42.1697 19.1649C42.6515 19.0669 43.1354 19.0989 43.6312 19.0809ZM68.578 25.3311C68.578 26.7687 68.582 28.2043 68.576 29.6439C68.576 30.2897 68.568 30.2937 67.9262 30.2857C67.1541 30.2897 66.3824 30.2497 65.6148 30.1657C65.119 30.1037 65.109 30.1197 65.095 29.5939C65.045 27.8364 64.993 26.0789 64.957 24.3214C64.931 23.1318 64.917 21.9461 64.8451 20.7564C64.8071 20.1426 64.8411 20.1366 65.4309 20.1286C66.3006 20.1186 67.1684 20.1586 68.0321 20.2906C68.552 20.3706 68.576 20.3706 68.578 20.9464C68.582 22.408 68.582 23.8695 68.582 25.3331H68.578V25.3311ZM139.539 25.3691C139.539 26.8087 139.543 28.2463 139.537 29.6838C139.537 30.2877 139.527 30.2917 138.922 30.2877C138.126 30.2804 137.331 30.243 136.538 30.1757C136.144 30.1457 136.028 29.9798 136.054 29.6219C136.058 29.5719 136.054 29.5219 136.054 29.4719C135.994 26.6967 135.934 23.9235 135.878 21.1483C135.876 21.0004 135.868 20.8524 135.874 20.7025C135.882 20.1426 135.884 20.1286 136.446 20.1326C137.22 20.1366 137.988 20.1766 138.76 20.2526C139.701 20.3466 139.535 20.4625 139.539 21.2063C139.543 22.5919 139.541 23.9815 139.539 25.3691ZM41.6898 28.7441C41.7078 29.5339 41.7078 29.5319 40.952 29.7158C40.4382 29.8418 39.9243 29.9798 39.4065 30.0937C38.9646 30.1937 38.8866 30.1377 38.8106 29.7038C38.2828 26.7607 37.7569 23.8156 37.2331 20.8704C37.1271 20.2606 37.1551 20.2226 37.7549 20.1166C38.4927 19.9867 39.2285 19.8587 39.9663 19.7447C40.4362 19.6708 40.4961 19.6968 40.5901 20.2146C40.7761 21.2603 40.952 22.31 41.09 23.3637C41.3039 25.0312 41.4799 26.7047 41.6718 28.3742C41.6878 28.4962 41.6838 28.6222 41.6898 28.7441ZM108.198 20.2006C109.164 20.0427 110.138 19.8827 111.112 19.7287C111.462 19.6748 111.567 19.8947 111.613 20.2066C111.779 21.3583 111.987 22.5019 112.123 23.6556C112.323 25.3271 112.597 26.9906 112.649 28.6761C112.653 28.8481 112.651 29.024 112.655 29.196C112.665 29.4639 112.531 29.6019 112.283 29.6599C111.623 29.8078 110.964 29.9558 110.306 30.1137C109.99 30.1897 109.884 30.0557 109.832 29.7478C109.634 28.5762 109.406 27.4105 109.204 26.2428C108.862 24.3194 108.53 22.394 108.198 20.4685C108.19 20.3985 108.198 20.3246 108.198 20.2006ZM63.7834 26.9526C63.7554 27.9763 63.8174 28.8681 63.6774 29.7598C63.6354 30.0417 63.5534 30.2237 63.2495 30.2497C62.5977 30.3037 61.9479 30.3557 61.3001 30.4216C60.9862 30.4556 60.8982 30.3197 60.8462 30.0118C60.7003 29.102 60.7263 28.1803 60.6383 27.2666C60.4723 25.5411 60.4024 23.8036 60.2904 22.0721C60.2624 21.6502 60.2204 21.2323 60.1864 20.8104C60.1684 20.5745 60.2624 20.4425 60.5143 20.4325C61.3581 20.3985 62.1978 20.2446 63.0456 20.2746C63.5414 20.2926 63.5834 20.3246 63.6194 20.8244C63.6414 21.1703 63.6354 21.5202 63.6434 21.8681L63.7834 26.9526ZM134.715 25.9609C134.715 27.1526 134.729 28.3442 134.713 29.5359C134.703 30.1557 134.633 30.2097 134.047 30.2637C133.467 30.3177 132.891 30.3617 132.313 30.4236C131.988 30.4576 131.836 30.3617 131.816 29.9878C131.732 28.4042 131.618 26.8207 131.508 25.2391C131.422 23.9275 131.324 22.6179 131.232 21.3083C131.222 21.1583 131.23 21.0084 131.22 20.8604C131.206 20.5985 131.286 20.4445 131.58 20.4345C132.399 20.4065 133.213 20.2486 134.039 20.2786C134.543 20.2966 134.551 20.3046 134.589 20.8284C134.711 22.5359 134.723 24.2474 134.715 25.9609ZM39.2685 47.2607C40.3042 48.4004 40.3562 49.75 40.0143 51.1616C39.6704 52.5732 38.8866 53.7369 37.9369 54.7806C36.3433 56.524 34.4179 57.8117 32.3705 58.9054C28.8455 60.7888 25.1086 62.0404 21.2097 62.7802C18.4046 63.3101 15.5814 63.718 12.7282 63.8739C11.8585 63.9219 10.9907 63.9619 10.121 63.9559C9.49115 63.9559 8.85933 63.9739 8.23151 63.9519C7.69767 63.9319 7.61969 63.8399 7.57571 63.2821C7.41375 61.2807 7.27579 59.2772 7.09785 57.2758C6.88991 54.9565 6.64598 52.6392 6.42204 50.3199C6.25809 48.6423 6.11613 46.9608 5.93618 45.2873C5.72824 43.3159 5.49431 41.3485 5.26638 39.377C5.05844 37.5576 4.8585 35.7341 4.63856 33.9126C4.39263 31.8952 4.13871 29.8818 3.86878 27.8684C3.60459 25.9294 3.32933 23.9919 3.04302 22.0561C2.57759 18.8699 2.07102 15.6899 1.52347 12.5168C1.08039 9.92958 0.587104 7.35118 0.0438953 4.78309C-0.0280837 4.43919 0.075886 4.30123 0.377798 4.17526C3.27096 2.97561 6.15412 1.75397 9.04528 0.548316C9.58312 0.324381 10.135 0.136436 10.7068 0.0304665C11.1027 -0.043512 11.2047 0.0384642 11.1927 0.436349C11.1627 1.45405 11.2047 2.47576 11.1047 3.48946C11.0803 3.7614 11.0669 4.03421 11.0647 4.30722C11.0187 7.95616 10.9747 11.6071 11.0707 15.258C11.1547 18.4571 11.3226 21.6542 11.5086 24.8513C11.6545 27.3745 11.8645 29.8978 12.0804 32.4171C12.2923 34.8863 12.5503 37.3516 12.7922 39.8209C12.8382 40.2908 12.8802 40.3348 13.414 40.2628C14.466 40.1047 15.5274 40.0172 16.5911 40.0009C19.8961 39.9929 23.1472 40.4467 26.3622 41.2085C29.1754 41.8763 31.9126 42.766 34.5359 44.0097C35.8355 44.6255 37.0791 45.3373 38.2128 46.241C38.5987 46.545 38.9426 46.8948 39.2685 47.2607ZM109.696 46.6609C110.976 47.7826 111.442 49.1562 111.078 50.8557C110.776 52.2573 110.092 53.4349 109.18 54.4886C107.717 56.1821 105.939 57.4698 104.016 58.5455C100.245 60.6568 96.2279 62.0285 92.0052 62.8202C89.7004 63.2575 87.3756 63.5818 85.0392 63.7919C83.7156 63.9059 82.386 64.0479 80.9004 63.9559H79.1649C78.827 63.9559 78.6351 63.8499 78.6071 63.448C78.4791 61.6925 78.3311 59.9391 78.1732 58.1856C78.0052 56.3341 77.8193 54.4826 77.6433 52.6312C77.4834 50.9297 77.3354 49.2242 77.1615 47.5227C77.0015 45.9191 76.8176 44.3196 76.6436 42.7181C76.4817 41.2145 76.3257 39.7109 76.1478 38.2094C75.9338 36.3899 75.7079 34.5704 75.482 32.751C75.27 31.0535 75.0601 29.3579 74.8342 27.6624C74.5939 25.8452 74.3407 24.0297 74.0744 22.216C73.7185 19.8627 73.3366 17.5174 72.9607 15.1681C72.4365 11.8412 71.8298 8.52777 71.1412 5.23096C71.1132 5.085 71.0992 4.93504 71.0553 4.79308C70.9513 4.47318 71.0513 4.30322 71.3652 4.17926C74.4383 2.97761 77.4134 1.52803 80.5145 0.384364C80.9204 0.232408 81.3303 0.0624573 81.7681 0.01847C82.162 -0.0215184 82.262 0.042463 82.224 0.462341C82.0161 2.73968 82.136 5.02901 82.0281 7.30835C81.9401 9.16781 81.9501 11.0333 82.0441 12.8947C82.0661 13.3666 82.084 13.8405 82.08 14.3103C82.0561 16.5457 82.174 18.779 82.288 21.0104C82.434 23.9595 82.6479 26.9027 82.8658 29.8478C83.0238 31.9732 83.2297 34.0946 83.4297 36.2179C83.5356 37.3796 83.6496 38.5393 83.7936 39.6949C83.8715 40.3328 83.9035 40.3388 84.5293 40.2548C85.633 40.1048 86.7387 39.9829 87.8544 39.9989C91.7692 40.0488 95.6061 40.6667 99.371 41.7403C101.92 42.4641 104.402 43.3679 106.745 44.6335C107.802 45.1957 108.792 45.8758 109.696 46.6609ZM19.2923 57.6757C20.7399 56.9839 27.7678 51.4915 28.3257 50.5958C24.9147 49.1262 21.4917 47.7606 17.8107 46.6429L19.2923 57.6757ZM99.1171 50.9557C99.2971 50.7617 99.2771 50.6118 99.0331 50.5038C98.5473 50.2819 98.0654 50.0459 97.5735 49.844C94.9483 48.7703 92.3111 47.7306 89.6059 46.8829C89.3699 46.8109 89.128 46.6469 88.8261 46.7869L90.2837 57.6277C90.4996 57.6757 90.5836 57.5757 90.6796 57.5078C93.1368 55.7043 95.6101 53.9228 97.9694 51.9834C98.3673 51.6595 98.7612 51.3336 99.1171 50.9557Z",
-			fill: "#FF5588"
-		})
-	});
-	var LogoMangoTv = (props) => u("svg", {
-		viewBox: "0 0 93 90",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "#FF5F00",
-			d: "M92.7 62.7001C92.7 62.4001 92.7 62.4001 92.7 62.4001V34.8001C92.7 32.1001 90.9 29.7001 88.2 29.1L78.6 26.4001L64.8 54.0001L50.7 19.2001L36 15.0001C35.4 14.7001 34.8 14.7001 33.9 14.7001C29.7 14.7001 26.4 17.7001 26.4 21.9001V63.3001C26.7 67.2001 29.7 70.2001 33.6 69.9001C33.9 69.9001 34.2 69.9001 34.2 69.9001L40.2 69.3001V26.1L57.3 67.8001L70.2 66.6001L86.1 34.8001V57.6001V57.9001C85.8 66.3001 79.5 73.5001 71.1 74.4001L30 78.3001C29.7 78.3001 29.4 78.3001 29.1 78.3001C22.2 78.6001 16.2 72.9001 16.2 66.0001V19.8001C15.9 12.3001 22.2 6.30005 30 6.60005C31.5 6.60005 33 6.90005 34.2 7.20005L83.1 20.4001C83.4 20.4001 83.7 20.4001 84 20.4001C85.5 20.4001 86.7 19.2001 86.7 18.0001C86.7 16.8001 86.1 15.9001 84.9 15.6001L31.8 1.50005C29.4 0.60005 26.4 4.98989e-05 23.7 4.98989e-05C11.1 -0.29995 0.6 9.60005 0 22.2001V69.6001C0.3 81.3001 10.2 90.3001 21.6 90.0001C22.2 90.0001 22.8 90.0001 23.4 90.0001L70.5 85.8001C83.1 84.6001 92.4 74.7001 92.7 62.7001Z"
-		})
-	});
-	var LogoMangoTvCombined = (props) => u("svg", {
-		xmlns: "http://www.w3.org/2000/svg",
-		width: "354",
-		height: "90",
-		viewBox: "0 0 354 90",
-		fill: "none",
-		...props,
-		children: [u("g", {
-			"clip-path": "url(#mangoClip)",
-			children: [
-				u("path", {
-					d: "M172.2 18.6001H160.8L159.9 24.3001H125.4L126.3 18.6001H115.2L114.3 24.3001H105.9L105 29.7001H113.4L112.5 36.0001H123.9L124.8 29.7001H159.3L158.4 36.0001H169.5L170.4 29.7001H180.9L181.5 24.3001H171.3L172.2 18.6001Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M252 18.6H199.8C195 18.6 190.5 21.6 189 26.4L188.4 29.4L186.3 44.1L185.7 49.8H195.3H216L215.4 54H185.4L184.8 59.7H198L188.4 69C186.9 70.5 185.4 72 183.9 73.2C183.6 73.5 183 73.5 182.4 73.5L181.5 79.2H186.9C190.5 78 193.5 75.9 195.9 73.2L209.1 59.7H214.2L211.5 79.2H222.6L225.3 59.7H230.1C230.1 59.7 242.1 77.4 246 78.9C246.9 79.2 247.8 79.2 249 79.2H252.6L253.5 73.5C252.6 73.5 251.7 73.5 251.1 73.2C249.6 72 248.4 70.5 247.2 68.7L240.6 59.4H255.6L256.5 53.7H226.5L227.1 49.2H247.5C252.3 49.2 256.8 46.2001 258.3 41.4L258.6 38.4L260.7 24L261.3 18.3L252 18.6ZM216.6 44.1H196.2L196.8 39.6L197.4 36.3001H217.8L216.6 44.1ZM218.4 31.8001H198L198.6 28.5C198.9 26.1 201 24.3001 203.4 24.3001H219.6L218.4 31.8001ZM249 39.9C248.7 42.3 246.6 44.1 244.2 44.1H228L229.2 36.6H249.6L249 39.9ZM250.5 28.5L249.9 31.8001H229.2L230.4 24.3001H251.1L250.5 28.5Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M146.4 36.9001H135.3L137.1 44.7001H103.2L102.3 50.1001H110.7L108.3 67.5001C107.4 74.4001 112.2 78.9001 119.4 79.2001C158.4 79.2001 170.1 79.2001 174 79.2001L174.9 73.8001H124.5C121.2 73.5001 119.1 70.8001 119.1 67.5001L121.5 50.1001H177.9L178.8 44.7001H148.2L146.4 36.9001Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M289.2 18.6001H278.7C278.7 19.8001 277.8 24.3001 277.2 30.3001H267.9C267.6 33.0001 267.3 34.8001 267 36.3001H276C274.2 50.7001 271.8 68.4001 271.5 68.4001C271.2 70.5001 271.5 72.9001 272.4 74.7001C273.3 76.2001 274.5 77.4001 276.3 78.0001C278.7 78.9001 280.8 79.2001 283.2 79.2001C284.1 79.2001 290.4 79.2001 293.4 79.2001L294.3 73.2001H288.9C287.7 73.2001 286.5 72.9001 285.6 72.3001C284.4 71.7001 283.8 70.8001 283.2 69.9001C282.6 68.1001 282.6 66.3001 282.9 64.8001C282.9 64.8001 284.7 49.2001 286.5 36.3001H297L297.6 30.3001H287.1C288.3 24.6001 288.9 19.8001 289.2 18.6001Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M341.4 31.2L323.4 71.3999L312 31.2H301.2L315.6 79.5H324.3C327 79.5 329.7 78 331.2 75.6L353.7 31.2H341.4Z",
-					fill: "white"
-				}),
-				u("path", {
-					d: "M92.7 62.7001C92.7 62.4001 92.7 62.4001 92.7 62.4001V34.8001C92.7 32.1001 90.9 29.7001 88.2 29.1L78.6 26.4001L64.8 54.0001L50.7 19.2001L36 15.0001C35.4 14.7001 34.8 14.7001 33.9 14.7001C29.7 14.7001 26.4 17.7001 26.4 21.9001V63.3001C26.7 67.2001 29.7 70.2001 33.6 69.9001C33.9 69.9001 34.2 69.9001 34.2 69.9001L40.2 69.3001V26.1L57.3 67.8001L70.2 66.6001L86.1 34.8001V57.6001V57.9001C85.8 66.3001 79.5 73.5001 71.1 74.4001L30 78.3001C29.7 78.3001 29.4 78.3001 29.1 78.3001C22.2 78.6001 16.2 72.9001 16.2 66.0001V19.8001C15.9 12.3001 22.2 6.30005 30 6.60005C31.5 6.60005 33 6.90005 34.2 7.20005L83.1 20.4001C83.4 20.4001 83.7 20.4001 84 20.4001C85.5 20.4001 86.7 19.2001 86.7 18.0001C86.7 16.8001 86.1 15.9001 84.9 15.6001L31.8 1.50005C29.4 0.60005 26.4 4.98989e-05 23.7 4.98989e-05C11.1 -0.29995 0.6 9.60005 0 22.2001V69.6001C0.3 81.3001 10.2 90.3001 21.6 90.0001C22.2 90.0001 22.8 90.0001 23.4 90.0001L70.5 85.8001C83.1 84.6001 92.4 74.7001 92.7 62.7001Z",
-					fill: "#FF5F00"
-				})
-			]
-		}), u("defs", { children: u("clipPath", {
-			id: "mangoClip",
-			children: u("rect", {
-				width: "354",
-				height: "90",
-				fill: "white"
-			})
-		}) })]
-	});
-	var LogoCbs = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		xmlns: "http://www.w3.org/2000/svg",
-		...props,
-		children: [u("title", { children: "CBS" }), u("path", { d: "M12 24C5.314 24 .068 18.587.068 11.949.068 5.413 5.314 0 12 0s11.932 5.413 11.932 11.949C23.932 18.587 18.686 24 12 24zm0-5.106c5.452 0 9.36-3.473 11.109-6.945C21.875 9.294 18.172 5.106 12 5.106c-5.452 0-9.36 3.37-11.109 6.843C2.537 15.42 6.548 18.894 12 18.894zm0-.613c-3.497 0-6.377-2.86-6.377-6.332S8.503 5.617 12 5.617s6.377 2.86 6.377 6.332c0 3.574-2.88 6.332-6.377 6.332Z" })]
-	});
-	var LogoCctv = (props) => u("svg", {
-		viewBox: "0 0 1000 230",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("path", {
-				fill: "#000000",
-				d: "M 846.3033,0 c -2.30059,0 -4.36694,1.4075976 -5.20913,3.5484877 L 781.66384,154.62167 723.62941,7.0969831 C 721.94502,2.8151979 717.81233,0 713.21114,0 H 454.91623 v 54.501305 c 0,3.091533 2.50615,5.597718 5.59771,5.597718 h 73.88041 V 227.26075 h 60.43542 c 3.0915,0 5.59772,-2.50619 5.59772,-5.59772 V 60.099023 h 69.06853 c 2.28294,0 4.33711,1.386338 5.19123,3.503463 l 66.02332,163.658254 h 78.12868 c 2.28288,0 4.33705,-1.38632 5.19111,-3.50343 L 914.29901,0 Z"
-			}),
-			u("rect", {
-				fill: "#E80413",
-				width: "87.839653",
-				height: "87.839653",
-				x: "912.16034",
-				y: "140.19064"
-			}),
-			u("path", {
-				fill: "#000000",
-				d: "M 358.42902,168.8641 c -37.23363,0 -68.1357,-24.71578 -68.1357,-54.61957 0,-29.903795 28.53097,-54.145507 63.72586,-54.145507 h 78.11337 c 3.09156,0 5.59772,-2.506154 5.59772,-5.597718 V 0 h -83.71109 c -74.25947,0 -134.45867,51.149038 -134.45867,114.24453 0,63.09549 64.60904,114.66766 138.86851,114.66766 33.06117,0 60.03484,-6.51924 88.27787,-17.45216 l -22.77982,-56.42435 c -21.08711,8.53802 -40.39853,13.82842 -65.49805,13.82842 z"
-			}),
-			u("path", {
-				fill: "#000000",
-				d: "M 138.86851,168.8641 c -37.23363,0 -68.135715,-24.71578 -68.135715,-54.61957 0,-29.903795 28.53097,-54.145507 63.725855,-54.145507 h 78.11338 c 3.09156,0 5.59771,-2.506154 5.59771,-5.597718 V 0 H 134.45865 C 60.199183,0 0,51.149038 0,114.24453 c 0,63.09549 64.609052,114.66766 138.86851,114.66766 33.06117,0 60.03483,-6.51924 88.27786,-17.45216 l -22.77982,-56.42435 c -21.08712,8.53802 -40.39852,13.82842 -65.49804,13.82842 z"
-			})
-		]
-	});
-	var LogoFox = (props) => u("svg", {
-		viewBox: "0 0 1000 434",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("path", {
-				fill: "#FF5027",
-				d: "M 0,434.04061 V 0 H 260.95965 L 269.25166,118.4886 122.85582,118.73828 V 175.34999 L 242.14602,175.64347 V 293.7247 H 121.90528 L 122.42654,434.04061 Z"
-			}),
-			u("path", {
-				fill: "#FF5027",
-				d: "M 803.02858,94.26086 752.9655,0.7578 H 614.30975 L 735.47475,209.79272 607.3406,433.3529 H 741.67295 L 801.52612,323.96229 861.9137,433.3529 H 1000 L 869.3296,208.0143 988.173,0.7578 H 854.1079 Z"
-			}),
-			u("path", {
-				fill: "#FF5027",
-				d: "M 468.73741,6.64938 C 354.30939,6.4435 261.8182,101.06355 261.8182,217.77373 261.8182,334.29117 354.30939,428.56955 468.77245,428.65716 582.54779,428.62211 675.34561,334.29555 675.34561,217.77373 675.35437,101.07231 582.55217,6.43912 468.73741,6.64938 M 469.11412,339.47313 C 449.79237,339.47313 433.85226,323.53302 433.85226,303.81266 V 130.70541 C 433.85226,111.04638 449.79237,93.32784 469.11412,93.32784 488.71183,93.32784 505.40536,111.12084 505.40536,130.91129 V 304.20251 C 505.40536,323.96229 488.53223,339.47313 469.11412,339.47313"
-			})
-		]
-	});
-	var LogoFx = (props) => u("svg", {
-		viewBox: "0 0 1000 597",
-		"aria-hidden": "true",
-		fill: "currentColor",
-		...props,
-		children: u("polygon", { points: "762.825,0 690.039,133.12 615.406,0 379.613,0 379.705,0.092 0,0.092 0,596.773 207.839,596.773 207.839,402.677 410.242,402.677 410.242,240.127 207.839,240.127 207.839,168.175 492.895,168.175 571.953,285.605 380.445,596.773 615.222,596.773 689.854,455.812 763.56,596.773 998.986,596.773 809.413,285.147 1000,0 " })
-	});
-	var LogoAbc = (props) => u("svg", {
-		viewBox: "0 0 978 978",
-		"aria-hidden": "true",
-		...props,
-		children: [u("path", {
-			fill: "#f2f2f2",
-			d: "M 488.906 0 C 218.891 0 0 218.895 0 488.906 C 0 758.934 218.891 977.82 488.906 977.82 C 758.926 977.82 977.82 758.934 977.82 488.906 C 977.82 218.895 758.926 0 488.906 0 Z"
-		}), u("path", {
-			fill: "#07111E",
-			"fill-rule": "evenodd",
-			d: "M 775.977 354.91 C 701.879 354.91 641.809 414.977 641.809 489.078 C 641.809 563.176 701.879 623.242 775.977 623.242 C 843.105 623.168 899.852 573.484 908.785 506.961 L 832.215 506.961 C 824.633 530.809 802.332 548.09 775.977 548.09 C 743.387 548.09 716.977 521.668 716.977 489.086 C 716.977 456.496 743.398 430.086 775.977 430.074 C 802.332 430.074 824.645 447.352 832.215 471.203 L 908.797 471.203 C 899.852 404.66 843.105 354.992 775.977 354.91 Z M 201.215 548.078 C 168.625 548.078 142.215 521.66 142.215 489.062 C 142.215 456.473 168.637 430.062 201.215 430.062 C 233.805 430.062 260.215 456.484 260.215 489.062 C 260.215 521.668 233.793 548.078 201.215 548.078 Z M 335.383 620.973 L 335.383 489.078 C 335.383 414.977 275.312 354.91 201.215 354.91 C 127.117 354.91 67.047 414.977 67.047 489.078 C 67.047 563.176 127.117 623.242 201.215 623.242 C 223.082 623.215 245.742 613.922 261.715 598.477 L 261.715 620.973 Z M 488.301 430.074 C 520.895 430.074 547.301 456.496 547.301 489.086 C 547.301 521.68 520.879 548.09 488.301 548.09 C 455.711 548.09 429.301 521.668 429.301 489.086 C 429.301 456.484 455.711 430.074 488.301 430.074 Z M 354.133 288.875 L 354.133 489.078 C 354.133 563.176 414.203 623.242 488.301 623.242 C 562.406 623.242 622.469 563.176 622.469 489.078 C 622.469 414.977 562.406 354.91 488.301 354.91 C 467.844 354.945 446.664 361.453 429.301 373.215 L 429.301 288.875 Z"
-		})]
-	});
-	var LogoBbc = (props) => u("svg", {
-		viewBox: "0 0 1000 285",
-		"aria-hidden": "true",
-		fill: "currentColor",
-		...props,
-		children: u("path", { d: "M541.817 184.201c0 30.971-38.541 29.133-38.541 29.133h-38.54V157.371h38.54C542.939 157.105 541.817 184.201 541.817 184.201M464.736 72.023h29.368c30.496 1.611 29.345 24.316 29.345 24.316c0 28.216-33.721 28.676-33.721 28.676H464.736V72.023zM534.688 136.02c0 0 26.38-11.241 26.145-41.057c0 0 4.012-48.864-60.729-54.824H428.266v204.849h82.344c0 0 68.802 0.205 68.802-57.799C579.411 187.189 581.038 147.716 534.688 136.02M348.773 0h302.453V285.013H348.773V0zM193.041 184.201c0 30.971-38.541 29.133-38.541 29.133h-38.543V157.371h38.543C194.166 157.105 193.041 184.201 193.041 184.201M115.957 72.023h29.374c30.497 1.611 29.343 24.316 29.343 24.316c0 28.216-33.719 28.676-33.719 28.676h-24.998V72.023zM185.915 136.02c0 0 26.384-11.241 26.147-41.057c0 0 4.009-48.864-60.732-54.824h-71.841v204.849h82.349c0 0 68.801 0.205 68.801-57.799C230.639 187.189 232.26 147.716 185.915 136.02M0 0h302.453V285.013H0V0zM938.301 54.825v37.846c0 0-36.942-22.702-77.764-23.159c0 0-76.161-1.495-79.594 73.005c0 0-2.751 68.513 78.676 72.417c0 0 34.165 4.115 80.514-25.441v39.195c0 0-62.173 36.939-134.197 8.488c0 0-60.545-22.109-62.851-94.659c0 0-2.518-74.619 78.23-99.389c0 0 21.563-8.255 60.313-4.586C881.629 38.541 904.789 40.832 938.301 54.825M697.547 285.013H1000V0H697.547V285.013z" })
-	});
-	var LogoUsa = (props) => u("svg", {
-		viewBox: "0 0 2560 1129",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("path", {
-				d: "",
-				stroke: "none",
-				fill: "#000000",
-				"fill-rule": "evenodd"
-			}),
-			u("path", {
-				stroke: "none",
-				fill: "#f83837",
-				"fill-rule": "evenodd",
-				d: "M 1903.500 1.634 C 1784.314 15.712, 1682.157 73.061, 1605.547 168.898 C 1583.494 196.486, 1562.379 229.271, 1547.518 259 C 1544.906 264.225, 1542.627 268.656, 1542.454 268.847 C 1542.281 269.038, 1536.816 264.538, 1530.310 258.847 C 1469.043 205.257, 1424.232 177.562, 1371.500 160.700 C 1345.317 152.326, 1322.678 148.743, 1296 148.747 C 1273.456 148.751, 1260.348 150.631, 1242.817 156.373 C 1220.347 163.734, 1204.847 173.091, 1188.861 188.947 C 1169.198 208.450, 1158.021 230.596, 1153.996 258.026 C 1152.002 271.613, 1153.135 295.156, 1156.376 307.477 C 1163.448 334.364, 1181.097 357.845, 1207.383 375.336 C 1234.333 393.269, 1265.751 405.637, 1346 429.902 C 1458.722 463.987, 1518.480 492.987, 1568.276 537.771 C 1609.835 575.146, 1641.474 627.241, 1658.302 686 C 1675.147 744.818, 1678.544 811.883, 1667.876 875 C 1663.465 901.099, 1653.448 936.173, 1644.417 957.141 C 1642.437 961.739, 1639.960 967.650, 1638.913 970.277 L 1637.008 975.053 1641.254 979.688 C 1647.854 986.893, 1668.256 1005.248, 1681.500 1015.897 C 1737.638 1061.037, 1808.741 1093.120, 1882.240 1106.475 C 1956.544 1119.977, 2032.078 1114.179, 2098.164 1089.902 C 2144.990 1072.701, 2183.174 1049.736, 2218.250 1017.680 L 2229 1007.856 2229 1052.928 L 2229 1098 2388.010 1098 L 2547.020 1098 2546.766 614.250 C 2546.627 348.188, 2546.390 104.288, 2546.240 72.250 L 2545.968 14 2387.484 14 L 2229 14 2229 59.068 L 2229 104.136 2221.250 97.105 C 2197.436 75.503, 2163.326 52.977, 2132.178 38.285 C 2091.936 19.304, 2047.794 6.756, 2003 1.567 C 1985.150 -0.502, 1921.211 -0.458, 1903.500 1.634 M 0.006 324.747 C 0.011 528.765, 0.385 654.674, 1.024 667 C 5.881 760.611, 21.515 827.216, 53.722 891.495 C 72.426 928.824, 92.738 956.982, 121.909 986.019 C 159.532 1023.470, 203.051 1051.454, 256 1072.244 C 322.087 1098.192, 407.169 1111.410, 497 1109.686 C 530.162 1109.049, 545.853 1108.073, 573.500 1104.926 C 725.362 1087.639, 835.653 1023.944, 900.224 916.237 C 914.746 892.015, 927.544 865.062, 935.293 842.387 C 937.057 837.225, 938.804 833.114, 939.174 833.251 C 939.545 833.388, 946.745 839.870, 955.174 847.656 C 974.075 865.115, 985.044 874.512, 1000.309 886.320 C 1055.703 929.172, 1111.100 954.323, 1166.052 961.569 C 1184.785 964.039, 1216.100 963.091, 1232.889 959.545 C 1279.338 949.735, 1313.122 923.133, 1329.560 883.423 C 1340.388 857.266, 1341.914 824.469, 1333.473 799.324 C 1322.622 767.001, 1298.210 741.676, 1258.874 721.937 C 1236.164 710.540, 1213.372 702.345, 1153.142 683.917 C 1097.314 666.835, 1089.249 664.200, 1065.500 655.279 C 1009.553 634.263, 967.698 611.349, 932.500 582.467 C 920.837 572.897, 900.422 552.164, 890.684 540 C 870.149 514.349, 851.275 479.718, 839.724 446.494 C 816.357 379.282, 811.484 296.670, 826.573 223.500 C 841.637 150.447, 875.816 86.233, 928.349 32.290 C 935.966 24.469, 945.978 14.824, 950.599 10.857 C 955.219 6.890, 959 3.275, 959 2.823 C 959 2.121, 640.260 1.549, 639.856 2.250 C 639.777 2.388, 639.376 143.575, 638.965 316 C 638.464 526.725, 637.866 633.106, 637.143 640.500 C 635.123 661.155, 632.869 677.492, 630.028 692.061 C 612.040 784.322, 564.959 828, 483.500 828 C 423.984 828, 382.393 803.588, 357.529 754.062 C 343.409 725.935, 336.271 696.773, 330.834 645 C 329.930 636.396, 329.484 554.048, 329.063 318 L 328.500 2.500 164.250 2.247 L 0 1.994 0.006 324.747 M 1999.301 286.993 C 1929.027 294.419, 1868.337 337.785, 1829.255 408.500 C 1810.369 442.672, 1797.817 484.868, 1793.914 527.305 C 1792.203 545.908, 1793.250 583.693, 1795.970 601.500 C 1810.075 693.858, 1861.777 770.576, 1933.500 805.572 C 1981.545 829.015, 2033.405 832.210, 2083.876 814.835 C 2136.924 796.573, 2183.258 754.785, 2212.433 698.890 C 2235.040 655.579, 2246.292 608.616, 2246.310 557.500 C 2246.324 519.949, 2241.716 490.480, 2230.519 456.500 C 2200.367 365.001, 2130.965 301.225, 2047.717 288.516 C 2035.198 286.604, 2010.371 285.824, 1999.301 286.993"
-			}),
-			u("path", {
-				d: "",
-				stroke: "none",
-				fill: "#000000",
-				"fill-rule": "evenodd"
-			})
-		]
-	});
-	var LogoPeacock = (props) => u("svg", {
-		viewBox: "0 0 69.5 68.18",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("defs", { children: u("linearGradient", {
-				id: "peacockGrad",
-				x1: "1575.74",
-				x2: "1575.74",
-				y1: "-0.83",
-				y2: "400.19",
-				gradientUnits: "userSpaceOnUse",
-				gradientTransform: "matrix(0.17955816,0,0,0.1704379,-219.04915,0.00749893)",
-				children: [
-					u("stop", { "stop-color": "#ffdc23" }),
-					u("stop", {
-						offset: ".16",
-						"stop-color": "#ff8700"
-					}),
-					u("stop", {
-						offset: ".21",
-						"stop-color": "#ff5401"
-					}),
-					u("stop", {
-						offset: ".37",
-						"stop-color": "#d9005a"
-					}),
-					u("stop", {
-						offset: ".42",
-						"stop-color": "#c814c8"
-					}),
-					u("stop", {
-						offset: ".58",
-						"stop-color": "#8250ff"
-					}),
-					u("stop", {
-						offset: ".63",
-						"stop-color": "#6e64ff"
-					}),
-					u("stop", {
-						offset: ".79",
-						"stop-color": "#00c8ff"
-					}),
-					u("stop", {
-						offset: ".84",
-						"stop-color": "#0c9"
-					}),
-					u("stop", {
-						offset: ".99",
-						"stop-color": "#00a637"
-					})
-				]
-			}) }),
-			u("path", {
-				"stroke-width": "0.222043",
-				d: "m 48.344254,23.376251 c 0,14.582148 -11.296608,26.178142 -36.607947,29.086577 v 15.47688 H 0 V 24.601791 C 0,9.1049395 10.947966,0 24.698431,0 38.448896,0 48.344254,10.24389 48.344254,23.376251 m -11.736307,0.437376 c 0,-7.180057 -5.429566,-12.60618 -12.349215,-12.60618 -6.919641,0 -12.524649,4.902158 -12.524649,13.394344 v 16.71352 C 21.134238,41.04889 36.605731,35.784844 36.605731,23.813627 Z"
-			}),
-			u("path", {
-				fill: "url(#peacockGrad)",
-				d: "m 69.499016,5.333684 c 0,2.9417574 -2.512018,5.326184 -5.611192,5.326184 -3.099174,0 -5.611193,-2.3844266 -5.611193,-5.326184 0,-2.9417581 2.512019,-5.32618468 5.611193,-5.32618468 3.099174,0 5.611192,2.38442658 5.611192,5.32618468 m -5.611192,9.055365 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326185 0,2.941758 2.512019,5.326185 5.611193,5.326185 3.099174,0 5.611192,-2.384427 5.611192,-5.326185 0,-2.941758 -2.512018,-5.326185 -5.611192,-5.326185 m 0,14.379846 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326185 0,2.941758 2.512019,5.326184 5.611193,5.326184 3.099174,0 5.611192,-2.384426 5.611192,-5.326184 0,-2.941758 -2.512018,-5.326185 -5.611192,-5.326185 m 0,14.379845 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326186 0,2.941758 2.512019,5.326184 5.611193,5.326184 3.099174,0 5.611192,-2.384426 5.611192,-5.326184 0,-2.941759 -2.512018,-5.326186 -5.611192,-5.326186 m 0,14.381551 c -3.099174,0 -5.611193,2.384427 -5.611193,5.326184 0,2.941758 2.512019,5.326185 5.611193,5.326185 3.099174,0 5.611192,-2.384427 5.611192,-5.326185 0,-2.941757 -2.512018,-5.326184 -5.611192,-5.326184"
-			})
-		]
-	});
-	var LogoCw = (props) => u("svg", {
-		viewBox: "0 0 634.82 278.47",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "#ff4500",
-			"fill-rule": "evenodd",
-			d: "M 132.45054,0 C 59.024992,0.32967 0,62.2039 0,139.04781 0,216.09719 59.333691,278.12623 133.03254,278.12623 h 89.4401 c 31.40713,0 60.18012,-11.29179 82.88879,-30.1835 18.44963,18.87803 43.97747,30.52429 72.26351,30.52429 29.17254,0 55.38991,-12.41067 73.9559,-32.34304 19.33778,19.93306 46.64489,32.34304 77.03052,32.34304 58.24863,0 105.18745,-45.54729 106.20702,-102.47383 V 0 h -86.51481 c 9.4e-4,198.95195 0.17625,-69.53274 0.17625,162.67998 0,14.63405 -11.78186,26.41583 -26.41583,26.41583 -14.63405,0 -26.41583,-11.78178 -26.41583,-26.41583 0,-232.21269 0.17526,36.27171 0.17605,-162.67998 H 408.1569 c 9.2e-4,198.95162 0.17624,-69.53269 0.17604,162.67998 0,14.63405 -11.78183,26.41583 -26.41581,26.41583 -14.63404,0 -26.41582,-11.78178 -26.41582,-26.41583 0,-232.21267 0.17526,36.27166 0.17604,-162.67998 h -87.49104 v 139.04781 c 0,28.63159 -20.7988,51.68297 -46.63262,51.68297 h -87.66347 c -25.83379,0 -46.632605,-23.05138 -46.632605,-51.68297 0,-28.63166 20.798815,-51.683 46.632605,-51.683 h 85.2168 V 0 Z"
-		})
-	});
-	var LogoItvx = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		xmlns: "http://www.w3.org/2000/svg",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "M15.91 11.018a59.87 59.87 0 0 0-.98-.27c-.1 0-.16.05-.2.17-.35 1.2-.9 2.53-1.38 3.36-.16-.3-.45-.83-.73-1.3l-1.04-1.83c-.22-.34-.36-.43-.64-.43-.57 0-1.42.51-1.42 1 0 .16.04.28.21.57.2.32.3.6.3.92 0 .82-.62 1.56-1.8 1.56-.55 0-.99-.16-1.27-.45-.27-.28-.4-.65-.4-1.27v-1.03c.2.08.44.12.73.12h.93c.13 0 .17-.05.17-.16v-1c0-.11-.04-.17-.17-.17H6.56v-1.63c0-.2-.05-.33-.16-.43-.16-.15-.5-.22-.89-.22-.4 0-.72.07-.89.22-.1.1-.16.24-.16.43v4c0 .66-.1 1.02-.34 1.27-.2.22-.53.34-.88.34s-.66-.12-.84-.31c-.2-.2-.29-.48-.29-.9v-2.6c0-.11-.04-.16-.16-.16H.18c-.12 0-.17.05-.17.16v2.35c0 .94.25 1.47.67 1.9.55.54 1.48.79 2.38.79.88 0 1.81-.32 2.36-.82a4 4 0 0 0 2.6.82c1.42 0 2.47-.6 3.08-1.6.27.43.47.74.67 1.02.28.42.54.58 1.12.58.54 0 .87-.13 1.17-.59.78-1.18 1.44-2.59 1.92-3.88.05-.16.1-.28.1-.35 0-.08-.05-.14-.17-.18zm-14.85-.92c.66 0 1.07-.46 1.07-1.05 0-.6-.4-1.06-1.07-1.06-.65-.01-1.06.46-1.06 1.05 0 .59.4 1.05 1.06 1.05zm22.84 5.1-2.28-3.13c-.05-.07-.05-.14 0-.2l2.1-3.07c.07-.09.11-.15.11-.28 0-.12-.07-.25-.19-.37a.51.51 0 0 0-.39-.17.4.4 0 0 0-.24.1l-2.9 2.22c-.06.05-.13.05-.2 0l-2.89-2.22a.4.4 0 0 0-.25-.1.51.51 0 0 0-.38.17c-.12.12-.2.25-.2.37 0 .13.05.2.11.28l2.11 3.07c.05.06.05.13 0 .2l-2.28 3.13a.42.42 0 0 0-.1.26c0 .14.06.26.18.38.11.11.24.18.38.18.1 0 .17-.04.26-.1l3.06-2.23a.17.17 0 0 1 .2 0l3.07 2.23c.09.06.16.1.26.1.14 0 .27-.07.38-.18.12-.12.18-.24.18-.38 0-.1-.04-.17-.1-.26z" })
-	});
-	var LogoChannel4 = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		xmlns: "http://www.w3.org/2000/svg",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", { d: "m14.309 0-.33.412v4.201l2.382-2.95zm-1.155 1.201L10.707 4.22v8.674h2.447zm3.268 1.701-2.443 3.02v14.81h2.443zM9.887 5.236l-6.201 7.657h3.142L9.887 9.12Zm-6.766 8.48v2.444h10.033v-2.443Zm14.125 0v2.444h3.633v-2.443Zm-6.539 3.268V24h2.443v-7.016Zm-3.271 4.573V24h2.443v-2.443zm6.543 0V24h5.189v-2.443z" })
-	});
-	var LogoSbs = (props) => u("svg", {
-		viewBox: "0 0 90.77 40.55",
-		"aria-hidden": "true",
-		...props,
-		children: [
-			u("path", {
-				fill: "#005293",
-				d: "M22.05,19.14l-9.62-8.82h0a3.18,3.18,0,0,1-1.08-2.39A3.44,3.44,0,0,1,14.87,4.6H25.51V0H9.24C4.19,0,0,3.4,0,8.72a8.41,8.41,0,0,0,2.43,5.89L13.76,25.3A3.46,3.46,0,0,1,15,29c-.67,2.28-3.56,2.28-4.64,2.28H0v9.32H15.73c6.36,0,11.52-4.86,11.52-10.87V29.6c.18-4.49-2.24-7.7-5.2-10.46"
-			}),
-			u("path", {
-				fill: "#005293",
-				d: "M85.55,19.14l-9.61-8.82h0a3.15,3.15,0,0,1-1.09-2.39A3.44,3.44,0,0,1,78.37,4.6H89V0H72.74c-5,0-9.24,3.4-9.24,8.72a8.42,8.42,0,0,0,2.44,5.89L77.26,25.3A3.46,3.46,0,0,1,78.51,29c-.66,2.28-3.56,2.28-4.64,2.28H63.51v9.32H79.24c6.36,0,11.52-4.86,11.52-10.87V29.6c.17-4.48-2.24-7.7-5.21-10.46"
-			}),
-			u("path", {
-				fill: "#005293",
-				d: "M61.31,28.78a11.8,11.8,0,0,0-8.16-11.43A8.3,8.3,0,0,0,59.41,8.8,8.33,8.33,0,0,0,55.93,2C52.87-.11,48.3.05,48.3.05h-18V40.55h19.1a13.64,13.64,0,0,0,7.77-2.77A12,12,0,0,0,61.31,28.78ZM40.06,4.67h4.3c.66,0,5.16,0,5.54,4.39.26,3.14-1.87,5.11-5.33,5.11H40.06Zm5.17,26.56H40.06V20.44h5c.65,0,5.68,0,6,5C51.35,29,48.69,31.23,45.23,31.23Z"
-			})
-		]
-	});
-	var LogoTvn = (props) => u("svg", {
-		viewBox: "0 0 300 121",
-		"aria-hidden": "true",
-		...props,
-		children: u("path", {
-			fill: "#E80328",
-			d: "M 106.234375 121 L 82.542969 55.753906 L 59.488281 55.753906 L 48.011719 121 L 16.882812 121 L 28.359375 55.753906 L 0.152344 55.753906 L 4.640625 30.253906 L 32.851562 30.253906 L 60.996094 0 L 69.300781 0 L 63.980469 30.253906 L 104.566406 30.253906 L 123.8125 83.238281 L 151.921875 30.253906 L 186.035156 30.253906 L 137.886719 121 Z M 246.988281 121 L 222.238281 52.855469 L 210.25 121 L 179.121094 121 L 200.414062 0 L 232.171875 0 L 256.792969 67.792969 L 268.71875 0 L 299.847656 0 L 278.554688 121 Z M 246.988281 121 "
-		})
-	});
-	var LogoNhk = (props) => u("svg", {
-		viewBox: "0 0 1230 354",
-		"aria-hidden": "true",
-		...props,
-		children: u("g", {
-			fill: "#808080",
-			children: [
-				u("path", { d: "m359.6777698651264,7.090877978451821 a51.89632499779503,51.89632499779503 0 0 0 -64.06788575758715,35.84591520466254 l-37.584709598918565,132.54963420828574 l-93.62739045993946,-146.45998936233386 a51.762571582852246,51.762571582852246 0 0 0 -51.093804508138405,-23.94186127475595 a52.29758524262333,52.29758524262333 0 0 0 -42.26607912191553,37.8522164288041 l-69.01676211046966,243.02995495101436 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.407561468969873 a52.030078412737794,52.030078412737794 0 0 0 49.756270358710694,-37.8522164288041 l37.584709598918565,-132.54963420828574 l93.62739045993946,147.12875643704774 a51.62881816790948,51.62881816790948 0 0 0 93.62739045993946,-13.375341494277066 l68.74925528058412,-244.2337356854993 a52.16383182768057,52.16383182768057 0 0 0 -35.578408374777,-64.87040624724375 z" }),
-				u("path", { d: "m782.73982132911,7.090877978451821 a51.762571582852246,51.762571582852246 0 0 0 -64.06788575758715,35.84591520466254 l-24.47687493452704,86.53845946797261 h-116.76673124503881 l16.451670037960792,-57.51396842539139 a51.89632499779503,51.89632499779503 0 1 0 -98.9775270576503,-29.024491042581232 l-69.8192826001263,243.02995495101436 a52.030078412737794,52.030078412737794 0 0 0 49.89002377365347,66.87670747138533 a51.762571582852246,51.762571582852246 0 0 0 49.756270358710694,-37.8522164288041 l24.610628349469803,-86.40470605302984 h116.76673124503881 l-16.451670037960792,57.380215010448616 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.407561468969873 a52.030078412737794,52.030078412737794 0 0 0 49.48876352882515,-37.8522164288041 l69.28426894035522,-243.02995495101436 a52.16383182768057,52.16383182768057 0 0 0 -35.578408374777,-64.87040624724375 z" }),
-				u("path", { d: "m1219.979734777027,25.816356070439717 a51.495064752966705,51.495064752966705 0 0 0 -72.49435089898171,-10.165259535650572 l-146.19248253244834,111.41659464732795 l15.247889303475858,-55.106406956421516 a51.89632499779503,51.89632499779503 0 1 0 -99.64629413236416,-28.623230797752925 l-68.61550186564135,242.62869470618602 a52.16383182768057,52.16383182768057 0 0 0 35.578408374777,64.46914600241546 a53.501365977108264,53.501365977108264 0 0 0 14.311615398876462,2.0063012241415614 a52.030078412737794,52.030078412737794 0 0 0 49.756270358710694,-37.8522164288041 l29.693258117295095,-104.59517048524665 a18.190464432216814,18.190464432216814 0 0 0 1.6050409793132485,1.6050409793132485 c0.6687670747138535,0.8025204896566244 1.0700273195421655,1.7387943942560198 1.7387943942560198,2.407561468969873 l112.35286855192736,121.71560759792132 a51.495064752966705,51.495064752966705 0 0 0 73.16311797369555,2.808821713798184 a52.29758524262333,52.29758524262333 0 0 0 2.6750682988554133,-73.69813163346663 l-73.16311797369555,-79.44952847600578 l113.95790953124062,-86.67221288291539 a52.16383182768057,52.16383182768057 0 0 0 10.031506120707805,-72.89561114381002 z" })
-			]
-		})
-	});
-	var LogoShowtime = (props) => u("svg", {
-		viewBox: "0 0 24 24",
-		xmlns: "http://www.w3.org/2000/svg",
-		...props,
-		children: [u("title", { children: "Showtime" }), u("path", { d: "M16.99 12.167c0-4.808 1.779-7.84 3.903-8.16C18.769 1.397 15.221 0 11.999 0 8.451 0 5.265 1.54 3.07 3.985c2.094.416 2.806 2.174 2.806 4.892H3.314c0-1.605-.334-2.436-1.284-2.436-.427 0-.758.217-.954.587-.027.06-.057.122-.084.184a2.115 2.115 0 0 0-.114.71c0 3.324 5.46 3.159 5.46 8.27 0 1.995-1.53 3.855-3.252 3.855C5.35 22.52 8.441 24 12 24c3.46 0 6.577-1.464 8.766-3.808-2.018-.509-3.776-3.413-3.776-8.025zm-1.142 7.921h-2.746V13.26h-2.967v6.83H7.384V4.327h2.746v6.348h2.972V4.327h2.746v15.761zM2.372 17.58c-1.32 0-2.399-2.32-2.372-5.8 1.905 1.72 3.681 2.11 3.681 4.145 0 .981-.543 1.655-1.309 1.655zM24 12.002c0 2.844-.896 5.409-2.1 5.409-1.445 0-2.181-2.703-2.181-5.498 0-2.654.771-5.308 2.181-5.308 1.676 0 2.1 4.102 2.1 5.397z" })]
-	});
-	var ModalCloseButton = ({ ariaLabel, className = "atv-modal-close", onClick, size = 22 }) => {
-		return u("button", {
-			"aria-label": ariaLabel,
-			class: className.split(/\s+/u).includes("atv-modal-close") ? className : `atv-modal-close ${className}`,
-			onClick,
-			type: "button",
-			children: u(IconClose, { size })
-		});
-	};
-	var ModalSessionContext = X(0);
-	var ModalSession = ({ children, request }) => {
-		const [session, setSession] = d({
-			request,
-			sequence: 0
-		});
-		_(() => {
-			setSession((current) => current.request === request ? current : {
-				request,
-				sequence: current.sequence + 1
-			});
-		}, [request]);
-		return u(ModalSessionContext.Provider, {
-			value: session.sequence,
-			children
-		});
-	};
-	var useModalSession = () => x(ModalSessionContext);
-	var ModalSessionContent = ({ children }) => u(S, { children }, useModalSession());
-	function addUniqueItem(arr, item) {
-		if (arr.indexOf(item) === -1) arr.push(item);
-	}
-	function removeItem(arr, item) {
-		const index = arr.indexOf(item);
-		if (index > -1) arr.splice(index, 1);
-	}
-	var clamp = (min, max, v) => {
-		if (v > max) return max;
-		if (v < min) return min;
-		return v;
-	};
-	var MotionGlobalConfig = {};
-	var isNumericalString = (v) => /^-?(?:\d+(?:\.\d+)?|\.\d+)$/u.test(v);
-	var isObject = (value) => typeof value === "object" && value !== null;
-	var isZeroValueString = (v) => /^0[^.\s]+$/u.test(v);
-	function memo(callback) {
-		let result;
-		return () => {
-			if (result === void 0) result = callback();
-			return result;
-		};
-	}
-	var noop$3 = (any) => any;
-	var pipe = (...transformers) => transformers.reduce((a, b) => (v) => b(a(v)));
-	var progress = (from, to, value) => {
-		const range = to - from;
-		return range ? (value - from) / range : 1;
-	};
-	var SubscriptionManager = class {
-		constructor() {
-			this.subscriptions = [];
-		}
-		add(handler) {
-			addUniqueItem(this.subscriptions, handler);
-			return () => removeItem(this.subscriptions, handler);
-		}
-		notify(a, b, c) {
-			const numSubscriptions = this.subscriptions.length;
-			if (!numSubscriptions) return;
-			if (numSubscriptions === 1) this.subscriptions[0](a, b, c);
-			else for (let i = 0; i < numSubscriptions; i++) {
-				const handler = this.subscriptions[i];
-				handler && handler(a, b, c);
-			}
-		}
-		getSize() {
-			return this.subscriptions.length;
-		}
-		clear() {
-			this.subscriptions.length = 0;
-		}
-	};
-	var secondsToMilliseconds = (seconds) => seconds * 1e3;
-	var millisecondsToSeconds = (milliseconds) => milliseconds / 1e3;
-	var velocityPerSecond = (velocity, frameDuration) => frameDuration ? velocity * (1e3 / frameDuration) : 0;
-	var wrap = (min, max, v) => {
-		const rangeSize = max - min;
-		return ((v - min) % rangeSize + rangeSize) % rangeSize + min;
-	};
-	var calcBezier = (t, a1, a2) => (((1 - 3 * a2 + 3 * a1) * t + (3 * a2 - 6 * a1)) * t + 3 * a1) * t;
-	var subdivisionPrecision = 1e-7;
-	var subdivisionMaxIterations = 12;
-	function binarySubdivide(x, lowerBound, upperBound, mX1, mX2) {
-		let currentX;
-		let currentT;
-		let i = 0;
-		do {
-			currentT = lowerBound + (upperBound - lowerBound) / 2;
-			currentX = calcBezier(currentT, mX1, mX2) - x;
-			if (currentX > 0) upperBound = currentT;
-			else lowerBound = currentT;
-		} while (Math.abs(currentX) > subdivisionPrecision && ++i < subdivisionMaxIterations);
-		return currentT;
-	}
-	function cubicBezier(mX1, mY1, mX2, mY2) {
-		if (mX1 === mY1 && mX2 === mY2) return noop$3;
-		const getTForX = (aX) => binarySubdivide(aX, 0, 1, mX1, mX2);
-		return (t) => t === 0 || t === 1 ? t : calcBezier(getTForX(t), mY1, mY2);
-	}
-	var mirrorEasing = (easing) => (p) => p <= .5 ? easing(2 * p) / 2 : (2 - easing(2 * (1 - p))) / 2;
-	var reverseEasing = (easing) => (p) => 1 - easing(1 - p);
-	var backOut = cubicBezier(.33, 1.53, .69, .99);
-	var backIn = reverseEasing(backOut);
-	var backInOut = mirrorEasing(backIn);
-	var anticipate = (p) => p >= 1 ? 1 : (p *= 2) < 1 ? .5 * backIn(p) : .5 * (2 - Math.pow(2, -10 * (p - 1)));
-	var circIn = (p) => 1 - Math.sin(Math.acos(p));
-	var circOut = reverseEasing(circIn);
-	var circInOut = mirrorEasing(circIn);
-	var easeIn = cubicBezier(.42, 0, 1, 1);
-	var easeOut = cubicBezier(0, 0, .58, 1);
-	var easeInOut = cubicBezier(.42, 0, .58, 1);
-	var isEasingArray = (ease) => {
-		return Array.isArray(ease) && typeof ease[0] !== "number";
-	};
-	function getEasingForSegment(easing, i) {
-		return isEasingArray(easing) ? easing[wrap(0, easing.length, i)] : easing;
-	}
-	var isBezierDefinition = (easing) => Array.isArray(easing) && typeof easing[0] === "number";
-	var easingLookup = {
-		linear: noop$3,
-		easeIn,
-		easeInOut,
-		easeOut,
-		circIn,
-		circInOut,
-		circOut,
-		backIn,
-		backInOut,
-		backOut,
-		anticipate
-	};
-	var isValidEasing = (easing) => {
-		return typeof easing === "string";
-	};
-	var easingDefinitionToFunction = (definition) => {
-		if (isBezierDefinition(definition)) {
-			definition.length;
-			const [x1, y1, x2, y2] = definition;
-			return cubicBezier(x1, y1, x2, y2);
-		} else if (isValidEasing(definition)) {
-			easingLookup[definition], `${definition}`;
-			return easingLookup[definition];
-		}
-		return definition;
-	};
-	var stepsOrder = [
-		"setup",
-		"read",
-		"resolveKeyframes",
-		"preUpdate",
-		"update",
-		"preRender",
-		"render",
-		"postRender"
-	];
-	function createRenderStep(runNextFrame) {
-		let thisFrame = new Set();
-		let nextFrame = new Set();
-		let isProcessing = false;
-		let flushNextFrame = false;
-		const toKeepAlive = new WeakSet();
-		let latestFrameData = {
-			delta: 0,
-			timestamp: 0,
-			isProcessing: false
-		};
-		function triggerCallback(callback) {
-			if (toKeepAlive.has(callback)) {
-				step.schedule(callback);
-				runNextFrame();
-			}
-			callback(latestFrameData);
-		}
-		const step = {
-			schedule: (callback, keepAlive = false, immediate = false) => {
-				const queue = immediate && isProcessing ? thisFrame : nextFrame;
-				if (keepAlive) toKeepAlive.add(callback);
-				queue.add(callback);
-				return callback;
-			},
-			cancel: (callback) => {
-				nextFrame.delete(callback);
-				toKeepAlive.delete(callback);
-			},
-			process: (frameData) => {
-				latestFrameData = frameData;
-				if (isProcessing) {
-					flushNextFrame = true;
-					return;
-				}
-				isProcessing = true;
-				const prevFrame = thisFrame;
-				thisFrame = nextFrame;
-				nextFrame = prevFrame;
-				thisFrame.forEach(triggerCallback);
-				thisFrame.clear();
-				isProcessing = false;
-				if (flushNextFrame) {
-					flushNextFrame = false;
-					step.process(frameData);
-				}
-			}
-		};
-		return step;
-	}
-	var maxElapsed = 40;
-	function createRenderBatcher(scheduleNextBatch, allowKeepAlive) {
-		let runNextFrame = false;
-		let useDefaultElapsed = true;
-		const state = {
-			delta: 0,
-			timestamp: 0,
-			isProcessing: false
-		};
-		const flagRunNextFrame = () => runNextFrame = true;
-		const steps = stepsOrder.reduce((acc, key) => {
-			acc[key] = createRenderStep(flagRunNextFrame);
-			return acc;
-		}, {});
-		const { setup, read, resolveKeyframes, preUpdate, update, preRender, render, postRender } = steps;
-		const processBatch = () => {
-			const useManualTiming = MotionGlobalConfig.useManualTiming;
-			const timestamp = useManualTiming ? state.timestamp : performance.now();
-			runNextFrame = false;
-			if (!useManualTiming) state.delta = useDefaultElapsed ? 1e3 / 60 : Math.max(Math.min(timestamp - state.timestamp, maxElapsed), 1);
-			state.timestamp = timestamp;
-			state.isProcessing = true;
-			setup.process(state);
-			read.process(state);
-			resolveKeyframes.process(state);
-			preUpdate.process(state);
-			update.process(state);
-			preRender.process(state);
-			render.process(state);
-			postRender.process(state);
-			state.isProcessing = false;
-			if (runNextFrame && allowKeepAlive) {
-				useDefaultElapsed = false;
-				scheduleNextBatch(processBatch);
-			}
-		};
-		const wake = () => {
-			runNextFrame = true;
-			useDefaultElapsed = true;
-			if (!state.isProcessing) scheduleNextBatch(processBatch);
-		};
-		const schedule = stepsOrder.reduce((acc, key) => {
-			const step = steps[key];
-			acc[key] = (process, keepAlive = false, immediate = false) => {
-				if (!runNextFrame) wake();
-				return step.schedule(process, keepAlive, immediate);
-			};
-			return acc;
-		}, {});
-		const cancel = (process) => {
-			for (let i = 0; i < stepsOrder.length; i++) steps[stepsOrder[i]].cancel(process);
-		};
-		return {
-			schedule,
-			cancel,
-			state,
-			steps
-		};
-	}
-	var { schedule: frame, cancel: cancelFrame, state: frameData, steps: frameSteps } = createRenderBatcher(typeof requestAnimationFrame !== "undefined" ? requestAnimationFrame : noop$3, true);
-	var now;
-	function clearTime() {
-		now = void 0;
-	}
-	var time = {
-		now: () => {
-			if (now === void 0) time.set(frameData.isProcessing || MotionGlobalConfig.useManualTiming ? frameData.timestamp : performance.now());
-			return now;
-		},
-		set: (newTime) => {
-			now = newTime;
-			queueMicrotask(clearTime);
-		}
-	};
-	var checkStringStartsWith = (token) => (key) => typeof key === "string" && key.startsWith(token);
-	var isCSSVariableName = checkStringStartsWith("--");
-	var startsAsVariableToken = checkStringStartsWith("var(--");
-	var isCSSVariableToken = (value) => {
-		if (!startsAsVariableToken(value)) return false;
-		return singleCssVariableRegex.test(value.split("/*")[0].trim());
-	};
-	var singleCssVariableRegex = /var\(--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)$/iu;
-	function containsCSSVariable(value) {
-		if (typeof value !== "string") return false;
-		return value.split("/*")[0].includes("var(--");
-	}
-	var number = {
-		test: (v) => typeof v === "number",
-		parse: parseFloat,
-		transform: (v) => v
-	};
-	var alpha = {
-		...number,
-		transform: (v) => clamp(0, 1, v)
-	};
-	var scale = {
-		...number,
-		default: 1
-	};
-	var sanitize = (v) => Math.round(v * 1e5) / 1e5;
-	var floatRegex = /-?(?:\d+(?:\.\d+)?|\.\d+)/gu;
-	function isNullish(v) {
-		return v == null;
-	}
-	var singleColorRegex = /^(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))$/iu;
-	var isColorString = (type, testProp) => (v) => {
-		return Boolean(typeof v === "string" && singleColorRegex.test(v) && v.startsWith(type) || testProp && !isNullish(v) && Object.prototype.hasOwnProperty.call(v, testProp));
-	};
-	var splitColor = (aName, bName, cName) => (v) => {
-		if (typeof v !== "string") return v;
-		const [a, b, c, alpha] = v.match(floatRegex);
-		return {
-			[aName]: parseFloat(a),
-			[bName]: parseFloat(b),
-			[cName]: parseFloat(c),
-			alpha: alpha !== void 0 ? parseFloat(alpha) : 1
-		};
-	};
-	var clampRgbUnit = (v) => clamp(0, 255, v);
-	var rgbUnit = {
-		...number,
-		transform: (v) => Math.round(clampRgbUnit(v))
-	};
-	var rgba = {
-		test: isColorString("rgb", "red"),
-		parse: splitColor("red", "green", "blue"),
-		transform: ({ red, green, blue, alpha: alpha$1 = 1 }) => "rgba(" + rgbUnit.transform(red) + ", " + rgbUnit.transform(green) + ", " + rgbUnit.transform(blue) + ", " + sanitize(alpha.transform(alpha$1)) + ")"
-	};
-	function parseHex(v) {
-		let r = "";
-		let g = "";
-		let b = "";
-		let a = "";
-		if (v.length > 5) {
-			r = v.substring(1, 3);
-			g = v.substring(3, 5);
-			b = v.substring(5, 7);
-			a = v.substring(7, 9);
-		} else {
-			r = v.substring(1, 2);
-			g = v.substring(2, 3);
-			b = v.substring(3, 4);
-			a = v.substring(4, 5);
-			r += r;
-			g += g;
-			b += b;
-			a += a;
-		}
-		return {
-			red: parseInt(r, 16),
-			green: parseInt(g, 16),
-			blue: parseInt(b, 16),
-			alpha: a ? parseInt(a, 16) / 255 : 1
-		};
-	}
-	var hex = {
-		test: isColorString("#"),
-		parse: parseHex,
-		transform: rgba.transform
-	};
-	var createUnitType = (unit) => ({
-		test: (v) => typeof v === "string" && v.endsWith(unit) && v.split(" ").length === 1,
-		parse: parseFloat,
-		transform: (v) => `${v}${unit}`
-	});
-	var degrees = createUnitType("deg");
-	var percent = createUnitType("%");
-	var px = createUnitType("px");
-	var vh = createUnitType("vh");
-	var vw = createUnitType("vw");
-	var progressPercentage = (() => ({
-		...percent,
-		parse: (v) => percent.parse(v) / 100,
-		transform: (v) => percent.transform(v * 100)
-	}))();
-	var hsla = {
-		test: isColorString("hsl", "hue"),
-		parse: splitColor("hue", "saturation", "lightness"),
-		transform: ({ hue, saturation, lightness, alpha: alpha$1 = 1 }) => {
-			return "hsla(" + Math.round(hue) + ", " + percent.transform(sanitize(saturation)) + ", " + percent.transform(sanitize(lightness)) + ", " + sanitize(alpha.transform(alpha$1)) + ")";
-		}
-	};
-	var color = {
-		test: (v) => rgba.test(v) || hex.test(v) || hsla.test(v),
-		parse: (v) => {
-			if (rgba.test(v)) return rgba.parse(v);
-			else if (hsla.test(v)) return hsla.parse(v);
-			else return hex.parse(v);
-		},
-		transform: (v) => {
-			return typeof v === "string" ? v : v.hasOwnProperty("red") ? rgba.transform(v) : hsla.transform(v);
-		},
-		getAnimatableNone: (v) => {
-			const parsed = color.parse(v);
-			parsed.alpha = 0;
-			return color.transform(parsed);
-		}
-	};
-	var colorRegex = /(?:#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\))/giu;
-	function test(v) {
-		return isNaN(v) && typeof v === "string" && (v.match(floatRegex)?.length || 0) + (v.match(colorRegex)?.length || 0) > 0;
-	}
-	var NUMBER_TOKEN = "number";
-	var COLOR_TOKEN = "color";
-	var VAR_TOKEN = "var";
-	var VAR_FUNCTION_TOKEN = "var(";
-	var SPLIT_TOKEN = "${}";
-	var complexRegex = /var\s*\(\s*--(?:[\w-]+\s*|[\w-]+\s*,(?:\s*[^)(\s]|\s*\((?:[^)(]|\([^)(]*\))*\))+\s*)\)|#[\da-f]{3,8}|(?:rgb|hsl)a?\((?:-?[\d.]+%?[,\s]+){2}-?[\d.]+%?\s*(?:[,/]\s*)?(?:\b\d+(?:\.\d+)?|\.\d+)?%?\)|-?(?:\d+(?:\.\d+)?|\.\d+)/giu;
-	function analyseComplexValue(value) {
-		const originalValue = value.toString();
-		const values = [];
-		const indexes = {
-			color: [],
-			number: [],
-			var: []
-		};
-		const types = [];
-		let i = 0;
-		return {
-			values,
-			split: originalValue.replace(complexRegex, (parsedValue) => {
-				if (color.test(parsedValue)) {
-					indexes.color.push(i);
-					types.push(COLOR_TOKEN);
-					values.push(color.parse(parsedValue));
-				} else if (parsedValue.startsWith(VAR_FUNCTION_TOKEN)) {
-					indexes.var.push(i);
-					types.push(VAR_TOKEN);
-					values.push(parsedValue);
-				} else {
-					indexes.number.push(i);
-					types.push(NUMBER_TOKEN);
-					values.push(parseFloat(parsedValue));
-				}
-				++i;
-				return SPLIT_TOKEN;
-			}).split(SPLIT_TOKEN),
-			indexes,
-			types
-		};
-	}
-	function parseComplexValue(v) {
-		return analyseComplexValue(v).values;
-	}
-	function buildTransformer({ split, types }) {
-		const numSections = split.length;
-		return (v) => {
-			let output = "";
-			for (let i = 0; i < numSections; i++) {
-				output += split[i];
-				if (v[i] !== void 0) {
-					const type = types[i];
-					if (type === NUMBER_TOKEN) output += sanitize(v[i]);
-					else if (type === COLOR_TOKEN) output += color.transform(v[i]);
-					else output += v[i];
-				}
-			}
-			return output;
-		};
-	}
-	function createTransformer(source) {
-		return buildTransformer(analyseComplexValue(source));
-	}
-	var convertNumbersToZero = (v) => typeof v === "number" ? 0 : color.test(v) ? color.getAnimatableNone(v) : v;
-	var convertToZero = (value, splitBefore) => {
-		if (typeof value === "number") return splitBefore?.trim().endsWith("/") ? value : 0;
-		return convertNumbersToZero(value);
-	};
-	function getAnimatableNone$1(v) {
-		const info = analyseComplexValue(v);
-		return buildTransformer(info)(info.values.map((value, i) => convertToZero(value, info.split[i])));
-	}
-	var complex = {
-		test,
-		parse: parseComplexValue,
-		createTransformer,
-		getAnimatableNone: getAnimatableNone$1
-	};
-	function hueToRgb(p, q, t) {
-		if (t < 0) t += 1;
-		if (t > 1) t -= 1;
-		if (t < 1 / 6) return p + (q - p) * 6 * t;
-		if (t < 1 / 2) return q;
-		if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-		return p;
-	}
-	function hslaToRgba({ hue, saturation, lightness, alpha }) {
-		hue /= 360;
-		saturation /= 100;
-		lightness /= 100;
-		let red = 0;
-		let green = 0;
-		let blue = 0;
-		if (!saturation) red = green = blue = lightness;
-		else {
-			const q = lightness < .5 ? lightness * (1 + saturation) : lightness + saturation - lightness * saturation;
-			const p = 2 * lightness - q;
-			red = hueToRgb(p, q, hue + 1 / 3);
-			green = hueToRgb(p, q, hue);
-			blue = hueToRgb(p, q, hue - 1 / 3);
-		}
-		return {
-			red: Math.round(red * 255),
-			green: Math.round(green * 255),
-			blue: Math.round(blue * 255),
-			alpha
-		};
-	}
-	function mixImmediate(a, b) {
-		return (p) => p > 0 ? b : a;
-	}
-	var mixNumber$1 = (from, to, progress) => {
-		return from + (to - from) * progress;
-	};
-	var mixLinearColor = (from, to, v) => {
-		const fromExpo = from * from;
-		const expo = v * (to * to - fromExpo) + fromExpo;
-		return expo < 0 ? 0 : Math.sqrt(expo);
-	};
-	var colorTypes = [
-		hex,
-		rgba,
-		hsla
-	];
-	var getColorType = (v) => colorTypes.find((type) => type.test(v));
-	function asRGBA(color) {
-		const type = getColorType(color);
-		`${color}`;
-		if (!Boolean(type)) return false;
-		let model = type.parse(color);
-		if (type === hsla) model = hslaToRgba(model);
-		return model;
-	}
-	var mixColor = (from, to) => {
-		const fromRGBA = asRGBA(from);
-		const toRGBA = asRGBA(to);
-		if (!fromRGBA || !toRGBA) return mixImmediate(from, to);
-		const blended = { ...fromRGBA };
-		return (v) => {
-			blended.red = mixLinearColor(fromRGBA.red, toRGBA.red, v);
-			blended.green = mixLinearColor(fromRGBA.green, toRGBA.green, v);
-			blended.blue = mixLinearColor(fromRGBA.blue, toRGBA.blue, v);
-			blended.alpha = mixNumber$1(fromRGBA.alpha, toRGBA.alpha, v);
-			return rgba.transform(blended);
-		};
-	};
-	var invisibleValues = new Set(["none", "hidden"]);
-	function mixVisibility(origin, target) {
-		if (invisibleValues.has(origin)) return (p) => p <= 0 ? origin : target;
-		else return (p) => p >= 1 ? target : origin;
-	}
-	function mixNumber(a, b) {
-		return (p) => mixNumber$1(a, b, p);
-	}
-	function getMixer(a) {
-		if (typeof a === "number") return mixNumber;
-		else if (typeof a === "string") return isCSSVariableToken(a) ? mixImmediate : color.test(a) ? mixColor : mixComplex;
-		else if (Array.isArray(a)) return mixArray;
-		else if (typeof a === "object") return color.test(a) ? mixColor : mixObject;
-		return mixImmediate;
-	}
-	function mixArray(a, b) {
-		const output = [...a];
-		const numValues = output.length;
-		const blendValue = a.map((v, i) => getMixer(v)(v, b[i]));
-		return (p) => {
-			for (let i = 0; i < numValues; i++) output[i] = blendValue[i](p);
-			return output;
-		};
-	}
-	function mixObject(a, b) {
-		const output = {
-			...a,
-			...b
-		};
-		const blendValue = {};
-		for (const key in output) if (a[key] !== void 0 && b[key] !== void 0) blendValue[key] = getMixer(a[key])(a[key], b[key]);
-		return (v) => {
-			for (const key in blendValue) output[key] = blendValue[key](v);
-			return output;
-		};
-	}
-	function matchOrder(origin, target) {
-		const orderedOrigin = [];
-		const pointers = {
-			color: 0,
-			var: 0,
-			number: 0
-		};
-		for (let i = 0; i < target.values.length; i++) {
-			const type = target.types[i];
-			const originIndex = origin.indexes[type][pointers[type]];
-			orderedOrigin[i] = origin.values[originIndex] ?? 0;
-			pointers[type]++;
-		}
-		return orderedOrigin;
-	}
-	var mixComplex = (origin, target) => {
-		const template = complex.createTransformer(target);
-		const originStats = analyseComplexValue(origin);
-		const targetStats = analyseComplexValue(target);
-		if (originStats.indexes.var.length === targetStats.indexes.var.length && originStats.indexes.color.length === targetStats.indexes.color.length && originStats.indexes.number.length >= targetStats.indexes.number.length) {
-			if (invisibleValues.has(origin) && !targetStats.values.length || invisibleValues.has(target) && !originStats.values.length) return mixVisibility(origin, target);
-			return pipe(mixArray(matchOrder(originStats, targetStats), targetStats.values), template);
-		} else {
-			`${origin}${target}`;
-			return mixImmediate(origin, target);
-		}
-	};
-	function mix(from, to, p) {
-		if (typeof from === "number" && typeof to === "number" && typeof p === "number") return mixNumber$1(from, to, p);
-		return getMixer(from)(from, to);
-	}
-	var frameloopDriver = (update) => {
-		const passTimestamp = ({ timestamp }) => update(timestamp);
-		return {
-			start: (keepAlive = true) => frame.update(passTimestamp, keepAlive),
-			stop: () => cancelFrame(passTimestamp),
-			now: () => frameData.isProcessing ? frameData.timestamp : time.now()
-		};
-	};
-	var generateLinearEasing = (easing, duration, resolution = 10) => {
-		let points = "";
-		const numPoints = Math.max(Math.round(duration / resolution), 2);
-		for (let i = 0; i < numPoints; i++) points += Math.round(easing(i / (numPoints - 1)) * 1e4) / 1e4 + ", ";
-		return `linear(${points.substring(0, points.length - 2)})`;
-	};
-	var maxGeneratorDuration = 2e4;
-	function calcGeneratorDuration(generator) {
-		let duration = 0;
-		const timeStep = 50;
-		let state = generator.next(duration);
-		while (!state.done && duration < 2e4) {
-			duration += timeStep;
-			state = generator.next(duration);
-		}
-		return duration >= 2e4 ? Infinity : duration;
-	}
-	function createGeneratorEasing(options, scale = 100, createGenerator) {
-		const generator = createGenerator({
-			...options,
-			keyframes: [0, scale]
-		});
-		const duration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
-		return {
-			type: "keyframes",
-			ease: (progress) => {
-				return generator.next(duration * progress).value / scale;
-			},
-			duration: millisecondsToSeconds(duration)
-		};
-	}
-	var springDefaults = {
-		stiffness: 100,
-		damping: 10,
-		mass: 1,
-		velocity: 0,
-		duration: 800,
-		bounce: .3,
-		visualDuration: .3,
-		restSpeed: {
-			granular: .01,
-			default: 2
-		},
-		restDelta: {
-			granular: .005,
-			default: .5
-		},
-		minDuration: .01,
-		maxDuration: 10,
-		minDamping: .05,
-		maxDamping: 1
-	};
-	function calcAngularFreq(undampedFreq, dampingRatio) {
-		return undampedFreq * Math.sqrt(1 - dampingRatio * dampingRatio);
-	}
-	var rootIterations = 12;
-	function approximateRoot(envelope, derivative, initialGuess) {
-		let result = initialGuess;
-		for (let i = 1; i < rootIterations; i++) result = result - envelope(result) / derivative(result);
-		return result;
-	}
-	var safeMin = .001;
-	function findSpring({ duration = springDefaults.duration, bounce = springDefaults.bounce, velocity = springDefaults.velocity, mass = springDefaults.mass }) {
-		let envelope;
-		let derivative;
-		springDefaults.maxDuration;
-		let dampingRatio = 1 - bounce;
-		dampingRatio = clamp(springDefaults.minDamping, springDefaults.maxDamping, dampingRatio);
-		duration = clamp(springDefaults.minDuration, springDefaults.maxDuration, millisecondsToSeconds(duration));
-		if (dampingRatio < 1) {
-			envelope = (undampedFreq) => {
-				const exponentialDecay = undampedFreq * dampingRatio;
-				const delta = exponentialDecay * duration;
-				const a = exponentialDecay - velocity;
-				const b = calcAngularFreq(undampedFreq, dampingRatio);
-				const c = Math.exp(-delta);
-				return safeMin - a / b * c;
-			};
-			derivative = (undampedFreq) => {
-				const delta = undampedFreq * dampingRatio * duration;
-				const d = delta * velocity + velocity;
-				const e = Math.pow(dampingRatio, 2) * Math.pow(undampedFreq, 2) * duration;
-				const f = Math.exp(-delta);
-				const g = calcAngularFreq(Math.pow(undampedFreq, 2), dampingRatio);
-				return (-envelope(undampedFreq) + safeMin > 0 ? -1 : 1) * ((d - e) * f) / g;
-			};
-		} else {
-			envelope = (undampedFreq) => {
-				return -.001 + Math.exp(-undampedFreq * duration) * ((undampedFreq - velocity) * duration + 1);
-			};
-			derivative = (undampedFreq) => {
-				return Math.exp(-undampedFreq * duration) * ((velocity - undampedFreq) * (duration * duration));
-			};
-		}
-		const initialGuess = 5 / duration;
-		const undampedFreq = approximateRoot(envelope, derivative, initialGuess);
-		duration = secondsToMilliseconds(duration);
-		if (isNaN(undampedFreq)) return {
-			stiffness: springDefaults.stiffness,
-			damping: springDefaults.damping,
-			duration
-		};
-		else {
-			const stiffness = Math.pow(undampedFreq, 2) * mass;
-			return {
-				stiffness,
-				damping: dampingRatio * 2 * Math.sqrt(mass * stiffness),
-				duration
-			};
-		}
-	}
-	var durationKeys = ["duration", "bounce"];
-	var physicsKeys = [
-		"stiffness",
-		"damping",
-		"mass"
-	];
-	function isSpringType(options, keys) {
-		return keys.some((key) => options[key] !== void 0);
-	}
-	function getSpringOptions(options) {
-		let springOptions = {
-			velocity: springDefaults.velocity,
-			stiffness: springDefaults.stiffness,
-			damping: springDefaults.damping,
-			mass: springDefaults.mass,
-			isResolvedFromDuration: false,
-			...options
-		};
-		if (!isSpringType(options, physicsKeys) && isSpringType(options, durationKeys)) {
-			springOptions.velocity = 0;
-			if (options.visualDuration) {
-				const visualDuration = options.visualDuration;
-				const root = 2 * Math.PI / (visualDuration * 1.2);
-				const stiffness = root * root;
-				const damping = 2 * clamp(.05, 1, 1 - (options.bounce || 0)) * Math.sqrt(stiffness);
-				springOptions = {
-					...springOptions,
-					mass: springDefaults.mass,
-					stiffness,
-					damping
-				};
-			} else {
-				const derived = findSpring({
-					...options,
-					velocity: 0
-				});
-				springOptions = {
-					...springOptions,
-					...derived,
-					mass: springDefaults.mass
-				};
-				springOptions.isResolvedFromDuration = true;
-			}
-		}
-		return springOptions;
-	}
-	function spring(optionsOrVisualDuration = springDefaults.visualDuration, bounce = springDefaults.bounce) {
-		const options = typeof optionsOrVisualDuration !== "object" ? {
-			visualDuration: optionsOrVisualDuration,
-			keyframes: [0, 1],
-			bounce
-		} : optionsOrVisualDuration;
-		let { restSpeed, restDelta } = options;
-		const origin = options.keyframes[0];
-		const target = options.keyframes[options.keyframes.length - 1];
-		const state = {
-			done: false,
-			value: origin
-		};
-		const { stiffness, damping, mass, duration, velocity, isResolvedFromDuration } = getSpringOptions({
-			...options,
-			velocity: -millisecondsToSeconds(options.velocity || 0)
-		});
-		const initialVelocity = velocity || 0;
-		const dampingRatio = damping / (2 * Math.sqrt(stiffness * mass));
-		const initialDelta = target - origin;
-		const undampedAngularFreq = millisecondsToSeconds(Math.sqrt(stiffness / mass));
-		const isGranularScale = Math.abs(initialDelta) < 5;
-		restSpeed || (restSpeed = isGranularScale ? springDefaults.restSpeed.granular : springDefaults.restSpeed.default);
-		restDelta || (restDelta = isGranularScale ? springDefaults.restDelta.granular : springDefaults.restDelta.default);
-		let resolveSpring;
-		let resolveVelocity;
-		let angularFreq;
-		let A;
-		let sinCoeff;
-		let cosCoeff;
-		if (dampingRatio < 1) {
-			angularFreq = calcAngularFreq(undampedAngularFreq, dampingRatio);
-			A = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / angularFreq;
-			resolveSpring = (t) => {
-				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
-				return target - envelope * (A * Math.sin(angularFreq * t) + initialDelta * Math.cos(angularFreq * t));
-			};
-			sinCoeff = dampingRatio * undampedAngularFreq * A + initialDelta * angularFreq;
-			cosCoeff = dampingRatio * undampedAngularFreq * initialDelta - A * angularFreq;
-			resolveVelocity = (t) => {
-				return Math.exp(-dampingRatio * undampedAngularFreq * t) * (sinCoeff * Math.sin(angularFreq * t) + cosCoeff * Math.cos(angularFreq * t));
-			};
-		} else if (dampingRatio === 1) {
-			resolveSpring = (t) => target - Math.exp(-undampedAngularFreq * t) * (initialDelta + (initialVelocity + undampedAngularFreq * initialDelta) * t);
-			const C = initialVelocity + undampedAngularFreq * initialDelta;
-			resolveVelocity = (t) => Math.exp(-undampedAngularFreq * t) * (undampedAngularFreq * C * t - initialVelocity);
-		} else {
-			const dampedAngularFreq = undampedAngularFreq * Math.sqrt(dampingRatio * dampingRatio - 1);
-			resolveSpring = (t) => {
-				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
-				const freqForT = Math.min(dampedAngularFreq * t, 300);
-				return target - envelope * ((initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) * Math.sinh(freqForT) + dampedAngularFreq * initialDelta * Math.cosh(freqForT)) / dampedAngularFreq;
-			};
-			const P = (initialVelocity + dampingRatio * undampedAngularFreq * initialDelta) / dampedAngularFreq;
-			const sinhCoeff = dampingRatio * undampedAngularFreq * P - initialDelta * dampedAngularFreq;
-			const coshCoeff = dampingRatio * undampedAngularFreq * initialDelta - P * dampedAngularFreq;
-			resolveVelocity = (t) => {
-				const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
-				const freqForT = Math.min(dampedAngularFreq * t, 300);
-				return envelope * (sinhCoeff * Math.sinh(freqForT) + coshCoeff * Math.cosh(freqForT));
-			};
-		}
-		const generator = {
-			calculatedDuration: isResolvedFromDuration ? duration || null : null,
-			velocity: (t) => secondsToMilliseconds(resolveVelocity(t)),
-			next: (t) => {
-				if (!isResolvedFromDuration && dampingRatio < 1) {
-					const envelope = Math.exp(-dampingRatio * undampedAngularFreq * t);
-					const sin = Math.sin(angularFreq * t);
-					const cos = Math.cos(angularFreq * t);
-					const current = target - envelope * (A * sin + initialDelta * cos);
-					const currentVelocity = secondsToMilliseconds(envelope * (sinCoeff * sin + cosCoeff * cos));
-					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
-					state.value = state.done ? target : current;
-					return state;
-				}
-				const current = resolveSpring(t);
-				if (!isResolvedFromDuration) {
-					const currentVelocity = secondsToMilliseconds(resolveVelocity(t));
-					state.done = Math.abs(currentVelocity) <= restSpeed && Math.abs(target - current) <= restDelta;
-				} else state.done = t >= duration;
-				state.value = state.done ? target : current;
-				return state;
-			},
-			toString: () => {
-				const calculatedDuration = Math.min(calcGeneratorDuration(generator), maxGeneratorDuration);
-				const easing = generateLinearEasing((progress) => generator.next(calculatedDuration * progress).value, calculatedDuration, 30);
-				return calculatedDuration + "ms " + easing;
-			},
-			toTransition: () => {}
-		};
-		return generator;
-	}
-	spring.applyToOptions = (options) => {
-		const generatorOptions = createGeneratorEasing(options, 100, spring);
-		options.ease = generatorOptions.ease;
-		options.duration = secondsToMilliseconds(generatorOptions.duration);
-		options.type = "keyframes";
-		return options;
-	};
-	var velocitySampleDuration = 5;
-	function getGeneratorVelocity(resolveValue, t, current) {
-		const prevT = Math.max(t - velocitySampleDuration, 0);
-		return velocityPerSecond(current - resolveValue(prevT), t - prevT);
-	}
-	function inertia({ keyframes, velocity = 0, power = .8, timeConstant = 325, bounceDamping = 10, bounceStiffness = 500, modifyTarget, min, max, restDelta = .5, restSpeed }) {
-		const origin = keyframes[0];
-		const state = {
-			done: false,
-			value: origin
-		};
-		const isOutOfBounds = (v) => min !== void 0 && v < min || max !== void 0 && v > max;
-		const nearestBoundary = (v) => {
-			if (min === void 0) return max;
-			if (max === void 0) return min;
-			return Math.abs(min - v) < Math.abs(max - v) ? min : max;
-		};
-		let amplitude = power * velocity;
-		const ideal = origin + amplitude;
-		const target = modifyTarget === void 0 ? ideal : modifyTarget(ideal);
-		if (target !== ideal) amplitude = target - origin;
-		const calcDelta = (t) => -amplitude * Math.exp(-t / timeConstant);
-		const calcLatest = (t) => target + calcDelta(t);
-		const applyFriction = (t) => {
-			const delta = calcDelta(t);
-			const latest = calcLatest(t);
-			state.done = Math.abs(delta) <= restDelta;
-			state.value = state.done ? target : latest;
-		};
-		let timeReachedBoundary;
-		let spring$1;
-		const checkCatchBoundary = (t) => {
-			if (!isOutOfBounds(state.value)) return;
-			timeReachedBoundary = t;
-			spring$1 = spring({
-				keyframes: [state.value, nearestBoundary(state.value)],
-				velocity: getGeneratorVelocity(calcLatest, t, state.value),
-				damping: bounceDamping,
-				stiffness: bounceStiffness,
-				restDelta,
-				restSpeed
-			});
-		};
-		checkCatchBoundary(0);
-		return {
-			calculatedDuration: null,
-			next: (t) => {
-				let hasUpdatedFrame = false;
-				if (!spring$1 && timeReachedBoundary === void 0) {
-					hasUpdatedFrame = true;
-					applyFriction(t);
-					checkCatchBoundary(t);
-				}
-				if (timeReachedBoundary !== void 0 && t >= timeReachedBoundary) return spring$1.next(t - timeReachedBoundary);
-				else {
-					!hasUpdatedFrame && applyFriction(t);
-					return state;
-				}
-			}
-		};
-	}
-	function createMixers(output, ease, customMixer) {
-		const mixers = [];
-		const mixerFactory = customMixer || MotionGlobalConfig.mix || mix;
-		const numMixers = output.length - 1;
-		for (let i = 0; i < numMixers; i++) {
-			let mixer = mixerFactory(output[i], output[i + 1]);
-			if (ease) mixer = pipe(Array.isArray(ease) ? ease[i] || noop$3 : ease, mixer);
-			mixers.push(mixer);
-		}
-		return mixers;
-	}
-	function interpolate(input, output, { clamp: isClamp = true, ease, mixer } = {}) {
-		const inputLength = input.length;
-		output.length;
-		if (inputLength === 1) return () => output[0];
-		if (inputLength === 2 && output[0] === output[1]) return () => output[1];
-		const isZeroDeltaRange = input[0] === input[1];
-		if (input[0] > input[inputLength - 1]) {
-			input = [...input].reverse();
-			output = [...output].reverse();
-		}
-		const mixers = createMixers(output, ease, mixer);
-		const numMixers = mixers.length;
-		const interpolator = (v) => {
-			if (isZeroDeltaRange && v < input[0]) return output[0];
-			let i = 0;
-			if (numMixers > 1) {
-				for (; i < input.length - 2; i++) if (v < input[i + 1]) break;
-			}
-			const progressInRange = progress(input[i], input[i + 1], v);
-			return mixers[i](progressInRange);
-		};
-		return isClamp ? (v) => interpolator(clamp(input[0], input[inputLength - 1], v)) : interpolator;
-	}
-	function fillOffset(offset, remaining) {
-		const min = offset[offset.length - 1];
-		for (let i = 1; i <= remaining; i++) {
-			const offsetProgress = progress(0, remaining, i);
-			offset.push(mixNumber$1(min, 1, offsetProgress));
-		}
-	}
-	function defaultOffset(arr) {
-		const offset = [0];
-		fillOffset(offset, arr.length - 1);
-		return offset;
-	}
-	function convertOffsetToTimes(offset, duration) {
-		return offset.map((o) => o * duration);
-	}
-	function defaultEasing(values, easing) {
-		return values.map(() => easing || easeInOut).splice(0, values.length - 1);
-	}
-	function keyframes({ duration = 300, keyframes: keyframeValues, times, ease = "easeInOut" }) {
-		const easingFunctions = isEasingArray(ease) ? ease.map(easingDefinitionToFunction) : easingDefinitionToFunction(ease);
-		const state = {
-			done: false,
-			value: keyframeValues[0]
-		};
-		const mapTimeToKeyframe = interpolate(convertOffsetToTimes(times && times.length === keyframeValues.length ? times : defaultOffset(keyframeValues), duration), keyframeValues, { ease: Array.isArray(easingFunctions) ? easingFunctions : defaultEasing(keyframeValues, easingFunctions) });
-		return {
-			calculatedDuration: duration,
-			next: (t) => {
-				state.value = mapTimeToKeyframe(t);
-				state.done = t >= duration;
-				return state;
-			}
-		};
-	}
-	var isNotNull = (value) => value !== null;
-	function getFinalKeyframe(keyframes, { repeat, repeatType = "loop" }, finalKeyframe, speed = 1) {
-		const resolvedKeyframes = keyframes.filter(isNotNull);
-		const index = speed < 0 || repeat && repeatType !== "loop" && repeat % 2 === 1 ? 0 : resolvedKeyframes.length - 1;
-		return !index || finalKeyframe === void 0 ? resolvedKeyframes[index] : finalKeyframe;
-	}
-	var transitionTypeMap = {
-		decay: inertia,
-		inertia,
-		tween: keyframes,
-		keyframes,
-		spring
-	};
-	function replaceTransitionType(transition) {
-		if (typeof transition.type === "string") transition.type = transitionTypeMap[transition.type];
-	}
-	var WithPromise = class {
-		constructor() {
-			this.updateFinished();
-		}
-		get finished() {
-			return this._finished;
-		}
-		updateFinished() {
-			this._finished = new Promise((resolve) => {
-				this.resolve = resolve;
-			});
-		}
-		notifyFinished() {
-			this.resolve();
-		}
-		then(onResolve, onReject) {
-			return this.finished.then(onResolve, onReject);
-		}
-	};
-	var percentToProgress = (percent) => percent / 100;
-	var JSAnimation = class extends WithPromise {
-		constructor(options) {
-			super();
-			this.state = "idle";
-			this.startTime = null;
-			this.isStopped = false;
-			this.currentTime = 0;
-			this.holdTime = null;
-			this.playbackSpeed = 1;
-			this.delayState = {
-				done: false,
-				value: void 0
-			};
-			this.stop = () => {
-				const { motionValue } = this.options;
-				if (motionValue && motionValue.updatedAt !== time.now()) this.tick(time.now());
-				this.isStopped = true;
-				if (this.state === "idle") return;
-				this.teardown();
-				this.options.onStop?.();
-			};
-			this.options = options;
-			this.initAnimation();
-			this.play();
-			if (options.autoplay === false) this.pause();
-		}
-		initAnimation() {
-			const { options } = this;
-			replaceTransitionType(options);
-			const { type = keyframes, repeat = 0, repeatDelay = 0, repeatType, velocity = 0 } = options;
-			let { keyframes: keyframes$1 } = options;
-			const generatorFactory = type || keyframes;
-			if (generatorFactory !== keyframes && typeof keyframes$1[0] !== "number") {
-				this.mixKeyframes = pipe(percentToProgress, mix(keyframes$1[0], keyframes$1[1]));
-				keyframes$1 = [0, 100];
-			}
-			const generator = generatorFactory({
-				...options,
-				keyframes: keyframes$1
-			});
-			if (repeatType === "mirror") this.mirroredGenerator = generatorFactory({
-				...options,
-				keyframes: [...keyframes$1].reverse(),
-				velocity: -velocity
-			});
-			if (generator.calculatedDuration === null) generator.calculatedDuration = calcGeneratorDuration(generator);
-			const { calculatedDuration } = generator;
-			this.calculatedDuration = calculatedDuration;
-			this.resolvedDuration = calculatedDuration + repeatDelay;
-			this.totalDuration = this.resolvedDuration * (repeat + 1) - repeatDelay;
-			this.generator = generator;
-		}
-		updateTime(timestamp) {
-			const animationTime = Math.round(timestamp - this.startTime) * this.playbackSpeed;
-			if (this.holdTime !== null) this.currentTime = this.holdTime;
-			else this.currentTime = animationTime;
-		}
-		tick(timestamp, sample = false) {
-			const { generator, totalDuration, mixKeyframes, mirroredGenerator, resolvedDuration, calculatedDuration } = this;
-			if (this.startTime === null) return generator.next(0);
-			const { delay = 0, keyframes, repeat, repeatType, repeatDelay, type, onUpdate, finalKeyframe } = this.options;
-			if (this.speed > 0) this.startTime = Math.min(this.startTime, timestamp);
-			else if (this.speed < 0) this.startTime = Math.min(timestamp - totalDuration / this.speed, this.startTime);
-			if (sample) this.currentTime = timestamp;
-			else this.updateTime(timestamp);
-			const timeWithoutDelay = this.currentTime - delay * (this.playbackSpeed >= 0 ? 1 : -1);
-			const isInDelayPhase = this.playbackSpeed >= 0 ? timeWithoutDelay < 0 : timeWithoutDelay > totalDuration;
-			this.currentTime = Math.max(timeWithoutDelay, 0);
-			if (this.state === "finished" && this.holdTime === null) this.currentTime = totalDuration;
-			let elapsed = this.currentTime;
-			let frameGenerator = generator;
-			if (repeat) {
-				const progress = Math.min(this.currentTime, totalDuration) / resolvedDuration;
-				let currentIteration = Math.floor(progress);
-				let iterationProgress = progress % 1;
-				if (!iterationProgress && progress >= 1) iterationProgress = 1;
-				iterationProgress === 1 && currentIteration--;
-				currentIteration = Math.min(currentIteration, repeat + 1);
-				if (Boolean(currentIteration % 2)) {
-					if (repeatType === "reverse") {
-						iterationProgress = 1 - iterationProgress;
-						if (repeatDelay) iterationProgress -= repeatDelay / resolvedDuration;
-					} else if (repeatType === "mirror") frameGenerator = mirroredGenerator;
-				}
-				elapsed = clamp(0, 1, iterationProgress) * resolvedDuration;
-			}
-			let state;
-			if (isInDelayPhase) {
-				this.delayState.value = keyframes[0];
-				state = this.delayState;
-			} else state = frameGenerator.next(elapsed);
-			if (mixKeyframes && !isInDelayPhase) state.value = mixKeyframes(state.value);
-			let { done } = state;
-			if (!isInDelayPhase && calculatedDuration !== null) done = this.playbackSpeed >= 0 ? this.currentTime >= totalDuration : this.currentTime <= 0;
-			const isAnimationFinished = this.holdTime === null && (this.state === "finished" || this.state === "running" && done);
-			if (isAnimationFinished && type !== inertia) state.value = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
-			if (onUpdate) onUpdate(state.value);
-			if (isAnimationFinished) this.finish();
-			return state;
-		}
-		then(resolve, reject) {
-			return this.finished.then(resolve, reject);
-		}
-		get duration() {
-			return millisecondsToSeconds(this.calculatedDuration);
-		}
-		get iterationDuration() {
-			const { delay = 0 } = this.options || {};
-			return this.duration + millisecondsToSeconds(delay);
-		}
-		get time() {
-			return millisecondsToSeconds(this.currentTime);
-		}
-		set time(newTime) {
-			newTime = secondsToMilliseconds(newTime);
-			this.currentTime = newTime;
-			if (this.startTime === null || this.holdTime !== null || this.playbackSpeed === 0) this.holdTime = newTime;
-			else if (this.driver) this.startTime = this.driver.now() - newTime / this.playbackSpeed;
-			if (this.driver) this.driver.start(false);
-			else {
-				this.startTime = 0;
-				this.state = "paused";
-				this.holdTime = newTime;
-				this.tick(newTime);
-			}
-		}
-		getGeneratorVelocity() {
-			const t = this.currentTime;
-			if (t <= 0) return this.options.velocity || 0;
-			if (this.generator.velocity) return this.generator.velocity(t);
-			const current = this.generator.next(t).value;
-			return getGeneratorVelocity((s) => this.generator.next(s).value, t, current);
-		}
-		get speed() {
-			return this.playbackSpeed;
-		}
-		set speed(newSpeed) {
-			const hasChanged = this.playbackSpeed !== newSpeed;
-			if (hasChanged && this.driver) this.updateTime(time.now());
-			this.playbackSpeed = newSpeed;
-			if (hasChanged && this.driver) this.time = millisecondsToSeconds(this.currentTime);
-		}
-		play() {
-			if (this.isStopped) return;
-			const { driver = frameloopDriver, startTime } = this.options;
-			if (!this.driver) this.driver = driver((timestamp) => this.tick(timestamp));
-			this.options.onPlay?.();
-			const now = this.driver.now();
-			if (this.state === "finished") {
-				this.updateFinished();
-				this.startTime = now;
-			} else if (this.holdTime !== null) this.startTime = now - this.holdTime;
-			else if (!this.startTime) this.startTime = startTime ?? now;
-			if (this.state === "finished" && this.speed < 0) this.startTime += this.calculatedDuration;
-			this.holdTime = null;
-			this.state = "running";
-			this.driver.start();
-		}
-		pause() {
-			this.state = "paused";
-			this.updateTime(time.now());
-			this.holdTime = this.currentTime;
-		}
-		complete() {
-			if (this.state !== "running") this.play();
-			this.state = "finished";
-			this.holdTime = null;
-		}
-		finish() {
-			this.notifyFinished();
-			this.teardown();
-			this.state = "finished";
-			this.options.onComplete?.();
-		}
-		cancel() {
-			this.holdTime = null;
-			this.startTime = 0;
-			this.tick(0);
-			this.teardown();
-			this.options.onCancel?.();
-		}
-		teardown() {
-			this.state = "idle";
-			this.stopDriver();
-			this.startTime = this.holdTime = null;
-		}
-		stopDriver() {
-			if (!this.driver) return;
-			this.driver.stop();
-			this.driver = void 0;
-		}
-		sample(sampleTime) {
-			this.startTime = 0;
-			return this.tick(sampleTime, true);
-		}
-		attachTimeline(timeline) {
-			if (this.options.allowFlatten) {
-				this.options.type = "keyframes";
-				this.options.ease = "linear";
-				this.initAnimation();
-			}
-			this.driver?.stop();
-			return timeline.observe(this);
-		}
-	};
-	function fillWildcards(keyframes) {
-		for (let i = 1; i < keyframes.length; i++) keyframes[i] ?? (keyframes[i] = keyframes[i - 1]);
-	}
-	var radToDeg = (rad) => rad * 180 / Math.PI;
-	var rotate = (v) => {
-		return rebaseAngle(radToDeg(Math.atan2(v[1], v[0])));
-	};
-	var matrix2dParsers = {
-		x: 4,
-		y: 5,
-		translateX: 4,
-		translateY: 5,
-		scaleX: 0,
-		scaleY: 3,
-		scale: (v) => (Math.abs(v[0]) + Math.abs(v[3])) / 2,
-		rotate,
-		rotateZ: rotate,
-		skewX: (v) => radToDeg(Math.atan(v[1])),
-		skewY: (v) => radToDeg(Math.atan(v[2])),
-		skew: (v) => (Math.abs(v[1]) + Math.abs(v[2])) / 2
-	};
-	var rebaseAngle = (angle) => {
-		angle = angle % 360;
-		if (angle < 0) angle += 360;
-		return angle;
-	};
-	var rotateZ = rotate;
-	var scaleX = (v) => Math.sqrt(v[0] * v[0] + v[1] * v[1]);
-	var scaleY = (v) => Math.sqrt(v[4] * v[4] + v[5] * v[5]);
-	var matrix3dParsers = {
-		x: 12,
-		y: 13,
-		z: 14,
-		translateX: 12,
-		translateY: 13,
-		translateZ: 14,
-		scaleX,
-		scaleY,
-		scale: (v) => (scaleX(v) + scaleY(v)) / 2,
-		rotateX: (v) => rebaseAngle(radToDeg(Math.atan2(v[6], v[5]))),
-		rotateY: (v) => rebaseAngle(radToDeg(Math.atan2(-v[2], v[0]))),
-		rotateZ,
-		rotate: rotateZ,
-		skewX: (v) => radToDeg(Math.atan(v[4])),
-		skewY: (v) => radToDeg(Math.atan(v[1])),
-		skew: (v) => (Math.abs(v[1]) + Math.abs(v[4])) / 2
-	};
-	function defaultTransformValue(name) {
-		return name.includes("scale") ? 1 : 0;
-	}
-	function parseValueFromTransform(transform, name) {
-		if (!transform || transform === "none") return defaultTransformValue(name);
-		const matrix3dMatch = transform.match(/^matrix3d\(([-\d.e\s,]+)\)$/u);
-		let parsers;
-		let match;
-		if (matrix3dMatch) {
-			parsers = matrix3dParsers;
-			match = matrix3dMatch;
-		} else {
-			const matrix2dMatch = transform.match(/^matrix\(([-\d.e\s,]+)\)$/u);
-			parsers = matrix2dParsers;
-			match = matrix2dMatch;
-		}
-		if (!match) return defaultTransformValue(name);
-		const valueParser = parsers[name];
-		const values = match[1].split(",").map(convertTransformToNumber);
-		return typeof valueParser === "function" ? valueParser(values) : values[valueParser];
-	}
-	var readTransformValue = (instance, name) => {
-		const { transform = "none" } = getComputedStyle(instance);
-		return parseValueFromTransform(transform, name);
-	};
-	function convertTransformToNumber(value) {
-		return parseFloat(value.trim());
-	}
-	var transformPropOrder = [
-		"transformPerspective",
-		"x",
-		"y",
-		"z",
-		"translateX",
-		"translateY",
-		"translateZ",
-		"scale",
-		"scaleX",
-		"scaleY",
-		"rotate",
-		"rotateX",
-		"rotateY",
-		"rotateZ",
-		"skew",
-		"skewX",
-		"skewY"
-	];
-	var transformProps = (() => new Set([...transformPropOrder, "pathRotation"]))();
-	var isNumOrPxType = (v) => v === number || v === px;
-	var transformKeys = new Set([
-		"x",
-		"y",
-		"z"
-	]);
-	var nonTranslationalTransformKeys = transformPropOrder.filter((key) => !transformKeys.has(key));
-	function removeNonTranslationalTransform(visualElement) {
-		const removedTransforms = [];
-		nonTranslationalTransformKeys.forEach((key) => {
-			const value = visualElement.getValue(key);
-			if (value !== void 0) {
-				removedTransforms.push([key, value.get()]);
-				value.set(key.startsWith("scale") ? 1 : 0);
-			}
-		});
-		return removedTransforms;
-	}
-	var positionalValues = {
-		width: ({ x }, { paddingLeft = "0", paddingRight = "0", boxSizing }) => {
-			const width = x.max - x.min;
-			return boxSizing === "border-box" ? width : width - parseFloat(paddingLeft) - parseFloat(paddingRight);
-		},
-		height: ({ y }, { paddingTop = "0", paddingBottom = "0", boxSizing }) => {
-			const height = y.max - y.min;
-			return boxSizing === "border-box" ? height : height - parseFloat(paddingTop) - parseFloat(paddingBottom);
-		},
-		top: (_bbox, { top }) => parseFloat(top),
-		left: (_bbox, { left }) => parseFloat(left),
-		bottom: ({ y }, { top }) => parseFloat(top) + (y.max - y.min),
-		right: ({ x }, { left }) => parseFloat(left) + (x.max - x.min),
-		x: (_bbox, { transform }) => parseValueFromTransform(transform, "x"),
-		y: (_bbox, { transform }) => parseValueFromTransform(transform, "y")
-	};
-	positionalValues.translateX = positionalValues.x;
-	positionalValues.translateY = positionalValues.y;
-	var toResolve = new Set();
-	var isScheduled = false;
-	var anyNeedsMeasurement = false;
-	var isForced = false;
-	function measureAllKeyframes() {
-		if (anyNeedsMeasurement) {
-			const resolversToMeasure = Array.from(toResolve).filter((resolver) => resolver.needsMeasurement);
-			const elementsToMeasure = new Set(resolversToMeasure.map((resolver) => resolver.element));
-			const transformsToRestore = new Map();
-			elementsToMeasure.forEach((element) => {
-				const removedTransforms = removeNonTranslationalTransform(element);
-				if (!removedTransforms.length) return;
-				transformsToRestore.set(element, removedTransforms);
-				element.render();
-			});
-			resolversToMeasure.forEach((resolver) => resolver.measureInitialState());
-			elementsToMeasure.forEach((element) => {
-				element.render();
-				const restore = transformsToRestore.get(element);
-				if (restore) restore.forEach(([key, value]) => {
-					element.getValue(key)?.set(value);
-				});
-			});
-			resolversToMeasure.forEach((resolver) => resolver.measureEndState());
-			resolversToMeasure.forEach((resolver) => {
-				if (resolver.suspendedScrollY !== void 0) window.scrollTo(0, resolver.suspendedScrollY);
-			});
-		}
-		anyNeedsMeasurement = false;
-		isScheduled = false;
-		toResolve.forEach((resolver) => resolver.complete(isForced));
-		toResolve.clear();
-	}
-	function readAllKeyframes() {
-		toResolve.forEach((resolver) => {
-			resolver.readKeyframes();
-			if (resolver.needsMeasurement) anyNeedsMeasurement = true;
-		});
-	}
-	function flushKeyframeResolvers() {
-		isForced = true;
-		readAllKeyframes();
-		measureAllKeyframes();
-		isForced = false;
-	}
-	var KeyframeResolver = class {
-		constructor(unresolvedKeyframes, onComplete, name, motionValue, element, isAsync = false) {
-			this.state = "pending";
-			this.isAsync = false;
-			this.needsMeasurement = false;
-			this.unresolvedKeyframes = [...unresolvedKeyframes];
-			this.onComplete = onComplete;
-			this.name = name;
-			this.motionValue = motionValue;
-			this.element = element;
-			this.isAsync = isAsync;
-		}
-		scheduleResolve() {
-			this.state = "scheduled";
-			if (this.isAsync) {
-				toResolve.add(this);
-				if (!isScheduled) {
-					isScheduled = true;
-					frame.read(readAllKeyframes);
-					frame.resolveKeyframes(measureAllKeyframes);
-				}
-			} else {
-				this.readKeyframes();
-				this.complete();
-			}
-		}
-		readKeyframes() {
-			const { unresolvedKeyframes, name, element, motionValue } = this;
-			if (unresolvedKeyframes[0] === null) {
-				const currentValue = motionValue?.get();
-				const finalKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
-				if (currentValue !== void 0) unresolvedKeyframes[0] = currentValue;
-				else if (element && name) {
-					const valueAsRead = element.readValue(name, finalKeyframe);
-					if (valueAsRead !== void 0 && valueAsRead !== null) unresolvedKeyframes[0] = valueAsRead;
-				}
-				if (unresolvedKeyframes[0] === void 0) unresolvedKeyframes[0] = finalKeyframe;
-				if (motionValue && currentValue === void 0) motionValue.set(unresolvedKeyframes[0]);
-			}
-			fillWildcards(unresolvedKeyframes);
-		}
-		setFinalKeyframe() {}
-		measureInitialState() {}
-		renderEndStyles() {}
-		measureEndState() {}
-		complete(isForcedComplete = false) {
-			this.state = "complete";
-			this.onComplete(this.unresolvedKeyframes, this.finalKeyframe, isForcedComplete);
-			toResolve.delete(this);
-		}
-		cancel() {
-			if (this.state === "scheduled") {
-				toResolve.delete(this);
-				this.state = "pending";
-			}
-		}
-		resume() {
-			if (this.state === "pending") this.scheduleResolve();
-		}
-	};
-	var isCSSVar = (name) => name.startsWith("--");
-	function setStyle(element, name, value) {
-		isCSSVar(name) ? element.style.setProperty(name, value) : element.style[name] = value;
-	}
-	var supportsFlags = {};
-	function memoSupports(callback, supportsFlag) {
-		const memoized = memo(callback);
-		return () => supportsFlags[supportsFlag] ?? memoized();
-	}
-	var supportsScrollTimeline = memoSupports(() => window.ScrollTimeline !== void 0, "scrollTimeline");
-	var supportsLinearEasing = memoSupports(() => {
-		try {
-			document.createElement("div").animate({ opacity: 0 }, { easing: "linear(0, 1)" });
-		} catch (e) {
-			return false;
-		}
-		return true;
-	}, "linearEasing");
-	var cubicBezierAsString = ([a, b, c, d]) => `cubic-bezier(${a}, ${b}, ${c}, ${d})`;
-	var supportedWaapiEasing = {
-		linear: "linear",
-		ease: "ease",
-		easeIn: "ease-in",
-		easeOut: "ease-out",
-		easeInOut: "ease-in-out",
-		circIn: cubicBezierAsString([
-			0,
-			.65,
-			.55,
-			1
-		]),
-		circOut: cubicBezierAsString([
-			.55,
-			0,
-			1,
-			.45
-		]),
-		backIn: cubicBezierAsString([
-			.31,
-			.01,
-			.66,
-			-.59
-		]),
-		backOut: cubicBezierAsString([
-			.33,
-			1.53,
-			.69,
-			.99
-		])
-	};
-	function mapEasingToNativeEasing(easing, duration) {
-		if (!easing) return;
-		else if (typeof easing === "function") return supportsLinearEasing() ? generateLinearEasing(easing, duration) : "ease-out";
-		else if (isBezierDefinition(easing)) return cubicBezierAsString(easing);
-		else if (Array.isArray(easing)) return easing.map((segmentEasing) => mapEasingToNativeEasing(segmentEasing, duration) || supportedWaapiEasing.easeOut);
-		else return supportedWaapiEasing[easing];
-	}
-	function startWaapiAnimation(element, valueName, keyframes, { delay = 0, duration = 300, repeat = 0, repeatType = "loop", ease = "easeOut", times } = {}, pseudoElement = void 0) {
-		const keyframeOptions = { [valueName]: keyframes };
-		if (times) keyframeOptions.offset = times;
-		const easing = mapEasingToNativeEasing(ease, duration);
-		if (Array.isArray(easing)) keyframeOptions.easing = easing;
-		const options = {
-			delay,
-			duration,
-			easing: !Array.isArray(easing) ? easing : "linear",
-			fill: "both",
-			iterations: repeat + 1,
-			direction: repeatType === "reverse" ? "alternate" : "normal"
-		};
-		if (pseudoElement) options.pseudoElement = pseudoElement;
-		return element.animate(keyframeOptions, options);
-	}
-	function isGenerator(type) {
-		return typeof type === "function" && "applyToOptions" in type;
-	}
-	function applyGeneratorOptions({ type, ...options }) {
-		if (isGenerator(type) && supportsLinearEasing()) return type.applyToOptions(options);
-		else {
-			options.duration ?? (options.duration = 300);
-			options.ease ?? (options.ease = "easeOut");
-		}
-		return options;
-	}
-	var NativeAnimation = class extends WithPromise {
-		constructor(options) {
-			super();
-			this.finishedTime = null;
-			this.isStopped = false;
-			this.manualStartTime = null;
-			if (!options) return;
-			const { element, name, keyframes, pseudoElement, allowFlatten = false, finalKeyframe, onComplete } = options;
-			this.isPseudoElement = Boolean(pseudoElement);
-			this.allowFlatten = allowFlatten;
-			this.options = options;
-			options.type;
-			const transition = applyGeneratorOptions(options);
-			this.animation = startWaapiAnimation(element, name, keyframes, transition, pseudoElement);
-			if (transition.autoplay === false) this.animation.pause();
-			this.animation.onfinish = () => {
-				this.finishedTime = this.time;
-				if (!pseudoElement) {
-					const keyframe = getFinalKeyframe(keyframes, this.options, finalKeyframe, this.speed);
-					if (this.updateMotionValue) this.updateMotionValue(keyframe);
-					setStyle(element, name, keyframe);
-					this.animation.cancel();
-				}
-				onComplete?.();
-				this.notifyFinished();
-			};
-		}
-		play() {
-			if (this.isStopped) return;
-			this.manualStartTime = null;
-			this.animation.play();
-			if (this.state === "finished") this.updateFinished();
-		}
-		pause() {
-			this.animation.pause();
-		}
-		complete() {
-			this.animation.finish?.();
-		}
-		cancel() {
-			try {
-				this.animation.cancel();
-			} catch (e) {}
-		}
-		stop() {
-			if (this.isStopped) return;
-			this.isStopped = true;
-			const { state } = this;
-			if (state === "idle" || state === "finished") return;
-			if (this.updateMotionValue) this.updateMotionValue();
-			else this.commitStyles();
-			if (!this.isPseudoElement) this.cancel();
-		}
-		commitStyles() {
-			const element = this.options?.element;
-			if (!this.isPseudoElement && element?.isConnected) this.animation.commitStyles?.();
-		}
-		get duration() {
-			const duration = this.animation.effect?.getComputedTiming?.().duration || 0;
-			return millisecondsToSeconds(Number(duration));
-		}
-		get iterationDuration() {
-			const { delay = 0 } = this.options || {};
-			return this.duration + millisecondsToSeconds(delay);
-		}
-		get time() {
-			return millisecondsToSeconds(Number(this.animation.currentTime) || 0);
-		}
-		set time(newTime) {
-			const wasFinished = this.finishedTime !== null;
-			this.manualStartTime = null;
-			this.finishedTime = null;
-			this.animation.currentTime = secondsToMilliseconds(newTime);
-			if (wasFinished) this.animation.pause();
-		}
-		get speed() {
-			return this.animation.playbackRate;
-		}
-		set speed(newSpeed) {
-			if (newSpeed < 0) this.finishedTime = null;
-			this.animation.playbackRate = newSpeed;
-		}
-		get state() {
-			return this.finishedTime !== null ? "finished" : this.animation.playState;
-		}
-		get startTime() {
-			return this.manualStartTime ?? Number(this.animation.startTime);
-		}
-		set startTime(newStartTime) {
-			this.manualStartTime = this.animation.startTime = newStartTime;
-		}
-		attachTimeline({ timeline, rangeStart, rangeEnd, observe }) {
-			if (this.allowFlatten) this.animation.effect?.updateTiming({ easing: "linear" });
-			this.animation.onfinish = null;
-			if (timeline && supportsScrollTimeline()) {
-				this.animation.timeline = timeline;
-				if (rangeStart) this.animation.rangeStart = rangeStart;
-				if (rangeEnd) this.animation.rangeEnd = rangeEnd;
-				return noop$3;
-			} else return observe(this);
-		}
-	};
-	var unsupportedEasingFunctions = {
-		anticipate,
-		backInOut,
-		circInOut
-	};
-	function isUnsupportedEase(key) {
-		return key in unsupportedEasingFunctions;
-	}
-	function replaceStringEasing(transition) {
-		if (typeof transition.ease === "string" && isUnsupportedEase(transition.ease)) transition.ease = unsupportedEasingFunctions[transition.ease];
-	}
-	var sampleDelta = 10;
-	var NativeAnimationExtended = class extends NativeAnimation {
-		constructor(options) {
-			replaceStringEasing(options);
-			replaceTransitionType(options);
-			super(options);
-			if (options.startTime !== void 0 && options.autoplay !== false) this.startTime = options.startTime;
-			this.options = options;
-		}
-		updateMotionValue(value) {
-			const { motionValue, onUpdate, onComplete, element, ...options } = this.options;
-			if (!motionValue) return;
-			if (value !== void 0) {
-				motionValue.set(value);
-				return;
-			}
-			const sampleAnimation = new JSAnimation({
-				...options,
-				autoplay: false
-			});
-			const sampleTime = Math.max(sampleDelta, time.now() - this.startTime);
-			const delta = clamp(0, sampleDelta, sampleTime - sampleDelta);
-			const current = sampleAnimation.sample(sampleTime).value;
-			const { name } = this.options;
-			if (element && name) setStyle(element, name, current);
-			motionValue.setWithVelocity(sampleAnimation.sample(Math.max(0, sampleTime - delta)).value, current, delta);
-			sampleAnimation.stop();
-		}
-	};
-	var isAnimatable = (value, name) => {
-		if (name === "zIndex") return false;
-		if (typeof value === "number" || Array.isArray(value)) return true;
-		if (typeof value === "string" && (complex.test(value) || value === "0") && !value.startsWith("url(")) return true;
-		return false;
-	};
-	function hasKeyframesChanged(keyframes) {
-		const current = keyframes[0];
-		if (keyframes.length === 1) return true;
-		for (let i = 0; i < keyframes.length; i++) if (keyframes[i] !== current) return true;
-	}
-	function canAnimate(keyframes, name, type, velocity) {
-		const originKeyframe = keyframes[0];
-		if (originKeyframe === null) return false;
-		if (name === "display" || name === "visibility") return true;
-		const targetKeyframe = keyframes[keyframes.length - 1];
-		const isOriginAnimatable = isAnimatable(originKeyframe, name);
-		const isTargetAnimatable = isAnimatable(targetKeyframe, name);
-		`${name}${originKeyframe}${targetKeyframe}${isOriginAnimatable ? targetKeyframe : originKeyframe}`;
-		if (!isOriginAnimatable || !isTargetAnimatable) return false;
-		return hasKeyframesChanged(keyframes) || (type === "spring" || isGenerator(type)) && velocity;
-	}
-	function makeAnimationInstant(options) {
-		options.duration = 0;
-		options.type = "keyframes";
-	}
-	var acceleratedValues = new Set([
-		"opacity",
-		"clipPath",
-		"filter",
-		"transform"
-	]);
-	var browserColorFunctions = /^(?:oklch|oklab|lab|lch|color|color-mix|light-dark)\(/;
-	function hasBrowserOnlyColors(keyframes) {
-		for (let i = 0; i < keyframes.length; i++) if (typeof keyframes[i] === "string" && browserColorFunctions.test(keyframes[i])) return true;
-		return false;
-	}
-	var colorProperties = new Set([
-		"color",
-		"backgroundColor",
-		"outlineColor",
-		"fill",
-		"stroke",
-		"borderColor",
-		"borderTopColor",
-		"borderRightColor",
-		"borderBottomColor",
-		"borderLeftColor"
-	]);
-	var supportsWaapi = memo(() => Object.hasOwnProperty.call(Element.prototype, "animate"));
-	function supportsBrowserAnimation(options) {
-		const { motionValue, name, repeatDelay, repeatType, damping, type, keyframes } = options;
-		if (!(motionValue?.owner?.current instanceof HTMLElement)) return false;
-		const { onUpdate, transformTemplate } = motionValue.owner.getProps();
-		return supportsWaapi() && name && (acceleratedValues.has(name) || colorProperties.has(name) && hasBrowserOnlyColors(keyframes)) && (name !== "transform" || !transformTemplate) && !onUpdate && !repeatDelay && repeatType !== "mirror" && damping !== 0 && type !== "inertia";
-	}
-	var MAX_RESOLVE_DELAY = 40;
-	var AsyncMotionValueAnimation = class extends WithPromise {
-		constructor({ autoplay = true, delay = 0, type = "keyframes", repeat = 0, repeatDelay = 0, repeatType = "loop", keyframes, name, motionValue, element, ...options }) {
-			super();
-			this.stop = () => {
-				if (this._animation) {
-					this._animation.stop();
-					this.stopTimeline?.();
-				}
-				this.keyframeResolver?.cancel();
-			};
-			this.createdAt = time.now();
-			const optionsWithDefaults = {
-				autoplay,
-				delay,
-				type,
-				repeat,
-				repeatDelay,
-				repeatType,
-				name,
-				motionValue,
-				element,
-				...options
-			};
-			const KeyframeResolver$1 = element?.KeyframeResolver || KeyframeResolver;
-			this.keyframeResolver = new KeyframeResolver$1(keyframes, (resolvedKeyframes, finalKeyframe, forced) => this.onKeyframesResolved(resolvedKeyframes, finalKeyframe, optionsWithDefaults, !forced), name, motionValue, element);
-			this.keyframeResolver?.scheduleResolve();
-		}
-		onKeyframesResolved(keyframes, finalKeyframe, options, sync) {
-			this.keyframeResolver = void 0;
-			const { name, type, velocity, delay, isHandoff, onUpdate } = options;
-			this.resolvedAt = time.now();
-			let canAnimateValue = true;
-			if (!canAnimate(keyframes, name, type, velocity)) {
-				canAnimateValue = false;
-				if (MotionGlobalConfig.instantAnimations || !delay) onUpdate?.(getFinalKeyframe(keyframes, options, finalKeyframe));
-				keyframes[0] = keyframes[keyframes.length - 1];
-				makeAnimationInstant(options);
-				options.repeat = 0;
-			}
-			const resolvedOptions = {
-				startTime: sync ? !this.resolvedAt ? this.createdAt : this.resolvedAt - this.createdAt > MAX_RESOLVE_DELAY ? this.resolvedAt : this.createdAt : void 0,
-				finalKeyframe,
-				...options,
-				keyframes
-			};
-			const useWaapi = canAnimateValue && !isHandoff && supportsBrowserAnimation(resolvedOptions);
-			const element = resolvedOptions.motionValue?.owner?.current;
-			let animation;
-			if (useWaapi) try {
-				animation = new NativeAnimationExtended({
-					...resolvedOptions,
-					element
-				});
-			} catch {
-				animation = new JSAnimation(resolvedOptions);
-			}
-			else animation = new JSAnimation(resolvedOptions);
-			animation.finished.then(() => {
-				this.notifyFinished();
-			}).catch(noop$3);
-			if (this.pendingTimeline) {
-				this.stopTimeline = animation.attachTimeline(this.pendingTimeline);
-				this.pendingTimeline = void 0;
-			}
-			this._animation = animation;
-		}
-		get finished() {
-			if (!this._animation) return this._finished;
-			else return this.animation.finished;
-		}
-		then(onResolve, _onReject) {
-			return this.finished.finally(onResolve).then(() => {});
-		}
-		get animation() {
-			if (!this._animation) {
-				this.keyframeResolver?.resume();
-				flushKeyframeResolvers();
-			}
-			return this._animation;
-		}
-		get duration() {
-			return this.animation.duration;
-		}
-		get iterationDuration() {
-			return this.animation.iterationDuration;
-		}
-		get time() {
-			return this.animation.time;
-		}
-		set time(newTime) {
-			this.animation.time = newTime;
-		}
-		get speed() {
-			return this.animation.speed;
-		}
-		get state() {
-			return this.animation.state;
-		}
-		set speed(newSpeed) {
-			this.animation.speed = newSpeed;
-		}
-		get startTime() {
-			return this.animation.startTime;
-		}
-		attachTimeline(timeline) {
-			if (this._animation) this.stopTimeline = this.animation.attachTimeline(timeline);
-			else this.pendingTimeline = timeline;
-			return () => this.stop();
-		}
-		play() {
-			this.animation.play();
-		}
-		pause() {
-			this.animation.pause();
-		}
-		complete() {
-			this.animation.complete();
-		}
-		cancel() {
-			if (this._animation) this.animation.cancel();
-			this.keyframeResolver?.cancel();
-		}
-	};
-	var GroupAnimation = class {
-		constructor(animations) {
-			this.stop = () => this.runAll("stop");
-			this.animations = animations.filter(Boolean);
-		}
-		get finished() {
-			return Promise.all(this.animations.map((animation) => animation.finished));
-		}
-		getAll(propName) {
-			return this.animations[0][propName];
-		}
-		setAll(propName, newValue) {
-			for (let i = 0; i < this.animations.length; i++) this.animations[i][propName] = newValue;
-		}
-		attachTimeline(timeline) {
-			const subscriptions = this.animations.map((animation) => animation.attachTimeline(timeline));
-			return () => {
-				subscriptions.forEach((cancel, i) => {
-					cancel && cancel();
-					this.animations[i].stop();
-				});
-			};
-		}
-		get time() {
-			return this.getAll("time");
-		}
-		set time(time) {
-			this.setAll("time", time);
-		}
-		get speed() {
-			return this.getAll("speed");
-		}
-		set speed(speed) {
-			this.setAll("speed", speed);
-		}
-		get state() {
-			return this.getAll("state");
-		}
-		get startTime() {
-			return this.getAll("startTime");
-		}
-		get duration() {
-			return getMax(this.animations, "duration");
-		}
-		get iterationDuration() {
-			return getMax(this.animations, "iterationDuration");
-		}
-		runAll(methodName) {
-			this.animations.forEach((controls) => controls[methodName]());
-		}
-		play() {
-			this.runAll("play");
-		}
-		pause() {
-			this.runAll("pause");
-		}
-		cancel() {
-			this.runAll("cancel");
-		}
-		complete() {
-			this.runAll("complete");
-		}
-	};
-	function getMax(animations, propName) {
-		let max = 0;
-		for (let i = 0; i < animations.length; i++) {
-			const value = animations[i][propName];
-			if (value !== null && value > max) max = value;
-		}
-		return max;
-	}
-	var GroupAnimationWithThen = class extends GroupAnimation {
-		then(onResolve, _onReject) {
-			return this.finished.finally(onResolve).then(() => {});
-		}
-	};
-	var MAX_VELOCITY_DELTA = 30;
-	var isFloat = (value) => {
-		return !isNaN(parseFloat(value));
-	};
-	var collectMotionValues = { current: void 0 };
-	var MotionValue = class {
-		constructor(init, options = {}) {
-			this.canTrackVelocity = null;
-			this.events = {};
-			this.updateAndNotify = (v) => {
-				const currentTime = time.now();
-				if (this.updatedAt !== currentTime) this.setPrevFrameValue();
-				this.prev = this.current;
-				this.setCurrent(v);
-				if (this.current !== this.prev) {
-					this.events.change?.notify(this.current);
-					if (this.dependents) for (const dependent of this.dependents) dependent.dirty();
-				}
-			};
-			this.hasAnimated = false;
-			this.setCurrent(init);
-			this.owner = options.owner;
-		}
-		setCurrent(current) {
-			this.current = current;
-			this.updatedAt = time.now();
-			if (this.canTrackVelocity === null && current !== void 0) this.canTrackVelocity = isFloat(this.current);
-		}
-		setPrevFrameValue(prevFrameValue = this.current) {
-			this.prevFrameValue = prevFrameValue;
-			this.prevUpdatedAt = this.updatedAt;
-		}
-		onChange(subscription) {
-			return this.on("change", subscription);
-		}
-		on(eventName, callback) {
-			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
-			const unsubscribe = this.events[eventName].add(callback);
-			if (eventName === "change") return () => {
-				unsubscribe();
-				frame.read(() => {
-					if (!this.events.change.getSize()) this.stop();
-				});
-			};
-			return unsubscribe;
-		}
-		clearListeners() {
-			for (const eventManagers in this.events) this.events[eventManagers].clear();
-		}
-		attach(passiveEffect, stopPassiveEffect) {
-			this.passiveEffect = passiveEffect;
-			this.stopPassiveEffect = stopPassiveEffect;
-		}
-		set(v) {
-			if (!this.passiveEffect) this.updateAndNotify(v);
-			else this.passiveEffect(v, this.updateAndNotify);
-		}
-		setWithVelocity(prev, current, delta) {
-			this.set(current);
-			this.prev = void 0;
-			this.prevFrameValue = prev;
-			this.prevUpdatedAt = this.updatedAt - delta;
-		}
-		jump(v, endAnimation = true) {
-			this.updateAndNotify(v);
-			this.prev = v;
-			this.prevUpdatedAt = this.prevFrameValue = void 0;
-			endAnimation && this.stop();
-			if (this.stopPassiveEffect) this.stopPassiveEffect();
-		}
-		dirty() {
-			this.events.change?.notify(this.current);
-		}
-		addDependent(dependent) {
-			if (!this.dependents) this.dependents = new Set();
-			this.dependents.add(dependent);
-		}
-		removeDependent(dependent) {
-			if (this.dependents) this.dependents.delete(dependent);
-		}
-		get() {
-			if (collectMotionValues.current) collectMotionValues.current.push(this);
-			return this.current;
-		}
-		getPrevious() {
-			return this.prev;
-		}
-		getVelocity() {
-			const currentTime = time.now();
-			if (!this.canTrackVelocity || this.prevFrameValue === void 0 || currentTime - this.updatedAt > MAX_VELOCITY_DELTA) return 0;
-			const delta = Math.min(this.updatedAt - this.prevUpdatedAt, MAX_VELOCITY_DELTA);
-			return velocityPerSecond(parseFloat(this.current) - parseFloat(this.prevFrameValue), delta);
-		}
-		start(startAnimation) {
-			this.stop();
-			return new Promise((resolve) => {
-				this.hasAnimated = true;
-				this.animation = startAnimation(resolve);
-				if (this.events.animationStart) this.events.animationStart.notify();
-			}).then(() => {
-				if (this.events.animationComplete) this.events.animationComplete.notify();
-				this.clearAnimation();
-			});
-		}
-		stop() {
-			if (this.animation) {
-				this.animation.stop();
-				if (this.events.animationCancel) this.events.animationCancel.notify();
-			}
-			this.clearAnimation();
-		}
-		isAnimating() {
-			return !!this.animation;
-		}
-		clearAnimation() {
-			delete this.animation;
-		}
-		destroy() {
-			this.dependents?.clear();
-			this.events.destroy?.notify();
-			this.clearListeners();
-			this.stop();
-			if (this.stopPassiveEffect) this.stopPassiveEffect();
-		}
-	};
-	function motionValue(init, options) {
-		return new MotionValue(init, options);
-	}
-	function resolveTransition(transition, parentTransition) {
-		if (transition?.inherit && parentTransition) {
-			const { inherit: _, ...rest } = transition;
-			return {
-				...parentTransition,
-				...rest
-			};
-		}
-		return transition;
-	}
-	function getValueTransition$1(transition, key) {
-		const valueTransition = transition?.[key] ?? transition?.["default"] ?? transition;
-		if (valueTransition !== transition) return resolveTransition(valueTransition, transition);
-		return valueTransition;
-	}
-	var underDampedSpring = {
-		type: "spring",
-		stiffness: 500,
-		damping: 25,
-		restSpeed: 10
-	};
-	var criticallyDampedSpring = (target) => ({
-		type: "spring",
-		stiffness: 550,
-		damping: target === 0 ? 2 * Math.sqrt(550) : 30,
-		restSpeed: 10
-	});
-	var keyframesTransition = {
-		type: "keyframes",
-		duration: .8
-	};
-	var ease = {
-		type: "keyframes",
-		ease: [
-			.25,
-			.1,
-			.35,
-			1
-		],
-		duration: .3
-	};
-	var getDefaultTransition = (valueKey, { keyframes }) => {
-		if (keyframes.length > 2) return keyframesTransition;
-		else if (transformProps.has(valueKey)) return valueKey.startsWith("scale") ? criticallyDampedSpring(keyframes[1]) : underDampedSpring;
-		return ease;
-	};
-	var orchestrationKeys = new Set([
-		"when",
-		"delay",
-		"delayChildren",
-		"staggerChildren",
-		"staggerDirection",
-		"repeat",
-		"repeatType",
-		"repeatDelay",
-		"from",
-		"elapsed"
-	]);
-	function isTransitionDefined(transition) {
-		for (const key in transition) if (!orchestrationKeys.has(key)) return true;
-		return false;
-	}
-	var animateMotionValue = (name, value, target, transition = {}, element, isHandoff) => (onComplete) => {
-		const valueTransition = getValueTransition$1(transition, name) || {};
-		const delay = valueTransition.delay || transition.delay || 0;
-		let { elapsed = 0 } = transition;
-		elapsed = elapsed - secondsToMilliseconds(delay);
-		const options = {
-			keyframes: Array.isArray(target) ? target : [null, target],
-			ease: "easeOut",
-			velocity: value.getVelocity(),
-			...valueTransition,
-			delay: -elapsed,
-			onUpdate: (v) => {
-				value.set(v);
-				valueTransition.onUpdate && valueTransition.onUpdate(v);
-			},
-			onComplete: () => {
-				onComplete();
-				valueTransition.onComplete && valueTransition.onComplete();
-			},
-			name,
-			motionValue: value,
-			element: isHandoff ? void 0 : element
-		};
-		if (!isTransitionDefined(valueTransition)) Object.assign(options, getDefaultTransition(name, options));
-		options.duration && (options.duration = secondsToMilliseconds(options.duration));
-		options.repeatDelay && (options.repeatDelay = secondsToMilliseconds(options.repeatDelay));
-		if (options.from !== void 0) options.keyframes[0] = options.from;
-		let shouldSkip = false;
-		if (options.type === false || options.duration === 0 && !options.repeatDelay) {
-			makeAnimationInstant(options);
-			if (options.delay === 0) shouldSkip = true;
-		}
-		if (MotionGlobalConfig.instantAnimations || MotionGlobalConfig.skipAnimations || element?.shouldSkipAnimations || valueTransition.skipAnimations) {
-			shouldSkip = true;
-			makeAnimationInstant(options);
-			options.delay = 0;
-		}
-		options.allowFlatten = !valueTransition.type && !valueTransition.ease;
-		if (shouldSkip && !isHandoff && value.get() !== void 0) {
-			const finalKeyframe = getFinalKeyframe(options.keyframes, valueTransition);
-			if (finalKeyframe !== void 0) {
-				frame.update(() => {
-					options.onUpdate(finalKeyframe);
-					options.onComplete();
-				});
-				return;
-			}
-		}
-		return valueTransition.isSync ? new JSAnimation(options) : new AsyncMotionValueAnimation(options);
-	};
-	var splitCSSVariableRegex = /^var\(--(?:([\w-]+)|([\w-]+), ?([a-zA-Z\d ()%#.,-]+))\)/u;
-	function parseCSSVariable(current) {
-		const match = splitCSSVariableRegex.exec(current);
-		if (!match) return [,];
-		const [, token1, token2, fallback] = match;
-		return [`--${token1 ?? token2}`, fallback];
-	}
-	function getVariableValue(current, element, depth = 1) {
-		`${current}`;
-		const [token, fallback] = parseCSSVariable(current);
-		if (!token) return;
-		const resolved = window.getComputedStyle(element).getPropertyValue(token);
-		if (resolved) {
-			const trimmed = resolved.trim();
-			return isNumericalString(trimmed) ? parseFloat(trimmed) : trimmed;
-		}
-		return isCSSVariableToken(fallback) ? getVariableValue(fallback, element, depth + 1) : fallback;
-	}
-	function getValueState(visualElement) {
-		const state = [{}, {}];
-		visualElement?.values.forEach((value, key) => {
-			state[0][key] = value.get();
-			state[1][key] = value.getVelocity();
-		});
-		return state;
-	}
-	function resolveVariantFromProps(props, definition, custom, visualElement) {
-		if (typeof definition === "function") {
-			const [current, velocity] = getValueState(visualElement);
-			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
-		}
-		if (typeof definition === "string") definition = props.variants && props.variants[definition];
-		if (typeof definition === "function") {
-			const [current, velocity] = getValueState(visualElement);
-			definition = definition(custom !== void 0 ? custom : props.custom, current, velocity);
-		}
-		return definition;
-	}
-	function resolveVariant(visualElement, definition, custom) {
-		const props = visualElement.getProps();
-		return resolveVariantFromProps(props, definition, custom !== void 0 ? custom : props.custom, visualElement);
-	}
-	var positionalKeys = new Set([
-		"width",
-		"height",
-		"top",
-		"left",
-		"right",
-		"bottom",
-		...transformPropOrder
-	]);
-	var isKeyframesTarget = (v) => {
-		return Array.isArray(v);
-	};
-	function setMotionValue(visualElement, key, value) {
-		if (visualElement.hasValue(key)) visualElement.getValue(key).set(value);
-		else visualElement.addValue(key, motionValue(value));
-	}
-	function resolveFinalValueInKeyframes(v) {
-		return isKeyframesTarget(v) ? v[v.length - 1] || 0 : v;
-	}
-	function setTarget(visualElement, definition) {
-		let { transitionEnd = {}, transition = {}, ...target } = resolveVariant(visualElement, definition) || {};
-		target = {
-			...target,
-			...transitionEnd
-		};
-		for (const key in target) setMotionValue(visualElement, key, resolveFinalValueInKeyframes(target[key]));
-	}
-	var isMotionValue = (value) => Boolean(value && value.getVelocity);
-	function isWillChangeMotionValue(value) {
-		return Boolean(isMotionValue(value) && value.add);
-	}
-	function addValueToWillChange(visualElement, key) {
-		const willChange = visualElement.getValue("willChange");
-		if (isWillChangeMotionValue(willChange)) return willChange.add(key);
-		else if (!willChange && MotionGlobalConfig.WillChange) {
-			const newWillChange = new MotionGlobalConfig.WillChange("auto");
-			visualElement.addValue("willChange", newWillChange);
-			newWillChange.add(key);
-		}
-	}
-	function camelToDash(str) {
-		return str.replace(/([A-Z])/g, (match) => `-${match.toLowerCase()}`);
-	}
-	var optimizedAppearDataAttribute = "data-" + camelToDash("framerAppearId");
-	function getOptimisedAppearId(visualElement) {
-		return visualElement.props[optimizedAppearDataAttribute];
-	}
-	function shouldBlockAnimation({ protectedKeys, needsAnimating }, key) {
-		const shouldBlock = protectedKeys.hasOwnProperty(key) && needsAnimating[key] !== true;
-		needsAnimating[key] = false;
-		return shouldBlock;
-	}
-	function animateTarget(visualElement, targetAndTransition, { delay = 0, transitionOverride, type } = {}) {
-		let { transition, transitionEnd, ...target } = targetAndTransition;
-		const defaultTransition = visualElement.getDefaultTransition();
-		transition = transition ? resolveTransition(transition, defaultTransition) : defaultTransition;
-		const reduceMotion = transition?.reduceMotion;
-		const skipAnimations = transition?.skipAnimations;
-		if (transitionOverride) transition = transitionOverride;
-		const animations = [];
-		const animationTypeState = type && visualElement.animationState && visualElement.animationState.getState()[type];
-		const path = transition?.path;
-		if (path) path.animateVisualElement(visualElement, target, transition, delay, animations);
-		for (const key in target) {
-			const value = visualElement.getValue(key, visualElement.latestValues[key] ?? null);
-			const valueTarget = target[key];
-			if (valueTarget === void 0 || animationTypeState && shouldBlockAnimation(animationTypeState, key)) continue;
-			const valueTransition = {
-				delay,
-				...getValueTransition$1(transition || {}, key)
-			};
-			if (skipAnimations) valueTransition.skipAnimations = true;
-			const currentValue = value.get();
-			if (currentValue !== void 0 && !value.isAnimating() && !Array.isArray(valueTarget) && valueTarget === currentValue && !valueTransition.velocity) {
-				frame.update(() => value.set(valueTarget));
-				continue;
-			}
-			let isHandoff = false;
-			if (window.MotionHandoffAnimation) {
-				const appearId = getOptimisedAppearId(visualElement);
-				if (appearId) {
-					const startTime = window.MotionHandoffAnimation(appearId, key, frame);
-					if (startTime !== null) {
-						valueTransition.startTime = startTime;
-						isHandoff = true;
-					}
-				}
-			}
-			addValueToWillChange(visualElement, key);
-			const shouldReduceMotion = reduceMotion ?? visualElement.shouldReduceMotion;
-			value.start(animateMotionValue(key, value, valueTarget, shouldReduceMotion && positionalKeys.has(key) ? { type: false } : valueTransition, visualElement, isHandoff));
-			const animation = value.animation;
-			if (animation) animations.push(animation);
-		}
-		if (transitionEnd) {
-			const applyTransitionEnd = () => frame.update(() => {
-				transitionEnd && setTarget(visualElement, transitionEnd);
-			});
-			if (animations.length) Promise.all(animations).then(applyTransitionEnd);
-			else applyTransitionEnd();
-		}
-		return animations;
-	}
-	var auto = {
-		test: (v) => v === "auto",
-		parse: (v) => v
-	};
-	var testValueType = (v) => (type) => type.test(v);
-	var dimensionValueTypes = [
-		number,
-		px,
-		percent,
-		degrees,
-		vw,
-		vh,
-		auto
-	];
-	var findDimensionValueType = (v) => dimensionValueTypes.find(testValueType(v));
-	function isNone(value) {
-		if (typeof value === "number") return value === 0;
-		else if (value !== null) return value === "none" || value === "0" || isZeroValueString(value);
-		else return true;
-	}
-	var maxDefaults = new Set([
-		"brightness",
-		"contrast",
-		"saturate",
-		"opacity"
-	]);
-	function applyDefaultFilter(v) {
-		const [name, value] = v.slice(0, -1).split("(");
-		if (name === "drop-shadow") return v;
-		const [number] = value.match(floatRegex) || [];
-		if (!number) return v;
-		const unit = value.replace(number, "");
-		let defaultValue = maxDefaults.has(name) ? 1 : 0;
-		if (number !== value) defaultValue *= 100;
-		return name + "(" + defaultValue + unit + ")";
-	}
-	var functionRegex = /\b([a-z-]*)\(.*?\)/gu;
-	var filter = {
-		...complex,
-		getAnimatableNone: (v) => {
-			const functions = v.match(functionRegex);
-			return functions ? functions.map(applyDefaultFilter).join(" ") : v;
-		}
-	};
-	var mask = {
-		...complex,
-		getAnimatableNone: (v) => {
-			const parsed = complex.parse(v);
-			return complex.createTransformer(v)(parsed.map((v) => typeof v === "number" ? 0 : typeof v === "object" ? {
-				...v,
-				alpha: 1
-			} : v));
-		}
-	};
-	var int = {
-		...number,
-		transform: Math.round
-	};
-	var numberValueTypes = {
-		borderWidth: px,
-		borderTopWidth: px,
-		borderRightWidth: px,
-		borderBottomWidth: px,
-		borderLeftWidth: px,
-		borderRadius: px,
-		borderTopLeftRadius: px,
-		borderTopRightRadius: px,
-		borderBottomRightRadius: px,
-		borderBottomLeftRadius: px,
-		width: px,
-		maxWidth: px,
-		height: px,
-		maxHeight: px,
-		top: px,
-		right: px,
-		bottom: px,
-		left: px,
-		inset: px,
-		insetBlock: px,
-		insetBlockStart: px,
-		insetBlockEnd: px,
-		insetInline: px,
-		insetInlineStart: px,
-		insetInlineEnd: px,
-		padding: px,
-		paddingTop: px,
-		paddingRight: px,
-		paddingBottom: px,
-		paddingLeft: px,
-		paddingBlock: px,
-		paddingBlockStart: px,
-		paddingBlockEnd: px,
-		paddingInline: px,
-		paddingInlineStart: px,
-		paddingInlineEnd: px,
-		margin: px,
-		marginTop: px,
-		marginRight: px,
-		marginBottom: px,
-		marginLeft: px,
-		marginBlock: px,
-		marginBlockStart: px,
-		marginBlockEnd: px,
-		marginInline: px,
-		marginInlineStart: px,
-		marginInlineEnd: px,
-		fontSize: px,
-		backgroundPositionX: px,
-		backgroundPositionY: px,
-		rotate: degrees,
-		pathRotation: degrees,
-		rotateX: degrees,
-		rotateY: degrees,
-		rotateZ: degrees,
-		scale,
-		scaleX: scale,
-		scaleY: scale,
-		scaleZ: scale,
-		skew: degrees,
-		skewX: degrees,
-		skewY: degrees,
-		distance: px,
-		translateX: px,
-		translateY: px,
-		translateZ: px,
-		x: px,
-		y: px,
-		z: px,
-		perspective: px,
-		transformPerspective: px,
-		opacity: alpha,
-		originX: progressPercentage,
-		originY: progressPercentage,
-		originZ: px,
-		zIndex: int,
-		fillOpacity: alpha,
-		strokeOpacity: alpha,
-		numOctaves: int
-	};
-	var defaultValueTypes = {
-		...numberValueTypes,
-		color,
-		backgroundColor: color,
-		outlineColor: color,
-		fill: color,
-		stroke: color,
-		borderColor: color,
-		borderTopColor: color,
-		borderRightColor: color,
-		borderBottomColor: color,
-		borderLeftColor: color,
-		filter,
-		WebkitFilter: filter,
-		mask,
-		WebkitMask: mask
-	};
-	var getDefaultValueType = (key) => defaultValueTypes[key];
-	var customTypes = new Set([filter, mask]);
-	function getAnimatableNone(key, value) {
-		let defaultValueType = getDefaultValueType(key);
-		if (!customTypes.has(defaultValueType)) defaultValueType = complex;
-		return defaultValueType.getAnimatableNone ? defaultValueType.getAnimatableNone(value) : void 0;
-	}
-	var invalidTemplates = new Set([
-		"auto",
-		"none",
-		"0"
-	]);
-	function makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name) {
-		let i = 0;
-		let animatableTemplate = void 0;
-		while (i < unresolvedKeyframes.length && !animatableTemplate) {
-			const keyframe = unresolvedKeyframes[i];
-			if (typeof keyframe === "string" && !invalidTemplates.has(keyframe) && analyseComplexValue(keyframe).values.length) animatableTemplate = unresolvedKeyframes[i];
-			i++;
-		}
-		if (animatableTemplate && name) for (const noneIndex of noneKeyframeIndexes) unresolvedKeyframes[noneIndex] = getAnimatableNone(name, animatableTemplate);
-	}
-	var DOMKeyframesResolver = class extends KeyframeResolver {
-		constructor(unresolvedKeyframes, onComplete, name, motionValue, element) {
-			super(unresolvedKeyframes, onComplete, name, motionValue, element, true);
-		}
-		readKeyframes() {
-			const { unresolvedKeyframes, element, name } = this;
-			if (!element || !element.current) return;
-			super.readKeyframes();
-			for (let i = 0; i < unresolvedKeyframes.length; i++) {
-				let keyframe = unresolvedKeyframes[i];
-				if (typeof keyframe === "string") {
-					keyframe = keyframe.trim();
-					if (isCSSVariableToken(keyframe)) {
-						const resolved = getVariableValue(keyframe, element.current);
-						if (resolved !== void 0) unresolvedKeyframes[i] = resolved;
-						if (i === unresolvedKeyframes.length - 1) this.finalKeyframe = keyframe;
-					}
-				}
-			}
-			this.resolveNoneKeyframes();
-			if (!positionalKeys.has(name) || unresolvedKeyframes.length !== 2) return;
-			const [origin, target] = unresolvedKeyframes;
-			const originType = findDimensionValueType(origin);
-			const targetType = findDimensionValueType(target);
-			if (containsCSSVariable(origin) !== containsCSSVariable(target) && positionalValues[name]) {
-				this.needsMeasurement = true;
-				return;
-			}
-			if (originType === targetType) return;
-			if (isNumOrPxType(originType) && isNumOrPxType(targetType)) for (let i = 0; i < unresolvedKeyframes.length; i++) {
-				const value = unresolvedKeyframes[i];
-				if (typeof value === "string") unresolvedKeyframes[i] = parseFloat(value);
-			}
-			else if (positionalValues[name]) this.needsMeasurement = true;
-		}
-		resolveNoneKeyframes() {
-			const { unresolvedKeyframes, name } = this;
-			const noneKeyframeIndexes = [];
-			for (let i = 0; i < unresolvedKeyframes.length; i++) if (unresolvedKeyframes[i] === null || isNone(unresolvedKeyframes[i])) noneKeyframeIndexes.push(i);
-			if (noneKeyframeIndexes.length) makeNoneKeyframesAnimatable(unresolvedKeyframes, noneKeyframeIndexes, name);
-		}
-		measureInitialState() {
-			const { element, unresolvedKeyframes, name } = this;
-			if (!element || !element.current) return;
-			if (name === "height") this.suspendedScrollY = window.pageYOffset;
-			this.measuredOrigin = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
-			unresolvedKeyframes[0] = this.measuredOrigin;
-			const measureKeyframe = unresolvedKeyframes[unresolvedKeyframes.length - 1];
-			if (measureKeyframe !== void 0) element.getValue(name, measureKeyframe).jump(measureKeyframe, false);
-		}
-		measureEndState() {
-			const { element, name, unresolvedKeyframes } = this;
-			if (!element || !element.current) return;
-			const value = element.getValue(name);
-			value && value.jump(this.measuredOrigin, false);
-			const finalKeyframeIndex = unresolvedKeyframes.length - 1;
-			const finalKeyframe = unresolvedKeyframes[finalKeyframeIndex];
-			unresolvedKeyframes[finalKeyframeIndex] = positionalValues[name](element.measureViewportBox(), window.getComputedStyle(element.current));
-			if (finalKeyframe !== null && this.finalKeyframe === void 0) this.finalKeyframe = finalKeyframe;
-			if (this.removedTransforms?.length) this.removedTransforms.forEach(([unsetTransformName, unsetTransformValue]) => {
-				element.getValue(unsetTransformName).set(unsetTransformValue);
-			});
-			this.resolveNoneKeyframes();
-		}
-	};
-	var cornerRadiusProps = [
-		"borderTopLeftRadius",
-		"borderTopRightRadius",
-		"borderBottomRightRadius",
-		"borderBottomLeftRadius"
-	];
-	function resolveElements(elementOrSelector, scope, selectorCache) {
-		if (elementOrSelector == null) return [];
-		if (elementOrSelector instanceof EventTarget) return [elementOrSelector];
-		else if (typeof elementOrSelector === "string") {
-			let root = document;
-			if (scope) root = scope.current;
-			const elements = selectorCache?.[elementOrSelector] ?? root.querySelectorAll(elementOrSelector);
-			return elements ? Array.from(elements) : [];
-		}
-		return Array.from(elementOrSelector).filter((element) => element != null);
-	}
-	var getValueAsType = (value, type) => {
-		return type && typeof value === "number" ? type.transform(value) : value;
-	};
-	var { schedule: microtask, cancel: cancelMicrotask } = createRenderBatcher(queueMicrotask, false);
-	function isSVGElement(element) {
-		return isObject(element) && "ownerSVGElement" in element;
-	}
-	function isSVGSVGElement(element) {
-		return isSVGElement(element) && element.tagName === "svg";
-	}
-	var valueTypes = [
-		...dimensionValueTypes,
-		color,
-		complex
-	];
-	var findValueType = (v) => valueTypes.find(testValueType(v));
-	var createAxis = () => ({
-		min: 0,
-		max: 0
-	});
-	var createBox = () => ({
-		x: createAxis(),
-		y: createAxis()
-	});
-	var visualElementStore = new WeakMap();
-	function isAnimationControls(v) {
-		return v !== null && typeof v === "object" && typeof v.start === "function";
-	}
-	function isVariantLabel(v) {
-		return typeof v === "string" || Array.isArray(v);
-	}
-	var variantProps = ["initial", ...[
-		"animate",
-		"whileInView",
-		"whileFocus",
-		"whileHover",
-		"whileTap",
-		"whileDrag",
-		"exit"
-	]];
-	function isControllingVariants(props) {
-		return isAnimationControls(props.animate) || variantProps.some((name) => isVariantLabel(props[name]));
-	}
-	function isVariantNode(props) {
-		return Boolean(isControllingVariants(props) || props.variants);
-	}
-	function updateMotionValuesFromProps(element, next, prev) {
-		for (const key in next) {
-			const nextValue = next[key];
-			const prevValue = prev[key];
-			if (isMotionValue(nextValue)) element.addValue(key, nextValue);
-			else if (isMotionValue(prevValue)) element.addValue(key, motionValue(nextValue, { owner: element }));
-			else if (prevValue !== nextValue) if (element.hasValue(key)) {
-				const existingValue = element.getValue(key);
-				if (existingValue.liveStyle === true) existingValue.jump(nextValue);
-				else if (!existingValue.hasAnimated) existingValue.set(nextValue);
-			} else {
-				const latestValue = element.getStaticValue(key);
-				element.addValue(key, motionValue(latestValue !== void 0 ? latestValue : nextValue, { owner: element }));
-			}
-		}
-		for (const key in prev) if (next[key] === void 0) element.removeValue(key);
-		return next;
-	}
-	var prefersReducedMotion$1 = { current: null };
-	var hasReducedMotionListener = { current: false };
-	var isBrowser = typeof window !== "undefined";
-	function initPrefersReducedMotion() {
-		hasReducedMotionListener.current = true;
-		if (!isBrowser) return;
-		if (window.matchMedia) {
-			const motionMediaQuery = window.matchMedia("(prefers-reduced-motion)");
-			const setReducedMotionPreferences = () => prefersReducedMotion$1.current = motionMediaQuery.matches;
-			motionMediaQuery.addEventListener("change", setReducedMotionPreferences);
-			setReducedMotionPreferences();
-		} else prefersReducedMotion$1.current = false;
-	}
-	var propEventHandlers = [
-		"AnimationStart",
-		"AnimationComplete",
-		"Update",
-		"BeforeLayoutMeasure",
-		"LayoutMeasure",
-		"LayoutAnimationStart",
-		"LayoutAnimationComplete"
-	];
-	var featureDefinitions = {};
-	var VisualElement = class {
-		scrapeMotionValuesFromProps(_props, _prevProps, _visualElement) {
-			return {};
-		}
-		constructor({ parent, props, presenceContext, reducedMotionConfig, skipAnimations, blockInitialAnimation, visualState }, options = {}) {
-			this.current = null;
-			this.children = new Set();
-			this.isVariantNode = false;
-			this.isControllingVariants = false;
-			this.shouldReduceMotion = null;
-			this.shouldSkipAnimations = false;
-			this.values = new Map();
-			this.KeyframeResolver = KeyframeResolver;
-			this.features = {};
-			this.valueSubscriptions = new Map();
-			this.prevMotionValues = {};
-			this.hasBeenMounted = false;
-			this.events = {};
-			this.propEventSubscriptions = {};
-			this.notifyUpdate = () => this.notify("Update", this.latestValues);
-			this.render = () => {
-				if (!this.current) return;
-				this.triggerBuild();
-				this.renderInstance(this.current, this.renderState, this.props.style, this.projection);
-			};
-			this.renderScheduledAt = 0;
-			this.scheduleRender = () => {
-				const now = time.now();
-				if (this.renderScheduledAt < now) {
-					this.renderScheduledAt = now;
-					frame.render(this.render, false, true);
-				}
-			};
-			const { latestValues, renderState } = visualState;
-			this.latestValues = latestValues;
-			this.baseTarget = { ...latestValues };
-			this.initialValues = props.initial ? { ...latestValues } : {};
-			this.renderState = renderState;
-			this.parent = parent;
-			this.props = props;
-			this.presenceContext = presenceContext;
-			this.depth = parent ? parent.depth + 1 : 0;
-			this.reducedMotionConfig = reducedMotionConfig;
-			this.skipAnimationsConfig = skipAnimations;
-			this.options = options;
-			this.blockInitialAnimation = Boolean(blockInitialAnimation);
-			this.isControllingVariants = isControllingVariants(props);
-			this.isVariantNode = isVariantNode(props);
-			if (this.isVariantNode) this.variantChildren = new Set();
-			this.manuallyAnimateOnMount = Boolean(parent && parent.current);
-			const { willChange, ...initialMotionValues } = this.scrapeMotionValuesFromProps(props, {}, this);
-			for (const key in initialMotionValues) {
-				const value = initialMotionValues[key];
-				if (latestValues[key] !== void 0 && isMotionValue(value)) value.set(latestValues[key]);
-			}
-		}
-		mount(instance) {
-			if (this.hasBeenMounted) for (const key in this.initialValues) {
-				this.values.get(key)?.jump(this.initialValues[key]);
-				this.latestValues[key] = this.initialValues[key];
-			}
-			this.current = instance;
-			visualElementStore.set(instance, this);
-			if (this.projection && !this.projection.instance) this.projection.mount(instance);
-			if (this.parent && this.isVariantNode && !this.isControllingVariants) this.removeFromVariantTree = this.parent.addVariantChild(this);
-			this.values.forEach((value, key) => this.bindToMotionValue(key, value));
-			if (this.reducedMotionConfig === "never") this.shouldReduceMotion = false;
-			else if (this.reducedMotionConfig === "always") this.shouldReduceMotion = true;
-			else {
-				if (!hasReducedMotionListener.current) initPrefersReducedMotion();
-				this.shouldReduceMotion = prefersReducedMotion$1.current;
-			}
-			this.shouldSkipAnimations = this.skipAnimationsConfig ?? false;
-			this.parent?.addChild(this);
-			this.update(this.props, this.presenceContext);
-			this.hasBeenMounted = true;
-		}
-		unmount() {
-			this.projection && this.projection.unmount();
-			cancelFrame(this.notifyUpdate);
-			cancelFrame(this.render);
-			this.valueSubscriptions.forEach((remove) => remove());
-			this.valueSubscriptions.clear();
-			this.removeFromVariantTree && this.removeFromVariantTree();
-			this.parent?.removeChild(this);
-			for (const key in this.events) this.events[key].clear();
-			for (const key in this.features) {
-				const feature = this.features[key];
-				if (feature) {
-					feature.unmount();
-					feature.isMounted = false;
-				}
-			}
-			this.current = null;
-		}
-		addChild(child) {
-			this.children.add(child);
-			this.enteringChildren ?? (this.enteringChildren = new Set());
-			this.enteringChildren.add(child);
-		}
-		removeChild(child) {
-			this.children.delete(child);
-			this.enteringChildren && this.enteringChildren.delete(child);
-		}
-		bindToMotionValue(key, value) {
-			if (this.valueSubscriptions.has(key)) this.valueSubscriptions.get(key)();
-			if (value.accelerate && acceleratedValues.has(key) && this.current instanceof HTMLElement) {
-				const { factory, keyframes, times, ease, duration } = value.accelerate;
-				const animation = new NativeAnimation({
-					element: this.current,
-					name: key,
-					keyframes,
-					times,
-					ease,
-					duration: secondsToMilliseconds(duration)
-				});
-				const cleanup = factory(animation);
-				this.valueSubscriptions.set(key, () => {
-					cleanup();
-					animation.cancel();
-				});
-				return;
-			}
-			const valueIsTransform = transformProps.has(key);
-			if (valueIsTransform && this.onBindTransform) this.onBindTransform();
-			const removeOnChange = value.on("change", (latestValue) => {
-				this.latestValues[key] = latestValue;
-				this.props.onUpdate && frame.preRender(this.notifyUpdate);
-				if (valueIsTransform && this.projection) this.projection.isTransformDirty = true;
-				this.scheduleRender();
-			});
-			let removeSyncCheck;
-			if (typeof window !== "undefined" && window.MotionCheckAppearSync) removeSyncCheck = window.MotionCheckAppearSync(this, key, value);
-			this.valueSubscriptions.set(key, () => {
-				removeOnChange();
-				if (removeSyncCheck) removeSyncCheck();
-			});
-		}
-		sortNodePosition(other) {
-			if (!this.current || !this.sortInstanceNodePosition || this.type !== other.type) return 0;
-			return this.sortInstanceNodePosition(this.current, other.current);
-		}
-		updateFeatures() {
-			let key = "animation";
-			for (key in featureDefinitions) {
-				const featureDefinition = featureDefinitions[key];
-				if (!featureDefinition) continue;
-				const { isEnabled, Feature: FeatureConstructor } = featureDefinition;
-				if (!this.features[key] && FeatureConstructor && isEnabled(this.props)) this.features[key] = new FeatureConstructor(this);
-				if (this.features[key]) {
-					const feature = this.features[key];
-					if (feature.isMounted) feature.update();
-					else {
-						feature.mount();
-						feature.isMounted = true;
-					}
-				}
-			}
-		}
-		triggerBuild() {
-			this.build(this.renderState, this.latestValues, this.props);
-		}
-		measureViewportBox() {
-			return this.current ? this.measureInstanceViewportBox(this.current, this.props) : createBox();
-		}
-		getStaticValue(key) {
-			return this.latestValues[key];
-		}
-		setStaticValue(key, value) {
-			this.latestValues[key] = value;
-		}
-		update(props, presenceContext) {
-			if (props.transformTemplate || this.props.transformTemplate) this.scheduleRender();
-			this.prevProps = this.props;
-			this.props = props;
-			this.prevPresenceContext = this.presenceContext;
-			this.presenceContext = presenceContext;
-			for (let i = 0; i < propEventHandlers.length; i++) {
-				const key = propEventHandlers[i];
-				if (this.propEventSubscriptions[key]) {
-					this.propEventSubscriptions[key]();
-					delete this.propEventSubscriptions[key];
-				}
-				const listener = props["on" + key];
-				if (listener) this.propEventSubscriptions[key] = this.on(key, listener);
-			}
-			this.prevMotionValues = updateMotionValuesFromProps(this, this.scrapeMotionValuesFromProps(props, this.prevProps || {}, this), this.prevMotionValues);
-			if (this.handleChildMotionValue) this.handleChildMotionValue();
-		}
-		getProps() {
-			return this.props;
-		}
-		getVariant(name) {
-			return this.props.variants ? this.props.variants[name] : void 0;
-		}
-		getDefaultTransition() {
-			return this.props.transition;
-		}
-		getTransformPagePoint() {
-			return this.props.transformPagePoint;
-		}
-		getClosestVariantNode() {
-			return this.isVariantNode ? this : this.parent ? this.parent.getClosestVariantNode() : void 0;
-		}
-		addVariantChild(child) {
-			const closestVariantNode = this.getClosestVariantNode();
-			if (closestVariantNode) {
-				closestVariantNode.variantChildren && closestVariantNode.variantChildren.add(child);
-				return () => closestVariantNode.variantChildren.delete(child);
-			}
-		}
-		addValue(key, value) {
-			const existingValue = this.values.get(key);
-			if (value !== existingValue) {
-				if (existingValue) this.removeValue(key);
-				this.bindToMotionValue(key, value);
-				this.values.set(key, value);
-				this.latestValues[key] = value.get();
-			}
-		}
-		removeValue(key) {
-			this.values.delete(key);
-			const unsubscribe = this.valueSubscriptions.get(key);
-			if (unsubscribe) {
-				unsubscribe();
-				this.valueSubscriptions.delete(key);
-			}
-			delete this.latestValues[key];
-			this.removeValueFromRenderState(key, this.renderState);
-		}
-		hasValue(key) {
-			return this.values.has(key);
-		}
-		getValue(key, defaultValue) {
-			if (this.props.values && this.props.values[key]) return this.props.values[key];
-			let value = this.values.get(key);
-			if (value === void 0 && defaultValue !== void 0) {
-				value = motionValue(defaultValue === null ? void 0 : defaultValue, { owner: this });
-				this.addValue(key, value);
-			}
-			return value;
-		}
-		readValue(key, target) {
-			let value = this.latestValues[key] !== void 0 || !this.current ? this.latestValues[key] : this.getBaseTargetFromProps(this.props, key) ?? this.readValueFromInstance(this.current, key, this.options);
-			if (value !== void 0 && value !== null) {
-				if (typeof value === "string" && (isNumericalString(value) || isZeroValueString(value))) value = parseFloat(value);
-				else if (!findValueType(value) && complex.test(target)) value = getAnimatableNone(key, target);
-				this.setBaseTarget(key, isMotionValue(value) ? value.get() : value);
-			}
-			return isMotionValue(value) ? value.get() : value;
-		}
-		setBaseTarget(key, value) {
-			this.baseTarget[key] = value;
-		}
-		getBaseTarget(key) {
-			const { initial } = this.props;
-			let valueFromInitial;
-			if (typeof initial === "string" || typeof initial === "object") {
-				const variant = resolveVariantFromProps(this.props, initial, this.presenceContext?.custom);
-				if (variant) valueFromInitial = variant[key];
-			}
-			if (initial && valueFromInitial !== void 0) return valueFromInitial;
-			const target = this.getBaseTargetFromProps(this.props, key);
-			if (target !== void 0 && !isMotionValue(target)) return target;
-			return this.initialValues[key] !== void 0 && valueFromInitial === void 0 ? void 0 : this.baseTarget[key];
-		}
-		on(eventName, callback) {
-			if (!this.events[eventName]) this.events[eventName] = new SubscriptionManager();
-			return this.events[eventName].add(callback);
-		}
-		notify(eventName, ...args) {
-			if (this.events[eventName]) this.events[eventName].notify(...args);
-		}
-		scheduleRenderMicrotask() {
-			microtask.render(this.render);
-		}
-	};
-	var DOMVisualElement = class extends VisualElement {
-		constructor() {
-			super(...arguments);
-			this.KeyframeResolver = DOMKeyframesResolver;
-		}
-		sortInstanceNodePosition(a, b) {
-			return a.compareDocumentPosition(b) & 2 ? 1 : -1;
-		}
-		getBaseTargetFromProps(props, key) {
-			const style = props.style;
-			return style ? style[key] : void 0;
-		}
-		removeValueFromRenderState(key, { vars, style }) {
-			delete vars[key];
-			delete style[key];
-		}
-		handleChildMotionValue() {
-			if (this.childSubscription) {
-				this.childSubscription();
-				delete this.childSubscription;
-			}
-			const { children } = this.props;
-			if (isMotionValue(children)) this.childSubscription = children.on("change", (latest) => {
-				if (this.current) this.current.textContent = `${latest}`;
-			});
-		}
-	};
-	function convertBoundingBoxToBox({ top, left, right, bottom }) {
-		return {
-			x: {
-				min: left,
-				max: right
-			},
-			y: {
-				min: top,
-				max: bottom
-			}
-		};
-	}
-	function transformBoxPoints(point, transformPoint) {
-		if (!transformPoint) return point;
-		const topLeft = transformPoint({
-			x: point.left,
-			y: point.top
-		});
-		const bottomRight = transformPoint({
-			x: point.right,
-			y: point.bottom
-		});
-		return {
-			top: topLeft.y,
-			left: topLeft.x,
-			bottom: bottomRight.y,
-			right: bottomRight.x
-		};
-	}
-	function measureViewportBox(instance, transformPoint) {
-		return convertBoundingBoxToBox(transformBoxPoints(instance.getBoundingClientRect(), transformPoint));
-	}
-	var translateAlias = {
-		x: "translateX",
-		y: "translateY",
-		z: "translateZ",
-		transformPerspective: "perspective"
-	};
-	var numTransforms = transformPropOrder.length;
-	function buildTransform(latestValues, transform, transformTemplate) {
-		let transformString = "";
-		let transformIsDefault = true;
-		for (let i = 0; i < numTransforms; i++) {
-			const key = transformPropOrder[i];
-			const value = latestValues[key];
-			if (value === void 0) continue;
-			let valueIsDefault = true;
-			if (typeof value === "number") valueIsDefault = value === (key.startsWith("scale") ? 1 : 0);
-			else {
-				const parsed = parseFloat(value);
-				valueIsDefault = key.startsWith("scale") ? parsed === 1 : parsed === 0;
-			}
-			if (!valueIsDefault || transformTemplate) {
-				const valueAsType = getValueAsType(value, numberValueTypes[key]);
-				if (!valueIsDefault) {
-					transformIsDefault = false;
-					const transformName = translateAlias[key] || key;
-					transformString += `${transformName}(${valueAsType}) `;
-				}
-				if (transformTemplate) transform[key] = valueAsType;
-			}
-		}
-		const pathRotation = latestValues.pathRotation;
-		if (pathRotation) {
-			transformIsDefault = false;
-			transformString += `rotate(${getValueAsType(pathRotation, numberValueTypes.pathRotation)}) `;
-		}
-		transformString = transformString.trim();
-		if (transformTemplate) transformString = transformTemplate(transform, transformIsDefault ? "" : transformString);
-		else if (transformIsDefault) transformString = "none";
-		return transformString;
-	}
-	function buildHTMLStyles(state, latestValues, transformTemplate) {
-		const { style, vars, transformOrigin } = state;
-		let hasTransform = false;
-		let hasTransformOrigin = false;
-		for (const key in latestValues) {
-			const value = latestValues[key];
-			if (transformProps.has(key)) {
-				hasTransform = true;
-				continue;
-			} else if (isCSSVariableName(key)) {
-				vars[key] = value;
-				continue;
-			} else {
-				const valueAsType = getValueAsType(value, numberValueTypes[key]);
-				if (key.startsWith("origin")) {
-					hasTransformOrigin = true;
-					transformOrigin[key] = valueAsType;
-				} else style[key] = valueAsType;
-			}
-		}
-		if (!latestValues.transform) {
-			if (hasTransform || transformTemplate) style.transform = buildTransform(latestValues, state.transform, transformTemplate);
-			else if (style.transform) style.transform = "none";
-		}
-		if (hasTransformOrigin) {
-			const { originX = "50%", originY = "50%", originZ = 0 } = transformOrigin;
-			style.transformOrigin = `${originX} ${originY} ${originZ}`;
-		}
-	}
-	function renderHTML(element, { style, vars }, styleProp, projection) {
-		const elementStyle = element.style;
-		let key;
-		for (key in style) elementStyle[key] = style[key];
-		projection?.applyProjectionStyles(elementStyle, styleProp);
-		for (key in vars) elementStyle.setProperty(key, vars[key]);
-	}
-	function pixelsToPercent(pixels, axis) {
-		if (axis.max === axis.min) return 0;
-		return pixels / (axis.max - axis.min) * 100;
-	}
-	var correctBorderRadius = { correct: (latest, node) => {
-		if (!node.target) return latest;
-		if (typeof latest === "string") if (px.test(latest)) latest = parseFloat(latest);
-		else return latest;
-		return `${pixelsToPercent(latest, node.target.x)}% ${pixelsToPercent(latest, node.target.y)}%`;
-	} };
-	var correctBoxShadow = { correct: (latest, { treeScale, projectionDelta }) => {
-		const original = latest;
-		const shadow = complex.parse(latest);
-		if (shadow.length > 5) return original;
-		const template = complex.createTransformer(latest);
-		const offset = typeof shadow[0] !== "number" ? 1 : 0;
-		const xScale = projectionDelta.x.scale * treeScale.x;
-		const yScale = projectionDelta.y.scale * treeScale.y;
-		shadow[0 + offset] /= xScale;
-		shadow[1 + offset] /= yScale;
-		const averageScale = mixNumber$1(xScale, yScale, .5);
-		if (typeof shadow[2 + offset] === "number") shadow[2 + offset] /= averageScale;
-		if (typeof shadow[3 + offset] === "number") shadow[3 + offset] /= averageScale;
-		return template(shadow);
-	} };
-	var scaleCorrectors = {
-		borderRadius: {
-			...correctBorderRadius,
-			applyTo: [...cornerRadiusProps]
-		},
-		borderTopLeftRadius: correctBorderRadius,
-		borderTopRightRadius: correctBorderRadius,
-		borderBottomLeftRadius: correctBorderRadius,
-		borderBottomRightRadius: correctBorderRadius,
-		boxShadow: correctBoxShadow
-	};
-	function isForcedMotionValue(key, { layout, layoutId }) {
-		return transformProps.has(key) || key.startsWith("origin") || (layout || layoutId !== void 0) && (!!scaleCorrectors[key] || key === "opacity");
-	}
-	function scrapeMotionValuesFromProps$1(props, prevProps, visualElement) {
-		const style = props.style;
-		const prevStyle = prevProps?.style;
-		const newValues = {};
-		if (!style) return newValues;
-		for (const key in style) if (isMotionValue(style[key]) || prevStyle && isMotionValue(prevStyle[key]) || isForcedMotionValue(key, props) || visualElement?.getValue(key)?.liveStyle !== void 0) newValues[key] = style[key];
-		return newValues;
-	}
-	function getComputedStyle$1(element) {
-		return window.getComputedStyle(element);
-	}
-	var HTMLVisualElement = class extends DOMVisualElement {
-		constructor() {
-			super(...arguments);
-			this.type = "html";
-			this.renderInstance = renderHTML;
-		}
-		readValueFromInstance(instance, key) {
-			if (transformProps.has(key)) return this.projection?.isProjecting ? defaultTransformValue(key) : readTransformValue(instance, key);
-			else {
-				const computedStyle = getComputedStyle$1(instance);
-				const value = (isCSSVariableName(key) ? computedStyle.getPropertyValue(key) : computedStyle[key]) || 0;
-				return typeof value === "string" ? value.trim() : value;
-			}
-		}
-		measureInstanceViewportBox(instance, { transformPagePoint }) {
-			return measureViewportBox(instance, transformPagePoint);
-		}
-		build(renderState, latestValues, props) {
-			buildHTMLStyles(renderState, latestValues, props.transformTemplate);
-		}
-		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
-			return scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
-		}
-	};
-	function isObjectKey(key, object) {
-		return key in object;
-	}
-	var ObjectVisualElement = class extends VisualElement {
-		constructor() {
-			super(...arguments);
-			this.type = "object";
-		}
-		readValueFromInstance(instance, key) {
-			if (isObjectKey(key, instance)) {
-				const value = instance[key];
-				if (typeof value === "string" || typeof value === "number") return value;
-			}
-		}
-		getBaseTargetFromProps() {}
-		removeValueFromRenderState(key, renderState) {
-			delete renderState.output[key];
-		}
-		measureInstanceViewportBox() {
-			return createBox();
-		}
-		build(renderState, latestValues) {
-			Object.assign(renderState.output, latestValues);
-		}
-		renderInstance(instance, { output }) {
-			Object.assign(instance, output);
-		}
-		sortInstanceNodePosition() {
-			return 0;
-		}
-	};
-	var dashKeys = {
-		offset: "stroke-dashoffset",
-		array: "stroke-dasharray"
-	};
-	var camelKeys = {
-		offset: "strokeDashoffset",
-		array: "strokeDasharray"
-	};
-	function buildSVGPath(attrs, length, spacing = 1, offset = 0, useDashCase = true) {
-		attrs.pathLength = 1;
-		const keys = useDashCase ? dashKeys : camelKeys;
-		attrs[keys.offset] = `${-offset}`;
-		attrs[keys.array] = `${length} ${spacing}`;
-	}
-	var cssMotionPathProperties = [
-		"offsetDistance",
-		"offsetPath",
-		"offsetRotate",
-		"offsetAnchor"
-	];
-	function buildSVGAttrs(state, { attrX, attrY, attrScale, pathLength, pathSpacing = 1, pathOffset = 0, ...latest }, isSVGTag, transformTemplate, styleProp) {
-		buildHTMLStyles(state, latest, transformTemplate);
-		if (isSVGTag) {
-			if (state.style.viewBox) state.attrs.viewBox = state.style.viewBox;
-			return;
-		}
-		state.attrs = state.style;
-		state.style = {};
-		const { attrs, style } = state;
-		if (attrs.transform) {
-			style.transform = attrs.transform;
-			delete attrs.transform;
-		}
-		if (style.transform || attrs.transformOrigin) {
-			style.transformOrigin = attrs.transformOrigin ?? "50% 50%";
-			delete attrs.transformOrigin;
-		}
-		if (style.transform) {
-			style.transformBox = styleProp?.transformBox ?? "fill-box";
-			delete attrs.transformBox;
-		}
-		for (const key of cssMotionPathProperties) if (attrs[key] !== void 0) {
-			style[key] = attrs[key];
-			delete attrs[key];
-		}
-		if (attrX !== void 0) attrs.x = attrX;
-		if (attrY !== void 0) attrs.y = attrY;
-		if (attrScale !== void 0) attrs.scale = attrScale;
-		if (pathLength !== void 0) buildSVGPath(attrs, pathLength, pathSpacing, pathOffset, false);
-	}
-	var camelCaseAttributes = new Set([
-		"baseFrequency",
-		"diffuseConstant",
-		"kernelMatrix",
-		"kernelUnitLength",
-		"keySplines",
-		"keyTimes",
-		"limitingConeAngle",
-		"markerHeight",
-		"markerWidth",
-		"numOctaves",
-		"targetX",
-		"targetY",
-		"surfaceScale",
-		"specularConstant",
-		"specularExponent",
-		"stdDeviation",
-		"tableValues",
-		"viewBox",
-		"gradientTransform",
-		"pathLength",
-		"startOffset",
-		"textLength",
-		"lengthAdjust"
-	]);
-	var isSVGTag = (tag) => typeof tag === "string" && tag.toLowerCase() === "svg";
-	function renderSVG(element, renderState, _styleProp, projection) {
-		renderHTML(element, renderState, void 0, projection);
-		for (const key in renderState.attrs) element.setAttribute(!camelCaseAttributes.has(key) ? camelToDash(key) : key, renderState.attrs[key]);
-	}
-	function scrapeMotionValuesFromProps(props, prevProps, visualElement) {
-		const newValues = scrapeMotionValuesFromProps$1(props, prevProps, visualElement);
-		for (const key in props) if (isMotionValue(props[key]) || isMotionValue(prevProps[key])) {
-			const targetKey = transformPropOrder.indexOf(key) !== -1 ? "attr" + key.charAt(0).toUpperCase() + key.substring(1) : key;
-			newValues[targetKey] = props[key];
-		}
-		return newValues;
-	}
-	var SVGVisualElement = class extends DOMVisualElement {
-		constructor() {
-			super(...arguments);
-			this.type = "svg";
-			this.isSVGTag = false;
-			this.measureInstanceViewportBox = createBox;
-		}
-		getBaseTargetFromProps(props, key) {
-			return props[key];
-		}
-		readValueFromInstance(instance, key) {
-			if (transformProps.has(key)) {
-				const defaultType = getDefaultValueType(key);
-				return defaultType ? defaultType.default || 0 : 0;
-			}
-			key = !camelCaseAttributes.has(key) ? camelToDash(key) : key;
-			return instance.getAttribute(key);
-		}
-		scrapeMotionValuesFromProps(props, prevProps, visualElement) {
-			return scrapeMotionValuesFromProps(props, prevProps, visualElement);
-		}
-		build(renderState, latestValues, props) {
-			buildSVGAttrs(renderState, latestValues, this.isSVGTag, props.transformTemplate, props.style);
-		}
-		renderInstance(instance, renderState, styleProp, projection) {
-			renderSVG(instance, renderState, styleProp, projection);
-		}
-		mount(instance) {
-			this.isSVGTag = isSVGTag(instance.tagName);
-			super.mount(instance);
-		}
-	};
-	function animateSingleValue(value, keyframes, options) {
-		const motionValue$1 = isMotionValue(value) ? value : motionValue(value);
-		motionValue$1.start(animateMotionValue("", motionValue$1, keyframes, options));
-		return motionValue$1.animation;
-	}
-	function isDOMKeyframes(keyframes) {
-		return typeof keyframes === "object" && !Array.isArray(keyframes);
-	}
-	function resolveSubjects(subject, keyframes, scope, selectorCache) {
-		if (subject == null) return [];
-		if (typeof subject === "string" && isDOMKeyframes(keyframes)) return resolveElements(subject, scope, selectorCache);
-		else if (subject instanceof NodeList) return Array.from(subject);
-		else if (Array.isArray(subject)) return subject.filter((s) => s != null);
-		else return [subject];
-	}
-	function calculateRepeatDuration(duration, repeat, repeatDelay) {
-		return duration * (repeat + 1) + repeatDelay * repeat;
-	}
-	function calcNextTime(current, next, prev, labels) {
-		if (typeof next === "number") return next;
-		else if (next.startsWith("-") || next.startsWith("+")) return Math.max(0, current + parseFloat(next));
-		else if (next === "<") return prev;
-		else if (next.startsWith("<")) return Math.max(0, prev + parseFloat(next.slice(1)));
-		else return labels.get(next) ?? current;
-	}
-	function eraseKeyframes(sequence, startTime, endTime) {
-		for (let i = 0; i < sequence.length; i++) {
-			const keyframe = sequence[i];
-			if (keyframe.at > startTime && keyframe.at < endTime) {
-				removeItem(sequence, keyframe);
-				i--;
-			}
-		}
-	}
-	function addKeyframes(sequence, keyframes, easing, offset, startTime, endTime) {
-		eraseKeyframes(sequence, startTime, endTime);
-		for (let i = 0; i < keyframes.length; i++) sequence.push({
-			value: keyframes[i],
-			at: mixNumber$1(startTime, endTime, offset[i]),
-			easing: getEasingForSegment(easing, i)
-		});
-	}
-	function normalizeTimes(times, repeat, repeatDelayUnits = 0) {
-		const totalUnits = repeat + 1 + repeat * repeatDelayUnits;
-		for (let i = 0; i < times.length; i++) times[i] = times[i] / totalUnits;
-	}
-	function compareByTime(a, b) {
-		if (a.at === b.at) {
-			if (a.value === null) return 1;
-			if (b.value === null) return -1;
-			return 0;
-		} else return a.at - b.at;
-	}
-	var defaultSegmentEasing = "easeInOut";
-	var MAX_REPEAT = 20;
-	function createAnimationsFromSequence(sequence, { defaultTransition = {}, ...sequenceTransition } = {}, scope, generators) {
-		const defaultDuration = defaultTransition.duration || .3;
-		const animationDefinitions = new Map();
-		const sequences = new Map();
-		const elementCache = {};
-		const timeLabels = new Map();
-		let prevTime = 0;
-		let currentTime = 0;
-		let totalDuration = 0;
-		for (let i = 0; i < sequence.length; i++) {
-			const segment = sequence[i];
-			if (typeof segment === "string") {
-				timeLabels.set(segment, currentTime);
-				continue;
-			} else if (!Array.isArray(segment)) {
-				timeLabels.set(segment.name, calcNextTime(currentTime, segment.at, prevTime, timeLabels));
-				continue;
-			}
-			let [subject, keyframes, transition = {}] = segment;
-			if (transition.at !== void 0) currentTime = calcNextTime(currentTime, transition.at, prevTime, timeLabels);
-			let maxDuration = 0;
-			const resolveValueSequence = (valueKeyframes, valueTransition, valueSequence, elementIndex = 0, numSubjects = 0) => {
-				const valueKeyframesAsList = keyframesAsList(valueKeyframes);
-				const { delay = 0, times = defaultOffset(valueKeyframesAsList), type = defaultTransition.type || "keyframes", repeat, repeatType, repeatDelay = 0, ...remainingTransition } = valueTransition;
-				let { ease = defaultTransition.ease || "easeOut", duration } = valueTransition;
-				const calculatedDelay = typeof delay === "function" ? delay(elementIndex, numSubjects) : delay;
-				const numKeyframes = valueKeyframesAsList.length;
-				const createGenerator = isGenerator(type) ? type : generators?.[type || "keyframes"];
-				if (numKeyframes <= 2 && createGenerator) {
-					let absoluteDelta = 100;
-					if (numKeyframes === 2 && isNumberKeyframesArray(valueKeyframesAsList)) {
-						const delta = valueKeyframesAsList[1] - valueKeyframesAsList[0];
-						absoluteDelta = Math.abs(delta);
-					}
-					const springTransition = {
-						...defaultTransition,
-						...remainingTransition
-					};
-					if (duration !== void 0) springTransition.duration = secondsToMilliseconds(duration);
-					const springEasing = createGeneratorEasing(springTransition, absoluteDelta, createGenerator);
-					ease = springEasing.ease;
-					duration = springEasing.duration;
-				}
-				duration ?? (duration = defaultDuration);
-				const startTime = currentTime + calculatedDelay;
-				if (times.length === 1 && times[0] === 0) times[1] = 1;
-				const remainder = times.length - valueKeyframesAsList.length;
-				remainder > 0 && fillOffset(times, remainder);
-				valueKeyframesAsList.length === 1 && valueKeyframesAsList.unshift(null);
-				if (repeat) `${repeat}${MAX_REPEAT}`;
-				if (repeat && repeat < MAX_REPEAT) {
-					const repeatDelayUnits = duration > 0 ? repeatDelay / duration : 0;
-					duration = calculateRepeatDuration(duration, repeat, repeatDelay);
-					const originalKeyframes = [...valueKeyframesAsList];
-					const originalTimes = [...times];
-					ease = Array.isArray(ease) ? [...ease] : [ease];
-					const originalEase = [...ease];
-					const isFlipping = repeatType === "reverse" || repeatType === "mirror";
-					let flippedKeyframes = originalKeyframes;
-					let flippedEases = originalEase;
-					if (isFlipping) {
-						flippedKeyframes = [...originalKeyframes].reverse();
-						if (repeatType === "reverse") flippedEases = [...originalEase].reverse().map((e) => typeof e === "function" ? reverseEasing(e) : e);
-					}
-					for (let repeatIndex = 0; repeatIndex < repeat; repeatIndex++) {
-						const isFlipped = isFlipping && repeatIndex % 2 === 0;
-						const iterKeyframes = isFlipped ? flippedKeyframes : originalKeyframes;
-						const iterEase = isFlipped ? flippedEases : originalEase;
-						const iterStartOffset = (repeatIndex + 1) * (1 + repeatDelayUnits);
-						if (repeatDelayUnits > 0) {
-							valueKeyframesAsList.push(valueKeyframesAsList[valueKeyframesAsList.length - 1]);
-							times.push(iterStartOffset);
-							ease.push("linear");
-						}
-						valueKeyframesAsList.push(...iterKeyframes);
-						for (let keyframeIndex = 0; keyframeIndex < iterKeyframes.length; keyframeIndex++) {
-							times.push(originalTimes[keyframeIndex] + iterStartOffset);
-							ease.push(keyframeIndex === 0 ? "linear" : getEasingForSegment(iterEase, keyframeIndex - 1));
-						}
-					}
-					normalizeTimes(times, repeat, repeatDelayUnits);
-				}
-				const targetTime = startTime + duration;
-				addKeyframes(valueSequence, valueKeyframesAsList, ease, times, startTime, targetTime);
-				maxDuration = Math.max(calculatedDelay + duration, maxDuration);
-				totalDuration = Math.max(targetTime, totalDuration);
-			};
-			if (isMotionValue(subject)) {
-				const subjectSequence = getSubjectSequence(subject, sequences);
-				resolveValueSequence(keyframes, transition, getValueSequence("default", subjectSequence));
-			} else {
-				const subjects = resolveSubjects(subject, keyframes, scope, elementCache);
-				const numSubjects = subjects.length;
-				for (let subjectIndex = 0; subjectIndex < numSubjects; subjectIndex++) {
-					keyframes = keyframes;
-					transition = transition;
-					const thisSubject = subjects[subjectIndex];
-					const subjectSequence = getSubjectSequence(thisSubject, sequences);
-					for (const key in keyframes) resolveValueSequence(keyframes[key], getValueTransition(transition, key), getValueSequence(key, subjectSequence), subjectIndex, numSubjects);
-				}
-			}
-			prevTime = currentTime;
-			currentTime += maxDuration;
-		}
-		sequences.forEach((valueSequences, element) => {
-			for (const key in valueSequences) {
-				const valueSequence = valueSequences[key];
-				valueSequence.sort(compareByTime);
-				const keyframes = [];
-				const valueOffset = [];
-				const valueEasing = [];
-				for (let i = 0; i < valueSequence.length; i++) {
-					const { at, value, easing } = valueSequence[i];
-					keyframes.push(value);
-					valueOffset.push(progress(0, totalDuration, at));
-					valueEasing.push(easing || "easeOut");
-				}
-				if (valueOffset[0] !== 0) {
-					valueOffset.unshift(0);
-					keyframes.unshift(keyframes[0]);
-					valueEasing.unshift(defaultSegmentEasing);
-				}
-				if (valueOffset[valueOffset.length - 1] !== 1) {
-					valueOffset.push(1);
-					keyframes.push(null);
-				}
-				if (!animationDefinitions.has(element)) animationDefinitions.set(element, {
-					keyframes: {},
-					transition: {}
-				});
-				const definition = animationDefinitions.get(element);
-				definition.keyframes[key] = keyframes;
-				const { type: _type, ...remainingDefaultTransition } = defaultTransition;
-				definition.transition[key] = {
-					...remainingDefaultTransition,
-					duration: totalDuration,
-					ease: valueEasing,
-					times: valueOffset,
-					...sequenceTransition
-				};
-			}
-		});
-		return animationDefinitions;
-	}
-	function getSubjectSequence(subject, sequences) {
-		!sequences.has(subject) && sequences.set(subject, {});
-		return sequences.get(subject);
-	}
-	function getValueSequence(name, sequences) {
-		if (!sequences[name]) sequences[name] = [];
-		return sequences[name];
-	}
-	function keyframesAsList(keyframes) {
-		return Array.isArray(keyframes) ? keyframes : [keyframes];
-	}
-	function getValueTransition(transition, key) {
-		return transition && transition[key] ? {
-			...transition,
-			...transition[key]
-		} : { ...transition };
-	}
-	var isNumber = (keyframe) => typeof keyframe === "number";
-	var isNumberKeyframesArray = (keyframes) => keyframes.every(isNumber);
-	function createDOMVisualElement(element) {
-		const options = {
-			presenceContext: null,
-			props: {},
-			visualState: {
-				renderState: {
-					transform: {},
-					transformOrigin: {},
-					style: {},
-					vars: {},
-					attrs: {}
-				},
-				latestValues: {}
-			}
-		};
-		const node = isSVGElement(element) && !isSVGSVGElement(element) ? new SVGVisualElement(options) : new HTMLVisualElement(options);
-		node.mount(element);
-		visualElementStore.set(element, node);
-	}
-	function createObjectVisualElement(subject) {
-		const node = new ObjectVisualElement({
-			presenceContext: null,
-			props: {},
-			visualState: {
-				renderState: { output: {} },
-				latestValues: {}
-			}
-		});
-		node.mount(subject);
-		visualElementStore.set(subject, node);
-	}
-	function isSingleValue(subject, keyframes) {
-		return isMotionValue(subject) || typeof subject === "number" || typeof subject === "string" && !isDOMKeyframes(keyframes);
-	}
-	function animateSubject(subject, keyframes, options, scope) {
-		const animations = [];
-		if (isSingleValue(subject, keyframes)) animations.push(animateSingleValue(subject, isDOMKeyframes(keyframes) ? keyframes.default || keyframes : keyframes, options ? options.default || options : options));
-		else {
-			if (subject == null) return animations;
-			const subjects = resolveSubjects(subject, keyframes, scope);
-			const numSubjects = subjects.length;
-			for (let i = 0; i < numSubjects; i++) {
-				const thisSubject = subjects[i];
-				const createVisualElement = thisSubject instanceof Element ? createDOMVisualElement : createObjectVisualElement;
-				if (!visualElementStore.has(thisSubject)) createVisualElement(thisSubject);
-				const visualElement = visualElementStore.get(thisSubject);
-				const transition = { ...options };
-				if ("delay" in transition && typeof transition.delay === "function") transition.delay = transition.delay(i, numSubjects);
-				animations.push(...animateTarget(visualElement, {
-					...keyframes,
-					transition
-				}, {}));
-			}
-		}
-		return animations;
-	}
-	function animateSequence(sequence, options, scope) {
-		const animations = [];
-		createAnimationsFromSequence(sequence.map((segment) => {
-			if (Array.isArray(segment) && typeof segment[0] === "function") {
-				const callback = segment[0];
-				const mv = motionValue(0);
-				mv.on("change", callback);
-				if (segment.length === 1) return [mv, [0, 1]];
-				else if (segment.length === 2) return [
-					mv,
-					[0, 1],
-					segment[1]
-				];
-				else return [
-					mv,
-					segment[1],
-					segment[2]
-				];
-			}
-			return segment;
-		}), options, scope, { spring }).forEach(({ keyframes, transition }, subject) => {
-			animations.push(...animateSubject(subject, keyframes, transition));
-		});
-		return animations;
-	}
-	function isSequence(value) {
-		return Array.isArray(value) && value.some(Array.isArray);
-	}
-	function createScopedAnimate(options = {}) {
-		const { scope, reduceMotion, skipAnimations } = options;
-		function scopedAnimate(subjectOrSequence, optionsOrKeyframes, options) {
-			let animations = [];
-			let animationOnComplete;
-			const inherited = {};
-			if (reduceMotion !== void 0) inherited.reduceMotion = reduceMotion;
-			if (skipAnimations !== void 0) inherited.skipAnimations = skipAnimations;
-			if (isSequence(subjectOrSequence)) {
-				const { onComplete, ...sequenceOptions } = optionsOrKeyframes || {};
-				if (typeof onComplete === "function") animationOnComplete = onComplete;
-				animations = animateSequence(subjectOrSequence, {
-					...inherited,
-					...sequenceOptions
-				}, scope);
-			} else {
-				const { onComplete, ...rest } = options || {};
-				if (typeof onComplete === "function") animationOnComplete = onComplete;
-				animations = animateSubject(subjectOrSequence, optionsOrKeyframes, {
-					...inherited,
-					...rest
-				}, scope);
-			}
-			const animation = new GroupAnimationWithThen(animations);
-			if (animationOnComplete) animation.finished.then(animationOnComplete);
-			if (scope) {
-				scope.animations.push(animation);
-				animation.finished.then(() => {
-					removeItem(scope.animations, animation);
-				});
-			}
-			return animation;
-		}
-		return scopedAnimate;
-	}
-	var animate = createScopedAnimate();
-	var springConfigs = {
-		carouselSnap: {
-			damping: 18,
-			stiffness: 200,
-			type: "spring"
-		},
-		contentEntrance: {
-			damping: 28,
-			stiffness: 300,
-			type: "spring"
-		},
-		modalBackdrop: {
-			bounce: 0,
-			duration: .4,
-			type: "spring"
-		},
-		modalSurface: {
-			bounce: 0,
-			duration: .35,
-			type: "spring"
-		},
-		ratingEntrance: {
-			bounce: 0,
-			duration: .3,
-			type: "spring"
-		},
-		reviewBodyEntrance: {
-			bounce: 0,
-			duration: .3,
-			type: "spring"
-		},
-		stickyNav: {
-			bounce: 0,
-			duration: .3,
-			type: "spring"
-		},
-		summaryEntrance: {
-			bounce: 0,
-			duration: .3,
-			type: "spring"
-		},
-		swipeDismissExit: {
-			bounce: .2,
-			duration: .4,
-			type: "spring"
-		},
-		swipeSettleBack: {
-			damping: 15,
-			stiffness: 180,
-			type: "spring"
-		}
-	};
-	var animateWithReducedMotion = (element, options) => {
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return animate(element, options.reducedMotionProperties ?? options.properties, { duration: .2 });
-		return animate(element, options.properties, options.springConfig ?? springConfigs.contentEntrance);
-	};
-	var playEntrance = (element, springConfig) => animateWithReducedMotion(element, {
-		properties: {
-			opacity: [0, 1],
-			transform: ["translateY(4px)", "translateY(0)"]
-		},
-		reducedMotionProperties: { opacity: [0, 1] },
-		springConfig
-	});
-	var ENTERING_SURFACE_TRANSFORM = "scale(0.92) translateY(8px)";
-	var EXITING_SURFACE_TRANSFORM = "scale(0.92) translateY(100dvh)";
-	var reducedMotionQuery = "(prefers-reduced-motion: reduce)";
-	var prefersReducedMotion = () => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false;
-	var finishClosingAnimation = async (animationId, animations, animationIdRef, finishClose) => {
-		try {
-			await Promise.all(animations.map((animation) => animation.finished));
-			if (animationId === animationIdRef.current) finishClose();
-		} catch {}
-	};
-	var ModalCloseContext = X(null);
-	var useModalClose = () => {
-		const close = x(ModalCloseContext);
-		if (!close) throw new Error("useModalClose must be used inside a ModalShell");
-		return close;
-	};
-	var focusableSelector = [
-		"button:not([disabled])",
-		"iframe",
-		"a[href]",
-		"input:not([disabled])",
-		"select:not([disabled])",
-		"textarea:not([disabled])",
-		"[tabindex]:not([tabindex='-1'])"
-	].join(", ");
-	var focusableElements = (root) => [...root.querySelectorAll(focusableSelector)].filter((node) => !node.hasAttribute("disabled") && node.getAttribute("aria-hidden") !== "true");
-	var trapFocus = (event, root) => {
-		if (event.key !== "Tab") return;
-		const focusable = focusableElements(root);
-		if (!focusable.length) {
-			event.preventDefault();
-			root.focus();
-			return;
-		}
-		const [first] = focusable;
-		if (!first) return;
-		const last = focusable.at(-1);
-		const active = document.activeElement;
-		if (event.shiftKey && active === first) {
-			event.preventDefault();
-			last?.focus();
-			return;
-		}
-		if (!event.shiftKey && active === last) {
-			event.preventDefault();
-			first.focus();
-		}
-	};
-	var useModalAccessibility = ({ onClose, overlayRef, surfaceRef }) => {
-		h(() => {
-			const previousOverflow = document.body.style.overflow;
-			document.body.style.overflow = "hidden";
-			const onKeydown = (event) => {
-				if (event.key === "Escape") {
-					onClose();
-					return;
-				}
-				const surface = surfaceRef.current;
-				if (surface) trapFocus(event, surface);
-			};
-			document.addEventListener("keydown", onKeydown);
-			requestAnimationFrame(() => surfaceRef.current?.focus());
-			return () => {
-				document.removeEventListener("keydown", onKeydown);
-				document.body.style.overflow = previousOverflow;
-			};
-		}, [onClose, surfaceRef]);
-		h(() => {
-			const overlay = overlayRef.current;
-			if (!overlay) return;
-			const onClick = (event) => {
-				if (event.target === overlay) onClose();
-			};
-			overlay.addEventListener("click", onClick);
-			return () => overlay.removeEventListener("click", onClick);
-		}, [onClose, overlayRef]);
-	};
-	var useSwipeToDismiss = (options) => {
-		const optionsRef = A(options);
-		h(() => {
-			optionsRef.current = options;
-		}, [options]);
-		const startYRef = A(0);
-		const currentDeltaRef = A(0);
-		const pointerHistoryRef = A([]);
-		const animationRef = A(null);
-		const animationGenerationRef = A(0);
-		const elementRef = A(null);
-		const stopAnimation = q(() => {
-			animationGenerationRef.current += 1;
-			animationRef.current?.stop();
-			animationRef.current = null;
-		}, []);
-		const handlePointerDown = q((event) => {
-			stopAnimation();
-			const element = event.currentTarget;
-			elementRef.current = element;
-			startYRef.current = event.clientY;
-			currentDeltaRef.current = 0;
-			pointerHistoryRef.current = [];
-			element.setPointerCapture(event.pointerId);
-		}, [stopAnimation]);
-		const handlePointerMove = q((event) => {
-			const element = elementRef.current;
-			if (!element) return;
-			const delta = event.clientY - startYRef.current;
-			if (delta < 0) return;
-			currentDeltaRef.current = delta;
-			const history = pointerHistoryRef.current;
-			history.push({
-				time: performance.now(),
-				y: event.clientY
-			});
-			if (history.length > 5) history.shift();
-			element.style.transform = `translateY(${delta}px)`;
-		}, []);
-		const settlePointer = q((element) => {
-			const delta = currentDeltaRef.current;
-			const history = pointerHistoryRef.current;
-			currentDeltaRef.current = 0;
-			const { dismissThreshold = 80, velocityThreshold = 300, onDismiss } = optionsRef.current;
-			let velocity = 0;
-			if (history.length >= 2) {
-				const [first] = history;
-				const last = history.at(-1);
-				if (first && last) {
-					const dt = (last.time - first.time) / 1e3;
-					if (dt > 0) velocity = (last.y - first.y) / dt;
-				}
-			}
-			if (delta > dismissThreshold || velocity > velocityThreshold) {
-				onDismiss();
-				return;
-			}
-			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) element.style.transform = "";
-			else {
-				const animationGeneration = animationGenerationRef.current + 1;
-				animationGenerationRef.current = animationGeneration;
-				const anim = animate(element, { transform: "translateY(0)" }, springConfigs.swipeSettleBack);
-				animationRef.current = anim;
-				(async () => {
-					try {
-						await anim.finished;
-						if (animationGenerationRef.current !== animationGeneration || animationRef.current !== anim) return;
-						animationRef.current = null;
-						element.style.transform = "";
-					} catch {}
-				})();
-			}
-		}, []);
-		const handlePointerEnd = q(() => {
-			const element = elementRef.current;
-			if (element) settlePointer(element);
-		}, [settlePointer]);
-		return { ref: q((el) => {
-			stopAnimation();
-			const prevEl = elementRef.current;
-			if (prevEl) {
-				prevEl.removeEventListener("pointerdown", handlePointerDown);
-				prevEl.removeEventListener("pointermove", handlePointerMove);
-				prevEl.removeEventListener("pointerup", handlePointerEnd);
-				prevEl.removeEventListener("pointercancel", handlePointerEnd);
-			}
-			if (el) {
-				el.addEventListener("pointerdown", handlePointerDown);
-				el.addEventListener("pointermove", handlePointerMove);
-				el.addEventListener("pointerup", handlePointerEnd);
-				el.addEventListener("pointercancel", handlePointerEnd);
-				elementRef.current = el;
-			} else elementRef.current = null;
-		}, [
-			handlePointerDown,
-			handlePointerEnd,
-			handlePointerMove,
-			stopAnimation
-		]) };
-	};
-	var ModalShell = ({ ariaDescribedBy, ariaLabel, ariaLabelledBy, children, className, dismissable = false, id, onClose, surfaceClassName }) => {
-		const overlayRef = A(null);
-		const surfaceRef = A(null);
-		const closeSourceRef = A("standard");
-		const realOnCloseRef = A(onClose);
-		const [phase, setPhase] = d("open");
-		const [reducedMotion, setReducedMotion] = d(prefersReducedMotion);
-		const didFinishCloseRef = A(false);
-		const animationIdRef = A(0);
-		const animationsRef = A([]);
-		const session = useModalSession();
-		const previousSessionRef = A(session);
-		h(() => {
-			realOnCloseRef.current = onClose;
-		}, [onClose]);
-		h(() => {
-			const mediaQuery = window.matchMedia?.(reducedMotionQuery);
-			if (!mediaQuery) return;
-			const updateReducedMotion = () => setReducedMotion(mediaQuery.matches);
-			mediaQuery.addEventListener("change", updateReducedMotion);
-			return () => mediaQuery.removeEventListener("change", updateReducedMotion);
-		}, []);
-		const finishClose = q(() => {
-			if (didFinishCloseRef.current) return;
-			didFinishCloseRef.current = true;
-			realOnCloseRef.current();
-		}, []);
-		const animateModal = q((state) => {
-			const overlay = overlayRef.current;
-			const surface = surfaceRef.current;
-			if (!overlay || !surface) return;
-			for (const animation of animationsRef.current) animation.stop();
-			const animationId = animationIdRef.current + 1;
-			animationIdRef.current = animationId;
-			const opening = state === "open";
-			const backdropAnimation = animateWithReducedMotion(overlay, {
-				properties: { opacity: opening ? 1 : 0 },
-				reducedMotionProperties: { opacity: opening ? 1 : 0 },
-				springConfig: springConfigs.modalBackdrop
-			});
-			const surfaceExitTransform = closeSourceRef.current === "swipe" ? `translateY(120px)` : EXITING_SURFACE_TRANSFORM;
-			const surfaceSpring = closeSourceRef.current === "swipe" ? springConfigs.swipeDismissExit : springConfigs.modalSurface;
-			if (!opening) closeSourceRef.current = "standard";
-			const surfaceAnimation = animateWithReducedMotion(surface, {
-				properties: {
-					opacity: opening ? 1 : 0,
-					transform: opening ? "scale(1) translateY(0)" : surfaceExitTransform
-				},
-				reducedMotionProperties: { opacity: opening ? 1 : 0 },
-				springConfig: surfaceSpring
-			});
-			animationsRef.current = [backdropAnimation, surfaceAnimation];
-			if (!opening) finishClosingAnimation(animationId, [backdropAnimation, surfaceAnimation], animationIdRef, finishClose);
-		}, [finishClose]);
-		_(() => {
-			if (previousSessionRef.current === session) return;
-			previousSessionRef.current = session;
-			didFinishCloseRef.current = false;
-			setPhase("open");
-			animateModal("open");
-		}, [animateModal, session]);
-		const handleClose = q(() => {
-			if (didFinishCloseRef.current) return;
-			didFinishCloseRef.current = false;
-			setPhase("closing");
-			animateModal("closed");
-		}, [animateModal]);
-		const handleSwipeDismiss = q(() => {
-			closeSourceRef.current = "swipe";
-			handleClose();
-		}, [handleClose]);
-		const swipe = useSwipeToDismiss({ onDismiss: dismissable ? handleSwipeDismiss : () => {} });
-		const surfaceRefCallback = q((el) => {
-			surfaceRef.current = el;
-			if (dismissable) swipe.ref(el);
-		}, [dismissable, swipe]);
-		h(() => {
-			const frame = requestAnimationFrame(() => {
-				if (!overlayRef.current) return;
-				animateModal("open");
-			});
-			return () => {
-				cancelAnimationFrame(frame);
-				for (const animation of animationsRef.current) animation.stop();
-			};
-		}, [animateModal]);
-		useModalAccessibility({
-			onClose: handleClose,
-			overlayRef,
-			surfaceRef
-		});
-		return u(ModalCloseContext.Provider, {
-			value: handleClose,
-			children: u("dialog", {
-				"aria-describedby": ariaDescribedBy,
-				"aria-label": ariaLabel,
-				"aria-labelledby": ariaLabelledBy,
-				"aria-modal": "true",
-				class: className,
-				id,
-				open: true,
-				ref: overlayRef,
-				style: {
-					opacity: 0,
-					pointerEvents: phase === "open" ? "auto" : "none"
-				},
-				children: u("div", {
-					class: surfaceClassName,
-					onClick: (event) => event.stopPropagation(),
-					ref: dismissable ? surfaceRefCallback : surfaceRef,
-					role: "none",
-					style: {
-						opacity: 0,
-						transform: reducedMotion ? "none" : ENTERING_SURFACE_TRANSFORM,
-						...dismissable ? { touchAction: "pan-x" } : {}
-					},
-					tabindex: -1,
-					children
-				})
-			})
-		});
-	};
-	var MODAL_ID$1 = "atv-poster-modal";
-	var PosterModalContent = ({ alt, src }) => {
-		return u(S, { children: [u(ModalCloseButton, {
-			ariaLabel: "关闭海报",
-			onClick: useModalClose()
-		}), u("img", {
-			alt: alt || "",
-			class: "atv-modal-img",
-			src
-		})] });
-	};
-	var PosterModal = ({ alt, onClose, src }) => u(ModalShell, {
-		ariaLabel: "海报预览",
-		className: "atv-modal-overlay",
-		id: MODAL_ID$1,
-		onClose,
-		surfaceClassName: "atv-modal-surface",
-		children: u(PosterModalContent, {
-			alt,
-			src
-		})
-	});
-	var MODAL_ID = "atv-video-modal";
-	var VideoModalContent = ({ acquisition }) => {
-		const close = useModalClose();
-		h(() => {
-			if (acquisition.status === "fallback") close();
-		}, [acquisition.status, close]);
-		return u(S, { children: [u(ModalCloseButton, {
-			ariaLabel: "关闭视频",
-			onClick: close
-		}), u("div", {
-			class: "atv-modal-video-content",
-			children: [
-				acquisition.status === "loading" ? u("div", {
-					class: "atv-modal-loading",
-					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
-				}) : null,
-				acquisition.status === "loaded" ? u("video", {
-					autoplay: true,
-					class: "atv-modal-video",
-					controls: true,
-					playsinline: true,
-					src: acquisition.embedUrl
-				}) : null,
-				acquisition.status === "failed" ? u("div", {
-					class: "atv-modal-toast",
-					children: "视频加载失败"
-				}) : null
-			]
-		})] });
-	};
-	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
-		ariaLabel: trailer.title || "视频预览",
-		className: "atv-modal-overlay is-video",
-		id: MODAL_ID,
-		onClose,
-		surfaceClassName: "atv-modal-surface",
-		children: u(VideoModalContent, { acquisition })
-	});
-	var REVEAL_THRESHOLD = 0;
-	var useSectionReveal = (ref) => {
-		h(() => {
-			const element = ref.current;
-			if (!element) return;
-			if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || typeof IntersectionObserver === "undefined") {
-				element.classList.add("is-revealed");
-				return;
-			}
-			const observer = new IntersectionObserver((entries) => {
-				for (const entry of entries) if (entry.isIntersecting) {
-					element.classList.add("is-revealed");
-					observer.unobserve(element);
-				}
-			}, { threshold: [REVEAL_THRESHOLD] });
-			observer.observe(element);
-			return () => {
-				observer.disconnect();
-			};
-		}, [ref]);
-	};
-	var Section = ({ children, id, moreLink, title }) => {
-		const ref = A(null);
-		useSectionReveal(ref);
-		return u("section", {
-			class: "atv-section atv-section-reveal",
-			"data-atv-section-reveal": true,
-			id,
-			ref,
-			children: [moreLink ? u("div", {
-				class: "atv-section-h-row",
-				children: [u("h2", {
-					class: "atv-section-h",
-					children: title
-				}), u("a", {
-					class: "atv-section-more",
-					href: moreLink.href,
-					rel: "noopener",
-					target: "_blank",
-					children: moreLink.text
-				})]
-			}) : u("h2", {
-				class: "atv-section-h",
-				children: title
-			}), children]
-		});
-	};
-	var starComponents = (score, outOfFive = false) => {
-		const normalized = outOfFive ? score : score / 2;
-		return Array.from({ length: 5 }, (_, index) => {
-			const position = index + 1;
-			if (normalized >= position - .25) return IconStarFull;
-			if (normalized >= position - .5) return IconStarHalf;
-			return IconStarEmpty;
-		});
-	};
-	var Stars = ({ className = "atv-rating-stars", outOfFive = false, score }) => u("span", {
-		class: className,
-		children: starComponents(score, outOfFive).map((Icon, index) => u(Icon, {}, index))
-	});
-	var CommentAvatar = ({ className, comment }) => u("div", {
-		class: className,
-		"data-cid": comment.cid || void 0,
-		style: comment.avatar ? { backgroundImage: `url("${comment.avatar}")` } : void 0,
-		children: comment.avatar ? null : (comment.name || "?").slice(0, 1).toUpperCase()
-	});
-	var useVoteAction = (api, wiring) => {
-		const { canVote, getState, onVote, setState } = wiring;
-		const [loading, setLoading] = d(false);
-		return {
-			loading,
-			vote: q(async (dir) => {
-				if (loading || api.votedOf(getState()) === dir) return;
-				if (canVote && !canVote()) return;
-				const previous = getState();
-				setLoading(true);
-				const optimisticState = api.optimistic(previous, dir);
-				setState(optimisticState);
-				const result = await onVote(dir);
-				if (result.ok) setState(api.resolve(optimisticState, dir, result), { persist: true });
-				else setState(previous);
-				setLoading(false);
-			}, [
-				api,
-				canVote,
-				getState,
-				loading,
-				onVote,
-				setState
-			])
-		};
-	};
-	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
-		const load = () => {
-			try {
-				const raw = localStorage.getItem(storageKey);
-				if (!raw) return new Map();
-				const parsed = JSON.parse(raw);
-				return new Map(parsed);
-			} catch {
-				return new Map();
-			}
-		};
-		const persist = (entries) => {
-			try {
-				localStorage.setItem(storageKey, JSON.stringify([...entries.entries()]));
-			} catch {}
-		};
-		return {
-			get(key) {
-				const entries = load();
-				const entry = entries.get(key);
-				if (!entry) return;
-				if (Date.now() > entry.expiresAt) {
-					entries.delete(key);
-					persist(entries);
-					return;
-				}
-				return entry.value;
-			},
-			set(key, value) {
-				const entries = load();
-				entries.set(key, {
-					expiresAt: Date.now() + ttlMs,
-					value
-				});
-				persist(entries);
-			}
-		};
-	};
-	var createVoteState = (config) => {
-		const optimistic = (state, dir) => {
-			const countKey = config.countKey(dir);
-			const next = {
-				...state,
-				[countKey]: state[countKey] + 1
-			};
-			return config.withVoted(next, dir);
-		};
-		const resolve = (optimisticState, dir, result) => config.mergeResult(optimisticState, dir, result);
-		const initial = (item) => {
-			const base = config.initial(item);
-			const { persistence } = config;
-			if (!persistence) return base;
-			const stored = persistence.cache.get(config.key(item));
-			return stored ? {
-				...base,
-				...persistence.hydrate(stored)
-			} : base;
-		};
-		const persist = (item, state) => {
-			const { persistence } = config;
-			if (!persistence) return;
-			if (!config.votedOf(state)) return;
-			persistence.cache.set(config.key(item), persistence.serialize(state));
-		};
-		return {
-			initial,
-			key: config.key,
-			optimistic,
-			persist,
-			resolve,
-			toItem: config.toItem,
-			votedOf: config.votedOf
-		};
-	};
-	var commentVoteCache = createCache("atv:comment:vote", 365 * 24 * 60 * 60 * 1e3);
-	var commentVoteKey = (comment) => comment.cid || comment.link;
-	var baseInitialCommentVoteState = (comment) => ({
-		count: comment.votes,
-		voted: comment.voted
-	});
-	var commentWithVoteState = (comment, state) => ({
-		...comment,
-		voted: state.voted,
-		votes: state.count
-	});
-	var commentVoteApi = createVoteState({
-		countKey: () => "count",
-		initial: baseInitialCommentVoteState,
-		key: commentVoteKey,
-		mergeResult: (state, _dir, result) => ({
-			...state,
-			count: result.count ?? state.count,
-			voted: true
-		}),
-		persistence: {
-			cache: commentVoteCache,
-			hydrate: (stored) => {
-				const hydrated = { voted: true };
-				if (typeof stored.count === "number") hydrated.count = stored.count;
-				return hydrated;
-			},
-			serialize: (state) => ({
-				count: state.count,
-				type: "up"
-			})
-		},
-		toItem: commentWithVoteState,
-		votedOf: (state) => state.voted ? "up" : null,
-		withVoted: (state, dir) => ({
-			...state,
-			voted: dir === "up"
-		})
-	});
-	var CommentVoteButton = ({ canVote, cid, className, count, onStateChange, onVote, state, voted }) => {
-		const [localState, setLocalState] = d({
-			count,
-			voted
-		});
-		const voteState = state ?? localState;
-		const setVoteState = (nextState, options) => {
-			if (onStateChange) onStateChange(nextState, options);
-			else setLocalState(nextState);
-		};
-		const { loading, vote } = useVoteAction(commentVoteApi, {
-			...canVote ? { canVote } : {},
-			getState: () => voteState,
-			onVote: () => onVote(cid),
-			setState: setVoteState
-		});
-		const handleVote = () => {
-			if (!cid) return;
-			vote("up");
-		};
-		return u("button", {
-			"aria-label": `有用，${voteState.count} 人觉得有用`,
-			"aria-pressed": voteState.voted,
-			class: `${className}${voteState.voted ? " is-voted" : ""}`,
-			disabled: loading || voteState.voted || !cid,
-			onClick: (event) => {
-				event.stopPropagation();
-				handleVote();
-			},
-			type: "button",
-			children: [u(IconThumb, {}), u("span", {
-				class: "atv-vote-count",
-				children: voteState.count
-			})]
-		});
-	};
-	var CommentCard = ({ canVote, comment, onOpen, onVote, onVoteStateChange, voteState }) => {
-		const bodyRef = A(null);
-		const [isOverflowing, setIsOverflowing] = d(false);
-		_(() => {
-			const body = bodyRef.current;
-			if (!body) return;
-			const measure = () => {
-				setIsOverflowing(body.scrollHeight > body.clientHeight);
-			};
-			measure();
-			const observer = typeof ResizeObserver === "undefined" ? void 0 : new ResizeObserver(measure);
-			observer?.observe(body);
-			return () => observer?.disconnect();
-		}, [comment.content]);
-		return u("div", {
-			class: `atv-comment-card${isOverflowing ? " has-overflow" : ""}`,
-			"data-cid": comment.cid || void 0,
-			children: [
-				u("div", {
-					class: "atv-comment-top",
-					children: [u(CommentAvatar, {
-						className: "atv-comment-avatar",
-						comment
-					}), u("div", {
-						class: "atv-comment-meta",
-						children: [comment.link ? u("a", {
-							class: "atv-comment-author",
-							href: comment.link,
-							rel: "noopener",
-							target: "_blank",
-							children: comment.name
-						}) : u("div", {
-							class: "atv-comment-author",
-							children: comment.name
-						}), comment.stars > 0 ? u(Stars, {
-							className: "atv-comment-stars",
-							outOfFive: true,
-							score: comment.stars
-						}) : null]
-					})]
-				}),
-				u("button", {
-					class: "atv-comment-body",
-					onClick: () => {
-						if (isOverflowing) onOpen(comment);
-					},
-					type: "button",
-					children: u("span", {
-						class: "atv-comment-body-text",
-						ref: bodyRef,
-						children: comment.content
-					})
-				}),
-				u("div", {
-					class: "atv-comment-foot",
-					children: [u("span", { children: comment.time || "" }), u("div", {
-						class: "atv-comment-foot-right",
-						children: [u("button", {
-							"aria-label": "展开短评",
-							class: "atv-comment-expand",
-							onClick: (event) => {
-								event.stopPropagation();
-								onOpen(comment);
-							},
-							type: "button",
-							children: u(IconExpand, {})
-						}), u(CommentVoteButton, {
-							...canVote ? { canVote } : {},
-							cid: comment.cid,
-							className: "atv-comment-votes",
-							count: comment.votes,
-							...onVoteStateChange ? { onStateChange: (state, options) => onVoteStateChange(comment, state, options) } : {},
-							onVote,
-							...voteState ? { state: voteState } : {},
-							voted: comment.voted
-						})]
-					})]
-				})
-			]
-		});
-	};
-	var CommentsSection = ({ canVote, comments, getVoteState, onOpen, onVoteStateChange, onVote, subjectId }) => {
-		if (!comments.length) return null;
-		return u(Section, {
-			id: "atv-comments",
-			...subjectId ? { moreLink: {
-				href: `https://movie.douban.com/subject/${subjectId}/comments?status=P`,
-				text: "查看全部 →"
-			} } : {},
-			title: getSubjectSectionCopy("comments").sectionTitle,
-			children: u("div", {
-				class: "atv-comments",
-				children: comments.map((comment) => {
-					const voteState = getVoteState?.(comment);
-					return k$1(CommentCard, {
-						...canVote ? { canVote } : {},
-						comment,
-						key: comment.cid,
-						onOpen,
-						...onVoteStateChange ? { onVoteStateChange } : {},
-						onVote,
-						...voteState ? { voteState } : {}
-					});
-				})
-			})
-		});
-	};
-	var CommentModalContent = ({ canVote, comment, onVoteStateChange, onVote, voteState }) => {
-		const handleClose = useModalClose();
-		return u(S, { children: [
-			u("div", { class: "atv-modal-accent-bar" }),
-			u(ModalCloseButton, {
-				ariaLabel: "关闭短评",
-				className: "atv-comment-overlay-close",
-				onClick: handleClose,
-				size: 16
-			}),
-			u("div", {
-				class: "atv-comment-overlay-top",
-				children: [u(CommentAvatar, {
-					className: "atv-comment-overlay-avatar",
-					comment
-				}), u("div", {
-					class: "atv-comment-overlay-meta",
-					children: [comment.link ? u("a", {
-						class: "atv-comment-overlay-author",
-						href: comment.link,
-						rel: "noopener",
-						target: "_blank",
-						children: comment.name
-					}) : u("div", {
-						class: "atv-comment-overlay-author",
-						children: comment.name
-					}), comment.stars > 0 ? u(Stars, {
-						className: "atv-comment-overlay-stars",
-						outOfFive: true,
-						score: comment.stars
-					}) : null]
-				})]
-			}),
-			u("div", {
-				class: "atv-comment-overlay-body",
-				children: comment.content
-			}),
-			u("div", {
-				class: "atv-comment-overlay-foot",
-				children: [u("span", {
-					class: "atv-comment-overlay-time",
-					children: comment.time || ""
-				}), u(CommentVoteButton, {
-					...canVote ? { canVote } : {},
-					cid: comment.cid,
-					className: "atv-comment-overlay-votes",
-					count: comment.votes,
-					...onVoteStateChange ? { onStateChange: (state) => onVoteStateChange(comment, state) } : {},
-					onVote,
-					...voteState ? { state: voteState } : {},
-					voted: comment.voted
-				})]
-			})
-		] });
-	};
-	var CommentModal = ({ canVote, comment, onClose, onVoteStateChange, onVote, voteState }) => u(ModalShell, {
-		className: "atv-comment-overlay",
-		id: "atv-comment-overlay",
-		onClose,
-		surfaceClassName: "atv-comment-overlay-inner",
-		children: u(CommentModalContent, {
-			...canVote ? { canVote } : {},
-			comment,
-			...onVoteStateChange ? { onVoteStateChange } : {},
-			onVote,
-			...voteState ? { voteState } : {}
-		})
-	});
-	var textValue = (text) => u("div", {
-		class: "atv-info-value",
-		children: text
-	});
-	var linkParts = (items) => items.flatMap((item, index) => [index > 0 ? u("span", { children: " / " }, `sep-${index}`) : null, item.href ? u("a", {
-		href: item.href,
-		rel: "noopener",
-		target: "_blank",
-		children: item.text
-	}, `link-${index}`) : u("span", { children: item.text }, `text-${index}`)]);
-	var linksValue = (items) => u("div", {
-		class: "atv-info-value",
-		children: linkParts(items)
-	});
-	var imdbValue = (imdb) => u("div", {
-		class: "atv-info-value",
-		children: RE_IMDB_LINK.test(imdb) ? u("a", {
-			href: `https://www.imdb.com/title/${imdb}/`,
-			rel: "noopener",
-			target: "_blank",
-			children: [imdb, u(IconArrow, {})]
-		}) : imdb
-	});
-	var collectTimeRows = (info, isTV, rows) => {
-		if (isTV) {
-			if (info.firstAired) rows.push({
-				label: "首播",
-				value: textValue(info.firstAired)
-			});
-			else if (info.releaseDate) rows.push({
-				label: "首播",
-				value: textValue(info.releaseDate)
-			});
-			if (info.seasons) rows.push({
-				label: "季数",
-				value: textValue(info.seasons)
-			});
-			if (info.episodes) rows.push({
-				label: "集数",
-				value: textValue(info.episodes)
-			});
-			if (info.episodeRuntime) rows.push({
-				label: "单集片长",
-				value: textValue(info.episodeRuntime)
-			});
-			return;
-		}
-		if (info.releaseDate) rows.push({
-			label: "上映日期",
-			value: textValue(info.releaseDate)
-		});
-		if (info.runtime) rows.push({
-			label: "片长",
-			value: textValue(info.runtime)
-		});
-	};
-	var awardRows = (awards) => awards.map((award) => ({
-		label: u("div", {
-			class: "atv-info-label",
-			style: { color: "var(--atv-rating-gold)" },
-			children: award.orgLink ? u("a", {
-				href: award.orgLink,
-				rel: "noopener",
-				style: { color: "inherit" },
-				target: "_blank",
-				children: award.org
-			}) : award.org
-		}),
-		value: u("div", {
-			class: "atv-info-value",
-			children: [award.name ? u("div", { children: award.name }) : null, award.person ? u("div", {
-				style: {
-					color: "var(--atv-text-tertiary)",
-					fontSize: "13px",
-					marginTop: "2px"
-				},
-				children: award.personLink ? u("a", {
-					href: award.personLink,
-					rel: "noopener",
-					target: "_blank",
-					children: award.person
-				}) : award.person
-			}) : null]
-		})
-	}));
-	var collectDetailRows = ({ awards, info, isTV }) => {
-		const rows = [];
-		if (info.director.length) rows.push({
-			label: "导演",
-			value: linksValue(info.director)
-		});
-		if (info.writers.length) rows.push({
-			label: "编剧",
-			value: linksValue(info.writers)
-		});
-		if (info.cast.length) rows.push({
-			label: "主演",
-			value: linksValue(info.cast)
-		});
-		if (info.genres.length) rows.push({
-			label: "类型",
-			value: textValue(info.genres.join(" / "))
-		});
-		if (info.country) rows.push({
-			label: "制片国家/地区",
-			value: textValue(info.country)
-		});
-		if (info.language) rows.push({
-			label: "语言",
-			value: textValue(info.language)
-		});
-		collectTimeRows(info, isTV, rows);
-		if (info.aliases) rows.push({
-			label: "又名",
-			value: textValue(info.aliases)
-		});
-		if (info.imdb) rows.push({
-			label: "IMDb",
-			value: imdbValue(info.imdb)
-		});
-		if (awards.length) rows.push(...awardRows(awards));
-		return rows;
-	};
-	var DetailsSection = ({ data }) => {
-		const rows = collectDetailRows(data);
-		if (!rows.length) return null;
-		return u(Section, {
-			id: "atv-info",
-			title: getSubjectSectionCopy("details").sectionTitle,
-			children: u("div", {
-				class: "atv-info-grid",
-				children: rows.map((row) => u(S, { children: [typeof row.label === "string" ? u("div", {
-					class: "atv-info-label",
-					children: row.label
-				}) : row.label, row.value] }))
-			})
-		});
-	};
-	var DiscussionAuthorLink = ({ author }) => author.href ? u("a", {
-		class: "atv-discussion-author",
-		href: author.href,
-		rel: "noopener",
-		target: "_blank",
-		children: author.name
-	}) : u("span", {
-		class: "atv-discussion-author",
-		children: author.name
-	});
-	var DiscussionActivityTime = ({ activity }) => activity.date && activity.dateTime && activity.time ? u("time", {
-		class: "atv-discussion-time",
-		dateTime: activity.dateTime,
-		title: activity.raw,
-		children: [u("span", { children: activity.date }), u("span", { children: activity.time })]
-	}) : u("time", {
-		class: "atv-discussion-time",
-		title: activity.raw,
-		children: activity.raw
-	});
-	var DiscussionMetadata = ({ activity, author, replies }) => author || replies !== void 0 || activity ? u("div", {
-		class: "atv-discussion-meta",
-		children: [author ? u(DiscussionAuthorLink, { author }) : null, replies !== void 0 || activity ? u("div", {
-			class: "atv-discussion-activity",
-			children: [replies === void 0 ? null : u("span", {
-				class: "atv-discussion-replies",
-				children: `${replies} 回应`
-			}), activity ? u(DiscussionActivityTime, { activity }) : null]
-		}) : null]
-	}) : null;
-	var formatDiscussionTotal = (total) => total === void 0 ? "查看全部讨论 →" : `查看全部 ${total.toLocaleString("en-US")} 条讨论 →`;
-	var DiscussionsSection = ({ discussions }) => discussions.topics.length ? u(Section, {
-		id: "atv-discussions",
-		...discussions.startDiscussionHref ? { moreLink: {
-			href: discussions.startDiscussionHref,
-			text: "发起讨论 ↗"
-		} } : {},
-		title: getSubjectSectionCopy("discussions").sectionTitle,
-		children: [u("div", {
-			class: "atv-discussion-board",
-			children: discussions.topics.map((topic, index) => u("article", {
-				class: "atv-discussion-row",
-				children: [
-					u("a", {
-						"aria-label": `打开讨论：${topic.title}`,
-						class: "atv-discussion-topic-link",
-						href: topic.href,
-						rel: "noopener",
-						target: "_blank"
-					}),
-					u("div", {
-						class: "atv-discussion-copy",
-						children: [u("h3", {
-							class: "atv-discussion-title",
-							children: topic.title
-						}), u(DiscussionMetadata, {
-							...topic.activity ? { activity: topic.activity } : {},
-							...topic.author ? { author: topic.author } : {},
-							...topic.replies === void 0 ? {} : { replies: topic.replies }
-						})]
-					}),
-					u("span", {
-						"aria-hidden": "true",
-						class: "atv-discussion-arrow",
-						children: "↗"
-					})
-				]
-			}, `${topic.href}-${index}`))
-		}), discussions.allDiscussions ? u("footer", {
-			class: "atv-discussion-footer",
-			children: u("a", {
-				href: discussions.allDiscussions.href,
-				rel: "noopener",
-				target: "_blank",
-				children: formatDiscussionTotal(discussions.allDiscussions.total)
-			})
-		}) : null]
-	}) : null;
-	var LOGO_MAP = {
-		douban: u(LogoDouban, {}),
-		imdb: u(LogoImdb, {}),
-		metacritic: u(LogoMetacritic, {}),
-		rt: u(LogoRT, {})
-	};
-	var RatingLogo = ({ name }) => u("div", {
-		class: "atv-rating-panel-logo",
-		children: LOGO_MAP[name]
-	});
-	var DoubanRating = ({ rating }) => u("div", {
-		class: "atv-rating-panel-douban",
-		children: [u(RatingLogo, { name: "douban" }), rating ? u(S, { children: [
-			u("div", {
-				class: "atv-rating-panel-score",
-				children: rating.score.toFixed(1)
-			}),
-			u(Stars, { score: rating.score }),
-			u("div", {
-				class: "atv-rating-panel-count",
-				children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
-			})
-		] }) : u("div", {
-			class: "atv-rating-empty",
-			children: "暂无评分"
-		})]
-	});
-	var useEntranceExitAnimation = (shouldRender, hasContent, springConfig) => {
-		const [rendered, setRendered] = d(shouldRender);
-		const panelRef = A(null);
-		const animationRef = A(null);
-		const animationGenerationRef = A(0);
-		const desiredRenderRef = A(shouldRender);
-		const pendingEntranceRef = A(false);
-		const prevHasContentRef = A(false);
-		const stopAnimation = q(() => {
-			animationGenerationRef.current += 1;
-			animationRef.current?.stop();
-			animationRef.current = null;
-		}, []);
-		const animateEntrance = q((panel) => {
-			stopAnimation();
-			animationRef.current = animateWithReducedMotion(panel, {
-				properties: {
-					opacity: [0, 1],
-					transform: ["translateY(4px)", "translateY(0)"]
-				},
-				reducedMotionProperties: { opacity: [0, 1] },
-				springConfig
-			});
-		}, [springConfig, stopAnimation]);
-		const animateExit = q((panel) => {
-			stopAnimation();
-			const generation = animationGenerationRef.current;
-			const animation = animateWithReducedMotion(panel, {
-				properties: {
-					opacity: [1, 0],
-					transform: ["translateY(0)", "translateY(-4px)"]
-				},
-				reducedMotionProperties: { opacity: [1, 0] },
-				springConfig
-			});
-			animationRef.current = animation;
-			return {
-				animation,
-				generation
-			};
-		}, [springConfig, stopAnimation]);
-		const setRef = q((element) => {
-			panelRef.current = element;
-			if (element && pendingEntranceRef.current) {
-				pendingEntranceRef.current = false;
-				animateEntrance(element);
-			}
-		}, [animateEntrance]);
-		_(() => {
-			const wasDesired = desiredRenderRef.current;
-			desiredRenderRef.current = shouldRender;
-			const justLoaded = hasContent && !prevHasContentRef.current;
-			prevHasContentRef.current = hasContent;
-			if (shouldRender) {
-				if (!wasDesired) stopAnimation();
-				if (justLoaded) {
-					const panel = panelRef.current;
-					if (panel) animateEntrance(panel);
-					else pendingEntranceRef.current = true;
-				}
-				setRendered(true);
-				return;
-			}
-			pendingEntranceRef.current = false;
-			const panel = panelRef.current;
-			if (!panel) {
-				setRendered(false);
-				return;
-			}
-			const { animation, generation } = animateExit(panel);
-			(async () => {
-				try {
-					await animation.finished;
-					if (animationGenerationRef.current === generation && !desiredRenderRef.current) {
-						animationRef.current = null;
-						setRendered(false);
-					}
-				} catch {}
-			})();
-		}, [
-			animateEntrance,
-			animateExit,
-			hasContent,
-			shouldRender,
-			stopAnimation
-		]);
-		_(() => stopAnimation, [stopAnimation]);
-		return {
-			rendered,
-			setRef
-		};
-	};
-	var scoreClass = (score) => {
-		if (score >= 61) return "is-high";
-		if (score >= 40) return "is-medium";
-		return "is-low";
-	};
-	var mcWordRatingChinese = (score) => {
-		if (score >= 81) return "普遍赞誉";
-		if (score >= 61) return "大体好评";
-		if (score >= 40) return "褒贬不一";
-		if (score >= 20) return "大体差评";
-		return "普遍差评";
-	};
-	var isFresh = (score) => score >= 60;
-	var ratingStateClass = (hasRating, resolved) => {
-		if (hasRating) return "is-loaded";
-		if (resolved) return "is-empty";
-		return "is-loading";
-	};
-	var SOURCE_CLASS = {
-		imdb: "atv-rating-panel-imdb",
-		metacritic: "atv-rating-panel-mc",
-		rt: "atv-rating-panel-rt"
-	};
-	var renderImdbRating = (rating) => u(S, { children: [
-		u("div", {
-			class: "atv-rating-panel-score",
-			children: rating.score.toFixed(1)
-		}),
-		u(Stars, { score: rating.score }),
-		u("div", {
-			class: "atv-rating-panel-count",
-			children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
-		})
-	] });
-	var renderMetacriticRating = (rating) => u(S, { children: [
-		u("div", {
-			class: `atv-rating-panel-score ${scoreClass(rating.score)}`,
-			children: String(rating.score)
-		}),
-		u("div", {
-			class: "atv-mc-label-row",
-			children: [u("span", {
-				class: "atv-mc-bar-track",
-				children: u("span", {
-					class: `atv-mc-bar-fill ${scoreClass(rating.score)}`,
-					style: { width: `${Math.min(100, rating.score)}%` }
-				})
-			}), u("span", {
-				class: "atv-mc-word-label",
-				children: mcWordRatingChinese(rating.score)
-			})]
-		}),
-		u("div", {
-			class: "atv-rating-panel-count",
-			children: rating.reviewCount ? `评价 ${rating.reviewCount.toLocaleString("en-US")}` : "已评分"
-		})
-	] });
-	var RtLabel = ({ className, icon, score, text }) => u("span", {
-		class: `atv-rt-label-item ${className} ${isFresh(score) ? "is-fresh" : "is-rotten"}`,
-		children: [u("span", {
-			class: "atv-rt-score-icon",
-			children: icon
-		}), u("span", {
-			class: "atv-rt-score-label",
-			children: text
-		})]
-	});
-	var renderRottenTomatoesRating = (rating) => u(S, { children: [
-		u("div", {
-			class: "atv-rt-score-row",
-			children: [
-				u("div", {
-					class: `atv-rt-score-value ${isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"}`,
-					children: `${rating.criticsScore}%`
-				}),
-				u("div", { class: "atv-rt-divider" }),
-				u("div", {
-					class: `atv-rt-score-value ${isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"}`,
-					children: `${rating.audienceScore}%`
-				})
-			]
-		}),
-		u("div", {
-			class: "atv-rt-label-row",
-			children: [u(RtLabel, {
-				className: "is-critics",
-				icon: u(IconTomato, {}),
-				score: rating.criticsScore,
-				text: "影评人"
-			}), u(RtLabel, {
-				className: "is-audience",
-				icon: u(IconPopcorn, {}),
-				score: rating.audienceScore,
-				text: "观众"
-			})]
-		}),
-		u("div", {
-			class: "atv-rt-count-row",
-			children: [u("span", {
-				class: "atv-rt-count-value",
-				children: `评价 ${rating.criticsCount.toLocaleString("en-US")}`
-			}), u("span", {
-				class: "atv-rt-count-value",
-				children: `评价 ${rating.audienceCount.toLocaleString("en-US")}`
-			})]
-		})
-	] });
-	var renderLoadedRating = (props) => {
-		switch (props.source) {
-			case "imdb": return props.rating ? renderImdbRating(props.rating) : null;
-			case "metacritic": return props.rating ? renderMetacriticRating(props.rating) : null;
-			case "rt": return props.rating ? renderRottenTomatoesRating(props.rating) : null;
-			default: return null;
-		}
-	};
-	var renderExternalRatingContent = (props) => {
-		if (props.rating) return renderLoadedRating(props);
-		if (props.resolved) return null;
-		return u("div", { class: "atv-rating-panel-skeleton" });
-	};
-	var ExternalRating = (props) => {
-		const { rendered, setRef } = useEntranceExitAnimation(!props.resolved || Boolean(props.rating), Boolean(props.rating), springConfigs.ratingEntrance);
-		if (!rendered) return null;
-		return u("div", {
-			ref: setRef,
-			class: `${SOURCE_CLASS[props.source]} ${ratingStateClass(Boolean(props.rating), props.resolved)}`,
-			children: [u(RatingLogo, { name: props.source }), renderExternalRatingContent(props)]
-		});
-	};
-	var RatingPanel = ({ douban, externalRatings, imdbId }) => {
-		if (!douban && !imdbId) return null;
-		const resolved = Boolean(externalRatings);
-		return u("div", {
-			class: "atv-rating-panel",
-			children: [u(DoubanRating, { rating: douban }), imdbId ? u(S, { children: [
-				u(ExternalRating, {
-					rating: externalRatings?.imdb?.rating ?? null,
-					resolved,
-					source: "imdb"
-				}),
-				u(ExternalRating, {
-					rating: externalRatings?.mc ?? null,
-					resolved,
-					source: "metacritic"
-				}),
-				u(ExternalRating, {
-					rating: externalRatings?.rt ?? null,
-					resolved,
-					source: "rt"
-				})
-			] }) : null]
-		});
-	};
 	var PLATFORM_BRANDS = [
 		{
 			Icon: LogoAbc,
@@ -10362,7 +11331,8 @@ input::placeholder {
 			aliases: [
 				"discovery+",
 				"discovery plus",
-				"discoveryplus"
+				"discoveryplus",
+				"discoverchannel"
 			],
 			color: "#34A65C",
 			colorMode: "intrinsic",
@@ -10898,15 +11868,11 @@ input::placeholder {
 			]
 		});
 	};
-	var PosterPlaceholder = () => u("div", {
-		class: "atv-poster-placeholder",
-		children: u(IconFilmPlaceholder, {})
-	});
 	var noop$2 = () => void 0;
 	var HeroPoster = ({ onOpenPoster = noop$2, poster, title }) => {
 		const [failed, setFailed] = d(false);
 		return u("button", {
-			class: "atv-poster-card",
+			class: "atv-poster-card atv-image-preview-trigger",
 			onClick: () => {
 				if (poster) onOpenPoster(poster, title.primary || "");
 			},
@@ -11040,16 +12006,6 @@ input::placeholder {
 			})
 		]
 	});
-	var useModalRequest = () => {
-		const [active, setActive] = d(null);
-		return {
-			active,
-			handleClose: q(() => setActive(null), []),
-			handleOpen: q((value) => {
-				setActive({ value });
-			}, [])
-		};
-	};
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("fieldset", {
 		class: "atv-interest-modal-rating",
 		children: [
@@ -11357,7 +12313,7 @@ input::placeholder {
 		const [loading, setLoading] = d(false);
 		const [confirmingRemoval, setConfirmingRemoval] = d(false);
 		const [error, setError] = d("");
-		const disabled = loading || source.kind !== "ready";
+		const disabled = loading || source.kind !== "ready" || snapshot !== loadedSnapshot;
 		const isExistingMark = snapshot ? snapshot.status !== "none" : state.marked;
 		h(() => {
 			if (snapshot && snapshot !== loadedSnapshot) {
@@ -11807,8 +12763,12 @@ input::placeholder {
 			})
 		});
 	};
-	var CastSection = ({ celebrities }) => celebrities.length ? u(Section, {
+	var CastSection = ({ celebrities, subjectId }) => celebrities.length ? u(Section, {
 		id: "atv-cast",
+		...subjectId ? { moreLink: {
+			href: `https://movie.douban.com/subject/${subjectId}/celebrities`,
+			text: "查看全部 →"
+		} } : {},
 		title: getSubjectSectionCopy("cast").sectionTitle,
 		children: u("div", {
 			class: "atv-carousel atv-cast-carousel",
@@ -11841,70 +12801,71 @@ input::placeholder {
 		})
 	}) : null;
 	var noop = () => void 0;
-	var PhotoTile = ({ onOpenPoster, photo }) => {
-		const [displaySrc, setDisplaySrc] = d(photo.hdUrl || photo.thumbUrl);
-		const [isPortrait, setIsPortrait] = d(false);
-		return u("button", {
-			class: `atv-photo-tile${isPortrait ? " is-portrait" : ""}`,
-			onClick: () => onOpenPoster(photo.hdUrl || photo.thumbUrl, "剧照"),
-			type: "button",
-			children: u("img", {
+	var PhotoTile = ({ onOpenPoster, photo, staggerIndex = 0 }) => u("button", {
+		class: "atv-photo-tile atv-image-preview-trigger",
+		onClick: () => onOpenPoster({
+			alt: "剧照",
+			previewSrc: photo.thumbUrl,
+			src: photo.hdUrl || photo.thumbUrl
+		}),
+		style: {
+			"--atv-photo-aspect-ratio": String(photo.aspectRatio),
+			"--stagger-index": String(staggerIndex)
+		},
+		type: "button",
+		children: u("span", {
+			class: "atv-photo-tile-content",
+			children: u(SafeImage, {
 				alt: "剧照",
+				aspectRatio: photo.aspectRatio,
 				loading: "lazy",
-				onError: () => {
-					if (photo.thumbUrl && displaySrc !== photo.thumbUrl) setDisplaySrc(photo.thumbUrl);
-				},
-				onLoad: (event) => {
-					const img = event.currentTarget;
-					if (img.naturalHeight > img.naturalWidth) setIsPortrait(true);
-				},
-				src: displaySrc
+				src: photo.thumbUrl || photo.hdUrl
 			})
-		});
-	};
-	var PhotosSection = ({ data, onOpenPoster = noop, onOpenVideo = noop }) => data.photos.length || data.trailers.length ? u(Section, {
-		id: "atv-photos",
-		...data.subjectId ? { moreLink: {
-			href: `https://movie.douban.com/subject/${data.subjectId}/all_photos`,
-			text: "查看全部 →"
-		} } : {},
-		title: getSubjectSectionCopy("media").sectionTitle,
-		children: u("div", {
-			class: "atv-carousel atv-photos",
-			children: [data.trailers.map((trailer) => u("button", {
-				class: "atv-photo-tile atv-trailer-tile",
-				onClick: () => onOpenVideo(trailer),
-				style: {
-					backgroundImage: `url("${trailer.thumbUrl}")`,
-					backgroundPosition: "center",
-					backgroundSize: "cover"
-				},
-				type: "button",
-				children: [u("div", {
-					class: "atv-trailer-play-overlay",
-					children: u("div", {
-						class: "atv-trailer-play-btn",
-						children: u(PlayIcon, {})
-					})
-				}), u("span", {
-					class: "atv-trailer-label",
-					children: trailer.title || "预告片"
-				})]
-			}, trailer.trailerPageUrl)), data.photos.map((photo) => u(PhotoTile, {
-				onOpenPoster,
-				photo
-			}, photo.link))]
 		})
-	}) : null;
-	var PosterImage = ({ alt, className, poster }) => {
-		const [failed, setFailed] = d(false);
-		if (!poster || failed) return u(PosterPlaceholder, {});
-		return u("img", {
-			alt,
-			class: className,
-			loading: "lazy",
-			onError: () => setFailed(true),
-			src: poster
+	});
+	var PhotosSection = ({ data, onOpenImage = noop, onOpenVideo = noop, resolvingPhotos = false }) => {
+		if (!(resolvingPhotos || data.photos.length > 0 || data.trailers.length > 0)) return null;
+		return u(Section, {
+			id: "atv-photos",
+			...data.subjectId ? { moreLink: {
+				href: `https://movie.douban.com/subject/${data.subjectId}/all_photos`,
+				text: "查看全部 →"
+			} } : {},
+			title: getSubjectSectionCopy("media").sectionTitle,
+			children: u("div", {
+				class: "atv-carousel atv-photos",
+				children: [
+					data.trailers.map((trailer) => u("button", {
+						class: "atv-photo-tile atv-trailer-tile",
+						onClick: () => onOpenVideo(trailer),
+						style: {
+							backgroundImage: `url("${trailer.thumbUrl}")`,
+							backgroundPosition: "center",
+							backgroundSize: "cover"
+						},
+						type: "button",
+						children: [u("div", {
+							class: "atv-trailer-play-overlay",
+							children: u("div", {
+								class: "atv-trailer-play-btn",
+								children: u(PlayIcon, {})
+							})
+						}), u("span", {
+							class: "atv-trailer-label",
+							children: trailer.title || "预告片"
+						})]
+					}, trailer.trailerPageUrl)),
+					resolvingPhotos && data.trailers.length === 0 ? u("div", {
+						"aria-busy": "true",
+						class: "atv-photo-rail-reserve"
+					}) : null,
+					resolvingPhotos ? null : data.photos.map((photo, index) => u(PhotoTile, {
+						onOpenPoster: onOpenImage,
+						photo,
+						staggerIndex: index
+					}, photo.link))
+				]
+			})
 		});
 	};
 	var RecommendationsSection = ({ recommendations }) => recommendations.length ? u(Section, {
@@ -11936,13 +12897,6 @@ input::placeholder {
 			})
 		})
 	}) : null;
-	var subjectPath = (url) => {
-		try {
-			return new URL(url).pathname;
-		} catch {
-			return "";
-		}
-	};
 	var SeriesSection = ({ items, moreLink }) => items.length ? u(Section, {
 		id: "atv-series",
 		...moreLink ? { moreLink } : {},
@@ -11950,7 +12904,7 @@ input::placeholder {
 		children: u("div", {
 			class: "atv-carousel atv-series-carousel",
 			children: items.map((item) => {
-				const className = `atv-series-card${item.link && subjectPath(item.link) === window.location.pathname ? " is-active" : ""}`;
+				const className = `atv-series-card${item.isCurrent ? " is-active" : ""}`;
 				const key = item.link || item.title;
 				const content = u(S, { children: [u("div", {
 					class: "atv-series-poster",
@@ -12174,6 +13128,44 @@ input::placeholder {
 		]);
 		return record.trailerPageUrl === trailerPageUrl ? record.result : { status: "loading" };
 	};
+	var MODAL_ID = "atv-video-modal";
+	var VideoModalContent = ({ acquisition }) => {
+		const close = useModalClose();
+		h(() => {
+			if (acquisition.status === "fallback") close();
+		}, [acquisition.status, close]);
+		return u(S, { children: [acquisition.status === "loading" ? null : u(ModalCloseButton, {
+			ariaLabel: "关闭视频",
+			onClick: close
+		}), u("div", {
+			class: "atv-modal-video-content",
+			children: [
+				acquisition.status === "loading" ? u("div", {
+					class: "atv-modal-loading",
+					children: [u("div", { class: "atv-spinner" }), u("span", { children: "加载中..." })]
+				}) : null,
+				acquisition.status === "loaded" ? u("video", {
+					autoplay: true,
+					class: "atv-modal-video",
+					controls: true,
+					playsinline: true,
+					src: acquisition.embedUrl
+				}) : null,
+				acquisition.status === "failed" ? u("div", {
+					class: "atv-modal-toast",
+					children: "视频加载失败"
+				}) : null
+			]
+		})] });
+	};
+	var VideoModal = ({ acquisition, onClose, trailer }) => u(ModalShell, {
+		ariaLabel: trailer.title || "视频预览",
+		className: "atv-modal-overlay is-video",
+		id: MODAL_ID,
+		onClose,
+		surfaceClassName: "atv-modal-surface",
+		children: u(VideoModalContent, { acquisition })
+	});
 	var TrailerModal = ({ onClose, trailer }) => {
 		return u(VideoModal, {
 			acquisition: useTrailerAcquisition(trailer),
@@ -12181,6 +13173,15 @@ input::placeholder {
 			trailer
 		});
 	};
+	var SubjectStickyNav = ({ subjectSwitcher, subjectSwitcherOpen = false, title, ...navigation }) => u(StickyNav, {
+		...navigation,
+		accessory: subjectSwitcher ? u("div", {
+			class: "atv-stickynav-subject-switcher",
+			children: subjectSwitcher
+		}) : null,
+		className: subjectSwitcherOpen ? "has-subject-switcher-open" : "",
+		title: subjectSwitcherOpen ? "上一部" : title.primary || title.full
+	});
 	var reviewNumericId = (rid) => rid.match(/(?<num>\d+)$/u)?.groups?.num ?? rid;
 	var reviewDisplayName = (name) => name.trim() || "匿名用户";
 	var reviewVoteCache = createCache("atv:review:vote", 365 * 24 * 60 * 60 * 1e3);
@@ -12543,9 +13544,8 @@ input::placeholder {
 		if (status === "error") return "atv-review-modal-body is-error";
 		return "atv-review-modal-body is-skeleton";
 	};
-	var ReviewModalContent = ({ canVote, onVoteStateChange, onVote, review, voteState }) => {
+	var ReviewModalContent = ({ canVote, content, onVoteStateChange, onVote, review, voteState }) => {
 		const handleClose = useModalClose();
-		const content = useReviewContent(review.id);
 		const displayName = reviewDisplayName(review.name);
 		const numericId = reviewNumericId(review.id);
 		const bodyRef = A(null);
@@ -12643,7 +13643,7 @@ input::placeholder {
 			})
 		] });
 	};
-	var ReviewModal = ({ canVote, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
+	var ReviewModal = ({ canVote, content, onClose, onVoteStateChange, onVote, review, voteState }) => u(ModalShell, {
 		ariaLabelledBy: "atv-review-modal-title",
 		className: "atv-review-modal",
 		id: "atv-review-modal",
@@ -12651,12 +13651,21 @@ input::placeholder {
 		surfaceClassName: "atv-review-modal-scroll",
 		children: u(ReviewModalContent, {
 			...canVote ? { canVote } : {},
+			content,
 			...onVote ? { onVote } : {},
 			...onVoteStateChange ? { onVoteStateChange } : {},
 			review,
 			...voteState ? { voteState } : {}
 		})
 	});
+	var ReviewContentModal = ({ review, ...props }) => {
+		const content = useReviewContent(review.id);
+		return u(ReviewModal, {
+			...props,
+			content,
+			review
+		});
+	};
 	var CACHE_DURATION_MS = 120 * 1e3;
 	var subjectSuggestionCache = new Map();
 	var subjectPathPattern = /^\/subject\/(?<subjectId>\d+)\/?$/u;
@@ -12981,7 +13990,6 @@ input::placeholder {
 								]
 							}) : null,
 							displayedRequest.status === "ready" && suggestions.length ? u("div", {
-								class: "atv-subject-suggestion-results",
 								role: "presentation",
 								children: suggestions.map((suggestion, index) => u(SuggestionRow, {
 									active: index === nav.activeIndex,
@@ -12989,7 +13997,7 @@ input::placeholder {
 									onOpen: openSuggestion,
 									suggestion
 								}, suggestion.id))
-							}, displayedRequest.query) : null,
+							}) : null,
 							showFallback ? u("button", {
 								class: "atv-subject-search-fallback",
 								onClick: submitSearch,
@@ -13081,7 +14089,7 @@ input::placeholder {
 			return true;
 		};
 		return u(S, { children: [
-			u(StickyNav, {
+			u(SubjectStickyNav, {
 				...runtime.navigation,
 				subjectSwitcher: u(SubjectSwitcher, { onOpenChange: setSubjectSwitcherOpen }),
 				subjectSwitcherOpen,
@@ -13093,8 +14101,10 @@ input::placeholder {
 				externalRatings: runtime.externalRatings,
 				firstBroadcastPlatform: runtime.firstBroadcastPlatform,
 				onOpenPoster: (src, alt) => activeMediaModal.handleOpen({
-					alt,
-					src,
+					image: {
+						alt,
+						src
+					},
 					type: "poster"
 				})
 			}),
@@ -13103,22 +14113,25 @@ input::placeholder {
 				items: runtime.series,
 				...runtime.seriesMoreLink ? { moreLink: runtime.seriesMoreLink } : {}
 			}),
-			u(CastSection, { celebrities: data.celebrities }),
+			u(CastSection, {
+				celebrities: data.celebrities,
+				subjectId: data.subjectId
+			}),
 			u(PhotosSection, {
 				data: {
-					photos: data.photos,
+					photos: runtime.photoResolution.photos,
 					subjectId: data.subjectId,
 					trailers: data.trailers
 				},
-				onOpenPoster: (src, alt) => activeMediaModal.handleOpen({
-					alt,
-					src,
+				onOpenImage: (image) => activeMediaModal.handleOpen({
+					image,
 					type: "poster"
 				}),
 				onOpenVideo: (trailer) => activeMediaModal.handleOpen({
 					trailer,
 					type: "video"
-				})
+				}),
+				resolvingPhotos: runtime.photoResolution.status === "loading"
 			}),
 			u(CommentsSection, {
 				canVote,
@@ -13160,7 +14173,7 @@ input::placeholder {
 			}) : null,
 			activeReview.active ? u(ModalSession, {
 				request: activeReview.active,
-				children: u(ReviewModal, {
+				children: u(ReviewContentModal, {
 					canVote: canReviewVote,
 					onClose: activeReview.handleClose,
 					onVoteStateChange: handleReviewVoteStateChange,
@@ -13172,9 +14185,10 @@ input::placeholder {
 			activeMediaModal.active?.value.type === "poster" ? u(ModalSession, {
 				request: activeMediaModal.active,
 				children: u(PosterModal, {
-					alt: activeMediaModal.active.value.alt,
+					alt: activeMediaModal.active.value.image.alt,
 					onClose: activeMediaModal.handleClose,
-					src: activeMediaModal.active.value.src
+					...activeMediaModal.active.value.image.previewSrc ? { previewSrc: activeMediaModal.active.value.image.previewSrc } : {},
+					src: activeMediaModal.active.value.image.src
 				})
 			}) : null,
 			activeMediaModal.active?.value.type === "video" ? u(ModalSession, {
@@ -13711,6 +14725,109 @@ input::placeholder {
 			avatar: urls.get(comment.link) || comment.avatar
 		})), [comments, urls]);
 	};
+	var PHOTO_DIMENSIONS = /大图尺寸\s*[：:]\s*(?<width>\d+)\s*[x×]\s*(?<height>\d+)/u;
+	var extractPhotoGeometry = (doc) => {
+		const match = PHOTO_DIMENSIONS.exec(doc.body?.textContent ?? "");
+		const height = Number(match?.groups?.height);
+		const width = Number(match?.groups?.width);
+		if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height)) return null;
+		if (width < 1 || height < 1) return null;
+		return {
+			height,
+			width
+		};
+	};
+	var photoGeometryCache = createCache("dp:photo-geometry-cache", 365 * 24 * 60 * 60 * 1e3);
+	var photoGeometryRequests = new Map();
+	var isDoubanPhotoDetailUrl = (value) => {
+		try {
+			const url = new URL(value);
+			return url.protocol === "https:" && url.hostname === "movie.douban.com" && /^\/photos\/photo\/\d+\/?$/u.test(url.pathname);
+		} catch {
+			return false;
+		}
+	};
+	var loadPhotoGeometry = async (photoLink, referer) => {
+		try {
+			const html = await gmGet(photoLink, referer);
+			const geometry = extractPhotoGeometry(new DOMParser().parseFromString(html, "text/html"));
+			if (geometry) photoGeometryCache.set(photoLink, geometry);
+			return geometry;
+		} catch {
+			return null;
+		} finally {
+			photoGeometryRequests.delete(photoLink);
+		}
+	};
+	var fetchPhotoGeometry = (photoLink, referer = location.href) => {
+		if (!isDoubanPhotoDetailUrl(photoLink)) return Promise.resolve(null);
+		const cached = photoGeometryCache.get(photoLink);
+		if (cached !== void 0) return Promise.resolve(cached);
+		const inFlight = photoGeometryRequests.get(photoLink);
+		if (inFlight) return inFlight;
+		const request = loadPhotoGeometry(photoLink, referer);
+		photoGeometryRequests.set(photoLink, request);
+		return request;
+	};
+	var FALLBACK_ASPECT_RATIO = 16 / 9;
+	var emptyResolution = {
+		photos: [],
+		status: "ready"
+	};
+	var resolvingResolution = {
+		photos: [],
+		status: "loading"
+	};
+	var resolvePhoto = async (photo, referer) => {
+		try {
+			const geometry = await fetchPhotoGeometry(photo.link, referer);
+			return {
+				...photo,
+				aspectRatio: geometry ? geometry.width / geometry.height : FALLBACK_ASPECT_RATIO
+			};
+		} catch {
+			return {
+				...photo,
+				aspectRatio: FALLBACK_ASPECT_RATIO
+			};
+		}
+	};
+	var useResolvedPhotoGeometry = (photos, doc) => {
+		const [resolution, setResolution] = d(() => photos.length === 0 ? emptyResolution : resolvingResolution);
+		h(() => {
+			if (photos.length === 0) {
+				setResolution(emptyResolution);
+				return;
+			}
+			let active = true;
+			setResolution(resolvingResolution);
+			(async () => {
+				const resolvedPhotos = await Promise.all(photos.map((photo) => resolvePhoto(photo, doc.location.href)));
+				if (active) setResolution({
+					photos: resolvedPhotos,
+					status: "ready"
+				});
+			})();
+			return () => {
+				active = false;
+			};
+		}, [doc, photos]);
+		return resolution;
+	};
+	var subjectPath = (url) => {
+		try {
+			return new URL(url).pathname;
+		} catch {
+			return "";
+		}
+	};
+	var resolveCurrentSeries = (items, doc) => {
+		const pathname = doc.defaultView?.location.pathname ?? doc.location.pathname;
+		return items.map((item) => ({
+			...item,
+			isCurrent: Boolean(item.link && subjectPath(item.link) === pathname)
+		}));
+	};
 	var extractSeriesMoreLink = (doc) => {
 		const link = doc.querySelector("#series-items .items-swiper-title .pl a");
 		return link ? {
@@ -13721,7 +14838,7 @@ input::placeholder {
 	var readSeriesRuntime = (initial, doc) => {
 		const moreLink = extractSeriesMoreLink(doc);
 		return {
-			items: doc.querySelector("#series-items .items-swiper") ? extractSeries(doc) : initial,
+			items: resolveCurrentSeries(doc.querySelector("#series-items .items-swiper") ? extractSeries(doc) : initial, doc),
 			...moreLink ? { moreLink } : {}
 		};
 	};
@@ -13844,6 +14961,7 @@ input::placeholder {
 		const series = useSeriesRuntime(data.series, doc);
 		const summary = useNativeSummary(data.summary, doc);
 		const resolvedComments = useResolvedComments(data.comments, doc);
+		const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
 		const externalRatings = useExternalRatings(data.info.imdb || null, data.isTV, doc);
 		const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 		const navigation = useStickyNavigation(doc, T(() => computeNavSections({
@@ -13865,6 +14983,7 @@ input::placeholder {
 				externalRatings,
 				firstBroadcastPlatform,
 				navigation,
+				photoResolution,
 				resolvedComments,
 				series: series.items,
 				...series.moreLink ? { seriesMoreLink: series.moreLink } : {},
@@ -13875,7 +14994,7 @@ input::placeholder {
 	var setSubjectTitle = (doc, data) => {
 		doc.title = `${(data.title.primary || data.title.full) + (data.year ? ` (${data.year})` : "")} · 豆瓣`;
 	};
-	var mountSubjectPage = (doc = document) => {
+	var mountSubject = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
 		if (!doc.querySelector("#content h1")) {
 			console.warn("[ATV-Douban] 未找到内容区域，跳过渲染");
@@ -13890,20 +15009,33 @@ input::placeholder {
 			}
 		})();
 		if (!data) return;
-		setSubjectTitle(doc, data);
-		const root = doc.createElement("div");
-		root.id = "atv-douban-root";
-		R(u(SubjectPageRuntime, {
+		if (installEnhancedRoot(doc, (root) => R(u(SubjectPageRuntime, {
 			data,
 			doc
-		}), root);
-		doc.body.insertBefore(root, doc.body.firstChild);
+		}), root))) setSubjectTitle(doc, data);
 	};
-	var mountSubjectPageWhenReady = async () => {
+	var subjectPage = {
+		matches: (location) => location.hostname === "movie.douban.com" && /^\/subject\/[^/]+\/?$/u.test(location.pathname),
+		mount: mountSubject
+	};
+	var mountSubjectLoginFrameIfNeeded = () => {
+		if (!isDoubanLoginFrame()) return false;
+		installLoginFrameTheme();
+		return true;
+	};
+	var hasMatchingPage = (pages, location = window.location) => pages.some(({ matches }) => matches(location));
+	var mountMatchingPage = (pages, doc, location = window.location) => {
+		const page = pages.find(({ matches }) => matches(location));
+		if (!page) return false;
+		page.mount(doc);
+		return true;
+	};
+	var pageMounts = [subjectPage, personagePage];
+	var mountPageWhenReady = async () => {
+		if (!hasMatchingPage(pageMounts)) return;
 		await _css(styles_default);
-		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountSubjectPage(), { once: true });
-		else mountSubjectPage();
+		if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountMatchingPage(pageMounts, document), { once: true });
+		else mountMatchingPage(pageMounts, document);
 	};
-	if (isDoubanLoginFrame()) installLoginFrameTheme();
-	else mountSubjectPageWhenReady();
+	if (!mountSubjectLoginFrameIfNeeded()) mountPageWhenReady();
 })();

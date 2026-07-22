@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useResolvedComments } from "@/runtime/use-resolved-comments";
-import type { Comment } from "@/types";
+import type { Comment } from "@/modules/subject/domain";
+import { useResolvedComments } from "@/modules/subject/runtime/use-resolved-comments";
 
 const mockRequest = vi.hoisted(() =>
   vi.fn<(url: string, ...args: unknown[]) => Promise<string>>()
@@ -12,7 +12,7 @@ vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;
 });
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmGet: mockRequest,
 }));
 

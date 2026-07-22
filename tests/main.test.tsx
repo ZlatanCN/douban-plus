@@ -4,11 +4,11 @@
 import { render } from "preact";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { computeNavSections } from "@/components/layout/nav";
-import { StickyNav } from "@/components/layout/sticky-nav";
-import { SubjectPage } from "@/modules/subject-page/subject-page";
-import type { SubjectPageRuntime } from "@/modules/subject-page/types";
-import type { DoubanData, InfoBlock } from "@/types";
+import type { DoubanData, InfoBlock } from "@/modules/subject/domain";
+import { computeNavSections } from "@/modules/subject/navigation/sections";
+import { SubjectPage } from "@/modules/subject/runtime/subject-page";
+import type { SubjectPageRuntime } from "@/modules/subject/runtime/types";
+import { StickyNav } from "@/shared/components/layout/sticky-nav";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */
@@ -112,39 +112,50 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
 const makeRuntime = (
   data: DoubanData,
   overrides?: Partial<SubjectPageRuntime>
-): SubjectPageRuntime => ({
-  actions: {
-    handleCommentVote: () => Promise.resolve({ ok: true }),
-    handleReviewVote: () => Promise.resolve({ ok: true }),
-    interestMarking: {
-      fetch: () =>
-        Promise.resolve({
-          isPrivate: false,
-          myTags: [],
-          popularTags: [],
-          shareToBroadcast: false,
-          status: "wish" as const,
-          tags: [],
-        }),
-      post: () => Promise.resolve({ ok: false }),
-      remove: () => Promise.resolve({ ok: false }),
+): SubjectPageRuntime => {
+  const photoResolution = overrides?.photoResolution ?? {
+    photos: data.photos.map((photo) => ({
+      ...photo,
+      aspectRatio: 16 / 9,
+    })),
+    status: "ready",
+  };
+
+  return {
+    actions: {
+      handleCommentVote: () => Promise.resolve({ ok: true }),
+      handleReviewVote: () => Promise.resolve({ ok: true }),
+      interestMarking: {
+        fetch: () =>
+          Promise.resolve({
+            isPrivate: false,
+            myTags: [],
+            popularTags: [],
+            shareToBroadcast: false,
+            status: "wish" as const,
+            tags: [],
+          }),
+        post: () => Promise.resolve({ ok: false }),
+        remove: () => Promise.resolve({ ok: false }),
+      },
     },
-  },
-  externalRatings: null,
-  firstBroadcastPlatform: null,
-  navigation: {
-    activeSectionId: "",
-    navRef: { current: null },
-    onJump: () => {},
-    scrolling: false,
-    sections: computeNavSections(data),
-    visible: false,
-  },
-  resolvedComments: data.comments,
-  series: [],
-  summary: data.summary,
-  ...overrides,
-});
+    externalRatings: null,
+    firstBroadcastPlatform: null,
+    navigation: {
+      activeSectionId: "",
+      navRef: { current: null },
+      onJump: () => {},
+      scrolling: false,
+      sections: computeNavSections(data),
+      visible: false,
+    },
+    resolvedComments: data.comments,
+    series: [],
+    summary: data.summary,
+    ...overrides,
+    photoResolution,
+  };
+};
 
 const renderSubjectPage = (
   data: DoubanData = makeDoubanData(),
@@ -205,7 +216,7 @@ const renderStickyNav = (data: DoubanData = makeDoubanData()): HTMLElement => {
     <StickyNav
       onJump={() => {}}
       sections={computeNavSections(data)}
-      title={data.title}
+      title={data.title.primary || data.title.full}
     />,
     stickyNav
   );
@@ -221,9 +232,9 @@ const S = {
   info: { id: "atv-info", label: "详情" },
   movieReviews: { id: "atv-reviews", label: "影评" },
   photos: { id: "atv-photos", label: "影像" },
-  recs: { id: "atv-recs", label: "相似作品" },
-  series: { id: "atv-series", label: "同系列" },
-  stream: { id: "atv-stream", label: "观看平台" },
+  recs: { id: "atv-recs", label: "推荐" },
+  series: { id: "atv-series", label: "系列" },
+  stream: { id: "atv-stream", label: "片源" },
   tvReviews: { id: "atv-reviews", label: "剧评" },
 } as const;
 
@@ -416,6 +427,12 @@ describe(SubjectPage, () => {
     await vi.waitFor(() =>
       expect(root.querySelector(".atv-interest-modal-tag-input")).not.toBeNull()
     );
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
+          ?.disabled
+      ).toBeFalsy()
+    );
     root
       .querySelector<HTMLButtonElement>(".atv-interest-modal-submit")
       ?.click();
@@ -537,9 +554,7 @@ describe(SubjectPage, () => {
       ...root.querySelectorAll<HTMLAnchorElement>(".atv-stickynav-jumps a"),
     ]
       .map((link) => link.textContent)
-      .filter((label) =>
-        ["影评", "小组讨论", "相似作品"].includes(label ?? "")
-      );
+      .filter((label) => ["影评", "讨论", "推荐"].includes(label ?? ""));
 
     expect({
       heading: root.querySelector("#atv-discussions h2")?.textContent,
@@ -552,8 +567,8 @@ describe(SubjectPage, () => {
         target: topicLink?.target,
       },
     }).toStrictEqual({
-      heading: "小组讨论",
-      navOrder: ["影评", "小组讨论", "相似作品"],
+      heading: "讨论",
+      navOrder: ["影评", "讨论", "推荐"],
       sectionOrder: ["atv-reviews", "atv-discussions", "atv-recs"],
       topic: {
         href: "https://www.douban.com/group/topic/480926084/",
@@ -803,6 +818,6 @@ describe(SubjectPage, () => {
     expect({
       nav: root.querySelector('a[href="#atv-discussions"]')?.textContent,
       section: root.querySelector("#atv-discussions h2")?.textContent,
-    }).toStrictEqual({ nav: "小组讨论", section: "小组讨论" });
+    }).toStrictEqual({ nav: "讨论", section: "讨论" });
   });
 });

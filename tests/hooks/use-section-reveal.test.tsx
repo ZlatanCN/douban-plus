@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Section } from "@/components/layout/section";
+import { Section } from "@/shared/components/layout/section";
 
 import { renderIntoRoot } from "../helpers/render";
 

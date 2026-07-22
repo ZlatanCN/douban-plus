@@ -7,12 +7,12 @@ const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
 );
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmPost: mockGmPost,
 }));
 
 // Import after mocking
-const { fetchImdbRating } = await import("../../src/api/imdb");
+const { fetchImdbRating } = await import("../../src/modules/subject/api/imdb");
 
 /* ── Helpers ──────────────────────────────────────────── */
 

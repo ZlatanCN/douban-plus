@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import * as info from "@/extract/info";
+import * as info from "@/modules/subject/extract/info";
 
 import { buildDoc } from "../helpers/doc";
 

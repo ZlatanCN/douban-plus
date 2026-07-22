@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractDiscussions } from "@/extract/discussions";
+import { extractDiscussions } from "@/modules/subject/extract/discussions";
 
 import { buildDoc } from "../helpers/doc";
 

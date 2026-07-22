@@ -2,9 +2,9 @@ import type { AnimationPlaybackControlsWithThen } from "motion";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useEntranceExitAnimation } from "@/hooks/use-entrance-exit-animation";
-import type { animateWithReducedMotion } from "@/utils/springs";
-import { springConfigs } from "@/utils/springs";
+import { useEntranceExitAnimation } from "@/shared/hooks/use-entrance-exit-animation";
+import type { animateWithReducedMotion } from "@/shared/utils/springs";
+import { springConfigs } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => {
   const animations: { resolve: () => void; stop: () => void }[] = [];
@@ -31,7 +31,7 @@ const motion = vi.hoisted(() => {
   return { animate, animations };
 });
 
-vi.mock(import("@/utils/springs"), async (importOriginal) => ({
+vi.mock(import("@/shared/utils/springs"), async (importOriginal) => ({
   ...(await importOriginal()),
   animateWithReducedMotion: motion.animate,
 }));

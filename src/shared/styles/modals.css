@@ -1,0 +1,147 @@
+.atv-modal-overlay {
+  position: fixed;
+  z-index: 10000;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  margin: 0;
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
+  background: rgb(0 0 0 / 78%);
+  inset: 0;
+}
+
+.atv-modal-img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--atv-radius-lg);
+  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
+  object-fit: contain;
+  transition: opacity var(--atv-duration-feedback) ease;
+}
+
+.atv-image-modal-frame {
+  position: relative;
+  display: grid;
+  max-width: 90vw;
+  max-height: 90vh;
+  place-items: center;
+}
+
+.atv-image-modal-frame > .atv-modal-img,
+.atv-image-modal-frame > .atv-modal-preview,
+.atv-image-modal-loading {
+  grid-area: 1 / 1;
+}
+
+.atv-modal-preview {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: var(--atv-radius-lg);
+  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);
+  object-fit: contain;
+  transition:
+    filter var(--atv-duration-feedback) ease,
+    opacity var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-feedback) ease;
+}
+
+.atv-image-modal-frame.is-loading > .atv-modal-preview {
+  filter: blur(10px) saturate(0.82);
+  opacity: 0.72;
+  transform: scale(1.02);
+}
+
+.atv-image-modal-frame.is-loading > .atv-modal-img {
+  opacity: 0;
+}
+
+.atv-image-modal-frame.is-preview > .atv-modal-img {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.atv-image-modal-frame.is-loaded > .atv-modal-preview {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.atv-image-modal-loading {
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #fff;
+  font-size: 14px;
+  gap: 10px;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 65%);
+}
+
+.atv-modal-accent-bar {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-accent) 15%,
+    var(--atv-accent) 85%,
+    transparent
+  );
+  opacity: 1;
+}
+
+.atv-modal-close {
+  position: fixed;
+  z-index: 10001;
+  top: 24px;
+  right: 24px;
+  display: flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  appearance: none;
+  background: rgb(255 255 255 / 8%);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition:
+    transform var(--atv-duration-press) var(--atv-ease-out),
+    color var(--atv-duration-feedback) ease,
+    background var(--atv-duration-feedback) ease,
+    border-color var(--atv-duration-feedback) ease;
+}
+
+.atv-modal-close.atv-image-modal-close {
+  position: absolute;
+  z-index: 2;
+  top: 12px;
+  right: 12px;
+}
+
+.atv-modal-close:hover {
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 16%);
+  color: #fff;
+}
+
+.atv-modal-close:active {
+  transform: scale(0.97);
+}
+
+.atv-modal-close svg {
+  display: block;
+}

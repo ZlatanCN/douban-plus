@@ -3,14 +3,14 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-import { postVote } from "@/api/comment";
+import { postVote } from "@/modules/subject/api/comment";
 
 const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
 );
 const mockGetCk = vi.hoisted(() => vi.fn<() => string>());
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   getCk: mockGetCk,
   gmPost: mockGmPost,
 }));

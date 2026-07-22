@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as nativeSummary from "@/runtime/use-native-summary";
+import * as nativeSummary from "@/modules/subject/runtime/use-native-summary";
 
 import { buildDoc } from "../helpers/doc";
 

@@ -1,0 +1,188 @@
+/* ---------- Collaborators ---------- */
+.atv-personage-collaborators {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 20px 0 0;
+  list-style: none;
+}
+
+.atv-personage-collaborator {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  align-items: center;
+  padding: 14px 12px;
+  border-radius: var(--atv-radius-sm, 8px);
+  gap: 14px;
+  grid-template-columns: 28px 48px 1fr auto;
+  transition: background 160ms ease;
+}
+
+.atv-section-reveal.is-revealed .atv-personage-collaborator {
+  animation: atv-collaborator-in 200ms var(--atv-ease-out) both;
+  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator:hover {
+    background: var(--atv-bg-secondary);
+  }
+
+  .atv-personage-collaborator::before {
+    position: absolute;
+    top: 14px;
+    bottom: 14px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--atv-accent);
+    content: "";
+    opacity: 0;
+    transform: scaleY(0.35);
+    transition:
+      opacity var(--atv-duration-feedback) ease,
+      transform var(--atv-duration-hover) var(--atv-ease-out);
+  }
+
+  .atv-personage-collaborator:hover::before {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.atv-personage-collaborator:active {
+  transform: scale(0.98);
+}
+
+@keyframes atv-collaborator-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.atv-personage-collaborator-rank {
+  display: flex;
+  justify-content: flex-end;
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.atv-personage-collaborator-avatar {
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--atv-border-subtle);
+  border-radius: 50%;
+  background: var(--atv-bg-tertiary);
+  object-fit: cover;
+  transition: border-color 160ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator:hover .atv-personage-collaborator-avatar {
+    border-color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-avatar.is-fallback {
+  display: grid;
+  color: var(--atv-text-primary);
+  font-size: 18px;
+  font-weight: 600;
+  place-items: center;
+}
+
+.atv-personage-collaborator-info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.atv-personage-collaborator-name {
+  overflow: hidden;
+  color: var(--atv-text-primary);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  transition: color 160ms ease;
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator-name:hover {
+    color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-count {
+  color: var(--atv-text-tertiary);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.atv-personage-collaborator-action {
+  flex-shrink: 0;
+  color: var(--atv-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition:
+    color 160ms ease,
+    opacity 200ms var(--atv-ease-out),
+    transform 200ms var(--atv-ease-out);
+  white-space: nowrap;
+}
+
+.atv-personage-collaborator-arrow {
+  display: inline-block;
+  transition:
+    opacity var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-hover) var(--atv-ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-collaborator-action {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(8px);
+  }
+
+  .atv-personage-collaborator-arrow {
+    opacity: 0.35;
+    transform: translate(1px, -2px);
+  }
+
+  .atv-personage-collaborator:hover .atv-personage-collaborator-action {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+
+  .atv-personage-collaborator-action:hover {
+    color: var(--atv-accent-bright);
+  }
+}
+
+.atv-personage-collaborator-action:focus-visible {
+  border-radius: 2px;
+  color: var(--atv-accent-bright);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}

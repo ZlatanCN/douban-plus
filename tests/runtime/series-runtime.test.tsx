@@ -1,10 +1,10 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as seriesRuntime from "@/runtime/use-series-runtime";
-import type { SeriesItem } from "@/types";
+import type { SeriesItem } from "@/modules/subject/domain";
+import * as seriesRuntime from "@/modules/subject/runtime/use-series-runtime";
 
-import { buildDoc } from "../helpers/doc";
+import { buildDoc, createTestDoc } from "../helpers/doc";
 
 const initialSeries: SeriesItem = {
   link: "https://movie.douban.com/subject/initial/",
@@ -26,6 +26,10 @@ const SeriesRuntimeProbe = ({
   return (
     <output
       data-items={result.items.map((item) => item.title).join("|")}
+      data-current-items={result.items
+        .filter((item) => item.isCurrent)
+        .map((item) => item.title)
+        .join("|")}
       data-more-link={result.moreLink?.href ?? ""}
       data-more-text={result.moreLink?.text ?? ""}
     />
@@ -86,6 +90,19 @@ describe("Series runtime", () => {
       expect(root.querySelector("output")?.dataset.items).toBe("第一季|第二季")
     );
     expect(root.querySelector("output")?.dataset.moreText).toBe("查看全部");
+  });
+
+  it("resolves the current series from the host document location", async () => {
+    const { cleanup, doc } = createTestDoc(
+      `<body><div id="series-items">${lateSeriesMarkup}</div></body>`,
+      "/subject/1/"
+    );
+    const root = renderProbe(doc);
+
+    await vi.waitFor(() =>
+      expect(root.querySelector("output")?.dataset.currentItems).toBe("第一季")
+    );
+    cleanup();
   });
 
   it("adopts late native series and its more link", async () => {

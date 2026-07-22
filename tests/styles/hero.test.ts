@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const heroCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/hero.css"),
+  path.resolve(process.cwd(), "src/modules/subject/styles/hero.css"),
   "utf-8"
 );
 

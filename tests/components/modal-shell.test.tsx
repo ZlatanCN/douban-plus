@@ -3,9 +3,12 @@ import { render } from "preact";
 import type { ComponentChild } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ModalSession, ModalShell } from "@/components/modal";
-import type { SwipeToDismissOptions } from "@/components/modal/use-swipe-to-dismiss";
-import type { animateWithReducedMotion } from "@/utils/springs";
+import { ModalSession, ModalShell } from "@/shared/components/modal";
+import type {
+  SwipeDismissDetails,
+  SwipeToDismissOptions,
+} from "@/shared/components/modal/use-swipe-to-dismiss";
+import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 import { renderIntoRoot } from "../helpers/render";
 
@@ -31,7 +34,9 @@ const trackedRenderModal = (onClose: () => void, request: object = {}) =>
   );
 
 const swipeCallbacks = vi.hoisted(() => {
-  const callbacks: { onDismiss?: () => void } = {};
+  const callbacks: {
+    onDismiss?: (details: SwipeDismissDetails) => void;
+  } = {};
   return callbacks;
 });
 const swipeRef = vi.hoisted(() => vi.fn<(el: HTMLElement | null) => void>());
@@ -71,7 +76,7 @@ const motion = vi.hoisted(() => {
   return { animate, animations };
 });
 
-vi.mock(import("@/utils/springs"), () => ({
+vi.mock(import("@/shared/utils/springs"), () => ({
   animateWithReducedMotion: motion.animate,
   springConfigs: {
     carouselSnap: { damping: 18, stiffness: 200, type: "spring" },
@@ -87,7 +92,7 @@ vi.mock(import("@/utils/springs"), () => ({
   } as const,
 }));
 
-vi.mock(import("@/components/modal/use-swipe-to-dismiss"), () => ({
+vi.mock(import("@/shared/components/modal/use-swipe-to-dismiss"), () => ({
   useSwipeToDismiss: mockUseSwipeToDismiss,
 }));
 
@@ -311,7 +316,7 @@ describe(ModalShell, () => {
       // The swipe callback should be captured
       expect(swipeCallbacks.onDismiss).toBeDefined();
 
-      swipeCallbacks.onDismiss?.();
+      swipeCallbacks.onDismiss?.({ position: 90, velocity: 640 });
 
       // After dismiss, motion.animate should have been called 4 times
       expect(motion.animate).toHaveBeenCalledTimes(4);
@@ -323,10 +328,15 @@ describe(ModalShell, () => {
       expect(motion.animate).toHaveBeenNthCalledWith(4, surface, {
         properties: {
           opacity: 0,
-          transform: "translateY(120px)",
+          transform: "translateY(100dvh)",
         },
         reducedMotionProperties: { opacity: 0 },
-        springConfig: { bounce: 0.2, duration: 0.4, type: "spring" },
+        springConfig: {
+          bounce: 0.2,
+          duration: 0.4,
+          type: "spring",
+          velocity: 640,
+        },
       });
     });
 

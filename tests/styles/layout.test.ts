@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const layoutCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/layout.css"),
+  path.resolve(process.cwd(), "src/shared/styles/layout.css"),
   "utf-8"
 );
 
@@ -27,5 +27,12 @@ describe("section reveal styles", () => {
   it("shows the section without motion under reduced-motion preference", () => {
     expect(layoutCss).toContain("prefers-reduced-motion: reduce");
     expect(layoutCss).toContain("transition: none;");
+  });
+});
+
+describe("carousel scroll-snap", () => {
+  it("allows free scrolling without snap-back on small gestures", () => {
+    expect(layoutCss).toContain(".atv-carousel {");
+    expect(layoutCss).not.toMatch(/scroll-snap-type/u);
   });
 });

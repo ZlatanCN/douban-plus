@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractStreaming } from "@/extract/streaming";
+import { extractStreaming } from "@/modules/subject/extract/streaming";
 
 import { buildDoc } from "../helpers/doc";
 

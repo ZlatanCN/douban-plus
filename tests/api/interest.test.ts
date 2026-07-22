@@ -8,7 +8,7 @@ import {
   fetchInterestSnapshot,
   postInterest,
   removeInterest,
-} from "@/api/interest";
+} from "@/modules/subject/api/interest";
 
 const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
@@ -18,7 +18,7 @@ const mockGmGet = vi.hoisted(() =>
 );
 const mockGetCk = vi.hoisted(() => vi.fn<() => string>());
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   getCk: mockGetCk,
   gmGet: mockGmGet,
   gmPost: mockGmPost,

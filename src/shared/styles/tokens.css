@@ -1,0 +1,29 @@
+:root {
+  --atv-bg-primary: #0c0a09;
+  --atv-bg-secondary: #1c1c1e;
+  --atv-bg-tertiary: #2c2c2e;
+  --atv-bg-elevated: rgb(255 255 255 / 6%);
+  --atv-text-primary: #fff;
+  --atv-text-secondary: rgb(255 255 255 / 72%);
+  --atv-text-tertiary: rgb(255 255 255 / 45%);
+  --atv-accent: #41be5d;
+  --atv-accent-bright: #4cd97a;
+  --atv-accent-glow: rgb(65 190 93 / 35%);
+  --atv-rating-gold: #ffb800;
+  --atv-border-subtle: rgb(255 255 255 / 8%);
+  --atv-border-medium: rgb(255 255 255 / 16%);
+  --atv-radius-sm: 8px;
+  --atv-radius-md: 12px;
+  --atv-radius-lg: 16px;
+  --atv-radius-xl: 24px;
+  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --atv-duration-press: 160ms;
+  --atv-duration-hover: 160ms;
+  --atv-duration-feedback: 200ms;
+  --atv-duration-content: 300ms;
+  --atv-duration-overlay: 200ms;
+  --atv-duration-modal-backdrop: 400ms;
+  --atv-duration-modal-surface: 350ms;
+}

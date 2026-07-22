@@ -1,0 +1,112 @@
+@media (width <= 640px) {
+  .atv-personage-hero-bg-image {
+    filter: blur(40px) saturate(1.25) brightness(0.5);
+  }
+
+  .atv-personage-hero-bg {
+    height: 60vh;
+  }
+
+  .atv-personage-hero-inner {
+    gap: 24px;
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+
+  .atv-personage-identity h1 {
+    font-size: clamp(34px, 10vw, 50px);
+  }
+
+  .atv-personage-facts {
+    margin-top: 20px;
+  }
+
+  .atv-personage-biography {
+    margin-top: 0;
+    grid-column: 1 / -1;
+  }
+
+  .atv-personage-collaborator {
+    padding: 14px 8px;
+    gap: 10px;
+    grid-template-columns: 20px 42px 1fr auto;
+  }
+
+  .atv-personage-collaborator-avatar,
+  .atv-personage-collaborator-avatar.is-fallback {
+    width: 42px;
+    height: 42px;
+  }
+
+  .atv-personage-gallery-rail li {
+    height: 160px;
+  }
+
+  .atv-personage-awards-list li {
+    padding: 16px 0;
+    gap: 10px;
+    grid-template-columns: 1fr;
+  }
+
+  .atv-personage-award-year {
+    padding-top: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .atv-personage-award-detail {
+    padding-left: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-personage-hero .atv-personage-portrait,
+  .atv-personage-hero .atv-personage-identity h1,
+  .atv-personage-hero .atv-personage-original-name,
+  .atv-personage-hero .atv-personage-facts div,
+  .atv-personage-hero .atv-personage-biography {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .atv-personage-collaborator {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .atv-personage-collaborator:active {
+    transform: none;
+  }
+
+  .atv-personage-gallery-rail li {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Timeline: dots always visible, no entrance animations */
+  .atv-timeline-year-group::before {
+    opacity: 1;
+    transform: scale(1);
+    transition: none;
+  }
+
+  .atv-section-reveal.is-revealed .atv-timeline-year-num {
+    animation: none;
+    opacity: 1;
+  }
+
+  .atv-personage-work-card,
+  .atv-section-reveal.is-revealed .atv-timeline-card {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .atv-personage-work-card,
+  .atv-timeline-card {
+    transition: none;
+    will-change: auto;
+  }
+}

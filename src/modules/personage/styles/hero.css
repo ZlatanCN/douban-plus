@@ -1,0 +1,218 @@
+/* ---------- Personage hero ---------- */
+.atv-personage-hero {
+  position: relative;
+  min-height: 70vh;
+  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;
+}
+
+.atv-personage-hero::after {
+  position: absolute;
+  right: max(28px, 7vw);
+  bottom: 0;
+  left: max(28px, 7vw);
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--atv-border-subtle) 20%,
+    var(--atv-border-subtle) 80%,
+    transparent
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.atv-personage-hero-inner {
+  display: grid;
+  width: min(100%, 1120px);
+  align-items: start;
+  margin: 0 auto;
+  gap: clamp(32px, 5vw, 72px);
+  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
+}
+
+.atv-personage-portrait {
+  width: 100%;
+  border-radius: 50%;
+  aspect-ratio: 1;
+  background: var(--atv-bg-tertiary);
+  object-fit: cover;
+}
+
+.atv-personage-portrait.is-empty {
+  background: radial-gradient(
+    circle at 30% 25%,
+    #4a4a4d,
+    var(--atv-bg-tertiary) 62%
+  );
+}
+
+.atv-personage-portrait-trigger {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.atv-personage-kicker {
+  margin: 2px 0 16px;
+  color: var(--atv-accent-bright);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.atv-personage-identity h1 {
+  margin: 0;
+  color: var(--atv-text-primary);
+  font-size: clamp(44px, 7vw, 84px);
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.atv-personage-original-name {
+  margin: 18px 0 0;
+  color: var(--atv-text-secondary);
+  font-size: clamp(19px, 2.1vw, 28px);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.atv-personage-facts {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 32px 0 0;
+  gap: 12px 32px;
+}
+
+.atv-personage-facts div {
+  display: flex;
+  gap: 8px;
+}
+
+.atv-personage-facts dt {
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+}
+
+.atv-personage-facts dd {
+  margin: 0;
+  color: var(--atv-text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.atv-personage-biography {
+  max-width: 680px;
+  margin-top: 36px;
+}
+
+.atv-personage-biography-content {
+  color: var(--atv-text-secondary);
+  font-size: 16px;
+  letter-spacing: 0.01em;
+  line-height: 1.8;
+}
+
+.atv-personage-biography-content p {
+  margin: 0;
+}
+
+.atv-personage-biography-content p + p {
+  margin-top: 1em;
+}
+
+.atv-personage-biography-content.is-clamped > p:not(:first-child) {
+  display: none;
+}
+
+.atv-personage-biography-content.is-clamped > p:first-child {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.atv-personage-biography button {
+  padding: 0;
+  border: 0;
+  margin-top: 12px;
+  appearance: none;
+  background: transparent;
+  color: var(--atv-accent-bright);
+  cursor: pointer;
+  font: inherit;
+  transition: opacity 160ms ease;
+}
+
+/* ---------- Entrance ---------- */
+@keyframes atv-hero-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes atv-hero-portrait-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.atv-personage-hero.is-revealed .atv-personage-portrait {
+  animation: atv-hero-portrait-in 500ms var(--atv-ease-out) both;
+  animation-delay: 80ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-identity h1 {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 180ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-kicker {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 260ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-original-name {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 260ms;
+}
+
+.atv-personage-hero.is-revealed .atv-personage-facts div {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: calc(340ms + var(--fact-index, 0) * 60ms);
+}
+
+.atv-personage-hero.is-revealed .atv-personage-biography {
+  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;
+  animation-delay: 500ms;
+}
+
+/* ---------- Hover ---------- */
+@media (hover: hover) and (pointer: fine) {
+  .atv-personage-biography button:hover {
+    opacity: 0.8;
+  }
+}

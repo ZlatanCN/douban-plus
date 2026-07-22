@@ -1,0 +1,150 @@
+/* ---------- Section ---------- */
+.atv-section {
+  max-width: 1280px;
+  padding: 52px max(28px, 5vw);
+  margin: 0 auto;
+  contain-intrinsic-size: auto 400px;
+  content-visibility: auto;
+  scroll-margin-top: 64px;
+}
+
+.atv-section + .atv-section {
+  padding-top: 0;
+}
+
+.atv-section-h {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 14px;
+  margin: 0 0 24px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.atv-section-h::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 3px;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--atv-accent);
+  content: "";
+  transform: translateY(-50%);
+}
+
+.atv-section-h-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.atv-section-h-row .atv-section-h {
+  margin-bottom: 0;
+}
+
+.atv-section-more {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  color: var(--atv-text-tertiary);
+  font-size: 14px;
+  font-weight: 500;
+  gap: 4px;
+  letter-spacing: 0.02em;
+  transition:
+    color var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-hover) var(--atv-ease-out);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-section-more:hover {
+    color: var(--atv-accent-bright);
+    transform: translateX(3px);
+  }
+}
+
+.atv-section-more:focus-visible {
+  color: var(--atv-accent-bright);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}
+
+/* ---------- Section reveal on scroll ---------- */
+
+/* Below-the-fold sections start offset and fade in once they enter the
+   viewport. The motion here is opacity + a small translateY only. */
+.atv-section-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.atv-section-reveal.is-revealed {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--atv-duration-content) var(--atv-ease-out),
+    transform var(--atv-duration-content) var(--atv-ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-section-reveal,
+  .atv-section-reveal.is-revealed {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ---------- Carousel ---------- */
+.atv-carousel {
+  display: flex;
+  padding: 4px 4px 16px;
+  margin: 0 -4px;
+  contain: paint layout;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+
+.atv-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+/* ---------- Page scrollbar ---------- */
+:root {
+  color-scheme: dark;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1c1c1e;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: #3a3a3c;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #48484a;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+* {
+  scrollbar-color: #3a3a3c #1c1c1e;
+  scrollbar-width: thin;
+}

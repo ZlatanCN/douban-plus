@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const stickyNavCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/sticky-nav.css"),
+  path.resolve(process.cwd(), "src/modules/subject/styles/sticky-nav.css"),
   "utf-8"
 );
 
@@ -25,9 +25,7 @@ describe("sticky navigation styles", () => {
     expect(stickyNavCss).toMatch(
       /transition:\s*transform var\(--atv-duration-feedback\) var\(--atv-ease-in-out\)/u
     );
-    expect(stickyNavCss).toMatch(
-      /width var\(--atv-duration-feedback\) var\(--atv-ease-in-out\)/u
-    );
+    expect(stickyNavCss).not.toMatch(/width var\(--atv-duration-feedback\)/u);
   });
 
   it("drops the marker's sliding transition under reduced motion", () => {

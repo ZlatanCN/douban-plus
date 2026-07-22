@@ -4,12 +4,12 @@ const mockGmGet = vi.hoisted(() =>
   vi.fn<(url: string, referer?: string) => Promise<string>>()
 );
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmGet: mockGmGet,
 }));
 
 const { fetchFirstBroadcastPlatform } =
-  await import("@/api/first-broadcast-platform");
+  await import("@/modules/subject/api/first-broadcast-platform");
 
 const editForm = (platform: string): string => `
   <div class="item basic">
