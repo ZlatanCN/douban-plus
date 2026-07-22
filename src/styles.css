@@ -11,6 +11,7 @@
 @import url("./modules/subject/styles/subject-suggestions.css");
 @import url("./modules/subject/styles/hero.css");
 @import url("./modules/personage/styles/page.css");
+@import url("./shared/styles/safe-image.css");
 @import url("./modules/subject/styles/ratings.css");
 @import url("./modules/subject/styles/hero-actions.css");
 @import url("./shared/styles/layout.css");

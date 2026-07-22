@@ -4,9 +4,53 @@ import type { PersonageProfile } from "@/modules/personage/domain";
 import { extractPersonageProfile } from "@/modules/personage/extract/profile";
 import { PersonagePage } from "@/modules/personage/presentation/page";
 
-type PersonagePageRuntimeProps = {
+type PersonageProfileAdoptionProps = {
   doc: Document;
   initialProfile: PersonageProfile;
+};
+
+const isBiographyExpansionPending = (doc: Document): boolean =>
+  [
+    ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
+  ].some((element) => element.textContent?.includes("展开"));
+
+const adoptPersonageProfile = (doc: Document): PersonageProfile | null => {
+  const initialProfile = extractPersonageProfile(doc);
+  if (!initialProfile || !isBiographyExpansionPending(doc)) {
+    return initialProfile;
+  }
+
+  const trigger = [
+    ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
+  ].find((element) => element.textContent?.includes("展开"));
+  trigger?.click();
+
+  return isBiographyExpansionPending(doc) ? null : extractPersonageProfile(doc);
+};
+
+const adoptPersonageProfileWhenReady = (
+  doc: Document,
+  onAdopted: (profile: PersonageProfile) => void
+): void => {
+  const adopt = () => {
+    const profile = adoptPersonageProfile(doc);
+    if (profile) {
+      onAdopted(profile);
+    }
+  };
+
+  if (doc.readyState === "complete" || !isBiographyExpansionPending(doc)) {
+    adopt();
+    return;
+  }
+
+  const view = doc.defaultView;
+  if (!view) {
+    adopt();
+    return;
+  }
+
+  view.addEventListener("load", adopt, { once: true });
 };
 
 const isDynamicPersonageSourceOrDescendant = (node: Node): boolean => {
@@ -30,10 +74,10 @@ const hasDynamicPersonageSourceMutation = (
       [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant)
   );
 
-const PersonagePageRuntime = ({
+const PersonageProfileAdoption = ({
   doc,
   initialProfile,
-}: PersonagePageRuntimeProps) => {
+}: PersonageProfileAdoptionProps) => {
   const [profile, setProfile] = useState(initialProfile);
 
   useLayoutEffect(() => {
@@ -57,5 +101,5 @@ const PersonagePageRuntime = ({
   return <PersonagePage profile={profile} />;
 };
 
-export { PersonagePageRuntime };
-export type { PersonagePageRuntimeProps };
+export { adoptPersonageProfileWhenReady, PersonageProfileAdoption };
+export type { PersonageProfileAdoptionProps };
