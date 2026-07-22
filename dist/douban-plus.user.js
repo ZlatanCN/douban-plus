@@ -6817,15 +6817,13 @@ input::placeholder {
 			usefulCount: ""
 		};
 	};
+	var backgroundImageUrls = (style) => [...style.matchAll(new RegExp(RE_BG_URL.source, "gu"))].flatMap((match) => match.groups?.url ?? []);
 	var extractCelebrities = (doc) => $$("#celebrities li.celebrity", doc).map((li) => {
 		const nameEl = $(".info .name a", li) ?? $(".info .name", li);
 		const roleEl = $(".info .role", li);
 		const avatarEl = $(".avatar", li);
 		let avatar = "";
-		if (avatarEl) {
-			const m = (avatarEl.getAttribute("style") || "").match(RE_BG_URL);
-			if (m) avatar = m[1] ?? "";
-		}
+		if (avatarEl) avatar = backgroundImageUrls(avatarEl.getAttribute("style") || "").at(-1) ?? "";
 		return {
 			avatar: encodeURI(avatar),
 			link: nameEl && nameEl.tagName === "A" ? nameEl.href : "",

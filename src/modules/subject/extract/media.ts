@@ -9,6 +9,11 @@ import {
 } from "@/modules/subject/extract/image-urls";
 import { $, $$, safeText } from "@/shared/utils/dom";
 
+const backgroundImageUrls = (style: string): string[] =>
+  [...style.matchAll(new RegExp(RE_BG_URL.source, "gu"))].flatMap(
+    (match) => match.groups?.url ?? []
+  );
+
 /**
  * Extract cast/crew from the "#celebrities" list.
  * Iterates `.celebrity` items and pulls name, role, avatar (from background),
@@ -25,10 +30,7 @@ const extractCelebrities = (doc: Document): Celebrity[] =>
       let avatar = "";
       if (avatarEl) {
         const bg = avatarEl.getAttribute("style") || "";
-        const m = bg.match(RE_BG_URL);
-        if (m) {
-          avatar = m[1] ?? "";
-        }
+        avatar = backgroundImageUrls(bg).at(-1) ?? "";
       }
       return {
         avatar: encodeURI(avatar),
