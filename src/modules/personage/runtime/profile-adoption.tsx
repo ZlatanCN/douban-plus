@@ -1,8 +1,10 @@
-import { useLayoutEffect, useState } from "preact/hooks";
+import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 
 import type { PersonageProfile } from "@/modules/personage/domain";
 import { extractPersonageProfile } from "@/modules/personage/extract/profile";
 import { PersonagePage } from "@/modules/personage/presentation/page";
+import { usePersonageStickyNavigation } from "@/modules/personage/runtime/use-sticky-navigation";
+import type { PersonageNavSection } from "@/modules/personage/runtime/use-sticky-navigation";
 
 type PersonageProfileAdoptionProps = {
   doc: Document;
@@ -74,11 +76,43 @@ const hasDynamicPersonageSourceMutation = (
       [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant)
   );
 
+const computePersonageNavSections = (
+  profile: PersonageProfile
+): PersonageNavSection[] => {
+  const sections: PersonageNavSection[] = [];
+
+  if (profile.awards?.awards.length) {
+    sections.push({ id: "atv-personage-awards", label: "荣誉" });
+  }
+  if (profile.recentWorks?.works.length) {
+    sections.push({ id: "atv-personage-recent-works", label: "近作" });
+  }
+  if (profile.representativeWorks?.works.length) {
+    sections.push({
+      id: "atv-personage-representative-works",
+      label: "作品选",
+    });
+  }
+  if (profile.collaborators?.collaborators.length) {
+    sections.push({ id: "atv-personage-collaborators", label: "合作" });
+  }
+  if (profile.gallery?.images.length) {
+    sections.push({ id: "atv-personage-gallery", label: "图集" });
+  }
+
+  return sections;
+};
+
 const PersonageProfileAdoption = ({
   doc,
   initialProfile,
 }: PersonageProfileAdoptionProps) => {
   const [profile, setProfile] = useState(initialProfile);
+  const sections = useMemo(
+    () => computePersonageNavSections(profile),
+    [profile]
+  );
+  const navigation = usePersonageStickyNavigation(doc, sections);
 
   useLayoutEffect(() => {
     const refreshProfile = () => {
@@ -98,7 +132,12 @@ const PersonageProfileAdoption = ({
     return () => observer.disconnect();
   }, [doc]);
 
-  return <PersonagePage profile={profile} />;
+  return (
+    <PersonagePage
+      navigation={sections.length > 0 ? navigation : undefined}
+      profile={profile}
+    />
+  );
 };
 
 export { adoptPersonageProfileWhenReady, PersonageProfileAdoption };

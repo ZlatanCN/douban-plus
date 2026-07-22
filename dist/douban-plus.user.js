@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.4.1
+// @version      1.5.0
 // @author       Gabriel Zhu
-// @description  适配 ScriptCat 和 Tampermonkey 的豆瓣电影详情页增强脚本，用 Preact 重排 Apple TV 风格暗色界面，并保留豆瓣原生登录、标记和跳转能力。
+// @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
 // @copyright    Gabriel Zhu (MIT)
 // @icon         data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iOTQiIGhlaWdodD0iOTQiIHJ4PSIyMCIgZmlsbD0iIzFjMWMxZSIvPgogIDxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjUyIiByeD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iNjIiIHI9IjgiIGZpbGw9IiM0MmJkNTYiLz4KPC9zdmc+Cg==
@@ -5600,6 +5600,66 @@
 			})
 		});
 	};
+	var computeIndicatorMetrics = (activeEl, containerEl) => {
+		const containerRect = containerEl.getBoundingClientRect();
+		const activeRect = activeEl.getBoundingClientRect();
+		return {
+			left: activeRect.left - containerRect.left,
+			width: activeRect.width
+		};
+	};
+	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
+		const markerRef = A(null);
+		_(() => {
+			if (!activeSectionId) return;
+			const nav = navRef?.current;
+			const marker = markerRef.current;
+			if (!nav || !marker) return;
+			const container = nav.querySelector(".atv-stickynav-jumps");
+			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
+			if (!container || !activeLink) return;
+			const frame = requestAnimationFrame(() => {
+				const { left, width } = computeIndicatorMetrics(activeLink, container);
+				marker.style.transform = `translateX(${left}px)`;
+				marker.style.width = `${width}px`;
+			});
+			return () => {
+				cancelAnimationFrame(frame);
+			};
+		}, [activeSectionId, navRef]);
+		return u("nav", {
+			...navRef ? { ref: navRef } : {},
+			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
+			children: [
+				u("div", {
+					class: "atv-stickynav-title",
+					children: title
+				}),
+				accessory,
+				u("div", {
+					class: "atv-stickynav-jumps",
+					children: [sections.map((section) => u("a", {
+						class: activeSectionId === section.id ? "is-active" : void 0,
+						"data-section-id": section.id,
+						href: `#${section.id}`,
+						onClick: (event) => {
+							event.preventDefault();
+							onJump(section.id);
+						},
+						children: section.label
+					}, section.id)), u("div", {
+						"aria-hidden": "true",
+						class: "atv-stickynav-marker",
+						ref: markerRef
+					})]
+				})
+			]
+		});
+	};
+	var PersonageStickyNav = ({ name, ...navigation }) => u(StickyNav, {
+		...navigation,
+		title: name
+	});
 	var PosterPlaceholder = () => u("div", {
 		class: "atv-poster-placeholder",
 		children: u(IconFilmPlaceholder, {})
@@ -5730,7 +5790,7 @@
 		if (originalNameStart <= 0) return name;
 		return name.slice(0, originalNameStart).trim();
 	};
-	var PersonagePage = ({ profile }) => {
+	var PersonagePage = ({ navigation, profile }) => {
 		const activeImage = useModalRequest();
 		const primaryName = extractPrimaryName(profile.name);
 		const handleOpenPortrait = (src, alt) => {
@@ -5739,40 +5799,142 @@
 				src
 			});
 		};
-		return u(S, { children: [u("main", {
-			class: "atv-personage",
-			children: [
-				u(PersonageHero, {
-					profile,
-					onOpenPortrait: handleOpenPortrait
-				}),
-				u(PersonageAwardsSection, { awards: profile.awards }),
-				u(PersonageTimeline, {
-					id: "atv-personage-recent-works",
-					rail: profile.recentWorks,
-					title: "近作"
-				}),
-				u(PersonageWorkRail, {
-					id: "atv-personage-representative-works",
-					rail: profile.representativeWorks,
-					title: "作品选"
-				}),
-				u(PersonageCollaborators, { collaborators: profile.collaborators }),
-				u(PersonageGallerySection, {
-					gallery: profile.gallery,
-					name: primaryName,
-					onOpenImage: activeImage.handleOpen
+		return u(S, { children: [
+			navigation ? u(PersonageStickyNav, {
+				...navigation,
+				name: primaryName
+			}) : null,
+			u("main", {
+				class: "atv-personage",
+				children: [
+					u(PersonageHero, {
+						profile,
+						onOpenPortrait: handleOpenPortrait
+					}),
+					u(PersonageAwardsSection, { awards: profile.awards }),
+					u(PersonageTimeline, {
+						id: "atv-personage-recent-works",
+						rail: profile.recentWorks,
+						title: "近作"
+					}),
+					u(PersonageWorkRail, {
+						id: "atv-personage-representative-works",
+						rail: profile.representativeWorks,
+						title: "作品选"
+					}),
+					u(PersonageCollaborators, { collaborators: profile.collaborators }),
+					u(PersonageGallerySection, {
+						gallery: profile.gallery,
+						name: primaryName,
+						onOpenImage: activeImage.handleOpen
+					})
+				]
+			}),
+			activeImage.active ? u(ModalSession, {
+				request: activeImage.active,
+				children: u(PosterModal, {
+					alt: activeImage.active.value.alt,
+					onClose: activeImage.handleClose,
+					...activeImage.active.value.previewSrc ? { previewSrc: activeImage.active.value.previewSrc } : {},
+					src: activeImage.active.value.src
 				})
-			]
-		}), activeImage.active ? u(ModalSession, {
-			request: activeImage.active,
-			children: u(PosterModal, {
-				alt: activeImage.active.value.alt,
-				onClose: activeImage.handleClose,
-				...activeImage.active.value.previewSrc ? { previewSrc: activeImage.active.value.previewSrc } : {},
-				src: activeImage.active.value.src
-			})
-		}) : null] });
+			}) : null
+		] });
+	};
+	var usePersonageStickyNavigation = (doc, sections) => {
+		const [activeSectionId, setActiveSectionId] = d("");
+		const [visible, setVisible] = d(false);
+		const [scrolling, setScrolling] = d(false);
+		const lastVisibleRef = A(false);
+		const navRef = A(null);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			let scrollTimer;
+			const handleScroll = () => {
+				const isVisible = view.scrollY > 300;
+				if (isVisible !== lastVisibleRef.current) {
+					lastVisibleRef.current = isVisible;
+					setVisible(isVisible);
+				}
+				setScrolling(true);
+				view.clearTimeout(scrollTimer);
+				scrollTimer = view.setTimeout(() => setScrolling(false), 150);
+			};
+			view.addEventListener("scroll", handleScroll, { passive: true });
+			handleScroll();
+			return () => {
+				view.removeEventListener("scroll", handleScroll);
+				view.clearTimeout(scrollTimer);
+			};
+		}, [doc]);
+		h(() => {
+			const nav = navRef.current;
+			if (!nav) return;
+			animateWithReducedMotion(nav, {
+				properties: visible ? {
+					opacity: 1,
+					transform: "translateY(0)"
+				} : {
+					opacity: 0,
+					transform: "translateY(-100%)"
+				},
+				reducedMotionProperties: { opacity: visible ? 1 : 0 },
+				springConfig: springConfigs.stickyNav
+			});
+		}, [visible]);
+		h(() => {
+			const view = doc.defaultView ?? window;
+			const elements = new Map();
+			for (const section of sections) {
+				const element = doc.querySelector(`#${section.id}`);
+				if (element) elements.set(section.id, element);
+			}
+			let pending = false;
+			const pick = () => {
+				let activeId = "";
+				let bestScore = -Infinity;
+				for (const section of sections) {
+					const element = elements.get(section.id);
+					if (!element) continue;
+					const rect = element.getBoundingClientRect();
+					const visibleTop = Math.max(rect.top, 56);
+					const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
+					const score = Math.max(0, visibleBottom - visibleTop);
+					if (score > bestScore) {
+						activeId = section.id;
+						bestScore = score;
+					}
+				}
+				setActiveSectionId(activeId);
+				pending = false;
+			};
+			const observer = new view.IntersectionObserver(() => {
+				if (pending) return;
+				pending = true;
+				view.requestAnimationFrame(pick);
+			}, { threshold: [
+				0,
+				.25,
+				.5
+			] });
+			for (const element of elements.values()) observer.observe(element);
+			pick();
+			return () => observer.disconnect();
+		}, [doc, sections]);
+		return {
+			activeSectionId,
+			navRef,
+			onJump: q((sectionId) => {
+				const prefersReducedMotion = (doc.defaultView ?? window).matchMedia("(prefers-reduced-motion: reduce)").matches;
+				doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+					behavior: prefersReducedMotion ? "auto" : "smooth",
+					block: "start"
+				});
+			}, [doc]),
+			scrolling,
+			sections,
+			visible
+		};
 	};
 	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
 	var adoptPersonageProfile = (doc) => {
@@ -5802,8 +5964,34 @@
 		return node.matches(".subject-awards, .subject-creations") || node.closest(".subject-awards, .subject-creations") !== null || node.querySelector(".subject-awards, .subject-creations") !== null;
 	};
 	var hasDynamicPersonageSourceMutation = (mutations) => mutations.some((mutation) => isDynamicPersonageSourceOrDescendant(mutation.target) || [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant));
+	var computePersonageNavSections = (profile) => {
+		const sections = [];
+		if (profile.awards?.awards.length) sections.push({
+			id: "atv-personage-awards",
+			label: "荣誉"
+		});
+		if (profile.recentWorks?.works.length) sections.push({
+			id: "atv-personage-recent-works",
+			label: "近作"
+		});
+		if (profile.representativeWorks?.works.length) sections.push({
+			id: "atv-personage-representative-works",
+			label: "作品选"
+		});
+		if (profile.collaborators?.collaborators.length) sections.push({
+			id: "atv-personage-collaborators",
+			label: "合作"
+		});
+		if (profile.gallery?.images.length) sections.push({
+			id: "atv-personage-gallery",
+			label: "图集"
+		});
+		return sections;
+	};
 	var PersonageProfileAdoption = ({ doc, initialProfile }) => {
 		const [profile, setProfile] = d(initialProfile);
+		const sections = T(() => computePersonageNavSections(profile), [profile]);
+		const navigation = usePersonageStickyNavigation(doc, sections);
 		_(() => {
 			const refreshProfile = () => {
 				const nextProfile = extractPersonageProfile(doc);
@@ -5818,7 +6006,10 @@
 			});
 			return () => observer.disconnect();
 		}, [doc]);
-		return u(PersonagePage, { profile });
+		return u(PersonagePage, {
+			navigation: sections.length > 0 ? navigation : void 0,
+			profile
+		});
 	};
 	var isPersonageHomepage = (location) => location.hostname === "www.douban.com" && /^\/personage\/\d+\/?$/u.test(location.pathname);
 	var mountPersonage = (doc = document) => {
@@ -12980,62 +13171,6 @@ input::placeholder {
 			acquisition: useTrailerAcquisition(trailer),
 			onClose,
 			trailer
-		});
-	};
-	var computeIndicatorMetrics = (activeEl, containerEl) => {
-		const containerRect = containerEl.getBoundingClientRect();
-		const activeRect = activeEl.getBoundingClientRect();
-		return {
-			left: activeRect.left - containerRect.left,
-			width: activeRect.width
-		};
-	};
-	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
-		const markerRef = A(null);
-		_(() => {
-			if (!activeSectionId) return;
-			const nav = navRef?.current;
-			const marker = markerRef.current;
-			if (!nav || !marker) return;
-			const container = nav.querySelector(".atv-stickynav-jumps");
-			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
-			if (!container || !activeLink) return;
-			const frame = requestAnimationFrame(() => {
-				const { left, width } = computeIndicatorMetrics(activeLink, container);
-				marker.style.transform = `translateX(${left}px)`;
-				marker.style.width = `${width}px`;
-			});
-			return () => {
-				cancelAnimationFrame(frame);
-			};
-		}, [activeSectionId, navRef]);
-		return u("nav", {
-			...navRef ? { ref: navRef } : {},
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
-			children: [
-				u("div", {
-					class: "atv-stickynav-title",
-					children: title
-				}),
-				accessory,
-				u("div", {
-					class: "atv-stickynav-jumps",
-					children: [sections.map((section) => u("a", {
-						class: activeSectionId === section.id ? "is-active" : void 0,
-						"data-section-id": section.id,
-						href: `#${section.id}`,
-						onClick: (event) => {
-							event.preventDefault();
-							onJump(section.id);
-						},
-						children: section.label
-					}, section.id)), u("div", {
-						"aria-hidden": "true",
-						class: "atv-stickynav-marker",
-						ref: markerRef
-					})]
-				})
-			]
 		});
 	};
 	var SubjectStickyNav = ({ subjectSwitcher, subjectSwitcherOpen = false, title, ...navigation }) => u(StickyNav, {

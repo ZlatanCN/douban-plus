@@ -1,6 +1,6 @@
 # Douban Plus
 
-Douban Plus 是适配 ScriptCat 和 Tampermonkey 的豆瓣影视详情页用户脚本。它从当前页面读取公开资料，再以 Preact 重排为紧凑的暗色影视详情页；豆瓣原有链接、登录、标记与投票流程仍保留在其原生边界内。
+Douban Plus 是适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页用户脚本。它从当前页面读取公开资料，再以 Preact 重排为沉浸式暗色界面；豆瓣原有链接、登录、标记与投票流程仍保留在其原生边界内。
 
 ![Hero screenshot](tests/screenshots/movie-shawshank-hero.png)
 
@@ -23,7 +23,7 @@ pnpm install
 pnpm build
 ```
 
-将 [`dist/douban-plus.user.js`](dist/douban-plus.user.js) 的完整内容安装到 ScriptCat 或 Tampermonkey。随后访问 `https://movie.douban.com/subject/*`，脚本会自动运行。
+将 [`dist/douban-plus.user.js`](dist/douban-plus.user.js) 的完整内容安装到 ScriptCat 或 Tampermonkey。随后访问 `https://movie.douban.com/subject/*` 或 `https://www.douban.com/personage/*`，脚本会自动运行。
 
 构建产物未压缩，体积会随依赖和功能变化；以构建命令输出为准。
 
@@ -106,7 +106,7 @@ E2E 会注入刚构建的 userscript，并在每个场景生成 `hero`、`full` 
 
 ### 支持首页、榜单或搜索页吗？
 
-不支持。脚本只匹配豆瓣电影和电视剧的 `/subject/*` 详情页，以及必要的豆瓣登录 iframe 页面。
+不支持。脚本只匹配豆瓣电影/电视剧的 `/subject/*` 详情页、豆瓣人物 `/personage/*` 页，以及必要的豆瓣登录 iframe 页面。
 
 ## 开源协议
 

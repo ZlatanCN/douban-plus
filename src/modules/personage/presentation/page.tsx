@@ -3,14 +3,17 @@ import type { ImageModalSource } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
 
 import type { PersonageProfile } from "../domain";
+import type { PersonageStickyNavigation } from "../runtime/use-sticky-navigation";
 import { PersonageAwardsSection } from "./awards";
 import { PersonageCollaborators } from "./collaborators";
 import { PersonageGallerySection } from "./gallery";
 import { PersonageHero } from "./hero";
+import { PersonageStickyNav } from "./sticky-nav";
 import { PersonageTimeline } from "./timeline";
 import { PersonageWorkRail } from "./works";
 
 type PersonagePageProps = {
+  navigation: PersonageStickyNavigation | undefined;
   profile: PersonageProfile;
 };
 
@@ -24,7 +27,7 @@ const extractPrimaryName = (name: string): string => {
   return name.slice(0, originalNameStart).trim();
 };
 
-const PersonagePage = ({ profile }: PersonagePageProps) => {
+const PersonagePage = ({ navigation, profile }: PersonagePageProps) => {
   const activeImage = useModalRequest<ActivePersonageImage>();
   const primaryName = extractPrimaryName(profile.name);
 
@@ -34,6 +37,9 @@ const PersonagePage = ({ profile }: PersonagePageProps) => {
 
   return (
     <>
+      {navigation ? (
+        <PersonageStickyNav {...navigation} name={primaryName} />
+      ) : null}
       <main class="atv-personage">
         <PersonageHero profile={profile} onOpenPortrait={handleOpenPortrait} />
         <PersonageAwardsSection awards={profile.awards} />

@@ -18,7 +18,17 @@ const layoutCss = readStyle("src/shared/styles/layout.css");
 const mediaCss = subjectStyle("media.css");
 const mediaPlaybackCss = subjectStyle("media-playback.css");
 const modalsCss = readStyle("src/shared/styles/modals.css");
-const personageCss = readStyle("src/modules/personage/styles/page.css");
+const personageCss = [
+  "hero.css",
+  "collaborators.css",
+  "gallery.css",
+  "works.css",
+  "timeline.css",
+  "awards.css",
+  "responsive.css",
+]
+  .map((name) => readStyle(`src/modules/personage/styles/${name}`))
+  .join("\n");
 const reviewsCss = subjectStyle("reviews.css");
 const responsiveCss = subjectStyle("responsive.css");
 const tokensCss = readStyle("src/shared/styles/tokens.css");
