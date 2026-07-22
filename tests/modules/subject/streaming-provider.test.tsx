@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import type { Streaming } from "@/modules/subject/domain";
 import { StreamingSection } from "@/modules/subject/media";
 import * as streamingProvider from "@/modules/subject/media/streaming-provider";
-import type { Streaming } from "@/types";
 
 import { renderSingle } from "../../helpers/render";
 

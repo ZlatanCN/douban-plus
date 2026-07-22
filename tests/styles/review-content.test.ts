@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const reviewContentCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/review-content.css"),
+  path.resolve(process.cwd(), "src/modules/subject/styles/review-content.css"),
   "utf-8"
 );
 

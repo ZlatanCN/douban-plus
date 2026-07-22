@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const stickyNavCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/sticky-nav.css"),
+  path.resolve(process.cwd(), "src/modules/subject/styles/sticky-nav.css"),
   "utf-8"
 );
 

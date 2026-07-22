@@ -1,6 +1,6 @@
-import { IconArrow } from "@/components/common/icons";
-import type { RatingResultMap } from "@/resolve/types";
-import type { HeroCallbacks, HeroData } from "@/types";
+import type { HeroCallbacks, HeroData } from "@/modules/subject/domain";
+import type { RatingResultMap } from "@/modules/subject/resolve/types";
+import { IconArrow } from "@/shared/components/common/icons";
 
 import { RatingPanel } from "../ratings/rating-panel";
 import { FirstBroadcastPlatform } from "./first-broadcast-platform";

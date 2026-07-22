@@ -2,20 +2,21 @@
 
 import { describe, expect, it, vi } from "vitest";
 
-import type { FetchImdbResult } from "@/api/imdb";
-import type { ResolutionContext } from "@/resolve/types";
-import type { McRating, RtRating } from "@/types";
+import type { FetchImdbResult } from "@/modules/subject/api/imdb";
+import type { McRating, RtRating } from "@/modules/subject/domain";
+import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
 // Mock request utils to prevent GM_xmlhttpRequest check from firing
 // during module import chain resolution.
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmGet: vi.fn<(url: string, referer?: string) => Promise<string>>(),
   gmPost:
     vi.fn<(url: string, data: string, referer?: string) => Promise<string>>(),
 }));
 
 // Import after all mocks are set up.
-const { resolveAll } = await import("../../src/resolve/orchestrate");
+const { resolveAll } =
+  await import("../../src/modules/subject/resolve/orchestrate");
 
 type FetchImdbRating = (
   imdbId: string,

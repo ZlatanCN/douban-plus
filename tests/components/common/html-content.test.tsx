@@ -1,7 +1,10 @@
 import { render } from "preact";
 import { describe, expect, it } from "vitest";
 
-import { HtmlContent, sanitizeHtml } from "@/components/common/html-content";
+import {
+  HtmlContent,
+  sanitizeHtml,
+} from "@/shared/components/common/html-content";
 
 const renderHtml = (html: string): HTMLElement => {
   const root = document.createElement("div");

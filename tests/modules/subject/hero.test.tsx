@@ -3,6 +3,12 @@ import { setTimeout as delay } from "node:timers/promises";
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type {
+  HeroCallbacks,
+  HeroData,
+  InterestState,
+  Photo,
+} from "@/modules/subject/domain";
 import { Hero } from "@/modules/subject/hero";
 import { HeroActions } from "@/modules/subject/hero/hero-actions";
 import {
@@ -10,7 +16,6 @@ import {
   pickStill,
 } from "@/modules/subject/hero/hero-background";
 import { HeroSummary } from "@/modules/subject/hero/hero-summary";
-import type { HeroCallbacks, HeroData, InterestState, Photo } from "@/types";
 
 import { renderSingle } from "../../helpers/render";
 

@@ -1,8 +1,6 @@
 import type { JSX } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import { ModalSession } from "@/components/modal";
-import { useModalRequest } from "@/hooks/use-modal-request";
 import type {
   HeroCallbacks,
   InterestFormState,
@@ -10,7 +8,9 @@ import type {
   InterestState,
   InterestWriteOptions,
   ModalCallbacks,
-} from "@/types";
+} from "@/modules/subject/domain";
+import { ModalSession } from "@/shared/components/modal";
+import { useModalRequest } from "@/shared/hooks/use-modal-request";
 
 import { InterestForm } from "./interest-form";
 import type { InterestFormSource } from "./interest-form-source";

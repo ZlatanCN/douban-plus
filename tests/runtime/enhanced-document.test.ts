@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { installEnhancedRoot } from "@/runtime/enhanced-document";
+import { installEnhancedRoot } from "@/shared/runtime/enhanced-document";
 
 import { buildDoc } from "../helpers/doc";
 

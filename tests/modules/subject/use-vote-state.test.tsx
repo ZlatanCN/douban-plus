@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useVoteState } from "@/modules/subject/use-vote-state";
-import type { VoteApi } from "@/modules/subject/vote-state";
+import { useVoteState } from "@/modules/subject/voting/use-vote-state";
+import type { VoteApi } from "@/modules/subject/voting/vote-state";
 
 type TestItem = {
   count: number;

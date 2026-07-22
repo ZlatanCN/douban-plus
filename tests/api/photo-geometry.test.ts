@@ -4,11 +4,12 @@ const mockGmGet = vi.hoisted(() =>
   vi.fn<(url: string, referer?: string) => Promise<string>>()
 );
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmGet: mockGmGet,
 }));
 
-const { fetchPhotoGeometry } = await import("@/api/photo-geometry");
+const { fetchPhotoGeometry } =
+  await import("@/modules/subject/api/photo-geometry");
 
 const photoPage = (width: number, height: number): string =>
   `<main>大图尺寸：${width}x${height}</main>`;

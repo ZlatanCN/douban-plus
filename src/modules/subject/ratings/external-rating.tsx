@@ -1,10 +1,10 @@
 import type { JSX } from "preact";
 
-import { IconPopcorn, IconTomato } from "@/components/common/icons";
-import { Stars } from "@/components/common/stars";
-import { useEntranceExitAnimation } from "@/hooks/use-entrance-exit-animation";
-import type { ImdbRating, McRating, RtRating } from "@/types";
-import { springConfigs } from "@/utils/springs";
+import type { ImdbRating, McRating, RtRating } from "@/modules/subject/domain";
+import { IconPopcorn, IconTomato } from "@/shared/components/common/icons";
+import { Stars } from "@/shared/components/common/stars";
+import { useEntranceExitAnimation } from "@/shared/hooks/use-entrance-exit-animation";
+import { springConfigs } from "@/shared/utils/springs";
 
 import {
   isFresh,

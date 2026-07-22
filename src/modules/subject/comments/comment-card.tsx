@@ -1,11 +1,11 @@
 import { useLayoutEffect, useRef, useState } from "preact/hooks";
 
-import { IconExpand } from "@/components/common/icons";
-import { Stars } from "@/components/common/stars";
-import type { AccountActionGuard, Comment } from "@/types";
+import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
+import { IconExpand } from "@/shared/components/common/icons";
+import { Stars } from "@/shared/components/common/stars";
 
-import type { CommentVoteCallback } from "../types";
-import type { VotePersistOptions } from "../vote-state";
+import type { CommentVoteCallback } from "../runtime/types";
+import type { VotePersistOptions } from "../voting/vote-state";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 import type { CommentVoteState } from "./comment-vote-state";

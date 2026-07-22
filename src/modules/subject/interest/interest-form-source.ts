@@ -1,4 +1,4 @@
-import type { InterestFormSnapshot } from "@/types";
+import type { InterestFormSnapshot } from "@/modules/subject/domain";
 
 type InterestFormSource =
   | { kind: "error"; message: string }

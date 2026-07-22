@@ -1,9 +1,9 @@
-import { Stars } from "@/components/common/stars";
-import { ModalCloseButton, ModalShell } from "@/components/modal/index";
-import { useModalClose } from "@/components/modal/modal-close-context";
-import type { AccountActionGuard, Comment } from "@/types";
+import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
+import { Stars } from "@/shared/components/common/stars";
+import { ModalCloseButton, ModalShell } from "@/shared/components/modal/index";
+import { useModalClose } from "@/shared/components/modal/modal-close-context";
 
-import type { CommentVoteCallback } from "../types";
+import type { CommentVoteCallback } from "../runtime/types";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 import type { CommentVoteState } from "./comment-vote-state";

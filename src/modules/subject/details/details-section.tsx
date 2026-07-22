@@ -1,11 +1,11 @@
 import type { ComponentChild } from "preact";
 
-import { IconArrow } from "@/components/common/icons";
-import { Section } from "@/components/layout/section";
-import { RE_IMDB_LINK } from "@/constants";
-import type { Award, DetailsData, InfoBlock } from "@/types";
+import { RE_IMDB_LINK } from "@/modules/subject/constants";
+import type { Award, DetailsData, InfoBlock } from "@/modules/subject/domain";
+import { IconArrow } from "@/shared/components/common/icons";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 
 type DetailsSectionProps = {
   data: DetailsData;

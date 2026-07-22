@@ -1,5 +1,9 @@
-import { Stars } from "@/components/common/stars";
-import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "@/modules/subject/domain";
+import { Stars } from "@/shared/components/common/stars";
 
 import { reviewDisplayName } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";

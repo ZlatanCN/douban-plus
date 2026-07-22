@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getSubjectSectionCopy } from "@/modules/subject/section-copy";
+import { getSubjectSectionCopy } from "@/modules/subject/navigation/section-copy";
 
 describe(getSubjectSectionCopy, () => {
   it("returns the confirmed navigation labels and page titles", () => {

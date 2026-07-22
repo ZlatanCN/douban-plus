@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractPhotoGeometry } from "@/extract/photo-geometry";
+import { extractPhotoGeometry } from "@/modules/subject/extract/photo-geometry";
 
 import { buildDoc } from "../helpers/doc";
 

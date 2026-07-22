@@ -1,17 +1,17 @@
 import { render } from "preact";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { ModalSession } from "@/components/modal";
+import type {
+  InterestFormSnapshot,
+  InterestState,
+  ModalCallbacks,
+} from "@/modules/subject/domain";
 import {
   InterestForm,
   initialStatus,
 } from "@/modules/subject/interest/interest-form";
 import { statusEntries } from "@/modules/subject/interest/interest-form-fields";
-import type {
-  InterestFormSnapshot,
-  InterestState,
-  ModalCallbacks,
-} from "@/types";
+import { ModalSession } from "@/shared/components/modal";
 
 import { renderIntoRoot } from "../../helpers/render";
 

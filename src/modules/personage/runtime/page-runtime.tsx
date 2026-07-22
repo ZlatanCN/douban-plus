@@ -1,0 +1,61 @@
+import { useLayoutEffect, useState } from "preact/hooks";
+
+import type { PersonageProfile } from "@/modules/personage/domain";
+import { extractPersonageProfile } from "@/modules/personage/extract/profile";
+import { PersonagePage } from "@/modules/personage/presentation/page";
+
+type PersonagePageRuntimeProps = {
+  doc: Document;
+  initialProfile: PersonageProfile;
+};
+
+const isDynamicPersonageSourceOrDescendant = (node: Node): boolean => {
+  if (!(node instanceof Element)) {
+    return false;
+  }
+
+  return (
+    node.matches(".subject-awards, .subject-creations") ||
+    node.closest(".subject-awards, .subject-creations") !== null ||
+    node.querySelector(".subject-awards, .subject-creations") !== null
+  );
+};
+
+const hasDynamicPersonageSourceMutation = (
+  mutations: MutationRecord[]
+): boolean =>
+  mutations.some(
+    (mutation) =>
+      isDynamicPersonageSourceOrDescendant(mutation.target) ||
+      [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant)
+  );
+
+const PersonagePageRuntime = ({
+  doc,
+  initialProfile,
+}: PersonagePageRuntimeProps) => {
+  const [profile, setProfile] = useState(initialProfile);
+
+  useLayoutEffect(() => {
+    const refreshProfile = () => {
+      const nextProfile = extractPersonageProfile(doc);
+      if (nextProfile) {
+        setProfile(nextProfile);
+      }
+    };
+
+    const observer = new MutationObserver((mutations) => {
+      if (hasDynamicPersonageSourceMutation(mutations)) {
+        refreshProfile();
+      }
+    });
+    observer.observe(doc.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, [doc]);
+
+  return <PersonagePage profile={profile} />;
+};
+
+export { PersonagePageRuntime };
+export type { PersonagePageRuntimeProps };

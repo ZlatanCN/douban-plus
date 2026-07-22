@@ -1,11 +1,11 @@
 import { useState } from "preact/hooks";
 
-import { IconThumb } from "@/components/common/icons";
-import type { AccountActionGuard } from "@/types";
+import type { AccountActionGuard } from "@/modules/subject/domain";
+import { IconThumb } from "@/shared/components/common/icons";
 
-import type { CommentVoteCallback } from "../types";
-import { useVoteAction } from "../use-vote-action";
-import type { VotePersistOptions } from "../vote-state";
+import type { CommentVoteCallback } from "../runtime/types";
+import { useVoteAction } from "../voting/use-vote-action";
+import type { VotePersistOptions } from "../voting/vote-state";
 import { commentVoteApi } from "./comment-vote-state";
 import type { CommentVoteState } from "./comment-vote-state";
 

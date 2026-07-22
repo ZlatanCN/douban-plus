@@ -30,7 +30,7 @@ vi.mock(import("motion"), () => ({
 }));
 
 const { springConfigs, animateWithReducedMotion } =
-  await import("../../src/utils/springs");
+  await import("../../src/shared/utils/springs");
 
 /* ── Helpers ─────────────────────────────────────────── */
 

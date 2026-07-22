@@ -1,6 +1,9 @@
 import type { JSX } from "preact";
 
-import type { InterestFormState, InterestState } from "@/types";
+import type {
+  InterestFormState,
+  InterestState,
+} from "@/modules/subject/domain";
 
 import type { InterestFormSource } from "./interest-form-source";
 import { StarRatingInput } from "./star-rating-input";

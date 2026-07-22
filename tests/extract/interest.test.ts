@@ -3,7 +3,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { extractInterestState } from "@/extract/interest";
+import { extractInterestState } from "@/modules/subject/extract/interest";
 
 import { buildDoc, mockCookie } from "../helpers/doc";
 

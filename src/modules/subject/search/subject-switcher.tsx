@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
-import { normalizeSubjectQuery } from "@/api/subject-suggestions";
-import type { SubjectSuggestion } from "@/api/subject-suggestions";
+import { normalizeSubjectQuery } from "@/modules/subject/api/subject-suggestions";
+import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
 import { SearchIcon } from "./search-icon";
 import { SuggestionRow } from "./subject-suggestion-row";

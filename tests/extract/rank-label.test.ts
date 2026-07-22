@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractRankLabel } from "@/extract/rank-label";
+import { extractRankLabel } from "@/modules/subject/extract/rank-label";
 
 import { buildDoc } from "../helpers/doc";
 

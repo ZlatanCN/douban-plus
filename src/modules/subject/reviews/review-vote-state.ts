@@ -1,7 +1,7 @@
-import type { Review, ReviewVoteCallback } from "@/types";
-import { createCache } from "@/utils/cache";
+import type { Review, ReviewVoteCallback } from "@/modules/subject/domain";
+import { createCache } from "@/shared/utils/cache";
 
-import { createVoteState } from "../vote-state";
+import { createVoteState } from "../voting/vote-state";
 import { reviewNumericId } from "./review-identity";
 
 type ReviewVoteDirection = "useful" | "useless";

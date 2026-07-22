@@ -4,7 +4,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const layoutCss = readFileSync(
-  path.resolve(process.cwd(), "src/styles/layout.css"),
+  path.resolve(process.cwd(), "src/shared/styles/layout.css"),
   "utf-8"
 );
 

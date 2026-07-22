@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { PosterModal } from "@/components/modal";
+import { PosterModal } from "@/shared/components/modal";
 
 import { renderIntoRoot } from "../helpers/render";
 

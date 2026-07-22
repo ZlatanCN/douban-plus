@@ -4,11 +4,11 @@
 import { render } from "preact";
 import { describe, expect, it, onTestFinished, vi } from "vitest";
 
-import { StickyNav } from "@/components/layout/sticky-nav";
-import { computeNavSections } from "@/modules/subject/navigation";
-import { SubjectPage } from "@/modules/subject/subject";
-import type { SubjectPageRuntime } from "@/modules/subject/types";
-import type { DoubanData, InfoBlock } from "@/types";
+import type { DoubanData, InfoBlock } from "@/modules/subject/domain";
+import { computeNavSections } from "@/modules/subject/navigation/sections";
+import { SubjectPage } from "@/modules/subject/runtime/subject-page";
+import type { SubjectPageRuntime } from "@/modules/subject/runtime/types";
+import { StickyNav } from "@/shared/components/layout/sticky-nav";
 
 /* ── Setup GM_xmlhttpRequest mock ──────────────────────────── */
 /* The $ virtual module (tests/mocks/$.ts) checks for           */

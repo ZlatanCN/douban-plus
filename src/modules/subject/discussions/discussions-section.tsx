@@ -1,11 +1,11 @@
-import { Section } from "@/components/layout/section";
 import type {
   DiscussionActivity,
   DiscussionAuthor,
   DiscussionData,
-} from "@/types";
+} from "@/modules/subject/domain";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 
 type DiscussionsSectionProps = {
   discussions: DiscussionData;

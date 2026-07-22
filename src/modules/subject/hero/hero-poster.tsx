@@ -1,7 +1,7 @@
 import { useState } from "preact/hooks";
 
-import { PosterPlaceholder } from "@/components/common/poster-placeholder";
-import type { TitleInfo } from "@/types";
+import type { TitleInfo } from "@/modules/subject/domain";
+import { PosterPlaceholder } from "@/shared/components/common/poster-placeholder";
 
 type HeroPosterProps = {
   onOpenPoster?: (src: string, alt: string) => void;

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ImageModalSource } from "@/components/modal";
+import type { Trailer } from "@/modules/subject/domain";
 import { PhotosSection } from "@/modules/subject/media";
-import type { ResolvedPhoto } from "@/modules/subject/types";
-import type { Trailer } from "@/types";
+import type { ResolvedPhoto } from "@/modules/subject/runtime/types";
+import type { ImageModalSource } from "@/shared/components/modal";
 
 import { renderIntoRoot } from "../../helpers/render";
 

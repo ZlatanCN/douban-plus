@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as trailerAcquisition from "@/runtime/use-trailer-acquisition";
-import type { Trailer } from "@/types";
+import type { Trailer } from "@/modules/subject/domain";
+import * as trailerAcquisition from "@/modules/subject/runtime/use-trailer-acquisition";
 
 const trailer: Trailer = {
   thumbUrl: "",

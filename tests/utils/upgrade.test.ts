@@ -3,7 +3,10 @@
 
 import { describe, it, expect } from "vitest";
 
-import { upgradePhoto, upgradePoster } from "@/utils/upgrade";
+import {
+  upgradePhoto,
+  upgradePoster,
+} from "@/modules/subject/extract/image-urls";
 
 /* ── upgradePoster ──────────────────────────────────────────── */
 

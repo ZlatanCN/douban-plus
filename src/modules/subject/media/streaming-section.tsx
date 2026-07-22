@@ -1,10 +1,10 @@
 import type { ComponentType, JSX } from "preact";
 
-import { IconPlay } from "@/components/common/icons";
-import { Section } from "@/components/layout/section";
-import type { Streaming } from "@/types";
+import type { Streaming } from "@/modules/subject/domain";
+import { IconPlay } from "@/shared/components/common/icons";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 import { resolveStreamingProvider } from "./streaming-provider";
 
 type StreamingSectionProps = {

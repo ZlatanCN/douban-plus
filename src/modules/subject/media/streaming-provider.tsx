@@ -1,14 +1,14 @@
 import type { ComponentType, SVGAttributes } from "preact";
 
+import type { Streaming } from "@/modules/subject/domain";
 import {
   findPlatformBrandByContainedName,
   PLATFORM_BRANDS,
-} from "@/components/common/platform-brand";
+} from "@/modules/subject/media/platform-brand";
 import type {
   PlatformBrand,
   PlatformBrandKey,
-} from "@/components/common/platform-brand";
-import type { Streaming } from "@/types";
+} from "@/modules/subject/media/platform-brand";
 
 type StreamingProviderKey = PlatformBrandKey | "unknown";
 type ProviderIconProps = SVGAttributes<SVGSVGElement>;

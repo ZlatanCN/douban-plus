@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   fetchSubjectSuggestions,
   normalizeSubjectQuery,
-} from "@/api/subject-suggestions";
+} from "@/modules/subject/api/subject-suggestions";
 
 const response = (body: unknown): Response => Response.json(body);
 

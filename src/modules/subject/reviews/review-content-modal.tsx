@@ -1,4 +1,4 @@
-import { useReviewContent } from "@/runtime/use-review-content";
+import { useReviewContent } from "@/modules/subject/runtime/use-review-content";
 
 import { ReviewModal } from "./review-modal";
 import type { ReviewModalProps } from "./review-modal";

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { PersonageAwardsSection } from "@/modules/personage/awards";
-import type { PersonageAwards } from "@/modules/personage/types";
+import type { PersonageAwards } from "@/modules/personage/domain";
+import { PersonageAwardsSection } from "@/modules/personage/presentation/awards";
 
 import { renderIntoRoot } from "../../helpers/render";
 

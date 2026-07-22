@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import type {
+  ImdbRating as ImdbRatingData,
+  McRating,
+  RtRating,
+} from "@/modules/subject/domain";
 import { ExternalRating } from "@/modules/subject/ratings/external-rating";
-import type { ImdbRating as ImdbRatingData, McRating, RtRating } from "@/types";
 
 import { renderIntoRoot, renderSingle } from "../../helpers/render";
 

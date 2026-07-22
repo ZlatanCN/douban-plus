@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { SubjectSuggestion } from "@/api/subject-suggestions";
+import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
 import {
   cleanupSwitcherTests,

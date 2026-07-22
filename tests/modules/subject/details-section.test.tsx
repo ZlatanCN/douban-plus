@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DetailsSection } from "@/modules/subject/details";
 import { collectDetailRows } from "@/modules/subject/details/details-section";
-import type { DetailsData, InfoBlock } from "@/types";
+import type { DetailsData, InfoBlock } from "@/modules/subject/domain";
 
 import { renderIntoRoot } from "../../helpers/render";
 

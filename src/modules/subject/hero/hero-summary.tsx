@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "preact/hooks";
 
-import { IconChevron } from "@/components/common/icons";
-import { playEntrance, springConfigs } from "@/utils/springs";
+import { IconChevron } from "@/shared/components/common/icons";
+import { playEntrance, springConfigs } from "@/shared/utils/springs";
 
 type HeroSummaryProps = {
   text: string;

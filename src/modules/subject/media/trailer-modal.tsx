@@ -1,6 +1,7 @@
-import { VideoModal } from "@/components/modal";
-import { useTrailerAcquisition } from "@/runtime/use-trailer-acquisition";
-import type { Trailer } from "@/types";
+import type { Trailer } from "@/modules/subject/domain";
+import { useTrailerAcquisition } from "@/modules/subject/runtime/use-trailer-acquisition";
+
+import { VideoModal } from "./video-modal";
 
 type TrailerModalProps = {
   onClose: () => void;

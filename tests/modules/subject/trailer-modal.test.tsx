@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { Trailer } from "@/modules/subject/domain";
 import { TrailerModal } from "@/modules/subject/media";
-import type { Trailer } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 

@@ -1,10 +1,14 @@
 import { useState } from "preact/hooks";
 
-import { IconVoteTriangle } from "@/components/common/icons";
-import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "@/modules/subject/domain";
+import { IconVoteTriangle } from "@/shared/components/common/icons";
 
-import { useVoteAction } from "../use-vote-action";
-import type { VotePersistOptions } from "../vote-state";
+import { useVoteAction } from "../voting/use-vote-action";
+import type { VotePersistOptions } from "../voting/vote-state";
 import { reviewNumericId } from "./review-identity";
 import { reviewVoteApi } from "./review-vote-state";
 import type { ReviewVoteDirection, ReviewVoteState } from "./review-vote-state";

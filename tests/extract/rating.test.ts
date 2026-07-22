@@ -3,7 +3,10 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractRating, extractSummary } from "@/extract/rating";
+import {
+  extractRating,
+  extractSummary,
+} from "@/modules/subject/extract/rating";
 
 import { buildDoc } from "../helpers/doc";
 

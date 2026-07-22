@@ -3,7 +3,7 @@ import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ExternalRating } from "@/modules/subject/ratings/external-rating";
-import type { animateWithReducedMotion } from "@/utils/springs";
+import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => {
   const animations: { resolve: () => void; stop: () => void }[] = [];
@@ -31,7 +31,7 @@ const motion = vi.hoisted(() => {
   return { animate, animations };
 });
 
-vi.mock(import("@/utils/springs"), async (importOriginal) => ({
+vi.mock(import("@/shared/utils/springs"), async (importOriginal) => ({
   ...(await importOriginal()),
   animateWithReducedMotion: motion.animate,
 }));

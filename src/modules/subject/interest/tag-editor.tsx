@@ -1,7 +1,7 @@
 import type { JSX } from "preact";
 import { useRef, useState } from "preact/hooks";
 
-import { normalizeInterestTags } from "@/utils/interest-tags";
+import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
 
 type InterestTagEditorProps = {
   disabled: boolean;

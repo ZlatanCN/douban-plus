@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { Review, ReviewData } from "@/modules/subject/domain";
 import { ReviewsSection } from "@/modules/subject/reviews";
 import { ReviewModal } from "@/modules/subject/reviews/review-modal";
-import type { Review, ReviewData } from "@/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 

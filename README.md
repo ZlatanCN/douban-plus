@@ -50,20 +50,20 @@ pnpm install
 
 ```text
 src/
-  main.ts              # userscript 入口；区分 subject 页和登录 iframe
-  runtime/             # 挂载、数据组装与浏览器生命周期
-  extract/             # 只读解析豆瓣 DOM
-  resolve/             # 外部评分的并行解析调度
-  api/                 # 网络请求、缓存和站点解析
-  modules/subject/      # 页面体验模块
-    hero/              # Hero、海报、元数据、简介和操作
-    ratings/           # 豆瓣与外部评分
-    media/             # 平台、演员、剧照、推荐和剧集
-    comments/ reviews/ # 社区内容、modal 与投票状态
-    interest/ login/   # 作品标记与豆瓣官方登录 iframe
-    search/             # 作品切换器
-  components/          # 通用 UI、布局与 canonical modal shell
-  styles/              # 按体验所有权拆分，通过 styles.css 统一导入
+  main.ts              # userscript 入口；只从页面模块公开入口路由
+  modules/
+    personage/         # 人物页：UI、提取、运行时和页面样式
+      index.ts          # 模块公开入口
+    subject/           # 作品页：领域类型、UI、提取、适配器、运行时和页面样式
+      index.ts          # 模块公开入口
+      hero/             # Hero、海报、元数据、简介和操作
+      ratings/          # 豆瓣与外部评分
+      media/            # 平台、演员、剧照、推荐和剧集
+      comments/ reviews/# 社区内容、modal 与投票状态
+      interest/ login/  # 作品标记与豆瓣官方登录 iframe
+      search/           # 作品切换器
+  shared/              # 无页面语义的 UI、hooks、运行时原语、样式、HTTP、缓存与 DOM
+  styles.css           # 唯一样式清单，保留既有级联顺序
 tests/
   qa.ts                # QA / E2E 入口
   qa/                  # Playwright 场景、断言和截图流程
@@ -72,7 +72,7 @@ tests/
 
 页面流程为：`extractDoubanData()` 读取当前文档 → `mountSubject()` 创建 Preact 根节点 → `SubjectPageRuntime` 管理异步评分、首播平台、导航和媒体生命周期 → `SubjectPage` 渲染页面体验。外部评分在 `resolveAll()` 中并行获取，单个来源失败不会影响其余来源或首屏。
 
-`src/build/` 是已退役的 DOM-builder 层。新增界面应进入 `src/modules/subject/` 或共享 Preact 组件，不要重建 imperative DOM UI。
+`src/build/` 是已退役的 DOM-builder 层。新增页面行为应进入所属页面模块；只有不含页面语义的能力可进入 `src/shared/`。不要重建 imperative DOM UI。
 
 ## 验证
 

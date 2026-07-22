@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { hasMatchingPage, mountMatchingPage } from "@/runtime/page-mount";
-import type { PageMount } from "@/runtime/page-mount";
+import {
+  hasMatchingPage,
+  mountMatchingPage,
+} from "@/shared/runtime/page-mount";
+import type { PageMount } from "@/shared/runtime/page-mount";
 
 const locationFor = (
   pathname: string

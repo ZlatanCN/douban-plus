@@ -44,7 +44,7 @@
 
 当前 userscript 仅匹配 `*://movie.douban.com/subject/*`，并声明了 `GM_xmlhttpRequest` 和 `@connect movie.douban.com`；因此建议接口已在网络授权范围内。[`vite.config.ts`](../../vite.config.ts) 还显示脚本运行于 `document-start`，但搜索组件本身应在现有应用挂载后才发起请求。
 
-项目已有 [`gmGet`](../../src/utils/request.ts) 作为 GM 请求包装，但本功能应优先用原生 `fetch`：调用同源、无需额外 GM 授权、并能用 `AbortController` 在输入变化时立即取消旧请求。只有在同源 fetch 被实际回归阻断时，才考虑复用 `gmGet`。
+项目已有 [`gmGet`](../../src/shared/utils/request.ts) 作为 GM 请求包装，但本功能应优先用原生 `fetch`：调用同源、无需额外 GM 授权、并能用 `AbortController` 在输入变化时立即取消旧请求。只有在同源 fetch 被实际回归阻断时，才考虑复用 `gmGet`。
 
 ## 风险与防护
 

@@ -5,7 +5,7 @@ import {
   LogoImdb,
   LogoMetacritic,
   LogoRT,
-} from "@/components/common/icons";
+} from "@/shared/components/common/icons";
 
 const LOGO_MAP: Record<string, JSX.Element> = {
   douban: <LogoDouban />,

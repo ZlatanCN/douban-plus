@@ -1,4 +1,4 @@
-import type { Comment } from "@/types";
+import type { Comment } from "@/modules/subject/domain";
 
 type CommentAvatarProps = {
   className: string;

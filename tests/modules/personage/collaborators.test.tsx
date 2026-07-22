@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { PersonageCollaborators } from "@/modules/personage/collaborators";
 import type {
   PersonageCollaborator,
   PersonageCollaborators as PersonageCollaboratorsData,
-} from "@/modules/personage/types";
+} from "@/modules/personage/domain";
+import { PersonageCollaborators } from "@/modules/personage/presentation/collaborators";
 
 import { renderIntoRoot } from "../../helpers/render";
 

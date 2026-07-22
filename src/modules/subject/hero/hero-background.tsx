@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import type { Photo } from "@/types";
-import { hashStr } from "@/utils/hash";
+import type { Photo } from "@/modules/subject/domain";
+import { hashStr } from "@/shared/utils/hash";
 
 type HeroBackgroundProps = {
   photos: Photo[];

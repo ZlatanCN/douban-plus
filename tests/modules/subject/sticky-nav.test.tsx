@@ -1,10 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import type { StickyNavData } from "@/modules/subject/domain";
 import {
   StickyNav,
   computeIndicatorMetrics,
-} from "@/components/layout/sticky-nav";
-import type { StickyNavData } from "@/types";
+} from "@/shared/components/layout/sticky-nav";
 
 import { renderIntoRoot } from "../../helpers/render";
 

@@ -1,18 +1,18 @@
 import { useEffect, useState } from "preact/hooks";
 
-import {
-  ModalCloseButton,
-  ModalSessionContent,
-  ModalShell,
-} from "@/components/modal";
-import { useModalClose } from "@/components/modal/modal-close-context";
 import type {
   InterestFormSnapshot,
   InterestFormState,
   InterestState,
   ModalCallbacks,
-} from "@/types";
-import { normalizeInterestTags } from "@/utils/interest-tags";
+} from "@/modules/subject/domain";
+import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
+import {
+  ModalCloseButton,
+  ModalSessionContent,
+  ModalShell,
+} from "@/shared/components/modal";
+import { useModalClose } from "@/shared/components/modal/modal-close-context";
 
 import { InterestFormFields } from "./interest-form-fields";
 import type { InterestFormSource } from "./interest-form-source";

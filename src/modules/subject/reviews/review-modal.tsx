@@ -1,12 +1,16 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { HtmlContent } from "@/components/common/html-content";
-import { Stars } from "@/components/common/stars";
-import { ModalCloseButton, ModalShell } from "@/components/modal";
-import { useModalClose } from "@/components/modal/modal-close-context";
-import type { ReviewContentState } from "@/runtime/use-review-content";
-import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
-import { playEntrance, springConfigs } from "@/utils/springs";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "@/modules/subject/domain";
+import type { ReviewContentState } from "@/modules/subject/runtime/use-review-content";
+import { HtmlContent } from "@/shared/components/common/html-content";
+import { Stars } from "@/shared/components/common/stars";
+import { ModalCloseButton, ModalShell } from "@/shared/components/modal";
+import { useModalClose } from "@/shared/components/modal/modal-close-context";
+import { playEntrance, springConfigs } from "@/shared/utils/springs";
 
 import { reviewDisplayName, reviewNumericId } from "./review-identity";
 import { ReviewVoteButtons } from "./review-vote-buttons";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { SubjectStickyNav } from "@/modules/subject/subject-navigation";
+import { SubjectStickyNav } from "@/modules/subject/navigation/sticky-nav";
 
 import { renderIntoRoot } from "../../helpers/render";
 

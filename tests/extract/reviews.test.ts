@@ -3,7 +3,7 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractReviews } from "@/extract/reviews";
+import { extractReviews } from "@/modules/subject/extract/reviews";
 
 import { buildDoc } from "../helpers/doc";
 

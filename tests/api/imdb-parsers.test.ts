@@ -4,8 +4,8 @@ import {
   extractTitleFields,
   parseResponse,
   parseSeasonRating,
-} from "@/api/imdb-parsers";
-import type { ParsedRaw } from "@/api/imdb-parsers";
+} from "@/modules/subject/api/imdb-parsers";
+import type { ParsedRaw } from "@/modules/subject/api/imdb-parsers";
 
 const seriesField = (
   series?: { id: string; titleText: string } | null

@@ -10,7 +10,7 @@ import {
   extractYear,
   extractPoster,
   extractSubjectId,
-} from "@/extract/basic";
+} from "@/modules/subject/extract/basic";
 
 import { buildDoc, mockLocation } from "../helpers/doc";
 

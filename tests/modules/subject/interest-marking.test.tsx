@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { useInterestMarking } from "@/modules/subject/interest/use-interest-marking";
 import type {
   InterestFormSnapshot,
   InterestFormState,
   InterestState,
-} from "@/types";
+} from "@/modules/subject/domain";
+import { useInterestMarking } from "@/modules/subject/interest/use-interest-marking";
 
 import { renderIntoRoot } from "../../helpers/render";
 

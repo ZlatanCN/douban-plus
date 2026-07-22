@@ -1,7 +1,7 @@
-import type { Comment } from "@/types";
-import { createCache } from "@/utils/cache";
+import type { Comment } from "@/modules/subject/domain";
+import { createCache } from "@/shared/utils/cache";
 
-import { createVoteState } from "../vote-state";
+import { createVoteState } from "../voting/vote-state";
 
 type CommentVoteState = {
   count: number;

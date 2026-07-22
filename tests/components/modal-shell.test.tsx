@@ -3,12 +3,12 @@ import { render } from "preact";
 import type { ComponentChild } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ModalSession, ModalShell } from "@/components/modal";
+import { ModalSession, ModalShell } from "@/shared/components/modal";
 import type {
   SwipeDismissDetails,
   SwipeToDismissOptions,
-} from "@/components/modal/use-swipe-to-dismiss";
-import type { animateWithReducedMotion } from "@/utils/springs";
+} from "@/shared/components/modal/use-swipe-to-dismiss";
+import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 import { renderIntoRoot } from "../helpers/render";
 
@@ -76,7 +76,7 @@ const motion = vi.hoisted(() => {
   return { animate, animations };
 });
 
-vi.mock(import("@/utils/springs"), () => ({
+vi.mock(import("@/shared/utils/springs"), () => ({
   animateWithReducedMotion: motion.animate,
   springConfigs: {
     carouselSnap: { damping: 18, stiffness: 200, type: "spring" },
@@ -92,7 +92,7 @@ vi.mock(import("@/utils/springs"), () => ({
   } as const,
 }));
 
-vi.mock(import("@/components/modal/use-swipe-to-dismiss"), () => ({
+vi.mock(import("@/shared/components/modal/use-swipe-to-dismiss"), () => ({
   useSwipeToDismiss: mockUseSwipeToDismiss,
 }));
 

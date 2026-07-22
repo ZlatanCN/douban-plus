@@ -2,12 +2,12 @@ import type { AnimationPlaybackControlsWithThen } from "motion";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useSwipeToDismiss } from "@/components/modal/use-swipe-to-dismiss";
+import { useSwipeToDismiss } from "@/shared/components/modal/use-swipe-to-dismiss";
 import type {
   SwipeDismissDetails,
   SwipeToDismissOptions,
-} from "@/components/modal/use-swipe-to-dismiss";
-import { springConfigs } from "@/utils/springs";
+} from "@/shared/components/modal/use-swipe-to-dismiss";
+import { springConfigs } from "@/shared/utils/springs";
 
 import { renderIntoRoot } from "../helpers/render";
 

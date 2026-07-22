@@ -1,7 +1,7 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { fetchSubjectSuggestions } from "@/api/subject-suggestions";
-import type { SubjectSuggestion } from "@/api/subject-suggestions";
+import { fetchSubjectSuggestions } from "@/modules/subject/api/subject-suggestions";
+import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
 const QUERY_DEBOUNCE_MS = 300;
 const MAX_SUGGESTIONS = 5;

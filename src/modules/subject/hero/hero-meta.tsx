@@ -1,7 +1,7 @@
 import type { ComponentChildren } from "preact";
 
-import { RE_SEASON_SUFFIX } from "@/constants";
-import type { InfoBlock } from "@/types";
+import { RE_SEASON_SUFFIX } from "@/modules/subject/constants";
+import type { InfoBlock } from "@/modules/subject/domain";
 
 type HeroMetaProps = {
   info: Pick<

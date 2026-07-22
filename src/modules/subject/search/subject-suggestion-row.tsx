@@ -1,4 +1,4 @@
-import type { SubjectSuggestion } from "@/api/subject-suggestions";
+import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
 type SuggestionRowProps = {
   active: boolean;

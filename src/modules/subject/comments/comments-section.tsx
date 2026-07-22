@@ -1,9 +1,9 @@
-import { Section } from "@/components/layout/section";
-import type { AccountActionGuard, Comment } from "@/types";
+import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
-import type { CommentVoteCallback } from "../types";
-import type { VotePersistOptions } from "../vote-state";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
+import type { CommentVoteCallback } from "../runtime/types";
+import type { VotePersistOptions } from "../voting/vote-state";
 import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 

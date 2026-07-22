@@ -1,5 +1,5 @@
-import { Stars } from "@/components/common/stars";
-import type { RatingInfo } from "@/types";
+import type { RatingInfo } from "@/modules/subject/domain";
+import { Stars } from "@/shared/components/common/stars";
 
 import { RatingLogo } from "./rating-logo";
 

@@ -3,8 +3,11 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { extractPersonageProfile } from "@/modules/personage/extract";
-import { isPersonageHomepage, mountPersonage } from "@/runtime/personage-mount";
+import { extractPersonageProfile } from "@/modules/personage/extract/profile";
+import {
+  isPersonageHomepage,
+  mountPersonage,
+} from "@/modules/personage/runtime/mount";
 
 import { createTestDoc } from "../../helpers/doc";
 

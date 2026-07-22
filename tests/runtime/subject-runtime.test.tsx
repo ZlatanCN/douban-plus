@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { SubjectPageRuntime } from "@/runtime/subject-runtime";
-import type { DoubanData } from "@/types";
+import type { DoubanData } from "@/modules/subject/domain";
+import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
 
 import { renderIntoRoot } from "../helpers/render";
 
@@ -14,7 +14,7 @@ vi.hoisted(() => {
   globalThis.GM_xmlhttpRequest = (() => null) as never;
 });
 
-vi.mock(import("../../src/utils/request"), () => ({
+vi.mock(import("../../src/shared/utils/request"), () => ({
   gmGet: mockRequest,
   gmPost: mockRequest,
 }));

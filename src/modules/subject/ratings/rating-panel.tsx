@@ -1,5 +1,5 @@
-import type { RatingResultMap } from "@/resolve/types";
-import type { RatingInfo } from "@/types";
+import type { RatingInfo } from "@/modules/subject/domain";
+import type { RatingResultMap } from "@/modules/subject/resolve/types";
 
 import { DoubanRating } from "./douban-rating";
 import { ExternalRating } from "./external-rating";

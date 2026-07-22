@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as seriesRuntime from "@/runtime/use-series-runtime";
-import type { SeriesItem } from "@/types";
+import type { SeriesItem } from "@/modules/subject/domain";
+import * as seriesRuntime from "@/modules/subject/runtime/use-series-runtime";
 
 import { buildDoc, createTestDoc } from "../helpers/doc";
 

@@ -1,15 +1,15 @@
 import { useEffect, useRef } from "preact/hooks";
 
+import type { HeroCallbacks, InterestState } from "@/modules/subject/domain";
+import { INTEREST_LABELS } from "@/modules/subject/domain";
 import {
   IconCheck,
   IconPlay,
   IconStarEmpty,
   IconStarFull,
   IconThumb,
-} from "@/components/common/icons";
-import type { HeroCallbacks, InterestState } from "@/types";
-import { INTEREST_LABELS } from "@/types";
-import { playEntrance, springConfigs } from "@/utils/springs";
+} from "@/shared/components/common/icons";
+import { playEntrance, springConfigs } from "@/shared/utils/springs";
 
 type HeroActionsProps = {
   callbacks: HeroCallbacks;

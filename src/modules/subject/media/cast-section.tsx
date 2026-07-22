@@ -1,7 +1,7 @@
-import { Section } from "@/components/layout/section";
-import type { Celebrity } from "@/types";
+import type { Celebrity } from "@/modules/subject/domain";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 
 type CastSectionProps = {
   celebrities: Celebrity[];

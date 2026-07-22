@@ -1,21 +1,12 @@
+import { personagePage } from "@/modules/personage";
+import { mountSubjectLoginFrameIfNeeded, subjectPage } from "@/modules/subject";
 import {
-  installLoginFrameTheme,
-  isDoubanLoginFrame,
-} from "@/runtime/login-frame-theme";
-import { hasMatchingPage, mountMatchingPage } from "@/runtime/page-mount";
-import type { PageMount } from "@/runtime/page-mount";
-import { isPersonageHomepage, mountPersonage } from "@/runtime/personage-mount";
-import { mountSubject } from "@/runtime/subject-mount";
+  hasMatchingPage,
+  mountMatchingPage,
+} from "@/shared/runtime/page-mount";
+import type { PageMount } from "@/shared/runtime/page-mount";
 
-const pageMounts: readonly PageMount[] = [
-  {
-    matches: (location) =>
-      location.hostname === "movie.douban.com" &&
-      /^\/subject\/[^/]+\/?$/u.test(location.pathname),
-    mount: mountSubject,
-  },
-  { matches: isPersonageHomepage, mount: mountPersonage },
-];
+const pageMounts: readonly PageMount[] = [subjectPage, personagePage];
 
 const mountPageWhenReady = async (): Promise<void> => {
   if (!hasMatchingPage(pageMounts)) {
@@ -35,8 +26,6 @@ const mountPageWhenReady = async (): Promise<void> => {
   }
 };
 
-if (isDoubanLoginFrame()) {
-  installLoginFrameTheme();
-} else {
+if (!mountSubjectLoginFrameIfNeeded()) {
   mountPageWhenReady();
 }

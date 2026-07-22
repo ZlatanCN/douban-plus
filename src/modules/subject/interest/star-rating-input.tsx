@@ -1,4 +1,4 @@
-import { IconStarEmpty, IconStarFull } from "@/components/common/icons";
+import { IconStarEmpty, IconStarFull } from "@/shared/components/common/icons";
 
 type StarRatingInputProps = {
   disabled?: boolean;

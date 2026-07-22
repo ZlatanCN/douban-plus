@@ -7,7 +7,7 @@ import {
   extractCelebrities,
   extractPhotos,
   extractTrailers,
-} from "@/extract/media";
+} from "@/modules/subject/extract/media";
 
 import { buildDoc } from "../helpers/doc";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { SeriesSection } from "@/modules/subject/media";
-import type { ResolvedSeriesItem } from "@/modules/subject/types";
+import type { ResolvedSeriesItem } from "@/modules/subject/runtime/types";
 
 import { renderIntoRoot } from "../../helpers/render";
 

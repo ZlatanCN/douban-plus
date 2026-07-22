@@ -1,6 +1,6 @@
 import type { JSX } from "preact";
 
-import { findPlatformBrandByExactName } from "@/components/common/platform-brand";
+import { findPlatformBrandByExactName } from "@/modules/subject/media/platform-brand";
 
 type FirstBroadcastPlatformProps = {
   platform: string;

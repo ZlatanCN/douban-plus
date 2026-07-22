@@ -1,8 +1,8 @@
-import { PosterImage } from "@/components/common/poster-image";
-import { Section } from "@/components/layout/section";
-import type { Recommendation } from "@/types";
+import type { Recommendation } from "@/modules/subject/domain";
+import { PosterImage } from "@/shared/components/common/poster-image";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 
 type RecommendationsSectionProps = {
   recommendations: Recommendation[];

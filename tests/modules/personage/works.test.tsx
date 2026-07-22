@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import type { PersonageWorkRail as PersonageWorkRailData } from "@/modules/personage/types";
-import { PersonageWorkRail } from "@/modules/personage/works";
+import type { PersonageWorkRail as PersonageWorkRailData } from "@/modules/personage/domain";
+import { PersonageWorkRail } from "@/modules/personage/presentation/works";
 
 import { renderIntoRoot } from "../../helpers/render";
 

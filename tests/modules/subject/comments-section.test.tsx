@@ -2,7 +2,7 @@ import { render } from "preact";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CommentsSection } from "@/modules/subject/comments";
-import type { Comment, CommentsData } from "@/types";
+import type { Comment, CommentsData } from "@/modules/subject/domain";
 
 import { renderIntoRoot } from "../../helpers/render";
 

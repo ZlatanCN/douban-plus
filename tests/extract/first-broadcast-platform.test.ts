@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { extractFirstBroadcastPlatform } from "@/extract/first-broadcast-platform";
+import { extractFirstBroadcastPlatform } from "@/modules/subject/extract/first-broadcast-platform";
 
 import { buildDoc } from "../helpers/doc";
 

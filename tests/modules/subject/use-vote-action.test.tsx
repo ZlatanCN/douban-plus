@@ -2,8 +2,8 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useVoteAction } from "@/modules/subject/use-vote-action";
-import type { VoteTransitionApi } from "@/modules/subject/use-vote-action";
+import { useVoteAction } from "@/modules/subject/voting/use-vote-action";
+import type { VoteTransitionApi } from "@/modules/subject/voting/use-vote-action";
 
 type State = { count: number; voted: "up" | null };
 type Result = { ok: boolean; count?: number };

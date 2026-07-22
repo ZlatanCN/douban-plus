@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { ImageModalSource } from "@/components/modal";
-import { PersonageGallerySection } from "@/modules/personage/gallery";
-import type { PersonageGallery } from "@/modules/personage/types";
+import type { PersonageGallery } from "@/modules/personage/domain";
+import { PersonageGallerySection } from "@/modules/personage/presentation/gallery";
+import type { ImageModalSource } from "@/shared/components/modal";
 
 import { renderIntoRoot } from "../../helpers/render";
 

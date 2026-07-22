@@ -3,7 +3,10 @@
 
 import { describe, it, expect } from "vitest";
 
-import { extractComments, extractRecommendations } from "@/extract/social";
+import {
+  extractComments,
+  extractRecommendations,
+} from "@/modules/subject/extract/social";
 
 import { buildDoc } from "../helpers/doc";
 

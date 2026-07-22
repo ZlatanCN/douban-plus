@@ -1,8 +1,8 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useResolvedPhotoGeometry } from "@/runtime/use-resolved-photo-geometry";
-import type { Photo } from "@/types";
+import type { Photo } from "@/modules/subject/domain";
+import { useResolvedPhotoGeometry } from "@/modules/subject/runtime/use-resolved-photo-geometry";
 
 const mockFetchPhotoGeometry = vi.hoisted(() =>
   vi.fn<
@@ -13,7 +13,7 @@ const mockFetchPhotoGeometry = vi.hoisted(() =>
   >()
 );
 
-vi.mock(import("../../src/api/photo-geometry"), () => ({
+vi.mock(import("../../src/modules/subject/api/photo-geometry"), () => ({
   fetchPhotoGeometry: mockFetchPhotoGeometry,
 }));
 

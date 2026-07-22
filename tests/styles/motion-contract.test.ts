@@ -3,22 +3,25 @@ import path from "node:path";
 
 import { describe, expect, it } from "vitest";
 
-const readStyle = (name: string): string =>
-  readFileSync(path.resolve(process.cwd(), "src/styles", name), "utf-8");
+const readStyle = (relativePath: string): string =>
+  readFileSync(path.resolve(process.cwd(), relativePath), "utf-8");
 
-const motionCss = readStyle("motion.css");
-const heroActionsCss = readStyle("hero-actions.css");
-const heroCss = readStyle("hero.css");
-const detailsCss = readStyle("details.css");
-const discussionsCss = readStyle("discussions.css");
-const layoutCss = readStyle("layout.css");
-const mediaCss = readStyle("media.css");
-const mediaPlaybackCss = readStyle("media-playback.css");
-const modalsCss = readStyle("modals.css");
-const personageCss = readStyle("personage.css");
-const reviewsCss = readStyle("reviews.css");
-const responsiveCss = readStyle("responsive.css");
-const tokensCss = readStyle("00-tokens.css");
+const subjectStyle = (name: string) =>
+  readStyle(`src/modules/subject/styles/${name}`);
+
+const motionCss = subjectStyle("motion.css");
+const heroActionsCss = subjectStyle("hero-actions.css");
+const heroCss = subjectStyle("hero.css");
+const detailsCss = subjectStyle("details.css");
+const discussionsCss = subjectStyle("discussions.css");
+const layoutCss = readStyle("src/shared/styles/layout.css");
+const mediaCss = subjectStyle("media.css");
+const mediaPlaybackCss = subjectStyle("media-playback.css");
+const modalsCss = readStyle("src/shared/styles/modals.css");
+const personageCss = readStyle("src/modules/personage/styles/page.css");
+const reviewsCss = subjectStyle("reviews.css");
+const responsiveCss = subjectStyle("responsive.css");
+const tokensCss = readStyle("src/shared/styles/tokens.css");
 
 describe("motion style contract", () => {
   it("keeps principal browsing-card hover feedback spatially still", () => {

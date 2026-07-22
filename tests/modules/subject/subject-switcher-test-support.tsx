@@ -1,13 +1,13 @@
 import { render } from "preact";
 import { vi } from "vitest";
 
-import type { SubjectSuggestion } from "@/api/subject-suggestions";
+import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
 const fetchSuggestions = vi.hoisted(() =>
   vi.fn<(query: string, signal?: AbortSignal) => Promise<SubjectSuggestion[]>>()
 );
 
-vi.mock(import("@/api/subject-suggestions"), () => ({
+vi.mock(import("@/modules/subject/api/subject-suggestions"), () => ({
   fetchSubjectSuggestions: fetchSuggestions,
   normalizeSubjectQuery: (query: string) =>
     query.trim().replaceAll(/\s+/gu, " "),

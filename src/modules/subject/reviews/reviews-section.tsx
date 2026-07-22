@@ -1,7 +1,11 @@
-import { Section } from "@/components/layout/section";
-import type { AccountActionGuard, Review, ReviewVoteCallback } from "@/types";
+import type {
+  AccountActionGuard,
+  Review,
+  ReviewVoteCallback,
+} from "@/modules/subject/domain";
+import { Section } from "@/shared/components/layout/section";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 import { ReviewCard } from "./review-card";
 import type { ReviewVoteState } from "./review-vote-state";
 

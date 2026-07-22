@@ -1,11 +1,11 @@
-import { PlayIcon } from "@/components/common/icons";
-import { SafeImage } from "@/components/common/safe-image";
-import { Section } from "@/components/layout/section";
-import type { ImageModalSource } from "@/components/modal";
-import type { ResolvedPhoto } from "@/modules/subject/types";
-import type { Trailer } from "@/types";
+import type { Trailer } from "@/modules/subject/domain";
+import type { ResolvedPhoto } from "@/modules/subject/runtime/types";
+import { PlayIcon } from "@/shared/components/common/icons";
+import { SafeImage } from "@/shared/components/common/safe-image";
+import { Section } from "@/shared/components/layout/section";
+import type { ImageModalSource } from "@/shared/components/modal";
 
-import { getSubjectSectionCopy } from "../section-copy";
+import { getSubjectSectionCopy } from "../navigation/section-copy";
 
 type PhotosSectionProps = {
   data: {
