@@ -1,8 +1,7 @@
 import { StickyNav } from "@/shared/components/layout";
+import type { StickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
-import type { PersonageStickyNavigation } from "../runtime/use-sticky-navigation";
-
-type PersonageStickyNavProps = PersonageStickyNavigation & {
+type PersonageStickyNavProps = StickyNavigation & {
   name: string;
 };
 

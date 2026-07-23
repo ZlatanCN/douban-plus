@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useStickyNavigation } from "@/modules/subject/runtime/use-sticky-navigation";
+import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => ({

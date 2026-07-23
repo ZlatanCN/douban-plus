@@ -3,8 +3,8 @@ import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { PersonageProfile } from "@/modules/personage/domain";
 import { extractPersonageProfile } from "@/modules/personage/extract/profile";
 import { PersonagePage } from "@/modules/personage/presentation/page";
-import { usePersonageStickyNavigation } from "@/modules/personage/runtime/use-sticky-navigation";
-import type { PersonageNavSection } from "@/modules/personage/runtime/use-sticky-navigation";
+import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
+import type { StickyNavigationSection } from "@/shared/hooks/use-sticky-navigation";
 
 type PersonageProfileAdoptionProps = {
   doc: Document;
@@ -116,8 +116,8 @@ const hasDynamicPersonageSourceMutation = (
 
 const computePersonageNavSections = (
   profile: PersonageProfile
-): PersonageNavSection[] => {
-  const sections: PersonageNavSection[] = [];
+): StickyNavigationSection[] => {
+  const sections: StickyNavigationSection[] = [];
 
   if (profile.awards?.awards.length) {
     sections.push({ id: "atv-personage-awards", label: "荣誉" });
@@ -150,7 +150,7 @@ const PersonageProfileAdoption = ({
     () => computePersonageNavSections(profile),
     [profile]
   );
-  const navigation = usePersonageStickyNavigation(doc, sections);
+  const navigation = useStickyNavigation(doc, sections);
 
   useLayoutEffect(() => {
     const refreshProfile = () => {

@@ -10,6 +10,7 @@ import { postReviewVote } from "@/modules/subject/api/review";
 import type { DoubanData } from "@/modules/subject/domain";
 import { computeNavSections } from "@/modules/subject/navigation/sections";
 import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/subject/runtime/types";
+import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
 import { SubjectPage } from "./subject-page";
 import { useExternalRatings } from "./use-external-ratings";
@@ -18,7 +19,6 @@ import { useNativeSummary } from "./use-native-summary";
 import { useResolvedComments } from "./use-resolved-comments";
 import { useResolvedPhotoGeometry } from "./use-resolved-photo-geometry";
 import { useSeriesRuntime } from "./use-series-runtime";
-import { useStickyNavigation } from "./use-sticky-navigation";
 
 type SubjectPageRuntimeProps = {
   data: DoubanData;

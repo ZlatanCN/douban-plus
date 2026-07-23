@@ -5841,7 +5841,7 @@
 			}) : null
 		] });
 	};
-	var usePersonageStickyNavigation = (doc, sections) => {
+	var useStickyNavigation = (doc, sections) => {
 		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
 		const [scrolling, setScrolling] = d(false);
@@ -6017,7 +6017,7 @@
 	var PersonageProfileAdoption = ({ doc, initialProfile }) => {
 		const [profile, setProfile] = d(initialProfile);
 		const sections = T(() => computePersonageNavSections(profile), [profile]);
-		const navigation = usePersonageStickyNavigation(doc, sections);
+		const navigation = useStickyNavigation(doc, sections);
 		_(() => {
 			const refreshProfile = () => {
 				const nextProfile = extractPersonageProfile(doc);
@@ -14885,101 +14885,6 @@ input::placeholder {
 			return () => observer.disconnect();
 		}, [doc, initialSeries]);
 		return result;
-	};
-	var useStickyNavigation = (doc, sections) => {
-		const [activeSectionId, setActiveSectionId] = d("");
-		const [visible, setVisible] = d(false);
-		const [scrolling, setScrolling] = d(false);
-		const lastVisibleRef = A(false);
-		const navRef = A(null);
-		h(() => {
-			const view = doc.defaultView ?? window;
-			let scrollTimer;
-			const handleScroll = () => {
-				const isVisible = view.scrollY > 300;
-				if (isVisible !== lastVisibleRef.current) {
-					lastVisibleRef.current = isVisible;
-					setVisible(isVisible);
-				}
-				setScrolling(true);
-				view.clearTimeout(scrollTimer);
-				scrollTimer = view.setTimeout(() => setScrolling(false), 150);
-			};
-			view.addEventListener("scroll", handleScroll, { passive: true });
-			handleScroll();
-			return () => {
-				view.removeEventListener("scroll", handleScroll);
-				view.clearTimeout(scrollTimer);
-			};
-		}, [doc]);
-		h(() => {
-			const nav = navRef.current;
-			if (!nav) return;
-			animateWithReducedMotion(nav, {
-				properties: visible ? {
-					opacity: 1,
-					transform: "translateY(0)"
-				} : {
-					opacity: 0,
-					transform: "translateY(-100%)"
-				},
-				reducedMotionProperties: { opacity: visible ? 1 : 0 },
-				springConfig: springConfigs.stickyNav
-			});
-		}, [visible]);
-		h(() => {
-			const view = doc.defaultView ?? window;
-			const elements = new Map();
-			for (const section of sections) {
-				const element = doc.querySelector(`#${section.id}`);
-				if (element) elements.set(section.id, element);
-			}
-			let pending = false;
-			const pick = () => {
-				let activeId = "";
-				let bestScore = -Infinity;
-				for (const section of sections) {
-					const element = elements.get(section.id);
-					if (!element) continue;
-					const rect = element.getBoundingClientRect();
-					const visibleTop = Math.max(rect.top, 56);
-					const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
-					const score = Math.max(0, visibleBottom - visibleTop);
-					if (score > bestScore) {
-						activeId = section.id;
-						bestScore = score;
-					}
-				}
-				setActiveSectionId(activeId);
-				pending = false;
-			};
-			const observer = new view.IntersectionObserver(() => {
-				if (pending) return;
-				pending = true;
-				view.requestAnimationFrame(pick);
-			}, { threshold: [
-				0,
-				.25,
-				.5
-			] });
-			for (const element of elements.values()) observer.observe(element);
-			pick();
-			return () => observer.disconnect();
-		}, [doc, sections]);
-		return {
-			activeSectionId,
-			navRef,
-			onJump: q((sectionId) => {
-				const prefersReducedMotion = (doc.defaultView ?? window).matchMedia("(prefers-reduced-motion: reduce)").matches;
-				doc.querySelector(`#${sectionId}`)?.scrollIntoView({
-					behavior: prefersReducedMotion ? "auto" : "smooth",
-					block: "start"
-				});
-			}, [doc]),
-			scrolling,
-			sections,
-			visible
-		};
 	};
 	var SubjectPageRuntime = ({ data, doc }) => {
 		const series = useSeriesRuntime(data.series, doc);
