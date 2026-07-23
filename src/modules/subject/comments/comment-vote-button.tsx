@@ -1,64 +1,49 @@
-import { useState } from "preact/hooks";
-
-import type { AccountActionGuard } from "@/modules/subject/domain";
+import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
 import { IconThumb } from "@/shared/components/common/icons";
 
 import type { CommentVoteCallback } from "../runtime/types";
 import { useVoteAction } from "../voting/use-vote-action";
+import { useVoteControl } from "../voting/use-vote-control";
 import type { VotePersistOptions } from "../voting/vote-state";
 import { commentVoteApi } from "./comment-vote-state";
 import type { CommentVoteState } from "./comment-vote-state";
 
 type CommentVoteButtonProps = {
   canVote?: AccountActionGuard;
-  cid: string;
   className: string;
-  count: number;
+  comment: Comment;
   onStateChange?: (
     state: CommentVoteState,
     options?: VotePersistOptions
   ) => void;
   onVote: CommentVoteCallback;
   state?: CommentVoteState;
-  voted: boolean;
 };
 
 const CommentVoteButton = ({
   canVote,
-  cid,
   className,
-  count,
+  comment,
   onStateChange,
   onVote,
   state,
-  voted,
 }: CommentVoteButtonProps) => {
-  const [localState, setLocalState] = useState<CommentVoteState>({
-    count,
-    voted,
+  const { setVoteState, voteState } = useVoteControl({
+    api: commentVoteApi,
+    item: comment,
+    ...(onStateChange ? { onStateChange } : {}),
+    ...(state ? { state } : {}),
   });
-  const voteState = state ?? localState;
-
-  const setVoteState = (
-    nextState: CommentVoteState,
-    options?: VotePersistOptions
-  ): void => {
-    if (onStateChange) {
-      onStateChange(nextState, options);
-    } else {
-      setLocalState(nextState);
-    }
-  };
 
   const { loading, vote } = useVoteAction(commentVoteApi, {
     ...(canVote ? { canVote } : {}),
     getState: () => voteState,
-    onVote: () => onVote(cid),
+    onVote: () => onVote(comment.cid),
     setState: setVoteState,
   });
 
   const handleVote = (): void => {
-    if (!cid) {
+    if (!comment.cid) {
       return;
     }
     void vote("up");
@@ -69,7 +54,7 @@ const CommentVoteButton = ({
       aria-label={`有用，${voteState.count} 人觉得有用`}
       aria-pressed={voteState.voted}
       class={`${className}${voteState.voted ? " is-voted" : ""}`}
-      disabled={loading || voteState.voted || !cid}
+      disabled={loading || voteState.voted || !comment.cid}
       onClick={(event) => {
         event.stopPropagation();
         handleVote();

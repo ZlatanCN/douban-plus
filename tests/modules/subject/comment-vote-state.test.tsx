@@ -226,4 +226,27 @@ describe("comment vote state across cards and modals", () => {
     expect(stored[0]?.[0]).toBe("c1");
     expect(stored[0]?.[1].value).toStrictEqual({ count: 9, type: "up" });
   });
+
+  it("persists a successful vote cast from the modal", async () => {
+    const root = renderPage(
+      makeData(),
+      makeRuntime(() => Promise.resolve({ count: 11, ok: true }))
+    );
+    const modal = await openCommentModal(root);
+
+    modal
+      .querySelector<HTMLButtonElement>(".atv-comment-overlay-votes")
+      ?.click();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const stored = JSON.parse(
+      localStorage.getItem("atv:comment:vote") ?? "[]"
+    ) as [
+      string,
+      { expiresAt: number; value: { count: number; type: string } },
+    ][];
+    expect(stored[0]?.[0]).toBe("c1");
+    expect(stored[0]?.[1].value).toStrictEqual({ count: 11, type: "up" });
+  });
 });

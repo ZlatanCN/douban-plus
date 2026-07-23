@@ -7449,6 +7449,23 @@ input::placeholder {
 			])
 		};
 	};
+	var useVoteControl = (wiring) => {
+		const { api, item, onStateChange, state } = wiring;
+		const [localState, setLocalState] = d(() => api.initial(item));
+		const voteState = state ?? localState;
+		const setVoteState = (nextState, options) => {
+			if (onStateChange) {
+				onStateChange(nextState, options);
+				return;
+			}
+			setLocalState(nextState);
+			if (options?.persist) api.persist(item, nextState);
+		};
+		return {
+			setVoteState,
+			voteState
+		};
+	};
 	var createCache = (storageKey, ttlMs = 1440 * 60 * 1e3) => {
 		const load = () => {
 			try {
@@ -7562,31 +7579,28 @@ input::placeholder {
 			voted: dir === "up"
 		})
 	});
-	var CommentVoteButton = ({ canVote, cid, className, count, onStateChange, onVote, state, voted }) => {
-		const [localState, setLocalState] = d({
-			count,
-			voted
+	var CommentVoteButton = ({ canVote, className, comment, onStateChange, onVote, state }) => {
+		const { setVoteState, voteState } = useVoteControl({
+			api: commentVoteApi,
+			item: comment,
+			...onStateChange ? { onStateChange } : {},
+			...state ? { state } : {}
 		});
-		const voteState = state ?? localState;
-		const setVoteState = (nextState, options) => {
-			if (onStateChange) onStateChange(nextState, options);
-			else setLocalState(nextState);
-		};
 		const { loading, vote } = useVoteAction(commentVoteApi, {
 			...canVote ? { canVote } : {},
 			getState: () => voteState,
-			onVote: () => onVote(cid),
+			onVote: () => onVote(comment.cid),
 			setState: setVoteState
 		});
 		const handleVote = () => {
-			if (!cid) return;
+			if (!comment.cid) return;
 			vote("up");
 		};
 		return u("button", {
 			"aria-label": `有用，${voteState.count} 人觉得有用`,
 			"aria-pressed": voteState.voted,
 			class: `${className}${voteState.voted ? " is-voted" : ""}`,
-			disabled: loading || voteState.voted || !cid,
+			disabled: loading || voteState.voted || !comment.cid,
 			onClick: (event) => {
 				event.stopPropagation();
 				handleVote();
@@ -7666,13 +7680,11 @@ input::placeholder {
 							children: u(IconExpand, {})
 						}), u(CommentVoteButton, {
 							...canVote ? { canVote } : {},
-							cid: comment.cid,
 							className: "atv-comment-votes",
-							count: comment.votes,
+							comment,
 							...onVoteStateChange ? { onStateChange: (state, options) => onVoteStateChange(comment, state, options) } : {},
 							onVote,
-							...voteState ? { state: voteState } : {},
-							voted: comment.voted
+							...voteState ? { state: voteState } : {}
 						})]
 					})]
 				})
@@ -7749,13 +7761,11 @@ input::placeholder {
 					children: comment.time || ""
 				}), u(CommentVoteButton, {
 					...canVote ? { canVote } : {},
-					cid: comment.cid,
 					className: "atv-comment-overlay-votes",
-					count: comment.votes,
-					...onVoteStateChange ? { onStateChange: (state) => onVoteStateChange(comment, state) } : {},
+					comment,
+					...onVoteStateChange ? { onStateChange: (state, options) => onVoteStateChange(comment, state, options) } : {},
 					onVote,
-					...voteState ? { state: voteState } : {},
-					voted: comment.voted
+					...voteState ? { state: voteState } : {}
 				})]
 			})
 		] });
@@ -13258,15 +13268,12 @@ input::placeholder {
 		})
 	});
 	var ReviewVoteButtons = ({ canVote, onStateChange, onVote, review, size = "normal", state }) => {
-		const [localState, setLocalState] = d(() => reviewVoteApi.initial(review));
-		const voteState = state ?? localState;
-		const setVoteState = (nextState, options) => {
-			if (onStateChange) onStateChange(review, nextState, options);
-			else {
-				setLocalState(nextState);
-				if (options?.persist) reviewVoteApi.persist(review, nextState);
-			}
-		};
+		const { setVoteState, voteState } = useVoteControl({
+			api: reviewVoteApi,
+			item: review,
+			...onStateChange ? { onStateChange: (nextState, options) => onStateChange(review, nextState, options) } : {},
+			...state ? { state } : {}
+		});
 		const { loading, vote } = useVoteAction(reviewVoteApi, {
 			...canVote ? { canVote } : {},
 			getState: () => voteState,
