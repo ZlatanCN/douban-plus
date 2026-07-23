@@ -3,16 +3,42 @@ import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 import { normalizeSubjectQuery } from "@/modules/subject/api/subject-suggestions";
 import type { SubjectSuggestion } from "@/modules/subject/api/subject-suggestions";
 
-import { SearchIcon } from "./search-icon";
 import { SuggestionRow } from "./subject-suggestion-row";
-import {
-  isTextInputTarget,
-  nativeSearchUrl,
-  suggestionListId,
-} from "./subject-switcher-helpers";
-import type { SubjectSwitcherProps } from "./subject-switcher-helpers";
 import { useSubjectSuggestionRequest } from "./use-subject-suggestion-request";
 import { useSwitcherNav } from "./use-switcher-nav";
+
+const suggestionListId = "atv-subject-suggestion-list";
+
+type SubjectSwitcherProps = {
+  onOpenChange?: (isOpen: boolean) => void;
+};
+
+const isTextInputTarget = (target: EventTarget | null): boolean =>
+  target instanceof Element &&
+  target.closest("input, textarea, select, [contenteditable]") !== null;
+
+const nativeSearchUrl = (query: string): string =>
+  `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(query)}`;
+
+const SearchIcon = () => (
+  <svg aria-hidden="true" height="16" viewBox="0 0 16 16" width="16">
+    <circle
+      cx="6.75"
+      cy="6.75"
+      fill="none"
+      r="4.5"
+      stroke="currentColor"
+      stroke-width="1.7"
+    />
+    <path
+      d="m10.1 10.1 3.15 3.15"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-width="1.7"
+    />
+  </svg>
+);
 
 const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   const [isOpen, setIsOpen] = useState(false);

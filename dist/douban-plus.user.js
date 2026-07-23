@@ -673,6 +673,62 @@
 		if ("function" == typeof e && (a = e.defaultProps)) for (c in a) void 0 === p[c] && (p[c] = a[c]);
 		return l$1.vnode && l$1.vnode(l), l;
 	}
+	var computeIndicatorMetrics = (activeEl, containerEl) => {
+		const containerRect = containerEl.getBoundingClientRect();
+		const activeRect = activeEl.getBoundingClientRect();
+		return {
+			left: activeRect.left - containerRect.left,
+			width: activeRect.width
+		};
+	};
+	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
+		const markerRef = A(null);
+		_(() => {
+			if (!activeSectionId) return;
+			const nav = navRef?.current;
+			const marker = markerRef.current;
+			if (!nav || !marker) return;
+			const container = nav.querySelector(".atv-stickynav-jumps");
+			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
+			if (!container || !activeLink) return;
+			const frame = requestAnimationFrame(() => {
+				const { left, width } = computeIndicatorMetrics(activeLink, container);
+				marker.style.transform = `translateX(${left}px)`;
+				marker.style.width = `${width}px`;
+			});
+			return () => {
+				cancelAnimationFrame(frame);
+			};
+		}, [activeSectionId, navRef]);
+		return u("nav", {
+			...navRef ? { ref: navRef } : {},
+			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
+			children: [
+				u("div", {
+					class: "atv-stickynav-title",
+					children: title
+				}),
+				accessory,
+				u("div", {
+					class: "atv-stickynav-jumps",
+					children: [sections.map((section) => u("a", {
+						class: activeSectionId === section.id ? "is-active" : void 0,
+						"data-section-id": section.id,
+						href: `#${section.id}`,
+						onClick: (event) => {
+							event.preventDefault();
+							onJump(section.id);
+						},
+						children: section.label
+					}, section.id)), u("div", {
+						"aria-hidden": "true",
+						class: "atv-stickynav-marker",
+						ref: markerRef
+					})]
+				})
+			]
+		});
+	};
 	var IconStarFull = (props) => u("svg", {
 		viewBox: "0 0 16 16",
 		width: "16",
@@ -5600,66 +5656,6 @@
 			})
 		});
 	};
-	var computeIndicatorMetrics = (activeEl, containerEl) => {
-		const containerRect = containerEl.getBoundingClientRect();
-		const activeRect = activeEl.getBoundingClientRect();
-		return {
-			left: activeRect.left - containerRect.left,
-			width: activeRect.width
-		};
-	};
-	var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJump, scrolling = false, sections, title, visible = false }) => {
-		const markerRef = A(null);
-		_(() => {
-			if (!activeSectionId) return;
-			const nav = navRef?.current;
-			const marker = markerRef.current;
-			if (!nav || !marker) return;
-			const container = nav.querySelector(".atv-stickynav-jumps");
-			const activeLink = nav.querySelector(`[data-section-id="${activeSectionId}"]`);
-			if (!container || !activeLink) return;
-			const frame = requestAnimationFrame(() => {
-				const { left, width } = computeIndicatorMetrics(activeLink, container);
-				marker.style.transform = `translateX(${left}px)`;
-				marker.style.width = `${width}px`;
-			});
-			return () => {
-				cancelAnimationFrame(frame);
-			};
-		}, [activeSectionId, navRef]);
-		return u("nav", {
-			...navRef ? { ref: navRef } : {},
-			class: `atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`,
-			children: [
-				u("div", {
-					class: "atv-stickynav-title",
-					children: title
-				}),
-				accessory,
-				u("div", {
-					class: "atv-stickynav-jumps",
-					children: [sections.map((section) => u("a", {
-						class: activeSectionId === section.id ? "is-active" : void 0,
-						"data-section-id": section.id,
-						href: `#${section.id}`,
-						onClick: (event) => {
-							event.preventDefault();
-							onJump(section.id);
-						},
-						children: section.label
-					}, section.id)), u("div", {
-						"aria-hidden": "true",
-						class: "atv-stickynav-marker",
-						ref: markerRef
-					})]
-				})
-			]
-		});
-	};
-	var PersonageStickyNav = ({ name, ...navigation }) => u(StickyNav, {
-		...navigation,
-		title: name
-	});
 	var PosterPlaceholder = () => u("div", {
 		class: "atv-poster-placeholder",
 		children: u(IconFilmPlaceholder, {})
@@ -5800,9 +5796,9 @@
 			});
 		};
 		return u(S, { children: [
-			navigation ? u(PersonageStickyNav, {
+			navigation ? u(StickyNav, {
 				...navigation,
-				name: primaryName
+				title: primaryName
 			}) : null,
 			u("main", {
 				class: "atv-personage",
@@ -13761,26 +13757,6 @@ input::placeholder {
 		});
 		return suggestions;
 	};
-	var SearchIcon = () => u("svg", {
-		"aria-hidden": "true",
-		height: "16",
-		viewBox: "0 0 16 16",
-		width: "16",
-		children: [u("circle", {
-			cx: "6.75",
-			cy: "6.75",
-			fill: "none",
-			r: "4.5",
-			stroke: "currentColor",
-			"stroke-width": "1.7"
-		}), u("path", {
-			d: "m10.1 10.1 3.15 3.15",
-			fill: "none",
-			stroke: "currentColor",
-			"stroke-linecap": "round",
-			"stroke-width": "1.7"
-		})]
-	});
 	var suggestionMetadata = (suggestion) => {
 		const details = [suggestion.year];
 		if (suggestion.episode) details.push(`共 ${suggestion.episode} 集`);
@@ -13829,9 +13805,6 @@ input::placeholder {
 			]
 		});
 	};
-	var suggestionListId = "atv-subject-suggestion-list";
-	var isTextInputTarget = (target) => target instanceof Element && target.closest("input, textarea, select, [contenteditable]") !== null;
-	var nativeSearchUrl = (query) => `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(query)}`;
 	var QUERY_DEBOUNCE_MS = 300;
 	var MAX_SUGGESTIONS = 5;
 	var useSubjectSuggestionRequest = (normalizedQuery) => {
@@ -13913,6 +13886,29 @@ input::placeholder {
 			handleReset
 		};
 	};
+	var suggestionListId = "atv-subject-suggestion-list";
+	var isTextInputTarget = (target) => target instanceof Element && target.closest("input, textarea, select, [contenteditable]") !== null;
+	var nativeSearchUrl = (query) => `https://search.douban.com/movie/subject_search?search_text=${encodeURIComponent(query)}`;
+	var SearchIcon = () => u("svg", {
+		"aria-hidden": "true",
+		height: "16",
+		viewBox: "0 0 16 16",
+		width: "16",
+		children: [u("circle", {
+			cx: "6.75",
+			cy: "6.75",
+			fill: "none",
+			r: "4.5",
+			stroke: "currentColor",
+			"stroke-width": "1.7"
+		}), u("path", {
+			d: "m10.1 10.1 3.15 3.15",
+			fill: "none",
+			stroke: "currentColor",
+			"stroke-linecap": "round",
+			"stroke-width": "1.7"
+		})]
+	});
 	var SubjectSwitcher = ({ onOpenChange }) => {
 		const [isOpen, setIsOpen] = d(false);
 		const [query, setQuery] = d("");

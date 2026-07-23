@@ -1,3 +1,4 @@
+import { StickyNav } from "@/shared/components/layout";
 import { ModalSession, PosterModal } from "@/shared/components/modal";
 import type { ImageModalSource } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
@@ -8,7 +9,6 @@ import { PersonageAwardsSection } from "./awards";
 import { PersonageCollaborators } from "./collaborators";
 import { PersonageGallerySection } from "./gallery";
 import { PersonageHero } from "./hero";
-import { PersonageStickyNav } from "./sticky-nav";
 import { PersonageTimeline } from "./timeline";
 import { PersonageWorkRail } from "./works";
 
@@ -37,9 +37,7 @@ const PersonagePage = ({ navigation, profile }: PersonagePageProps) => {
 
   return (
     <>
-      {navigation ? (
-        <PersonageStickyNav {...navigation} name={primaryName} />
-      ) : null}
+      {navigation ? <StickyNav {...navigation} title={primaryName} /> : null}
       <main class="atv-personage">
         <PersonageHero profile={profile} onOpenPortrait={handleOpenPortrait} />
         <PersonageAwardsSection awards={profile.awards} />
