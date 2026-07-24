@@ -12,7 +12,6 @@
 // @supportURL   https://github.com/ZlatanCN/douban-plus/issues
 // @downloadURL  https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.user.js
 // @updateURL    https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.meta.js
-// @include      https://accounts.douban.com/passport/login*
 // @match        *://movie.douban.com/subject/*
 // @match        *://www.douban.com/personage/*
 // @match        *://accounts.douban.com/passport/login*

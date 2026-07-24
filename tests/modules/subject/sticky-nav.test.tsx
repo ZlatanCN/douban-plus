@@ -161,6 +161,21 @@ describe(StickyNav, () => {
         width: 64,
       });
     });
+
+    it("accounts for horizontal scrolling within the jump rail", () => {
+      const container = document.createElement("div");
+      const link = document.createElement("a");
+      Object.defineProperty(container, "scrollLeft", { value: 180 });
+      vi.spyOn(container, "getBoundingClientRect").mockReturnValue(
+        rect(100, 500)
+      );
+      vi.spyOn(link, "getBoundingClientRect").mockReturnValue(rect(140, 80));
+
+      expect(computeIndicatorMetrics(link, container)).toStrictEqual({
+        left: 220,
+        width: 80,
+      });
+    });
   });
 
   it("positions the sliding marker over the active link", () => {
