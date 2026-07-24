@@ -9,111 +9,13 @@ import type { StickyNavigationSection } from "@/shared/hooks/use-sticky-navigati
 
 type PersonageProfileAdoptionProps = {
   doc: Document;
-  initialProfile: PersonageProfile;
+  profile: PersonageProfile;
 };
 
 const isBiographyExpansionPending = (doc: Document): boolean =>
   [
     ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
   ].some((element) => element.textContent?.includes("展开"));
-
-const waitForExpandedBiography = (
-  doc: Document,
-  onExpanded: (profile: PersonageProfile) => void
-): void => {
-  const source = doc.querySelector(".subject-intro");
-  const view = doc.defaultView;
-  if (!source || !view) {
-    return;
-  }
-
-  let frame: number | null = null;
-  let observer: MutationObserver | null = null;
-
-  const finishAdoption = () => {
-    frame = null;
-    observer?.disconnect();
-    if (isBiographyExpansionPending(doc)) {
-      return;
-    }
-
-    const profile = extractPersonageProfile(doc);
-    if (profile) {
-      onExpanded(profile);
-    }
-  };
-
-  const scheduleAdoption = () => {
-    if (frame !== null) {
-      view.cancelAnimationFrame(frame);
-    }
-    frame = view.requestAnimationFrame(finishAdoption);
-  };
-
-  observer = new MutationObserver(scheduleAdoption);
-  observer.observe(source, {
-    characterData: true,
-    childList: true,
-    subtree: true,
-  });
-  scheduleAdoption();
-};
-
-const adoptPersonageProfileWhenReady = (
-  doc: Document,
-  onAdopted: (profile: PersonageProfile) => void
-): void => {
-  const adopt = () => {
-    const initialProfile = extractPersonageProfile(doc);
-    if (!initialProfile) {
-      return;
-    }
-    if (!isBiographyExpansionPending(doc)) {
-      onAdopted(initialProfile);
-      return;
-    }
-
-    const trigger = [
-      ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
-    ].find((element) => element.textContent?.includes("展开"));
-    waitForExpandedBiography(doc, onAdopted);
-    trigger?.click();
-  };
-
-  if (doc.readyState === "complete" || !isBiographyExpansionPending(doc)) {
-    adopt();
-    return;
-  }
-
-  const view = doc.defaultView;
-  if (!view) {
-    adopt();
-    return;
-  }
-
-  view.addEventListener("load", adopt, { once: true });
-};
-
-const isDynamicPersonageSourceOrDescendant = (node: Node): boolean => {
-  if (!(node instanceof Element)) {
-    return false;
-  }
-
-  return (
-    node.matches(".subject-awards, .subject-creations") ||
-    node.closest(".subject-awards, .subject-creations") !== null ||
-    node.querySelector(".subject-awards, .subject-creations") !== null
-  );
-};
-
-const hasDynamicPersonageSourceMutation = (
-  mutations: MutationRecord[]
-): boolean =>
-  mutations.some(
-    (mutation) =>
-      isDynamicPersonageSourceOrDescendant(mutation.target) ||
-      [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant)
-  );
 
 const computePersonageNavSections = (
   profile: PersonageProfile
@@ -125,7 +27,7 @@ const computePersonageNavSections = (
 
 const PersonageProfileAdoption = ({
   doc,
-  initialProfile,
+  profile: initialProfile,
 }: PersonageProfileAdoptionProps) => {
   const [profile, setProfile] = useState(initialProfile);
   const sections = useMemo(
@@ -133,8 +35,44 @@ const PersonageProfileAdoption = ({
     [profile]
   );
   const navigation = useStickyNavigation(doc, sections);
-
+  // Expand truncated biography: defer click to rAF to ensure jQuery's
+  // delegate handler is registered, then verify expansion before extracting
   useLayoutEffect(() => {
+    if (!isBiographyExpansionPending(doc)) {
+      return;
+    }
+
+    const foldSwitch = [
+      ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
+    ].find((element) => element.textContent?.includes("展开"));
+
+    if (!foldSwitch) {
+      return;
+    }
+
+    const view = doc.defaultView;
+    if (!view) {
+      return;
+    }
+
+    view.requestAnimationFrame(() => {
+      foldSwitch.click();
+
+      // Verify: text changed from "(展开)" to "(折叠)" = expansion succeeded
+      if (!isBiographyExpansionPending(doc)) {
+        const nextProfile = extractPersonageProfile(doc);
+        if (nextProfile) {
+          setProfile(nextProfile);
+        }
+      }
+    });
+  }, [doc]);
+
+  // Observe ALL dynamic content via body-level mutation watcher,
+  // skipping mutations inside our own enhanced DOM
+  useLayoutEffect(() => {
+    let timer: number | undefined;
+
     const refreshProfile = () => {
       const nextProfile = extractPersonageProfile(doc);
       if (nextProfile) {
@@ -143,13 +81,26 @@ const PersonageProfileAdoption = ({
     };
 
     const observer = new MutationObserver((mutations) => {
-      if (hasDynamicPersonageSourceMutation(mutations)) {
-        refreshProfile();
+      // Skip mutations inside our own enhanced DOM — they don't reflect
+      // changes to the native Douban content sections we extract from
+      for (const mutation of mutations) {
+        if (
+          mutation.target instanceof Element &&
+          mutation.target.closest("#atv-douban-root")
+        ) {
+          return;
+        }
       }
+      clearTimeout(timer);
+      timer = setTimeout(refreshProfile, 200) as unknown as number;
     });
+
     observer.observe(doc.body, { childList: true, subtree: true });
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
   }, [doc]);
 
   return (
@@ -160,5 +111,5 @@ const PersonageProfileAdoption = ({
   );
 };
 
-export { adoptPersonageProfileWhenReady, PersonageProfileAdoption };
+export { PersonageProfileAdoption };
 export type { PersonageProfileAdoptionProps };

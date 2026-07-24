@@ -482,7 +482,7 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
-  it("waits for an asynchronously expanded native biography before mounting", async () => {
+  it("expands a truncated biography synchronously upon mount", async () => {
     const { cleanup, doc } = createTestDoc(
       `
         <div class="subject-target"><div class="subject-name">张艺谋 Yimou Zhang</div></div>
@@ -496,78 +496,32 @@ describe(mountPersonage, () => {
     const source = doc.querySelector<HTMLElement>(".subject-intro .content");
     const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
 
-    toggle?.addEventListener("click", () => {
-      if (toggle) {
-        toggle.textContent = "(收起)";
-      }
-      queueMicrotask(() => {
-        source?.replaceChildren(
-          Object.assign(doc.createElement("p"), {
-            textContent: "异步展开后提供的完整人物简介",
-          })
-        );
-      });
-    });
-    Object.defineProperty(doc, "readyState", {
-      configurable: true,
-      value: "complete",
-    });
-
-    mountPersonage(doc);
-
-    await vi.waitFor(() =>
-      expect(
-        doc.querySelector(".atv-personage-biography-content")?.textContent
-      ).toBe("异步展开后提供的完整人物简介")
-    );
-
-    cleanup();
-  });
-
-  it("adopts a biography only after the page-load boundary makes native expansion available", async () => {
-    const { cleanup, doc } = createTestDoc(
-      `
-        <div class="subject-target"><div class="subject-name">冯小刚 Xiaogang Feng</div></div>
-        <section class="subject-mod subject-intro">
-          <div class="content"><p>截断的原生简介</p></div>
-          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
-        </section>
-      `,
-      "/personage/27481219/"
-    );
-    const source = doc.querySelector<HTMLElement>(".subject-intro .content");
-    const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
-
-    Object.defineProperty(doc, "readyState", {
-      configurable: true,
-      value: "interactive",
-    });
-    mountPersonage(doc);
-
-    expect(doc.querySelector("#atv-douban-root")).toBeNull();
-
+    // Simulate real intro.js behavior: synchronous content swap on click
     toggle?.addEventListener("click", () => {
       source?.replaceChildren(
         Object.assign(doc.createElement("p"), {
-          textContent: "延后绑定后提供的完整人物简介",
+          textContent: "同步展开后提供的完整人物简介",
         })
       );
       if (toggle) {
-        toggle.textContent = "(折叠)";
+        toggle.textContent = "(收起)";
       }
     });
-    doc.defaultView?.dispatchEvent(new Event("load"));
 
+    mountPersonage(doc);
+
+    // The layout effect clicks the fold-switch and re-extracts synchronously,
+    // so the full bio is available immediately after mount
     await vi.waitFor(() =>
       expect(
         doc.querySelector(".atv-personage-biography-content")?.textContent
-      ).toBe("延后绑定后提供的完整人物简介")
+      ).toBe("同步展开后提供的完整人物简介")
     );
 
     cleanup();
   });
 
-  it("keeps the native page visible when biography expansion cannot complete", () => {
+  it("mounts immediately when readyState is interactive, without waiting for the load event", () => {
     const { cleanup, doc } = createTestDoc(
       `
         <div class="subject-target"><div class="subject-name">冯小刚 Xiaogang Feng</div></div>
@@ -583,11 +537,40 @@ describe(mountPersonage, () => {
       configurable: true,
       value: "interactive",
     });
-    mountPersonage(doc);
-    doc.defaultView?.dispatchEvent(new Event("load"));
 
-    expect(doc.querySelector("#atv-douban-root")).toBeNull();
-    expect(doc.body.classList).not.toContain("atv-enhanced");
+    mountPersonage(doc);
+
+    // Mounts immediately — no deferral for readyState
+    expect(doc.querySelector("#atv-douban-root")).not.toBeNull();
+    expect(doc.body.classList).toContain("atv-enhanced");
+    // Bio remains truncated because the fold-switch has no click handler
+    expect(
+      doc.querySelector(".atv-personage-biography-content")?.textContent
+    ).toBe("截断的原生简介");
+
+    cleanup();
+  });
+
+  it("renders the enhanced page even when biography expansion cannot complete", () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">冯小刚 Xiaogang Feng</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"><p>截断的原生简介</p></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27481219/"
+    );
+
+    mountPersonage(doc);
+
+    // Enhanced root is rendered even though the fold-switch has no click handler
+    expect(doc.querySelector("#atv-douban-root")).not.toBeNull();
+    expect(doc.body.classList).toContain("atv-enhanced");
+    expect(
+      doc.querySelector(".atv-personage-biography-content")?.textContent
+    ).toBe("截断的原生简介");
 
     cleanup();
   });

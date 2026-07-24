@@ -330,6 +330,154 @@
 	}, C$1.prototype.render = S, i$2 = [], o$2 = "function" == typeof Promise ? Promise.prototype.then.bind(Promise.resolve()) : setTimeout, e$1 = function(n, l) {
 		return n.__v.__b - l.__v.__b;
 	}, H.__r = 0, f$2 = Math.random().toString(8), c$1 = "__d" + f$2, a$1 = "__a" + f$2, s$1 = /(PointerCapture)$|Capture$/i, h$1 = 0, p$1 = V(!1), v$1 = V(!0), y$1 = 0;
+	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
+	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
+	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
+	var personageIdFromPath = (pathname) => pathname.match(/^\/personage\/(?<id>\d+)\/?$/u)?.groups?.id ?? null;
+	var imageUrl = (element) => {
+		if (!element) return null;
+		if (element.localName === "img") {
+			const image = element;
+			return image.currentSrc || image.src || null;
+		}
+		return (element.getAttribute("style") ?? "").match(/url\(["']?(?<url>[^"')]+)["']?\)/u)?.groups?.url ?? null;
+	};
+	var largePhotoUrl = (src) => {
+		if (src.includes("/view/photo/photo/")) return src.replace("/view/photo/photo/", "/view/photo/l/");
+		return src;
+	};
+	var extractFacts = (target) => $$(".subject-property li", target).flatMap((item) => {
+		const label = safeText(item.querySelector(".label"));
+		const value = safeText(item.querySelector(".value"));
+		return label && value ? [{
+			label,
+			value
+		}] : [];
+	});
+	var extractBiography = (doc) => {
+		const biography = $$(".subject-intro p", doc).map(safeText).filter((paragraph) => paragraph && paragraph !== "暂无");
+		return biography.length > 0 ? biography : null;
+	};
+	var extractCollaborators = (doc) => {
+		const source = doc.querySelector(".partners-mod-mod");
+		if (!source) return null;
+		const collaborators = $$(".partners-mod-item", source).flatMap((item, nativeIndex) => {
+			const profileLink = item.querySelector(".partners-mod-info a[title][href]");
+			const sharedWorksLink = item.querySelector(".partners-mod-info a[href*=\"partners#\"]");
+			const name = safeText(profileLink);
+			const sharedWorkCount = Number(safeText(sharedWorksLink));
+			if (!(profileLink && name && Number.isFinite(sharedWorkCount))) return [];
+			return [{
+				avatar: imageUrl(item.querySelector("img")),
+				href: profileLink.href,
+				name,
+				nativeIndex,
+				sharedWorkCount,
+				sharedWorksHref: sharedWorksLink?.href ?? null
+			}];
+		}).toSorted((left, right) => right.sharedWorkCount - left.sharedWorkCount || left.nativeIndex - right.nativeIndex).map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
+		const allCollaboratorsHref = source.querySelector("h2 a[href]")?.href ?? null;
+		const totalCountMatch = source.querySelector("h2 a[href]")?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allCollaboratorsHref,
+			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
+			collaborators
+		};
+	};
+	var hrefOf = (element) => element?.localName === "a" ? element.href : null;
+	var extractAwards$1 = (doc) => {
+		const source = doc.querySelector(".subject-awards");
+		if (!source) return null;
+		const awards = $$("li", source).flatMap((item) => {
+			const [yearElement, ceremonyElement, awardElement, workElement] = [...item.children];
+			const year = safeText(yearElement);
+			const ceremony = safeText(ceremonyElement);
+			const award = safeText(awardElement);
+			if (!(year && ceremony && award)) return [];
+			return [{
+				award,
+				ceremony,
+				ceremonyHref: hrefOf(ceremonyElement),
+				work: safeText(workElement) || null,
+				workHref: hrefOf(workElement),
+				year
+			}];
+		});
+		const allAwardsLink = source.querySelector("h2 a[href]");
+		const allAwardsHref = allAwardsLink?.href ?? null;
+		const awardsCountMatch = allAwardsLink?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allAwardsHref,
+			...awardsCountMatch ? { totalCount: Number(awardsCountMatch) } : {},
+			awards
+		};
+	};
+	var extractGallery = (doc, personageId) => {
+		const galleryPath = `/personage/${personageId}/photos`;
+		const source = doc.querySelector(".subject-picture");
+		if (!source) return null;
+		const allImagesLink = $$("a[href]", source).find((link) => new URL(link.getAttribute("href") ?? "", doc.baseURI).pathname.replace(/\/$/u, "") === galleryPath);
+		const images = $$("li.picture", source).flatMap((image) => {
+			const src = imageUrl(image);
+			if (!src) return [];
+			return [{
+				alt: image.getAttribute("aria-label")?.trim() ?? "",
+				largeSrc: largePhotoUrl(src),
+				src
+			}];
+		});
+		return {
+			allImagesHref: allImagesLink?.href ?? null,
+			images
+		};
+	};
+	var extractWorkRail = (doc, matchesHeading) => {
+		const source = $$(".subject-creations", doc).find((section) => matchesHeading(safeText(section.querySelector("h2"))));
+		if (!source) return null;
+		let lastYear = null;
+		const works = $$("li.creation", source).flatMap((item) => {
+			const posterLink = item.querySelector("a.img_wrap[href]");
+			const title = posterLink?.title.trim() ?? "";
+			if (!posterLink || !title) return [];
+			const yearElement = item.querySelector(".timeline-year") ?? item.querySelector(".pl");
+			const rawYear = yearElement ? safeText(yearElement).trim() : "";
+			const currentYear = /^\d{4}$/u.test(rawYear) ? rawYear : lastYear;
+			if (/^\d{4}$/u.test(rawYear)) lastYear = rawYear;
+			return [{
+				href: posterLink.href,
+				poster: imageUrl(posterLink.querySelector("img")) ?? "",
+				rating: safeText(item.querySelector(".rating-val")) || null,
+				title,
+				year: currentYear
+			}];
+		});
+		const allWorksLink = $$("a[href]", source).find((link) => new URL(link.href).pathname.includes("/creations"));
+		const allWorksHref = allWorksLink?.href;
+		const totalCountMatch = allWorksLink?.textContent?.match(/\d+/u)?.[0];
+		return {
+			allWorksHref: allWorksHref ?? null,
+			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
+			works
+		};
+	};
+	var extractPersonageProfile = (doc) => {
+		const target = doc.querySelector(".subject-target");
+		const name = safeText(target?.querySelector(".subject-name"));
+		const id = personageIdFromPath(doc.defaultView?.location.pathname ?? "");
+		if (!target || !name || !id) return null;
+		return {
+			awards: extractAwards$1(doc),
+			biography: extractBiography(doc),
+			collaborators: extractCollaborators(doc),
+			facts: extractFacts(target),
+			gallery: extractGallery(doc, id),
+			id,
+			name,
+			portrait: imageUrl(target.querySelector(".avatar img, .subject-avatar img") ?? target.querySelector(".avatar, .subject-avatar")),
+			recentWorks: extractWorkRail(doc, (heading) => heading.includes("最近")),
+			representativeWorks: extractWorkRail(doc, (heading) => heading.includes("收藏人数最多"))
+		};
+	};
 	var activateEnhancedDocument = (doc) => {
 		doc.body.classList.add("atv-enhanced");
 	};
@@ -499,154 +647,7 @@
 	function D(n, t) {
 		return "function" == typeof t ? t(n) : t;
 	}
-	var $ = (selector, ctx) => (ctx ?? document).querySelector(selector);
-	var $$ = (selector, ctx) => [...(ctx ?? document).querySelectorAll(selector)];
-	var safeText = (el) => el ? (el.textContent ?? "").trim() : "";
-	var personageIdFromPath = (pathname) => pathname.match(/^\/personage\/(?<id>\d+)\/?$/u)?.groups?.id ?? null;
-	var imageUrl = (element) => {
-		if (!element) return null;
-		if (element.localName === "img") {
-			const image = element;
-			return image.currentSrc || image.src || null;
-		}
-		return (element.getAttribute("style") ?? "").match(/url\(["']?(?<url>[^"')]+)["']?\)/u)?.groups?.url ?? null;
-	};
-	var largePhotoUrl = (src) => {
-		if (src.includes("/view/photo/photo/")) return src.replace("/view/photo/photo/", "/view/photo/l/");
-		return src;
-	};
-	var extractFacts = (target) => $$(".subject-property li", target).flatMap((item) => {
-		const label = safeText(item.querySelector(".label"));
-		const value = safeText(item.querySelector(".value"));
-		return label && value ? [{
-			label,
-			value
-		}] : [];
-	});
-	var extractBiography = (doc) => {
-		const biography = $$(".subject-intro p", doc).map(safeText).filter((paragraph) => paragraph && paragraph !== "暂无");
-		return biography.length > 0 ? biography : null;
-	};
-	var extractCollaborators = (doc) => {
-		const source = doc.querySelector(".partners-mod-mod");
-		if (!source) return null;
-		const collaborators = $$(".partners-mod-item", source).flatMap((item, nativeIndex) => {
-			const profileLink = item.querySelector(".partners-mod-info a[title][href]");
-			const sharedWorksLink = item.querySelector(".partners-mod-info a[href*=\"partners#\"]");
-			const name = safeText(profileLink);
-			const sharedWorkCount = Number(safeText(sharedWorksLink));
-			if (!(profileLink && name && Number.isFinite(sharedWorkCount))) return [];
-			return [{
-				avatar: imageUrl(item.querySelector("img")),
-				href: profileLink.href,
-				name,
-				nativeIndex,
-				sharedWorkCount,
-				sharedWorksHref: sharedWorksLink?.href ?? null
-			}];
-		}).toSorted((left, right) => right.sharedWorkCount - left.sharedWorkCount || left.nativeIndex - right.nativeIndex).map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
-		const allCollaboratorsHref = source.querySelector("h2 a[href]")?.href ?? null;
-		const totalCountMatch = source.querySelector("h2 a[href]")?.textContent?.match(/\d+/u)?.[0];
-		return {
-			allCollaboratorsHref,
-			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
-			collaborators
-		};
-	};
-	var hrefOf = (element) => element?.localName === "a" ? element.href : null;
-	var extractAwards$1 = (doc) => {
-		const source = doc.querySelector(".subject-awards");
-		if (!source) return null;
-		const awards = $$("li", source).flatMap((item) => {
-			const [yearElement, ceremonyElement, awardElement, workElement] = [...item.children];
-			const year = safeText(yearElement);
-			const ceremony = safeText(ceremonyElement);
-			const award = safeText(awardElement);
-			if (!(year && ceremony && award)) return [];
-			return [{
-				award,
-				ceremony,
-				ceremonyHref: hrefOf(ceremonyElement),
-				work: safeText(workElement) || null,
-				workHref: hrefOf(workElement),
-				year
-			}];
-		});
-		const allAwardsLink = source.querySelector("h2 a[href]");
-		const allAwardsHref = allAwardsLink?.href ?? null;
-		const awardsCountMatch = allAwardsLink?.textContent?.match(/\d+/u)?.[0];
-		return {
-			allAwardsHref,
-			...awardsCountMatch ? { totalCount: Number(awardsCountMatch) } : {},
-			awards
-		};
-	};
-	var extractGallery = (doc, personageId) => {
-		const galleryPath = `/personage/${personageId}/photos`;
-		const source = doc.querySelector(".subject-picture");
-		if (!source) return null;
-		const allImagesLink = $$("a[href]", source).find((link) => new URL(link.getAttribute("href") ?? "", doc.baseURI).pathname.replace(/\/$/u, "") === galleryPath);
-		const images = $$("li.picture", source).flatMap((image) => {
-			const src = imageUrl(image);
-			if (!src) return [];
-			return [{
-				alt: image.getAttribute("aria-label")?.trim() ?? "",
-				largeSrc: largePhotoUrl(src),
-				src
-			}];
-		});
-		return {
-			allImagesHref: allImagesLink?.href ?? null,
-			images
-		};
-	};
-	var extractWorkRail = (doc, matchesHeading) => {
-		const source = $$(".subject-creations", doc).find((section) => matchesHeading(safeText(section.querySelector("h2"))));
-		if (!source) return null;
-		let lastYear = null;
-		const works = $$("li.creation", source).flatMap((item) => {
-			const posterLink = item.querySelector("a.img_wrap[href]");
-			const title = posterLink?.title.trim() ?? "";
-			if (!posterLink || !title) return [];
-			const yearElement = item.querySelector(".timeline-year") ?? item.querySelector(".pl");
-			const rawYear = yearElement ? safeText(yearElement).trim() : "";
-			const currentYear = /^\d{4}$/u.test(rawYear) ? rawYear : lastYear;
-			if (/^\d{4}$/u.test(rawYear)) lastYear = rawYear;
-			return [{
-				href: posterLink.href,
-				poster: imageUrl(posterLink.querySelector("img")) ?? "",
-				rating: safeText(item.querySelector(".rating-val")) || null,
-				title,
-				year: currentYear
-			}];
-		});
-		const allWorksLink = $$("a[href]", source).find((link) => new URL(link.href).pathname.includes("/creations"));
-		const allWorksHref = allWorksLink?.href;
-		const totalCountMatch = allWorksLink?.textContent?.match(/\d+/u)?.[0];
-		return {
-			allWorksHref: allWorksHref ?? null,
-			...totalCountMatch ? { totalCount: Number(totalCountMatch) } : {},
-			works
-		};
-	};
-	var extractPersonageProfile = (doc) => {
-		const target = doc.querySelector(".subject-target");
-		const name = safeText(target?.querySelector(".subject-name"));
-		const id = personageIdFromPath(doc.defaultView?.location.pathname ?? "");
-		if (!target || !name || !id) return null;
-		return {
-			awards: extractAwards$1(doc),
-			biography: extractBiography(doc),
-			collaborators: extractCollaborators(doc),
-			facts: extractFacts(target),
-			gallery: extractGallery(doc, id),
-			id,
-			name,
-			portrait: imageUrl(target.querySelector(".avatar img, .subject-avatar img") ?? target.querySelector(".avatar, .subject-avatar")),
-			recentWorks: extractWorkRail(doc, (heading) => heading.includes("最近")),
-			representativeWorks: extractWorkRail(doc, (heading) => heading.includes("收藏人数最多"))
-		};
-	}, f = 0;
+	var f = 0;
 	Array.isArray;
 	function u(e, t, n, o, i, u) {
 		t || (t = {});
@@ -5830,6 +5831,33 @@
 			}) : null
 		] });
 	};
+	var PERSONAGE_SECTIONS = [
+		{
+			id: "atv-personage-awards",
+			navLabel: () => "荣誉",
+			visible: (p) => (p.awards?.awards.length ?? 0) > 0
+		},
+		{
+			id: "atv-personage-recent-works",
+			navLabel: () => "近作",
+			visible: (p) => (p.recentWorks?.works.length ?? 0) > 0
+		},
+		{
+			id: "atv-personage-representative-works",
+			navLabel: () => "作品选",
+			visible: (p) => (p.representativeWorks?.works.length ?? 0) > 0
+		},
+		{
+			id: "atv-personage-collaborators",
+			navLabel: () => "合作",
+			visible: (p) => (p.collaborators?.collaborators.length ?? 0) > 0
+		},
+		{
+			id: "atv-personage-gallery",
+			navLabel: () => "图集",
+			visible: (p) => (p.gallery?.images.length ?? 0) > 0
+		}
+	];
 	var useStickyNavigation = (doc, sections) => {
 		const [activeSectionId, setActiveSectionId] = d("");
 		const [visible, setVisible] = d(false);
@@ -5925,108 +5953,48 @@
 			visible
 		};
 	};
-	var PERSONAGE_SECTIONS = [
-		{
-			id: "atv-personage-awards",
-			visible: (p) => (p.awards?.awards.length ?? 0) > 0,
-			navLabel: () => "荣誉"
-		},
-		{
-			id: "atv-personage-recent-works",
-			visible: (p) => (p.recentWorks?.works.length ?? 0) > 0,
-			navLabel: () => "近作"
-		},
-		{
-			id: "atv-personage-representative-works",
-			visible: (p) => (p.representativeWorks?.works.length ?? 0) > 0,
-			navLabel: () => "作品选"
-		},
-		{
-			id: "atv-personage-collaborators",
-			visible: (p) => (p.collaborators?.collaborators.length ?? 0) > 0,
-			navLabel: () => "合作"
-		},
-		{
-			id: "atv-personage-gallery",
-			visible: (p) => (p.gallery?.images.length ?? 0) > 0,
-			navLabel: () => "图集"
-		}
-	];
 	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
-	var waitForExpandedBiography = (doc, onExpanded) => {
-		const source = doc.querySelector(".subject-intro");
-		const view = doc.defaultView;
-		if (!source || !view) return;
-		let frame = null;
-		let observer = null;
-		const finishAdoption = () => {
-			frame = null;
-			observer?.disconnect();
-			if (isBiographyExpansionPending(doc)) return;
-			const profile = extractPersonageProfile(doc);
-			if (profile) onExpanded(profile);
-		};
-		const scheduleAdoption = () => {
-			if (frame !== null) view.cancelAnimationFrame(frame);
-			frame = view.requestAnimationFrame(finishAdoption);
-		};
-		observer = new MutationObserver(scheduleAdoption);
-		observer.observe(source, {
-			characterData: true,
-			childList: true,
-			subtree: true
-		});
-		scheduleAdoption();
-	};
-	var adoptPersonageProfileWhenReady = (doc, onAdopted) => {
-		const adopt = () => {
-			const initialProfile = extractPersonageProfile(doc);
-			if (!initialProfile) return;
-			if (!isBiographyExpansionPending(doc)) {
-				onAdopted(initialProfile);
-				return;
-			}
-			const trigger = [...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"));
-			waitForExpandedBiography(doc, onAdopted);
-			trigger?.click();
-		};
-		if (doc.readyState === "complete" || !isBiographyExpansionPending(doc)) {
-			adopt();
-			return;
-		}
-		const view = doc.defaultView;
-		if (!view) {
-			adopt();
-			return;
-		}
-		view.addEventListener("load", adopt, { once: true });
-	};
-	var isDynamicPersonageSourceOrDescendant = (node) => {
-		if (!(node instanceof Element)) return false;
-		return node.matches(".subject-awards, .subject-creations") || node.closest(".subject-awards, .subject-creations") !== null || node.querySelector(".subject-awards, .subject-creations") !== null;
-	};
-	var hasDynamicPersonageSourceMutation = (mutations) => mutations.some((mutation) => isDynamicPersonageSourceOrDescendant(mutation.target) || [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant));
 	var computePersonageNavSections = (profile) => PERSONAGE_SECTIONS.filter((entry) => entry.visible(profile)).map((entry) => ({
 		id: entry.id,
 		label: entry.navLabel(profile)
 	}));
-	var PersonageProfileAdoption = ({ doc, initialProfile }) => {
+	var PersonageProfileAdoption = ({ doc, profile: initialProfile }) => {
 		const [profile, setProfile] = d(initialProfile);
 		const sections = T(() => computePersonageNavSections(profile), [profile]);
 		const navigation = useStickyNavigation(doc, sections);
 		_(() => {
+			if (!isBiographyExpansionPending(doc)) return;
+			const foldSwitch = [...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"));
+			if (!foldSwitch) return;
+			const view = doc.defaultView;
+			if (!view) return;
+			view.requestAnimationFrame(() => {
+				foldSwitch.click();
+				if (!isBiographyExpansionPending(doc)) {
+					const nextProfile = extractPersonageProfile(doc);
+					if (nextProfile) setProfile(nextProfile);
+				}
+			});
+		}, [doc]);
+		_(() => {
+			let timer;
 			const refreshProfile = () => {
 				const nextProfile = extractPersonageProfile(doc);
 				if (nextProfile) setProfile(nextProfile);
 			};
 			const observer = new MutationObserver((mutations) => {
-				if (hasDynamicPersonageSourceMutation(mutations)) refreshProfile();
+				for (const mutation of mutations) if (mutation.target instanceof Element && mutation.target.closest("#atv-douban-root")) return;
+				clearTimeout(timer);
+				timer = setTimeout(refreshProfile, 200);
 			});
 			observer.observe(doc.body, {
 				childList: true,
 				subtree: true
 			});
-			return () => observer.disconnect();
+			return () => {
+				observer.disconnect();
+				clearTimeout(timer);
+			};
 		}, [doc]);
 		return u(PersonagePage, {
 			navigation: sections.length > 0 ? navigation : void 0,
@@ -6036,13 +6004,12 @@
 	var isPersonageHomepage = (location) => location.hostname === "www.douban.com" && /^\/personage\/\d+\/?$/u.test(location.pathname);
 	var mountPersonage = (doc = document) => {
 		if (doc.querySelector("#atv-douban-root")) return;
-		adoptPersonageProfileWhenReady(doc, (profile) => {
-			if (doc.querySelector("#atv-douban-root")) return;
-			if (installEnhancedRoot(doc, (root) => R(u(PersonageProfileAdoption, {
-				doc,
-				initialProfile: profile
-			}), root))) doc.title = `${profile.name} · 豆瓣`;
-		});
+		const profile = extractPersonageProfile(doc);
+		if (!profile) return;
+		if (installEnhancedRoot(doc, (root) => R(u(PersonageProfileAdoption, {
+			doc,
+			profile
+		}), root))) doc.title = `${profile.name} · 豆瓣`;
 	};
 	var personagePage = {
 		matches: isPersonageHomepage,
@@ -7363,48 +7330,48 @@ input::placeholder {
 	var SUBJECT_SECTIONS = [
 		{
 			id: "atv-stream",
-			visible: (d) => d.streaming.length > 0,
-			navLabel: () => getSubjectSectionCopy("streaming").navLabel
+			navLabel: () => getSubjectSectionCopy("streaming").navLabel,
+			visible: (d) => d.streaming.length > 0
 		},
 		{
 			id: "atv-series",
-			visible: (d) => d.series.length > 0,
-			navLabel: () => getSubjectSectionCopy("series").navLabel
+			navLabel: () => getSubjectSectionCopy("series").navLabel,
+			visible: (d) => d.series.length > 0
 		},
 		{
 			id: "atv-cast",
-			visible: (d) => d.celebrities.length > 0,
-			navLabel: () => getSubjectSectionCopy("cast").navLabel
+			navLabel: () => getSubjectSectionCopy("cast").navLabel,
+			visible: (d) => d.celebrities.length > 0
 		},
 		{
 			id: "atv-photos",
-			visible: (d) => d.photos.length > 0 || d.trailers.length > 0,
-			navLabel: () => getSubjectSectionCopy("media").navLabel
+			navLabel: () => getSubjectSectionCopy("media").navLabel,
+			visible: (d) => d.photos.length > 0 || d.trailers.length > 0
 		},
 		{
 			id: "atv-comments",
-			visible: (d) => d.comments.length > 0,
-			navLabel: () => getSubjectSectionCopy("comments").navLabel
+			navLabel: () => getSubjectSectionCopy("comments").navLabel,
+			visible: (d) => d.comments.length > 0
 		},
 		{
 			id: "atv-reviews",
-			visible: (d) => d.reviews.length > 0,
-			navLabel: (d) => getSubjectSectionCopy(d.isTV ? "tvReviews" : "movieReviews").navLabel
+			navLabel: (d) => getSubjectSectionCopy(d.isTV ? "tvReviews" : "movieReviews").navLabel,
+			visible: (d) => d.reviews.length > 0
 		},
 		{
 			id: "atv-discussions",
-			visible: (d) => d.discussions.topics.length > 0,
-			navLabel: () => getSubjectSectionCopy("discussions").navLabel
+			navLabel: () => getSubjectSectionCopy("discussions").navLabel,
+			visible: (d) => d.discussions.topics.length > 0
 		},
 		{
 			id: "atv-recs",
-			visible: (d) => d.recommendations.length > 0,
-			navLabel: () => getSubjectSectionCopy("recommendations").navLabel
+			navLabel: () => getSubjectSectionCopy("recommendations").navLabel,
+			visible: (d) => d.recommendations.length > 0
 		},
 		{
 			id: "atv-info",
-			visible: () => true,
-			navLabel: () => getSubjectSectionCopy("details").navLabel
+			navLabel: () => getSubjectSectionCopy("details").navLabel,
+			visible: () => true
 		}
 	];
 	var computeNavSections = (data) => SUBJECT_SECTIONS.filter((entry) => entry.visible(data)).map((entry) => ({
