@@ -31,26 +31,15 @@ describe(PersonageGallerySection, () => {
     expect(root.firstElementChild).toBeNull();
   });
 
-  it("renders an intentional empty state and preserves the native gallery exit", () => {
+  it("does not render a section when the native gallery has no images", () => {
     const root = renderIntoRoot(
       <PersonageGallerySection
         gallery={{ ...populatedGallery, images: [] }}
         name="郭涛"
       />
     );
-    const exit = root.querySelector<HTMLAnchorElement>(".atv-section-more");
 
-    expect(root.querySelector("#atv-personage-gallery h2")?.textContent).toBe(
-      "图集"
-    );
-    expect(
-      root.querySelector(".atv-personage-gallery-empty")?.textContent
-    ).toBe("暂无公开图片");
-    expect([exit?.href, exit?.target, exit?.rel]).toStrictEqual([
-      "https://www.douban.com/personage/27260187/photos",
-      "_blank",
-      "noopener",
-    ]);
+    expect(root.firstElementChild).toBeNull();
   });
 
   it("opens a selected image in the shared preview flow", () => {
