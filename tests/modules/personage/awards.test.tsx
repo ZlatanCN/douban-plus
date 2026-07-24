@@ -56,14 +56,12 @@ describe(PersonageAwardsSection, () => {
     ]);
   });
 
-  it("renders an intentional empty state when the native awards source is empty", () => {
+  it("omits the section when the native awards source is empty", () => {
     const root = renderIntoRoot(
       <PersonageAwardsSection awards={{ ...populatedAwards, awards: [] }} />
     );
 
-    expect(root.querySelector(".atv-personage-awards-empty")?.textContent).toBe(
-      "暂无公开获奖记录"
-    );
+    expect(root.firstElementChild).toBeNull();
   });
 
   it("omits the section when the native awards source is absent", () => {

@@ -77,9 +77,3 @@
   border-bottom-color: var(--atv-accent-bright);
   color: var(--atv-accent-bright);
 }
-
-.atv-personage-awards-empty {
-  padding: 24px 0;
-  margin: 0;
-  color: var(--atv-text-tertiary);
-}
