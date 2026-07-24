@@ -7,8 +7,8 @@
 }
 
 .atv-personage-work-card {
-  min-width: 140px;
-  flex: 1 1 0;
+  /* Keep sparse selections at the same size as a full five-work rail. */
+  flex: 0 0 max(140px, calc((100% - 80px) / 5));
   color: inherit;
   cursor: pointer;
   opacity: 0;

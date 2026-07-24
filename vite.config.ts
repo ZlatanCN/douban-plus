@@ -46,7 +46,6 @@ export default defineConfig({
         icon: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iOTQiIGhlaWdodD0iOTQiIHJ4PSIyMCIgZmlsbD0iIzFjMWMxZSIvPgogIDxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjUyIiByeD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iNjIiIHI9IjgiIGZpbGw9IiM0MmJkNTYiLz4KPC9zdmc+Cg==",
         icon64:
           "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iOTQiIGhlaWdodD0iOTQiIHJ4PSIyMCIgZmlsbD0iIzFjMWMxZSIvPgogIDxyZWN0IHg9IjE0IiB5PSIyNCIgd2lkdGg9IjcyIiBoZWlnaHQ9IjUyIiByeD0iNiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjEuOCIvPgogIDxjaXJjbGUgY3g9IjcyIiBjeT0iNjIiIHI9IjgiIGZpbGw9IiM0MmJkNTYiLz4KPC9zdmc+Cg==",
-        include: ["https://accounts.douban.com/passport/login*"],
         match: [
           "*://movie.douban.com/subject/*",
           "*://www.douban.com/personage/*",
