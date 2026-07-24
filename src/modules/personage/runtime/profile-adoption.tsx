@@ -3,6 +3,7 @@ import { useLayoutEffect, useMemo, useState } from "preact/hooks";
 import type { PersonageProfile } from "@/modules/personage/domain";
 import { extractPersonageProfile } from "@/modules/personage/extract/profile";
 import { PersonagePage } from "@/modules/personage/presentation/page";
+import { PERSONAGE_SECTIONS } from "@/modules/personage/section-identity";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 import type { StickyNavigationSection } from "@/shared/hooks/use-sticky-navigation";
 
@@ -116,30 +117,11 @@ const hasDynamicPersonageSourceMutation = (
 
 const computePersonageNavSections = (
   profile: PersonageProfile
-): StickyNavigationSection[] => {
-  const sections: StickyNavigationSection[] = [];
-
-  if (profile.awards?.awards.length) {
-    sections.push({ id: "atv-personage-awards", label: "荣誉" });
-  }
-  if (profile.recentWorks?.works.length) {
-    sections.push({ id: "atv-personage-recent-works", label: "近作" });
-  }
-  if (profile.representativeWorks?.works.length) {
-    sections.push({
-      id: "atv-personage-representative-works",
-      label: "作品选",
-    });
-  }
-  if (profile.collaborators?.collaborators.length) {
-    sections.push({ id: "atv-personage-collaborators", label: "合作" });
-  }
-  if (profile.gallery?.images.length) {
-    sections.push({ id: "atv-personage-gallery", label: "图集" });
-  }
-
-  return sections;
-};
+): StickyNavigationSection[] =>
+  PERSONAGE_SECTIONS.filter((entry) => entry.visible(profile)).map((entry) => ({
+    id: entry.id,
+    label: entry.navLabel(profile),
+  }));
 
 const PersonageProfileAdoption = ({
   doc,

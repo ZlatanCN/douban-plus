@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.5.0
+// @version      1.6.0
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -5925,6 +5925,33 @@
 			visible
 		};
 	};
+	var PERSONAGE_SECTIONS = [
+		{
+			id: "atv-personage-awards",
+			visible: (p) => (p.awards?.awards.length ?? 0) > 0,
+			navLabel: () => "荣誉"
+		},
+		{
+			id: "atv-personage-recent-works",
+			visible: (p) => (p.recentWorks?.works.length ?? 0) > 0,
+			navLabel: () => "近作"
+		},
+		{
+			id: "atv-personage-representative-works",
+			visible: (p) => (p.representativeWorks?.works.length ?? 0) > 0,
+			navLabel: () => "作品选"
+		},
+		{
+			id: "atv-personage-collaborators",
+			visible: (p) => (p.collaborators?.collaborators.length ?? 0) > 0,
+			navLabel: () => "合作"
+		},
+		{
+			id: "atv-personage-gallery",
+			visible: (p) => (p.gallery?.images.length ?? 0) > 0,
+			navLabel: () => "图集"
+		}
+	];
 	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
 	var waitForExpandedBiography = (doc, onExpanded) => {
 		const source = doc.querySelector(".subject-intro");
@@ -5979,30 +6006,10 @@
 		return node.matches(".subject-awards, .subject-creations") || node.closest(".subject-awards, .subject-creations") !== null || node.querySelector(".subject-awards, .subject-creations") !== null;
 	};
 	var hasDynamicPersonageSourceMutation = (mutations) => mutations.some((mutation) => isDynamicPersonageSourceOrDescendant(mutation.target) || [...mutation.addedNodes].some(isDynamicPersonageSourceOrDescendant));
-	var computePersonageNavSections = (profile) => {
-		const sections = [];
-		if (profile.awards?.awards.length) sections.push({
-			id: "atv-personage-awards",
-			label: "荣誉"
-		});
-		if (profile.recentWorks?.works.length) sections.push({
-			id: "atv-personage-recent-works",
-			label: "近作"
-		});
-		if (profile.representativeWorks?.works.length) sections.push({
-			id: "atv-personage-representative-works",
-			label: "作品选"
-		});
-		if (profile.collaborators?.collaborators.length) sections.push({
-			id: "atv-personage-collaborators",
-			label: "合作"
-		});
-		if (profile.gallery?.images.length) sections.push({
-			id: "atv-personage-gallery",
-			label: "图集"
-		});
-		return sections;
-	};
+	var computePersonageNavSections = (profile) => PERSONAGE_SECTIONS.filter((entry) => entry.visible(profile)).map((entry) => ({
+		id: entry.id,
+		label: entry.navLabel(profile)
+	}));
 	var PersonageProfileAdoption = ({ doc, initialProfile }) => {
 		const [profile, setProfile] = d(initialProfile);
 		const sections = T(() => computePersonageNavSections(profile), [profile]);
@@ -7353,46 +7360,57 @@ input::placeholder {
 		}
 	};
 	var getSubjectSectionCopy = (section) => SECTION_COPY[section];
-	var computeNavSections = (data) => {
-		const sections = [];
-		if (data.streaming.length > 0) sections.push({
+	var SUBJECT_SECTIONS = [
+		{
 			id: "atv-stream",
-			label: getSubjectSectionCopy("streaming").navLabel
-		});
-		if (data.series.length > 0) sections.push({
+			visible: (d) => d.streaming.length > 0,
+			navLabel: () => getSubjectSectionCopy("streaming").navLabel
+		},
+		{
 			id: "atv-series",
-			label: getSubjectSectionCopy("series").navLabel
-		});
-		if (data.celebrities.length > 0) sections.push({
+			visible: (d) => d.series.length > 0,
+			navLabel: () => getSubjectSectionCopy("series").navLabel
+		},
+		{
 			id: "atv-cast",
-			label: getSubjectSectionCopy("cast").navLabel
-		});
-		if (data.photos.length > 0 || data.trailers.length > 0) sections.push({
+			visible: (d) => d.celebrities.length > 0,
+			navLabel: () => getSubjectSectionCopy("cast").navLabel
+		},
+		{
 			id: "atv-photos",
-			label: getSubjectSectionCopy("media").navLabel
-		});
-		if (data.comments.length > 0) sections.push({
+			visible: (d) => d.photos.length > 0 || d.trailers.length > 0,
+			navLabel: () => getSubjectSectionCopy("media").navLabel
+		},
+		{
 			id: "atv-comments",
-			label: getSubjectSectionCopy("comments").navLabel
-		});
-		if (data.reviews.length > 0) sections.push({
+			visible: (d) => d.comments.length > 0,
+			navLabel: () => getSubjectSectionCopy("comments").navLabel
+		},
+		{
 			id: "atv-reviews",
-			label: getSubjectSectionCopy(data.isTV ? "tvReviews" : "movieReviews").navLabel
-		});
-		if (data.discussions.topics.length > 0) sections.push({
+			visible: (d) => d.reviews.length > 0,
+			navLabel: (d) => getSubjectSectionCopy(d.isTV ? "tvReviews" : "movieReviews").navLabel
+		},
+		{
 			id: "atv-discussions",
-			label: getSubjectSectionCopy("discussions").navLabel
-		});
-		if (data.recommendations.length > 0) sections.push({
+			visible: (d) => d.discussions.topics.length > 0,
+			navLabel: () => getSubjectSectionCopy("discussions").navLabel
+		},
+		{
 			id: "atv-recs",
-			label: getSubjectSectionCopy("recommendations").navLabel
-		});
-		sections.push({
+			visible: (d) => d.recommendations.length > 0,
+			navLabel: () => getSubjectSectionCopy("recommendations").navLabel
+		},
+		{
 			id: "atv-info",
-			label: getSubjectSectionCopy("details").navLabel
-		});
-		return sections;
-	};
+			visible: () => true,
+			navLabel: () => getSubjectSectionCopy("details").navLabel
+		}
+	];
+	var computeNavSections = (data) => SUBJECT_SECTIONS.filter((entry) => entry.visible(data)).map((entry) => ({
+		id: entry.id,
+		label: entry.navLabel(data)
+	}));
 	var starComponents = (score, outOfFive = false) => {
 		const normalized = outOfFive ? score : score / 2;
 		return Array.from({ length: 5 }, (_, index) => {
