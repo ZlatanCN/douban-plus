@@ -5991,6 +5991,8 @@
 			visible
 		};
 	};
+	var biographyExpansionRetryDelay = 50;
+	var biographyExpansionMaxAttempts = 40;
 	var isBiographyExpansionPending = (doc) => [...doc.querySelectorAll(".subject-intro .fold-switch")].some((element) => element.textContent?.includes("展开"));
 	var computePersonageNavSections = (profile) => PERSONAGE_SECTIONS.filter((entry) => entry.visible(profile)).map((entry) => ({
 		id: entry.id,
@@ -5998,22 +6000,35 @@
 	}));
 	var PersonageProfileAdoption = ({ doc, profile: initialProfile }) => {
 		const [profile, setProfile] = d(initialProfile);
+		const biographyKey = profile.biography?.join("\n") ?? "";
 		const sections = T(() => computePersonageNavSections(profile), [profile]);
 		const navigation = useStickyNavigation(doc, sections);
 		_(() => {
-			if (!isBiographyExpansionPending(doc)) return;
-			const foldSwitch = [...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"));
-			if (!foldSwitch) return;
 			const view = doc.defaultView;
 			if (!view) return;
-			view.requestAnimationFrame(() => {
+			let retryTimer;
+			let attempts = 0;
+			const refreshProfile = () => {
+				const nextProfile = extractPersonageProfile(doc);
+				if (nextProfile) setProfile(nextProfile);
+			};
+			const tryExpand = () => {
+				const foldSwitch = [...doc.querySelectorAll(".subject-intro .fold-switch")].find((element) => element.textContent?.includes("展开"));
+				if (!foldSwitch) return;
 				foldSwitch.click();
 				if (!isBiographyExpansionPending(doc)) {
-					const nextProfile = extractPersonageProfile(doc);
-					if (nextProfile) setProfile(nextProfile);
+					refreshProfile();
+					return;
 				}
-			});
-		}, [doc]);
+				attempts += 1;
+				if (attempts < biographyExpansionMaxAttempts) retryTimer = view.setTimeout(tryExpand, biographyExpansionRetryDelay);
+			};
+			const frame = view.requestAnimationFrame(tryExpand);
+			return () => {
+				view.cancelAnimationFrame(frame);
+				clearTimeout(retryTimer);
+			};
+		}, [biographyKey, doc]);
 		_(() => {
 			let timer;
 			const refreshProfile = () => {
@@ -6021,7 +6036,7 @@
 				if (nextProfile) setProfile(nextProfile);
 			};
 			const observer = new MutationObserver((mutations) => {
-				for (const mutation of mutations) if (mutation.target instanceof Element && mutation.target.closest("#atv-douban-root")) return;
+				if (!mutations.some((mutation) => !(mutation.target instanceof Element && mutation.target.closest("#atv-douban-root")))) return;
 				clearTimeout(timer);
 				timer = setTimeout(refreshProfile, 200);
 			});
