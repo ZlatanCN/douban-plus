@@ -12,7 +12,7 @@ const setSubjectTitle = (
   doc.title = `${
     (data.title.primary || data.title.full) +
     (data.year ? ` (${data.year})` : "")
-  } · 豆瓣`;
+  }`;
 };
 
 const mountSubject = (doc: Document = document): void => {

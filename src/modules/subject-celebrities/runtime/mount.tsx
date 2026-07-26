@@ -25,7 +25,7 @@ const mountSubjectCelebrities = (doc: Document = document): void => {
       render(<SubjectCelebritiesPage data={data} doc={doc} />, root)
     )
   ) {
-    doc.title = `${data.title} · 豆瓣`;
+    doc.title = `${data.title} — 演职员`;
   }
 };
 

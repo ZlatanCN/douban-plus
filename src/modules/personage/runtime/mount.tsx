@@ -25,7 +25,7 @@ const mountPersonage = (doc: Document = document): void => {
       render(<PersonageProfileAdoption doc={doc} profile={profile} />, root)
     )
   ) {
-    doc.title = `${profile.name} · 豆瓣`;
+    doc.title = `${profile.name}`;
   }
 };
 

@@ -295,7 +295,7 @@ describe(mountPersonage, () => {
       doc.querySelector(".atv-personage-original-name")?.textContent,
     ]).toStrictEqual(["彼特·丁拉基", "Peter Dinklage"]);
     expect(doc.querySelectorAll(".atv-personage-biography p")).toHaveLength(2);
-    expect(doc.title).toBe("彼特·丁拉基 Peter Dinklage · 豆瓣");
+    expect(doc.title).toBe("彼特·丁拉基 Peter Dinklage");
 
     cleanup();
   });

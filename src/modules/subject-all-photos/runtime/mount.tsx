@@ -33,7 +33,7 @@ const mountPreparedSubjectAllPhotos = async (
       render(<SubjectAllPhotosPage data={resolvedData} doc={doc} />, root)
     )
   ) {
-    doc.title = `${resolvedData.title} · 影像档案 · 豆瓣`;
+    doc.title = `${resolvedData.title} — 全部图片`;
   }
 };
 
