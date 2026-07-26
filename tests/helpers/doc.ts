@@ -2,6 +2,8 @@
 /* Helper to create Document instances from HTML strings,     */
 /* mock location/cookie, and create full test docs.          */
 
+import { render } from "preact";
+
 /**
  * Parse an HTML string into a Document using happy-dom.
  */
@@ -63,6 +65,13 @@ const createTestDoc = (
   }
   return {
     cleanup: () => {
+      // Documents created for mounting tests are detached from the main test
+      // document, so clearing their markup would not notify Preact. Unmount
+      // the enhanced root first to dispose effects and scheduled callbacks.
+      const enhancedRoot = doc.querySelector<HTMLElement>("#atv-douban-root");
+      if (enhancedRoot) {
+        render(null, enhancedRoot);
+      }
       for (const fn of cleanups) {
         fn();
       }

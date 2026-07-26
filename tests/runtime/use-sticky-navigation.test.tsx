@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useStickyNavigation } from "@/modules/subject/runtime/use-sticky-navigation";
+import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => ({
@@ -13,10 +13,23 @@ vi.mock(import("@/shared/utils/springs"), async (importOriginal) => ({
   animateWithReducedMotion: motion.animate,
 }));
 
-const NavHarness = () => {
-  const navigation = useStickyNavigation(document, []);
-  /* eslint-disable-next-line react-compiler/react-compiler -- the hook deliberately exposes a Preact object ref. */
-  return <nav ref={navigation.navRef} />;
+const emptySections: { id: string; label: string }[] = [];
+
+const NavHarness = ({
+  sections = emptySections,
+}: {
+  sections?: { id: string; label: string }[];
+}) => {
+  const navigation = useStickyNavigation(document, sections);
+  const { navRef, onJump } = navigation;
+  return (
+    <>
+      <nav ref={navRef} />
+      <button onClick={() => onJump(sections[0]?.id ?? "")} type="button">
+        跳转
+      </button>
+    </>
+  );
 };
 
 const stubIntersectionObserver = () => {
@@ -68,5 +81,30 @@ describe(useStickyNavigation, () => {
         })
       );
     });
+  });
+
+  it("updates the fragment and transfers focus to the jump destination", () => {
+    stubIntersectionObserver();
+    root = document.createElement("div");
+    const target = document.createElement("section");
+    target.id = "atv-photos";
+    const scrollIntoView = vi
+      .spyOn(target, "scrollIntoView")
+      .mockImplementation(() => {});
+    const focus = vi.spyOn(target, "focus").mockImplementation(() => {});
+    document.body.append(target);
+
+    render(
+      <NavHarness sections={[{ id: "atv-photos", label: "剧照" }]} />,
+      root
+    );
+    root.querySelector("button")?.click();
+
+    expect(document.defaultView?.location.hash).toBe("#atv-photos");
+    expect(target.getAttribute("tabindex")).toBe("-1");
+    expect(scrollIntoView).toHaveBeenCalledOnce();
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true });
+
+    target.remove();
   });
 });

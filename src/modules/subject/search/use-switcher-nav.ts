@@ -36,6 +36,9 @@ const useSwitcherNav = <T>({
   const handleKeyDown = (
     event: JSX.TargetedKeyboardEvent<HTMLInputElement>
   ): void => {
+    if (event.isComposing) {
+      return;
+    }
     if (event.key === "ArrowDown" && items.length) {
       event.preventDefault();
       setActiveIndex((current) => Math.min(current + 1, items.length - 1));

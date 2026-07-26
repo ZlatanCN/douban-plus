@@ -72,7 +72,7 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   streaming: [],
   subjectId: "1292052",
   summary: "",
-  title: { full: "Movie", original: "", primary: "Movie" },
+  title: { full: "Movie", original: "", primary: "Movie", seasonLabel: "" },
   trailers: [],
   year: "",
   ...overrides,

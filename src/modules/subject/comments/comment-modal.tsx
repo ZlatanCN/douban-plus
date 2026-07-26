@@ -1,9 +1,10 @@
 import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
 import { Stars } from "@/shared/components/common/stars";
-import { ModalCloseButton, ModalShell } from "@/shared/components/modal/index";
+import { ModalCloseButton, ModalShell } from "@/shared/components/modal";
 import { useModalClose } from "@/shared/components/modal/modal-close-context";
 
 import type { CommentVoteCallback } from "../runtime/types";
+import type { VotePersistOptions } from "../voting/vote-state";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 import type { CommentVoteState } from "./comment-vote-state";
@@ -12,7 +13,11 @@ type CommentModalProps = {
   canVote?: AccountActionGuard;
   comment: Comment;
   onClose: () => void;
-  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
+  onVoteStateChange?: (
+    comment: Comment,
+    state: CommentVoteState,
+    options?: VotePersistOptions
+  ) => void;
   onVote: CommentVoteCallback;
   voteState?: CommentVoteState;
 };
@@ -26,7 +31,11 @@ const CommentModalContent = ({
 }: {
   canVote?: AccountActionGuard;
   comment: Comment;
-  onVoteStateChange?: (comment: Comment, state: CommentVoteState) => void;
+  onVoteStateChange?: (
+    comment: Comment,
+    state: CommentVoteState,
+    options?: VotePersistOptions
+  ) => void;
   onVote: CommentVoteCallback;
   voteState?: CommentVoteState;
 }) => {
@@ -72,18 +81,18 @@ const CommentModalContent = ({
         <span class="atv-comment-overlay-time">{comment.time || ""}</span>
         <CommentVoteButton
           {...(canVote ? { canVote } : {})}
-          cid={comment.cid}
           className="atv-comment-overlay-votes"
-          count={comment.votes}
+          comment={comment}
           {...(onVoteStateChange
             ? {
-                onStateChange: (state: CommentVoteState) =>
-                  onVoteStateChange(comment, state),
+                onStateChange: (
+                  state: CommentVoteState,
+                  options?: VotePersistOptions
+                ) => onVoteStateChange(comment, state, options),
               }
             : {})}
           onVote={onVote}
           {...(voteState ? { state: voteState } : {})}
-          voted={comment.voted}
         />
       </div>
     </>

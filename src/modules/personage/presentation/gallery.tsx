@@ -62,7 +62,7 @@ const PersonageGallerySection = ({
   name,
   onOpenImage = noop,
 }: PersonageGallerySectionProps) => {
-  if (!gallery) {
+  if (!gallery?.images.length) {
     return null;
   }
 
@@ -79,29 +79,25 @@ const PersonageGallerySection = ({
         : {})}
       title="图集"
     >
-      {gallery.images.length > 0 ? (
-        <ul
-          aria-label={`${name}的图片`}
-          class="atv-carousel atv-personage-gallery-rail"
-        >
-          {gallery.images.map((image, index) => {
-            const alt = image.alt || `${name}的图片 ${index + 1}`;
+      <ul
+        aria-label={`${name}的图片`}
+        class="atv-carousel atv-personage-gallery-rail"
+      >
+        {gallery.images.map((image, index) => {
+          const alt = image.alt || `${name}的图片 ${index + 1}`;
 
-            return (
-              <PersonageGalleryImageTile
-                alt={alt}
-                key={image.src}
-                largeSrc={image.largeSrc}
-                onOpenImage={onOpenImage}
-                src={image.src}
-                staggerIndex={index}
-              />
-            );
-          })}
-        </ul>
-      ) : (
-        <p class="atv-personage-gallery-empty">暂无公开图片</p>
-      )}
+          return (
+            <PersonageGalleryImageTile
+              alt={alt}
+              key={image.src}
+              largeSrc={image.largeSrc}
+              onOpenImage={onOpenImage}
+              src={image.src}
+              staggerIndex={index}
+            />
+          );
+        })}
+      </ul>
     </Section>
   );
 };

@@ -1,25 +1,18 @@
 import type {
   InterestMarkingActions,
-  NavSection,
   Comment,
   Photo,
   ReviewVoteCallback,
   SeriesItem,
 } from "@/modules/subject/domain";
 import type { RatingResultMap } from "@/modules/subject/resolve/types";
+import type { StickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
 type CommentVoteCallback = (
   cid: string
 ) => Promise<{ ok: boolean; count?: number }>;
 
-type SubjectPageNavigation = {
-  activeSectionId: string;
-  navRef: { current: HTMLElement | null };
-  onJump: (sectionId: string) => void;
-  scrolling: boolean;
-  sections: NavSection[];
-  visible: boolean;
-};
+type SubjectPageNavigation = StickyNavigation;
 
 type ResolvedPhoto = Photo & {
   aspectRatio: number;

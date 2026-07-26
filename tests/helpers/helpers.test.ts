@@ -4,6 +4,8 @@
 
 import { readFileSync } from "node:fs";
 
+import { h, render } from "preact";
+import { useLayoutEffect } from "preact/hooks";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 import { buildDoc, createTestDoc, mockCookie, mockLocation } from "./doc";
@@ -62,6 +64,24 @@ describe(createTestDoc, () => {
   it("cleanup does not throw", () => {
     const { cleanup } = createTestDoc(MINIMAL_HTML, "/test/");
     expect(() => cleanup()).not.toThrow();
+  });
+
+  it("unmounts an enhanced Preact root before releasing its document", () => {
+    const { cleanup, doc } = createTestDoc(MINIMAL_HTML);
+    const root = doc.createElement("div");
+    root.id = "atv-douban-root";
+    doc.body.append(root);
+    const dispose = vi.fn<() => void>();
+
+    const MountedComponent = () => {
+      useLayoutEffect(() => dispose, []);
+      return null;
+    };
+
+    render(h(MountedComponent, {}), root);
+    cleanup();
+
+    expect(dispose).toHaveBeenCalledOnce();
   });
 });
 

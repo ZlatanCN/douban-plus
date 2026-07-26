@@ -7,6 +7,7 @@ type TitleInfo = {
   full: string;
   primary: string;
   original: string;
+  seasonLabel: string;
 };
 
 /** Return type of fetchImdbRating() — score 0-10, count = number of votes */

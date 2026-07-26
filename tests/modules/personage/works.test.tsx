@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import type { PersonageWorkRail as PersonageWorkRailData } from "@/modules/personage/domain";
@@ -51,7 +54,7 @@ describe(PersonageWorkRail, () => {
     expect(root.firstElementChild).toBeNull();
   });
 
-  it("wraps five work cards in a flex-wrap layout without overflow clipping", () => {
+  it("renders five work cards", () => {
     const root = renderIntoRoot(
       <PersonageWorkRail
         id="atv-personage-recent-works"
@@ -70,5 +73,16 @@ describe(PersonageWorkRail, () => {
     const rail = root.querySelector(".atv-personage-work-rail");
     expect(rail).not.toBeNull();
     expect(rail?.querySelectorAll(".atv-personage-work-card")).toHaveLength(5);
+  });
+
+  it("keeps sparse selections at the same width as a five-work rail", () => {
+    const styles = readFileSync(
+      path.resolve(process.cwd(), "src/modules/personage/styles/works.css"),
+      "utf-8"
+    );
+
+    expect(styles).toMatch(
+      /\.atv-personage-work-card\s*\{[^}]*flex:\s*0 0 max\(140px, calc\(\(100% - 80px\) \/ 5\)\);/su
+    );
   });
 });

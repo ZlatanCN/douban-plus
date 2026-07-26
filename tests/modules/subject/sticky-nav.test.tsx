@@ -57,6 +57,12 @@ describe(StickyNav, () => {
     );
   });
 
+  it("removes hidden navigation from the keyboard focus order", () => {
+    const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={noop} />);
+
+    expect(root.querySelector("nav")?.hasAttribute("inert")).toBeTruthy();
+  });
+
   it("falls back to data.title.full when primary is empty", () => {
     const root = renderIntoRoot(
       <StickyNav
@@ -117,6 +123,23 @@ describe(StickyNav, () => {
     expect(onJump).toHaveBeenCalledWith("atv-cast");
   });
 
+  it("leaves modified jump clicks to the browser", () => {
+    const onJump = vi.fn<(sectionId: string) => void>();
+    const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={onJump} />);
+    const link = root.querySelector<HTMLAnchorElement>(
+      ".atv-stickynav-jumps a"
+    );
+    const event = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+    link?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalsy();
+    expect(onJump).not.toHaveBeenCalled();
+  });
+
   it("renders a single sliding marker element", () => {
     const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={noop} />);
     const marker = root.querySelector(".atv-stickynav-marker");
@@ -159,6 +182,21 @@ describe(StickyNav, () => {
       expect(computeIndicatorMetrics(link, container)).toStrictEqual({
         left: 0,
         width: 64,
+      });
+    });
+
+    it("accounts for horizontal scrolling within the jump rail", () => {
+      const container = document.createElement("div");
+      const link = document.createElement("a");
+      Object.defineProperty(container, "scrollLeft", { value: 180 });
+      vi.spyOn(container, "getBoundingClientRect").mockReturnValue(
+        rect(100, 500)
+      );
+      vi.spyOn(link, "getBoundingClientRect").mockReturnValue(rect(140, 80));
+
+      expect(computeIndicatorMetrics(link, container)).toStrictEqual({
+        left: 220,
+        width: 80,
       });
     });
   });

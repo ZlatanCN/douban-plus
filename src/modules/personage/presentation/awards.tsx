@@ -22,7 +22,7 @@ const AwardLink = ({
   );
 
 const PersonageAwardsSection = ({ awards }: PersonageAwardsSectionProps) => {
-  if (!awards) {
+  if (!awards?.awards.length) {
     return null;
   }
 
@@ -39,30 +39,26 @@ const PersonageAwardsSection = ({ awards }: PersonageAwardsSectionProps) => {
         : {})}
       title="荣誉"
     >
-      {awards.awards.length ? (
-        <ul class="atv-personage-awards-list">
-          {awards.awards.map((award) => (
-            <li key={`${award.year}-${award.ceremony}-${award.award}`}>
-              <time class="atv-personage-award-year">{award.year}</time>
-              <div class="atv-personage-award-detail">
-                <span class="atv-personage-award-ceremony">
-                  <AwardLink href={award.ceremonyHref}>
-                    {award.ceremony}
-                  </AwardLink>
-                </span>
-                <p class="atv-personage-award-name">{award.award}</p>
-                {award.work ? (
-                  <p class="atv-personage-award-work">
-                    <AwardLink href={award.workHref}>{award.work}</AwardLink>
-                  </p>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p class="atv-personage-awards-empty">暂无公开获奖记录</p>
-      )}
+      <ul class="atv-personage-awards-list">
+        {awards.awards.map((award) => (
+          <li key={`${award.year}-${award.ceremony}-${award.award}`}>
+            <time class="atv-personage-award-year">{award.year}</time>
+            <div class="atv-personage-award-detail">
+              <span class="atv-personage-award-ceremony">
+                <AwardLink href={award.ceremonyHref}>
+                  {award.ceremony}
+                </AwardLink>
+              </span>
+              <p class="atv-personage-award-name">{award.award}</p>
+              {award.work ? (
+                <p class="atv-personage-award-work">
+                  <AwardLink href={award.workHref}>{award.work}</AwardLink>
+                </p>
+              ) : null}
+            </div>
+          </li>
+        ))}
+      </ul>
     </Section>
   );
 };

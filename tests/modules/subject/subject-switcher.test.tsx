@@ -81,7 +81,9 @@ describe(SubjectSwitcher, () => {
       "_blank",
       "noopener"
     );
-    expect(root.querySelector(".atv-subject-switcher-input")).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+    ).toBe("closed");
   });
 
   it("clears a selected candidate as soon as the query changes", async () => {
@@ -150,7 +152,9 @@ describe(SubjectSwitcher, () => {
       "_blank",
       "noopener"
     );
-    expect(root.querySelector(".atv-subject-switcher-input")).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+    ).toBe("closed");
   });
 
   it("opens from the slash shortcut", async () => {
@@ -175,7 +179,9 @@ describe(SubjectSwitcher, () => {
       );
     await Promise.resolve();
 
-    expect(root.querySelector(".atv-subject-switcher-input")).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+    ).toBe("closed");
   });
 
   it("does not open from a slash typed within contenteditable text", async () => {
@@ -205,6 +211,8 @@ describe(SubjectSwitcher, () => {
     await Promise.resolve();
     editor.remove();
 
-    expect(root.querySelector(".atv-subject-switcher-input")).toBeNull();
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+    ).toBe("closed");
   });
 });

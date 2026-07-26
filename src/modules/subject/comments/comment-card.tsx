@@ -109,9 +109,8 @@ const CommentCard = ({
           </button>
           <CommentVoteButton
             {...(canVote ? { canVote } : {})}
-            cid={comment.cid}
             className="atv-comment-votes"
-            count={comment.votes}
+            comment={comment}
             {...(onVoteStateChange
               ? {
                   onStateChange: (
@@ -122,7 +121,6 @@ const CommentCard = ({
               : {})}
             onVote={onVote}
             {...(voteState ? { state: voteState } : {})}
-            voted={comment.voted}
           />
         </div>
       </div>

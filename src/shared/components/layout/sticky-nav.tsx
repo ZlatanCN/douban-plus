@@ -7,7 +7,7 @@ type IndicatorMetrics = {
 };
 
 /**
- * Computes the offset (from the container's left edge) and width of the
+ * Computes the offset (from the container's scroll origin) and width of the
  * currently-active jump link so a single sliding marker can be positioned
  * over it. Pure and layout-only — easy to unit test without a real browser.
  */
@@ -18,7 +18,7 @@ const computeIndicatorMetrics = (
   const containerRect = containerEl.getBoundingClientRect();
   const activeRect = activeEl.getBoundingClientRect();
   return {
-    left: activeRect.left - containerRect.left,
+    left: activeRect.left - containerRect.left + containerEl.scrollLeft,
     width: activeRect.width,
   };
 };
@@ -82,6 +82,7 @@ const StickyNav = ({
     <nav
       {...(navRef ? { ref: navRef } : {})}
       class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`}
+      inert={!visible}
     >
       <div class="atv-stickynav-title">{title}</div>
       {accessory}
@@ -93,6 +94,15 @@ const StickyNav = ({
             href={`#${section.id}`}
             key={section.id}
             onClick={(event) => {
+              if (
+                event.button !== 0 ||
+                event.altKey ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey
+              ) {
+                return;
+              }
               event.preventDefault();
               onJump(section.id);
             }}

@@ -68,7 +68,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const activeComment = useModalRequest<Comment>();
   const activeReview = useModalRequest<Review>();
   const activeMediaModal = useModalRequest<ActiveMediaModal>();
-  const [subjectSwitcherOpen, setSubjectSwitcherOpen] = useState(false);
+
   const loginAction = useModalRequest<string>();
   const commentVotes = useVoteState(data.comments, commentVoteApi);
   const activeResolvedComment = activeComment.active
@@ -106,10 +106,7 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
     <>
       <SubjectStickyNav
         {...runtime.navigation}
-        subjectSwitcher={
-          <SubjectSwitcher onOpenChange={setSubjectSwitcherOpen} />
-        }
-        subjectSwitcherOpen={subjectSwitcherOpen}
+        subjectSwitcher={<SubjectSwitcher />}
         title={data.title}
       />
       <Hero

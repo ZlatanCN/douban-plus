@@ -52,6 +52,24 @@ describe(extractCelebrities, () => {
     expect(result[1].name).toBe("摩根·弗里曼");
   });
 
+  it("uses the portrait layer when a Douban account badge overlays an avatar", () => {
+    const doc = buildDoc(`<!DOCTYPE html>
+<html><body>
+<ul id="celebrities">
+  <li class="celebrity">
+    <a class="has-account" href="/personage/27238280/">
+      <div class="avatar has-account" style="background-image: url(https://img1.doubanio.com/cuphead/movie-static/pics/has_douban@2x.png), url(https://img1.doubanio.com/view/celebrity/m/public/p20960.webp)"></div>
+    </a>
+    <div class="info"><span class="name"><a href="/personage/27238280/">胡军</a></span><span class="role">演员</span></div>
+  </li>
+</ul>
+</body></html>`);
+
+    expect(extractCelebrities(doc)[0]?.avatar).toBe(
+      "https://img1.doubanio.com/view/celebrity/m/public/p20960.webp"
+    );
+  });
+
   it("filters out items with empty name", () => {
     const doc = buildDoc(`<!DOCTYPE html>
 <html><body>

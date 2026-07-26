@@ -1,22 +1,35 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
-import type { NavSection } from "@/modules/subject/domain";
-import type { SubjectPageNavigation } from "@/modules/subject/runtime/types";
 import {
   animateWithReducedMotion,
   springConfigs,
 } from "@/shared/utils/springs";
 
+type StickyNavigationSection = {
+  id: string;
+  label: string;
+};
+
+type StickyNavigation = {
+  activeSectionId: string;
+  navRef: { current: HTMLElement | null };
+  onJump: (sectionId: string) => void;
+  scrolling: boolean;
+  sections: readonly StickyNavigationSection[];
+  visible: boolean;
+};
+
 const useStickyNavigation = (
   doc: Document,
-  sections: NavSection[]
-): SubjectPageNavigation => {
+  sections: readonly StickyNavigationSection[]
+): StickyNavigation => {
   const [activeSectionId, setActiveSectionId] = useState("");
   const [visible, setVisible] = useState(false);
   const [scrolling, setScrolling] = useState(false);
   const lastVisibleRef = useRef(false);
   const navRef = useRef<HTMLElement | null>(null);
 
+  /* ── Scroll visibility & activity ───────────────────── */
   useEffect(() => {
     const view = doc.defaultView ?? window;
     let scrollTimer: number | undefined;
@@ -58,6 +71,7 @@ const useStickyNavigation = (
     });
   }, [visible]);
 
+  /* ── Section intersection tracking ──────────────────── */
   useEffect(() => {
     const view = doc.defaultView ?? window;
     const elements = new Map<string, Element>();
@@ -109,16 +123,25 @@ const useStickyNavigation = (
     return () => observer.disconnect();
   }, [doc, sections]);
 
+  /* ── Smooth jump to section ─────────────────────────── */
   const onJump = useCallback(
     (sectionId: string): void => {
       const view = doc.defaultView ?? window;
+      const target = doc.querySelector<HTMLElement>(`#${sectionId}`);
+      if (!target) {
+        return;
+      }
+
       const prefersReducedMotion = view.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
-      doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+      view.history.pushState(null, "", `#${sectionId}`);
+      target.tabIndex = -1;
+      target.scrollIntoView({
         behavior: prefersReducedMotion ? "auto" : "smooth",
         block: "start",
       });
+      target.focus({ preventScroll: true });
     },
     [doc]
   );
@@ -127,3 +150,4 @@ const useStickyNavigation = (
 };
 
 export { useStickyNavigation };
+export type { StickyNavigation, StickyNavigationSection };

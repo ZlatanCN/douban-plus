@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { subjectCelebritiesPage } from "@/modules/subject-celebrities";
 import {
   hasMatchingPage,
   mountMatchingPage,
@@ -52,6 +53,25 @@ describe(mountMatchingPage, () => {
 });
 
 describe(hasMatchingPage, () => {
+  it("accepts only the subject celebrities secondary page", () => {
+    expect(
+      subjectCelebritiesPage.matches(
+        locationFor("/subject/1291841/celebrities")
+      )
+    ).toBeTruthy();
+    expect(
+      subjectCelebritiesPage.matches(
+        locationFor("/subject/1291841/celebrities/")
+      )
+    ).toBeTruthy();
+    expect(
+      subjectCelebritiesPage.matches(locationFor("/subject/1291841/photos"))
+    ).toBeFalsy();
+    expect(
+      subjectCelebritiesPage.matches(locationFor("/subject/1291841/"))
+    ).toBeFalsy();
+  });
+
   it("rejects a subject secondary page before shared styles can affect it", () => {
     const pages: PageMount[] = [
       {

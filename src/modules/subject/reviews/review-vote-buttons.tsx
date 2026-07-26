@@ -1,5 +1,3 @@
-import { useState } from "preact/hooks";
-
 import type {
   AccountActionGuard,
   Review,
@@ -8,6 +6,7 @@ import type {
 import { IconVoteTriangle } from "@/shared/components/common/icons";
 
 import { useVoteAction } from "../voting/use-vote-action";
+import { useVoteControl } from "../voting/use-vote-control";
 import type { VotePersistOptions } from "../voting/vote-state";
 import { reviewNumericId } from "./review-identity";
 import { reviewVoteApi } from "./review-vote-state";
@@ -34,24 +33,19 @@ const ReviewVoteButtons = ({
   size = "normal",
   state,
 }: ReviewVoteButtonsProps) => {
-  const [localState, setLocalState] = useState<ReviewVoteState>(() =>
-    reviewVoteApi.initial(review)
-  );
-  const voteState = state ?? localState;
-
-  const setVoteState = (
-    nextState: ReviewVoteState,
-    options?: VotePersistOptions
-  ): void => {
-    if (onStateChange) {
-      onStateChange(review, nextState, options);
-    } else {
-      setLocalState(nextState);
-      if (options?.persist) {
-        reviewVoteApi.persist(review, nextState);
-      }
-    }
-  };
+  const { setVoteState, voteState } = useVoteControl({
+    api: reviewVoteApi,
+    item: review,
+    ...(onStateChange
+      ? {
+          onStateChange: (
+            nextState: ReviewVoteState,
+            options?: VotePersistOptions
+          ) => onStateChange(review, nextState, options),
+        }
+      : {}),
+    ...(state ? { state } : {}),
+  });
 
   const { loading, vote } = useVoteAction(reviewVoteApi, {
     ...(canVote ? { canVote } : {}),
