@@ -30,7 +30,9 @@ const extractTitle = (doc: Document): TitleInfo => {
     primary = full.slice(0, idx).trim();
     original = full.slice(idx).trim().replace(RE_SEASON_EP, "");
   }
-  return { full, original, primary };
+  const seasonLabel =
+    full.match(/第[一二三四五六七八九十百\d]+[季集]/u)?.[0] ?? "";
+  return { full, original, primary, seasonLabel };
 };
 
 /**

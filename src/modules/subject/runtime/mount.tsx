@@ -9,10 +9,11 @@ const setSubjectTitle = (
   doc: Document,
   data: ReturnType<typeof extractDoubanData>
 ): void => {
-  doc.title = `${
-    (data.title.primary || data.title.full) +
-    (data.year ? ` (${data.year})` : "")
-  }`;
+  const base =
+    data.title.seasonLabel && data.title.primary
+      ? `${data.title.primary} ${data.title.seasonLabel}`
+      : data.title.primary || data.title.full;
+  doc.title = `${base}${data.year ? ` (${data.year})` : ""}`;
 };
 
 const mountSubject = (doc: Document = document): void => {

@@ -101,6 +101,7 @@ const makeDoubanData = (overrides?: Partial<DoubanData>): DoubanData => ({
     full: "The Shawshank Redemption",
     original: "",
     primary: "肖申克的救赎",
+    seasonLabel: "",
   },
   trailers: [],
   year: "1994",

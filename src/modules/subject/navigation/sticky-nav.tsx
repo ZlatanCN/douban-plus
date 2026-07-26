@@ -9,27 +9,31 @@ type SubjectStickyNavProps = Omit<
   "accessory" | "className" | "title"
 > & {
   subjectSwitcher?: ComponentChild;
-  subjectSwitcherOpen?: boolean;
-  title: Pick<TitleInfo, "full" | "primary">;
+  title: Pick<TitleInfo, "full" | "primary" | "seasonLabel">;
 };
 
 const SubjectStickyNav = ({
   subjectSwitcher,
-  subjectSwitcherOpen = false,
   title,
   ...navigation
-}: SubjectStickyNavProps) => (
-  <StickyNav
-    {...navigation}
-    accessory={
-      subjectSwitcher ? (
-        <div class="atv-stickynav-subject-switcher">{subjectSwitcher}</div>
-      ) : null
-    }
-    className={subjectSwitcherOpen ? "has-subject-switcher-open" : ""}
-    title={subjectSwitcherOpen ? "上一部" : title.primary || title.full}
-  />
-);
+}: SubjectStickyNavProps) => {
+  const displayTitle =
+    title.seasonLabel && title.primary
+      ? `${title.primary} ${title.seasonLabel}`
+      : title.primary || title.full;
+
+  return (
+    <StickyNav
+      {...navigation}
+      accessory={
+        subjectSwitcher ? (
+          <div class="atv-stickynav-subject-switcher">{subjectSwitcher}</div>
+        ) : null
+      }
+      title={displayTitle}
+    />
+  );
+};
 
 export { SubjectStickyNav };
 export type { SubjectStickyNavProps };

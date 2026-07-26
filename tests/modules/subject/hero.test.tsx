@@ -61,6 +61,7 @@ const makeHeroData = (overrides?: Partial<HeroData>): HeroData => ({
     full: "肖申克的救赎 / The Shawshank Redemption",
     original: "The Shawshank Redemption",
     primary: "肖申克的救赎",
+    seasonLabel: "",
   },
   year: "1994",
   ...overrides,

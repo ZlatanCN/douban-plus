@@ -15,7 +15,6 @@
 // @match        *://movie.douban.com/subject/*
 // @match        *://www.douban.com/personage/*
 // @match        *://accounts.douban.com/passport/login*
-// @exclude      *://movie.douban.com/subject/*/all_photos
 // @exclude      *://movie.douban.com/subject/*/photos*
 // @exclude      *://movie.douban.com/subject/*/photos[?]*
 // @exclude      *://movie.douban.com/subject/*/comments*

@@ -63,7 +63,12 @@ const makeData = (overrides?: Partial<DoubanData>): DoubanData => ({
   streaming: [],
   subjectId: "1292052",
   summary: null,
-  title: { full: "肖申克的救赎", original: "", primary: "肖申克的救赎" },
+  title: {
+    full: "肖申克的救赎",
+    original: "",
+    primary: "肖申克的救赎",
+    seasonLabel: "",
+  },
   trailers: [],
   year: "1994",
   ...overrides,

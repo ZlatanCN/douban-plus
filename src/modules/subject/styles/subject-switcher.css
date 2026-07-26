@@ -19,6 +19,7 @@
 .atv-subject-switcher-trigger {
   display: inline-flex;
   height: 34px;
+  flex: 0 0 auto;
   align-items: center;
   padding: 0 13px;
   border: 1px solid var(--atv-border-subtle);
@@ -43,31 +44,48 @@
   outline: none;
 }
 
-.atv-subject-switcher-expanded {
-  position: relative;
+.atv-subject-switcher {
   display: flex;
+  align-items: center;
+}
+
+.atv-subject-switcher-expanded {
+  display: flex;
+  overflow: hidden;
   width: min(44vw, 520px);
+  max-width: 0;
   height: 38px;
   align-items: center;
   border: 1px solid rgb(255 255 255 / 22%);
   border-radius: 999px;
   background: rgb(255 255 255 / 10%);
   box-shadow: 0 12px 32px rgb(0 0 0 / 28%);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    max-width 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+    opacity 0.18s ease 0.02s;
 }
 
-.atv-stickynav.has-subject-switcher-open .atv-stickynav-jumps {
-  display: none;
+.atv-subject-switcher[data-state="open"] .atv-subject-switcher-trigger {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.92);
+  transition:
+    opacity 0.15s var(--atv-ease-out),
+    transform 0.15s var(--atv-ease-out);
 }
 
-.atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {
-  position: absolute;
+.atv-subject-switcher[data-state="open"] .atv-subject-switcher-expanded {
+  position: fixed;
+  z-index: 100;
+  top: 9px;
   left: 50%;
-  margin: 0;
+  overflow: visible;
+  max-width: min(44vw, 520px);
+  opacity: 1;
+  pointer-events: auto;
   transform: translateX(-50%);
-}
-
-.atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {
-  width: min(56vw, 620px);
 }
 
 .atv-subject-switcher-search-icon {
@@ -118,19 +136,7 @@
     width: min(78vw, 520px);
   }
 
-  .atv-stickynav.has-subject-switcher-open .atv-stickynav-title {
-    display: none;
-  }
-
-  .atv-stickynav.has-subject-switcher-open .atv-stickynav-subject-switcher {
-    position: relative;
-    left: auto;
-    width: 100%;
-    margin: 0;
-    transform: none;
-  }
-
-  .atv-stickynav.has-subject-switcher-open .atv-subject-switcher-expanded {
-    width: 100%;
+  .atv-subject-switcher[data-state="open"] .atv-subject-switcher-expanded {
+    max-width: min(78vw, 520px);
   }
 }
