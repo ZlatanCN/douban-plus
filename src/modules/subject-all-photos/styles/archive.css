@@ -1,0 +1,190 @@
+/* ---------- Subject photo archive: frame and identity ---------- */
+.atv-photo-archive {
+  min-height: 100vh;
+  padding: 0 max(24px, 5vw) 96px;
+  background:
+    radial-gradient(circle at 82% -12%, rgb(65 190 93 / 12%), transparent 30%),
+    var(--atv-bg-primary);
+}
+
+.atv-photo-archive-hero,
+.atv-photo-archive-groups {
+  width: min(100%, 1320px);
+  margin: 0 auto;
+}
+
+.atv-photo-archive-hero {
+  padding: clamp(28px, 4vw, 56px) 0 clamp(52px, 8vw, 108px);
+}
+
+.atv-photo-archive-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  gap: 18px;
+}
+
+.atv-photo-archive-back,
+.atv-photo-archive-upload,
+.atv-photo-archive-all {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  color: var(--atv-text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  gap: 7px;
+  letter-spacing: 0.015em;
+  transition:
+    border-color var(--atv-duration-feedback) ease,
+    color var(--atv-duration-feedback) ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
+}
+
+.atv-photo-archive-back:focus-visible,
+.atv-photo-archive-upload:focus-visible,
+.atv-photo-archive-all:focus-visible {
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 4px;
+}
+
+.atv-photo-archive-back:active,
+.atv-photo-archive-upload:active,
+.atv-photo-archive-all:active {
+  transform: scale(0.97);
+}
+
+.atv-photo-archive-upload {
+  padding: 7px 10px;
+  border-color: var(--atv-border-medium);
+  border-radius: 999px;
+  color: var(--atv-text-primary);
+}
+
+.atv-photo-archive-intro {
+  padding-top: clamp(48px, 9vw, 128px);
+}
+
+.atv-photo-archive-intro > p {
+  margin: 0;
+  color: var(--atv-accent-bright);
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.atv-photo-archive-intro h1 {
+  max-width: 980px;
+  margin: 16px 0 0;
+  color: var(--atv-text-primary);
+  font-size: clamp(44px, 7vw, 92px);
+  font-weight: 700;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.atv-photo-archive-index {
+  display: flex;
+  margin: clamp(34px, 5vw, 54px) 0 0;
+  gap: clamp(28px, 5vw, 68px);
+}
+
+.atv-photo-archive-index > div {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.atv-photo-archive-index dt {
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.atv-photo-archive-index dd {
+  margin: 0;
+  color: var(--atv-text-secondary);
+  font-size: 20px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.atv-photo-archive-nav .atv-stickynav-jumps {
+  min-width: 0;
+  flex: 0 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.atv-photo-archive-nav .atv-stickynav-jumps::-webkit-scrollbar {
+  display: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-photo-archive-back:hover,
+  .atv-photo-archive-all:hover {
+    color: var(--atv-accent-bright);
+  }
+
+  .atv-photo-archive-upload:hover {
+    border-color: rgb(76 217 122 / 58%);
+    color: var(--atv-accent-bright);
+  }
+}
+
+@media (width <= 768px) {
+  .atv-photo-archive {
+    padding: 0 20px 64px;
+  }
+
+  .atv-photo-archive-hero {
+    padding-top: 20px;
+  }
+
+  .atv-photo-archive-intro {
+    padding-top: 56px;
+  }
+
+  .atv-photo-archive-nav {
+    padding-right: 20px;
+    padding-left: 20px;
+    gap: 16px;
+  }
+
+  .atv-photo-archive-nav .atv-stickynav-title {
+    flex: 0 1 32%;
+  }
+
+  .atv-photo-archive-nav .atv-stickynav-jumps {
+    flex: 1 1 auto;
+    gap: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-photo-archive-back,
+  .atv-photo-archive-upload,
+  .atv-photo-archive-all {
+    transition: none;
+  }
+
+  .atv-photo-archive-back:active,
+  .atv-photo-archive-upload:active,
+  .atv-photo-archive-all:active {
+    transform: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .atv-photo-archive-upload {
+    border-color: rgb(255 255 255 / 34%);
+  }
+}

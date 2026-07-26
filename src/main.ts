@@ -1,5 +1,6 @@
 import { personagePage } from "@/modules/personage";
 import { mountSubjectLoginFrameIfNeeded, subjectPage } from "@/modules/subject";
+import { subjectAllPhotosPage } from "@/modules/subject-all-photos";
 import { subjectCelebritiesPage } from "@/modules/subject-celebrities";
 import {
   hasMatchingPage,
@@ -9,6 +10,7 @@ import type { PageMount } from "@/shared/runtime/page-mount";
 
 const pageMounts: readonly PageMount[] = [
   subjectCelebritiesPage,
+  subjectAllPhotosPage,
   subjectPage,
   personagePage,
 ];

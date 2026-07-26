@@ -33,7 +33,6 @@ export default defineConfig({
         downloadURL:
           "https://raw.githubusercontent.com/ZlatanCN/douban-plus/master/dist/douban-plus.user.js",
         exclude: [
-          "*://movie.douban.com/subject/*/all_photos",
           "*://movie.douban.com/subject/*/photos*",
           "*://movie.douban.com/subject/*/photos[?]*",
           "*://movie.douban.com/subject/*/comments*",

@@ -82,6 +82,7 @@ const StickyNav = ({
     <nav
       {...(navRef ? { ref: navRef } : {})}
       class={`atv-stickynav${visible ? " is-visible" : ""}${scrolling ? " is-scrolling" : ""}${className ? ` ${className}` : ""}`}
+      inert={!visible}
     >
       <div class="atv-stickynav-title">{title}</div>
       {accessory}
@@ -93,6 +94,15 @@ const StickyNav = ({
             href={`#${section.id}`}
             key={section.id}
             onClick={(event) => {
+              if (
+                event.button !== 0 ||
+                event.altKey ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.shiftKey
+              ) {
+                return;
+              }
               event.preventDefault();
               onJump(section.id);
             }}

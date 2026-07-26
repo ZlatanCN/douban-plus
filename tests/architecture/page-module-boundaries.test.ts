@@ -4,7 +4,12 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.join(process.cwd(), "src");
-const moduleNames = ["personage", "subject", "subject-celebrities"] as const;
+const moduleNames = [
+  "personage",
+  "subject",
+  "subject-celebrities",
+  "subject-all-photos",
+] as const;
 
 const sourceFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -85,15 +90,19 @@ describe("page module boundaries", () => {
   });
 
   it("exposes only the agreed public API for each page module", async () => {
-    const [personageEntry, subjectEntry, subjectCelebritiesEntry] =
-      await Promise.all(
-        moduleNames.map((moduleName) =>
-          readFile(
-            path.join(sourceRoot, "modules", moduleName, "index.ts"),
-            "utf-8"
-          )
+    const [
+      personageEntry,
+      subjectEntry,
+      subjectCelebritiesEntry,
+      subjectAllPhotosEntry,
+    ] = await Promise.all(
+      moduleNames.map((moduleName) =>
+        readFile(
+          path.join(sourceRoot, "modules", moduleName, "index.ts"),
+          "utf-8"
         )
-      );
+      )
+    );
     expect(exportedNamesOf(personageEntry).toSorted()).toStrictEqual([
       "mountPersonage",
       "personagePage",
@@ -107,6 +116,11 @@ describe("page module boundaries", () => {
       "isSubjectCelebritiesPage",
       "mountSubjectCelebrities",
       "subjectCelebritiesPage",
+    ]);
+    expect(exportedNamesOf(subjectAllPhotosEntry).toSorted()).toStrictEqual([
+      "isSubjectAllPhotosPage",
+      "mountSubjectAllPhotos",
+      "subjectAllPhotosPage",
     ]);
   });
 

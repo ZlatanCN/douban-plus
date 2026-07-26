@@ -57,6 +57,12 @@ describe(StickyNav, () => {
     );
   });
 
+  it("removes hidden navigation from the keyboard focus order", () => {
+    const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={noop} />);
+
+    expect(root.querySelector("nav")?.hasAttribute("inert")).toBeTruthy();
+  });
+
   it("falls back to data.title.full when primary is empty", () => {
     const root = renderIntoRoot(
       <StickyNav
@@ -115,6 +121,23 @@ describe(StickyNav, () => {
     link?.dispatchEvent(event);
     expect(event.defaultPrevented).toBeTruthy();
     expect(onJump).toHaveBeenCalledWith("atv-cast");
+  });
+
+  it("leaves modified jump clicks to the browser", () => {
+    const onJump = vi.fn<(sectionId: string) => void>();
+    const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={onJump} />);
+    const link = root.querySelector<HTMLAnchorElement>(
+      ".atv-stickynav-jumps a"
+    );
+    const event = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      ctrlKey: true,
+    });
+    link?.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBeFalsy();
+    expect(onJump).not.toHaveBeenCalled();
   });
 
   it("renders a single sliding marker element", () => {

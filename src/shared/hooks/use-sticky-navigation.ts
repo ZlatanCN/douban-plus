@@ -127,13 +127,21 @@ const useStickyNavigation = (
   const onJump = useCallback(
     (sectionId: string): void => {
       const view = doc.defaultView ?? window;
+      const target = doc.querySelector<HTMLElement>(`#${sectionId}`);
+      if (!target) {
+        return;
+      }
+
       const prefersReducedMotion = view.matchMedia(
         "(prefers-reduced-motion: reduce)"
       ).matches;
-      doc.querySelector(`#${sectionId}`)?.scrollIntoView({
+      view.history.pushState(null, "", `#${sectionId}`);
+      target.tabIndex = -1;
+      target.scrollIntoView({
         behavior: prefersReducedMotion ? "auto" : "smooth",
         block: "start",
       });
+      target.focus({ preventScroll: true });
     },
     [doc]
   );
