@@ -50,6 +50,7 @@ const isTrustedLoginIframe = (iframe: HTMLIFrameElement): boolean => {
 const styleLoginIframe = (iframe: HTMLIFrameElement): void => {
   iframe.title = "豆瓣登录";
   iframe.referrerPolicy = "strict-origin-when-cross-origin";
+  iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin");
   iframe.removeAttribute("width");
   iframe.removeAttribute("height");
   iframe.removeAttribute("frameborder");
@@ -117,7 +118,6 @@ const mountIframe = (
       window.clearInterval(sessionTimer.current);
     }
     onStateChange({ kind: "authenticated" });
-    window.location.reload();
   };
 
   host.replaceChildren(iframe);

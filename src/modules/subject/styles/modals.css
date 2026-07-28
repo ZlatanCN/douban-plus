@@ -1,6 +1,4 @@
 .atv-comment-overlay,
-.atv-interest-modal,
-.atv-login-modal,
 .atv-review-modal {
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);

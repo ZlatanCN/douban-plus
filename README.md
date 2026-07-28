@@ -1,86 +1,63 @@
 # Douban Plus
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Douban Plus：为豆瓣作品、图集与人物页面提供沉浸式暗色观看界面的用户脚本">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Douban Plus：把豆瓣作品、短评、图集与人物页重新编排成连续的暗色观看体验">
 </p>
 
 <p align="center">
-  <a href="https://greasyfork.org/zh-CN/scripts/585771-douban-plus"><img src="https://img.shields.io/badge/Install%20on-Greasy%20Fork-670000.svg" alt="从 Greasy Fork 安装"></a>
-  <a href="https://scriptcat.org/zh-CN/script-show-page/6712"><img src="https://img.shields.io/badge/Install%20on-ScriptCat-1e1e1e.svg" alt="从 ScriptCat 安装"></a>
+  <a href="https://greasyfork.org/zh-CN/scripts/585771-douban-plus"><img src="https://img.shields.io/badge/Greasy%20Fork-安装脚本-197a43?style=flat-square" alt="从 Greasy Fork 安装 Douban Plus"></a>
+  <a href="https://scriptcat.org/zh-CN/script-show-page/6712"><img src="https://img.shields.io/badge/ScriptCat-安装脚本-181818?style=flat-square" alt="从 ScriptCat 安装 Douban Plus"></a>
+  <img src="https://img.shields.io/badge/Runtime-Preact-6f42c1?style=flat-square" alt="使用 Preact 构建">
 </p>
 
-Douban Plus 是适配 ScriptCat、Tampermonkey 等脚本管理器的豆瓣增强脚本。它读取当前页面已经公开的资料，用 Preact 重组为沉浸式暗色界面；链接、登录、标记与投票仍走豆瓣原生流程。
+Douban Plus 是面向 ScriptCat、Tampermonkey、Violentmonkey 与 Greasemonkey 的豆瓣电影增强脚本。它不另建一套内容站：从你正在看的豆瓣页面读取可见资料，重新组织为适合连续浏览的暗色阅读界面；登录、标记、投票、上传与跳转仍由豆瓣原生流程完成。
 
-## 看见它
+## 先看结果
 
-真实页面，而非概念图：作品页把海报、评分、影像与社区内容组织为一条连续的观看路径；人物页从身份、关系到作品与荣誉展开。
+两张真实页面截图：一张作品页，一张人物页。它们不是概念稿，也不是独立站的界面。
 
 <p align="center">
-  <img src="./tests/screenshots/better-call-saul.webp" width="49%" alt="《流浪地球 2》作品详情页的暗色 Hero、评分和操作区">
-  <img src="./tests/screenshots/rhea-seehorn.webp" width="49%" alt="蕾亚·塞洪人物页的身份 Hero 与荣誉时间线">
+  <img src="./tests/screenshots/better-call-saul.webp" width="49%" alt="《风骚律师》作品页：海报、作品资料、多源评分、观看状态与播放来源被组织在同一阅读路径中">
+  <img src="./tests/screenshots/rhea-seehorn.webp" width="49%" alt="蕾雅·塞洪人物页：人物身份、简介和荣誉时间线被重组为单一阅读入口">
 </p>
 
-## 覆盖什么
+## 它重编排什么
 
-### 作品详情页
+Douban Plus 以页面为单位工作。每条路由都有自己的提取、领域数据、呈现与运行时，而不是用一张通用模板覆盖豆瓣。
 
-`movie.douban.com/subject/*`
+| 页面 | 观看方式 |
+| --- | --- |
+| `movie.douban.com/subject/<id>/` | 作品 Hero、外部评分、影像、演职员、短评、影评、讨论、推荐与详细资料按阅读节奏排布。 |
+| `movie.douban.com/subject/<id>/comments` | 短评总览保留看过 / 在看 / 想看、排序、评分与分页；切换结果在当前页无刷新更新。 |
+| `movie.douban.com/subject/<id>/all_photos` | 已加载的剧照、海报与壁纸被重排成比例稳定的瀑布流，不枚举未打开的分类页。 |
+| `movie.douban.com/subject/<id>/celebrities` | 当前作品的演职员资料按页面语义重组，并保留原生出口。 |
+| `www.douban.com/personage/<id>/` | 人物身份、常合作的人、图片、近期与代表作品、获奖记录形成一条人物阅读路径。 |
 
-- 沉浸式 Hero：海报、背景、元数据、豆瓣与外部评分、简介及作品标记。
-- 影像与观看：流媒体、首播平台、剧集信息、演职员、剧照、海报与预告片。
-- 社区与资料：短评、影评、讨论、完整署名、榜单信息和详细条目资料。
-- Sticky Navigation 内置作品切换器：搜索后在新标签打开豆瓣条目或原生搜索。
-
-### 作品图集总览页
-
-`movie.douban.com/subject/<id>/all_photos`
-
-- 将已在页面上的剧照、海报与壁纸按原有分组重排为比例稳定的瀑布流。
-- 保留原生“查看全部”和上传入口；不枚举分类页，也不抓取完整图片库。
-
-### 演职员页
-
-`movie.douban.com/subject/<id>/celebrities`
-
-- 将当前作品的演职员资料按页面语义重组，并保留回到原生内容的路径。
-
-### 人物页
-
-`www.douban.com/personage/<id>/`
-
-- 人物 Hero、简介、常合作的人、图片、近期与代表作品、获奖记录。
-- 每个分区都保留通往豆瓣原生完整内容的出口。
-
-## 为什么它不会变成另一套豆瓣
+## 为什么仍然是豆瓣
 
 <p align="center">
-  <img src="./assets/readme/workflow.svg" width="100%" alt="Douban Plus 从当前豆瓣文档提取公开资料，经页面模块和 Preact 呈现增强界面，同时保留原生登录、标记、投票与跳转流程">
+  <img src="./assets/readme/reading-path.svg" width="100%" alt="Douban Plus 的页面边界：从当前豆瓣文档提取页面数据，经专属页面模块组织为 Preact 阅读界面；登录、标记、投票、上传和跳转继续交给豆瓣">
 </p>
 
-- **只读当前页面**：提取已有的公开资料；数据不足时保留原生页面，而不是展示半成品。
-- **按页面拆分**：作品、图集和人物各自拥有数据提取、界面与运行时边界；共享层不携带豆瓣页面语义。
-- **保留原生权限与动作**：不复刻登录、上传、标记或投票服务，必要时承载或跳回豆瓣原生流程。
-- **为阅读而动**：桌面与移动端都可用，并尊重 `prefers-reduced-motion`。
+- **只从当前页面起步**：数据不足时不强行渲染半成品，保留原生页面。
+- **增强与账户权限分离**：脚本负责呈现与局部状态；账号相关写入始终走豆瓣的登录、标记、投票或上传入口。
+- **认证后同步同一份页面快照**：登录后，增强界面和仍需原生承接的互动出口会一起更新，不要求整页刷新。
+- **为阅读而不是炫技而动**：支持桌面与移动端，并尊重 `prefers-reduced-motion`。
 
-## 安装
+## 安装并开始使用
 
-### 一键安装
+1. 安装任一脚本管理器：Tampermonkey、Violentmonkey、Greasemonkey 或 ScriptCat。
+2. 从 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/585771-douban-plus) 或 [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/6712) 安装脚本。
+3. 打开一部电影、剧集、图集、演职员或人物主页；匹配的页面会自动增强。
 
-先安装 Tampermonkey、Violentmonkey、Greasemonkey 或 ScriptCat 等脚本管理器，然后选择一个来源：
-
-- [从 Greasy Fork 安装](https://greasyfork.org/zh-CN/scripts/585771-douban-plus)
-- [从 ScriptCat 安装](https://scriptcat.org/zh-CN/script-show-page/6712)
-
-安装后打开作品详情页、作品图集总览页或人物主页，脚本会自动运行。
-
-### 从源码构建
+也可以从源码构建：
 
 ```bash
 pnpm install
 pnpm build
 ```
 
-将 [`dist/douban-plus.user.js`](./dist/douban-plus.user.js) 的完整内容安装到脚本管理器。
+随后把 [`dist/douban-plus.user.js`](./dist/douban-plus.user.js) 的完整内容安装到你的脚本管理器。
 
 ## 开发
 
@@ -93,42 +70,28 @@ pnpm dev
 
 | 命令             | 用途                                         |
 | ---------------- | -------------------------------------------- |
-| `pnpm dev`       | 启动 Vite 开发服务器和 userscript 开发注入。 |
-| `pnpm build`     | 生成 `dist/douban-plus.user.js`。            |
-| `pnpm lint`      | 运行 Ultracite 与 Stylelint。                |
+| `pnpm dev`       | 启动 Vite 开发服务器与 userscript 开发注入。 |
+| `pnpm run fix`   | 格式化与修复源码样式。                       |
 | `pnpm typecheck` | 检查源码和测试的 TypeScript 类型。           |
 | `pnpm test`      | 运行 Vitest 单元与集成测试。                 |
+| `pnpm build`     | 生成 `dist/douban-plus.user.js`。            |
 | `pnpm test:e2e`  | 在真实豆瓣页面执行 Playwright QA。           |
 
-开发模式由 `vite-plugin-monkey` 注入脚本。若豆瓣页面 CSP 阻止开发注入，需要在本地浏览器环境中处理该限制。
+开发注入由 `vite-plugin-monkey` 提供。若豆瓣页面 CSP 阻止本地开发注入，需要在本地浏览器环境中处理该限制。
 
 ## 项目结构
 
 ```text
 src/
-  main.ts                    # 路由入口：选择匹配的页面模块
+  main.ts                    # 根据 URL 选择页面模块
   modules/
     subject/                 # 作品详情页
+    subject-comments/        # 作品短评总览页
     subject-all-photos/      # 作品图集总览页
     subject-celebrities/     # 演职员页
     personage/               # 人物页
   shared/                    # 无页面语义的组件、hooks、运行时与工具
   styles.css                 # 唯一样式清单
-```
-
-常规改动请运行：
-
-```bash
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm build
-```
-
-涉及真实豆瓣页面交互、浏览器生命周期或视觉回归时，再运行：
-
-```bash
-pnpm test:e2e
 ```
 
 ## 开源协议

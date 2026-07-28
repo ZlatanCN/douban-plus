@@ -1,9 +1,5 @@
 import type { PageMount } from "@/shared/runtime/page-mount";
 
-import {
-  installLoginFrameTheme,
-  isDoubanLoginFrame,
-} from "./runtime/login-frame-theme";
 import { mountSubject as mountSubjectPage } from "./runtime/mount";
 
 const subjectPage: PageMount = {
@@ -13,13 +9,5 @@ const subjectPage: PageMount = {
   mount: mountSubjectPage,
 };
 
-const mountSubjectLoginFrameIfNeeded = (): boolean => {
-  if (!isDoubanLoginFrame()) {
-    return false;
-  }
-  installLoginFrameTheme();
-  return true;
-};
-
 export { mountSubject } from "./runtime/mount";
-export { mountSubjectLoginFrameIfNeeded, subjectPage };
+export { subjectPage };

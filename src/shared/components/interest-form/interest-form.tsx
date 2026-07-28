@@ -1,12 +1,5 @@
 import { useEffect, useState } from "preact/hooks";
 
-import type {
-  InterestFormSnapshot,
-  InterestFormState,
-  InterestState,
-  ModalCallbacks,
-} from "@/modules/subject/domain";
-import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
 import {
   ModalCloseButton,
   ModalSessionContent,
@@ -15,10 +8,17 @@ import {
 import { useModalClose } from "@/shared/components/modal/modal-close-context";
 
 import { InterestFormFields } from "./interest-form-fields";
-import type { InterestFormSource } from "./interest-form-source";
+import { normalizeInterestTags } from "./normalize-tags";
+import type {
+  InterestFormCallbacks,
+  InterestFormSnapshot,
+  InterestFormSource,
+  InterestFormState,
+  InterestState,
+} from "./types";
 
 type InterestFormProps = {
-  callbacks: ModalCallbacks;
+  callbacks: InterestFormCallbacks;
   onClose: () => void;
   onRetry?: () => void;
   source: InterestFormSource;
@@ -35,7 +35,7 @@ const formFrom = (
 ): InterestFormState => ({
   comment: state.comment || "",
   isPrivate: snapshot?.isPrivate ?? false,
-  rating: state.rating || 0,
+  rating: snapshot?.rating ?? state.rating ?? 0,
   shareToBroadcast: snapshot?.isPrivate
     ? false
     : (snapshot?.shareToBroadcast ?? false),

@@ -5,7 +5,7 @@ import type {
   InterestFormState,
   InterestState,
 } from "@/modules/subject/domain";
-import { useInterestMarking } from "@/modules/subject/interest/use-interest-marking";
+import { useInterestMarking } from "@/shared/components/interest-form";
 
 import { renderIntoRoot } from "../../helpers/render";
 
@@ -16,7 +16,10 @@ vi.hoisted(() => {
 type InterestMarkingHarnessProps = {
   fetch?: (subjectId: string) => Promise<InterestFormSnapshot>;
   loggedIn?: boolean;
-  onLoginRequired?: (action: string) => void;
+  onLoginRequired?: (
+    action: string,
+    onAuthenticated: (interest: InterestState) => void
+  ) => void;
   onInterestChange?: (interest: InterestState) => void;
   post?: (
     subjectId: string,
@@ -32,6 +35,7 @@ type InterestMarkingHarnessProps = {
     subjectId: string,
     status: InterestState["status"]
   ) => Promise<{ error?: string; ok: boolean }>;
+  read?: (subjectId: string) => Promise<InterestState>;
   state?: InterestState;
 };
 
@@ -63,18 +67,22 @@ const defaultSnapshot = (
 const failPost = () => Promise.resolve({ ok: false });
 const failRemove = () => Promise.resolve({ ok: false });
 const fetchSnapshot = () => Promise.resolve(defaultSnapshot());
+const readState = () => Promise.resolve(makeState());
 
 const InterestMarkingHarness = ({
   fetch = fetchSnapshot,
   loggedIn = true,
-  onLoginRequired = vi.fn<(action: string) => void>(),
+  onLoginRequired = vi.fn<
+    (action: string, onAuthenticated: (interest: InterestState) => void) => void
+  >(),
   onInterestChange = vi.fn<(interest: InterestState) => void>(),
   post = failPost,
+  read = readState,
   remove = failRemove,
   state = makeState(),
 }: InterestMarkingHarnessProps) => {
   const interestMarking = useInterestMarking({
-    adapters: { fetch, post, remove },
+    adapters: { fetch, post, read, remove },
     loggedIn,
     onInterestChange,
     onLoginRequired,
@@ -169,7 +177,13 @@ describe("Interest marking", () => {
   });
 
   it("requests login instead of opening a form for a logged-out user", () => {
-    const onLoginRequired = vi.fn<(action: string) => void>();
+    const onLoginRequired =
+      vi.fn<
+        (
+          action: string,
+          onAuthenticated: (interest: InterestState) => void
+        ) => void
+      >();
     const root = renderIntoRoot(
       <InterestMarkingHarness
         loggedIn={false}
@@ -179,8 +193,35 @@ describe("Interest marking", () => {
 
     root.querySelector<HTMLButtonElement>("button")?.click();
 
-    expect(onLoginRequired).toHaveBeenCalledWith("标记这部作品");
+    expect(onLoginRequired).toHaveBeenCalledWith(
+      "标记这部作品",
+      expect.any(Function)
+    );
     expect(root.querySelector("#atv-interest-modal")).toBeNull();
+  });
+
+  it("continues opening the requested form after login succeeds", async () => {
+    let continueAfterLogin: ((interest: InterestState) => void) | undefined;
+    const onLoginRequired = vi.fn<
+      (
+        action: string,
+        onAuthenticated: (interest: InterestState) => void
+      ) => void
+    >((_action, onAuthenticated) => {
+      continueAfterLogin = onAuthenticated;
+    });
+    const root = renderIntoRoot(
+      <InterestMarkingHarness
+        loggedIn={false}
+        onLoginRequired={onLoginRequired}
+      />
+    );
+
+    root.querySelector<HTMLButtonElement>("button")?.click();
+    continueAfterLogin?.(makeState({ loggedIn: true }));
+
+    await waitForForm(root);
+    expect(onLoginRequired).toHaveBeenCalledOnce();
   });
 
   it("keeps the form open without changing rendered state after a failed mark", async () => {

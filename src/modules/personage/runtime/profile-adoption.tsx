@@ -12,6 +12,9 @@ type PersonageProfileAdoptionProps = {
   profile: PersonageProfile;
 };
 
+const biographyExpansionRetryDelay = 50;
+const biographyExpansionMaxAttempts = 40;
+
 const isBiographyExpansionPending = (doc: Document): boolean =>
   [
     ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
@@ -30,43 +33,58 @@ const PersonageProfileAdoption = ({
   profile: initialProfile,
 }: PersonageProfileAdoptionProps) => {
   const [profile, setProfile] = useState(initialProfile);
+  const biographyKey = profile.biography?.join("\n") ?? "";
   const sections = useMemo(
     () => computePersonageNavSections(profile),
     [profile]
   );
   const navigation = useStickyNavigation(doc, sections);
-  // Expand truncated biography: defer click to rAF to ensure jQuery's
-  // delegate handler is registered, then verify expansion before extracting
+  // Douban registers the delegated fold handler asynchronously. Keep retries
+  // short and bounded so an early click cannot leave the Hero empty forever.
   useLayoutEffect(() => {
-    if (!isBiographyExpansionPending(doc)) {
-      return;
-    }
-
-    const foldSwitch = [
-      ...doc.querySelectorAll<HTMLAnchorElement>(".subject-intro .fold-switch"),
-    ].find((element) => element.textContent?.includes("展开"));
-
-    if (!foldSwitch) {
-      return;
-    }
-
     const view = doc.defaultView;
     if (!view) {
       return;
     }
 
-    view.requestAnimationFrame(() => {
+    let retryTimer: number | undefined;
+    let attempts = 0;
+    const refreshProfile = () => {
+      const nextProfile = extractPersonageProfile(doc);
+      if (nextProfile) {
+        setProfile(nextProfile);
+      }
+    };
+    const tryExpand = () => {
+      const foldSwitch = [
+        ...doc.querySelectorAll<HTMLAnchorElement>(
+          ".subject-intro .fold-switch"
+        ),
+      ].find((element) => element.textContent?.includes("展开"));
+
+      if (!foldSwitch) {
+        return;
+      }
+
       foldSwitch.click();
 
-      // Verify: text changed from "(展开)" to "(折叠)" = expansion succeeded
       if (!isBiographyExpansionPending(doc)) {
-        const nextProfile = extractPersonageProfile(doc);
-        if (nextProfile) {
-          setProfile(nextProfile);
-        }
+        refreshProfile();
+        return;
       }
-    });
-  }, [doc]);
+
+      attempts += 1;
+      if (attempts < biographyExpansionMaxAttempts) {
+        retryTimer = view.setTimeout(tryExpand, biographyExpansionRetryDelay);
+      }
+    };
+    const frame = view.requestAnimationFrame(tryExpand);
+
+    return () => {
+      view.cancelAnimationFrame(frame);
+      clearTimeout(retryTimer);
+    };
+  }, [biographyKey, doc]);
 
   // Observe ALL dynamic content via body-level mutation watcher,
   // skipping mutations inside our own enhanced DOM
@@ -81,15 +99,15 @@ const PersonageProfileAdoption = ({
     };
 
     const observer = new MutationObserver((mutations) => {
-      // Skip mutations inside our own enhanced DOM — they don't reflect
-      // changes to the native Douban content sections we extract from
-      for (const mutation of mutations) {
-        if (
-          mutation.target instanceof Element &&
-          mutation.target.closest("#atv-douban-root")
-        ) {
-          return;
-        }
+      const hasNativeMutation = mutations.some(
+        (mutation) =>
+          !(
+            mutation.target instanceof Element &&
+            mutation.target.closest("#atv-douban-root")
+          )
+      );
+      if (!hasNativeMutation) {
+        return;
       }
       clearTimeout(timer);
       timer = setTimeout(refreshProfile, 200) as unknown as number;

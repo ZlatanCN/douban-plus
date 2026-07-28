@@ -1,7 +1,12 @@
 import { personagePage } from "@/modules/personage";
-import { mountSubjectLoginFrameIfNeeded, subjectPage } from "@/modules/subject";
+import { subjectPage } from "@/modules/subject";
 import { subjectAllPhotosPage } from "@/modules/subject-all-photos";
 import { subjectCelebritiesPage } from "@/modules/subject-celebrities";
+import { subjectCommentsPage } from "@/modules/subject-comments";
+import {
+  installLoginFrameTheme,
+  isDoubanLoginFrame,
+} from "@/shared/components/login-modal";
 import {
   hasMatchingPage,
   mountMatchingPage,
@@ -11,6 +16,7 @@ import type { PageMount } from "@/shared/runtime/page-mount";
 const pageMounts: readonly PageMount[] = [
   subjectCelebritiesPage,
   subjectAllPhotosPage,
+  subjectCommentsPage,
   subjectPage,
   personagePage,
 ];
@@ -33,6 +39,8 @@ const mountPageWhenReady = async (): Promise<void> => {
   }
 };
 
-if (!mountSubjectLoginFrameIfNeeded()) {
+if (isDoubanLoginFrame()) {
+  installLoginFrameTheme();
+} else {
   mountPageWhenReady();
 }

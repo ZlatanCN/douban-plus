@@ -40,13 +40,45 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 **作品图集总览页**: 豆瓣 `movie.douban.com/subject/<id>/all_photos` 上按剧照、海报和壁纸汇集当前作品图片的页面；它不包含各类型的分页列表或单张图片详情。 _Avoid_: 分类图片列表、图片详情页、作品详情页影像分区
 
+**作品短评总览页**: 豆瓣 `movie.douban.com/subject/<id>/comments` 上按观看状态、排序与评分筛选浏览当前作品短评的独立页面；它完整替代原生短评页，不是作品详情页短评分区的延伸。 _Avoid_: 详情页短评分区、单条短评页、影评列表
+
+**原生短评互动出口**: 作品短评总览页中由豆瓣原页面承担写短评与“有用”投票的入口；增强页保留或适配这些入口，但不重新实现账户写入协议。 _Avoid_: 增强短评编辑器、脚本投票 API
+
+**短评共识刻度**: 作品短评总览页中在短评正文阅读边栏呈现的“有用”票数；它表达读者对一条短评的可见支持度，不等同于作品评分或作者星级。 _Avoid_: 作品评分、作者星级、点赞按钮装饰
+
+**短评浏览轴**: 作品短评总览页中彼此独立的单选浏览维度：观看状态、排序和评分筛选。每条轴都保留豆瓣原生选项与当前选择；三者不可合并为同一个筛选器。 _Avoid_: 单一综合筛选器、九宫格筛选
+
+**短评页无刷新导航**: 在当前短评总览页内请求目标原生短评页、提取并替换阅读数据，同时同步规范 URL 与浏览器历史的导航方式；排序、评分筛选、观看状态和分页均属于这一方式，不能触发整页刷新。新数据成功后才写入历史；浏览器前进与后退同样无刷新地恢复对应结果。请求期间只显示局部、短暂的加载反馈；完成后滚动到短评阅读流顶部。 _Avoid_: 整页跳转、脚本私有筛选状态、无限滚动、遮挡全页的加载层
+
+**短评静默切换**: 短评页无刷新导航的局部加载反馈：被触发的导航控件提供短促按压、即时高亮目标并暂时锁定浏览轴；短评流顶部显示 2px 进度细线，旧内容以 72% 不透明度保留，新结果以 160ms opacity cross-fade 替换。失败时恢复原选择。视觉上不使用 spinner、骨架屏或全页遮罩；辅助技术通过 `aria-live` 获得当前加载语义。 _Avoid_: 等待弹窗、旋转图标、逐条短评入场、长时动效
+
+**短评导航失败**: 无刷新导航无法获得可提取结果时的恢复状态：保留当前短评、当前选择与 URL，结束加载态，并在短评流顶部显示可重试的行内提示；不刷新页面，也不回退为原生页。 _Avoid_: 清空阅读流、整页错误页、自动整页刷新、静默失败
+
+**短评按需加载**: 短评总览页只在用户明确触发排序、评分、观看状态或分页导航后请求对应原生页；不预取相邻分页或未选筛选结果。 _Avoid_: 批量抓取、预测性预加载、陈旧缓存结果
+
+**短评导航最新意图**: 无刷新导航中的在途请求可被浏览器前进或后退打断；被打断请求的结果不得更新阅读流、选择状态或 URL，最新历史目标始终优先。 _Avoid_: 旧响应覆盖新选择、不可打断的加载、历史导航整页刷新
+
+**短评状态索引**: 作品短评总览页页头中按看过、在看、想看呈现的三项可点击统计；它是“观看状态”浏览轴的当前位置与各状态短评规模的共同表达。 _Avoid_: 不含数量的装饰性标签、与观看状态无关的作品统计
+
+**无海报短评页头**: 仅以短评类别、作品名、状态索引与原生出口建立身份的作品短评总览页页头；它不复刻作品详情页的海报 Hero。 _Avoid_: 缩小版作品 Hero、页头海报、详情页镜像
+
+**无侧栏短评阅读页**: 作品短评总览页以短评阅读流为唯一主体，不保留原生的海报、演职员或预告片摘要侧栏；作品详情由页头出口承接。 _Avoid_: 详情摘要侧栏、双重作品信息、与正文争夺注意力的辅助栏
+
+**移动端短评浏览控制台**: 作品短评总览页在移动端承载排序与评分两条浏览轴的并列控件；它优先完整展示选项，仅在可用宽度不足时以可见溢出提示横向浏览。 _Avoid_: 筛选抽屉、遮挡阅读的弹窗、始终横向滚动
+
+**短评页动效契约**: 作品短评总览页只以简短的页面淡入、按压反馈、悬停反馈和滚动时的导航材质变化表达状态；筛选、分页、键盘操作和短评阅读流不使用表演性动效。 _Avoid_: 逐条短评入场、筛选过场、分页加载秀、仅靠动效传达状态
+
+**短评完整阅读**: 作品短评总览页中直接呈现一条短评的全部可用正文，而非详情页短评分区中的截断预览或弹窗内容。 _Avoid_: 短评摘要、强制截断、以弹窗替代阅读流
+
+**原生短评分页导航**: 作品短评总览页末尾通向相邻短评页面的豆瓣原生链接集合；增强页重新编排其阅读节奏，但不以无限滚动取代 URL 化分页。 _Avoid_: 无限滚动、脚本内分页状态、不可链接的加载更多
+
 **原生上传入口**: 作品图集总览页中通往豆瓣剧照、海报或壁纸上传流程的原始链接；增强页保留此出口但不复刻上传表单、权限判断或提交行为。 _Avoid_: 增强上传器、脚本上传流程
 
 **图集预览集**: 作品图集总览页已经渲染的剧照、海报和壁纸预览项；增强页只消费这一集合，不后台枚举分类页或加载完整图片库。为在替换原生页前稳定瀑布流卡片几何，运行时可以读取这批已提取预览项对应的比例保留图片尺寸；它不访问分类页、不扩充预览集，也不预取完整图集。 _Avoid_: 完整图集抓取、分类页枚举、完整图片库预加载、分类页镜像
 
 **图集挂载保护**: 仅当作品图集总览页的标题、作品返回链接与至少一个图集分组均可提取时，才以增强页替代原生页面；任何提取缺失都会保留原生页面。 _Avoid_: 失败时的空白增强页、先隐藏后提取
 
-**页面模块所有权**: `subject` 与 `personage` 各自拥有页面组件、领域数据类型、DOM 提取、页面语义的外部数据读写适配、运行时补全和页面专属样式；共享层只承载不含豆瓣页面语义的设计 token、基础布局、通用导航、模态、小型交互原语及通用 HTTP、缓存、DOM 工具和样式。顶层入口只根据 URL 选择并挂载页面运行时；它只能使用模块公开入口，并通过唯一的样式清单加载模块与共享样式。页面模块彼此不依赖，模块内部实现不得被模块外部生产代码深层导入，共享层也不得反向依赖页面模块；白盒单元测试可作为模块实现的一部分直接测试内部 seam。跨越模块边界的领域类型只能经公开契约传递；为迁移创建的兼容转发必须随所属模块迁移完成而删除。 _Avoid_: 让人物页复用 subject 的数据契约、把页面语义的请求适配留在共享层、让共享组件导入页面分区文案、在入口层堆积页面数据判断、跨模块或跨层深层导入、永久共享页面领域模型、把页面样式伪装成共享样式
+**页面模块所有权**: `subject` 与 `personage` 各自拥有页面组件、领域数据类型、DOM 提取、页面语义的外部数据读写适配、运行时补全和页面专属样式。唯一的跨 subject 路由例外是作品标记与登录：`shared/components/interest-form/` 拥有同一作品的标记表单、状态机及 Douban 标记 API/DOM 适配，`shared/components/login-modal/` 拥有可信原生登录 iframe 的承接与登录页主题；它们同时服务详情页与短评总览页，且不得导入任何 page module。其余共享层只承载不含页面语义的设计 token、基础布局、通用导航、模态、小型交互原语及通用 HTTP、缓存、DOM 工具和样式。顶层入口只根据 URL 选择并挂载页面运行时；它只能使用模块公开入口，并通过唯一的样式清单加载模块与共享样式。页面模块彼此不依赖，模块内部实现不得被模块外部生产代码深层导入，共享层也不得反向依赖页面模块；白盒单元测试可作为模块实现的一部分直接测试内部 seam。跨越模块边界的领域类型只能经公开契约传递；为迁移创建的兼容转发必须随所属模块迁移完成而删除。 _Avoid_: 让人物页复用 subject 的数据契约、把非复用的页面语义请求适配留在共享层、让共享组件导入页面分区文案、在入口层堆积页面数据判断、跨模块或跨层深层导入、永久共享页面领域模型、把页面样式伪装成共享样式
 
 **人物页路由与挂载**: 脚本元数据覆盖 `www.douban.com/personage/*`，但只在规范人物主页 `/personage/<数字 ID>/`（允许尾随斜杠与查询参数）挂载；照片、全部作品等二级原生页保持原样。`subject` 与 `personage` 分别公开自己的挂载函数，顶层入口只做路径分发。每个模块仅在数据提取成功后创建增强根节点并隐藏原生 `#wrapper`；原生 DOM 随后仅作为数据源和“查看全部”出口。 _Avoid_: 在二级页重构、先隐藏原生页再尝试提取、跨页面共享挂载函数
 
@@ -80,7 +112,7 @@ Userscript (v0.21.8) that enhances Douban movie/subject pages with richer metada
 
 GreaseMonkey-style userscript built with TypeScript, Vite, vite-plugin-monkey, and Preact. The active subject UI uses traditional TSX modules: components are functions returning JSX, filenames are kebab-case, and runtime orchestration renders Preact at narrow mount seams.
 
-`src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. Page-specific work belongs to its page module; only page-agnostic Preact primitives belong under `src/shared/components/`.
+`src/build/` was the legacy DOM-builder layer from the pre-Preact architecture and has been retired. Do not recreate it. Page-specific work belongs to its page module; only page-agnostic Preact primitives, plus the cross-subject `interest-form` and `login-modal` experiences, belong under `src/shared/components/`.
 
 External rating data flows through **extract → resolve → Preact render** within the `subject` page module. Its `resolve/` layer is the testable middle: it takes a `ResolutionContext`, runs HTTP fetches in parallel, and returns typed results without touching the DOM. `src/modules/subject/runtime/use-external-ratings.ts` owns the runtime lifecycle; there is no DOM `apply.ts` bridge.
 
@@ -91,7 +123,7 @@ src/
   main.ts              — route entry; imports only page-module public APIs and the stylesheet manifest
   modules/
     subject/           — subject page module
-      index.ts          — public route mount and login-frame handling
+      index.ts          — public route mount
       domain.ts         — subject-owned domain types and values
       api/              — subject-specific external reads and writes
       extract/          — subject DOM extraction
@@ -100,7 +132,7 @@ src/
       runtime/          — subject host integration and lifecycle
       styles/           — subject page styles
       voting/           — reusable subject vote state and lifecycle
-      hero/ ratings/ media/ details/ comments/ reviews/ interest/ login/ search/
+      hero/ ratings/ media/ details/ comments/ reviews/ search/
                        — subject UI experiences
     personage/         — personage page module
       domain.ts         — personage-owned domain types
@@ -110,7 +142,7 @@ src/
       runtime/          — personage host integration and lifecycle
       styles/           — personage page styles
   shared/
-    components/        — reusable leaf UI, layout, and canonical modal primitives
+    components/        — reusable leaf UI, layout, canonical modal primitives, and the cross-subject interest-form/login-modal experiences
     hooks/             — reusable Preact hooks
     runtime/           — page-agnostic enhanced-root and route-mount primitives
     styles/            — token, base, layout, and modal styles
@@ -216,11 +248,11 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/modules/subject/runtime/`; `useSeriesRuntime` owns the initial/late series result, current-series identity, more-link adoption, DOM observation, and cleanup
    - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
 
-8. **作品标记 module (2026-07-12)** — `src/modules/subject/interest/use-interest-marking.tsx` owns the complete "想看 / 在看 / 看过" flow:
+8. **作品标记 module (2026-07-28)** — `src/shared/components/interest-form/` owns the complete "想看 / 在看 / 看过" flow:
    - External seam is `useInterestMarking({ subjectId, subjectTitle, loggedIn, onLoginRequired, adapters })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes.
-   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page reloads after every successful write; `SubjectPage` does not maintain optimistic interest state.
+   - The module localizes the account gate, login request, modal state, save/remove callbacks, API result handling, and successful page-state projection after every successful write; page composition supplies the rendered interest state without owning form lifecycle or writes.
    - All hero actions open the enhanced form after login; original Douban interest-button proxying is not part of the flow
-   - Tests inject write and reload adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
+   - Tests inject write adapters at the module seam, exercising login, failure, save, and removal without reaching through the implementation
 
 9. **QA scenario runner module (2026-07-08)** — `tests/qa.ts` is a CLI facade over `tests/qa/runner.ts` and `tests/qa/scenario-runner.ts`:
    - External seam is `runQa(options?)`, which owns browser startup, reporter lifecycle, screenshot cleanup, scenario fan-out, browser shutdown, summary printing, and exit-code calculation
@@ -228,14 +260,14 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - Each attempt gets a fresh Playwright context and closes both page and context in `finally`, matching Playwright's isolation model and avoiding state carry-over from failed attempts
    - Screenshot capture remains part of the scenario assertion phases, not an optional post-process
 
-10. **Account-gated actions (2026-07-12)** — 作品标记 owns its account gate in `src/modules/subject/interest/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/modules/subject/login/` for login presentation:
+10. **Account-gated actions (2026-07-28)** — 作品标记 owns its account gate in `src/shared/components/interest-form/use-interest-marking.tsx`; short-comment and review voting keep their page-level guards, while all three reuse `src/shared/components/login-modal/` for login presentation:
 
 - Account-gated actions are: interest marking, short-comment voting, and review useful/useless voting
   - Logged-out attempts open an ATV modal shell, trigger Douban's native login dialog, extract only the trusted account login iframe, and discard Douban's native dialog wrapper/masks before any optimistic UI update or API call
   - `mountNativeLoginFrame` has three fallback layers: (1) find a recognized dialog wrapper via `nativeDialogSelector`, (2) search for a pre-rendered login iframe directly by `src` pattern, (3) trigger Douban's `.a_show_login` click handler and poll for the dialog. Layer 3 is the primary path on most Douban pages.
   - `triggerNativeLoginDialog` restricts its search to `.a_show_login` and `.j.a_show_login` only (not generic `a[href*='register']` etc.) because ATV's own DOM also contains register links that would be clicked instead. Hidden elements (inside `#wrapper` with `display: none`) are intentionally included — `element.click()` fires JS event handlers regardless of CSS visibility, and Douban's `.a_show_login` handlers create the login dialog.
   - When clicking an `<a>` trigger, a `once` `preventDefault` listener is attached first to prevent navigation away from ATV, then `click()` is called. This is safe because Douban's own handler also calls `preventDefault`.
-  - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/modules/subject/runtime/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject app in the account origin
+  - The userscript also matches `accounts.douban.com/passport/login*` and runs only `src/shared/components/login-modal/login-frame-theme.ts` there, so the iframe receives ATV login styling without copying login DOM, reading credentials, binding submit handlers, or running the subject app in the account origin
   - Comment and review vote controls receive preflight guards so counts do not briefly change and roll back when the user is logged out
   - API modules still keep their `ck` checks as the final safety net
 
@@ -251,7 +283,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 - **Preact TSX modules**: UI components are functions returning TSX. Filenames are kebab-case; component identifiers stay PascalCase.
 - **Deep subject seam**: Runtime calls `SubjectPageRuntime({ data, doc })`, which calls `SubjectPage({ data, runtime })`; Subject page internals own layout, local UI state, modals, voting affordances, and rating panels without touching the Douban document or network.
-- **Style ownership boundary**: CSS follows page ownership under `src/modules/<page>/styles/`, while page-agnostic token, base, layout, and modal styles live in `src/shared/styles/`; `src/styles.css` is the only manifest. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Experience files keep page-specific selectors and states.
+- **Style ownership boundary**: CSS follows page ownership under `src/modules/<page>/styles/`, while page-agnostic token, base, layout, and modal styles live in `src/shared/styles/`; the cross-subject `interest-form` and `login-modal` own their complete component styles there, while subject Hero's interest panel remains subject-owned. `src/styles.css` is the only manifest. Do not import CSS from TSX modules, do not use CSS Modules for ATV selectors, and do not wrap ATV styles in cascade layers because unlayered Douban author CSS would outrank layered userscript styles. Experience files keep page-specific selectors and states.
 - **Scrapers are async**: Each external source gets its own resolver/scraper module. Remote work happens at explicit seams, not inside extractors.
 - **No config/layout coupling**: Every rating panel has its own state and display rules. No shared visibility model.
 - **250-LOC ceiling**: All modules stay under 250 LOC to avoid AI-slop-style oversized files.

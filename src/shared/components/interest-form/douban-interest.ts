@@ -1,11 +1,14 @@
+import { normalizeInterestTags } from "@/shared/components/interest-form/normalize-tags";
+import { getCk, gmGet, gmPost } from "@/shared/utils/request";
+
+import { extractInterestState } from "./extract-douban-interest";
 import type {
   InterestActionResult,
   InterestFormSnapshot,
+  InterestMarkingActions,
   InterestState,
   InterestWriteOptions,
-} from "@/modules/subject/domain";
-import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
-import { getCk, gmGet, gmPost } from "@/shared/utils/request";
+} from "./types";
 
 const API_INTEREST = "https://movie.douban.com/j/subject";
 const API_REMOVE = "https://movie.douban.com/subject";
@@ -35,13 +38,18 @@ const snapshotStatus = (value: unknown): InterestFormSnapshot["status"] => {
 
 const formSettingsFromHtml = (
   html: unknown
-): Pick<InterestFormSnapshot, "isPrivate" | "shareToBroadcast"> => {
+): Pick<InterestFormSnapshot, "isPrivate" | "rating" | "shareToBroadcast"> => {
   if (typeof html !== "string") {
-    return { isPrivate: false, shareToBroadcast: false };
+    return { isPrivate: false, rating: 0, shareToBroadcast: false };
   }
   const doc = new DOMParser().parseFromString(html, "text/html");
+  const value = Number(
+    doc.querySelector<HTMLInputElement>("#n_rating, input[name='rating']")
+      ?.value
+  );
   return {
     isPrivate: !!doc.querySelector<HTMLInputElement>("#inp-private")?.checked,
+    rating: Number.isInteger(value) && value >= 0 && value <= 5 ? value : 0,
     shareToBroadcast:
       !!doc.querySelector<HTMLInputElement>("#share-shuo")?.checked,
   };
@@ -77,6 +85,23 @@ const fetchInterestSnapshot = async (
   } catch (error) {
     console.warn("[ATV-Douban] fetchInterestSnapshot error:", error);
     throw new Error("无法读取完整标记", { cause: error });
+  }
+};
+
+const readInterestState = async (subjectId: string): Promise<InterestState> => {
+  const ck = getCk();
+  if (!ck) {
+    throw new Error("未登录");
+  }
+
+  const subjectUrl = `https://movie.douban.com/subject/${subjectId}/`;
+  try {
+    const html = await gmGet(subjectUrl, subjectUrl);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return extractInterestState(doc, ck);
+  } catch (error) {
+    console.warn("[ATV-Douban] readInterestState error:", error);
+    throw new Error("无法同步当前作品标记", { cause: error });
   }
 };
 
@@ -149,5 +174,18 @@ const removeInterest = async (
   }
 };
 
-export { fetchInterestSnapshot, postInterest, removeInterest };
-export type { InterestActionResult as InterestResult } from "@/modules/subject/domain";
+const doubanInterestActions: InterestMarkingActions = {
+  fetch: fetchInterestSnapshot,
+  post: postInterest,
+  read: readInterestState,
+  remove: removeInterest,
+};
+
+export {
+  doubanInterestActions,
+  fetchInterestSnapshot,
+  postInterest,
+  readInterestState,
+  removeInterest,
+};
+export type { InterestActionResult as InterestResult } from "./types";

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.6.0
+// @version      1.7.0
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -17,8 +17,6 @@
 // @match        *://accounts.douban.com/passport/login*
 // @exclude      *://movie.douban.com/subject/*/photos*
 // @exclude      *://movie.douban.com/subject/*/photos[?]*
-// @exclude      *://movie.douban.com/subject/*/comments*
-// @exclude      *://movie.douban.com/subject/*/comments[?]*
 // @exclude      *://movie.douban.com/subject/*/reviews*
 // @exclude      *://movie.douban.com/subject/*/reviews[?]*
 // @tag          douban

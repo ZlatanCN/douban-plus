@@ -33,10 +33,6 @@
     background: rgb(255 255 255 / 9%);
   }
 
-  .atv-interest-modal-star:hover {
-    transform: scale(1.15);
-  }
-
   .atv-discussion-row:hover {
     background: rgb(255 255 255 / 3%);
   }
@@ -116,8 +112,6 @@
     .atv-review-readmore,
   .atv-vote-btn:active,
   .atv-stream-card:hover,
-  .atv-interest-modal-star:hover,
-  .atv-interest-modal-submit:active,
   .atv-discussion-row:hover::before,
   .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,
   .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,
@@ -135,15 +129,6 @@
     opacity: 1;
     transform: none;
   }
-
-  .atv-interest-modal-status-indicator {
-    opacity: 0;
-    transform: none;
-  }
-
-  .atv-interest-modal-status.is-active {
-    background: rgb(255 255 255 / 12%);
-  }
 }
 
 /* ---------- Accessibility: reduced transparency ---------- */
@@ -156,8 +141,6 @@
 
   .atv-modal-overlay,
   .atv-comment-overlay,
-  .atv-interest-modal,
-  .atv-login-modal,
   .atv-review-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -196,8 +179,6 @@
 @media (prefers-contrast: more) {
   .atv-modal-overlay,
   .atv-comment-overlay,
-  .atv-interest-modal,
-  .atv-login-modal,
   .atv-review-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

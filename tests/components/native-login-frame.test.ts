@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { mountNativeLoginFrame } from "@/modules/subject/login/native-login-frame";
-import type { NativeLoginAdoptionState } from "@/modules/subject/login/native-login-frame";
+import { mountNativeLoginFrame } from "@/shared/components/login-modal/native-login-frame";
+import type { NativeLoginAdoptionState } from "@/shared/components/login-modal/native-login-frame";
 
 type HappyDomNavigationSettings = {
   disableChildFrameNavigation: boolean;
@@ -87,12 +87,14 @@ describe("native login adoption", () => {
       dialog: document.querySelector(".account_pop"),
       iframeClass: iframe?.classList.contains("atv-login-modal-iframe"),
       iframePolicy: iframe?.referrerPolicy,
+      iframeSandbox: iframe?.getAttribute("sandbox"),
       iframeTitle: iframe?.title,
       mask: document.querySelector(".dui-dialog-msk"),
     }).toStrictEqual({
       dialog: null,
       iframeClass: true,
       iframePolicy: "strict-origin-when-cross-origin",
+      iframeSandbox: "allow-forms allow-scripts allow-same-origin",
       iframeTitle: "豆瓣登录",
       mask: null,
     });
@@ -206,7 +208,7 @@ describe("native login adoption", () => {
       { kind: "mounted" },
       { kind: "authenticated" },
     ]);
-    expect(reload).toHaveBeenCalledOnce();
+    expect(reload).not.toHaveBeenCalled();
   });
 
   it("reports failure when trigger-and-poll cannot adopt a native iframe", () => {

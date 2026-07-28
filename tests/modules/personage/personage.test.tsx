@@ -482,6 +482,48 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
+  it("retries biography expansion until the native handler is ready", async () => {
+    const { cleanup, doc } = createTestDoc(
+      `
+        <div class="subject-target"><div class="subject-name">张艺谋 Yimou Zhang</div></div>
+        <section class="subject-mod subject-intro">
+          <div class="content"></div>
+          <div class="fold-switch-block"><a class="fold-switch" href="javascript:;;">(展开)</a></div>
+        </section>
+      `,
+      "/personage/27260166/"
+    );
+    const source = doc.querySelector<HTMLElement>(".subject-intro .content");
+    const toggle = doc.querySelector<HTMLAnchorElement>(".fold-switch");
+
+    const firstClick = vi.fn<() => void>();
+    toggle?.addEventListener("click", firstClick);
+    mountPersonage(doc);
+
+    // The first automatic click happens before Douban finishes registering
+    // its delegated handler, matching the empty-Hero refresh race.
+    await vi.waitFor(() => expect(firstClick).toHaveBeenCalledOnce());
+
+    toggle?.addEventListener("click", () => {
+      source?.replaceChildren(
+        Object.assign(doc.createElement("p"), {
+          textContent: "处理器就绪后提供的完整人物简介",
+        })
+      );
+      if (toggle) {
+        toggle.textContent = "(折叠)";
+      }
+    });
+
+    await vi.waitFor(() =>
+      expect(
+        doc.querySelector(".atv-personage-biography-content")?.textContent
+      ).toBe("处理器就绪后提供的完整人物简介")
+    );
+
+    cleanup();
+  });
+
   it("expands a truncated biography synchronously upon mount", async () => {
     const { cleanup, doc } = createTestDoc(
       `

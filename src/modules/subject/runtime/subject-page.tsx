@@ -1,4 +1,4 @@
-import { useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 import type {
   Comment,
@@ -7,6 +7,9 @@ import type {
   Review,
   Trailer,
 } from "@/modules/subject/domain";
+import { useInterestMarking } from "@/shared/components/interest-form";
+import { extractInterestState } from "@/shared/components/interest-form/extract-douban-interest";
+import { LoginModal } from "@/shared/components/login-modal";
 import { ModalSession, PosterModal } from "@/shared/components/modal";
 import type { ImageModalSource } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
@@ -17,8 +20,6 @@ import { commentVoteApi } from "../comments/comment-vote-state";
 import { DetailsSection } from "../details";
 import { DiscussionsSection } from "../discussions";
 import { Hero } from "../hero";
-import { useInterestMarking } from "../interest/use-interest-marking";
-import { LoginModal } from "../login/login-modal";
 import {
   CastSection,
   PhotosSection,
@@ -37,12 +38,18 @@ import type { SubjectPageRuntime } from "./types";
 
 type SubjectPageProps = {
   data: DoubanData;
+  onAuthenticated?: () => Promise<DoubanData>;
   runtime: SubjectPageRuntime;
 };
 
 type ActiveMediaModal =
   | { image: ImageModalSource; type: "poster" }
   | { trailer: Trailer; type: "video" };
+
+type LoginRequest = {
+  action: string;
+  onAuthenticated?: (interest: DoubanData["interest"]) => void;
+};
 
 const toHeroData = (
   data: DoubanData,
@@ -63,13 +70,61 @@ const toHeroData = (
   year: data.year,
 });
 
-const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
+const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
   const [interest, setInterest] = useState(data.interest);
+  useEffect(() => {
+    setInterest(data.interest);
+  }, [data.interest]);
   const activeComment = useModalRequest<Comment>();
   const activeReview = useModalRequest<Review>();
   const activeMediaModal = useModalRequest<ActiveMediaModal>();
 
-  const loginAction = useModalRequest<string>();
+  const loginAction = useModalRequest<LoginRequest>();
+  const {
+    active: activeLogin,
+    handleClose: handleCloseLogin,
+    handleOpen: handleOpenLogin,
+  } = loginAction;
+  const requestLogin = useCallback(
+    (
+      action: string,
+      resumeAfterAuthentication?: (interest: DoubanData["interest"]) => void
+    ): void => {
+      handleOpenLogin({
+        action,
+        ...(resumeAfterAuthentication
+          ? { onAuthenticated: resumeAfterAuthentication }
+          : {}),
+      });
+    },
+    [handleOpenLogin]
+  );
+  const handleLoginAuthenticated = useCallback(async (): Promise<void> => {
+    let refreshedInterest: DoubanData["interest"];
+    try {
+      const refreshedData = onAuthenticated ? await onAuthenticated() : null;
+      refreshedInterest =
+        refreshedData?.interest ??
+        (await runtime.actions.interestMarking.read(data.subjectId));
+    } catch {
+      try {
+        refreshedInterest = await runtime.actions.interestMarking.read(
+          data.subjectId
+        );
+      } catch {
+        refreshedInterest = extractInterestState(document);
+      }
+    }
+    setInterest(refreshedInterest);
+    activeLogin?.value.onAuthenticated?.(refreshedInterest);
+    handleCloseLogin();
+  }, [
+    activeLogin,
+    data.subjectId,
+    handleCloseLogin,
+    onAuthenticated,
+    runtime.actions.interestMarking,
+  ]);
   const commentVotes = useVoteState(data.comments, commentVoteApi);
   const activeResolvedComment = activeComment.active
     ? (runtime.resolvedComments.find(
@@ -79,24 +134,29 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
   const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
   const handleCommentVoteStateChange = commentVotes.setVoteState;
   const handleReviewVoteStateChange = reviewVotes.setVoteState;
+  const activeResolvedReview = activeReview.active
+    ? (data.reviews.find(
+        (review) => review.id === activeReview.active?.value.id
+      ) ?? activeReview.active.value)
+    : null;
   const interestMarking = useInterestMarking({
     adapters: runtime.actions.interestMarking,
     loggedIn: interest.loggedIn,
     onInterestChange: setInterest,
-    onLoginRequired: loginAction.handleOpen,
+    onLoginRequired: requestLogin,
     subjectId: data.subjectId,
     subjectTitle: data.title.primary,
   });
   const canVote = (): boolean => {
     if (!interest.loggedIn) {
-      loginAction.handleOpen("给短评点有用");
+      requestLogin("给短评点有用");
       return false;
     }
     return true;
   };
   const canReviewVote = (): boolean => {
     if (!interest.loggedIn) {
-      loginAction.handleOpen("给影评投票");
+      requestLogin("给影评投票");
       return false;
     }
     return true;
@@ -182,15 +242,15 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
           />
         </ModalSession>
       ) : null}
-      {activeReview.active ? (
+      {activeReview.active && activeResolvedReview ? (
         <ModalSession request={activeReview.active}>
           <ReviewContentModal
             canVote={canReviewVote}
             onClose={activeReview.handleClose}
             onVoteStateChange={handleReviewVoteStateChange}
             onVote={runtime.actions.handleReviewVote}
-            review={reviewVotes.mergeVoteState(activeReview.active.value)}
-            voteState={reviewVotes.getVoteState(activeReview.active.value)}
+            review={reviewVotes.mergeVoteState(activeResolvedReview)}
+            voteState={reviewVotes.getVoteState(activeResolvedReview)}
           />
         </ModalSession>
       ) : null}
@@ -214,11 +274,12 @@ const SubjectPage = ({ data, runtime }: SubjectPageProps) => {
           />
         </ModalSession>
       ) : null}
-      {loginAction.active ? (
-        <ModalSession request={loginAction.active}>
+      {activeLogin ? (
+        <ModalSession request={activeLogin}>
           <LoginModal
-            action={loginAction.active.value}
-            onClose={loginAction.handleClose}
+            action={activeLogin.value.action}
+            onAuthenticated={handleLoginAuthenticated}
+            onClose={handleCloseLogin}
           />
         </ModalSession>
       ) : null}

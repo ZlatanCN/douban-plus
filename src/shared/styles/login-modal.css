@@ -16,6 +16,8 @@ dialog::backdrop {
     max(24px, env(safe-area-inset-left));
   border: none;
   margin: 0;
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  backdrop-filter: blur(16px) saturate(1.15);
   background: rgb(0 0 0 / 72%);
   inset: 0;
   overscroll-behavior: contain;
@@ -165,4 +167,41 @@ dialog::backdrop {
 .atv-login-modal-close:focus-visible {
   outline: 2px solid var(--atv-accent);
   outline-offset: 3px;
+}
+
+@media (width <= 1024px) {
+  .atv-login-modal {
+    align-items: flex-end;
+    padding: 16px;
+  }
+
+  .atv-login-modal-inner {
+    width: 100%;
+    padding: 28px 20px 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-login-modal,
+  .atv-login-modal-inner,
+  .atv-login-modal.is-open .atv-login-modal-inner {
+    transform: none;
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .atv-login-modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 90%);
+  }
+}
+
+@media (prefers-contrast: more) {
+  .atv-login-modal {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgb(0 0 0 / 92%);
+  }
 }

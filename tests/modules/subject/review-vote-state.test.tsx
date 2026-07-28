@@ -96,6 +96,7 @@ const makeRuntime = (
           tags: [],
         }),
       post: () => Promise.resolve({ ok: false }),
+      read: () => Promise.resolve(makeData().interest),
       remove: () => Promise.resolve({ ok: false }),
     },
   },

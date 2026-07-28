@@ -8,7 +8,6 @@ import {
 } from "@/modules/subject/extract/basic";
 import { extractDiscussions } from "@/modules/subject/extract/discussions";
 import { extractInfo } from "@/modules/subject/extract/info";
-import { extractInterestState } from "@/modules/subject/extract/interest";
 import {
   extractCelebrities,
   extractPhotos,
@@ -26,11 +25,12 @@ import {
   extractRecommendations,
 } from "@/modules/subject/extract/social";
 import { extractStreaming } from "@/modules/subject/extract/streaming";
+import { extractInterestState } from "@/shared/components/interest-form/extract-douban-interest";
 
 const isTVInfo = (info: DoubanData["info"]): boolean =>
   !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
 
-const extractDoubanData = (doc: Document): DoubanData => {
+const extractDoubanData = (doc: Document, sessionCk?: string): DoubanData => {
   const info = extractInfo(doc);
   const isTV = isTVInfo(info);
 
@@ -40,7 +40,7 @@ const extractDoubanData = (doc: Document): DoubanData => {
     comments: extractComments(doc),
     discussions: extractDiscussions(doc),
     info,
-    interest: extractInterestState(doc),
+    interest: extractInterestState(doc, sessionCk),
     isTV,
     photos: extractPhotos(doc),
     poster: extractPoster(doc),

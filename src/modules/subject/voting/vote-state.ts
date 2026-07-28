@@ -7,6 +7,7 @@ import type { Cache } from "@/shared/utils/cache";
 export type VoteApi<State, Dir extends string, Item, Result> = {
   key: (item: Item) => string;
   initial: (item: Item) => State;
+  serverInitial: (item: Item) => State;
   optimistic: (state: State, dir: Dir) => State;
   resolve: (optimistic: State, dir: Dir, result: Result) => State;
   toItem: (item: Item, state: State) => Item;
@@ -81,6 +82,7 @@ const createVoteState = <State, Dir extends string, Item, Result, Stored>(
     optimistic,
     persist,
     resolve,
+    serverInitial: config.initial,
     toItem: config.toItem,
     votedOf: config.votedOf,
   };
