@@ -1,5 +1,5 @@
 import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
-import { IconThumb } from "@/shared/components/common/icons";
+import { VoteButton } from "@/shared/components/common/vote-button";
 
 import type { CommentVoteCallback } from "../runtime/types";
 import { useVoteAction } from "../voting/use-vote-action";
@@ -50,20 +50,14 @@ const CommentVoteButton = ({
   };
 
   return (
-    <button
-      aria-label={`有用，${voteState.count} 人觉得有用`}
-      aria-pressed={voteState.voted}
-      class={`${className}${voteState.voted ? " is-voted" : ""}`}
+    <VoteButton
+      ariaLabel={`有用，${voteState.count} 人觉得有用`}
+      className={className}
+      count={voteState.count}
       disabled={loading || voteState.voted || !comment.cid}
-      onClick={(event) => {
-        event.stopPropagation();
-        handleVote();
-      }}
-      type="button"
-    >
-      <IconThumb />
-      <span class="atv-vote-count">{voteState.count}</span>
-    </button>
+      onVote={handleVote}
+      voted={voteState.voted}
+    />
   );
 };
 

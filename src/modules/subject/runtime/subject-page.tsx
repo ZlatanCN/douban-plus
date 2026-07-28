@@ -7,6 +7,8 @@ import type {
   Review,
   Trailer,
 } from "@/modules/subject/domain";
+import { useInterestMarking } from "@/shared/components/interest-form";
+import { LoginModal } from "@/shared/components/login-modal";
 import { ModalSession, PosterModal } from "@/shared/components/modal";
 import type { ImageModalSource } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
@@ -17,8 +19,6 @@ import { commentVoteApi } from "../comments/comment-vote-state";
 import { DetailsSection } from "../details";
 import { DiscussionsSection } from "../discussions";
 import { Hero } from "../hero";
-import { useInterestMarking } from "../interest/use-interest-marking";
-import { LoginModal } from "../login/login-modal";
 import {
   CastSection,
   PhotosSection,

@@ -1,13 +1,12 @@
 import type { JSX } from "preact";
 
-import type {
-  InterestFormState,
-  InterestState,
-} from "@/modules/subject/domain";
-
-import type { InterestFormSource } from "./interest-form-source";
 import { StarRatingInput } from "./star-rating-input";
 import { InterestTagEditor } from "./tag-editor";
+import type {
+  InterestFormSource,
+  InterestFormState,
+  InterestState,
+} from "./types";
 import { VisibilityAndPublishing } from "./visibility-and-publishing";
 
 type InterestFormFieldsProps = {

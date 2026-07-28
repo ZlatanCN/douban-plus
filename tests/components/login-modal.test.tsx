@@ -3,14 +3,14 @@ import { setTimeout as delay } from "node:timers/promises";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { LoginModal } from "@/modules/subject/login/login-modal";
-import { mountNativeLoginFrame } from "@/modules/subject/login/native-login-frame";
-import type { NativeLoginAdoptionState } from "@/modules/subject/login/native-login-frame";
+import { LoginModal } from "@/shared/components/login-modal";
+import { mountNativeLoginFrame } from "@/shared/components/login-modal/native-login-frame";
+import type { NativeLoginAdoptionState } from "@/shared/components/login-modal/native-login-frame";
 
-import { renderIntoRoot } from "../../helpers/render";
+import { renderIntoRoot } from "../helpers/render";
 
 vi.mock(
-  import("../../../src/modules/subject/login/native-login-frame"),
+  import("../../src/shared/components/login-modal/native-login-frame"),
   () => ({
     mountNativeLoginFrame: vi.fn<typeof mountNativeLoginFrame>(),
   })

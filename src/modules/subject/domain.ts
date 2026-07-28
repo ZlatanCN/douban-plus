@@ -1,5 +1,17 @@
 /* ── Generic Types ─────────────────────────────────────── */
 
+import type { InterestState } from "@/shared/components/interest-form";
+
+export type {
+  InterestActionResult,
+  InterestFormCallbacks as ModalCallbacks,
+  InterestFormSnapshot,
+  InterestFormState,
+  InterestMarkingActions,
+  InterestState,
+  InterestWriteOptions,
+} from "@/shared/components/interest-form";
+
 /* ── Extract Return Types ─────────────────────────────── */
 
 /** Return type of extractTitle() */
@@ -309,75 +321,6 @@ type StickyNavData = {
 
 /* ── Interest / Mark Types ────────────────────────────── */
 
-/** Parsed interest state from the real Douban page */
-type InterestState = {
-  loggedIn: boolean;
-  marked: boolean;
-  status: "none" | "wish" | "do" | "collect";
-  rating: number;
-  date: string;
-  tags: string[];
-  ck: string;
-  /** true if this page has a "在看" (watching) option — i.e. it's a TV series */
-  hasWatching: boolean;
-  /** user's short review text, e.g. "哎呀，还挺好看啊" (S3 only) */
-  comment: string;
-  /** vote count text from the .pl child span, e.g. "1有用" (S3 only) */
-  usefulCount: string;
-};
-
-/** Form data the user fills in the interest modal */
-type InterestFormState = {
-  status: "wish" | "do" | "collect";
-  rating: number;
-  comment: string;
-  tags: string[];
-  isPrivate: boolean;
-  shareToBroadcast: boolean;
-};
-
-/** Fresh interest values read when the marking form opens. */
-type InterestFormSnapshot = {
-  isPrivate: boolean;
-  myTags: string[];
-  popularTags: string[];
-  shareToBroadcast: boolean;
-  status: InterestState["status"];
-  tags: string[];
-};
-
-type InterestActionResult = {
-  error?: string;
-  ok: boolean;
-};
-
-type InterestWriteOptions = {
-  comment: string;
-  isPrivate: boolean;
-  rating?: number;
-  shareToBroadcast: boolean;
-  tags: string[];
-};
-
-type InterestMarkingActions = {
-  fetch: (subjectId: string) => Promise<InterestFormSnapshot>;
-  post: (
-    subjectId: string,
-    status: InterestFormState["status"],
-    options: InterestWriteOptions
-  ) => Promise<InterestActionResult>;
-  remove: (
-    subjectId: string,
-    status: InterestState["status"]
-  ) => Promise<InterestActionResult>;
-};
-
-/** Callback seam — modal calls these instead of importing API directly */
-type ModalCallbacks = {
-  onSave: (form: InterestFormState) => Promise<InterestActionResult>;
-  onRemove: (status: InterestState["status"]) => Promise<InterestActionResult>;
-};
-
 /** Map from interest value to Chinese label */
 const INTEREST_LABELS: Record<InterestState["status"], string> = {
   collect: "看过",
@@ -405,16 +348,9 @@ export type {
   HeroData,
   ImdbRating,
   InfoBlock,
-  InterestActionResult,
-  InterestFormSnapshot,
   InterestOpenOptions,
-  InterestMarkingActions,
-  InterestWriteOptions,
   McRating,
   RtRating,
-  InterestFormState,
-  InterestState,
-  ModalCallbacks,
   NavSection,
   Photo,
   PhotosData,

@@ -1,11 +1,13 @@
+import { normalizeInterestTags } from "@/shared/components/interest-form/normalize-tags";
+import { getCk, gmGet, gmPost } from "@/shared/utils/request";
+
 import type {
   InterestActionResult,
   InterestFormSnapshot,
+  InterestMarkingActions,
   InterestState,
   InterestWriteOptions,
-} from "@/modules/subject/domain";
-import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
-import { getCk, gmGet, gmPost } from "@/shared/utils/request";
+} from "./types";
 
 const API_INTEREST = "https://movie.douban.com/j/subject";
 const API_REMOVE = "https://movie.douban.com/subject";
@@ -35,13 +37,18 @@ const snapshotStatus = (value: unknown): InterestFormSnapshot["status"] => {
 
 const formSettingsFromHtml = (
   html: unknown
-): Pick<InterestFormSnapshot, "isPrivate" | "shareToBroadcast"> => {
+): Pick<InterestFormSnapshot, "isPrivate" | "rating" | "shareToBroadcast"> => {
   if (typeof html !== "string") {
-    return { isPrivate: false, shareToBroadcast: false };
+    return { isPrivate: false, rating: 0, shareToBroadcast: false };
   }
   const doc = new DOMParser().parseFromString(html, "text/html");
+  const value = Number(
+    doc.querySelector<HTMLInputElement>("#n_rating, input[name='rating']")
+      ?.value
+  );
   return {
     isPrivate: !!doc.querySelector<HTMLInputElement>("#inp-private")?.checked,
+    rating: Number.isInteger(value) && value >= 0 && value <= 5 ? value : 0,
     shareToBroadcast:
       !!doc.querySelector<HTMLInputElement>("#share-shuo")?.checked,
   };
@@ -149,5 +156,16 @@ const removeInterest = async (
   }
 };
 
-export { fetchInterestSnapshot, postInterest, removeInterest };
-export type { InterestActionResult as InterestResult } from "@/modules/subject/domain";
+const doubanInterestActions: InterestMarkingActions = {
+  fetch: fetchInterestSnapshot,
+  post: postInterest,
+  remove: removeInterest,
+};
+
+export {
+  doubanInterestActions,
+  fetchInterestSnapshot,
+  postInterest,
+  removeInterest,
+};
+export type { InterestActionResult as InterestResult } from "./types";

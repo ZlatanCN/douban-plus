@@ -1,15 +1,11 @@
 import { useMemo } from "preact/hooks";
 
 import { postVote } from "@/modules/subject/api/comment";
-import {
-  fetchInterestSnapshot,
-  postInterest,
-  removeInterest,
-} from "@/modules/subject/api/interest";
 import { postReviewVote } from "@/modules/subject/api/review";
 import type { DoubanData } from "@/modules/subject/domain";
 import { computeNavSections } from "@/modules/subject/navigation/sections";
 import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/subject/runtime/types";
+import { doubanInterestActions } from "@/shared/components/interest-form/douban-interest";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
 import { SubjectPage } from "./subject-page";
@@ -50,11 +46,7 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
       handleCommentVote: (cid) => postVote(cid, data.subjectId),
       handleReviewVote: (rid, type) =>
         postReviewVote(rid, type, data.subjectId),
-      interestMarking: {
-        fetch: fetchInterestSnapshot,
-        post: postInterest,
-        remove: removeInterest,
-      },
+      interestMarking: doubanInterestActions,
     },
     externalRatings,
     firstBroadcastPlatform,

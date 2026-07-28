@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   installLoginFrameTheme,
   isDoubanLoginFrame,
-} from "@/modules/subject/runtime/login-frame-theme";
+} from "@/shared/components/login-modal/login-frame-theme";
 
 describe("login frame theme", () => {
   it("recognizes only Douban passport login pages", () => {

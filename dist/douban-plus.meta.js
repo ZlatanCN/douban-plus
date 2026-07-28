@@ -17,8 +17,6 @@
 // @match        *://accounts.douban.com/passport/login*
 // @exclude      *://movie.douban.com/subject/*/photos*
 // @exclude      *://movie.douban.com/subject/*/photos[?]*
-// @exclude      *://movie.douban.com/subject/*/comments*
-// @exclude      *://movie.douban.com/subject/*/comments[?]*
 // @exclude      *://movie.douban.com/subject/*/reviews*
 // @exclude      *://movie.douban.com/subject/*/reviews[?]*
 // @tag          douban

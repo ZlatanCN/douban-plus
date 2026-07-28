@@ -190,16 +190,6 @@
   .atv-review-modal-body td {
     padding: 8px 10px;
   }
-
-  .atv-login-modal {
-    align-items: flex-end;
-    padding: 16px;
-  }
-
-  .atv-login-modal-inner {
-    width: 100%;
-    padding: 28px 20px 20px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -255,15 +245,7 @@
 
   /* Modal overlay fades */
   .atv-modal-overlay,
-  .atv-comment-overlay,
-  .atv-interest-modal,
-  .atv-login-modal {
-    transition: none;
-  }
-
-  .atv-login-modal-inner,
-  .atv-login-modal.is-open .atv-login-modal-inner {
-    transform: none;
+  .atv-comment-overlay {
     transition: none;
   }
 

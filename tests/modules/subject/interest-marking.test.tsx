@@ -5,7 +5,7 @@ import type {
   InterestFormState,
   InterestState,
 } from "@/modules/subject/domain";
-import { useInterestMarking } from "@/modules/subject/interest/use-interest-marking";
+import { useInterestMarking } from "@/shared/components/interest-form";
 
 import { renderIntoRoot } from "../../helpers/render";
 

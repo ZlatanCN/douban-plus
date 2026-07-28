@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { mountNativeLoginFrame } from "@/modules/subject/login/native-login-frame";
-import type { NativeLoginAdoptionState } from "@/modules/subject/login/native-login-frame";
+import { mountNativeLoginFrame } from "@/shared/components/login-modal/native-login-frame";
+import type { NativeLoginAdoptionState } from "@/shared/components/login-modal/native-login-frame";
 
 type HappyDomNavigationSettings = {
   disableChildFrameNavigation: boolean;

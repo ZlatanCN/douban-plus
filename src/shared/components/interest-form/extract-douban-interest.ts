@@ -1,10 +1,10 @@
 /* ── Interest State Extractor ────────────────────────── */
 /* Wish/watching/collect interest state from Douban page. */
 
-import { RE_INTEREST_ACTIVE } from "@/modules/subject/constants";
-import type { InterestState } from "@/modules/subject/domain";
-import { normalizeInterestTags } from "@/modules/subject/interest/normalize-tags";
 import { $, $$ } from "@/shared/utils/dom";
+
+import { normalizeInterestTags } from "./normalize-tags";
+import type { InterestState } from "./types";
 
 /* ── DOM Locators ───────────────────────────────────── */
 
@@ -21,7 +21,7 @@ const isInterestActive = (anchor: HTMLAnchorElement | null): boolean => {
     return false;
   }
   const classes = `${anchor.className || ""} ${anchor.parentElement?.className || ""}`;
-  return RE_INTEREST_ACTIVE.test(classes);
+  return /done|active|on\b|j_a\b/u.test(classes);
 };
 
 /* ── Status Matchers ────────────────────────────────── */

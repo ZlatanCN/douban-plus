@@ -20,9 +20,11 @@
 @import url("./modules/subject-celebrities/styles/page.css");
 @import url("./modules/subject-all-photos/styles/archive.css");
 @import url("./modules/subject-all-photos/styles/groups.css");
+@import url("./modules/subject-comments/styles/page.css");
 @import url("./shared/styles/safe-image.css");
 @import url("./modules/subject/styles/ratings.css");
 @import url("./modules/subject/styles/hero-actions.css");
+@import url("./modules/subject/styles/interest-panel.css");
 @import url("./shared/styles/layout.css");
 @import url("./modules/subject/styles/media.css");
 @import url("./modules/subject/styles/details.css");
@@ -30,8 +32,8 @@
 @import url("./modules/subject/styles/comments.css");
 @import url("./shared/styles/modals.css");
 @import url("./modules/subject/styles/modals.css");
-@import url("./modules/subject/styles/login-modal.css");
-@import url("./modules/subject/styles/interest.css");
+@import url("./shared/styles/login-modal.css");
+@import url("./shared/styles/interest-form.css");
 @import url("./modules/subject/styles/media-playback.css");
 @import url("./modules/subject/styles/reviews.css");
 @import url("./modules/subject/styles/discussions.css");

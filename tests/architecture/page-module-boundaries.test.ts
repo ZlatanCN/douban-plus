@@ -9,6 +9,7 @@ const moduleNames = [
   "subject",
   "subject-celebrities",
   "subject-all-photos",
+  "subject-comments",
 ] as const;
 
 const sourceFiles = async (directory: string): Promise<string[]> => {
@@ -95,6 +96,7 @@ describe("page module boundaries", () => {
       subjectEntry,
       subjectCelebritiesEntry,
       subjectAllPhotosEntry,
+      subjectCommentsEntry,
     ] = await Promise.all(
       moduleNames.map((moduleName) =>
         readFile(
@@ -109,7 +111,6 @@ describe("page module boundaries", () => {
     ]);
     expect(exportedNamesOf(subjectEntry).toSorted()).toStrictEqual([
       "mountSubject",
-      "mountSubjectLoginFrameIfNeeded",
       "subjectPage",
     ]);
     expect(exportedNamesOf(subjectCelebritiesEntry).toSorted()).toStrictEqual([
@@ -121,6 +122,11 @@ describe("page module boundaries", () => {
       "isSubjectAllPhotosPage",
       "mountSubjectAllPhotos",
       "subjectAllPhotosPage",
+    ]);
+    expect(exportedNamesOf(subjectCommentsEntry).toSorted()).toStrictEqual([
+      "isSubjectCommentsPage",
+      "mountSubjectComments",
+      "subjectCommentsPage",
     ]);
   });
 

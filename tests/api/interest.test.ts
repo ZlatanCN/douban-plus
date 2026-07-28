@@ -8,7 +8,7 @@ import {
   fetchInterestSnapshot,
   postInterest,
   removeInterest,
-} from "@/modules/subject/api/interest";
+} from "@/shared/components/interest-form/douban-interest";
 
 const mockGmPost = vi.hoisted(() =>
   vi.fn<(url: string, body: string, referer?: string) => Promise<string>>()
@@ -36,7 +36,7 @@ describe(fetchInterestSnapshot, () => {
     mockGetCk.mockReturnValue("ck123");
     mockGmGet.mockResolvedValue(
       JSON.stringify({
-        html: '<input id="inp-private" name="private" type="checkbox" checked><input id="share-shuo" type="checkbox" checked>',
+        html: '<input id="n_rating" name="rating" value="5"><input id="inp-private" name="private" type="checkbox" checked><input id="share-shuo" type="checkbox" checked>',
         interest_status: "collect",
         my_tags: ["成长", "人生"],
         popular_tags: ["历史"],
@@ -48,6 +48,7 @@ describe(fetchInterestSnapshot, () => {
       isPrivate: true,
       myTags: ["成长", "人生"],
       popularTags: ["历史"],
+      rating: 5,
       shareToBroadcast: true,
       status: "collect",
       tags: ["人生", "温情"],

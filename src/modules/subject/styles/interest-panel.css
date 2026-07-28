@@ -1,0 +1,70 @@
+/* ---------- Subject interest panel ---------- */
+.atv-interest-panel {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.atv-interest-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.atv-interest-badge {
+  cursor: pointer;
+}
+
+.atv-interest-panel-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.atv-interest-panel-stars svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.atv-interest-panel-date {
+  color: var(--atv-text-tertiary);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+}
+
+.atv-interest-panel-comment {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 6px 0 2px;
+  color: var(--atv-text-secondary);
+  font-size: 14px;
+  font-style: italic;
+  gap: 8px;
+  line-height: 1.6;
+}
+
+.atv-interest-panel-tags {
+  overflow: hidden;
+  min-width: 0;
+  max-width: 36ch;
+  color: var(--atv-text-tertiary);
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.atv-useful-badge {
+  display: inline-flex;
+  align-items: center;
+  color: var(--atv-text-tertiary);
+  font-size: 12px;
+  font-style: normal;
+  gap: 3px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}

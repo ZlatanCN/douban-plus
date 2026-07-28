@@ -6,11 +6,8 @@ import type {
   InterestState,
   ModalCallbacks,
 } from "@/modules/subject/domain";
-import {
-  InterestForm,
-  initialStatus,
-} from "@/modules/subject/interest/interest-form";
-import { statusEntries } from "@/modules/subject/interest/interest-form-fields";
+import { InterestForm, initialStatus } from "@/shared/components/interest-form";
+import { statusEntries } from "@/shared/components/interest-form/interest-form-fields";
 import { ModalSession } from "@/shared/components/modal";
 
 import { renderIntoRoot } from "../../helpers/render";
@@ -141,6 +138,22 @@ describe(InterestForm, () => {
         .querySelector<HTMLButtonElement>('[data-value="do"]')
         ?.getAttribute("aria-pressed")
     ).toBe("true");
+  });
+
+  it("uses the fresh snapshot rating when the invoking page has no interest panel", () => {
+    const root = renderIntoRoot(
+      <InterestForm
+        callbacks={makeCallbacks()}
+        onClose={vi.fn<() => void>()}
+        source={readySource({ rating: 4, status: "collect" })}
+        state={makeState({ marked: true, rating: 0, status: "collect" })}
+        subjectTitle="测试作品"
+      />
+    );
+
+    expect(
+      root.querySelectorAll(".atv-interest-modal-star.is-full")
+    ).toHaveLength(4);
   });
 
   it("orients a new mark around the work title and shows rating only for watched work", async () => {
