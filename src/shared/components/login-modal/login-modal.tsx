@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
 import { ModalCloseButton, ModalShell } from "@/shared/components/modal";
 import { useModalClose } from "@/shared/components/modal/modal-close-context";
@@ -8,6 +8,7 @@ import type { NativeLoginAdoptionState } from "./native-login-frame";
 
 type LoginModalProps = {
   action: string;
+  onAuthenticated?: () => void;
   onClose: () => void;
 };
 
@@ -17,6 +18,9 @@ const statusForLoginState = (state: NativeLoginAdoptionState): string => {
   }
   if (state.kind === "loading" || state.kind === "mounted") {
     return "正在载入豆瓣登录组件…";
+  }
+  if (state.kind === "authenticated") {
+    return "正在同步你的作品标记…";
   }
   return "";
 };
@@ -62,14 +66,26 @@ const LoginModalContent = ({
   );
 };
 
-const LoginModal = ({ action, onClose }: LoginModalProps) => {
+const LoginModal = ({ action, onAuthenticated, onClose }: LoginModalProps) => {
   const hostRef = useRef<HTMLDivElement>(null);
   const [state, setState] = useState<NativeLoginAdoptionState>({
     kind: "loading",
   });
-  const busy = state.kind === "loading" || state.kind === "mounted";
+  const busy =
+    state.kind === "authenticated" ||
+    state.kind === "loading" ||
+    state.kind === "mounted";
   const iframeReady = state.kind === "ready";
   const status = statusForLoginState(state);
+  const handleStateChange = useCallback(
+    (nextState: NativeLoginAdoptionState): void => {
+      setState(nextState);
+      if (nextState.kind === "authenticated") {
+        onAuthenticated?.();
+      }
+    },
+    [onAuthenticated]
+  );
 
   useEffect(() => {
     const host = hostRef.current;
@@ -77,8 +93,8 @@ const LoginModal = ({ action, onClose }: LoginModalProps) => {
       return;
     }
 
-    return mountNativeLoginFrame(host, setState);
-  }, []);
+    return mountNativeLoginFrame(host, handleStateChange);
+  }, [handleStateChange]);
 
   return (
     <ModalShell

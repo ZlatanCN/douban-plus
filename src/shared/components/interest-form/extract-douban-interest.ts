@@ -197,8 +197,12 @@ const extractInterestTags = (root: HTMLElement): string[] => {
  * Extract the user's interest state (wish/do/collect) from the Douban page.
  * Handles logged-out, S3 (new DOM), and S2 (legacy DOM) paths.
  */
-const extractInterestState = (doc: Document): InterestState => {
-  const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+const extractInterestState = (
+  doc: Document,
+  sessionCk?: string
+): InterestState => {
+  const ck =
+    sessionCk ?? ((doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "");
   const loggedIn = !!ck;
   const root = findInterestRoot(doc);
   const anchors = findInterestAnchors(doc, root);

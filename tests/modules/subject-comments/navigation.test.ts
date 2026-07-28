@@ -91,7 +91,13 @@ describe(createSubjectCommentsNavigator, () => {
       .fn<SubjectCommentsPageLoader>()
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise);
-    const success = vi.fn<(result: SubjectCommentsNavigationResult) => void>();
+    const success =
+      vi.fn<
+        (
+          result: SubjectCommentsNavigationResult,
+          target: SubjectCommentsNavigationTarget
+        ) => void
+      >();
     const navigator = createSubjectCommentsNavigator({
       doc,
       loadPage,
@@ -125,7 +131,8 @@ describe(createSubjectCommentsNavigator, () => {
     });
     await vi.waitFor(() =>
       expect(success).toHaveBeenCalledExactlyOnceWith(
-        expect.objectContaining({ data: page("好评短评") })
+        expect.objectContaining({ data: page("好评短评") }),
+        expect.objectContaining({ source: "user" })
       )
     );
     expect(doc.querySelector("#content h1")?.textContent).toBe("好评短评");

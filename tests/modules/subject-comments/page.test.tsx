@@ -289,6 +289,7 @@ describe(SubjectCommentsPage, () => {
       failure: null,
       navigate,
       pending: null,
+      refresh: vi.fn<() => Promise<void>>().mockResolvedValue(),
       retry: vi.fn<() => void>(),
       version: 0,
     };

@@ -30,7 +30,7 @@ import { extractInterestState } from "@/shared/components/interest-form/extract-
 const isTVInfo = (info: DoubanData["info"]): boolean =>
   !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
 
-const extractDoubanData = (doc: Document): DoubanData => {
+const extractDoubanData = (doc: Document, sessionCk?: string): DoubanData => {
   const info = extractInfo(doc);
   const isTV = isTVInfo(info);
 
@@ -40,7 +40,7 @@ const extractDoubanData = (doc: Document): DoubanData => {
     comments: extractComments(doc),
     discussions: extractDiscussions(doc),
     info,
-    interest: extractInterestState(doc),
+    interest: extractInterestState(doc, sessionCk),
     isTV,
     photos: extractPhotos(doc),
     poster: extractPoster(doc),

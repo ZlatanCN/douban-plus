@@ -9,7 +9,7 @@ import {
 import type { SubjectCommentsPageData } from "../domain";
 import { extractSubjectCommentsPage } from "../extract/page";
 
-type SubjectCommentsNavigationSource = "history" | "user";
+type SubjectCommentsNavigationSource = "history" | "sync" | "user";
 
 type SubjectCommentsNavigationTarget = {
   href: string;
@@ -33,12 +33,15 @@ type SubjectCommentsNavigatorOptions = {
   loadPage: SubjectCommentsPageLoader;
   onFailure: (target: SubjectCommentsNavigationTarget) => void;
   onPending: (target: SubjectCommentsNavigationTarget) => void;
-  onSuccess: (result: SubjectCommentsNavigationResult) => void;
+  onSuccess: (
+    result: SubjectCommentsNavigationResult,
+    target: SubjectCommentsNavigationTarget
+  ) => void;
 };
 
 type SubjectCommentsNavigator = {
   dispose: () => void;
-  navigate: (target: SubjectCommentsNavigationTarget) => void;
+  navigate: (target: SubjectCommentsNavigationTarget) => Promise<void>;
 };
 
 type SubjectCommentsNavigationFailure = {
@@ -51,6 +54,7 @@ type SubjectCommentsNavigationState = {
   failure: SubjectCommentsNavigationFailure | null;
   navigate: (href: string, label: string) => void;
   pending: SubjectCommentsNavigationTarget | null;
+  refresh: () => Promise<void>;
   retry: () => void;
   version: number;
 };
@@ -134,7 +138,7 @@ const createSubjectCommentsNavigator = ({
   let sequence = 0;
   let lastSuccessfulHref = doc.location.href;
 
-  const navigate = (target: SubjectCommentsNavigationTarget): void => {
+  const navigate = (target: SubjectCommentsNavigationTarget): Promise<void> => {
     activeController?.abort();
     const controller = new AbortController();
     activeController = controller;
@@ -156,7 +160,7 @@ const createSubjectCommentsNavigator = ({
         if (target.source === "user") {
           writeHistory(doc, "pushState", result.href);
         }
-        onSuccess(result);
+        onSuccess(result, target);
       } catch (error: unknown) {
         if (controller.signal.aborted || requestSequence !== sequence) {
           return;
@@ -169,7 +173,7 @@ const createSubjectCommentsNavigator = ({
         }
       }
     };
-    void load();
+    return load();
   };
 
   return {
@@ -207,12 +211,14 @@ const useSubjectCommentsNavigation = (
           setFailure(null);
           setPending(target);
         },
-        onSuccess: (result) => {
+        onSuccess: (result, target) => {
           retryTargetRef.current = null;
           setData(result.data);
           setPending(null);
           setFailure(null);
-          setVersion((current) => current + 1);
+          if (target.source !== "sync") {
+            setVersion((current) => current + 1);
+          }
         },
       }),
     [doc]
@@ -224,7 +230,7 @@ const useSubjectCommentsNavigation = (
       return;
     }
     const onPopState = (): void => {
-      navigator.navigate({
+      void navigator.navigate({
         href: view.location.href,
         label: "历史记录",
         source: "history",
@@ -239,7 +245,7 @@ const useSubjectCommentsNavigation = (
 
   const navigate = useCallback(
     (href: string, label: string): void => {
-      navigator.navigate({ href, label, source: "user" });
+      void navigator.navigate({ href, label, source: "user" });
     },
     [navigator]
   );
@@ -247,11 +253,20 @@ const useSubjectCommentsNavigation = (
   const retry = useCallback((): void => {
     const target = retryTargetRef.current;
     if (target) {
-      navigator.navigate({ ...target, source: "user" });
+      void navigator.navigate({ ...target, source: "user" });
     }
   }, [navigator]);
 
   const dismissFailure = useCallback((): void => setFailure(null), []);
+  const refresh = useCallback(
+    (): Promise<void> =>
+      navigator.navigate({
+        href: doc.location.href,
+        label: "同步短评",
+        source: "sync",
+      }),
+    [doc, navigator]
+  );
 
   return {
     data,
@@ -259,6 +274,7 @@ const useSubjectCommentsNavigation = (
     failure,
     navigate,
     pending,
+    refresh,
     retry,
     version,
   };

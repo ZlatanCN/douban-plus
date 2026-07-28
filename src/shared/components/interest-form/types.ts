@@ -50,6 +50,7 @@ type InterestWriteOptions = {
 
 type InterestMarkingActions = {
   fetch: (subjectId: string) => Promise<InterestFormSnapshot>;
+  read: (subjectId: string) => Promise<InterestState>;
   post: (
     subjectId: string,
     status: InterestFormState["status"],

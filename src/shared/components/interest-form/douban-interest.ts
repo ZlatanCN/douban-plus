@@ -1,6 +1,7 @@
 import { normalizeInterestTags } from "@/shared/components/interest-form/normalize-tags";
 import { getCk, gmGet, gmPost } from "@/shared/utils/request";
 
+import { extractInterestState } from "./extract-douban-interest";
 import type {
   InterestActionResult,
   InterestFormSnapshot,
@@ -87,6 +88,23 @@ const fetchInterestSnapshot = async (
   }
 };
 
+const readInterestState = async (subjectId: string): Promise<InterestState> => {
+  const ck = getCk();
+  if (!ck) {
+    throw new Error("未登录");
+  }
+
+  const subjectUrl = `https://movie.douban.com/subject/${subjectId}/`;
+  try {
+    const html = await gmGet(subjectUrl, subjectUrl);
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return extractInterestState(doc, ck);
+  } catch (error) {
+    console.warn("[ATV-Douban] readInterestState error:", error);
+    throw new Error("无法同步当前作品标记", { cause: error });
+  }
+};
+
 const postInterest = async (
   subjectId: string,
   interest: "wish" | "do" | "collect",
@@ -159,6 +177,7 @@ const removeInterest = async (
 const doubanInterestActions: InterestMarkingActions = {
   fetch: fetchInterestSnapshot,
   post: postInterest,
+  read: readInterestState,
   remove: removeInterest,
 };
 
@@ -166,6 +185,7 @@ export {
   doubanInterestActions,
   fetchInterestSnapshot,
   postInterest,
+  readInterestState,
   removeInterest,
 };
 export type { InterestActionResult as InterestResult } from "./types";

@@ -1,4 +1,4 @@
-import { useMemo } from "preact/hooks";
+import { useCallback, useMemo, useState } from "preact/hooks";
 
 import { postVote } from "@/modules/subject/api/comment";
 import { postReviewVote } from "@/modules/subject/api/review";
@@ -8,6 +8,7 @@ import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/su
 import { doubanInterestActions } from "@/shared/components/interest-form/douban-interest";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
+import { readSubjectData } from "./read-subject-data";
 import { SubjectPage } from "./subject-page";
 import { useExternalRatings } from "./use-external-ratings";
 import { useFirstBroadcastPlatform } from "./use-first-broadcast-platform";
@@ -21,7 +22,22 @@ type SubjectPageRuntimeProps = {
   doc: Document;
 };
 
-const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
+const SubjectPageRuntime = ({
+  data: initialData,
+  doc,
+}: SubjectPageRuntimeProps) => {
+  const [data, setData] = useState(initialData);
+  const refreshAuthenticatedData =
+    useCallback(async (): Promise<DoubanData> => {
+      const snapshot = await readSubjectData(data.subjectId);
+      const currentContent = doc.querySelector<HTMLElement>("#content");
+      if (!currentContent) {
+        throw new Error("当前作品页缺少原生内容容器");
+      }
+      currentContent.replaceWith(doc.importNode(snapshot.nativeContent, true));
+      setData(snapshot.data);
+      return snapshot.data;
+    }, [data.subjectId, doc]);
   const series = useSeriesRuntime(data.series, doc);
   const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
@@ -58,7 +74,13 @@ const SubjectPageRuntime = ({ data, doc }: SubjectPageRuntimeProps) => {
     summary,
   };
 
-  return <SubjectPage data={data} runtime={runtime} />;
+  return (
+    <SubjectPage
+      data={data}
+      onAuthenticated={refreshAuthenticatedData}
+      runtime={runtime}
+    />
+  );
 };
 
 export { SubjectPageRuntime };

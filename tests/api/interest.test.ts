@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   fetchInterestSnapshot,
   postInterest,
+  readInterestState,
   removeInterest,
 } from "@/shared/components/interest-form/douban-interest";
 
@@ -80,6 +81,52 @@ describe(fetchInterestSnapshot, () => {
     await expect(fetchInterestSnapshot("2373195")).resolves.toMatchObject({
       status: "none",
     });
+  });
+});
+
+// ----------------------------------------------------------------
+// readInterestState
+// ----------------------------------------------------------------
+describe(readInterestState, () => {
+  beforeEach(() => {
+    vi.resetAllMocks();
+  });
+
+  it("reads Hero interest fields from the authenticated subject response", async () => {
+    mockGetCk.mockReturnValue("ck123");
+    mockGmGet.mockResolvedValue(`
+      <div id="interest_sect_level">
+        <div class="j a_stars">
+          <span>我看过这部电影</span>
+          <span class="collection_date">2026-07-28</span>
+          <input id="n_rating" type="hidden" value="4" />
+          <span class="color_gray">标签: 经典 人生</span>
+          <span>值得反复看<span class="pl"></span></span>
+        </div>
+      </div>
+    `);
+
+    await expect(readInterestState("2373195")).resolves.toMatchObject({
+      ck: "ck123",
+      comment: "值得反复看",
+      date: "2026-07-28",
+      loggedIn: true,
+      marked: true,
+      rating: 4,
+      status: "collect",
+      tags: ["经典", "人生"],
+    });
+    expect(mockGmGet).toHaveBeenCalledWith(
+      "https://movie.douban.com/subject/2373195/",
+      "https://movie.douban.com/subject/2373195/"
+    );
+  });
+
+  it("does not request the subject response without a session", async () => {
+    mockGetCk.mockReturnValue("");
+
+    await expect(readInterestState("2373195")).rejects.toThrow("未登录");
+    expect(mockGmGet).not.toHaveBeenCalled();
   });
 });
 

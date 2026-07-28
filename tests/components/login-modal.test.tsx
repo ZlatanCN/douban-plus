@@ -101,6 +101,33 @@ describe(LoginModal, () => {
     ).toBe("false");
   });
 
+  it("notifies its owner when the adopted login frame authenticates", async () => {
+    mockMountNativeLoginFrame.mockImplementation(
+      (_host: HTMLElement, onStateChange) => {
+        onStateChange({ kind: "authenticated" });
+        return () => {};
+      }
+    );
+    const onAuthenticated = vi.fn<() => void>();
+    const onClose = vi.fn<() => void>();
+    const root = renderIntoRoot(
+      <LoginModal
+        action="测试"
+        onAuthenticated={onAuthenticated}
+        onClose={onClose}
+      />
+    );
+    await flushEffects();
+
+    expect(onAuthenticated).toHaveBeenCalledOnce();
+    expect(root.querySelector(".atv-login-modal-status")?.textContent).toBe(
+      "正在同步你的作品标记…"
+    );
+    expect(
+      root.querySelector(".atv-login-modal-native")?.getAttribute("aria-busy")
+    ).toBe("true");
+  });
+
   it("cancels the adoption lifecycle when the modal unmounts", async () => {
     const stop = vi.fn<() => void>();
     mockMountNativeLoginFrame.mockReturnValue(stop);

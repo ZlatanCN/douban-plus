@@ -19,6 +19,7 @@ const makeApi = (
   optimistic: (state) => ({ ...state, count: state.count + 1, voted: true }),
   persist,
   resolve: (state) => state,
+  serverInitial: (nextItem) => ({ count: nextItem.count, voted: false }),
   toItem: (nextItem, state) => ({ ...nextItem, count: state.count }),
   votedOf: (state) => (state.voted ? "up" : null),
 });

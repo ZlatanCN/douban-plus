@@ -25,6 +25,7 @@ const makeApi = (
   optimistic: (state) => ({ ...state, count: state.count + 1, voted: true }),
   persist: persist ?? (() => {}),
   resolve: (state) => state,
+  serverInitial: (item) => ({ count: item.count, voted: false }),
   toItem: (item, state) => ({ ...item, count: state.count }),
   votedOf: (state) => (state.voted ? "up" : null),
 });
@@ -83,6 +84,27 @@ const renderHarness = (
   const root = document.createElement("div");
   render(<TestHarness persist={persist} />, root);
   return root;
+};
+
+const SnapshotHarness = ({ items: snapshot }: { items: TestItem[] }) => {
+  const votes = useVoteState(snapshot, makeApi());
+  const [first] = snapshot;
+  if (!first) {
+    return null;
+  }
+  const state = votes.getVoteState(first);
+  return (
+    <>
+      <button
+        data-testid="update"
+        onClick={() => votes.setVoteState(first, { count: 10, voted: true })}
+        type="button"
+      >
+        update
+      </button>
+      <span data-testid="state">{`${state.count}:${String(state.voted)}`}</span>
+    </>
+  );
 };
 
 describe(useVoteState, () => {
@@ -146,5 +168,29 @@ describe(useVoteState, () => {
       count: 12,
       voted: true,
     });
+  });
+
+  it("adopts a newer server snapshot without resetting an ordinary rerender", async () => {
+    const root = document.createElement("div");
+    render(<SnapshotHarness items={items} />, root);
+
+    root.querySelector<HTMLButtonElement>('[data-testid="update"]')?.click();
+    await Promise.resolve();
+    expect(root.querySelector('[data-testid="state"]')?.textContent).toBe(
+      "10:true"
+    );
+
+    render(
+      <SnapshotHarness
+        items={[{ count: 3, id: "a", label: "Alpha after login" }]}
+      />,
+      root
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector('[data-testid="state"]')?.textContent).toBe(
+        "3:false"
+      )
+    );
   });
 });

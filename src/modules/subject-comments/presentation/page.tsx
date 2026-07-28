@@ -1,8 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "preact/hooks";
 
 import { SafeImage } from "@/shared/components/common/safe-image";
 import { VoteButton } from "@/shared/components/common/vote-button";
 import { useInterestMarking } from "@/shared/components/interest-form";
+import type { InterestState } from "@/shared/components/interest-form";
 import { doubanInterestActions } from "@/shared/components/interest-form/douban-interest";
 import { extractInterestState } from "@/shared/components/interest-form/extract-douban-interest";
 import { StickyNav } from "@/shared/components/layout";
@@ -23,6 +30,11 @@ type SubjectCommentsPageProps = {
   data?: SubjectCommentsPageData;
   doc: Document;
   navigation?: SubjectCommentsNavigationState;
+};
+
+type LoginRequest = {
+  action: string;
+  onAuthenticated?: (interest: InterestState) => void;
 };
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
@@ -213,12 +225,29 @@ const SubjectCommentsPage = ({
   const controlsRef = useRef<HTMLElement | null>(null);
   const [controlsOverflowing, setControlsOverflowing] = useState(false);
   const [interest, setInterest] = useState(() => extractInterestState(doc));
-  const loginAction = useModalRequest<string>();
+  const loginAction = useModalRequest<LoginRequest>();
+  const {
+    active: activeLogin,
+    handleClose: handleCloseLogin,
+    handleOpen: handleOpenLogin,
+  } = loginAction;
+  const requestLogin = useCallback(
+    (
+      action: string,
+      onAuthenticated?: (interest: InterestState) => void
+    ): void => {
+      handleOpenLogin({
+        action,
+        ...(onAuthenticated ? { onAuthenticated } : {}),
+      });
+    },
+    [handleOpenLogin]
+  );
   const interestMarking = useInterestMarking({
     adapters: doubanInterestActions,
     loggedIn: interest.loggedIn,
     onInterestChange: setInterest,
-    onLoginRequired: loginAction.handleOpen,
+    onLoginRequired: requestLogin,
     subjectId: data.subjectId,
     subjectTitle: data.title,
   });
@@ -227,8 +256,24 @@ const SubjectCommentsPage = ({
   const isBrowseSelected = (option: SubjectCommentsBrowseOption): boolean =>
     pending ? pending.href === option.href : option.active;
   const navigationVersion = commentsNavigation?.version ?? 0;
+  const refreshComments = commentsNavigation?.refresh;
   const handleRetry = commentsNavigation?.retry;
   const handleDismissNavigationFailure = commentsNavigation?.dismissFailure;
+  const handleLoginAuthenticated = useCallback(async (): Promise<void> => {
+    let nextInterest: InterestState;
+    try {
+      const [refreshedInterest] = await Promise.all([
+        doubanInterestActions.read(data.subjectId),
+        refreshComments?.() ?? Promise.resolve(),
+      ]);
+      nextInterest = refreshedInterest;
+    } catch {
+      nextInterest = extractInterestState(doc);
+    }
+    setInterest(nextInterest);
+    activeLogin?.value.onAuthenticated?.(nextInterest);
+    handleCloseLogin();
+  }, [activeLogin, data.subjectId, doc, handleCloseLogin, refreshComments]);
 
   const navigateBrowse = (
     event: MouseEvent,
@@ -423,11 +468,12 @@ const SubjectCommentsPage = ({
           </section>
         </div>
       </main>
-      {loginAction.active ? (
-        <ModalSession request={loginAction.active}>
+      {activeLogin ? (
+        <ModalSession request={activeLogin}>
           <LoginModal
-            action={loginAction.active.value}
-            onClose={loginAction.handleClose}
+            action={activeLogin.value.action}
+            onAuthenticated={handleLoginAuthenticated}
+            onClose={handleCloseLogin}
           />
         </ModalSession>
       ) : null}

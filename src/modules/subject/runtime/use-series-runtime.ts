@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 
 import type { SeriesItem } from "@/modules/subject/domain";
 import { extractSeries } from "@/modules/subject/extract/series";
@@ -60,23 +60,20 @@ const useSeriesRuntime = (
   initial: SeriesItem[],
   doc: Document
 ): SeriesRuntime => {
-  const initialSeries = useRef(initial).current;
-  const [result, setResult] = useState(() =>
-    readSeriesRuntime(initialSeries, doc)
-  );
+  const [result, setResult] = useState(() => readSeriesRuntime(initial, doc));
 
   useEffect(() => {
     const container = doc.querySelector("#series-items");
     if (!container) {
-      setResult(readSeriesRuntime(initialSeries, doc));
+      setResult(readSeriesRuntime(initial, doc));
       return;
     }
-    const update = (): void => setResult(readSeriesRuntime(initialSeries, doc));
+    const update = (): void => setResult(readSeriesRuntime(initial, doc));
     update();
     const observer = new MutationObserver(update);
     observer.observe(container, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [doc, initialSeries]);
+  }, [doc, initial]);
 
   return result;
 };

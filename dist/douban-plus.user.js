@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.6.0
+// @version      1.7.0
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -6794,8 +6794,8 @@
 		}
 		return [];
 	};
-	var extractInterestState = (doc) => {
-		const ck = (doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "";
+	var extractInterestState = (doc, sessionCk) => {
+		const ck = sessionCk ?? ((doc.cookie.match(/\bck=(?<ck>[^;]+)/u) || [])[1] || "");
 		const loggedIn = !!ck;
 		const root = findInterestRoot(doc);
 		const anchors = findInterestAnchors(doc, root);
@@ -6841,7 +6841,7 @@
 		};
 	};
 	var isTVInfo = (info) => !!(info.episodes || info.seasons || info.episodeRuntime || info.firstAired);
-	var extractDoubanData = (doc) => {
+	var extractDoubanData = (doc, sessionCk) => {
 		const info = extractInfo(doc);
 		const isTV = isTVInfo(info);
 		return {
@@ -6850,7 +6850,7 @@
 			comments: extractComments(doc),
 			discussions: extractDiscussions(doc),
 			info,
-			interest: extractInterestState(doc),
+			interest: extractInterestState(doc, sessionCk),
 			isTV,
 			photos: extractPhotos(doc),
 			poster: extractPoster(doc),
@@ -7079,6 +7079,18 @@
 			throw new Error("无法读取完整标记", { cause: error });
 		}
 	};
+	var readInterestState = async (subjectId) => {
+		const ck = getCk();
+		if (!ck) throw new Error("未登录");
+		const subjectUrl = `https://movie.douban.com/subject/${subjectId}/`;
+		try {
+			const html = await gmGet(subjectUrl, subjectUrl);
+			return extractInterestState(new DOMParser().parseFromString(html, "text/html"), ck);
+		} catch (error) {
+			console.warn("[ATV-Douban] readInterestState error:", error);
+			throw new Error("无法同步当前作品标记", { cause: error });
+		}
+	};
 	var postInterest = async (subjectId, interest, options) => {
 		const ck = getCk();
 		if (!ck) return {
@@ -7133,7 +7145,40 @@
 	var doubanInterestActions = {
 		fetch: fetchInterestSnapshot,
 		post: postInterest,
+		read: readInterestState,
 		remove: removeInterest
+	};
+	var resolveResponseUrls = (doc, responseUrl) => {
+		for (const element of doc.querySelectorAll("[href], [src]")) for (const attribute of ["href", "src"]) {
+			const value = element.getAttribute(attribute);
+			if (!value) continue;
+			try {
+				const url = new URL(value, responseUrl);
+				if (url.protocol === "http:" || url.protocol === "https:") element.setAttribute(attribute, url.href);
+			} catch {}
+		}
+	};
+	var readSubjectData = async (subjectId) => {
+		if (!subjectId) throw new Error("作品编号无效");
+		const subjectUrl = `https://movie.douban.com/subject/${subjectId}/`;
+		try {
+			const html = await gmGet(subjectUrl, subjectUrl);
+			const doc = new DOMParser().parseFromString(html, "text/html");
+			resolveResponseUrls(doc, subjectUrl);
+			const data = {
+				...extractDoubanData(doc, getCk()),
+				subjectId
+			};
+			const nativeContent = doc.querySelector("#content");
+			if (!nativeContent || !data.title.primary) throw new Error("作品页面响应无效");
+			return {
+				data,
+				nativeContent
+			};
+		} catch (error) {
+			console.warn("[ATV-Douban] readSubjectData error:", error);
+			throw new Error("无法同步作品页面", { cause: error });
+		}
 	};
 	var StarRatingInput = ({ disabled = false, onChange, rating }) => u("fieldset", {
 		class: "atv-interest-modal-rating",
@@ -7638,19 +7683,24 @@
 			retrySequence,
 			subjectId
 		]);
-		const requireLogin = (action) => {
+		const requireLogin = () => {
 			if (loggedIn) return true;
-			onLoginRequired(action);
 			return false;
 		};
-		const callbacks = { handleOpenInterest: (state, options = {}) => {
-			const action = options.action || "标记这部作品";
-			if (!requireLogin(action)) return;
+		const openInterest = q((state, options) => {
 			setSource({ kind: "loading" });
 			activeInterest.handleOpen(!state.marked && options.status ? {
 				...state,
 				status: options.status
 			} : state);
+		}, [activeInterest]);
+		const callbacks = { handleOpenInterest: (state, options = {}) => {
+			const action = options.action || "标记这部作品";
+			if (!requireLogin()) {
+				onLoginRequired(action, (interest) => openInterest(interest, options));
+				return;
+			}
+			openInterest(state, options);
 		} };
 		const retry = () => {
 			setSource({ kind: "loading" });
@@ -7704,6 +7754,7 @@
 	var styleLoginIframe = (iframe) => {
 		iframe.title = "豆瓣登录";
 		iframe.referrerPolicy = "strict-origin-when-cross-origin";
+		iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin");
 		iframe.removeAttribute("width");
 		iframe.removeAttribute("height");
 		iframe.removeAttribute("frameborder");
@@ -7751,7 +7802,6 @@
 			authenticated = true;
 			if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
 			onStateChange({ kind: "authenticated" });
-			window.location.reload();
 		};
 		host.replaceChildren(iframe);
 		iframe.addEventListener("load", onLoad, { once: true });
@@ -7830,6 +7880,7 @@
 	var statusForLoginState = (state) => {
 		if (state.kind === "error") return state.message;
 		if (state.kind === "loading" || state.kind === "mounted") return "正在载入豆瓣登录组件…";
+		if (state.kind === "authenticated") return "正在同步你的作品标记…";
 		return "";
 	};
 	var LoginModalContent = ({ action, busy, hostRef, iframeReady, status }) => {
@@ -7865,17 +7916,21 @@
 			})
 		] });
 	};
-	var LoginModal = ({ action, onClose }) => {
+	var LoginModal = ({ action, onAuthenticated, onClose }) => {
 		const hostRef = A(null);
 		const [state, setState] = d({ kind: "loading" });
-		const busy = state.kind === "loading" || state.kind === "mounted";
+		const busy = state.kind === "authenticated" || state.kind === "loading" || state.kind === "mounted";
 		const iframeReady = state.kind === "ready";
 		const status = statusForLoginState(state);
+		const handleStateChange = q((nextState) => {
+			setState(nextState);
+			if (nextState.kind === "authenticated") onAuthenticated?.();
+		}, [onAuthenticated]);
 		h(() => {
 			const host = hostRef.current;
 			if (!host) return;
-			return mountNativeLoginFrame(host, setState);
-		}, []);
+			return mountNativeLoginFrame(host, handleStateChange);
+		}, [handleStateChange]);
 		return u(ModalShell, {
 			ariaDescribedBy: "atv-login-modal-desc",
 			ariaLabelledBy: "atv-login-modal-title",
@@ -8342,6 +8397,7 @@ input::placeholder {
 			optimistic,
 			persist,
 			resolve,
+			serverInitial: config.initial,
 			toItem: config.toItem,
 			votedOf: config.votedOf
 		};
@@ -14141,8 +14197,29 @@ input::placeholder {
 		});
 	};
 	var toInitialStates = (items, api) => Object.fromEntries(items.map((item) => [api.key(item), api.initial(item)]));
+	var toServerStates = (items, api) => Object.fromEntries(items.map((item) => [api.key(item), api.serverInitial(item)]));
+	var isSameState = (left, right) => {
+		if (Object.is(left, right)) return true;
+		if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+		const leftRecord = left;
+		const rightRecord = right;
+		const leftEntries = Object.entries(leftRecord);
+		const rightEntries = Object.entries(rightRecord);
+		return leftEntries.length === rightEntries.length && leftEntries.every(([key, value]) => Object.hasOwn(rightRecord, key) && Object.is(value, rightRecord[key]));
+	};
+	var hasSameServerSnapshot = (previous, next, api) => previous.length === next.length && previous.every((item, index) => api.key(item) === api.key(next[index]) && isSameState(api.serverInitial(item), api.serverInitial(next[index])));
 	var useVoteState = (items, api) => {
 		const [states, setStates] = d(() => toInitialStates(items, api));
+		const [previousItems, setPreviousItems] = d(items);
+		h(() => {
+			if (hasSameServerSnapshot(previousItems, items, api)) return;
+			setPreviousItems(items);
+			setStates(toServerStates(items, api));
+		}, [
+			api,
+			items,
+			previousItems
+		]);
 		const getVoteState = (item) => states[api.key(item)] ?? api.initial(item);
 		const setVoteState = (item, state, options) => {
 			setStates((current) => ({
@@ -14174,35 +14251,66 @@ input::placeholder {
 		title: data.title,
 		year: data.year
 	});
-	var SubjectPage = ({ data, runtime }) => {
+	var SubjectPage = ({ data, onAuthenticated, runtime }) => {
 		const [interest, setInterest] = d(data.interest);
+		h(() => {
+			setInterest(data.interest);
+		}, [data.interest]);
 		const activeComment = useModalRequest();
 		const activeReview = useModalRequest();
 		const activeMediaModal = useModalRequest();
-		const loginAction = useModalRequest();
+		const { active: activeLogin, handleClose: handleCloseLogin, handleOpen: handleOpenLogin } = useModalRequest();
+		const requestLogin = q((action, resumeAfterAuthentication) => {
+			handleOpenLogin({
+				action,
+				...resumeAfterAuthentication ? { onAuthenticated: resumeAfterAuthentication } : {}
+			});
+		}, [handleOpenLogin]);
+		const handleLoginAuthenticated = q(async () => {
+			let refreshedInterest;
+			try {
+				refreshedInterest = (onAuthenticated ? await onAuthenticated() : null)?.interest ?? await runtime.actions.interestMarking.read(data.subjectId);
+			} catch {
+				try {
+					refreshedInterest = await runtime.actions.interestMarking.read(data.subjectId);
+				} catch {
+					refreshedInterest = extractInterestState(document);
+				}
+			}
+			setInterest(refreshedInterest);
+			activeLogin?.value.onAuthenticated?.(refreshedInterest);
+			handleCloseLogin();
+		}, [
+			activeLogin,
+			data.subjectId,
+			handleCloseLogin,
+			onAuthenticated,
+			runtime.actions.interestMarking
+		]);
 		const commentVotes = useVoteState(data.comments, commentVoteApi);
 		const activeResolvedComment = activeComment.active ? runtime.resolvedComments.find((comment) => comment.cid === activeComment.active?.value.cid) ?? activeComment.active.value : null;
 		const reviewVotes = useVoteState(data.reviews, reviewVoteApi);
 		const handleCommentVoteStateChange = commentVotes.setVoteState;
 		const handleReviewVoteStateChange = reviewVotes.setVoteState;
+		const activeResolvedReview = activeReview.active ? data.reviews.find((review) => review.id === activeReview.active?.value.id) ?? activeReview.active.value : null;
 		const interestMarking = useInterestMarking({
 			adapters: runtime.actions.interestMarking,
 			loggedIn: interest.loggedIn,
 			onInterestChange: setInterest,
-			onLoginRequired: loginAction.handleOpen,
+			onLoginRequired: requestLogin,
 			subjectId: data.subjectId,
 			subjectTitle: data.title.primary
 		});
 		const canVote = () => {
 			if (!interest.loggedIn) {
-				loginAction.handleOpen("给短评点有用");
+				requestLogin("给短评点有用");
 				return false;
 			}
 			return true;
 		};
 		const canReviewVote = () => {
 			if (!interest.loggedIn) {
-				loginAction.handleOpen("给影评投票");
+				requestLogin("给影评投票");
 				return false;
 			}
 			return true;
@@ -14289,15 +14397,15 @@ input::placeholder {
 					voteState: commentVotes.getVoteState(activeResolvedComment)
 				})
 			}) : null,
-			activeReview.active ? u(ModalSession, {
+			activeReview.active && activeResolvedReview ? u(ModalSession, {
 				request: activeReview.active,
 				children: u(ReviewContentModal, {
 					canVote: canReviewVote,
 					onClose: activeReview.handleClose,
 					onVoteStateChange: handleReviewVoteStateChange,
 					onVote: runtime.actions.handleReviewVote,
-					review: reviewVotes.mergeVoteState(activeReview.active.value),
-					voteState: reviewVotes.getVoteState(activeReview.active.value)
+					review: reviewVotes.mergeVoteState(activeResolvedReview),
+					voteState: reviewVotes.getVoteState(activeResolvedReview)
 				})
 			}) : null,
 			activeMediaModal.active?.value.type === "poster" ? u(ModalSession, {
@@ -14316,11 +14424,12 @@ input::placeholder {
 					trailer: activeMediaModal.active.value.trailer
 				})
 			}) : null,
-			loginAction.active ? u(ModalSession, {
-				request: loginAction.active,
+			activeLogin ? u(ModalSession, {
+				request: activeLogin,
 				children: u(LoginModal, {
-					action: loginAction.active.value,
-					onClose: loginAction.handleClose
+					action: activeLogin.value.action,
+					onAuthenticated: handleLoginAuthenticated,
+					onClose: handleCloseLogin
 				})
 			}) : null,
 			interestMarking.form
@@ -14961,15 +15070,14 @@ input::placeholder {
 		};
 	};
 	var useSeriesRuntime = (initial, doc) => {
-		const initialSeries = A(initial).current;
-		const [result, setResult] = d(() => readSeriesRuntime(initialSeries, doc));
+		const [result, setResult] = d(() => readSeriesRuntime(initial, doc));
 		h(() => {
 			const container = doc.querySelector("#series-items");
 			if (!container) {
-				setResult(readSeriesRuntime(initialSeries, doc));
+				setResult(readSeriesRuntime(initial, doc));
 				return;
 			}
-			const update = () => setResult(readSeriesRuntime(initialSeries, doc));
+			const update = () => setResult(readSeriesRuntime(initial, doc));
 			update();
 			const observer = new MutationObserver(update);
 			observer.observe(container, {
@@ -14977,10 +15085,19 @@ input::placeholder {
 				subtree: true
 			});
 			return () => observer.disconnect();
-		}, [doc, initialSeries]);
+		}, [doc, initial]);
 		return result;
 	};
-	var SubjectPageRuntime = ({ data, doc }) => {
+	var SubjectPageRuntime = ({ data: initialData, doc }) => {
+		const [data, setData] = d(initialData);
+		const refreshAuthenticatedData = q(async () => {
+			const snapshot = await readSubjectData(data.subjectId);
+			const currentContent = doc.querySelector("#content");
+			if (!currentContent) throw new Error("当前作品页缺少原生内容容器");
+			currentContent.replaceWith(doc.importNode(snapshot.nativeContent, true));
+			setData(snapshot.data);
+			return snapshot.data;
+		}, [data.subjectId, doc]);
 		const series = useSeriesRuntime(data.series, doc);
 		const summary = useNativeSummary(data.summary, doc);
 		const resolvedComments = useResolvedComments(data.comments, doc);
@@ -14993,6 +15110,7 @@ input::placeholder {
 		}), [data, series.items]));
 		return u(SubjectPage, {
 			data,
+			onAuthenticated: refreshAuthenticatedData,
 			runtime: {
 				actions: {
 					handleCommentVote: (cid) => postVote(cid, data.subjectId),
@@ -15834,12 +15952,18 @@ input::placeholder {
 		const controlsRef = A(null);
 		const [controlsOverflowing, setControlsOverflowing] = d(false);
 		const [interest, setInterest] = d(() => extractInterestState(doc));
-		const loginAction = useModalRequest();
+		const { active: activeLogin, handleClose: handleCloseLogin, handleOpen: handleOpenLogin } = useModalRequest();
+		const requestLogin = q((action, onAuthenticated) => {
+			handleOpenLogin({
+				action,
+				...onAuthenticated ? { onAuthenticated } : {}
+			});
+		}, [handleOpenLogin]);
 		const interestMarking = useInterestMarking({
 			adapters: doubanInterestActions,
 			loggedIn: interest.loggedIn,
 			onInterestChange: setInterest,
-			onLoginRequired: loginAction.handleOpen,
+			onLoginRequired: requestLogin,
 			subjectId: data.subjectId,
 			subjectTitle: data.title
 		});
@@ -15847,8 +15971,27 @@ input::placeholder {
 		const isBrowsingLocked = pending !== null;
 		const isBrowseSelected = (option) => pending ? pending.href === option.href : option.active;
 		const navigationVersion = commentsNavigation?.version ?? 0;
+		const refreshComments = commentsNavigation?.refresh;
 		const handleRetry = commentsNavigation?.retry;
 		const handleDismissNavigationFailure = commentsNavigation?.dismissFailure;
+		const handleLoginAuthenticated = q(async () => {
+			let nextInterest;
+			try {
+				const [refreshedInterest] = await Promise.all([doubanInterestActions.read(data.subjectId), refreshComments?.() ?? Promise.resolve()]);
+				nextInterest = refreshedInterest;
+			} catch {
+				nextInterest = extractInterestState(doc);
+			}
+			setInterest(nextInterest);
+			activeLogin?.value.onAuthenticated?.(nextInterest);
+			handleCloseLogin();
+		}, [
+			activeLogin,
+			data.subjectId,
+			doc,
+			handleCloseLogin,
+			refreshComments
+		]);
 		const navigateBrowse = (event, option) => {
 			if (!commentsNavigation || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 			event.preventDefault();
@@ -16006,11 +16149,12 @@ input::placeholder {
 					})]
 				})]
 			}),
-			loginAction.active ? u(ModalSession, {
-				request: loginAction.active,
+			activeLogin ? u(ModalSession, {
+				request: activeLogin,
 				children: u(LoginModal, {
-					action: loginAction.active.value,
-					onClose: loginAction.handleClose
+					action: activeLogin.value.action,
+					onAuthenticated: handleLoginAuthenticated,
+					onClose: handleCloseLogin
 				})
 			}) : null,
 			interestMarking.form
@@ -16070,14 +16214,14 @@ input::placeholder {
 					lastSuccessfulHref = result.href;
 					doc.title = `${result.data.title} — 全部短评`;
 					if (target.source === "user") writeHistory(doc, "pushState", result.href);
-					onSuccess(result);
+					onSuccess(result, target);
 				} catch (error) {
 					if (controller.signal.aborted || requestSequence !== sequence) return;
 					if (target.source === "history" && !isAbortError(error)) writeHistory(doc, "replaceState", previousHref);
 					if (!isAbortError(error)) onFailure(target);
 				}
 			};
-			load();
+			return load();
 		};
 		return {
 			dispose: () => {
@@ -16106,12 +16250,12 @@ input::placeholder {
 				setFailure(null);
 				setPending(target);
 			},
-			onSuccess: (result) => {
+			onSuccess: (result, target) => {
 				retryTargetRef.current = null;
 				setData(result.data);
 				setPending(null);
 				setFailure(null);
-				setVersion((current) => current + 1);
+				if (target.source !== "sync") setVersion((current) => current + 1);
 			}
 		}), [doc]);
 		h(() => {
@@ -16150,6 +16294,11 @@ input::placeholder {
 			failure,
 			navigate,
 			pending,
+			refresh: q(() => navigator.navigate({
+				href: doc.location.href,
+				label: "同步短评",
+				source: "sync"
+			}), [doc, navigator]),
 			retry,
 			version
 		};

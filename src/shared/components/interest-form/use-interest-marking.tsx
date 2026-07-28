@@ -1,5 +1,5 @@
 import type { JSX } from "preact";
-import { useEffect, useState } from "preact/hooks";
+import { useCallback, useEffect, useState } from "preact/hooks";
 
 import { ModalSession } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
@@ -17,7 +17,10 @@ import type {
 type UseInterestMarkingOptions = {
   adapters: InterestMarkingActions;
   loggedIn: boolean;
-  onLoginRequired: (action: string) => void;
+  onLoginRequired: (
+    action: string,
+    onAuthenticated: (interest: InterestState) => void
+  ) => void;
   onInterestChange: (interest: InterestState) => void;
   subjectId: string;
   subjectTitle: string;
@@ -115,26 +118,36 @@ const useInterestMarking = ({
     };
   }, [activeInterest.active, fetch, retrySequence, subjectId]);
 
-  const requireLogin = (action: string): boolean => {
+  const requireLogin = (): boolean => {
     if (loggedIn) {
       return true;
     }
-    onLoginRequired(action);
     return false;
   };
 
-  const callbacks: InterestMarking["callbacks"] = {
-    handleOpenInterest: (state, options = {}) => {
-      const action = options.action || "标记这部作品";
-      if (!requireLogin(action)) {
-        return;
-      }
+  const openInterest = useCallback(
+    (
+      state: InterestState,
+      options: { action?: string; status?: InterestFormState["status"] }
+    ): void => {
       setSource({ kind: "loading" });
       activeInterest.handleOpen(
         !state.marked && options.status
           ? { ...state, status: options.status }
           : state
       );
+    },
+    [activeInterest]
+  );
+
+  const callbacks: InterestMarking["callbacks"] = {
+    handleOpenInterest: (state, options = {}) => {
+      const action = options.action || "标记这部作品";
+      if (!requireLogin()) {
+        onLoginRequired(action, (interest) => openInterest(interest, options));
+        return;
+      }
+      openInterest(state, options);
     },
   };
 
