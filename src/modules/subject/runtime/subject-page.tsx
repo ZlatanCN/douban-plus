@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "preact/hooks";
 
+import {
+  ReviewContentModal,
+  reviewVoteApi,
+  resumeReviewVote,
+} from "@/domains/review-reader";
+import type { ReviewVoteDirection } from "@/domains/review-reader";
 import type {
   Comment,
   DoubanData,
@@ -30,8 +36,6 @@ import {
 } from "../media";
 import { SubjectStickyNav } from "../navigation/sticky-nav";
 import { ReviewsSection } from "../reviews";
-import { ReviewContentModal } from "../reviews/review-content-modal";
-import { reviewVoteApi } from "../reviews/review-vote-state";
 import { SubjectSwitcher } from "../search/subject-switcher";
 import { useVoteState } from "../voting/use-vote-state";
 import type { SubjectPageRuntime } from "./types";
@@ -154,13 +158,22 @@ const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
     }
     return true;
   };
-  const canReviewVote = (): boolean => {
-    if (!interest.loggedIn) {
-      requestLogin("给影评投票");
-      return false;
-    }
-    return true;
-  };
+  const canReviewVote = (): boolean => interest.loggedIn;
+  const requestReviewVoteAuthentication = useCallback(
+    (review: Review, direction: ReviewVoteDirection): void => {
+      requestLogin("给影评投票", () => {
+        void (async (): Promise<void> => {
+          await resumeReviewVote(
+            review,
+            direction,
+            runtime.actions.handleReviewVote,
+            reviewVotes
+          );
+        })();
+      });
+    },
+    [requestLogin, reviewVotes, runtime.actions]
+  );
 
   return (
     <>
@@ -216,9 +229,10 @@ const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
         canVote={canReviewVote}
         getVoteState={reviewVotes.getVoteState}
         isTV={data.isTV}
+        onAuthenticationRequired={requestReviewVoteAuthentication}
         onOpen={activeReview.handleOpen}
-        onVoteStateChange={handleReviewVoteStateChange}
         onVote={runtime.actions.handleReviewVote}
+        onVoteStateChange={handleReviewVoteStateChange}
         reviews={reviewVotes.mergeVoteStates(data.reviews)}
         subjectId={data.subjectId}
       />
@@ -247,6 +261,7 @@ const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
           <ReviewContentModal
             canVote={canReviewVote}
             onClose={activeReview.handleClose}
+            onAuthenticationRequired={requestReviewVoteAuthentication}
             onVoteStateChange={handleReviewVoteStateChange}
             onVote={runtime.actions.handleReviewVote}
             review={reviewVotes.mergeVoteState(activeResolvedReview)}

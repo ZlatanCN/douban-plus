@@ -1,32 +1,26 @@
-import type { Review, ReviewVoteCallback } from "@/modules/subject/domain";
 import { createCache } from "@/shared/utils/cache";
+import { createVoteState } from "@/shared/voting/vote-state";
 
-import { createVoteState } from "../voting/vote-state";
+import type { Review, ReviewVoteCallback } from "./domain";
 import { reviewNumericId } from "./review-identity";
 
 type ReviewVoteDirection = "useful" | "useless";
-
 type ReviewVoteState = {
   usefulCount: number;
   uselessCount: number;
   voted: ReviewVoteDirection | null;
 };
-
 type StoredReviewVote = {
   type: ReviewVoteDirection | "up" | "down";
   usefulCount?: number;
   uselessCount?: number;
 };
-
 type ReviewVoteResult = Awaited<ReturnType<ReviewVoteCallback>>;
 
 const reviewVoteCache = createCache<StoredReviewVote>(
   "atv:review:vote",
   365 * 24 * 60 * 60 * 1000
 );
-
-const reviewVoteKey = (review: Review): string => reviewNumericId(review.id);
-
 const voteDirection = (
   value: StoredReviewVote | ReviewVoteDirection | undefined
 ): ReviewVoteDirection | null => {
@@ -39,20 +33,10 @@ const voteDirection = (
   }
   return null;
 };
-
-const baseInitialReviewVoteState = (review: Review): ReviewVoteState => ({
+const baseInitial = (review: Review): ReviewVoteState => ({
   usefulCount: review.usefulCount ?? 0,
   uselessCount: review.uselessCount ?? 0,
   voted: null,
-});
-
-const reviewWithVoteState = (
-  review: Review,
-  state: ReviewVoteState
-): Review => ({
-  ...review,
-  usefulCount: state.usefulCount,
-  uselessCount: state.uselessCount,
 });
 
 const reviewVoteApi = createVoteState<
@@ -62,38 +46,40 @@ const reviewVoteApi = createVoteState<
   ReviewVoteResult,
   StoredReviewVote
 >({
-  countKey: (dir) => (dir === "useful" ? "usefulCount" : "uselessCount"),
-  initial: baseInitialReviewVoteState,
-  key: reviewVoteKey,
-  mergeResult: (state, dir, result) => ({
+  countKey: (direction) =>
+    direction === "useful" ? "usefulCount" : "uselessCount",
+  initial: baseInitial,
+  key: (review) => reviewNumericId(review.id),
+  mergeResult: (state, direction, result) => ({
     ...state,
     usefulCount: result.usefulCount ?? state.usefulCount,
     uselessCount: result.uselessCount ?? state.uselessCount,
-    voted: dir,
+    voted: direction,
   }),
   persistence: {
     cache: reviewVoteCache,
-    hydrate: (stored) => {
-      const hydrated: Partial<ReviewVoteState> = {
-        voted: voteDirection(stored),
-      };
-      if (typeof stored.usefulCount === "number") {
-        hydrated.usefulCount = stored.usefulCount;
-      }
-      if (typeof stored.uselessCount === "number") {
-        hydrated.uselessCount = stored.uselessCount;
-      }
-      return hydrated;
-    },
+    hydrate: (stored) => ({
+      voted: voteDirection(stored),
+      ...(typeof stored.usefulCount === "number"
+        ? { usefulCount: stored.usefulCount }
+        : {}),
+      ...(typeof stored.uselessCount === "number"
+        ? { uselessCount: stored.uselessCount }
+        : {}),
+    }),
     serialize: (state) => ({
       type: state.voted ?? "useful",
       usefulCount: state.usefulCount,
       uselessCount: state.uselessCount,
     }),
   },
-  toItem: reviewWithVoteState,
+  toItem: (review, state) => ({
+    ...review,
+    usefulCount: state.usefulCount,
+    uselessCount: state.uselessCount,
+  }),
   votedOf: (state) => state.voted,
-  withVoted: (state, dir) => ({ ...state, voted: dir }),
+  withVoted: (state, direction) => ({ ...state, voted: direction }),
 });
 
 export { reviewVoteApi };

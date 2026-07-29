@@ -1,7 +1,7 @@
 import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import * as reviewContent from "@/modules/subject/runtime/use-review-content";
+import * as reviewContent from "@/domains/review-reader/use-review-content";
 
 const ReviewContentProbe = ({ rid }: { rid: string }) => {
   const content = reviewContent.useReviewContent(rid);

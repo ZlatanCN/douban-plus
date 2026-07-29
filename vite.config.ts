@@ -35,8 +35,6 @@ export default defineConfig({
         exclude: [
           "*://movie.douban.com/subject/*/photos*",
           "*://movie.douban.com/subject/*/photos[?]*",
-          "*://movie.douban.com/subject/*/reviews*",
-          "*://movie.douban.com/subject/*/reviews[?]*",
         ],
         grant: ["GM_addStyle", "GM_xmlhttpRequest"],
         homepageURL: "https://github.com/ZlatanCN/douban-plus",

@@ -254,6 +254,10 @@
     transform: scaleX(1);
     transition: none;
   }
+
+  .atv-review-modal-scroll::before {
+    opacity: 1;
+  }
 }
 
 @media (width <= 768px) {

@@ -3,6 +3,7 @@ import { subjectPage } from "@/modules/subject";
 import { subjectAllPhotosPage } from "@/modules/subject-all-photos";
 import { subjectCelebritiesPage } from "@/modules/subject-celebrities";
 import { subjectCommentsPage } from "@/modules/subject-comments";
+import { subjectReviewsPage } from "@/modules/subject-reviews";
 import {
   installLoginFrameTheme,
   isDoubanLoginFrame,
@@ -17,6 +18,7 @@ const pageMounts: readonly PageMount[] = [
   subjectCelebritiesPage,
   subjectAllPhotosPage,
   subjectCommentsPage,
+  subjectReviewsPage,
   subjectPage,
   personagePage,
 ];
