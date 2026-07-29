@@ -1,6 +1,37 @@
 .atv-subject-reviews {
   min-height: 100vh;
   padding: 0 max(28px, 5vw) 112px;
+  scroll-margin-top: 84px;
+}
+
+.atv-skip-link {
+  position: fixed;
+  z-index: 999;
+  top: 12px;
+  left: 12px;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.atv-skip-link:focus-visible,
+.atv-skip-link:focus {
+  width: auto;
+  height: auto;
+  padding: 8px 16px;
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  background: rgb(255 255 255 / 6%);
+  clip-path: none;
+  color: var(--atv-text-primary);
+  font-size: 14px;
+  font-weight: 650;
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 2px;
+  text-decoration: none;
+  white-space: normal;
 }
 
 .atv-subject-reviews-hero,

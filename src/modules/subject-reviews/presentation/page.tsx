@@ -157,12 +157,15 @@ const SubjectReviewsPage = ({
 
   return (
     <>
+      <a class="atv-skip-link" href="#atv-subject-reviews">
+        跳到内容
+      </a>
       <StickyNav
         {...sticky}
         className="atv-subject-reviews-nav"
         title={data.title}
       />
-      <main class="atv-subject-reviews">
+      <main class="atv-subject-reviews" id="atv-subject-reviews" tabIndex={-1}>
         <ReviewsPageHeader
           reviewKind={data.reviewKind}
           subjectHref={data.subjectHref}
