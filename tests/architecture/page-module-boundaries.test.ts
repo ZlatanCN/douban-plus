@@ -10,7 +10,9 @@ const moduleNames = [
   "subject-celebrities",
   "subject-all-photos",
   "subject-comments",
+  "subject-reviews",
 ] as const;
+const crossRouteModules = ["review-reader"] as const;
 
 const sourceFiles = async (directory: string): Promise<string[]> => {
   const entries = await readdir(directory, { withFileTypes: true });
@@ -97,6 +99,7 @@ describe("page module boundaries", () => {
       subjectCelebritiesEntry,
       subjectAllPhotosEntry,
       subjectCommentsEntry,
+      subjectReviewsEntry,
     ] = await Promise.all(
       moduleNames.map((moduleName) =>
         readFile(
@@ -105,28 +108,32 @@ describe("page module boundaries", () => {
         )
       )
     );
-    expect(exportedNamesOf(personageEntry).toSorted()).toStrictEqual([
-      "mountPersonage",
-      "personagePage",
-    ]);
-    expect(exportedNamesOf(subjectEntry).toSorted()).toStrictEqual([
-      "mountSubject",
-      "subjectPage",
-    ]);
-    expect(exportedNamesOf(subjectCelebritiesEntry).toSorted()).toStrictEqual([
-      "isSubjectCelebritiesPage",
-      "mountSubjectCelebrities",
-      "subjectCelebritiesPage",
-    ]);
-    expect(exportedNamesOf(subjectAllPhotosEntry).toSorted()).toStrictEqual([
-      "isSubjectAllPhotosPage",
-      "mountSubjectAllPhotos",
-      "subjectAllPhotosPage",
-    ]);
-    expect(exportedNamesOf(subjectCommentsEntry).toSorted()).toStrictEqual([
-      "isSubjectCommentsPage",
-      "mountSubjectComments",
-      "subjectCommentsPage",
+    expect(
+      [
+        personageEntry,
+        subjectEntry,
+        subjectCelebritiesEntry,
+        subjectAllPhotosEntry,
+        subjectCommentsEntry,
+        subjectReviewsEntry,
+      ]
+        .map(exportedNamesOf)
+        .map((names) => names.toSorted())
+    ).toStrictEqual([
+      ["mountPersonage", "personagePage"],
+      ["mountSubject", "subjectPage"],
+      [
+        "isSubjectCelebritiesPage",
+        "mountSubjectCelebrities",
+        "subjectCelebritiesPage",
+      ],
+      [
+        "isSubjectAllPhotosPage",
+        "mountSubjectAllPhotos",
+        "subjectAllPhotosPage",
+      ],
+      ["isSubjectCommentsPage", "mountSubjectComments", "subjectCommentsPage"],
+      ["isSubjectReviewsPage", "mountSubjectReviews", "subjectReviewsPage"],
     ]);
   });
 
@@ -147,7 +154,14 @@ describe("page module boundaries", () => {
           from === "main.ts" &&
           rest.length === 0 &&
           moduleNames.includes(importedModule as (typeof moduleNames)[number]);
-        if (!isOwnModule && !isPublicRouteImport) {
+        const isReviewReaderContract =
+          rest.length === 0 &&
+          crossRouteModules.includes(
+            importedModule as (typeof crossRouteModules)[number]
+          ) &&
+          (from.startsWith("modules/subject/") ||
+            from.startsWith("modules/subject-reviews/"));
+        if (!isOwnModule && !isPublicRouteImport && !isReviewReaderContract) {
           violations.push(`${from} -> ${specifier}`);
         }
       }

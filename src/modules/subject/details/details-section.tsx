@@ -16,7 +16,7 @@ type DetailRow = {
   value: ComponentChild;
 };
 
-const textValue = (text: string) => <div class="atv-info-value">{text}</div>;
+const textValue = (text: string) => <dd class="atv-info-value">{text}</dd>;
 
 const linkParts = (items: { text: string; href?: string }[]) =>
   items.flatMap((item, index) => [
@@ -35,11 +35,11 @@ const linkParts = (items: { text: string; href?: string }[]) =>
   ]);
 
 const linksValue = (items: { text: string; href?: string }[]) => (
-  <div class="atv-info-value">{linkParts(items)}</div>
+  <dd class="atv-info-value">{linkParts(items)}</dd>
 );
 
 const imdbValue = (imdb: string) => (
-  <div class="atv-info-value">
+  <dd class="atv-info-value">
     {RE_IMDB_LINK.test(imdb) ? (
       <a
         href={`https://www.imdb.com/title/${imdb}/`}
@@ -52,7 +52,7 @@ const imdbValue = (imdb: string) => (
     ) : (
       imdb
     )}
-  </div>
+  </dd>
 );
 
 const collectTimeRows = (
@@ -89,7 +89,7 @@ const collectTimeRows = (
 const awardRows = (awards: Award[]): DetailRow[] =>
   awards.map((award) => ({
     label: (
-      <div class="atv-info-label atv-info-label-award">
+      <dt class="atv-info-label atv-info-label-award">
         {award.orgLink ? (
           <a
             href={award.orgLink}
@@ -102,10 +102,10 @@ const awardRows = (awards: Award[]): DetailRow[] =>
         ) : (
           award.org
         )}
-      </div>
+      </dt>
     ),
     value: (
-      <div class="atv-info-value">
+      <dd class="atv-info-value">
         {award.name ? <div>{award.name}</div> : null}
         {award.person ? (
           <div
@@ -124,7 +124,7 @@ const awardRows = (awards: Award[]): DetailRow[] =>
             )}
           </div>
         ) : null}
-      </div>
+      </dd>
     ),
   }));
 
@@ -180,18 +180,18 @@ const DetailsSection = ({ data }: DetailsSectionProps) => {
       id="atv-info"
       title={getSubjectSectionCopy("details").sectionTitle}
     >
-      <div class="atv-info-grid">
+      <dl class="atv-info-grid">
         {rows.map((row) => (
           <>
             {typeof row.label === "string" ? (
-              <div class="atv-info-label">{row.label}</div>
+              <dt class="atv-info-label">{row.label}</dt>
             ) : (
               row.label
             )}
             {row.value}
           </>
         ))}
-      </div>
+      </dl>
     </Section>
   );
 };

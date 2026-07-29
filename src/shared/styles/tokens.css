@@ -10,6 +10,8 @@
   --atv-accent-bright: #4cd97a;
   --atv-accent-glow: rgb(65 190 93 / 35%);
   --atv-rating-gold: #ffb800;
+  --atv-content-caution: #c68f4e;
+  --atv-caution-surface: rgb(198 143 78 / 10%);
   --atv-border-subtle: rgb(255 255 255 / 8%);
   --atv-border-medium: rgb(255 255 255 / 16%);
   --atv-radius-sm: 8px;

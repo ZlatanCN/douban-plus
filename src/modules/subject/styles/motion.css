@@ -95,6 +95,10 @@
     opacity: 1;
   }
 
+  .atv-review-modal-scroll::before {
+    opacity: 1;
+  }
+
   .atv-btn-primary:hover,
   .atv-btn-secondary:hover,
   .atv-btn:active,

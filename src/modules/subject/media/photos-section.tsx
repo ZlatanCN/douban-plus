@@ -21,15 +21,18 @@ type PhotosSectionProps = {
 const noop = (): undefined => undefined;
 
 const PhotoTile = ({
+  index,
   onOpenPoster,
   photo,
   staggerIndex = 0,
 }: {
+  index: number;
   onOpenPoster: (image: ImageModalSource) => void;
   photo: ResolvedPhoto;
   staggerIndex?: number;
 }) => (
   <button
+    aria-label={`查看剧照 ${index + 1}`}
     class="atv-photo-tile atv-image-preview-trigger"
     onClick={() =>
       onOpenPoster({
@@ -109,6 +112,7 @@ const PhotosSection = ({
           ? null
           : data.photos.map((photo, index) => (
               <PhotoTile
+                index={index}
                 key={photo.link}
                 onOpenPoster={onOpenImage}
                 photo={photo}

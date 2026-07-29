@@ -1,3 +1,8 @@
+import { ReviewCard } from "@/domains/review-reader";
+import type {
+  ReviewVoteDirection,
+  ReviewVoteState,
+} from "@/domains/review-reader";
 import type {
   AccountActionGuard,
   Review,
@@ -6,13 +11,15 @@ import type {
 import { Section } from "@/shared/components/layout/section";
 
 import { getSubjectSectionCopy } from "../navigation/section-copy";
-import { ReviewCard } from "./review-card";
-import type { ReviewVoteState } from "./review-vote-state";
 
 type ReviewsSectionProps = {
   canVote?: AccountActionGuard;
   getVoteState?: (review: Review) => ReviewVoteState;
   isTV: boolean;
+  onAuthenticationRequired?: (
+    review: Review,
+    direction: ReviewVoteDirection
+  ) => void;
   onOpen: (review: Review) => void;
   onVoteStateChange?: (
     review: Review,
@@ -28,6 +35,7 @@ const ReviewsSection = ({
   canVote,
   getVoteState,
   isTV,
+  onAuthenticationRequired,
   onOpen,
   onVoteStateChange,
   onVote,
@@ -56,6 +64,9 @@ const ReviewsSection = ({
             <ReviewCard
               {...(canVote ? { canVote } : {})}
               key={review.id}
+              {...(onAuthenticationRequired
+                ? { onAuthenticationRequired }
+                : {})}
               onOpen={onOpen}
               {...(onVote ? { onVote } : {})}
               {...(onVoteStateChange ? { onVoteStateChange } : {})}

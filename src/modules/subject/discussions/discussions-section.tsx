@@ -68,20 +68,15 @@ const DiscussionMetadata = ({
     </div>
   ) : null;
 
-const formatDiscussionTotal = (total: number | undefined): string =>
-  total === undefined
-    ? "查看全部讨论 →"
-    : `查看全部 ${total.toLocaleString("en-US")} 条讨论 →`;
-
 const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
   discussions.topics.length ? (
     <Section
       id="atv-discussions"
-      {...(discussions.startDiscussionHref
+      {...(discussions.allDiscussions
         ? {
             moreLink: {
-              href: discussions.startDiscussionHref,
-              text: "发起讨论 ↗",
+              href: discussions.allDiscussions.href,
+              text: "查看全部 →",
             },
           }
         : {})}
@@ -115,17 +110,6 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
           </article>
         ))}
       </div>
-      {discussions.allDiscussions ? (
-        <footer class="atv-discussion-footer">
-          <a
-            href={discussions.allDiscussions.href}
-            rel="noopener"
-            target="_blank"
-          >
-            {formatDiscussionTotal(discussions.allDiscussions.total)}
-          </a>
-        </footer>
-      ) : null}
     </Section>
   ) : null;
 

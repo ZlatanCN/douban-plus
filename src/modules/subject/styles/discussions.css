@@ -173,33 +173,6 @@ a.atv-discussion-author:focus-visible {
   content: "·";
 }
 
-/* ---------- Footer ---------- */
-.atv-discussion-footer {
-  margin-top: 20px;
-  text-align: right;
-}
-
-.atv-discussion-footer a {
-  display: inline-flex;
-  align-items: center;
-  color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 500;
-  gap: 4px;
-  letter-spacing: 0.01em;
-  text-decoration: none;
-  transition:
-    color var(--atv-duration-hover) var(--atv-ease-out),
-    transform var(--atv-duration-hover) var(--atv-ease-out);
-}
-
-.atv-discussion-footer a:focus-visible {
-  color: var(--atv-accent-bright);
-  outline: 2px solid var(--atv-accent-bright);
-  outline-offset: 3px;
-  text-decoration: underline;
-}
-
 /* ---------- Interactive states ---------- */
 
 /* Row hover → accent bar reveals, bg lifts */
@@ -225,12 +198,6 @@ a.atv-discussion-author:focus-visible {
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .atv-discussion-footer a:hover {
-    color: var(--atv-accent-bright);
-    text-decoration: underline;
-    transform: translateX(2px);
-  }
-
   .atv-discussion-row:hover .atv-discussion-title {
     color: #fff;
   }
@@ -280,8 +247,7 @@ a.atv-discussion-author:focus-visible {
   .atv-discussion-row::before,
   .atv-discussion-title,
   .atv-discussion-arrow,
-  .atv-discussion-row,
-  .atv-discussion-footer a {
+  .atv-discussion-row {
     transition: none;
   }
 
@@ -306,10 +272,6 @@ a.atv-discussion-author:focus-visible {
   }
 
   .atv-discussion-row:active {
-    transform: none;
-  }
-
-  .atv-discussion-footer a:hover {
     transform: none;
   }
 }

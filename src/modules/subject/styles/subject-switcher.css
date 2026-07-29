@@ -36,12 +36,19 @@
     color var(--atv-duration-hover) ease;
 }
 
-.atv-subject-switcher-trigger:hover,
-.atv-subject-switcher-trigger:focus-visible {
+.atv-subject-switcher-trigger:hover {
   border-color: rgb(255 255 255 / 22%);
   background: rgb(255 255 255 / 12%);
   color: var(--atv-text-primary);
   outline: none;
+}
+
+.atv-subject-switcher-trigger:focus-visible {
+  border-color: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 12%);
+  color: var(--atv-text-primary);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 2px;
 }
 
 .atv-subject-switcher {
@@ -124,11 +131,17 @@
   letter-spacing: 0.05em;
 }
 
-.atv-subject-switcher-close:hover,
-.atv-subject-switcher-close:focus-visible {
+.atv-subject-switcher-close:hover {
   background: rgb(255 255 255 / 18%);
   color: var(--atv-text-primary);
   outline: none;
+}
+
+.atv-subject-switcher-close:focus-visible {
+  background: rgb(255 255 255 / 18%);
+  color: var(--atv-text-primary);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 2px;
 }
 
 @media (width <= 768px) {
@@ -138,5 +151,12 @@
 
   .atv-subject-switcher[data-state="open"] .atv-subject-switcher-expanded {
     max-width: min(78vw, 520px);
+  }
+}
+
+/* Prevent iOS zoom on focus */
+@media (hover: none) and (pointer: coarse) {
+  .atv-subject-switcher-input {
+    font-size: 16px;
   }
 }

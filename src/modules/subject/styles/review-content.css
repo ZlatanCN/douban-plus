@@ -395,9 +395,10 @@
 
 .atv-review-modal-body .spoiler-tip {
   margin-bottom: 12px;
-  color: #ff9f0a;
+  color: var(--atv-content-caution);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0.03em;
 }
 
 .atv-review-modal-body .main-hd {
@@ -460,7 +461,6 @@
 .atv-review-modal-stars {
   display: inline-flex;
   align-items: center;
-  margin: 0 0 4px;
   color: var(--atv-rating-gold);
   gap: 2px;
 }

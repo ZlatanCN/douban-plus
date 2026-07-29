@@ -119,9 +119,7 @@ describe("motion style contract", () => {
     expect(layoutCss).toContain(
       "@media (hover: hover) and (pointer: fine) {\n  .atv-section-more:hover"
     );
-    expect(discussionsCss).toContain(
-      "@media (hover: hover) and (pointer: fine) {\n  .atv-discussion-footer a:hover"
-    );
+
     expect(discussionsCss).toContain(
       ".atv-discussion-row:hover .atv-discussion-title"
     );

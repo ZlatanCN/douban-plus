@@ -647,3 +647,11 @@
     background: rgb(0 0 0 / 92%);
   }
 }
+
+/* Prevent iOS zoom on focus for native inputs */
+@media (hover: none) and (pointer: coarse) {
+  .atv-interest-modal-comment,
+  .atv-interest-modal-tag-input {
+    font-size: 16px;
+  }
+}

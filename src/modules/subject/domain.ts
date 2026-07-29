@@ -1,5 +1,10 @@
 /* ── Generic Types ─────────────────────────────────────── */
 
+import type {
+  AccountActionGuard as ReaderAccountActionGuard,
+  Review as ReaderReview,
+  ReviewVoteCallback as ReaderReviewVoteCallback,
+} from "@/domains/review-reader";
 import type { InterestState } from "@/shared/components/interest-form";
 
 export type {
@@ -11,6 +16,10 @@ export type {
   InterestState,
   InterestWriteOptions,
 } from "@/shared/components/interest-form";
+
+type Review = ReaderReview;
+type ReviewVoteCallback = ReaderReviewVoteCallback;
+type AccountActionGuard = ReaderAccountActionGuard;
 
 /* ── Extract Return Types ─────────────────────────────── */
 
@@ -156,34 +165,6 @@ type Comment = {
   voted: boolean;
 };
 
-/** Return type of extractReviews() */
-type Review = {
-  /** DOM element id or data-rid */
-  id: string;
-  /** Review title from h2 a text */
-  title: string;
-  /** Review content (short excerpt) */
-  content: string;
-  /** Author display name */
-  name: string;
-  /** Link to author's Douban profile */
-  link: string;
-  /** Author avatar URL */
-  avatar: string;
-  /** Star rating (0-5 scale, e.g. 4.5) */
-  stars: number;
-  /** Rating word like "力荐", "推荐" */
-  ratingWord: string;
-  /** Publish time string */
-  time: string;
-  /** Number of "有用" (useful) votes */
-  usefulCount: number;
-  /** Number of "没用" (useless) votes */
-  uselessCount: number;
-  /** Whether this review has a spoiler warning (.spoiler-tip) */
-  spoiler: boolean;
-};
-
 /** Return type of extractAwards() */
 type Award = {
   org: string;
@@ -288,13 +269,6 @@ type CommentsData = {
   comments: Comment[];
   subjectId: string;
 };
-
-/** Callback seam for review voting. */
-type ReviewVoteCallback = (
-  rid: string,
-  type: "useful" | "useless"
-) => Promise<{ ok: boolean; usefulCount?: number; uselessCount?: number }>;
-type AccountActionGuard = () => boolean;
 
 /** Data slice for buildReviews */
 type ReviewData = {
