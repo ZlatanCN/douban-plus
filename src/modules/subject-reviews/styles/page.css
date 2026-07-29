@@ -109,10 +109,9 @@
 
 .atv-subject-reviews-layout {
   display: grid;
-  justify-content: start;
   border-top: 1px solid var(--atv-border-subtle);
   gap: clamp(36px, 7vw, 104px);
-  grid-template-columns: minmax(142px, 176px) minmax(0, 780px);
+  grid-template-columns: minmax(142px, 176px) 1fr;
 }
 
 .atv-subject-reviews-controls {
@@ -248,7 +247,7 @@
 .atv-subject-reviews-pagination {
   display: flex;
   align-items: center;
-  padding-top: 30px;
+  padding: 30px clamp(20px, 2.5vw, 32px) 0;
 }
 
 /* Condensed mode: prev | indicator | next spread across */
@@ -343,7 +342,8 @@
 .atv-review-card.is-directory {
   position: relative;
   display: grid;
-  padding: clamp(27px, 3.2vw, 36px) 0 clamp(31px, 3.6vw, 40px);
+  padding: clamp(27px, 3.2vw, 36px) clamp(20px, 2.5vw, 32px)
+    clamp(31px, 3.6vw, 40px);
   border-radius: 0;
   background: transparent;
   column-gap: clamp(24px, 3.8vw, 48px);
@@ -451,6 +451,7 @@
 }
 
 .atv-review-card.is-directory .atv-review-foot {
+  max-width: 672px;
   min-height: 28px;
   justify-content: flex-start;
   padding-top: 0;
@@ -583,7 +584,7 @@
 
   .atv-review-card.is-directory {
     display: block;
-    padding: 26px 0 28px;
+    padding: 26px 20px 28px;
   }
 
   .atv-review-directory-identity {

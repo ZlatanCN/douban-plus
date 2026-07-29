@@ -626,12 +626,7 @@ describe(SubjectPage, () => {
 
     expect({
       activity: root.querySelector(".atv-discussion-activity")?.textContent,
-      allDiscussions: {
-        href: allDiscussions?.href,
-        rel: allDiscussions?.rel,
-        target: allDiscussions?.target,
-        text: allDiscussions?.textContent,
-      },
+      allDiscussions: allDiscussions?.textContent,
       author: {
         href: author?.href,
         rel: author?.rel,
@@ -650,12 +645,7 @@ describe(SubjectPage, () => {
       },
     }).toStrictEqual({
       activity: "0 回应2026-07-0916:31",
-      allDiscussions: {
-        href: "https://www.douban.com/group/653616#topics",
-        rel: "noopener",
-        target: "_blank",
-        text: "查看全部 15,166 条讨论 →",
-      },
+      allDiscussions: undefined,
       author: {
         href: "https://www.douban.com/people/127190935/",
         rel: "noopener",
@@ -663,10 +653,10 @@ describe(SubjectPage, () => {
         text: "🍈",
       },
       startDiscussion: {
-        href: "https://www.douban.com/group/653616",
+        href: "https://www.douban.com/group/653616#topics",
         rel: "noopener",
         target: "_blank",
-        text: "发起讨论 ↗",
+        text: "查看全部 →",
       },
       time: {
         dateTime: "2026-07-09T16:31:45",
@@ -716,10 +706,9 @@ describe(SubjectPage, () => {
       title: section?.querySelector(".atv-discussion-title")?.textContent,
     }).toStrictEqual({
       focusOrder: [
-        "发起讨论 ↗",
+        "查看全部 →",
         "打开讨论：一个很长很长很长很长很长很长很长很长很长很长很长很长很长的讨论标题",
         "一个很长很长很长很长很长很长很长很长的作者名字",
-        "查看全部讨论 →",
       ],
       metadata:
         "一个很长很长很长很长很长很长很长很长的作者名字64 回应2026-07-0916:31",
@@ -754,16 +743,19 @@ describe(SubjectPage, () => {
     expect({
       activity: root.querySelector(".atv-discussion-activity")?.textContent,
       author: { tag: author?.tagName, text: author?.textContent },
-      footer: root.querySelector(".atv-discussion-footer a")?.textContent,
+      footer:
+        root.querySelector(".atv-discussion-footer a")?.textContent ?? null,
       replies: root.querySelector(".atv-discussion-replies"),
-      startDiscussion: root.querySelector("#atv-discussions .atv-section-more"),
+      startDiscussion:
+        root.querySelector("#atv-discussions .atv-section-more")?.textContent ??
+        null,
       time: { dateTime: time?.dateTime, text: time?.textContent },
     }).toStrictEqual({
       activity: "昨天",
       author: { tag: "SPAN", text: "匿名" },
-      footer: "查看全部讨论 →",
+      footer: null,
       replies: null,
-      startDiscussion: null,
+      startDiscussion: "查看全部 →",
       time: { dateTime: "", text: "昨天" },
     });
   });
@@ -785,10 +777,11 @@ describe(SubjectPage, () => {
 
     expect({
       footer: root.querySelector(".atv-discussion-footer"),
-      startDiscussion: root.querySelector<HTMLAnchorElement>(
-        "#atv-discussions .atv-section-more"
-      )?.textContent,
-    }).toStrictEqual({ footer: null, startDiscussion: "发起讨论 ↗" });
+      startDiscussion:
+        root.querySelector<HTMLAnchorElement>(
+          "#atv-discussions .atv-section-more"
+        )?.textContent ?? null,
+    }).toStrictEqual({ footer: null, startDiscussion: null });
   });
 
   it("omits group discussions and their navigation when topics are empty", () => {

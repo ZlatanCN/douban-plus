@@ -16,23 +16,23 @@
       <text x="42" y="80" fill="#f8f5ee" font-size="25" font-weight="700">读取已呈现的资料</text>
       <text x="42" y="106" fill="#f8f5ee" fill-opacity=".55" font-size="18">数据不足，就保留原生页</text>
     </g>
-    <path d="M296 61H360" stroke="#5dde83" stroke-width="3"/>
-    <path d="M350 51L360 61L350 71" fill="none" stroke="#5dde83" stroke-width="3"/>
-    <g transform="translate(376)">
+    <path d="M288 61H320" stroke="#5dde83" stroke-width="3"/>
+    <path d="M318 51L330 61L318 71" fill="none" stroke="#5dde83" stroke-width="3"/>
+    <g transform="translate(340)">
       <rect width="298" height="122" rx="16" fill="#161919" stroke="#f4f0e8" stroke-opacity=".14"/>
       <path d="M22 24V98" stroke="#e9b869" stroke-width="3"/>
       <text x="42" y="42" fill="#e9b869" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700">02 · PAGE MODULE</text>
       <text x="42" y="80" fill="#f8f5ee" font-size="25" font-weight="700">按路由组织阅读语义</text>
       <text x="42" y="106" fill="#f8f5ee" fill-opacity=".55" font-size="18">作品 · 短评 · 图集 · 人物</text>
     </g>
-    <path d="M690 61H754" stroke="#5dde83" stroke-width="3"/>
-    <path d="M744 51L754 61L744 71" fill="none" stroke="#5dde83" stroke-width="3"/>
-    <g transform="translate(770)">
+    <path d="M646 61H678" stroke="#5dde83" stroke-width="3"/>
+    <path d="M676 51L688 61L676 71" fill="none" stroke="#5dde83" stroke-width="3"/>
+    <g transform="translate(698)">
       <rect width="370" height="122" rx="16" fill="#161919" stroke="#f4f0e8" stroke-opacity=".14"/>
       <path d="M22 24V98" stroke="#5dde83" stroke-width="3"/>
       <text x="42" y="42" fill="#5dde83" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700">03 · READING EXPERIENCE</text>
       <text x="42" y="80" fill="#f8f5ee" font-size="25" font-weight="700">在原页上重排观看节奏</text>
-      <text x="42" y="106" fill="#f8f5ee" fill-opacity=".55" font-size="18">登录、标记、投票、上传与跳转仍由豆瓣完成</text>
+      <text x="42" y="106" fill="#f8f5ee" fill-opacity=".55" font-size="18">登录、标记、投票与跳转由豆瓣完成</text>
     </g>
   </g>
 </svg>

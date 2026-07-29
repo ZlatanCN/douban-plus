@@ -1,7 +1,7 @@
 # Douban Plus
 
 <p align="center">
-  <img src="./assets/readme/hero.svg" width="100%" alt="Douban Plus：把豆瓣作品、短评、图集与人物页重新编排成连续的暗色观看体验">
+  <img src="./assets/readme/hero.svg" width="100%" alt="Douban Plus：把豆瓣作品、短评、影评、剧照、演职员与人物页重新编排成连续的暗色观看体验">
 </p>
 
 <p align="center">
@@ -30,6 +30,7 @@ Douban Plus 以页面为单位工作。每条路由都有自己的提取、领�
 | `movie.douban.com/subject/<id>/` | 作品 Hero、外部评分、影像、演职员、短评、影评、讨论、推荐与详细资料按阅读节奏排布。 |
 | `movie.douban.com/subject/<id>/comments` | 短评总览保留看过 / 在看 / 想看、排序、评分与分页；切换结果在当前页无刷新更新。 |
 | `movie.douban.com/subject/<id>/all_photos` | 已加载的剧照、海报与壁纸被重排成比例稳定的瀑布流，不枚举未打开的分类页。 |
+| `movie.douban.com/subject/<id>/reviews` | 影评总览按阅读节奏排布，保留排序与评分筛选，切换结果无刷新。 |
 | `movie.douban.com/subject/<id>/celebrities` | 当前作品的演职员资料按页面语义重组，并保留原生出口。 |
 | `www.douban.com/personage/<id>/` | 人物身份、常合作的人、图片、近期与代表作品、获奖记录形成一条人物阅读路径。 |
 
@@ -87,9 +88,12 @@ src/
   modules/
     subject/                 # 作品详情页
     subject-comments/        # 作品短评总览页
+    subject-reviews/         # 作品影评总览页
     subject-all-photos/      # 作品图集总览页
     subject-celebrities/     # 演职员页
     personage/               # 人物页
+  domains/
+    review-reader/           # 跨页面的影评阅读领域模块
   shared/                    # 无页面语义的组件、hooks、运行时与工具
   styles.css                 # 唯一样式清单
 ```

@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="390" viewBox="0 0 1200 390" role="img" aria-labelledby="title desc">
   <title id="title">Douban Plus</title>
-  <desc id="desc">为豆瓣作品、短评、图集与人物页重新编排连续的暗色观看体验。</desc>
+  <desc id="desc">为豆瓣作品、短评、影评、剧照、演职员与人物页重新编排连续的暗色观看体验。</desc>
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
       <stop stop-color="#090a0a"/>
       <stop offset="1" stop-color="#151312"/>
     </linearGradient>
-    <linearGradient id="screen" x1="0" x2="1" y1="0" y2="1">
-      <stop stop-color="#26332c"/>
-      <stop offset="1" stop-color="#111817"/>
+    <linearGradient id="panel-bg" x1="0" x2="0" y1="0" y2="1">
+      <stop stop-color="#1c1e1e"/>
+      <stop offset="1" stop-color="#141616"/>
     </linearGradient>
   </defs>
 
@@ -20,43 +20,229 @@
     <text x="84" y="96" fill="#5dde83" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700" letter-spacing="2">DOUBAN · READING RECOMPOSED</text>
     <text x="80" y="177" fill="#f8f5ee" font-size="68" font-weight="760" letter-spacing="-2.4">Douban Plus</text>
     <text x="84" y="222" fill="#f8f5ee" fill-opacity=".82" font-size="28" font-weight="600">让一部作品，从资料到社区，读成一条路径。</text>
-    <text x="84" y="268" fill="#f8f5ee" fill-opacity=".56" font-size="21">作品 · 短评 · 图集 · 演职员 · 人物</text>
+    <text x="84" y="268" fill="#f8f5ee" fill-opacity=".56" font-size="21">作品 · 短评 · 影评 · 剧照 · 演职员 · 人物</text>
     <g transform="translate(84 304)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700">
+      <rect width="138" height="4" y="6" fill="#5dde83" rx="2"/>
       <text fill="#5dde83">CURRENT PAGE</text>
-      <path d="M156 -6H216" stroke="#5dde83" stroke-width="2"/>
-      <text x="236" fill="#f8f5ee" fill-opacity=".62">READING PATH</text>
+      <text x="160" fill="#f8f5ee" fill-opacity=".62">→ READING PATH</text>
     </g>
   </g>
 
-  <g id="route-specimen" transform="translate(718 62)">
-    <rect width="398" height="236" rx="20" fill="#0d0f0f" stroke="#f4f0e8" stroke-opacity=".16"/>
-    <rect x="18" y="18" width="362" height="34" rx="9" fill="#f4f0e8" fill-opacity=".06"/>
-    <circle cx="37" cy="35" r="5" fill="#5dde83"/>
-    <text x="55" y="41" fill="#f8f5ee" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700">ONE PAGE · FOUR READING MODES</text>
+  <g id="route-specimen" transform="translate(718 56)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
+    <rect width="398" height="280" rx="20" fill="#0d0f0f" stroke="#f4f0e8" stroke-opacity=".16"/>
+    <rect x="20" y="18" width="358" height="34" rx="9" fill="#f4f0e8" fill-opacity=".06"/>
+    <circle cx="40" cy="35" r="5" fill="#5dde83"/>
+    <text x="55" y="41" fill="#f8f5ee" fill-opacity=".66" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="700">SIX ROUTES · MODULAR RENDER</text>
 
-    <g transform="translate(18 72)" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif">
-      <rect width="108" height="132" rx="13" fill="url(#screen)"/>
-      <path d="M14 92C36 63 64 106 94 72" fill="none" stroke="#5dde83" stroke-opacity=".66" stroke-width="3"/>
-      <rect x="14" y="15" width="36" height="52" rx="7" fill="#e9b869" fill-opacity=".76"/>
-      <rect x="59" y="16" width="34" height="10" rx="5" fill="#f8f5ee" fill-opacity=".77"/>
-      <rect x="59" y="34" width="26" height="8" rx="4" fill="#f8f5ee" fill-opacity=".33"/>
-      <text x="14" y="116" fill="#f8f5ee" font-size="20" font-weight="700">作品</text>
+    <!-- Each panel: 110w × 90h, 22px gap, vertical spacing between rows -->
+    <g transform="translate(24 72)">
+      <!-- ========== Row 1 ========== -->
 
-      <g transform="translate(122)">
-        <rect width="108" height="132" rx="13" fill="#171a1a"/>
-        <path d="M14 35H94M14 62H94M14 89H72" stroke="#f8f5ee" stroke-opacity=".24" stroke-width="7" stroke-linecap="round"/>
-        <circle cx="19" cy="35" r="4" fill="#5dde83"/>
-        <circle cx="19" cy="62" r="4" fill="#5dde83"/>
-        <text x="14" y="116" fill="#f8f5ee" font-size="20" font-weight="700">短评</text>
+      <!-- 1. 作品 — 详情页: 深色 Hero + 海报 + 分区卡片流 -->
+      <g transform="translate(0, 0)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- Hero 深色背景区 -->
+        <path d="M0 12Q0 0 12 0H98Q110 0 110 12V44H0V12Z" fill="#0f1110"/>
+        <!-- 海报缩略 -->
+        <rect x="8" y="10" width="14" height="21" rx="3" fill="#5dde83" fill-opacity=".5"/>
+        <rect x="8" y="10" width="14" height="3" rx="1.5" fill="#f8f5ee" fill-opacity=".7"/>
+        <!-- 标题 + 评分 -->
+        <rect x="26" y="12" width="55" height="4" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <rect x="26" y="20" width="30" height="3" rx="1.5" fill="#f8f5ee" fill-opacity=".35"/>
+        <rect x="26" y="28" width="50" height="4" rx="2" fill="#e9b869" fill-opacity=".5"/>
+        <rect x="26" y="36" width="36" height="4" rx="2" fill="#f8f5ee" fill-opacity=".2"/>
+        <!-- 分割线 -->
+        <rect x="6" y="46" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分区: 流媒体条 -->
+        <rect x="8" y="51" width="18" height="6" rx="3" fill="#f4f0e8" fill-opacity=".08"/>
+        <rect x="30" y="51" width="14" height="6" rx="3" fill="#f4f0e8" fill-opacity=".06"/>
+        <rect x="48" y="51" width="22" height="6" rx="3" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 演员头像列 -->
+        <circle cx="14" cy="64" r="5" fill="#f4f0e8" fill-opacity=".12"/>
+        <circle cx="28" cy="64" r="5" fill="#f4f0e8" fill-opacity=".1"/>
+        <circle cx="42" cy="64" r="5" fill="#f4f0e8" fill-opacity=".12"/>
+        <circle cx="56" cy="64" r="5" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 双列卡片 -->
+        <rect x="6" y="74" width="48" height="12" rx="3" fill="#f4f0e8" fill-opacity=".07"/>
+        <rect x="58" y="74" width="48" height="12" rx="3" fill="#f4f0e8" fill-opacity=".07"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">作品</text>
       </g>
 
-      <g transform="translate(244)">
-        <rect width="118" height="132" rx="13" fill="#171a1a"/>
-        <rect x="14" y="14" width="38" height="44" rx="6" fill="#f8f5ee" fill-opacity=".22"/>
-        <rect x="59" y="14" width="45" height="28" rx="6" fill="#5dde83" fill-opacity=".5"/>
-        <rect x="59" y="49" width="45" height="45" rx="6" fill="#e9b869" fill-opacity=".42"/>
-        <rect x="14" y="65" width="38" height="29" rx="6" fill="#f8f5ee" fill-opacity=".12"/>
-        <text x="14" y="116" fill="#f8f5ee" font-size="20" font-weight="700">图集 / 人物</text>
+      <!-- → Arrow 1→2 -->
+      <path d="M112 45H128" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M126 39L132 45L126 51" fill="none" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+
+      <!-- 2. 短评 — 短评总览页: 侧栏筛选 + 纵向短评流 -->
+      <g transform="translate(132, 0)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- 页头: 类别标签 + 大标题 -->
+        <rect x="8" y="10" width="20" height="3" rx="1.5" fill="#5dde83" fill-opacity=".7"/>
+        <rect x="8" y="16" width="70" height="6" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <!-- 状态统计: 看过 / 在看 / 想看 -->
+        <rect x="8" y="24" width="18" height="4" rx="2" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="28" y="24" width="18" height="4" rx="2" fill="#f4f0e8" fill-opacity=".08"/>
+        <rect x="48" y="24" width="18" height="4" rx="2" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分割线 -->
+        <rect x="6" y="31" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 左侧栏 (窄条) + 右侧短评流 -->
+        <rect x="8" y="35" width="14" height="50" rx="3" fill="#f4f0e8" fill-opacity=".06"/>
+        <!-- 选中的筛选项 -->
+        <rect x="9" y="37" width="12" height="3" rx="1.5" fill="#5dde83" fill-opacity=".5"/>
+        <rect x="9" y="42" width="12" height="2" rx="1" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="9" y="46" width="12" height="2" rx="1" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="9" y="50" width="12" height="2" rx="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 短评卡片流 -->
+        <rect x="26" y="36" width="78" height="10" rx="3" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="26" y="38" width="30" height="3" rx="1.5" fill="#5dde83" fill-opacity=".3"/>
+        <rect x="26" y="50" width="78" height="10" rx="3" fill="#f4f0e8" fill-opacity=".08"/>
+        <rect x="26" y="64" width="78" height="10" rx="3" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分页 -->
+        <rect x="26" y="80" width="25" height="4" rx="2" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="55" y="80" width="25" height="4" rx="2" fill="#5dde83" fill-opacity=".4"/>
+        <rect x="84" y="80" width="20" height="4" rx="2" fill="#f4f0e8" fill-opacity=".12"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">短评</text>
+      </g>
+
+      <!-- → Arrow 2→3 -->
+      <path d="M244 45H260" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M258 39L264 45L258 51" fill="none" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+
+      <!-- 3. 影评 — 影评总览页: 侧栏 + 影评目录卡片 + 投票 -->
+      <g transform="translate(264, 0)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- 页头: 返回 + 写影评 -->
+        <rect x="8" y="10" width="30" height="7" rx="3.5" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="80" y="10" width="24" height="7" rx="3.5" fill="#5dde83" fill-opacity=".15"/>
+        <!-- 大标题 -->
+        <rect x="8" y="21" width="70" height="6" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <!-- 分割线 -->
+        <rect x="6" y="30" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 左侧栏 + 影评卡片 -->
+        <rect x="8" y="34" width="14" height="50" rx="3" fill="#f4f0e8" fill-opacity=".06"/>
+        <rect x="9" y="36" width="12" height="3" rx="1.5" fill="#5dde83" fill-opacity=".5"/>
+        <!-- 影评卡片: 头像 + 标题 + 摘录 + 投票 -->
+        <rect x="26" y="35" width="78" height="18" rx="3" fill="#f4f0e8" fill-opacity=".1"/>
+        <circle cx="34" cy="41" r="4" fill="#f4f0e8" fill-opacity=".2"/>
+        <rect x="42" y="38" width="55" height="3" rx="1.5" fill="#f8f5ee" fill-opacity=".6"/>
+        <rect x="42" y="44" width="55" height="2" rx="1" fill="#f4f0e8" fill-opacity=".15"/>
+        <!-- 投票按钮 -->
+        <rect x="42" y="48" width="12" height="3" rx="1.5" fill="#5dde83" fill-opacity=".3"/>
+
+        <rect x="26" y="57" width="78" height="18" rx="3" fill="#f4f0e8" fill-opacity=".08"/>
+        <circle cx="34" cy="63" r="4" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="42" y="60" width="50" height="3" rx="1.5" fill="#f8f5ee" fill-opacity=".5"/>
+        <rect x="42" y="72" width="12" height="3" rx="1.5" fill="#5dde83" fill-opacity=".25"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">影评</text>
+      </g>
+
+      <!-- ========== Vertical arrow R1→R2 ========== -->
+      <path d="M319 90V108" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M314 108L319 114L324 108" fill="none" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+
+      <!-- ========== Row 2 ========== -->
+
+      <!-- 4. 剧照 — 图集页: 工具栏 + 分组瀑布流 -->
+      <g transform="translate(0, 114)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- 工具栏: 返回 + 上传 -->
+        <rect x="8" y="10" width="22" height="7" rx="3.5" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="88" y="10" width="16" height="7" rx="3.5" fill="#f4f0e8" fill-opacity=".06"/>
+        <!-- 标题 -->
+        <rect x="8" y="21" width="60" height="6" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <!-- 分组统计 -->
+        <rect x="8" y="30" width="14" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="24" y="30" width="14" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="40" y="30" width="14" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".1"/>
+        <!-- 分割线 -->
+        <rect x="6" y="36" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分组1: 标题 + 瀑布流 -->
+        <rect x="8" y="40" width="22" height="3" rx="1.5" fill="#5dde83" fill-opacity=".5"/>
+        <!-- 剧照缩略图网格 -->
+        <rect x="34" y="40" width="18" height="14" rx="2" fill="#5dde83" fill-opacity=".35"/>
+        <rect x="34" y="40" width="18" height="3" rx="1" fill="#f8f5ee" fill-opacity=".4"/>
+        <rect x="56" y="40" width="14" height="18" rx="2" fill="#5dde83" fill-opacity=".25"/>
+        <rect x="74" y="40" width="16" height="12" rx="2" fill="#5dde83" fill-opacity=".3"/>
+        <rect x="74" y="40" width="16" height="3" rx="1" fill="#f8f5ee" fill-opacity=".35"/>
+        <rect x="94" y="40" width="12" height="16" rx="2" fill="#5dde83" fill-opacity=".2"/>
+        <!-- 第二行缩略图 -->
+        <rect x="34" y="58" width="16" height="12" rx="2" fill="#5dde83" fill-opacity=".25"/>
+        <rect x="54" y="60" width="18" height="14" rx="2" fill="#5dde83" fill-opacity=".2"/>
+        <rect x="76" y="62" width="14" height="10" rx="2" fill="#5dde83" fill-opacity=".25"/>
+        <rect x="94" y="60" width="12" height="14" rx="2" fill="#5dde83" fill-opacity=".18"/>
+        <!-- 分组2 标题 -->
+        <rect x="8" y="77" width="18" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="32" y="77" width="14" height="10" rx="2" fill="#5dde83" fill-opacity=".2"/>
+        <rect x="50" y="77" width="12" height="10" rx="2" fill="#5dde83" fill-opacity=".15"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">剧照</text>
+      </g>
+
+      <!-- → Arrow 4→5 -->
+      <path d="M112 159H128" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M126 153L132 159L126 165" fill="none" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+
+      <!-- 5. 演职员 — 演职员页: 分组标题 + 头像卡片网格 -->
+      <g transform="translate(132, 114)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- 页头 -->
+        <rect x="8" y="10" width="20" height="3" rx="1.5" fill="#5dde83" fill-opacity=".7"/>
+        <rect x="8" y="16" width="70" height="6" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <rect x="85" y="18" width="20" height="4" rx="2" fill="#f4f0e8" fill-opacity=".12"/>
+        <!-- 分割线 -->
+        <rect x="6" y="25" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分组1: 标题带圆点 + 头像卡片 -->
+        <circle cx="12" cy="34" r="3" fill="#5dde83" fill-opacity=".6"/>
+        <rect x="18" y="32" width="45" height="3" rx="1.5" fill="#f8f5ee" fill-opacity=".6"/>
+        <!-- 信用卡片: 圆形 + 姓名 + 角色 -->
+        <circle cx="8" cy="46" r="5" fill="#f4f0e8" fill-opacity=".2"/>
+        <rect x="16" y="44" width="30" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="16" y="49" width="20" height="2" rx="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <circle cx="60" cy="46" r="5" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="68" y="44" width="35" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="68" y="49" width="22" height="2" rx="1" fill="#f4f0e8" fill-opacity=".06"/>
+        <!-- 分组2 -->
+        <circle cx="12" cy="60" r="3" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="18" y="58" width="40" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".4"/>
+        <circle cx="8" cy="72" r="5" fill="#f4f0e8" fill-opacity=".15"/>
+        <rect x="16" y="70" width="35" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="16" y="75" width="18" height="2" rx="1" fill="#f4f0e8" fill-opacity=".06"/>
+        <circle cx="56" cy="72" r="5" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="64" y="70" width="38" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="64" y="75" width="20" height="2" rx="1" fill="#f4f0e8" fill-opacity=".05"/>
+        <circle cx="8" cy="84" r="5" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="16" y="82" width="28" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".08"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">演职员</text>
+      </g>
+
+      <!-- → Arrow 5→6 -->
+      <path d="M244 159H260" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+      <path d="M258 153L264 159L258 165" fill="none" stroke="#5dde83" stroke-opacity=".3" stroke-width="2"/>
+
+      <!-- 6. 人物 — 人物页: 圆形肖像 + 身份 + 时间线 -->
+      <g transform="translate(264, 114)">
+        <rect x="0" y="0" width="110" height="90" rx="12" fill="url(#panel-bg)" stroke="#f4f0e8" stroke-opacity=".08"/>
+        <!-- 双列 Hero: 圆形肖象 + 身份信息 -->
+        <circle cx="22" cy="22" r="16" fill="#f4f0e8" fill-opacity=".15"/>
+        <circle cx="22" cy="22" r="16" fill="none" stroke="#f4f0e8" stroke-opacity=".06" stroke-width="1"/>
+        <!-- 身份列 -->
+        <rect x="42" y="12" width="55" height="4" rx="2" fill="#f8f5ee" fill-opacity=".82"/>
+        <rect x="42" y="20" width="30" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="42" y="27" width="60" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 分割线 -->
+        <rect x="6" y="42" width="98" height="1" fill="#f4f0e8" fill-opacity=".08"/>
+        <!-- 时间线: 纵向时间轴 + 作品卡片 -->
+        <circle cx="12" cy="52" r="2.5" fill="#5dde83" fill-opacity=".6"/>
+        <rect x="7" y="52" width="1" height="16" fill="#5dde83" fill-opacity=".2"/>
+        <rect x="18" y="50" width="20" height="8" rx="2" fill="#f4f0e8" fill-opacity=".1"/>
+        <rect x="42" y="50" width="20" height="8" rx="2" fill="#f4f0e8" fill-opacity=".08"/>
+        <rect x="66" y="50" width="20" height="8" rx="2" fill="#f4f0e8" fill-opacity=".1"/>
+        <circle cx="12" cy="68" r="2.5" fill="#5dde83" fill-opacity=".4"/>
+        <rect x="18" y="66" width="20" height="8" rx="2" fill="#f4f0e8" fill-opacity=".08"/>
+        <rect x="42" y="66" width="20" height="8" rx="2" fill="#f4f0e8" fill-opacity=".06"/>
+        <!-- 合作者列 -->
+        <circle cx="8" cy="84" r="4" fill="#f4f0e8" fill-opacity=".12"/>
+        <rect x="15" y="82" width="35" height="3" rx="1.5" fill="#f4f0e8" fill-opacity=".08"/>
+        <circle cx="62" cy="84" r="4" fill="#f4f0e8" fill-opacity=".08"/>
+        <text x="55" y="85" fill="#f8f5ee" font-size="7" font-weight="600" text-anchor="middle" letter-spacing=".08">人物</text>
       </g>
     </g>
   </g>
