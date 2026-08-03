@@ -71,9 +71,9 @@
   display: flex;
   justify-content: flex-end;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.02em;
 }
 
@@ -96,8 +96,8 @@
 .atv-personage-collaborator-avatar.is-fallback {
   display: grid;
   color: var(--atv-text-primary);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
   place-items: center;
 }
 
@@ -111,8 +111,8 @@
 .atv-personage-collaborator-name {
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 15px;
-  font-weight: 650;
+  font-size: var(--atv-type-body);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.01em;
   text-decoration: none;
   text-overflow: ellipsis;
@@ -128,15 +128,15 @@
 
 .atv-personage-collaborator-count {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 400;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-regular);
 }
 
 .atv-personage-collaborator-action {
   flex-shrink: 0;
   color: var(--atv-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   text-decoration: none;
   transition:
     color 160ms ease,

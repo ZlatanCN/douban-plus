@@ -17,17 +17,17 @@
 .atv-photo-archive-group-heading h2 {
   margin: 0;
   color: var(--atv-text-primary);
-  font-size: clamp(24px, 2.4vw, 34px);
+  font-size: var(--atv-type-title-group);
   letter-spacing: -0.035em;
-  line-height: 1.05;
+  line-height: var(--atv-line-height-display);
 }
 
 .atv-photo-archive-count {
   margin: 10px 0 0;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.04em;
 }
 

@@ -38,9 +38,9 @@
 .atv-review-modal-body .image-caption {
   display: inline-block;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--atv-font-weight-regular);
   letter-spacing: 0.02em;
   line-height: 1.6;
 }
@@ -115,8 +115,8 @@
   flex-wrap: wrap;
   align-items: baseline;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 650;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 4px;
   letter-spacing: 0.01em;
   line-height: 1.35;
@@ -124,8 +124,8 @@
 
 .atv-review-modal-body .title-tail {
   color: var(--atv-text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-review-modal-body .subject-rating {
@@ -140,7 +140,7 @@
 .atv-review-modal-body .rating-star2::before,
 .atv-review-modal-body .rating-star0::before {
   content: "★";
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
 }
 
 .atv-review-modal-body .rating-star1::before {
@@ -165,15 +165,15 @@
 .atv-review-modal-body .rating-score {
   margin-left: 6px;
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-modal-body .subject-summary {
   margin-top: 7px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   line-height: 1.55;
 }
 
@@ -183,7 +183,7 @@
 
 .atv-review-modal-body .subject-caption {
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-style: italic;
   line-height: 1.55;
 }
@@ -218,16 +218,16 @@
 .atv-review-modal-body h3 {
   margin: 28px 0 12px;
   color: var(--atv-text-primary);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
 .atv-review-modal-body h4 {
   margin: 24px 0 10px;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -235,8 +235,8 @@
 .atv-review-modal-body h6 {
   margin: 20px 0 8px;
   color: var(--atv-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -277,7 +277,7 @@
 .atv-review-modal-body strong,
 .atv-review-modal-body b {
   color: var(--atv-text-primary);
-  font-weight: 700;
+  font-weight: var(--atv-font-weight-bold);
 }
 
 .atv-review-modal-body em,
@@ -331,9 +331,7 @@
   padding: 2px 6px;
   border-radius: 4px;
   background: var(--atv-bg-elevated);
-  font-family:
-    "SF Mono", Monaco, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas,
-    monospace;
+  font-family: var(--atv-font-mono);
   font-size: 0.9em;
   overflow-wrap: break-word;
 }
@@ -352,7 +350,7 @@
 .atv-review-modal-body pre code {
   padding: 0;
   background: none;
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
   word-break: normal;
 }
 
@@ -371,7 +369,7 @@
 .atv-review-modal-body th {
   padding: 10px 14px;
   color: var(--atv-text-primary);
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
   text-align: left;
   white-space: nowrap;
 }
@@ -396,8 +394,8 @@
 .atv-review-modal-body .spoiler-tip {
   margin-bottom: 12px;
   color: var(--atv-content-caution);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.03em;
 }
 
@@ -410,8 +408,8 @@
 
 .atv-review-modal-body .main-hd a.name {
   color: var(--atv-accent);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
   text-decoration: none;
 }
 
@@ -441,7 +439,7 @@
 #atv-douban-root .atv-review-modal-link-a {
   background: transparent;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   text-decoration: none;
   transition: color var(--atv-duration-feedback) ease;
 }
@@ -528,8 +526,8 @@
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     color var(--atv-duration-feedback) ease,
     border-color var(--atv-duration-feedback) ease,

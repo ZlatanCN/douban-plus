@@ -33,8 +33,8 @@
   color: var(--atv-text-primary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 6px;
   transition:
     border-color var(--atv-duration-feedback) var(--atv-ease-out),
@@ -73,9 +73,9 @@
 .atv-subject-comments-controls h2 {
   margin: 0;
   color: var(--atv-accent-bright);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -87,10 +87,10 @@
   max-width: 980px;
   margin: 16px 0 0;
   color: var(--atv-text-primary);
-  font-size: clamp(46px, 7vw, 92px);
-  font-weight: 700;
+  font-size: var(--atv-type-display);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.055em;
-  line-height: 0.98;
+  line-height: var(--atv-line-height-display);
   text-wrap: balance;
 }
 
@@ -121,8 +121,8 @@
 }
 
 .atv-subject-comments-status span {
-  font-size: 12px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.02em;
 }
 
@@ -193,8 +193,8 @@
   padding: 4px 8px;
   border-radius: 7px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     background-color var(--atv-duration-feedback) var(--atv-ease-out),
     color var(--atv-duration-feedback) var(--atv-ease-out),
@@ -269,8 +269,8 @@
   border-bottom: 1px solid
     color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 12px;
 }
 
@@ -286,7 +286,7 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--atv-font-weight-bold);
   transition: color var(--atv-duration-feedback) var(--atv-ease-out);
 }
 
@@ -340,16 +340,16 @@
     radial-gradient(circle at 70% 20%, rgb(76 217 122 / 30%), transparent 38%),
     var(--atv-bg-tertiary);
   color: var(--atv-text-primary);
-  font-size: 13px;
-  font-weight: 700;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-bold);
   place-items: center;
 }
 
 .atv-subject-comments-author-name {
   overflow: hidden;
   font-optical-sizing: auto;
-  font-size: 15px;
-  font-weight: 650;
+  font-size: var(--atv-type-body);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.01em;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -361,8 +361,8 @@
   align-items: center;
   justify-content: flex-start;
   color: var(--atv-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 8px;
   grid-column: 2;
   letter-spacing: 0.02em;
@@ -374,8 +374,8 @@
 
 .atv-subject-comments-rating {
   color: var(--atv-rating-gold);
-  font-size: 11px;
-  letter-spacing: 0.8px;
+  font-size: var(--atv-type-micro);
+  letter-spacing: 0.07em;
   line-height: 1;
 }
 
@@ -436,8 +436,8 @@
   border: 1px solid var(--atv-border-subtle);
   border-radius: 8px;
   color: var(--atv-text-secondary);
-  font-size: 12px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     border-color var(--atv-duration-feedback) var(--atv-ease-out),
     background-color var(--atv-duration-feedback) var(--atv-ease-out),
@@ -454,8 +454,8 @@
   border-radius: 8px;
   background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-bold);
 }
 
 @media (hover: hover) and (pointer: fine) {

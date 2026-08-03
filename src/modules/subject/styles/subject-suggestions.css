@@ -70,21 +70,21 @@
 
 .atv-subject-suggestion-title {
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 650;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .atv-subject-suggestion-metadata {
   margin-left: 7px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-subject-suggestion-original {
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-subject-suggestion-marker {
@@ -134,7 +134,7 @@
   padding: 15px 18px;
   background: transparent;
   color: var(--atv-text-secondary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   text-align: left;
 }
 

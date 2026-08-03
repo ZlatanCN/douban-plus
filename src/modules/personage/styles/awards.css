@@ -19,8 +19,8 @@
 .atv-personage-award-year {
   padding-top: 4px;
   color: var(--atv-text-tertiary);
-  font-size: 26px;
-  font-weight: 300;
+  font-size: var(--atv-type-title-xl);
+  font-weight: var(--atv-font-weight-regular);
   letter-spacing: 0.02em;
   line-height: 1;
 }
@@ -35,8 +35,8 @@
 .atv-personage-award-ceremony,
 .atv-personage-award-ceremony a {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-personage-award-ceremony a {
@@ -54,15 +54,15 @@
 .atv-personage-award-name {
   margin: 6px 0 0;
   color: var(--atv-text-primary);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
 .atv-personage-award-work {
   margin: 6px 0 0;
   color: var(--atv-text-tertiary);
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
 }
 
 .atv-personage-award-work a {

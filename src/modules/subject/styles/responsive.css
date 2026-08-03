@@ -97,7 +97,7 @@
 
   .atv-comment-overlay-body {
     padding: 16px 20px;
-    font-size: 14px;
+    font-size: var(--atv-type-body-sm);
   }
 
   .atv-comment-overlay-foot {
@@ -154,7 +154,7 @@
   }
 
   .atv-review-modal-body .subject-title {
-    font-size: 15px;
+    font-size: var(--atv-type-body);
   }
 
   .atv-review-modal-body .subject-caption-wrapper {

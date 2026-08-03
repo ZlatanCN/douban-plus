@@ -35,7 +35,7 @@
 
 .atv-interest-panel-date {
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   letter-spacing: 0.02em;
 }
 
@@ -45,7 +45,7 @@
   align-items: center;
   padding: 6px 0 2px;
   color: var(--atv-text-secondary);
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
   font-style: italic;
   gap: 8px;
   line-height: 1.6;
@@ -54,7 +54,7 @@
 .atv-interest-panel-tags {
   min-width: 0;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   letter-spacing: 0.02em;
 }
 
@@ -62,7 +62,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-style: normal;
   gap: 3px;
   letter-spacing: 0.02em;

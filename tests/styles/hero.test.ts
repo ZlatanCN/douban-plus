@@ -11,13 +11,13 @@ const heroCss = readFileSync(
 describe("hero rank-label typography", () => {
   it("makes the collection title easier to scan than its catalog number", () => {
     expect(heroCss).toContain(
-      '.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;\n  font-size: 12px;'
+      ".atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: var(--atv-font-mono);\n  font-size: var(--atv-type-caption-sm);"
     );
     expect(heroCss).toContain(
-      '.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: ui-monospace, SFMono-Regular, "Cascadia Code", monospace;\n  font-size: 12px;\n  font-variant-numeric: tabular-nums;\n  font-weight: 700;'
+      ".atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: var(--atv-font-mono);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-bold);"
     );
     expect(heroCss).toContain(
-      ".atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: 14px;\n  font-weight: 400;"
+      ".atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-regular);"
     );
   });
 });

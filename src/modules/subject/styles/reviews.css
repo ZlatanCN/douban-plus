@@ -89,8 +89,8 @@
   background-position: center;
   background-size: cover;
   color: var(--atv-text-on-accent);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-meta {
@@ -106,8 +106,8 @@
   z-index: 2;
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   pointer-events: auto;
   text-decoration: none;
   text-overflow: ellipsis;
@@ -137,8 +137,8 @@
   margin-bottom: 8px;
   -webkit-box-orient: vertical;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.01em;
   -webkit-line-clamp: 2;
   line-height: 1.35;
@@ -152,7 +152,7 @@
   margin-bottom: 14px;
   -webkit-box-orient: vertical;
   color: var(--atv-text-secondary);
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
   -webkit-line-clamp: 4;
   line-height: 1.7;
   pointer-events: none;
@@ -170,15 +170,15 @@
 
 .atv-review-time {
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 400;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-regular);
   letter-spacing: 0.02em;
 }
 
 .atv-review-readmore {
   color: var(--atv-accent);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.04em;
   opacity: 0;
   pointer-events: none;
@@ -225,8 +225,8 @@
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   gap: 5px;
   line-height: 1;
   transition:
@@ -254,7 +254,7 @@
 
 .atv-vote-btn.is-lg {
   padding: 8px 20px;
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
 }
 
 .atv-vote-btn svg {
@@ -383,10 +383,11 @@
 .atv-review-modal-title {
   margin-bottom: 4px;
   color: var(--atv-text-primary);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-xl);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.02em;
   line-height: 1.32;
+  text-wrap: balance;
 }
 
 .atv-review-modal-title:focus {
@@ -419,14 +420,14 @@
   background-position: center;
   background-size: cover;
   color: var(--atv-text-on-accent);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-modal-byline-text {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   gap: 4px;
   line-height: 1;
 }
@@ -441,15 +442,15 @@
 
 .atv-review-modal-body {
   color: var(--atv-text-emphasis);
-  font-size: 16px;
-  line-height: 1.85;
+  font-size: var(--atv-type-body-lg);
+  line-height: var(--atv-line-height-body-loose);
 }
 
 .atv-review-modal-body h2 {
   margin-bottom: 16px;
   color: var(--atv-text-primary);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-lg);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -490,9 +491,9 @@
   display: block;
   margin-top: 8px;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-style: normal;
-  font-weight: 500;
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-review-modal-body blockquote cite::before,

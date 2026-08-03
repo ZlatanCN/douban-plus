@@ -13,8 +13,8 @@
   padding-left: 0;
   margin-bottom: 28px;
   color: var(--atv-text-secondary);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-lg);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.02em;
 }
 

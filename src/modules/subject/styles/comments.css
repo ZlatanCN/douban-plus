@@ -38,8 +38,8 @@
   background-position: center;
   background-size: cover;
   color: var(--atv-text-on-accent);
-  font-size: 15px;
-  font-weight: 600;
+  font-size: var(--atv-type-body);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-comment-meta {
@@ -53,8 +53,8 @@
 a.atv-comment-author {
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -91,8 +91,8 @@ a.atv-comment-author:hover {
   color: var(--atv-text-emphasis);
   cursor: pointer;
   font: inherit;
-  font-size: 15px;
-  line-height: 1.65;
+  font-size: var(--atv-type-body);
+  line-height: var(--atv-line-height-body);
   overflow-wrap: break-word;
   text-align: left;
 }
@@ -110,8 +110,8 @@ a.atv-comment-author:hover {
   align-items: center;
   justify-content: space-between;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   gap: 12px;
   letter-spacing: 0.02em;
 }
@@ -126,8 +126,8 @@ a.atv-comment-author:hover {
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   gap: 5px;
   letter-spacing: 0.02em;
   transition:
@@ -290,8 +290,8 @@ a.atv-comment-author:hover {
   background-size: cover;
   box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
   color: var(--atv-text-primary);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     border-color var(--atv-duration-feedback) ease,
     box-shadow var(--atv-duration-feedback) ease;
@@ -308,8 +308,8 @@ a.atv-comment-author:hover {
 a.atv-comment-overlay-author {
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -334,8 +334,8 @@ a.atv-comment-overlay-author:hover {
 .atv-comment-overlay-body {
   padding: 20px 28px;
   color: var(--atv-text-emphasis);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: var(--atv-type-body);
+  line-height: var(--atv-line-height-body-loose);
   overflow-wrap: break-word;
   white-space: pre-wrap;
 }
@@ -349,8 +349,8 @@ a.atv-comment-overlay-author:hover {
 
 .atv-comment-overlay-time {
   color: var(--atv-text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
 }
 
@@ -365,8 +365,8 @@ a.atv-comment-overlay-author:hover {
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-medium);
   gap: 5px;
   letter-spacing: 0.02em;
   transition:

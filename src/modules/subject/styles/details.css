@@ -80,18 +80,18 @@
 .atv-info-label {
   padding-top: 3px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
 /* ---------- Values ---------- */
 .atv-info-value {
   color: var(--atv-text-emphasis);
-  font-size: 15px;
-  font-weight: 400;
-  line-height: 1.65;
+  font-size: var(--atv-type-body);
+  font-weight: var(--atv-font-weight-regular);
+  line-height: var(--atv-line-height-body);
   overflow-wrap: break-word;
 }
 

@@ -18,8 +18,8 @@
   align-items: center;
   padding-left: 14px;
   margin: 0 0 24px;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: var(--atv-type-title-xl);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.02em;
 }
 
@@ -52,8 +52,8 @@
   flex: 0 0 auto;
   align-items: center;
   color: var(--atv-text-tertiary);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
   gap: 4px;
   letter-spacing: 0.02em;
   transition:

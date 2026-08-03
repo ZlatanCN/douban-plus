@@ -13,9 +13,6 @@
   padding: 0 max(28px, 5vw);
   border-bottom: 1px solid var(--atv-border-subtle);
   background: var(--atv-bg-nav-solid);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
-    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
   gap: 24px;
   opacity: 0;
   pointer-events: none;
@@ -40,8 +37,8 @@
   min-width: 0;
   flex: 0 1 auto;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -63,8 +60,8 @@
 .atv-stickynav-jumps a {
   position: relative;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   transition: color var(--atv-duration-feedback) ease;
   white-space: nowrap;
@@ -96,7 +93,7 @@
 @media (width <= 768px) {
   .atv-stickynav-title {
     flex: 0 1 32%;
-    font-size: 14px;
+    font-size: var(--atv-type-body-sm);
   }
 
   .atv-stickynav-jumps {
@@ -105,7 +102,7 @@
   }
 
   .atv-stickynav-jumps a {
-    font-size: 12px;
+    font-size: var(--atv-type-caption-sm);
   }
 }
 

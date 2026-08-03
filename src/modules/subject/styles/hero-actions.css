@@ -17,8 +17,8 @@
   color: inherit;
   cursor: pointer;
   font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 8px;
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
@@ -67,8 +67,8 @@
   margin: 0 0 12px;
   -webkit-box-orient: vertical;
   color: var(--atv-text-secondary);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: var(--atv-type-body);
+  line-height: var(--atv-line-height-body-loose);
   overflow-wrap: break-word;
   white-space: pre-wrap;
 }
@@ -87,8 +87,8 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 6px;
   letter-spacing: 0.02em;
 }

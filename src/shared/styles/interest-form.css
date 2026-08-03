@@ -41,8 +41,8 @@
 .atv-interest-modal-header-title {
   margin: 3px 0 0;
   color: var(--atv-text-primary);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-lg);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   line-height: 1.35;
 }
@@ -50,8 +50,8 @@
 .atv-interest-modal-eyebrow {
   margin: 0;
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -124,8 +124,8 @@
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition: color var(--atv-duration-feedback) ease;
@@ -153,15 +153,15 @@
   justify-content: space-between;
   margin-bottom: 8px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .atv-interest-modal-rating-header > span:last-child {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
 }
 
@@ -207,7 +207,7 @@
   background: var(--atv-bg-elevated);
   color: var(--atv-text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   line-height: 1.5;
   resize: none;
   -webkit-tap-highlight-color: transparent;
@@ -247,9 +247,8 @@
   color: var(--atv-text-on-accent);
   cursor: pointer;
   font: inherit;
-  font-size: 14px;
-  -webkit-font-smoothing: antialiased;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -285,8 +284,8 @@
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -308,8 +307,8 @@
 .atv-interest-modal-error {
   border-radius: 10px;
   color: var(--atv-danger);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   text-align: center;
 }
 
@@ -329,15 +328,15 @@
   justify-content: space-between;
   margin: 0 0 8px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .atv-interest-modal-field-header > span:last-child {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
 }
 
@@ -383,7 +382,7 @@
   background: transparent;
   color: var(--atv-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   outline: 0;
 }
 
@@ -403,7 +402,7 @@
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   line-height: 1;
   transition:
     border-color var(--atv-duration-feedback) ease,
@@ -427,7 +426,7 @@
   display: grid;
   margin-top: 10px;
   color: var(--atv-text-tertiary);
-  font-size: 11px;
+  font-size: var(--atv-type-micro);
   gap: 6px;
   grid-template-columns: 48px minmax(0, 1fr);
 }
@@ -486,7 +485,7 @@
   margin-bottom: 18px;
   background: color-mix(in srgb, var(--atv-danger) 8%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   gap: 12px;
 }
 
@@ -498,7 +497,7 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-visibility {
@@ -513,8 +512,8 @@
   padding: 0;
   margin-bottom: 10px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-visibility-option,
@@ -523,7 +522,7 @@
   align-items: center;
   color: var(--atv-text-secondary);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   gap: 8px;
 }
 
@@ -537,14 +536,14 @@
 .atv-interest-modal-broadcast-option {
   padding-left: 24px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-interest-modal-visibility-note {
   padding-left: 24px;
   margin: -3px 0 0;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-interest-modal-footer {
@@ -570,7 +569,7 @@
   border-radius: 10px;
   background: color-mix(in srgb, var(--atv-danger) 8%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   gap: 10px;
 }
 
@@ -589,8 +588,8 @@
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-removal-confirmation button:last-child {

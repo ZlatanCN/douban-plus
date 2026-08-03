@@ -64,14 +64,9 @@
 
 .atv-rating-panel .atv-rating-panel-score {
   color: var(--atv-text-primary);
-  font-family:
-    "SF Pro Display",
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    sans-serif;
-  font-size: 38px;
-  font-weight: 700;
+  font-family: var(--atv-font-display);
+  font-size: var(--atv-type-stat);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -128,8 +123,8 @@
 
 .atv-mc-word-label {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   line-height: 1;
   white-space: nowrap;
@@ -158,14 +153,9 @@
 }
 
 .atv-rt-score-value {
-  font-family:
-    "SF Pro Display",
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    sans-serif;
-  font-size: 30px;
-  font-weight: 700;
+  font-family: var(--atv-font-display);
+  font-size: var(--atv-type-stat-sm);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.03em;
   line-height: 1;
 }
@@ -249,8 +239,8 @@
 
 .atv-rt-score-label {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -259,8 +249,8 @@
 
 .atv-rating-panel-count {
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -274,8 +264,8 @@
 
 .atv-rt-count-value {
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
@@ -321,7 +311,7 @@
   }
 
   .atv-rt-score-label {
-    font-size: 10px;
+    font-size: var(--atv-type-micro);
   }
 
   .atv-mc-bar-track {
@@ -329,7 +319,7 @@
   }
 
   .atv-mc-word-label {
-    font-size: 10px;
+    font-size: var(--atv-type-micro);
   }
 
   .atv-rating-panel {
@@ -340,7 +330,7 @@
 .atv-rating-empty {
   padding: 10px 0;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   letter-spacing: 0.03em;
 }
 

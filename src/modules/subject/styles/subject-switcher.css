@@ -26,8 +26,8 @@
   border-radius: 999px;
   background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 7px;
   letter-spacing: 0.01em;
   transition:
@@ -111,7 +111,7 @@
   background: transparent;
   color: var(--atv-text-primary);
   font: inherit;
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
   outline: 0;
 }
 
@@ -126,8 +126,8 @@
   margin-right: 6px;
   background: var(--atv-bg-elevated);
   color: var(--atv-text-tertiary);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: 0.05em;
 }
 

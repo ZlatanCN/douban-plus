@@ -48,6 +48,59 @@
   --atv-radius-md: 12px;
   --atv-radius-lg: 16px;
   --atv-radius-xl: 24px;
+
+  /* ---------- Typography: font stacks (system, no webfonts) ---------- */
+  --atv-font-sans:
+    -apple-system, "BlinkMacSystemFont", "SF Pro Display", "PingFang SC",
+    "Helvetica Neue", "Microsoft YaHei", "Inter", system-ui, sans-serif;
+  --atv-font-display:
+    "SF Pro Display", -apple-system, "BlinkMacSystemFont", "PingFang SC",
+    "Microsoft YaHei", system-ui, sans-serif;
+  --atv-font-mono:
+    ui-monospace, "SFMono-Regular", "Cascadia Code", "Consolas", monospace;
+
+  /* ---------- Typography: role-based type scale ---------- */
+  --atv-type-display: clamp(44px, 7vw, 92px); /* page hero titles */
+  --atv-type-display-compact: clamp(
+    44px,
+    5.5vw,
+    80px
+  ); /* hero beside poster / portrait */
+
+  --atv-type-display-narrow: clamp(
+    34px,
+    10vw,
+    50px
+  ); /* compact hero (mobile) */
+
+  --atv-type-hero-orig: clamp(18px, 1.6vw, 22px); /* original-title line */
+  --atv-type-title-group: clamp(22px, 2.4vw, 32px); /* gallery group headings */
+  --atv-type-title-xl: 24px; /* section headings, modal titles */
+  --atv-type-title-lg: 20px; /* modal titles, sub-headings */
+  --atv-type-title-md: 18px; /* in-page headings */
+  --atv-type-title: 16px; /* card titles */
+  --atv-type-body-lg: 16px; /* CJK long-form reading (bio, review body) */
+  --atv-type-body: 15px; /* body text */
+  --atv-type-body-sm: 14px; /* dense text, values, actions */
+  --atv-type-caption: 13px; /* bylines, metadata */
+  --atv-type-caption-sm: 12px; /* footers, labels, small metadata */
+  --atv-type-micro: 11px; /* kickers, tiny labels */
+
+  /* ---------- Typography: display numerals ---------- */
+  --atv-type-stat: clamp(32px, 4vw, 38px); /* rating panel score */
+  --atv-type-stat-sm: 30px; /* RT score */
+  --atv-type-stat-lg: clamp(28px, 3.5vw, 40px); /* timeline years */
+
+  /* ---------- Typography: weight ladder (real faces on all platforms) ---------- */
+  --atv-font-weight-regular: 400;
+  --atv-font-weight-medium: 500;
+  --atv-font-weight-semibold: 600;
+  --atv-font-weight-bold: 700;
+
+  /* ---------- Typography: line heights (unitless) ---------- */
+  --atv-line-height-display: 1.1; /* wrapping display headings — ink-safe for CJK + Latin */
+  --atv-line-height-body: 1.65; /* short-form reading */
+  --atv-line-height-body-loose: 1.8; /* CJK long-form reading */
   --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);

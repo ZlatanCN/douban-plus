@@ -49,8 +49,8 @@
   backdrop-filter: blur(4px);
   background: rgb(0 0 0 / 60%);
   color: var(--atv-text-primary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
 }
 
 /* ---------- Video Modal ---------- */

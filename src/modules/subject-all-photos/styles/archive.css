@@ -33,8 +33,8 @@
   align-items: center;
   border: 1px solid transparent;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 7px;
   letter-spacing: 0.015em;
   transition:
@@ -70,9 +70,9 @@
 .atv-photo-archive-intro > p {
   margin: 0;
   color: var(--atv-accent-bright);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.14em;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
+  letter-spacing: 0.08em;
   line-height: 1.2;
   text-transform: uppercase;
 }
@@ -81,10 +81,10 @@
   max-width: 980px;
   margin: 16px 0 0;
   color: var(--atv-text-primary);
-  font-size: clamp(44px, 7vw, 92px);
-  font-weight: 700;
+  font-size: var(--atv-type-display);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.055em;
-  line-height: 0.98;
+  line-height: var(--atv-line-height-display);
   text-wrap: balance;
 }
 
@@ -102,17 +102,17 @@
 
 .atv-photo-archive-index dt {
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.04em;
 }
 
 .atv-photo-archive-index dd {
   margin: 0;
   color: var(--atv-text-secondary);
-  font-size: 20px;
+  font-size: var(--atv-type-title-lg);
   font-variant-numeric: tabular-nums;
-  font-weight: 650;
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.02em;
   line-height: 1;
 }

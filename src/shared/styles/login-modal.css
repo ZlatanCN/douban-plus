@@ -37,9 +37,6 @@ dialog::backdrop {
     inset 0 1px 0 var(--atv-border-subtle),
     0 24px 80px rgb(0 0 0 / 55%);
   color: var(--atv-text-primary);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
-    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
   scrollbar-width: none;
   text-align: center;
 }
@@ -69,8 +66,8 @@ dialog::backdrop {
 .atv-login-modal-title {
   margin: 0 42px 6px;
   color: var(--atv-text-primary);
-  font-size: 18px;
-  font-weight: 650;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.35;
   text-wrap: balance;
 }
@@ -79,7 +76,7 @@ dialog::backdrop {
   max-width: 300px;
   margin: 0 auto 14px;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   line-height: 1.55;
   text-wrap: pretty;
 }
@@ -88,7 +85,7 @@ dialog::backdrop {
   min-height: 20px;
   margin: 8px 0 0;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   line-height: 1.5;
 }
 
