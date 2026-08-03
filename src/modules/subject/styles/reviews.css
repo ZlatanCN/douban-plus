@@ -5,6 +5,14 @@
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 }
 
+/* Two 400px columns + 20px gap + 48px section padding fit from 868px up;
+   below that a single column avoids the lone-wide-card band. */
+@media (width <= 868px) {
+  .atv-reviews {
+    grid-template-columns: 1fr;
+  }
+}
+
 .atv-review-card {
   position: relative;
   display: flex;

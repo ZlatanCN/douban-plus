@@ -49,8 +49,15 @@
 .atv-stickynav-jumps {
   position: relative;
   display: flex;
-  flex: 0 0 auto;
+  min-width: 0;
+  flex: 0 1 auto;
   gap: 24px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.atv-stickynav-jumps::-webkit-scrollbar {
+  display: none;
 }
 
 .atv-stickynav-jumps a {
@@ -88,10 +95,12 @@
 
 @media (width <= 768px) {
   .atv-stickynav-title {
+    flex: 0 1 32%;
     font-size: 14px;
   }
 
   .atv-stickynav-jumps {
+    flex: 1 1 auto;
     gap: 14px;
   }
 

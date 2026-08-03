@@ -141,15 +141,22 @@
   }
 }
 
-/* ---------- Mobile (<=768px) ---------- */
+/* ---------- Mobile (<=768px) ----------
+   Single column: label sits close to its value (4px), 12px label padding
+   separates value→label pairs (16px). The pairing depends on the label
+   describing the value BELOW it, so keep the two close. */
 @media (width <= 768px) {
   .atv-info-grid {
-    gap: 14px 0;
     grid-template-columns: 1fr;
+    row-gap: 4px;
+  }
+
+  .atv-info-grid > :first-child {
+    padding-top: 0;
   }
 
   .atv-info-label {
-    padding-top: 0;
+    padding-top: 12px;
   }
 
   .atv-section-reveal.is-revealed .atv-info-grid > * {

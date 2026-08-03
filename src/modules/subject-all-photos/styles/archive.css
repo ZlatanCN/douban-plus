@@ -117,16 +117,8 @@
   line-height: 1;
 }
 
-.atv-photo-archive-nav .atv-stickynav-jumps {
-  min-width: 0;
-  flex: 0 1 auto;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.atv-photo-archive-nav .atv-stickynav-jumps::-webkit-scrollbar {
-  display: none;
-}
+/* The shared `.atv-stickynav-jumps` now shrinks and scrolls on its own
+   (sticky-nav.css); the archive page's local copies are gone. */
 
 @media (hover: hover) and (pointer: fine) {
   .atv-photo-archive-back:hover,
@@ -156,15 +148,6 @@
   .atv-photo-archive-nav {
     padding-right: 20px;
     padding-left: 20px;
-    gap: 16px;
-  }
-
-  .atv-photo-archive-nav .atv-stickynav-title {
-    flex: 0 1 32%;
-  }
-
-  .atv-photo-archive-nav .atv-stickynav-jumps {
-    flex: 1 1 auto;
     gap: 16px;
   }
 }

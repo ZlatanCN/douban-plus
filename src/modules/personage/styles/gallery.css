@@ -1,5 +1,8 @@
 .atv-personage .atv-section {
-  padding: 36px 0;
+  /* Inter-group 56px (bottom) vs intra-group 28px (header margin) = 2:1.
+     Horizontal inset matches the hero's max(28px, 7vw) so section content
+     aligns with the identity column. */
+  padding: 36px max(28px, 7vw) 56px;
 }
 
 .atv-personage .atv-section + .atv-section {
@@ -23,7 +26,8 @@
   margin-bottom: 28px;
 }
 
-.atv-personage-gallery-rail {
+.atv-carousel.atv-personage-gallery-rail {
+  /* Compound selector outranks the shared `.atv-carousel` gap (see work rail). */
   gap: 12px;
   list-style: none;
 }

@@ -1,12 +1,4 @@
 @media (width <= 640px) {
-  .atv-personage-hero-bg-image {
-    filter: blur(40px) saturate(1.25) brightness(0.5);
-  }
-
-  .atv-personage-hero-bg {
-    height: 60vh;
-  }
-
   .atv-personage-hero-inner {
     gap: 24px;
     grid-template-columns: 112px minmax(0, 1fr);

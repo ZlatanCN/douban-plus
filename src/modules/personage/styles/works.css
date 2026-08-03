@@ -1,17 +1,19 @@
 /* ---------- WorkRail (代表作品) ---------- */
 
-.atv-personage-work-rail {
-  display: flex;
-  flex-wrap: nowrap;
+.atv-carousel.atv-personage-work-rail {
+  /* Compound selector outranks the shared `.atv-carousel` gap regardless of
+     manifest import order (layout.css is imported later than this file). */
   gap: 20px;
 }
 
 .atv-personage-work-card {
-  /* Keep sparse selections at the same size as a full five-work rail. */
+  /* Five cards fill the rail at 20px gaps; larger selections overflow into
+     the rail's own horizontal scroll instead of being clipped. */
   flex: 0 0 max(140px, calc((100% - 80px) / 5));
   color: inherit;
   cursor: pointer;
   opacity: 0;
+  scroll-snap-align: start;
   text-decoration: none;
   transform: translateY(8px);
   transition:

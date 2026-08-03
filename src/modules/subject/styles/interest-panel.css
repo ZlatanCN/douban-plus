@@ -52,14 +52,10 @@
 }
 
 .atv-interest-panel-tags {
-  overflow: hidden;
   min-width: 0;
-  max-width: 36ch;
   color: var(--atv-text-tertiary);
   font-size: 13px;
   letter-spacing: 0.02em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .atv-useful-badge {

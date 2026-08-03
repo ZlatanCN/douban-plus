@@ -164,13 +164,15 @@
     transform: translate(1px, -2px);
   }
 
-  .atv-personage-collaborator:hover .atv-personage-collaborator-action {
+  .atv-personage-collaborator:hover .atv-personage-collaborator-action,
+  .atv-personage-collaborator:focus-within .atv-personage-collaborator-action {
     opacity: 1;
     pointer-events: auto;
     transform: translateX(0);
   }
 
-  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow {
+  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow,
+  .atv-personage-collaborator:focus-within .atv-personage-collaborator-arrow {
     opacity: 1;
     transform: translate(0, 0);
   }

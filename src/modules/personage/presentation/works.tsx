@@ -27,7 +27,7 @@ const PersonageWorkRail = ({ id, rail, title }: PersonageWorkRailProps) => {
         : {})}
       title={title}
     >
-      <div class="atv-personage-work-rail">
+      <div class="atv-carousel atv-personage-work-rail">
         {rail.works.map((work, index) => (
           <a
             class="atv-personage-work-card"

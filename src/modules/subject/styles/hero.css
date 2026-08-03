@@ -354,7 +354,6 @@
 }
 
 .atv-meta-dot + .atv-meta-dot::before {
-  margin-right: 14px;
   color: var(--atv-text-tertiary);
   content: "·";
 }
