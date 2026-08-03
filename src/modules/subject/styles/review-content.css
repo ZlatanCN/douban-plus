@@ -469,14 +469,14 @@
   height: 14px;
 }
 
-.atv-review-modal-body.is-skeleton {
+.atv-review-modal-body.is-loading {
   position: relative;
   min-height: 140px;
   color: transparent;
 }
 
-.atv-review-modal-body.is-skeleton::before,
-.atv-review-modal-body.is-skeleton::after {
+.atv-review-modal-body.is-loading::before,
+.atv-review-modal-body.is-loading::after {
   display: block;
   height: 14px;
   border-radius: 4px;
@@ -484,12 +484,12 @@
   content: "";
 }
 
-.atv-review-modal-body.is-skeleton::before {
+.atv-review-modal-body.is-loading::before {
   width: 92%;
   margin-bottom: 14px;
 }
 
-.atv-review-modal-body.is-skeleton::after {
+.atv-review-modal-body.is-loading::after {
   width: 68%;
 }
 
