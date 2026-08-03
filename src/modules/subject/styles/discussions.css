@@ -13,7 +13,7 @@
   padding: 18px 20px;
   border: none;
   border-radius: var(--atv-radius-sm);
-  background: #121214;
+  background: var(--atv-bg-card);
   gap: 6px;
   isolation: isolate;
   transition:
@@ -77,7 +77,7 @@
   flex: 1;
   margin: 0;
   -webkit-box-orient: vertical;
-  color: rgb(255 255 255 / 90%);
+  color: var(--atv-text-emphasis);
   font-size: 15px;
   font-weight: 500;
   letter-spacing: -0.015em;
@@ -186,7 +186,7 @@ a.atv-discussion-author:focus-visible {
   .atv-discussion-title,
 .atv-discussion-row:has(.atv-discussion-author:focus-visible)
   .atv-discussion-title {
-  color: #fff;
+  color: var(--atv-text-primary);
 }
 
 .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)
@@ -199,7 +199,7 @@ a.atv-discussion-author:focus-visible {
 
 @media (hover: hover) and (pointer: fine) {
   .atv-discussion-row:hover .atv-discussion-title {
-    color: #fff;
+    color: var(--atv-text-primary);
   }
 
   .atv-discussion-row:hover .atv-discussion-arrow {

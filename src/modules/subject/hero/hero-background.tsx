@@ -21,7 +21,8 @@ const backgroundStyle = (still: Photo | null, poster: string | null) => {
     return {};
   }
   return {
-    background: "radial-gradient(circle at 30% 30%, #2c2c2e 0%, #000 70%)",
+    background:
+      "radial-gradient(circle at 30% 30%, var(--atv-bg-tertiary) 0%, var(--atv-bg-primary) 70%)",
   };
 };
 

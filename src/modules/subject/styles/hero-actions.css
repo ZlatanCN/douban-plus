@@ -35,7 +35,7 @@
 .atv-btn-primary {
   background: var(--atv-accent);
   box-shadow: 0 8px 24px var(--atv-accent-glow);
-  color: #fff;
+  color: var(--atv-text-on-accent);
 }
 
 .atv-btn-secondary {
@@ -46,10 +46,14 @@
 }
 
 .atv-btn.is-active {
-  border-color: transparent;
-  background: var(--atv-accent);
-  box-shadow: 0 6px 20px var(--atv-accent-glow);
-  color: #fff;
+  border: 1px solid var(--atv-accent);
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-primary);
+}
+
+.atv-btn.is-active:hover {
+  border-color: var(--atv-accent-bright);
+  background: var(--atv-bg-hover-strong);
 }
 
 .atv-hero-summary {

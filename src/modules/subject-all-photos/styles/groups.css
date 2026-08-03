@@ -57,9 +57,9 @@
   display: block;
   overflow: hidden;
   height: 100%;
-  border: 1px solid rgb(255 255 255 / 5%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 2px;
-  background: #171719;
+  background: var(--atv-bg-card);
   box-shadow: 0 12px 28px rgb(0 0 0 / 25%);
   transition:
     border-color var(--atv-duration-feedback) ease,
@@ -69,7 +69,7 @@
 
 .atv-photo-archive-tile::after {
   position: absolute;
-  border: 1px solid rgb(255 255 255 / 5%);
+  border: 1px solid var(--atv-border-subtle);
   content: "";
   inset: 0;
   pointer-events: none;
@@ -93,7 +93,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .atv-photo-archive-tile:hover {
-    border-color: rgb(255 255 255 / 20%);
+    border-color: var(--atv-border-strong);
     box-shadow: 0 22px 44px rgb(0 0 0 / 42%);
     transform: translateY(-3px);
   }
@@ -142,6 +142,6 @@
 
 @media (prefers-contrast: more) {
   .atv-photo-archive-tile {
-    border-color: rgb(255 255 255 / 34%);
+    border-color: var(--atv-border-emphasis);
   }
 }

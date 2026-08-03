@@ -74,7 +74,7 @@ describe(resolveStreamingProvider, () => {
     );
 
     expect(provider).toMatchObject({
-      color: "#41be5d",
+      color: "var(--atv-accent)",
       key: "unknown",
       label: "小众影库",
     });

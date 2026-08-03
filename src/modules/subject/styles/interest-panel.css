@@ -17,6 +17,10 @@
   cursor: pointer;
 }
 
+.atv-interest-badge svg {
+  color: var(--atv-accent);
+}
+
 .atv-interest-panel-stars {
   display: inline-flex;
   align-items: center;

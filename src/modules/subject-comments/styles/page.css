@@ -44,8 +44,8 @@
 }
 
 .atv-subject-comments-write {
-  border-color: rgb(76 217 122 / 28%);
-  background: rgb(76 217 122 / 10%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -135,7 +135,7 @@
 }
 
 .atv-subject-comments-status.is-active {
-  background: rgb(76 217 122 / 9%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -203,7 +203,7 @@
 
 .atv-subject-comments-sort-option.is-active,
 .atv-subject-comments-score-option.is-active {
-  background: rgb(76 217 122 / 10%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -266,7 +266,8 @@
   min-height: 42px;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid rgb(255 185 64 / 24%);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);
   color: var(--atv-text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -328,7 +329,7 @@
   width: var(--atv-subject-comments-avatar-size);
   height: var(--atv-subject-comments-avatar-size);
   flex: 0 0 auto;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 50%;
   object-fit: cover;
 }
@@ -449,9 +450,9 @@
   min-height: 34px;
   align-items: center;
   padding: 0 11px;
-  border: 1px solid rgb(76 217 122 / 30%);
+  border: 1px solid var(--atv-accent-border);
   border-radius: 8px;
-  background: rgb(76 217 122 / 10%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
   font-size: 12px;
   font-weight: 700;
@@ -460,30 +461,30 @@
 @media (hover: hover) and (pointer: fine) {
   .atv-subject-comments-back:hover,
   .atv-subject-comments-write:hover {
-    border-color: rgb(255 255 255 / 22%);
-    background: rgb(255 255 255 / 6%);
+    border-color: var(--atv-border-strong);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 
   .atv-subject-comments-status:hover {
-    background: rgb(255 255 255 / 5%);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 
   .atv-subject-comments-status.is-active:hover {
-    background: rgb(76 217 122 / 9%);
+    background: var(--atv-accent-active);
     color: var(--atv-accent-bright);
   }
 
   .atv-subject-comments-sort-option:hover,
   .atv-subject-comments-score-option:hover {
-    background: rgb(255 255 255 / 6%);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 
   .atv-subject-comments-pagination a:hover {
-    border-color: rgb(255 255 255 / 20%);
-    background: rgb(255 255 255 / 6%);
+    border-color: var(--atv-border-strong);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 }

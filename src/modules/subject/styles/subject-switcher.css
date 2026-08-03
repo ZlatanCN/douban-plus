@@ -24,7 +24,7 @@
   padding: 0 13px;
   border: 1px solid var(--atv-border-subtle);
   border-radius: 999px;
-  background: rgb(255 255 255 / 7%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
   font-size: 13px;
   font-weight: 600;
@@ -37,15 +37,15 @@
 }
 
 .atv-subject-switcher-trigger:hover {
-  border-color: rgb(255 255 255 / 22%);
-  background: rgb(255 255 255 / 12%);
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
   color: var(--atv-text-primary);
   outline: none;
 }
 
 .atv-subject-switcher-trigger:focus-visible {
-  border-color: rgb(255 255 255 / 22%);
-  background: rgb(255 255 255 / 12%);
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
   color: var(--atv-text-primary);
   outline: 2px solid var(--atv-accent-bright);
   outline-offset: 2px;
@@ -63,9 +63,9 @@
   max-width: 0;
   height: 38px;
   align-items: center;
-  border: 1px solid rgb(255 255 255 / 22%);
+  border: 1px solid var(--atv-border-strong);
   border-radius: 999px;
-  background: rgb(255 255 255 / 10%);
+  background: var(--atv-bg-elevated);
   box-shadow: 0 12px 32px rgb(0 0 0 / 28%);
   opacity: 0;
   pointer-events: none;
@@ -124,7 +124,7 @@
   padding: 0 9px;
   border-radius: 999px;
   margin-right: 6px;
-  background: rgb(255 255 255 / 10%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-tertiary);
   font-size: 10px;
   font-weight: 700;
@@ -132,13 +132,13 @@
 }
 
 .atv-subject-switcher-close:hover {
-  background: rgb(255 255 255 / 18%);
+  background: var(--atv-bg-hover-strong);
   color: var(--atv-text-primary);
   outline: none;
 }
 
 .atv-subject-switcher-close:focus-visible {
-  background: rgb(255 255 255 / 18%);
+  background: var(--atv-bg-hover-strong);
   color: var(--atv-text-primary);
   outline: 2px solid var(--atv-accent-bright);
   outline-offset: 2px;

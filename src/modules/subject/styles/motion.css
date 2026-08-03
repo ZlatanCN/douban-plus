@@ -7,16 +7,16 @@
   }
 
   .atv-btn-secondary:hover {
-    background: rgb(255 255 255 / 12%);
+    background: var(--atv-bg-hover-strong);
     transform: translateY(-1px);
   }
 
   .atv-comment-card:hover {
-    background: rgb(255 255 255 / 3%);
+    background: var(--atv-bg-hover);
   }
 
   .atv-review-card:hover {
-    background: rgb(255 255 255 / 3%);
+    background: var(--atv-bg-hover);
   }
 
   .atv-review-card:hover .atv-review-readmore {
@@ -29,12 +29,12 @@
   }
 
   .atv-stream-card:hover {
-    border-color: rgb(255 255 255 / 18%);
-    background: rgb(255 255 255 / 9%);
+    border-color: var(--atv-border-strong);
+    background: var(--atv-bg-hover-strong);
   }
 
   .atv-discussion-row:hover {
-    background: rgb(255 255 255 / 3%);
+    background: var(--atv-bg-hover);
   }
 
   .atv-discussion-row:hover::before {
@@ -140,7 +140,7 @@
   .atv-stickynav.is-visible:not(.is-scrolling) {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: #0a0a0c;
+    background: var(--atv-bg-primary);
   }
 
   .atv-modal-overlay,
@@ -148,7 +148,7 @@
   .atv-review-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 90%);
+    background: var(--atv-scrim-overlay-solid);
   }
 
   .atv-btn-secondary {
@@ -164,13 +164,13 @@
   .atv-series-badge {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 80%);
+    background: var(--atv-scrim-overlay);
   }
 
   .atv-trailer-label {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 80%);
+    background: var(--atv-scrim-overlay);
   }
 
   .atv-comment-expand {
@@ -186,25 +186,25 @@
   .atv-review-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 92%);
+    background: var(--atv-scrim-overlay-solid);
   }
 
   .atv-comment-card,
   .atv-review-card {
-    background: #181818;
+    background: var(--atv-bg-card);
   }
 
   .atv-review-card,
   .atv-stream-card,
   .atv-chip,
   .atv-comment-votes {
-    border-color: rgb(255 255 255 / 25%);
+    border-color: var(--atv-border-strong);
   }
 
   .atv-discussion-row {
-    border: 1px solid rgb(255 255 255 / 20%);
+    border: 1px solid var(--atv-border-strong);
     border-radius: var(--atv-radius-sm);
-    background: #181818;
+    background: var(--atv-bg-card);
   }
 
   .atv-chip {
@@ -212,13 +212,13 @@
   }
 
   .atv-comment-expand {
-    border-color: rgb(255 255 255 / 25%);
+    border-color: var(--atv-border-strong);
     background: rgb(0 0 0 / 50%);
   }
 
   .atv-btn-secondary {
-    border-color: rgb(255 255 255 / 30%);
-    background: rgb(255 255 255 / 12%);
+    border-color: var(--atv-border-emphasis);
+    background: var(--atv-bg-hover-strong);
   }
 
   .atv-series-badge {

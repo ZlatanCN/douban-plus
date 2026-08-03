@@ -5,11 +5,11 @@ const LOGIN_FRAME_CSS = `
   color-scheme: dark;
   --atv-login-bg: #1c1c1e;
   --atv-login-bg-elevated: rgba(255, 255, 255, 0.06);
-  --atv-login-border: rgba(255, 255, 255, 0.12);
-  --atv-login-border-strong: rgba(65, 190, 93, 0.32);
+  --atv-login-border: rgba(255, 255, 255, 0.16);
+  --atv-login-border-strong: rgba(65, 190, 93, 0.25);
   --atv-login-text: #ffffff;
   --atv-login-text-muted: rgba(255, 255, 255, 0.64);
-  --atv-login-text-faint: rgba(255, 255, 255, 0.42);
+  --atv-login-text-faint: rgba(255, 255, 255, 0.5);
   --atv-login-accent: #41be5d;
   --atv-login-accent-bright: #4cd97a;
   --atv-login-danger: #ff6b6b;
@@ -227,7 +227,7 @@ input::placeholder {
 .btn-account,
 .btn-submit,
 .btn-account {
-  color: #fff !important;
+  color: #062811 !important;
   background: var(--atv-login-accent) !important;
   border-color: var(--atv-login-accent) !important;
   border-radius: 999px !important;
@@ -242,7 +242,7 @@ input::placeholder {
 .btn-account:hover,
 .btn-submit:hover,
 .btn-account:hover {
-  color: #fff !important;
+  color: #062811 !important;
   background: var(--atv-login-accent-bright) !important;
   border-color: var(--atv-login-accent-bright) !important;
 }

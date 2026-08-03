@@ -8,7 +8,7 @@
   min-width: 320px;
   flex-wrap: wrap;
   align-items: stretch;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   margin-bottom: 28px;
   gap: 0;
@@ -31,19 +31,19 @@
 .atv-rating-panel-imdb:hover,
 .atv-rating-panel-rt:hover,
 .atv-rating-panel-mc:hover {
-  background: rgb(255 255 255 / 3%);
+  background: var(--atv-bg-hover);
 }
 
 .atv-rating-panel-douban {
-  border-right: 1px solid rgb(255 255 255 / 6%);
+  border-right: 1px solid var(--atv-border-subtle);
 }
 
 .atv-rating-panel-imdb {
-  border-right: 1px solid rgb(255 255 255 / 6%);
+  border-right: 1px solid var(--atv-border-subtle);
 }
 
 .atv-rating-panel-mc {
-  border-right: 1px solid rgb(255 255 255 / 6%);
+  border-right: 1px solid var(--atv-border-subtle);
 }
 
 .atv-rating-panel-logo {
@@ -79,15 +79,15 @@
 /* ── MC Score color by range ────────────────────── */
 
 .atv-rating-panel-score.is-high {
-  color: #3bb33b;
+  color: var(--atv-score-high);
 }
 
 .atv-rating-panel-score.is-medium {
-  color: #ffb800;
+  color: var(--atv-rating-gold);
 }
 
 .atv-rating-panel-score.is-low {
-  color: #fa320a;
+  color: var(--atv-score-low);
 }
 
 /* ── MC label row (score bar + Chinese word label) ── */
@@ -105,7 +105,7 @@
   height: 4px;
   flex-shrink: 0;
   border-radius: 2px;
-  background: rgb(255 255 255 / 10%);
+  background: var(--atv-bg-elevated);
 }
 
 .atv-mc-bar-fill {
@@ -115,15 +115,15 @@
 }
 
 .atv-mc-bar-fill.is-high {
-  background: #3bb33b;
+  background: var(--atv-score-high);
 }
 
 .atv-mc-bar-fill.is-medium {
-  background: #ffb800;
+  background: var(--atv-rating-gold);
 }
 
 .atv-mc-bar-fill.is-low {
-  background: #fa320a;
+  background: var(--atv-score-low);
 }
 
 .atv-mc-word-label {
@@ -238,7 +238,7 @@
 }
 
 .atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {
-  color: #ffb800;
+  color: var(--atv-rating-gold);
   opacity: 1;
 }
 
@@ -295,7 +295,7 @@
   flex-shrink: 0;
   align-self: stretch;
   margin: 2px 0;
-  background: rgb(255 255 255 / 12%);
+  background: var(--atv-border-medium);
 }
 
 @media (width <= 768px) {
@@ -350,5 +350,5 @@
   width: 120px;
   height: 22px;
   border-radius: 4px;
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
 }

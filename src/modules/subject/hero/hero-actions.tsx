@@ -124,7 +124,7 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
       <div class="atv-interest-panel" ref={interestPanelRef}>
         <div class="atv-interest-panel-header">
           <button
-            class="atv-btn atv-btn-primary is-active atv-interest-badge"
+            class="atv-btn is-active atv-interest-badge"
             onClick={() => callbacks.handleOpenInterest(state)}
             type="button"
           >

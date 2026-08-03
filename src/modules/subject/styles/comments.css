@@ -11,7 +11,7 @@
   padding: 16px 20px;
   border: none;
   border-radius: var(--atv-radius-sm);
-  background: #121214;
+  background: var(--atv-bg-card);
   transition:
     transform var(--atv-duration-hover) var(--atv-ease-out),
     background var(--atv-duration-hover) ease;
@@ -32,12 +32,12 @@
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(255 255 255 / 6%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 50%;
   background-color: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  color: #fff;
+  color: var(--atv-text-on-accent);
   font-size: 15px;
   font-weight: 600;
 }
@@ -88,7 +88,7 @@ a.atv-comment-author:hover {
   margin: 0 0 14px;
   appearance: none;
   background: none;
-  color: rgb(255 255 255 / 85%);
+  color: var(--atv-text-emphasis);
   cursor: pointer;
   font: inherit;
   font-size: 15px;
@@ -120,7 +120,7 @@ a.atv-comment-author:hover {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 8px;
   background: none;
   color: var(--atv-text-tertiary);
@@ -138,13 +138,13 @@ a.atv-comment-author:hover {
 }
 
 .atv-comment-votes:hover {
-  border-color: rgb(65 190 93 / 20%);
-  background: rgb(65 190 93 / 4%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 
 .atv-comment-votes:focus-visible {
-  outline: 2px solid rgb(65 190 93 / 75%);
+  outline: 2px solid var(--atv-accent-outline);
   outline-offset: 3px;
 }
 
@@ -153,8 +153,8 @@ a.atv-comment-author:hover {
 }
 
 .atv-comment-votes.is-voted {
-  border-color: rgb(65 190 93 / 25%);
-  background: rgb(65 190 93 / 6%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 
@@ -182,7 +182,7 @@ a.atv-comment-author:hover {
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 6%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 6px;
   appearance: none;
   backdrop-filter: blur(4px);
@@ -203,7 +203,7 @@ a.atv-comment-author:hover {
 
 .atv-comment-expand:hover {
   border-color: var(--atv-accent);
-  background: rgb(65 190 93 / 10%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent);
 }
 
@@ -229,7 +229,7 @@ a.atv-comment-author:hover {
   padding: 24px;
   border: none;
   margin: 0;
-  background: rgb(0 0 0 / 72%);
+  background: var(--atv-scrim-overlay);
   inset: 0;
 }
 
@@ -238,9 +238,9 @@ a.atv-comment-author:hover {
   width: 100%;
   max-width: 580px;
   max-height: 80vh;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 20px;
-  background: #121214;
+  background: var(--atv-bg-secondary);
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
 }
@@ -252,15 +252,15 @@ a.atv-comment-author:hover {
   right: 16px;
   width: 32px;
   height: 32px;
-  border-color: rgb(255 255 255 / 10%);
-  background: rgb(255 255 255 / 6%);
-  color: rgb(255 255 255 / 60%);
+  border-color: var(--atv-border-subtle);
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-tertiary);
 }
 
 .atv-modal-close.atv-comment-overlay-close:hover {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 12%);
-  color: #fff;
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
+  color: var(--atv-text-primary);
 }
 
 .atv-modal-close.atv-comment-overlay-close svg {
@@ -289,7 +289,7 @@ a.atv-comment-author:hover {
   background-position: center;
   background-size: cover;
   box-shadow: 0 2px 6px rgb(0 0 0 / 15%);
-  color: #fff;
+  color: var(--atv-text-primary);
   font-size: 18px;
   font-weight: 600;
   transition:
@@ -333,7 +333,7 @@ a.atv-comment-overlay-author:hover {
 
 .atv-comment-overlay-body {
   padding: 20px 28px;
-  color: rgb(255 255 255 / 85%);
+  color: var(--atv-text-emphasis);
   font-size: 15px;
   line-height: 1.75;
   overflow-wrap: break-word;
@@ -358,10 +358,10 @@ a.atv-comment-overlay-author:hover {
   display: inline-flex;
   align-items: center;
   padding: 6px 14px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 100px;
   appearance: none;
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
@@ -377,13 +377,13 @@ a.atv-comment-overlay-author:hover {
 }
 
 .atv-comment-overlay-votes:hover {
-  border-color: rgb(65 190 93 / 20%);
-  background: rgb(65 190 93 / 4%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 
 .atv-comment-overlay-votes:focus-visible {
-  outline: 2px solid rgb(65 190 93 / 75%);
+  outline: 2px solid var(--atv-accent-outline);
   outline-offset: 3px;
 }
 
@@ -392,8 +392,8 @@ a.atv-comment-overlay-author:hover {
 }
 
 .atv-comment-overlay-votes.is-voted {
-  border-color: rgb(65 190 93 / 25%);
-  background: rgb(65 190 93 / 6%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 

@@ -23,7 +23,7 @@
   padding: 8px 16px;
   border-radius: 8px;
   backdrop-filter: blur(12px);
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
   clip-path: none;
   color: var(--atv-text-primary);
   font-size: 14px;
@@ -71,8 +71,8 @@
 }
 
 #atv-douban-root .atv-subject-reviews-write {
-  border-color: rgb(76 217 122 / 28%);
-  background: rgb(76 217 122 / 10%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -146,7 +146,7 @@
 }
 
 .atv-subject-reviews-option.is-active {
-  background: rgb(76 217 122 / 10%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -208,7 +208,8 @@
   display: flex;
   min-height: 42px;
   align-items: center;
-  border-bottom: 1px solid rgb(255 185 64 / 24%);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);
   color: var(--atv-text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -369,8 +370,8 @@
 
 .atv-review-card.is-directory:focus-visible,
 .atv-review-card.is-directory:has(.atv-review-open-button:focus-visible) {
-  background: rgb(255 255 255 / 3%);
-  outline: 1px solid rgb(255 255 255 / 12%);
+  background: var(--atv-bg-hover);
+  outline: 1px solid var(--atv-border-medium);
   outline-offset: 2px;
 }
 
@@ -418,7 +419,7 @@
 }
 
 .atv-review-card.is-directory .atv-review-time {
-  color: rgb(255 255 255 / 42%);
+  color: var(--atv-text-tertiary);
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
@@ -444,7 +445,7 @@
 .atv-review-card.is-directory .atv-review-excerpt {
   max-width: 672px;
   margin: 0;
-  color: rgb(255 255 255 / 68%);
+  color: var(--atv-text-secondary);
   font-size: 14px;
   -webkit-line-clamp: 4;
   line-height: 1.76;
@@ -476,13 +477,13 @@
 @media (hover: hover) and (pointer: fine) {
   #atv-douban-root .atv-subject-reviews-back:hover,
   #atv-douban-root .atv-subject-reviews-write:hover {
-    border-color: rgb(255 255 255 / 22%);
-    background: rgb(255 255 255 / 6%);
+    border-color: var(--atv-border-strong);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 
   .atv-review-card.is-directory:hover {
-    background: rgb(255 255 255 / 1.5%);
+    background: var(--atv-bg-hover);
   }
 
   .atv-review-card.is-directory:hover .atv-review-readmore {

@@ -18,7 +18,7 @@ dialog::backdrop {
   margin: 0;
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);
-  background: rgb(0 0 0 / 72%);
+  background: var(--atv-scrim-overlay);
   inset: 0;
   overscroll-behavior: contain;
 }
@@ -30,11 +30,11 @@ dialog::backdrop {
   max-height: min(736px, calc(100dvh - 48px));
   box-sizing: border-box;
   padding: 30px 22px 22px;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 20px;
   background: var(--atv-bg-secondary);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 8%),
+    inset 0 1px 0 var(--atv-border-subtle),
     0 24px 80px rgb(0 0 0 / 55%);
   color: var(--atv-text-primary);
   font-family:
@@ -55,15 +55,15 @@ dialog::backdrop {
   right: 12px;
   width: 32px;
   height: 32px;
-  border-color: rgb(255 255 255 / 10%);
-  background: rgb(255 255 255 / 6%);
-  color: rgb(255 255 255 / 60%);
+  border-color: var(--atv-border-subtle);
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-tertiary);
 }
 
 .atv-modal-close.atv-login-modal-close:hover {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 12%);
-  color: #fff;
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
+  color: var(--atv-text-primary);
 }
 
 .atv-login-modal-title {
@@ -110,7 +110,7 @@ dialog::backdrop {
   position: absolute;
   z-index: 2;
   border-radius: 10px;
-  background: rgb(255 255 255 / 3.5%);
+  background: var(--atv-bg-hover);
   content: "";
   inset: 10px;
   opacity: 1;
@@ -194,7 +194,7 @@ dialog::backdrop {
   .atv-login-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 90%);
+    background: var(--atv-scrim-overlay-solid);
   }
 }
 
@@ -202,6 +202,6 @@ dialog::backdrop {
   .atv-login-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 92%);
+    background: var(--atv-scrim-overlay-solid);
   }
 }

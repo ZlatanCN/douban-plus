@@ -181,7 +181,7 @@
 .atv-credit-avatar {
   width: 56px;
   height: 56px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   background: var(--atv-bg-tertiary);
   object-fit: cover;
@@ -294,7 +294,7 @@
 
 @media (hover: hover) and (pointer: fine) {
   .atv-credit-back:hover {
-    border-color: rgb(76 217 122 / 58%);
+    border-color: var(--atv-accent-border-strong);
     color: var(--atv-accent-bright);
   }
 

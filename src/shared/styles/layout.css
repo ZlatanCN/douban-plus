@@ -128,7 +128,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1c1c1e;
+  background: var(--atv-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
@@ -145,6 +145,6 @@
 }
 
 * {
-  scrollbar-color: #3a3a3c #1c1c1e;
+  scrollbar-color: #3a3a3c var(--atv-bg-secondary);
   scrollbar-width: thin;
 }

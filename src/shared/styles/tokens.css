@@ -1,19 +1,49 @@
 :root {
+  /* ---------- Surfaces: page → card → modal → raised ---------- */
   --atv-bg-primary: #0c0a09;
+  --atv-bg-card: #121214;
   --atv-bg-secondary: #1c1c1e;
   --atv-bg-tertiary: #2c2c2e;
   --atv-bg-elevated: rgb(255 255 255 / 6%);
+  --atv-bg-hover: rgb(255 255 255 / 3%);
+  --atv-bg-hover-strong: rgb(255 255 255 / 12%);
+  --atv-bg-nav: rgb(10 10 12 / 74%);
+  --atv-bg-nav-solid: rgb(10 10 12 / 95%);
+  --atv-scrim-overlay: rgb(0 0 0 / 78%);
+  --atv-scrim-overlay-solid: rgb(0 0 0 / 92%);
+  --atv-surface-paper: #d9dce3;
+
+  /* ---------- Text ladder: primary → emphasis → secondary → tertiary ---------- */
   --atv-text-primary: #fff;
+  --atv-text-emphasis: rgb(255 255 255 / 85%);
   --atv-text-secondary: rgb(255 255 255 / 72%);
-  --atv-text-tertiary: rgb(255 255 255 / 45%);
+  --atv-text-tertiary: rgb(255 255 255 / 50%);
+
+  /* ---------- Interaction accents ---------- */
   --atv-accent: #41be5d;
   --atv-accent-bright: #4cd97a;
+  --atv-text-on-accent: #062811;
   --atv-accent-glow: rgb(65 190 93 / 35%);
+  --atv-accent-hover: rgb(65 190 93 / 6%);
+  --atv-accent-active: rgb(76 217 122 / 10%);
+  --atv-accent-border: rgb(65 190 93 / 25%);
+  --atv-accent-border-strong: rgb(76 217 122 / 58%);
+  --atv-accent-outline: rgb(65 190 93 / 75%);
+
+  /* ---------- Rating / status colors ---------- */
   --atv-rating-gold: #ffb800;
+  --atv-rating-empty: rgb(255 255 255 / 35%);
+  --atv-score-high: #3bb33b;
+  --atv-score-low: #fa320a;
+  --atv-danger: #ff453a;
   --atv-content-caution: #c68f4e;
   --atv-caution-surface: rgb(198 143 78 / 10%);
+
+  /* ---------- Borders: subtle → medium → strong → emphasis ---------- */
   --atv-border-subtle: rgb(255 255 255 / 8%);
   --atv-border-medium: rgb(255 255 255 / 16%);
+  --atv-border-strong: rgb(255 255 255 / 22%);
+  --atv-border-emphasis: rgb(255 255 255 / 34%);
   --atv-radius-sm: 8px;
   --atv-radius-md: 12px;
   --atv-radius-lg: 16px;

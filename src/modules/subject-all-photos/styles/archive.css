@@ -135,7 +135,7 @@
   }
 
   .atv-photo-archive-upload:hover {
-    border-color: rgb(76 217 122 / 58%);
+    border-color: var(--atv-accent-border-strong);
     color: var(--atv-accent-bright);
   }
 }
@@ -185,6 +185,6 @@
 
 @media (prefers-contrast: more) {
   .atv-photo-archive-upload {
-    border-color: rgb(255 255 255 / 34%);
+    border-color: var(--atv-border-emphasis);
   }
 }
