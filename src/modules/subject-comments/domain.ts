@@ -31,6 +31,8 @@ type SubjectCommentTime = {
 type SubjectCommentVotes = {
   canVote: boolean;
   count: number;
+  requiresLogin: boolean;
+  voted: boolean;
 };
 
 type SubjectComment = {

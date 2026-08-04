@@ -207,7 +207,12 @@ const SubjectCommentsPage = ({
             ) : null}
             <div class="atv-subject-comments-results" key={navigationVersion}>
               {data.comments.map((comment) => (
-                <Comment comment={comment} doc={doc} key={comment.id} />
+                <Comment
+                  comment={comment}
+                  doc={doc}
+                  key={comment.id}
+                  onLoginRequired={() => requestLogin("给短评投票")}
+                />
               ))}
               <CommentsPagination
                 isBrowsingLocked={isBrowsingLocked}

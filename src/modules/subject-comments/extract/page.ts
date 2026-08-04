@@ -3,6 +3,7 @@ import { $$, safeText } from "@/shared/utils/dom";
 import type {
   SubjectComment,
   SubjectCommentStatus,
+  SubjectCommentVotes,
   SubjectCommentsBrowseOption,
   SubjectCommentsPageData,
   SubjectCommentsPaginationLink,
@@ -192,6 +193,20 @@ const ratingFromComment = (comment: Element): number | null => {
   return rating ? Number(rating) : null;
 };
 
+const votesFromComment = (item: Element): SubjectCommentVotes => {
+  const canVote = item.querySelector(".vote-comment") !== null;
+  const count = Number(safeText(item.querySelector(".vote-count")));
+  return {
+    canVote,
+    count: Number.isSafeInteger(count) && count >= 0 ? count : 0,
+    requiresLogin:
+      !canVote && item.querySelector(".comment-vote .a_show_login") !== null,
+    voted:
+      !canVote &&
+      /已投票|已赞|已推荐/u.test(safeText(item.querySelector(".comment-vote"))),
+  };
+};
+
 const extractComment = (
   item: HTMLElement,
   pageHref: string
@@ -214,7 +229,6 @@ const extractComment = (
   );
   const time = commentInfo.querySelector<HTMLElement>(".comment-time");
   const location = safeText(commentInfo.querySelector(".comment-location"));
-  const voteCount = Number(safeText(item.querySelector(".vote-count")));
   const avatar = item.querySelector<HTMLImageElement>(".avatar img[src]");
 
   return {
@@ -237,10 +251,7 @@ const extractComment = (
           label: time.title || safeText(time),
         }
       : null,
-    votes: {
-      canVote: item.querySelector(".vote-comment") !== null,
-      count: Number.isSafeInteger(voteCount) && voteCount >= 0 ? voteCount : 0,
-    },
+    votes: votesFromComment(item),
   };
 };
 
