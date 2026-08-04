@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { SubjectReviewsPageData } from "@/modules/subject-reviews/domain";
 import { SubjectReviewsPage } from "@/modules/subject-reviews/presentation/page";
-import type { NavigationState } from "@/modules/subject-reviews/runtime/navigation";
+import type { SubjectReviewsNavigationState } from "@/modules/subject-reviews/runtime/navigation";
 
 import { createTestDoc, mockCookie } from "../../helpers/doc";
 
@@ -69,7 +69,7 @@ const data: SubjectReviewsPageData = {
   writeHref: "https://movie.douban.com/subject/3016187/new_review",
 };
 
-const navigation = (): NavigationState => ({
+const navigation = (): SubjectReviewsNavigationState => ({
   data,
   dismissFailure: () => null,
   failure: null,

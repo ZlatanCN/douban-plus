@@ -16,7 +16,7 @@ import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 import { useVoteState } from "@/shared/voting/use-vote-state";
 
 import type { SubjectReviewsBrowseOption } from "../domain";
-import type { NavigationState } from "../runtime/navigation";
+import type { SubjectReviewsNavigationState } from "../runtime/navigation";
 import { ReviewsFilters } from "./filters";
 import { ReviewsPageHeader } from "./page-header";
 import { getPaginationNav } from "./pagination";
@@ -30,7 +30,7 @@ type LoginRequest = {
 };
 
 const reviewFromDirectory = (
-  review: NavigationState["data"]["reviews"][number]
+  review: SubjectReviewsNavigationState["data"]["reviews"][number]
 ): Review => ({
   avatar: review.author.avatar ?? "",
   content: review.content,
@@ -59,7 +59,7 @@ const SubjectReviewsPage = ({
   navigation,
 }: {
   doc: Document;
-  navigation: NavigationState;
+  navigation: SubjectReviewsNavigationState;
 }) => {
   const { data } = navigation;
   const sticky = useStickyNavigation(doc, []);
