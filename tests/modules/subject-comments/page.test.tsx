@@ -33,7 +33,12 @@ const pageData: SubjectCommentsPageData = {
         href: "https://movie.douban.com/comment/1001/",
         label: "2026-07-28 10:00:00",
       },
-      votes: { canVote: true, count: 42 },
+      votes: {
+        canVote: true,
+        count: 42,
+        requiresLogin: false,
+        voted: false,
+      },
     },
   ],
   pagination: [
@@ -86,6 +91,7 @@ const pageData: SubjectCommentsPageData = {
       active: false,
       href: "https://movie.douban.com/subject/3016187/comments?sort=time&status=P",
       label: "最新",
+      requiresLogin: true,
     },
   ],
   statuses: [
@@ -131,7 +137,7 @@ const nativePage = `
       </div>
       <div class="title_line"><div class="Comments-sortby">
         <span>热门</span>
-        <a href="https://movie.douban.com/subject/3016187/comments?sort=time&status=P">最新</a>
+        <a class="j a_show_login" href="https://movie.douban.com/subject/3016187/comments?sort=time&status=P">最新</a>
       </div></div>
       <div class="comment-filter">
         <label><input checked type="radio" value=""><span>全部</span></label>
@@ -153,6 +159,11 @@ const nativePage = `
   </main></div>
 `;
 
+const loggedOutNativePage = nativePage.replace(
+  '<a class="j vote-comment" href="javascript:;">有用</a>',
+  '<a class="j a_show_login" href="javascript:;">有用</a>'
+);
+
 describe(extractSubjectCommentsPage, () => {
   it("extracts the complete native reading state and interaction exits", () => {
     const { cleanup, doc } = createTestDoc(
@@ -163,6 +174,46 @@ describe(extractSubjectCommentsPage, () => {
     expect(extractSubjectCommentsPage(doc)).toStrictEqual(pageData);
 
     cleanup();
+  });
+
+  it("distinguishes an unauthenticated vote guard from an existing vote", () => {
+    const loggedOut = createTestDoc(
+      loggedOutNativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const voted = createTestDoc(
+      nativePage.replace(
+        '<a class="j vote-comment" href="javascript:;">有用</a>',
+        "<span>已投票</span>"
+      ),
+      "/subject/3016187/comments?status=P"
+    );
+
+    expect(
+      extractSubjectCommentsPage(
+        loggedOut.doc,
+        "https://movie.douban.com/subject/3016187/comments?status=P"
+      )?.comments[0]?.votes
+    ).toStrictEqual({
+      canVote: false,
+      count: 42,
+      requiresLogin: true,
+      voted: false,
+    });
+    expect(
+      extractSubjectCommentsPage(
+        voted.doc,
+        "https://movie.douban.com/subject/3016187/comments?status=P"
+      )?.comments[0]?.votes
+    ).toStrictEqual({
+      canVote: false,
+      count: 42,
+      requiresLogin: false,
+      voted: true,
+    });
+
+    loggedOut.cleanup();
+    voted.cleanup();
   });
 
   it("refuses incomplete documents so the native short-comments page remains usable", () => {
@@ -256,6 +307,168 @@ describe(SubjectCommentsPage, () => {
     render(null, root);
   });
 
+  it("does not render the logged-out native vote guard as an existing vote", () => {
+    const { cleanup, doc } = createTestDoc(
+      loggedOutNativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(<SubjectCommentsPage data={data} doc={doc} />, root);
+
+    const vote = root.querySelector<HTMLButtonElement>(
+      ".atv-subject-comments-vote"
+    );
+    expect({
+      ariaPressed: vote?.getAttribute("aria-pressed"),
+      disabled: vote?.disabled,
+      isVoted: vote?.classList.contains("is-voted"),
+    }).toStrictEqual({
+      ariaPressed: "false",
+      disabled: false,
+      isVoted: false,
+    });
+
+    clearCookie();
+    cleanup();
+  });
+
+  it("opens the login modal when a logged-out vote button is clicked", async () => {
+    const { cleanup, doc } = createTestDoc(
+      loggedOutNativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(<SubjectCommentsPage data={data} doc={doc} />, root);
+    root
+      .querySelector<HTMLButtonElement>(".atv-subject-comments-vote")
+      ?.click();
+
+    await vi.waitFor(() =>
+      expect(root.querySelector("#atv-login-modal-desc")?.textContent).toBe(
+        "登录后才能给短评投票。"
+      )
+    );
+
+    clearCookie();
+    cleanup();
+  });
+
+  it("opens the login modal instead of navigating for an unauthenticated native login sort", async () => {
+    const { cleanup, doc } = createTestDoc(
+      nativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+    const navigate = vi.fn<(href: string, label: string) => void>();
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(
+      <SubjectCommentsPage
+        doc={doc}
+        navigation={{
+          data,
+          dismissFailure: vi.fn<() => void>(),
+          failure: null,
+          navigate,
+          pending: null,
+          refresh: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
+          retry: vi.fn<() => void>(),
+          version: 0,
+        }}
+      />,
+      root
+    );
+
+    root
+      .querySelector<HTMLAnchorElement>(
+        ".atv-subject-comments-sort-option[href*='sort=time']"
+      )
+      ?.click();
+
+    await vi.waitFor(() =>
+      expect(root.querySelector("#atv-login-modal-desc")?.textContent).toBe(
+        "登录后才能查看最新短评。"
+      )
+    );
+    expect(navigate).not.toHaveBeenCalled();
+
+    clearCookie();
+    cleanup();
+  });
+
+  it("navigates for a signed-in native login sort", () => {
+    const { cleanup, doc } = createTestDoc(
+      nativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "ck=token");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+    const navigate = vi.fn<(href: string, label: string) => void>();
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(
+      <SubjectCommentsPage
+        doc={doc}
+        navigation={{
+          data,
+          dismissFailure: vi.fn<() => void>(),
+          failure: null,
+          navigate,
+          pending: null,
+          refresh: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
+          retry: vi.fn<() => void>(),
+          version: 0,
+        }}
+      />,
+      root
+    );
+
+    root
+      .querySelector<HTMLAnchorElement>(
+        ".atv-subject-comments-sort-option[href*='sort=time']"
+      )
+      ?.click();
+
+    expect(navigate).toHaveBeenCalledWith(
+      "https://movie.douban.com/subject/3016187/comments?status=P&sort=time",
+      "最新"
+    );
+
+    clearCookie();
+    cleanup();
+  });
+
   it("renders all three browsing axes, full comment text, and native exits", () => {
     render(<SubjectCommentsPage data={pageData} doc={document} />, root);
 
@@ -289,7 +502,7 @@ describe(SubjectCommentsPage, () => {
       failure: null,
       navigate,
       pending: null,
-      refresh: vi.fn<() => Promise<void>>().mockResolvedValue(),
+      refresh: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
       retry: vi.fn<() => void>(),
       version: 0,
     };

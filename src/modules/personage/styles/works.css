@@ -1,17 +1,19 @@
 /* ---------- WorkRail (代表作品) ---------- */
 
-.atv-personage-work-rail {
-  display: flex;
-  flex-wrap: nowrap;
+.atv-carousel.atv-personage-work-rail {
+  /* Compound selector outranks the shared `.atv-carousel` gap regardless of
+     manifest import order (layout.css is imported later than this file). */
   gap: 20px;
 }
 
 .atv-personage-work-card {
-  /* Keep sparse selections at the same size as a full five-work rail. */
+  /* Five cards fill the rail at 20px gaps; larger selections overflow into
+     the rail's own horizontal scroll instead of being clipped. */
   flex: 0 0 max(140px, calc((100% - 80px) / 5));
   color: inherit;
   cursor: pointer;
   opacity: 0;
+  scroll-snap-align: start;
   text-decoration: none;
   transform: translateY(8px);
   transition:
@@ -60,15 +62,10 @@
   border-radius: 0 4px 4px 0;
   backdrop-filter: blur(2px);
   background: rgb(0 0 0 / 60%);
-  color: #fff;
-  font-family:
-    "SF Pro Display",
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    sans-serif;
-  font-size: 13px;
-  font-weight: 700;
+  color: var(--atv-text-primary);
+  font-family: var(--atv-font-display);
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: 0.01em;
   line-height: 1;
 }
@@ -88,15 +85,10 @@
   border-radius: 20px;
   backdrop-filter: blur(4px);
   background: rgb(0 0 0 / 65%);
-  color: #fff;
-  font-family:
-    "SF Pro Display",
-    -apple-system,
-    BlinkMacSystemFont,
-    system-ui,
-    sans-serif;
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--atv-text-primary);
+  font-family: var(--atv-font-display);
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: 0.02em;
   line-height: 1;
 }
@@ -106,8 +98,8 @@
   overflow: hidden;
   margin-top: 10px;
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   line-height: 1.3;
   text-overflow: ellipsis;
@@ -118,6 +110,6 @@
   display: block;
   margin-top: 4px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
 }

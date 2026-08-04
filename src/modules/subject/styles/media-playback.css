@@ -37,7 +37,7 @@
   width: 24px;
   height: 24px;
   margin-left: 3px;
-  color: #fff;
+  color: var(--atv-text-primary);
 }
 
 .atv-trailer-label {
@@ -48,9 +48,9 @@
   border-radius: 6px;
   backdrop-filter: blur(4px);
   background: rgb(0 0 0 / 60%);
-  color: #fff;
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
 }
 
 /* ---------- Video Modal ---------- */

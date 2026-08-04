@@ -10,6 +10,7 @@ type SubjectCommentsBrowseOption = {
   active: boolean;
   href: string;
   label: string;
+  requiresLogin?: boolean;
 };
 
 type SubjectCommentsScoreFilter = SubjectCommentsBrowseOption & {
@@ -30,6 +31,8 @@ type SubjectCommentTime = {
 type SubjectCommentVotes = {
   canVote: boolean;
   count: number;
+  requiresLogin: boolean;
+  voted: boolean;
 };
 
 type SubjectComment = {

@@ -38,9 +38,9 @@
 .atv-review-modal-body .image-caption {
   display: inline-block;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-style: italic;
-  font-weight: 400;
+  font-weight: var(--atv-font-weight-regular);
   letter-spacing: 0.02em;
   line-height: 1.6;
 }
@@ -49,14 +49,14 @@
 .atv-review-modal-body .subject-container {
   overflow: hidden;
   padding-left: 2px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   border-left: 2px solid var(--atv-accent);
   margin: 24px 0;
   background: linear-gradient(
     105deg,
-    rgb(65 190 93 / 7%),
-    rgb(18 18 20 / 94%) 42%
+    var(--atv-accent-hover),
+    color-mix(in srgb, var(--atv-bg-card) 94%, transparent) 42%
   );
 }
 
@@ -77,7 +77,7 @@
 .atv-review-modal-body .subject-wrapper > a:hover,
 .atv-review-modal-body .subject-wrapper > a:active {
   border-bottom: 0;
-  background: rgb(255 255 255 / 3%);
+  background: var(--atv-bg-hover);
   color: inherit;
 }
 
@@ -115,8 +115,8 @@
   flex-wrap: wrap;
   align-items: baseline;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 650;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 4px;
   letter-spacing: 0.01em;
   line-height: 1.35;
@@ -124,8 +124,8 @@
 
 .atv-review-modal-body .title-tail {
   color: var(--atv-text-tertiary);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-review-modal-body .subject-rating {
@@ -140,7 +140,7 @@
 .atv-review-modal-body .rating-star2::before,
 .atv-review-modal-body .rating-star0::before {
   content: "★";
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
 }
 
 .atv-review-modal-body .rating-star1::before {
@@ -151,7 +151,7 @@
   background: linear-gradient(
     90deg,
     var(--atv-rating-gold) 50%,
-    rgb(255 255 255 / 18%) 50%
+    var(--atv-rating-empty) 50%
   );
   -webkit-background-clip: text;
   background-clip: text;
@@ -159,21 +159,21 @@
 }
 
 .atv-review-modal-body .rating-star0::before {
-  color: rgb(255 255 255 / 18%);
+  color: var(--atv-rating-empty);
 }
 
 .atv-review-modal-body .rating-score {
   margin-left: 6px;
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-variant-numeric: tabular-nums;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-modal-body .subject-summary {
   margin-top: 7px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   line-height: 1.55;
 }
 
@@ -183,7 +183,7 @@
 
 .atv-review-modal-body .subject-caption {
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-style: italic;
   line-height: 1.55;
 }
@@ -191,7 +191,7 @@
 /* ── Review content links (Douban a.link / generic) ── */
 .atv-review-modal-body a:link,
 .atv-review-modal-body a:visited {
-  border-bottom: 1px solid rgb(65 190 93 / 25%);
+  border-bottom: 1px solid var(--atv-accent-border);
   background: transparent;
   color: var(--atv-accent);
   overflow-wrap: break-word;
@@ -218,16 +218,16 @@
 .atv-review-modal-body h3 {
   margin: 28px 0 12px;
   color: var(--atv-text-primary);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
 .atv-review-modal-body h4 {
   margin: 24px 0 10px;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -235,8 +235,8 @@
 .atv-review-modal-body h6 {
   margin: 20px 0 8px;
   color: var(--atv-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -276,8 +276,8 @@
 /* --- Inline Text Semantics --- */
 .atv-review-modal-body strong,
 .atv-review-modal-body b {
-  color: rgb(255 255 255 / 92%);
-  font-weight: 700;
+  color: var(--atv-text-primary);
+  font-weight: var(--atv-font-weight-bold);
 }
 
 .atv-review-modal-body em,
@@ -330,10 +330,8 @@
 .atv-review-modal-body code {
   padding: 2px 6px;
   border-radius: 4px;
-  background: rgb(255 255 255 / 6%);
-  font-family:
-    "SF Mono", Monaco, "Cascadia Code", "JetBrains Mono", "Fira Code", Consolas,
-    monospace;
+  background: var(--atv-bg-elevated);
+  font-family: var(--atv-font-mono);
   font-size: 0.9em;
   overflow-wrap: break-word;
 }
@@ -343,7 +341,7 @@
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-sm);
   margin: 0 0 20px;
-  background: rgb(0 0 0 / 40%);
+  background: var(--atv-bg-card);
   line-height: 1.6;
   -webkit-overflow-scrolling: touch;
   overflow-x: auto;
@@ -352,7 +350,7 @@
 .atv-review-modal-body pre code {
   padding: 0;
   background: none;
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
   word-break: normal;
 }
 
@@ -371,7 +369,7 @@
 .atv-review-modal-body th {
   padding: 10px 14px;
   color: var(--atv-text-primary);
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
   text-align: left;
   white-space: nowrap;
 }
@@ -379,7 +377,7 @@
 .atv-review-modal-body td {
   padding: 10px 14px;
   border-bottom: 1px solid var(--atv-border-subtle);
-  color: rgb(255 255 255 / 82%);
+  color: var(--atv-text-emphasis);
 }
 
 .atv-review-modal-body tbody tr:last-child td {
@@ -390,14 +388,14 @@
 .atv-review-modal-body .review-content p,
 .atv-review-modal-body .review-content div,
 .atv-review-modal-body .review-content span {
-  color: rgb(255 255 255 / 82%);
+  color: var(--atv-text-emphasis);
 }
 
 .atv-review-modal-body .spoiler-tip {
   margin-bottom: 12px;
   color: var(--atv-content-caution);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.03em;
 }
 
@@ -410,8 +408,8 @@
 
 .atv-review-modal-body .main-hd a.name {
   color: var(--atv-accent);
-  font-size: 14px;
-  font-weight: 500;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
   text-decoration: none;
 }
 
@@ -424,7 +422,7 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 20px;
-  border-top: 1px solid rgb(255 255 255 / 4%);
+  border-top: 1px solid var(--atv-border-subtle);
   margin-top: 28px;
 }
 
@@ -440,8 +438,8 @@
 
 #atv-douban-root .atv-review-modal-link-a {
   background: transparent;
-  color: rgb(255 255 255 / 50%);
-  font-size: 13px;
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption);
   text-decoration: none;
   transition: color var(--atv-duration-feedback) ease;
 }
@@ -449,7 +447,7 @@
 #atv-douban-root .atv-review-modal-link-a:link,
 #atv-douban-root .atv-review-modal-link-a:visited {
   background: transparent;
-  color: rgb(255 255 255 / 50%);
+  color: var(--atv-text-tertiary);
 }
 
 #atv-douban-root .atv-review-modal-link-a:hover,
@@ -471,27 +469,27 @@
   height: 14px;
 }
 
-.atv-review-modal-body.is-skeleton {
+.atv-review-modal-body.is-loading {
   position: relative;
   min-height: 140px;
   color: transparent;
 }
 
-.atv-review-modal-body.is-skeleton::before,
-.atv-review-modal-body.is-skeleton::after {
+.atv-review-modal-body.is-loading::before,
+.atv-review-modal-body.is-loading::after {
   display: block;
   height: 14px;
   border-radius: 4px;
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
   content: "";
 }
 
-.atv-review-modal-body.is-skeleton::before {
+.atv-review-modal-body.is-loading::before {
   width: 92%;
   margin-bottom: 14px;
 }
 
-.atv-review-modal-body.is-skeleton::after {
+.atv-review-modal-body.is-loading::after {
   width: 68%;
 }
 
@@ -521,15 +519,15 @@
   align-items: center;
   justify-content: center;
   padding: 0 18px;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 999px;
   appearance: none;
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     color var(--atv-duration-feedback) ease,
     border-color var(--atv-duration-feedback) ease,
@@ -538,8 +536,8 @@
 
 .atv-review-modal-retry:hover,
 .atv-review-modal-retry:focus-visible {
-  border-color: rgb(65 190 93 / 35%);
-  background: rgb(65 190 93 / 8%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 

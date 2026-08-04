@@ -11,7 +11,7 @@
   margin: 0;
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);
-  background: rgb(0 0 0 / 78%);
+  background: var(--atv-scrim-overlay);
   inset: 0;
 }
 
@@ -75,8 +75,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  color: #fff;
-  font-size: 14px;
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-body-sm);
   gap: 10px;
   text-shadow: 0 1px 8px rgb(0 0 0 / 65%);
 }
@@ -109,11 +109,11 @@
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid var(--atv-border-strong);
   border-radius: 50%;
   appearance: none;
-  background: rgb(255 255 255 / 8%);
-  color: #fff;
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-primary);
   cursor: pointer;
   font: inherit;
   -webkit-tap-highlight-color: transparent;
@@ -133,9 +133,9 @@
 }
 
 .atv-modal-close:hover {
-  border-color: rgb(255 255 255 / 30%);
-  background: rgb(255 255 255 / 16%);
-  color: #fff;
+  border-color: var(--atv-border-emphasis);
+  background: var(--atv-bg-hover-strong);
+  color: var(--atv-text-primary);
 }
 
 .atv-modal-close:active {

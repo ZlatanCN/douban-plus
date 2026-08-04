@@ -23,11 +23,11 @@
   padding: 8px 16px;
   border-radius: 8px;
   backdrop-filter: blur(12px);
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
   clip-path: none;
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 650;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   outline: 2px solid var(--atv-accent-bright);
   outline-offset: 2px;
   text-decoration: none;
@@ -60,8 +60,8 @@
   border-radius: 999px;
   background: transparent;
   color: var(--atv-text-primary);
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 6px;
   transition:
     border-color var(--atv-duration-feedback) var(--atv-ease-out),
@@ -71,8 +71,8 @@
 }
 
 #atv-douban-root .atv-subject-reviews-write {
-  border-color: rgb(76 217 122 / 28%);
-  background: rgb(76 217 122 / 10%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -86,9 +86,9 @@
 .atv-subject-reviews-controls h2 {
   margin: 0;
   color: var(--atv-accent-bright);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -100,10 +100,10 @@
   max-width: 980px;
   margin: 16px 0 0;
   color: var(--atv-text-primary);
-  font-size: clamp(46px, 7vw, 92px);
-  font-weight: 700;
+  font-size: var(--atv-type-display);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.055em;
-  line-height: 0.98;
+  line-height: var(--atv-line-height-display);
   text-wrap: balance;
 }
 
@@ -137,8 +137,8 @@
   padding: 4px 8px;
   border-radius: 7px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   transition:
     transform var(--atv-duration-press) var(--atv-ease-out),
     color var(--atv-duration-feedback) var(--atv-ease-out),
@@ -146,7 +146,7 @@
 }
 
 .atv-subject-reviews-option.is-active {
-  background: rgb(76 217 122 / 10%);
+  background: var(--atv-accent-active);
   color: var(--atv-accent-bright);
 }
 
@@ -208,10 +208,11 @@
   display: flex;
   min-height: 42px;
   align-items: center;
-  border-bottom: 1px solid rgb(255 185 64 / 24%);
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   gap: 12px;
 }
 
@@ -226,7 +227,7 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
-  font-weight: 700;
+  font-weight: var(--atv-font-weight-bold);
 }
 
 .atv-subject-reviews-empty {
@@ -241,7 +242,7 @@
 
 .atv-subject-reviews-empty a {
   color: var(--atv-accent-bright);
-  font-weight: 650;
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-subject-reviews-pagination {
@@ -268,9 +269,9 @@
   align-items: center;
   padding: 4px 6px;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-variant-numeric: tabular-nums;
-  font-weight: 400;
+  font-weight: var(--atv-font-weight-regular);
   text-decoration: none;
   transition: color var(--atv-duration-feedback) ease;
 }
@@ -288,7 +289,7 @@
 .atv-subject-reviews-pagination-next {
   padding: 6px 0;
   color: var(--atv-text-secondary);
-  font-weight: 500;
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-subject-reviews-pagination-disabled {
@@ -303,9 +304,9 @@
 .atv-subject-reviews-pagination span[aria-current="page"] {
   padding: 4px 6px;
   color: var(--atv-text-primary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-variant-numeric: tabular-nums;
-  font-weight: 700;
+  font-weight: var(--atv-font-weight-bold);
 }
 
 .atv-subject-reviews-pagination
@@ -318,8 +319,8 @@
   align-items: center;
   padding: 4px 2px;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
-  font-weight: 400;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-regular);
 }
 
 /* Condensed mode: page indicator */
@@ -327,7 +328,7 @@
   display: inline-flex;
   align-items: center;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   font-variant-numeric: tabular-nums;
   gap: 2px;
   pointer-events: none;
@@ -336,7 +337,7 @@
 .atv-subject-reviews-pagination-sep {
   margin: 0 1px;
   color: var(--atv-border-subtle);
-  font-size: 11px;
+  font-size: var(--atv-type-micro);
 }
 
 .atv-review-card.is-directory {
@@ -369,8 +370,8 @@
 
 .atv-review-card.is-directory:focus-visible,
 .atv-review-card.is-directory:has(.atv-review-open-button:focus-visible) {
-  background: rgb(255 255 255 / 3%);
-  outline: 1px solid rgb(255 255 255 / 12%);
+  background: var(--atv-bg-hover);
+  outline: 1px solid var(--atv-border-medium);
   outline-offset: 2px;
 }
 
@@ -391,7 +392,7 @@
 .atv-review-card.is-directory .atv-review-avatar {
   width: 32px;
   height: 32px;
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-review-card.is-directory .atv-review-meta {
@@ -399,8 +400,8 @@
 }
 
 .atv-review-card.is-directory .atv-review-author {
-  font-size: 13px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-card.is-directory .atv-review-directory-meta-line {
@@ -418,8 +419,8 @@
 }
 
 .atv-review-card.is-directory .atv-review-time {
-  color: rgb(255 255 255 / 42%);
-  font-size: 11px;
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-micro);
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
   line-height: 1.38;
@@ -435,7 +436,7 @@
 .atv-review-card.is-directory .atv-review-title {
   margin: 0 0 8px;
   font-size: clamp(18px, 1.7vw, 21px);
-  font-weight: 650;
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.018em;
   -webkit-line-clamp: 2;
   line-height: 1.28;
@@ -444,8 +445,8 @@
 .atv-review-card.is-directory .atv-review-excerpt {
   max-width: 672px;
   margin: 0;
-  color: rgb(255 255 255 / 68%);
-  font-size: 14px;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
   -webkit-line-clamp: 4;
   line-height: 1.76;
 }
@@ -461,8 +462,8 @@
 }
 
 .atv-review-card.is-directory .atv-review-readmore {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.03em;
   opacity: 0.5;
   transform: none;
@@ -476,13 +477,13 @@
 @media (hover: hover) and (pointer: fine) {
   #atv-douban-root .atv-subject-reviews-back:hover,
   #atv-douban-root .atv-subject-reviews-write:hover {
-    border-color: rgb(255 255 255 / 22%);
-    background: rgb(255 255 255 / 6%);
+    border-color: var(--atv-border-strong);
+    background: var(--atv-bg-elevated);
     color: var(--atv-text-primary);
   }
 
   .atv-review-card.is-directory:hover {
-    background: rgb(255 255 255 / 1.5%);
+    background: var(--atv-bg-hover);
   }
 
   .atv-review-card.is-directory:hover .atv-review-readmore {
@@ -500,7 +501,7 @@
   position: relative;
   z-index: 2;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-review-spoiler-note {
@@ -513,8 +514,8 @@
   animation: atv-spoiler-fadein 250ms var(--atv-ease-out) both;
   background: var(--atv-caution-surface);
   color: var(--atv-content-caution);
-  font-size: 12px;
-  font-weight: 650;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.03em;
   line-height: 1.45;
   pointer-events: none;
@@ -525,7 +526,7 @@
   border-radius: 0;
   margin-bottom: 8px;
   background: none;
-  font-size: 10px;
+  font-size: var(--atv-type-caption-sm);
   letter-spacing: 0.02em;
 }
 

@@ -3,19 +3,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mountNativeLoginFrame } from "@/shared/components/login-modal/native-login-frame";
 import type { NativeLoginAdoptionState } from "@/shared/components/login-modal/native-login-frame";
 
-type HappyDomNavigationSettings = {
-  disableChildFrameNavigation: boolean;
-  disableFallbackToSetURL: boolean;
-};
-
-/* eslint-disable typescript/consistent-type-definitions -- Global Window requires declaration merging. */
-declare global {
-  interface Window {
-    happyDOM: { settings: { navigation: HappyDomNavigationSettings } };
-  }
-}
-/* eslint-enable typescript/consistent-type-definitions */
-
 const trustedLoginSource =
   "https://accounts.douban.com/passport/login_popup?source=movie";
 let sessionCookie = "";
@@ -31,11 +18,7 @@ const createStateObserver = (): {
   };
 };
 
-describe("native login adoption", () => {
-  let childFrameNavigationDisabled = false;
-  let fallbackToSetUrlDisabled = false;
-  let reload: ReturnType<typeof vi.spyOn>;
-
+describe("native login frame", () => {
   beforeEach(() => {
     document.body.innerHTML = "";
     sessionCookie = "";
@@ -43,164 +26,139 @@ describe("native login adoption", () => {
       configurable: true,
       get: () => sessionCookie,
     });
-    childFrameNavigationDisabled =
-      window.happyDOM.settings.navigation.disableChildFrameNavigation;
-    fallbackToSetUrlDisabled =
-      window.happyDOM.settings.navigation.disableFallbackToSetURL;
-    window.happyDOM.settings.navigation.disableChildFrameNavigation = true;
-    window.happyDOM.settings.navigation.disableFallbackToSetURL = true;
-    reload = vi.spyOn(window.location, "reload").mockImplementation(() => {});
     vi.useRealTimers();
     /* eslint-disable promise/prefer-await-to-callbacks -- requestAnimationFrame is callback-based. */
-    vi.spyOn(window, "requestAnimationFrame").mockImplementation(
-      (callback: FrameRequestCallback): number => {
-        callback(0);
-        return 0;
-      }
-    );
+    vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
+      callback(0);
+      return 0;
+    });
     /* eslint-enable promise/prefer-await-to-callbacks */
+    vi.stubGlobal("cancelAnimationFrame", vi.fn());
   });
 
   afterEach(() => {
     Reflect.deleteProperty(document, "cookie");
-    window.happyDOM.settings.navigation.disableChildFrameNavigation =
-      childFrameNavigationDisabled;
-    window.happyDOM.settings.navigation.disableFallbackToSetURL =
-      fallbackToSetUrlDisabled;
-    reload.mockRestore();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("adopts a trusted dialog iframe and reports its lifecycle", () => {
-    document.body.innerHTML = `
-      <div class="dui-dialog-msk"></div>
-      <div class="account_pop dui-dialog">
-        <iframe width="340" height="448" frameborder="0" scrolling="no" style="display:block" src="${trustedLoginSource}"></iframe>
-      </div>
-    `;
+  it("creates the official login iframe without a host-page trigger", () => {
     const host = document.createElement("div");
     const observer = createStateObserver();
 
-    mountNativeLoginFrame(host, observer.onStateChange);
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
 
     const iframe = host.querySelector<HTMLIFrameElement>("iframe");
     expect({
-      dialog: document.querySelector(".account_pop"),
       iframeClass: iframe?.classList.contains("atv-login-modal-iframe"),
       iframePolicy: iframe?.referrerPolicy,
       iframeSandbox: iframe?.getAttribute("sandbox"),
       iframeTitle: iframe?.title,
-      mask: document.querySelector(".dui-dialog-msk"),
+      source: iframe?.src,
     }).toStrictEqual({
-      dialog: null,
       iframeClass: true,
       iframePolicy: "strict-origin-when-cross-origin",
       iframeSandbox: "allow-forms allow-scripts allow-same-origin",
       iframeTitle: "豆瓣登录",
-      mask: null,
+      source: trustedLoginSource,
     });
     expect(observer.states).toStrictEqual([
       { kind: "loading" },
       { kind: "mounted" },
     ]);
 
+    stop();
+  });
+
+  it("does not adopt login artifacts from the host page", () => {
+    document.body.innerHTML = `
+      <a class="a_show_login" href="https://example.com/login">登录</a>
+      <div class="dui-dialog-msk"></div>
+      <iframe src="about:blank"></iframe>
+    `;
+    const host = document.createElement("div");
+    const observer = createStateObserver();
+
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
+
+    expect(document.querySelector(".a_show_login")).not.toBeNull();
+    expect(document.querySelector(".dui-dialog-msk")).not.toBeNull();
+    expect(
+      document.querySelector<HTMLIFrameElement>("body > iframe")?.src
+    ).toBe("about:blank");
+    expect(host.querySelector<HTMLIFrameElement>("iframe")?.src).toBe(
+      trustedLoginSource
+    );
+
+    stop();
+  });
+
+  it("reports when the official login iframe fails to load", () => {
+    vi.useFakeTimers();
+    const host = document.createElement("div");
+    const observer = createStateObserver();
+
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
+    const iframe = host.querySelector("iframe");
+    iframe?.dispatchEvent(new Event("error"));
+    sessionCookie = "ck=session";
     iframe?.dispatchEvent(new Event("load"));
+    vi.advanceTimersByTime(900);
+
+    expect(observer.states).toStrictEqual([
+      { kind: "loading" },
+      { kind: "mounted" },
+      {
+        kind: "error",
+        message: "无法载入豆瓣登录组件，请刷新页面后重试。",
+      },
+    ]);
+
+    stop();
+  });
+
+  it("reports the iframe as ready after it loads", () => {
+    const host = document.createElement("div");
+    const observer = createStateObserver();
+
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
+    const iframe = host.querySelector("iframe");
+    iframe?.dispatchEvent(new Event("load"));
+    iframe?.dispatchEvent(new Event("error"));
 
     expect(observer.states).toStrictEqual([
       { kind: "loading" },
       { kind: "mounted" },
       { kind: "ready" },
     ]);
+
+    stop();
   });
 
-  it("rejects an untrusted dialog iframe without adopting it", () => {
-    document.body.innerHTML = `
-      <div class="account_pop dui-dialog">
-        <iframe src="https://example.com/passport/login"></iframe>
-      </div>
-    `;
-    const host = document.createElement("div");
-    const observer = createStateObserver();
-
-    mountNativeLoginFrame(host, observer.onStateChange);
-
-    expect(host.querySelector("iframe")).toBeNull();
-    expect(observer.states).toStrictEqual([
-      { kind: "loading" },
-      {
-        kind: "error",
-        message: "无法载入豆瓣登录组件，请刷新页面后重试。",
-      },
-    ]);
-  });
-
-  it("waits for a dialog iframe to receive a trusted source", () => {
+  it("does not treat an empty ck cookie as an authenticated session", () => {
     vi.useFakeTimers();
-    document.body.innerHTML =
-      '<div class="account_pop dui-dialog"><iframe></iframe></div>';
+    sessionCookie = "ck=";
     const host = document.createElement("div");
     const observer = createStateObserver();
 
-    mountNativeLoginFrame(host, observer.onStateChange);
-    document
-      .querySelector<HTMLIFrameElement>("iframe")
-      ?.setAttribute("src", trustedLoginSource);
-    vi.advanceTimersByTime(100);
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
+    vi.advanceTimersByTime(900);
 
-    expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
     expect(observer.states).toStrictEqual([
       { kind: "loading" },
       { kind: "mounted" },
     ]);
-  });
 
-  it("adopts a trusted iframe that is already outside a native dialog", () => {
-    document.body.innerHTML = `<iframe src="${trustedLoginSource}"></iframe>`;
-    const host = document.createElement("div");
-    const observer = createStateObserver();
-
-    mountNativeLoginFrame(host, observer.onStateChange);
-
-    expect(host.querySelector("iframe")?.src).toBe(trustedLoginSource);
-    expect(observer.states).toStrictEqual([
-      { kind: "loading" },
-      { kind: "mounted" },
-    ]);
-  });
-
-  it("triggers the native dialog before preventing link navigation", () => {
-    vi.useFakeTimers();
-    document.body.innerHTML = '<a class="a_show_login" href="#login">登录</a>';
-    const nativeHandler = vi.fn<(event: Event) => void>((event) => {
-      expect(event.defaultPrevented).toBeFalsy();
-      document.body.insertAdjacentHTML(
-        "beforeend",
-        `<div class="account_pop dui-dialog"><iframe src="${trustedLoginSource}"></iframe></div>`
-      );
-    });
-    document.addEventListener("click", nativeHandler);
-    const host = document.createElement("div");
-    const observer = createStateObserver();
-
-    mountNativeLoginFrame(host, observer.onStateChange);
-    vi.advanceTimersByTime(100);
-    document.removeEventListener("click", nativeHandler);
-
-    expect(nativeHandler).toHaveBeenCalledOnce();
-    expect(host.querySelector("iframe")?.title).toBe("豆瓣登录");
-    expect(observer.states).toStrictEqual([
-      { kind: "loading" },
-      { kind: "mounted" },
-    ]);
+    stop();
   });
 
   it("reports authentication through the lifecycle after the iframe mounts", () => {
     vi.useFakeTimers();
-    document.body.innerHTML = `<iframe src="${trustedLoginSource}"></iframe>`;
     sessionCookie = "ck=session";
     const host = document.createElement("div");
     const observer = createStateObserver();
 
-    mountNativeLoginFrame(host, observer.onStateChange);
+    const stop = mountNativeLoginFrame(host, observer.onStateChange);
     vi.advanceTimersByTime(300);
 
     expect(observer.states).toStrictEqual([
@@ -208,26 +166,12 @@ describe("native login adoption", () => {
       { kind: "mounted" },
       { kind: "authenticated" },
     ]);
-    expect(reload).not.toHaveBeenCalled();
+
+    stop();
   });
 
-  it("reports failure when trigger-and-poll cannot adopt a native iframe", () => {
+  it("stops iframe events, focus work, and authentication checks when disposed", () => {
     vi.useFakeTimers();
-    const host = document.createElement("div");
-    const observer = createStateObserver();
-
-    mountNativeLoginFrame(host, observer.onStateChange);
-    vi.advanceTimersByTime(2400);
-
-    expect(observer.states).toStrictEqual([
-      { kind: "loading" },
-      { kind: "error", message: "无法载入豆瓣登录组件，请刷新页面后重试。" },
-    ]);
-  });
-
-  it("stops retries, iframe events, and authentication checks when disposed", () => {
-    vi.useFakeTimers();
-    document.body.innerHTML = `<iframe src="${trustedLoginSource}"></iframe>`;
     const host = document.createElement("div");
     const observer = createStateObserver();
 
@@ -236,11 +180,13 @@ describe("native login adoption", () => {
     stop();
     sessionCookie = "ck=session";
     iframe?.dispatchEvent(new Event("load"));
+    iframe?.dispatchEvent(new Event("error"));
     vi.advanceTimersByTime(2500);
 
     expect(observer.states).toStrictEqual([
       { kind: "loading" },
       { kind: "mounted" },
     ]);
+    expect(host.querySelector("iframe")).toBeNull();
   });
 });

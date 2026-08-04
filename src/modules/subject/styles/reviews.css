@@ -5,6 +5,14 @@
   grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
 }
 
+/* Two 400px columns + 20px gap + 48px section padding fit from 868px up;
+   below that a single column avoids the lone-wide-card band. */
+@media (width <= 868px) {
+  .atv-reviews {
+    grid-template-columns: 1fr;
+  }
+}
+
 .atv-review-card {
   position: relative;
   display: flex;
@@ -13,7 +21,7 @@
   border: none;
   border-radius: var(--atv-radius-sm);
   appearance: none;
-  background: #121214;
+  background: var(--atv-bg-card);
   color: inherit;
   cursor: pointer;
   font: inherit;
@@ -49,7 +57,7 @@
 }
 
 .atv-review-card:focus-visible {
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);
   outline: 2px solid var(--atv-accent);
   outline-offset: 4px;
@@ -75,14 +83,14 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgb(255 255 255 / 6%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 50%;
   background: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  color: #fff;
-  font-size: 14px;
-  font-weight: 600;
+  color: var(--atv-text-on-accent);
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-meta {
@@ -98,8 +106,8 @@
   z-index: 2;
   overflow: hidden;
   color: var(--atv-text-primary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   pointer-events: auto;
   text-decoration: none;
   text-overflow: ellipsis;
@@ -129,8 +137,8 @@
   margin-bottom: 8px;
   -webkit-box-orient: vertical;
   color: var(--atv-text-primary);
-  font-size: 16px;
-  font-weight: 600;
+  font-size: var(--atv-type-title);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.01em;
   -webkit-line-clamp: 2;
   line-height: 1.35;
@@ -143,8 +151,8 @@
   flex: 1;
   margin-bottom: 14px;
   -webkit-box-orient: vertical;
-  color: rgb(255 255 255 / 72%);
-  font-size: 14px;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
   -webkit-line-clamp: 4;
   line-height: 1.7;
   pointer-events: none;
@@ -155,22 +163,22 @@
   align-items: center;
   justify-content: space-between;
   padding-top: 14px;
-  border-top: 1px solid rgb(255 255 255 / 5%);
+  border-top: 1px solid var(--atv-border-subtle);
   gap: 8px;
   pointer-events: none;
 }
 
 .atv-review-time {
-  color: rgb(255 255 255 / 35%);
-  font-size: 12px;
-  font-weight: 400;
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-regular);
   letter-spacing: 0.02em;
 }
 
 .atv-review-readmore {
   color: var(--atv-accent);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.04em;
   opacity: 0;
   pointer-events: none;
@@ -187,7 +195,7 @@
 }
 
 .atv-review-card:has(.atv-review-open-button:focus-visible) {
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);
 }
 
@@ -210,15 +218,15 @@
   display: inline-flex;
   align-items: center;
   padding: 5px 12px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 8px;
   appearance: none;
-  background: rgb(255 255 255 / 3%);
-  color: rgb(255 255 255 / 55%);
+  background: var(--atv-bg-hover);
+  color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   gap: 5px;
   line-height: 1;
   transition:
@@ -231,12 +239,12 @@
 
 .atv-vote-btn:hover {
   border-color: var(--atv-accent);
-  background: rgb(65 190 93 / 6%);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
 }
 
 .atv-vote-btn:focus-visible {
-  outline: 2px solid rgb(65 190 93 / 75%);
+  outline: 2px solid var(--atv-accent-outline);
   outline-offset: 3px;
 }
 
@@ -246,7 +254,7 @@
 
 .atv-vote-btn.is-lg {
   padding: 8px 20px;
-  font-size: 14px;
+  font-size: var(--atv-type-body-sm);
 }
 
 .atv-vote-btn svg {
@@ -258,9 +266,9 @@
 }
 
 .atv-vote-btn.down:hover {
-  border-color: #ff453a;
-  background: rgb(255 69 58 / 6%);
-  color: #ff453a;
+  border-color: var(--atv-danger);
+  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);
+  color: var(--atv-danger);
 }
 
 .atv-vote-btn.down svg {
@@ -268,16 +276,16 @@
 }
 
 .atv-vote-btn.is-voted {
-  border-color: rgb(65 190 93 / 20%);
-  background: rgb(65 190 93 / 6%);
+  border-color: var(--atv-accent-border);
+  background: var(--atv-accent-hover);
   color: var(--atv-accent);
   cursor: default;
 }
 
 .atv-vote-btn.down.is-voted {
-  border-color: rgb(255 69 58 / 22%);
-  background: rgb(255 69 58 / 6%);
-  color: #ff453a;
+  border-color: color-mix(in srgb, var(--atv-danger) 22%, transparent);
+  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);
+  color: var(--atv-danger);
 }
 
 /* ---------- Review Modal ---------- */
@@ -292,7 +300,7 @@
   padding: 48px;
   border: none;
   margin: 0;
-  background: rgb(0 0 0 / 72%);
+  background: var(--atv-scrim-overlay);
   inset: 0;
 }
 
@@ -303,15 +311,15 @@
   right: 16px;
   width: 32px;
   height: 32px;
-  border-color: rgb(255 255 255 / 10%);
-  background: rgb(255 255 255 / 6%);
-  color: rgb(255 255 255 / 60%);
+  border-color: var(--atv-border-subtle);
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-tertiary);
 }
 
 .atv-review-modal .atv-modal-close:hover {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 12%);
-  color: #fff;
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
+  color: var(--atv-text-primary);
 }
 
 .atv-review-modal-scroll {
@@ -320,12 +328,12 @@
   max-width: 800px;
   max-height: 85vh;
   padding: 48px 56px 32px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-lg);
-  background: #121214;
+  background: var(--atv-bg-secondary);
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
   overflow-y: auto;
-  scrollbar-color: rgb(255 255 255 / 12%) transparent;
+  scrollbar-color: var(--atv-border-medium) transparent;
   scrollbar-width: thin;
 }
 
@@ -375,10 +383,11 @@
 .atv-review-modal-title {
   margin-bottom: 4px;
   color: var(--atv-text-primary);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-xl);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: -0.02em;
   line-height: 1.32;
+  text-wrap: balance;
 }
 
 .atv-review-modal-title:focus {
@@ -405,20 +414,20 @@
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgb(255 255 255 / 6%);
+  border: 1.5px solid var(--atv-border-subtle);
   border-radius: 50%;
   background: var(--atv-accent);
   background-position: center;
   background-size: cover;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 600;
+  color: var(--atv-text-on-accent);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-review-modal-byline-text {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   gap: 4px;
   line-height: 1;
 }
@@ -432,16 +441,16 @@
 }
 
 .atv-review-modal-body {
-  color: rgb(255 255 255 / 82%);
-  font-size: 16px;
-  line-height: 1.85;
+  color: var(--atv-text-emphasis);
+  font-size: var(--atv-type-body-lg);
+  line-height: var(--atv-line-height-body-loose);
 }
 
 .atv-review-modal-body h2 {
   margin-bottom: 16px;
-  color: #f0f0f0;
-  font-size: 20px;
-  font-weight: 600;
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-title-lg);
+  font-weight: var(--atv-font-weight-semibold);
   line-height: 1.4;
 }
 
@@ -465,8 +474,8 @@
   border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;
   border-left: 3px solid var(--atv-accent);
   margin: 20px 0;
-  background: rgb(255 255 255 / 3%);
-  color: rgb(255 255 255 / 82%);
+  background: var(--atv-bg-hover);
+  color: var(--atv-text-emphasis);
 }
 
 .atv-review-modal-body blockquote p {
@@ -482,9 +491,9 @@
   display: block;
   margin-top: 8px;
   color: var(--atv-text-tertiary);
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   font-style: normal;
-  font-weight: 500;
+  font-weight: var(--atv-font-weight-medium);
 }
 
 .atv-review-modal-body blockquote cite::before,
@@ -493,7 +502,7 @@
 }
 
 .atv-review-modal-body blockquote blockquote {
-  border-left-color: rgb(255 255 255 / 20%);
+  border-left-color: var(--atv-border-strong);
   margin-left: 0;
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
 }

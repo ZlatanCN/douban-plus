@@ -1,19 +1,11 @@
 @media (width <= 640px) {
-  .atv-personage-hero-bg-image {
-    filter: blur(40px) saturate(1.25) brightness(0.5);
-  }
-
-  .atv-personage-hero-bg {
-    height: 60vh;
-  }
-
   .atv-personage-hero-inner {
     gap: 24px;
     grid-template-columns: 112px minmax(0, 1fr);
   }
 
   .atv-personage-identity h1 {
-    font-size: clamp(34px, 10vw, 50px);
+    font-size: var(--atv-type-display-narrow);
   }
 
   .atv-personage-facts {
@@ -49,8 +41,8 @@
 
   .atv-personage-award-year {
     padding-top: 0;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: var(--atv-type-body-sm);
+    font-weight: var(--atv-font-weight-semibold);
   }
 
   .atv-personage-award-detail {

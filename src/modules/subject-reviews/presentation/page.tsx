@@ -16,7 +16,7 @@ import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 import { useVoteState } from "@/shared/voting/use-vote-state";
 
 import type { SubjectReviewsBrowseOption } from "../domain";
-import type { NavigationState } from "../runtime/navigation";
+import type { SubjectReviewsNavigationState } from "../runtime/navigation";
 import { ReviewsFilters } from "./filters";
 import { ReviewsPageHeader } from "./page-header";
 import { getPaginationNav } from "./pagination";
@@ -26,11 +26,11 @@ type LoginRequest = {
   action: string;
   continuation?:
     | { direction: ReviewVoteDirection; review: Review }
-    | { href: string; kind: "follow" };
+    | { href: string; kind: "browse" };
 };
 
 const reviewFromDirectory = (
-  review: NavigationState["data"]["reviews"][number]
+  review: SubjectReviewsNavigationState["data"]["reviews"][number]
 ): Review => ({
   avatar: review.author.avatar ?? "",
   content: review.content,
@@ -59,7 +59,7 @@ const SubjectReviewsPage = ({
   navigation,
 }: {
   doc: Document;
-  navigation: NavigationState;
+  navigation: SubjectReviewsNavigationState;
 }) => {
   const { data } = navigation;
   const sticky = useStickyNavigation(doc, []);
@@ -71,6 +71,10 @@ const SubjectReviewsPage = ({
   const readerReviews = data.reviews.map(reviewFromDirectory);
   const votes = useVoteState(readerReviews, reviewVoteApi);
   const locked = navigation.pending !== null;
+  const requestLogin = useCallback(
+    (request: LoginRequest): void => login.handleOpen(request),
+    [login]
+  );
   const selected = (option: SubjectReviewsBrowseOption): boolean =>
     navigation.pending
       ? navigation.pending.href === option.href
@@ -85,14 +89,17 @@ const SubjectReviewsPage = ({
       return;
     }
     event.preventDefault();
+    if ("value" in option && !loggedIn && option.value !== "hotest") {
+      requestLogin({
+        action: option.value === "follow" ? "查看我关注的影评" : "筛选影评",
+        continuation: { href: option.href, kind: "browse" },
+      });
+      return;
+    }
     if (!option.active) {
       navigation.navigate(option.href, option.label);
     }
   };
-  const requestLogin = useCallback(
-    (request: LoginRequest): void => login.handleOpen(request),
-    [login]
-  );
   const voteAfterAuthentication = useCallback(
     (review: Review, direction: ReviewVoteDirection): void =>
       requestLogin({
@@ -114,7 +121,7 @@ const SubjectReviewsPage = ({
       return;
     }
     if ("kind" in continuation) {
-      navigation.navigate(continuation.href, "我关注的");
+      navigation.navigate(continuation.href, "筛选影评");
       return;
     }
     await resumeReviewVote(
@@ -128,14 +135,6 @@ const SubjectReviewsPage = ({
     event: MouseEvent,
     option: SubjectReviewsBrowseOption
   ): void => {
-    if (option.value === "follow" && !loggedIn && !modifierClick(event)) {
-      event.preventDefault();
-      requestLogin({
-        action: "查看我关注的影评",
-        continuation: { href: option.href, kind: "follow" },
-      });
-      return;
-    }
     navigate(event, option);
   };
   const handleRetry = (): void => navigation.retry();

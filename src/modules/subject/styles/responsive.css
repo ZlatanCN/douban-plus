@@ -19,9 +19,14 @@
     padding: 44px 24px;
   }
 
-  .atv-info-grid {
-    column-gap: 24px;
-    grid-template-columns: 160px 1fr;
+  /* Tablet two-column info grid — bounded to 769–1024px so the phone
+   single-column rule in details.css stays the sole source below 768px
+   (responsive.css is imported after details.css and would otherwise win). */
+  @media (width > 768px) and (width <= 1024px) {
+    .atv-info-grid {
+      column-gap: 24px;
+      grid-template-columns: 160px 1fr;
+    }
   }
 }
 
@@ -37,15 +42,6 @@
 
   .atv-section {
     padding: 36px 20px;
-  }
-
-  .atv-info-grid {
-    grid-template-columns: 1fr;
-    row-gap: 4px;
-  }
-
-  .atv-info-label {
-    padding-top: 12px;
   }
 
   .atv-recs {
@@ -101,15 +97,11 @@
 
   .atv-comment-overlay-body {
     padding: 16px 20px;
-    font-size: 14px;
+    font-size: var(--atv-type-body-sm);
   }
 
   .atv-comment-overlay-foot {
     padding: 0 20px 24px;
-  }
-
-  .atv-reviews {
-    grid-template-columns: 1fr;
   }
 
   .atv-review-modal-scroll {
@@ -162,7 +154,7 @@
   }
 
   .atv-review-modal-body .subject-title {
-    font-size: 15px;
+    font-size: var(--atv-type-body);
   }
 
   .atv-review-modal-body .subject-caption-wrapper {

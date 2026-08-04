@@ -26,10 +26,10 @@ body.atv-enhanced [class*="dale_"] {
     forwards;
   background: var(--atv-bg-primary);
   color: var(--atv-text-primary);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
-    "Helvetica Neue", "Microsoft YaHei", Inter, system-ui, sans-serif;
+  font-family: var(--atv-font-sans);
   font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
   opacity: 0;
 }

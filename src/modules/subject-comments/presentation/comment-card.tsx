@@ -2,6 +2,7 @@ import { useEffect, useState } from "preact/hooks";
 
 import { SafeImage } from "@/shared/components/common/safe-image";
 import { VoteButton } from "@/shared/components/common/vote-button";
+import { safeText } from "@/shared/utils/dom";
 
 import type { SubjectComment } from "../domain";
 
@@ -29,9 +30,16 @@ const votesFromNativeComment = (
     return fallback;
   }
   const count = Number(item.querySelector(".vote-count")?.textContent?.trim());
+  const canVote = item.querySelector(".vote-comment") !== null;
+  const requiresLogin =
+    !canVote && item.querySelector(".comment-vote .a_show_login") !== null;
   return {
-    canVote: item.querySelector(".vote-comment") !== null,
+    canVote,
     count: Number.isSafeInteger(count) && count >= 0 ? count : fallback.count,
+    requiresLogin,
+    voted:
+      !canVote &&
+      /已投票|已赞|已推荐/u.test(safeText(item.querySelector(".comment-vote"))),
   };
 };
 
@@ -79,9 +87,11 @@ const CommentTime = ({ time }: Pick<SubjectComment, "time">) => {
 const Comment = ({
   comment,
   doc,
+  onLoginRequired,
 }: {
   comment: SubjectComment;
   doc: Document;
+  onLoginRequired: () => void;
 }) => {
   const [votes, setVotes] = useState(comment.votes);
 
@@ -139,8 +149,12 @@ const Comment = ({
             ariaLabel={`有用，${numberFormatter.format(votes.count)} 人觉得有用`}
             className="atv-comment-votes atv-subject-comments-vote"
             count={votes.count}
-            disabled={!votes.canVote}
+            disabled={votes.voted || (!votes.canVote && !votes.requiresLogin)}
             onVote={() => {
+              if (votes.requiresLogin) {
+                onLoginRequired();
+                return;
+              }
               if (votes.canVote) {
                 triggerNativeVote(doc, comment.id);
                 setVotes((current) =>
@@ -148,7 +162,7 @@ const Comment = ({
                 );
               }
             }}
-            voted={!votes.canVote}
+            voted={votes.voted}
           />
         </div>
       </div>

@@ -5,7 +5,7 @@
 .atv-timeline {
   position: relative;
   margin-top: 20px;
-  font-size: clamp(28px, 3.5vw, 40px);
+  font-size: var(--atv-type-stat-lg);
 }
 
 .atv-timeline::before {
@@ -29,7 +29,7 @@
   position: relative;
   padding-bottom: 24px;
   padding-left: 44px;
-  font-size: clamp(28px, 3.5vw, 40px);
+  font-size: var(--atv-type-stat-lg);
 }
 
 .atv-timeline-year-group:last-child {
@@ -68,8 +68,8 @@
   display: block;
   margin-bottom: 16px;
   color: var(--atv-text-primary);
-  font-size: clamp(28px, 3.5vw, 40px);
-  font-weight: 700;
+  font-size: var(--atv-type-stat-lg);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.02em;
   line-height: 1;
 }
@@ -175,9 +175,9 @@
   border-radius: 20px;
   backdrop-filter: blur(4px);
   background: rgb(0 0 0 / 65%);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-bold);
   letter-spacing: 0.02em;
   line-height: 1;
 }
@@ -187,8 +187,8 @@
   overflow: hidden;
   margin-top: 10px;
   color: var(--atv-text-secondary);
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   line-height: 1.3;
   text-overflow: ellipsis;

@@ -1,4 +1,4 @@
-import type { NavigationState } from "../runtime/navigation";
+import type { SubjectReviewsNavigationState } from "../runtime/navigation";
 
 type PaginationNavProps = {
   nav: {
@@ -15,7 +15,8 @@ type PaginationNavProps = {
   onNavigate: (href: string, label: string) => void;
 };
 
-type PaginationLink = NavigationState["data"]["pagination"][number];
+type PaginationLink =
+  SubjectReviewsNavigationState["data"]["pagination"][number];
 const isNumericPageLabel = (label: string): boolean => /^\d+$/u.test(label);
 
 const isPreviousPageLink = (item: PaginationLink): boolean =>
@@ -76,7 +77,7 @@ const buildPaginationUrl = (
 };
 
 const getPaginationPageNumbers = (
-  pageLinks: NavigationState["data"]["pagination"]
+  pageLinks: SubjectReviewsNavigationState["data"]["pagination"]
 ) => {
   const currentPage = pageLinks.find(
     (item) => isNumericPageLabel(item.label) && !item.href
@@ -96,7 +97,7 @@ const getPaginationPageNumbers = (
 };
 
 const getPaginationNav = (
-  pageLinks: NavigationState["data"]["pagination"],
+  pageLinks: SubjectReviewsNavigationState["data"]["pagination"],
   doc: Document
 ): PaginationNavProps["nav"] => {
   const prevItem = pageLinks.find(isPreviousPageLink) ?? null;

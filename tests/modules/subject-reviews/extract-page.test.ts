@@ -62,6 +62,45 @@ describe(extractSubjectReviewsPage, () => {
     );
   });
 
+  it("keeps an unauthenticated directory mountable when Douban omits browse controls", () => {
+    const data = extractSubjectReviewsPage(
+      reviewDocument(`
+        <ul class="top-tab">
+          <li class="selected"><a href="javascript:;">最受欢迎的</a></li>
+        </ul>
+        <div class="review-list">
+          <div class="main review-item" id="4931491">
+            <header class="main-hd"><a class="name" href="/people/a/">大头</a><span class="allstar40 main-title-rating" title="推荐"></span><span class="main-meta">2011-04-18</span></header>
+            <div class="main-bd"><h2><a href="/review/4931491/">未登录也可阅读</a></h2><div class="review-short"><div class="short-content">正文摘要</div></div></div>
+          </div>
+        </div>
+      `),
+      "https://movie.douban.com/subject/3016187/reviews"
+    );
+
+    expect(data).not.toBeNull();
+    expect(
+      data?.sorts.map(({ label, value }) => ({ label, value }))
+    ).toStrictEqual([
+      { label: "最受欢迎的", value: "hotest" },
+      { label: "最新发布的", value: "time" },
+      { label: "我关注的", value: "follow" },
+    ]);
+    expect(
+      data?.ratings.map(({ label, value }) => ({ label, value }))
+    ).toStrictEqual([
+      { label: "全部", value: "" },
+      { label: "给5星的评论", value: "5" },
+      { label: "给4星的评论", value: "4" },
+      { label: "给3星的评论", value: "3" },
+      { label: "给2星的评论", value: "2" },
+      { label: "给1星的评论", value: "1" },
+    ]);
+    expect(data?.writeHref).toBe(
+      "https://movie.douban.com/subject/3016187/new_review"
+    );
+  });
+
   it.each(["1", "2", "3", "4", "5"])(
     "accepts the native %s-star directory, whose sort tab has no selected class",
     (rating) => {

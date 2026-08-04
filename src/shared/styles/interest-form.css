@@ -12,7 +12,7 @@
   margin: 0;
   -webkit-backdrop-filter: blur(16px) saturate(1.15);
   backdrop-filter: blur(16px) saturate(1.15);
-  background: rgb(0 0 0 / 72%);
+  background: var(--atv-scrim-overlay);
   inset: 0;
 }
 
@@ -21,7 +21,7 @@
   width: 100%;
   max-width: 456px;
   max-height: 90vh;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 20px;
   background: var(--atv-bg-secondary);
   box-shadow: 0 24px 80px rgb(0 0 0 / 55%);
@@ -41,8 +41,8 @@
 .atv-interest-modal-header-title {
   margin: 3px 0 0;
   color: var(--atv-text-primary);
-  font-size: 20px;
-  font-weight: 600;
+  font-size: var(--atv-type-title-lg);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   line-height: 1.35;
 }
@@ -50,8 +50,8 @@
 .atv-interest-modal-eyebrow {
   margin: 0;
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -63,20 +63,20 @@
   right: 14px;
   width: 32px;
   height: 32px;
-  border-color: rgb(255 255 255 / 10%);
-  background: rgb(255 255 255 / 6%);
-  color: rgb(255 255 255 / 60%);
+  border-color: var(--atv-border-subtle);
+  background: var(--atv-bg-elevated);
+  color: var(--atv-text-tertiary);
 }
 
 .atv-modal-close.atv-interest-modal-close:hover {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 12%);
-  color: #fff;
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-hover-strong);
+  color: var(--atv-text-primary);
 }
 
 .atv-modal-close.atv-interest-modal-close:active {
-  border-color: rgb(255 255 255 / 30%);
-  background: rgb(255 255 255 / 16%);
+  border-color: var(--atv-border-emphasis);
+  background: var(--atv-bg-hover-strong);
 }
 
 .atv-interest-modal-body {
@@ -124,8 +124,8 @@
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition: color var(--atv-duration-feedback) ease;
@@ -153,15 +153,15 @@
   justify-content: space-between;
   margin-bottom: 8px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .atv-interest-modal-rating-header > span:last-child {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
 }
 
@@ -178,7 +178,7 @@
   border: none;
   appearance: none;
   background: none;
-  color: rgb(255 255 255 / 20%);
+  color: var(--atv-rating-empty);
   cursor: pointer;
   transition:
     color var(--atv-duration-feedback) ease,
@@ -201,13 +201,13 @@
   min-height: 78px;
   box-sizing: border-box;
   padding: 10px 14px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 10px;
   margin-bottom: 10px;
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-primary);
   font-family: inherit;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   line-height: 1.5;
   resize: none;
   -webkit-tap-highlight-color: transparent;
@@ -222,14 +222,14 @@
 }
 
 .atv-interest-modal-comment:focus {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 6%);
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-elevated);
   outline: none;
 }
 
 .atv-interest-modal-comment:focus-visible {
   border-color: var(--atv-accent-bright);
-  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);
+  box-shadow: 0 0 0 2px var(--atv-accent-outline);
 }
 
 .atv-interest-modal-submit {
@@ -244,12 +244,11 @@
   margin-bottom: 0;
   appearance: none;
   background: var(--atv-accent);
-  color: #fff;
+  color: var(--atv-text-on-accent);
   cursor: pointer;
   font: inherit;
-  font-size: 14px;
-  -webkit-font-smoothing: antialiased;
-  font-weight: 600;
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -277,7 +276,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 24px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   margin: 0;
   appearance: none;
@@ -285,8 +284,8 @@
   color: var(--atv-text-tertiary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
   -webkit-tap-highlight-color: transparent;
   transition:
@@ -296,20 +295,20 @@
 }
 
 .atv-interest-modal-remove:hover {
-  border-color: rgb(255 255 255 / 15%);
-  background: rgb(255 255 255 / 4%);
+  border-color: var(--atv-border-medium);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
 }
 
 .atv-interest-modal-remove:active {
-  background: rgb(255 255 255 / 8%);
+  background: var(--atv-bg-elevated);
 }
 
 .atv-interest-modal-error {
   border-radius: 10px;
-  color: #ff453a;
-  font-size: 12px;
-  font-weight: 500;
+  color: var(--atv-danger);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   text-align: center;
 }
 
@@ -320,7 +319,7 @@
 .atv-interest-modal-error:not(:empty) {
   padding: 8px 16px;
   margin-top: 8px;
-  background: rgb(255 69 58 / 8%);
+  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);
 }
 
 .atv-interest-modal-field-header {
@@ -329,15 +328,15 @@
   justify-content: space-between;
   margin: 0 0 8px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.01em;
 }
 
 .atv-interest-modal-field-header > span:last-child {
   color: var(--atv-text-tertiary);
-  font-size: 11px;
-  font-weight: 500;
+  font-size: var(--atv-type-micro);
+  font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
 }
 
@@ -353,9 +352,9 @@
   flex-wrap: wrap;
   align-items: center;
   padding: 5px 8px;
-  border: 1px solid rgb(255 255 255 / 8%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 10px;
-  background: rgb(255 255 255 / 4%);
+  background: var(--atv-bg-elevated);
   gap: 5px;
   transition:
     border-color var(--atv-duration-feedback) ease,
@@ -364,15 +363,15 @@
 }
 
 .atv-interest-modal-tag-input-wrap:focus-within {
-  border-color: rgb(255 255 255 / 20%);
-  background: rgb(255 255 255 / 6%);
+  border-color: var(--atv-border-strong);
+  background: var(--atv-bg-elevated);
 }
 
 .atv-interest-modal-tag-input-wrap:has(
   .atv-interest-modal-tag-input:focus-visible
 ) {
   border-color: var(--atv-accent-bright);
-  box-shadow: 0 0 0 2px rgb(65 190 93 / 22%);
+  box-shadow: 0 0 0 2px var(--atv-accent-outline);
 }
 
 .atv-interest-modal-tag-input {
@@ -383,7 +382,7 @@
   background: transparent;
   color: var(--atv-text-primary);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   outline: 0;
 }
 
@@ -396,14 +395,14 @@
   min-height: 26px;
   align-items: center;
   padding: 3px 9px;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 999px;
   appearance: none;
-  background: rgb(255 255 255 / 5%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   line-height: 1;
   transition:
     border-color var(--atv-duration-feedback) ease,
@@ -412,14 +411,14 @@
 }
 
 .atv-interest-modal-tag.is-current {
-  border-color: rgb(65 190 93 / 45%);
-  background: rgb(65 190 93 / 16%);
+  border-color: color-mix(in srgb, var(--atv-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--atv-accent) 16%, transparent);
   color: #c3f6d0;
 }
 
 .atv-interest-modal-tag.is-selected {
-  border-color: rgb(65 190 93 / 38%);
-  background: rgb(65 190 93 / 12%);
+  border-color: color-mix(in srgb, var(--atv-accent) 38%, transparent);
+  background: color-mix(in srgb, var(--atv-accent) 12%, transparent);
   color: var(--atv-text-primary);
 }
 
@@ -427,7 +426,7 @@
   display: grid;
   margin-top: 10px;
   color: var(--atv-text-tertiary);
-  font-size: 11px;
+  font-size: var(--atv-type-micro);
   gap: 6px;
   grid-template-columns: 48px minmax(0, 1fr);
 }
@@ -449,10 +448,10 @@
   flex-wrap: wrap;
   align-content: center;
   padding: 12px;
-  border: 1px solid rgb(255 255 255 / 6%);
+  border: 1px solid var(--atv-border-subtle);
   border-radius: 10px;
   margin-bottom: 18px;
-  background: rgb(255 255 255 / 3%);
+  background: var(--atv-bg-hover);
   gap: 8px;
 }
 
@@ -460,7 +459,7 @@
   display: block;
   height: 22px;
   border-radius: 999px;
-  background: rgb(255 255 255 / 8%);
+  background: var(--atv-bg-elevated);
 }
 
 .atv-interest-modal-tag-skeleton span:nth-child(1) {
@@ -481,12 +480,12 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px;
-  border: 1px solid rgb(255 69 58 / 22%);
+  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);
   border-radius: 10px;
   margin-bottom: 18px;
-  background: rgb(255 69 58 / 8%);
+  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   gap: 12px;
 }
 
@@ -498,7 +497,7 @@
   color: var(--atv-accent-bright);
   cursor: pointer;
   font: inherit;
-  font-weight: 600;
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-visibility {
@@ -513,8 +512,8 @@
   padding: 0;
   margin-bottom: 10px;
   color: var(--atv-text-secondary);
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-visibility-option,
@@ -523,7 +522,7 @@
   align-items: center;
   color: var(--atv-text-secondary);
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--atv-type-caption);
   gap: 8px;
 }
 
@@ -537,14 +536,14 @@
 .atv-interest-modal-broadcast-option {
   padding-left: 24px;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-interest-modal-visibility-note {
   padding-left: 24px;
   margin: -3px 0 0;
   color: var(--atv-text-tertiary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
 }
 
 .atv-interest-modal-footer {
@@ -566,11 +565,11 @@
 .atv-interest-modal-removal-confirmation {
   display: grid;
   padding: 12px;
-  border: 1px solid rgb(255 69 58 / 22%);
+  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);
   border-radius: 10px;
-  background: rgb(255 69 58 / 8%);
+  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);
   color: var(--atv-text-secondary);
-  font-size: 12px;
+  font-size: var(--atv-type-caption-sm);
   gap: 10px;
 }
 
@@ -582,20 +581,20 @@
 
 .atv-interest-modal-removal-confirmation button {
   height: 34px;
-  border: 1px solid rgb(255 255 255 / 12%);
+  border: 1px solid var(--atv-border-medium);
   border-radius: 999px;
   appearance: none;
-  background: rgb(255 255 255 / 6%);
+  background: var(--atv-bg-elevated);
   color: var(--atv-text-secondary);
   cursor: pointer;
   font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-semibold);
 }
 
 .atv-interest-modal-removal-confirmation button:last-child {
-  border-color: rgb(255 69 58 / 35%);
-  background: rgb(255 69 58 / 18%);
+  border-color: color-mix(in srgb, var(--atv-danger) 35%, transparent);
+  background: color-mix(in srgb, var(--atv-danger) 18%, transparent);
   color: #ff9f99;
 }
 
@@ -628,7 +627,7 @@
   }
 
   .atv-interest-modal-status.is-active {
-    background: rgb(255 255 255 / 12%);
+    background: var(--atv-bg-hover-strong);
   }
 }
 
@@ -636,7 +635,7 @@
   .atv-interest-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 90%);
+    background: var(--atv-scrim-overlay-solid);
   }
 }
 
@@ -644,7 +643,7 @@
   .atv-interest-modal {
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    background: rgb(0 0 0 / 92%);
+    background: var(--atv-scrim-overlay-solid);
   }
 }
 

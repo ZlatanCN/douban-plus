@@ -23,7 +23,7 @@ type ResolvedStreamingProvider = {
   combinedSvg?: boolean;
 };
 
-const UNKNOWN_PROVIDER_COLOR = "#41be5d";
+const UNKNOWN_PROVIDER_COLOR = "var(--atv-accent)";
 
 const PROVIDER_HOSTS: Partial<Record<PlatformBrandKey, string[]>> = {
   amc: ["amc.com"],

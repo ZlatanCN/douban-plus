@@ -116,9 +116,16 @@ const SubjectCommentsPage = ({
       return;
     }
     event.preventDefault();
-    if (!isBrowsingLocked && !option.active) {
-      commentsNavigation.navigate(option.href, option.label);
+    if (isBrowsingLocked || option.active) {
+      return;
     }
+    if (option.requiresLogin && !interest.loggedIn) {
+      requestLogin(`查看${option.label}短评`, () => {
+        commentsNavigation.navigate(option.href, option.label);
+      });
+      return;
+    }
+    commentsNavigation.navigate(option.href, option.label);
   };
 
   useEffect(() => {
@@ -200,7 +207,12 @@ const SubjectCommentsPage = ({
             ) : null}
             <div class="atv-subject-comments-results" key={navigationVersion}>
               {data.comments.map((comment) => (
-                <Comment comment={comment} doc={doc} key={comment.id} />
+                <Comment
+                  comment={comment}
+                  doc={doc}
+                  key={comment.id}
+                  onLoginRequired={() => requestLogin("给短评投票")}
+                />
               ))}
               <CommentsPagination
                 isBrowsingLocked={isBrowsingLocked}
