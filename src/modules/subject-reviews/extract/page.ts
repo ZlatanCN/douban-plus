@@ -85,6 +85,14 @@ const titleFromHeading = (heading: string, reviewKind: string): string =>
 const optionLabel = (label: string): string =>
   label.replace(/\s*\([\d,]+\)\s*$/u, "").trim();
 
+const defaultSorts = [
+  { label: "最受欢迎的", value: "hotest" },
+  { label: "最新发布的", value: "time" },
+  { label: "我关注的", value: "follow" },
+] as const;
+
+const defaultRatings = ["", "5", "4", "3", "2", "1"] as const;
+
 const extractSorts = (
   doc: Document,
   pageHref: string,
@@ -93,7 +101,7 @@ const extractSorts = (
   const current = new URL(pageHref, MOVIE_ORIGIN);
   const rating = current.searchParams.get("rating");
   const currentSort = current.searchParams.get("sort") || "hotest";
-  return $$<HTMLAnchorElement>(".top-tab > li > a", doc)
+  const nativeSorts = $$<HTMLAnchorElement>(".top-tab > li > a", doc)
     .filter((link) => {
       const item = link.parentElement;
       return !(
@@ -127,6 +135,21 @@ const extractSorts = (
         },
       ];
     });
+  if (
+    nativeSorts.length === defaultSorts.length &&
+    nativeSorts.some((sort) => sort.active)
+  ) {
+    return nativeSorts;
+  }
+  return defaultSorts.map(({ label, value }) => ({
+    active: value === currentSort,
+    href: reviewsHref(pageHref, subjectId, {
+      ...(rating === null ? {} : { rating }),
+      ...(value === "hotest" ? {} : { sort: value }),
+    }),
+    label,
+    value,
+  }));
 };
 
 const extractRatings = (
@@ -137,26 +160,40 @@ const extractRatings = (
   const current = new URL(pageHref, MOVIE_ORIGIN);
   const sort = current.searchParams.get("sort");
   const activeRating = current.searchParams.get("rating") ?? "";
-  return $$<HTMLAnchorElement>(".droplist a", doc).flatMap((link) => {
-    const rawLabel = safeText(link);
-    const value = new URL(absoluteHref(link, pageHref)).searchParams.get(
-      "rating"
-    );
-    if (rawLabel && value !== null) {
-      return [
-        {
-          active: value === activeRating,
-          href: reviewsHref(pageHref, subjectId, {
-            rating: value,
-            ...(sort && sort !== "hotest" ? { sort } : {}),
-          }),
-          label: optionLabel(rawLabel),
-          value,
-        },
-      ];
+  const nativeRatings = $$<HTMLAnchorElement>(".droplist a", doc).flatMap(
+    (link) => {
+      const rawLabel = safeText(link);
+      const value = new URL(absoluteHref(link, pageHref)).searchParams.get(
+        "rating"
+      );
+      if (rawLabel && value !== null) {
+        return [
+          {
+            active: value === activeRating,
+            href: reviewsHref(pageHref, subjectId, {
+              rating: value,
+              ...(sort && sort !== "hotest" ? { sort } : {}),
+            }),
+            label: optionLabel(rawLabel),
+            value,
+          },
+        ];
+      }
+      return [];
     }
-    return [];
-  });
+  );
+  if (nativeRatings.length > 0) {
+    return nativeRatings;
+  }
+  return defaultRatings.map((value) => ({
+    active: value === activeRating,
+    href: reviewsHref(pageHref, subjectId, {
+      rating: value,
+      ...(sort && sort !== "hotest" ? { sort } : {}),
+    }),
+    label: value ? `给${value}星的评论` : "全部",
+    value,
+  }));
 };
 
 const starsFromClassName = (className: string): number => {
@@ -284,7 +321,7 @@ const extractSubjectReviewsPage = (
   const heading = safeText(doc.querySelector("#content h1, h1")) || doc.title;
   const reviewKind = reviewKindFromHeading(heading);
   const write = doc.querySelector<HTMLAnchorElement>(".create-review[href]");
-  if (!subjectId || !reviewKind || !write) {
+  if (!subjectId || !reviewKind) {
     return null;
   }
   const sorts = extractSorts(doc, pageUrl.href, subjectId);
@@ -315,7 +352,9 @@ const extractSubjectReviewsPage = (
     subjectHref: `${MOVIE_ORIGIN}/subject/${subjectId}/`,
     subjectId,
     title: titleFromHeading(heading, reviewKind),
-    writeHref: absoluteHref(write, pageUrl.href),
+    writeHref: write
+      ? absoluteHref(write, pageUrl.href)
+      : `${MOVIE_ORIGIN}/subject/${subjectId}/new_review`,
   };
 };
 

@@ -9087,7 +9087,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	owner.setVoteState(review, result.ok ? reviewVoteApi.resolve(optimistic, direction, result) : previous, result.ok ? { persist: true } : void 0);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-BDoXj0aj-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-CKGN09Mg-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -9646,21 +9646,16 @@ var useInterestMarking = ({ adapters, loggedIn, onLoginRequired, onInterestChang
 		}) : null
 	};
 };
-var nativeDialogSelector = ".account_pop.dui-dialog, .account-pop.dui-dialog, .account_pop, .account-form, .login-modal";
-var nativeMaskSelector = ".dui-dialog-msk, .ui-mask, .account-mask";
 var nativeLoginError = "无法载入豆瓣登录组件，请刷新页面后重试。";
 var trustedLoginOrigin = "https://accounts.douban.com";
-var maxAttempts = 24;
-var clearNativeLoginMasks = () => {
-	for (const mask of document.querySelectorAll(nativeMaskSelector)) mask.remove();
-};
-var findNativeLoginDialog = () => document.querySelector(nativeDialogSelector);
+var trustedLoginPath = "/passport/login_popup";
+var trustedLoginSource = `${trustedLoginOrigin}${trustedLoginPath}?source=movie`;
 var isTrustedLoginIframe = (iframe) => {
 	const source = iframe.getAttribute("src");
 	if (!source) return false;
 	try {
 		const url = new URL(source, window.location.href);
-		return url.origin === trustedLoginOrigin && !url.username && !url.password && url.pathname.startsWith("/passport/login");
+		return url.origin === trustedLoginOrigin && !url.username && !url.password && url.pathname === trustedLoginPath;
 	} catch {
 		return false;
 	}
@@ -9669,127 +9664,87 @@ var styleLoginIframe = (iframe) => {
 	iframe.title = "豆瓣登录";
 	iframe.referrerPolicy = "strict-origin-when-cross-origin";
 	iframe.setAttribute("sandbox", "allow-forms allow-scripts allow-same-origin");
-	iframe.removeAttribute("width");
-	iframe.removeAttribute("height");
-	iframe.removeAttribute("frameborder");
-	iframe.removeAttribute("scrolling");
-	iframe.removeAttribute("style");
 	iframe.classList.add("atv-login-modal-iframe");
 };
-var prepareNativeLoginIframe = (dialog) => {
-	const iframe = dialog.querySelector("iframe");
-	if (!iframe) return {
-		kind: "error",
-		message: nativeLoginError
-	};
-	const source = iframe.getAttribute("src");
-	if (!source || source === "about:blank") return { kind: "pending" };
-	if (!isTrustedLoginIframe(iframe)) return {
-		kind: "error",
-		message: nativeLoginError
-	};
+var createTrustedLoginIframe = () => {
+	const iframe = document.createElement("iframe");
+	iframe.src = trustedLoginSource;
 	styleLoginIframe(iframe);
-	iframe.remove();
-	dialog.remove();
-	return {
-		iframe,
-		kind: "ready"
-	};
+	return iframe;
 };
-var findExistingLoginIframe = () => {
-	for (const iframe of document.querySelectorAll("iframe[src*='passport/login']")) if (isTrustedLoginIframe(iframe)) {
-		styleLoginIframe(iframe);
-		iframe.remove();
-		return iframe;
-	}
-	return null;
-};
-var hasAuthenticatedSession = () => document.cookie.split(";").some((cookie) => cookie.trim().startsWith("ck="));
+var hasAuthenticatedSession = () => document.cookie.split(";").some((cookie) => {
+	const [name, ...values] = cookie.trim().split("=");
+	return name === "ck" && values.join("=").trim().length > 0;
+});
 var mountIframe = (host, iframe, onStateChange, isStopped) => {
 	let authenticated = false;
-	const sessionTimer = { current: void 0 };
+	let failed = false;
+	let ready = false;
+	let sessionTimer;
+	let focusFrame;
+	const stopSessionChecks = () => {
+		if (sessionTimer !== void 0) {
+			window.clearInterval(sessionTimer);
+			sessionTimer = void 0;
+		}
+	};
 	const onLoad = () => {
-		if (!isStopped() && !authenticated) onStateChange({ kind: "ready" });
+		if (isStopped() || authenticated || failed || ready) return;
+		ready = true;
+		onStateChange({ kind: "ready" });
 	};
-	const checkSession = () => {
-		if (isStopped() || authenticated || !hasAuthenticatedSession()) return;
-		authenticated = true;
-		if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
-		onStateChange({ kind: "authenticated" });
-	};
-	host.replaceChildren(iframe);
-	iframe.addEventListener("load", onLoad, { once: true });
-	onStateChange({ kind: "mounted" });
-	sessionTimer.current = window.setInterval(checkSession, 300);
-	requestAnimationFrame(() => {
-		if (!isStopped()) iframe.focus();
-	});
-	return () => {
-		iframe.removeEventListener("load", onLoad);
-		if (sessionTimer.current !== void 0) window.clearInterval(sessionTimer.current);
-	};
-};
-var preventNavigation = (event) => {
-	if (event.target instanceof HTMLAnchorElement) event.preventDefault();
-};
-var triggerNativeLoginDialog = () => {
-	const triggers = [...document.querySelectorAll(".a_show_login, .j.a_show_login")];
-	const trigger = triggers.find((node) => node.offsetParent !== null) ?? triggers[0];
-	if (!trigger) return;
-	document.addEventListener("click", preventNavigation, { once: true });
-	trigger.click();
-};
-var mountNativeLoginFrame = (host, onStateChange) => {
-	let stopped = false;
-	let retryTimer;
-	let stopIframeMount;
-	const stop = () => {
-		stopped = true;
-		if (retryTimer !== void 0) window.clearTimeout(retryTimer);
-		stopIframeMount?.();
-	};
-	const mount = (iframe) => {
-		stopIframeMount = mountIframe(host, iframe, onStateChange, () => stopped);
-	};
-	const attemptMount = (attempt) => {
-		if (stopped) return;
-		clearNativeLoginMasks();
-		const dialog = findNativeLoginDialog();
-		if (dialog) {
-			const result = prepareNativeLoginIframe(dialog);
-			if (result.kind === "ready") {
-				mount(result.iframe);
-				return;
-			}
-			if (result.kind === "error") {
-				onStateChange(result);
-				return;
-			}
-		}
-		const directIframe = findExistingLoginIframe();
-		if (directIframe) {
-			mount(directIframe);
-			return;
-		}
-		if (attempt === 0) {
-			triggerNativeLoginDialog();
-			clearNativeLoginMasks();
-		}
-		if (attempt < maxAttempts) {
-			retryTimer = window.setTimeout(() => {
-				retryTimer = void 0;
-				attemptMount(attempt + 1);
-			}, 100);
-			return;
-		}
+	const onError = () => {
+		if (isStopped() || authenticated || failed || ready) return;
+		failed = true;
+		stopSessionChecks();
 		onStateChange({
 			kind: "error",
 			message: nativeLoginError
 		});
 	};
+	const checkSession = () => {
+		if (isStopped() || authenticated || failed || !hasAuthenticatedSession()) return;
+		authenticated = true;
+		stopSessionChecks();
+		onStateChange({ kind: "authenticated" });
+	};
+	iframe.addEventListener("load", onLoad, { once: true });
+	iframe.addEventListener("error", onError, { once: true });
+	host.replaceChildren(iframe);
+	onStateChange({ kind: "mounted" });
+	sessionTimer = window.setInterval(checkSession, 300);
+	focusFrame = window.requestAnimationFrame(() => {
+		if (!isStopped()) iframe.focus();
+	});
+	return () => {
+		iframe.removeEventListener("load", onLoad);
+		iframe.removeEventListener("error", onError);
+		stopSessionChecks();
+		if (focusFrame !== void 0) {
+			window.cancelAnimationFrame(focusFrame);
+			focusFrame = void 0;
+		}
+		if (iframe.parentElement === host) iframe.remove();
+	};
+};
+var mountNativeLoginFrame = (host, onStateChange) => {
+	let stopped = false;
 	onStateChange({ kind: "loading" });
-	attemptMount(0);
-	return stop;
+	const iframe = createTrustedLoginIframe();
+	if (!isTrustedLoginIframe(iframe)) {
+		onStateChange({
+			kind: "error",
+			message: nativeLoginError
+		});
+		return () => {
+			stopped = true;
+		};
+	}
+	const stopIframeMount = mountIframe(host, iframe, onStateChange, () => stopped);
+	return () => {
+		stopped = true;
+		stopIframeMount();
+	};
 };
 var statusForLoginState = (state) => {
 	if (state.kind === "error") return state.message;
@@ -17881,11 +17836,33 @@ var reviewKindFromHeading = (heading) => {
 };
 var titleFromHeading = (heading, reviewKind) => heading.replace(new RegExp(`\\s*的?(?:[1-5]星)?${reviewKind}\\s*\\(.*\\)\\s*$`, "u"), "").trim();
 var optionLabel = (label) => label.replace(/\s*\([\d,]+\)\s*$/u, "").trim();
+var defaultSorts = [
+	{
+		label: "最受欢迎的",
+		value: "hotest"
+	},
+	{
+		label: "最新发布的",
+		value: "time"
+	},
+	{
+		label: "我关注的",
+		value: "follow"
+	}
+];
+var defaultRatings = [
+	"",
+	"5",
+	"4",
+	"3",
+	"2",
+	"1"
+];
 var extractSorts = (doc, pageHref, subjectId) => {
 	const current = new URL(pageHref, MOVIE_ORIGIN$1);
 	const rating = current.searchParams.get("rating");
 	const currentSort = current.searchParams.get("sort") || "hotest";
-	return $$(".top-tab > li > a", doc).filter((link) => {
+	const nativeSorts = $$(".top-tab > li > a", doc).filter((link) => {
 		const item = link.parentElement;
 		return !(link.classList.contains("dropdown") || link.classList.contains("create-review") || item?.classList.contains("dropdown") || item?.classList.contains("create-review"));
 	}).flatMap((link) => {
@@ -17905,12 +17882,22 @@ var extractSorts = (doc, pageHref, subjectId) => {
 			value: sort
 		}];
 	});
+	if (nativeSorts.length === defaultSorts.length && nativeSorts.some((sort) => sort.active)) return nativeSorts;
+	return defaultSorts.map(({ label, value }) => ({
+		active: value === currentSort,
+		href: reviewsHref(pageHref, subjectId, {
+			...rating === null ? {} : { rating },
+			...value === "hotest" ? {} : { sort: value }
+		}),
+		label,
+		value
+	}));
 };
 var extractRatings = (doc, pageHref, subjectId) => {
 	const current = new URL(pageHref, MOVIE_ORIGIN$1);
 	const sort = current.searchParams.get("sort");
 	const activeRating = current.searchParams.get("rating") ?? "";
-	return $$(".droplist a", doc).flatMap((link) => {
+	const nativeRatings = $$(".droplist a", doc).flatMap((link) => {
 		const rawLabel = safeText(link);
 		const value = new URL(absoluteHref(link, pageHref)).searchParams.get("rating");
 		if (rawLabel && value !== null) return [{
@@ -17924,6 +17911,16 @@ var extractRatings = (doc, pageHref, subjectId) => {
 		}];
 		return [];
 	});
+	if (nativeRatings.length > 0) return nativeRatings;
+	return defaultRatings.map((value) => ({
+		active: value === activeRating,
+		href: reviewsHref(pageHref, subjectId, {
+			rating: value,
+			...sort && sort !== "hotest" ? { sort } : {}
+		}),
+		label: value ? `给${value}星的评论` : "全部",
+		value
+	}));
 };
 var starsFromClassName = (className) => {
 	const value = className.match(/allstar(?<stars>[1-5])0/u)?.groups?.stars;
@@ -18009,7 +18006,7 @@ var extractSubjectReviewsPage = (doc, pageHref = doc.defaultView?.location.href 
 	const heading = safeText(doc.querySelector("#content h1, h1")) || doc.title;
 	const reviewKind = reviewKindFromHeading(heading);
 	const write = doc.querySelector(".create-review[href]");
-	if (!subjectId || !reviewKind || !write) return null;
+	if (!subjectId || !reviewKind) return null;
 	const sorts = extractSorts(doc, pageUrl.href, subjectId);
 	const ratings = extractRatings(doc, pageUrl.href, subjectId);
 	if (!doc.querySelector(".review-list") || sorts.length !== 3 || !sorts.some((sort) => sort.active) || ratings.length === 0) return null;
@@ -18028,7 +18025,7 @@ var extractSubjectReviewsPage = (doc, pageHref = doc.defaultView?.location.href 
 		subjectHref: `${MOVIE_ORIGIN$1}/subject/${subjectId}/`,
 		subjectId,
 		title: titleFromHeading(heading, reviewKind),
-		writeHref: absoluteHref(write, pageUrl.href)
+		writeHref: write ? absoluteHref(write, pageUrl.href) : `${MOVIE_ORIGIN$1}/subject/${subjectId}/new_review`
 	};
 };
 var same = (left, right) => JSON.stringify(left) === JSON.stringify(right);
@@ -18352,13 +18349,23 @@ var SubjectReviewsPage = ({ doc, navigation }) => {
 	const readerReviews = data.reviews.map(reviewFromDirectory);
 	const votes = useVoteState(readerReviews, reviewVoteApi);
 	const locked = navigation.pending !== null;
+	const requestLogin = q((request) => login.handleOpen(request), [login]);
 	const selected = (option) => navigation.pending ? navigation.pending.href === option.href : option.active;
 	const navigate = (event, option) => {
 		if (modifierClick(event) || !option.href || locked) return;
 		event.preventDefault();
+		if ("value" in option && !loggedIn && option.value !== "hotest") {
+			requestLogin({
+				action: option.value === "follow" ? "查看我关注的影评" : "筛选影评",
+				continuation: {
+					href: option.href,
+					kind: "browse"
+				}
+			});
+			return;
+		}
 		if (!option.active) navigation.navigate(option.href, option.label);
 	};
-	const requestLogin = q((request) => login.handleOpen(request), [login]);
 	const voteAfterAuthentication = q((review, direction) => requestLogin({
 		action: "给影评投票",
 		continuation: {
@@ -18374,7 +18381,7 @@ var SubjectReviewsPage = ({ doc, navigation }) => {
 		if (!authenticated) return;
 		if (!continuation) return;
 		if ("kind" in continuation) {
-			navigation.navigate(continuation.href, "我关注的");
+			navigation.navigate(continuation.href, "筛选影评");
 			return;
 		}
 		await resumeReviewVote(continuation.review, continuation.direction, (rid, direction) => postReviewVote(data.subjectId, rid, direction), votes);
@@ -18386,17 +18393,6 @@ var SubjectReviewsPage = ({ doc, navigation }) => {
 		votes
 	]);
 	const browse = (event, option) => {
-		if (option.value === "follow" && !loggedIn && !modifierClick(event)) {
-			event.preventDefault();
-			requestLogin({
-				action: "查看我关注的影评",
-				continuation: {
-					href: option.href,
-					kind: "follow"
-				}
-			});
-			return;
-		}
 		navigate(event, option);
 	};
 	const handleRetry = () => navigation.retry();
@@ -18688,7 +18684,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-BDoXj0aj-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-CKGN09Mg-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
