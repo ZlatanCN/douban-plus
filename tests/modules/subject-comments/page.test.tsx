@@ -86,6 +86,7 @@ const pageData: SubjectCommentsPageData = {
       active: false,
       href: "https://movie.douban.com/subject/3016187/comments?sort=time&status=P",
       label: "最新",
+      requiresLogin: true,
     },
   ],
   statuses: [
@@ -131,7 +132,7 @@ const nativePage = `
       </div>
       <div class="title_line"><div class="Comments-sortby">
         <span>热门</span>
-        <a href="https://movie.douban.com/subject/3016187/comments?sort=time&status=P">最新</a>
+        <a class="j a_show_login" href="https://movie.douban.com/subject/3016187/comments?sort=time&status=P">最新</a>
       </div></div>
       <div class="comment-filter">
         <label><input checked type="radio" value=""><span>全部</span></label>
@@ -254,6 +255,104 @@ describe(SubjectCommentsPage, () => {
 
   afterEach(() => {
     render(null, root);
+  });
+
+  it("opens the login modal instead of navigating for an unauthenticated native login sort", async () => {
+    const { cleanup, doc } = createTestDoc(
+      nativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+    const navigate = vi.fn<(href: string, label: string) => void>();
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(
+      <SubjectCommentsPage
+        doc={doc}
+        navigation={{
+          data,
+          dismissFailure: vi.fn<() => void>(),
+          failure: null,
+          navigate,
+          pending: null,
+          refresh: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
+          retry: vi.fn<() => void>(),
+          version: 0,
+        }}
+      />,
+      root
+    );
+
+    root
+      .querySelector<HTMLAnchorElement>(
+        ".atv-subject-comments-sort-option[href*='sort=time']"
+      )
+      ?.click();
+
+    await vi.waitFor(() =>
+      expect(root.querySelector("#atv-login-modal-desc")?.textContent).toBe(
+        "登录后才能查看最新短评。"
+      )
+    );
+    expect(navigate).not.toHaveBeenCalled();
+
+    clearCookie();
+    cleanup();
+  });
+
+  it("navigates for a signed-in native login sort", () => {
+    const { cleanup, doc } = createTestDoc(
+      nativePage,
+      "/subject/3016187/comments?status=P"
+    );
+    const clearCookie = mockCookie(doc, "ck=token");
+    const data = extractSubjectCommentsPage(
+      doc,
+      "https://movie.douban.com/subject/3016187/comments?status=P"
+    );
+    const navigate = vi.fn<(href: string, label: string) => void>();
+
+    if (!data) {
+      throw new Error("test fixture extraction failed");
+    }
+
+    render(
+      <SubjectCommentsPage
+        doc={doc}
+        navigation={{
+          data,
+          dismissFailure: vi.fn<() => void>(),
+          failure: null,
+          navigate,
+          pending: null,
+          refresh: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
+          retry: vi.fn<() => void>(),
+          version: 0,
+        }}
+      />,
+      root
+    );
+
+    root
+      .querySelector<HTMLAnchorElement>(
+        ".atv-subject-comments-sort-option[href*='sort=time']"
+      )
+      ?.click();
+
+    expect(navigate).toHaveBeenCalledWith(
+      "https://movie.douban.com/subject/3016187/comments?status=P&sort=time",
+      "最新"
+    );
+
+    clearCookie();
+    cleanup();
   });
 
   it("renders all three browsing axes, full comment text, and native exits", () => {

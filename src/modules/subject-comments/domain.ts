@@ -10,6 +10,7 @@ type SubjectCommentsBrowseOption = {
   active: boolean;
   href: string;
   label: string;
+  requiresLogin?: boolean;
 };
 
 type SubjectCommentsScoreFilter = SubjectCommentsBrowseOption & {

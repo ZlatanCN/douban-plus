@@ -116,9 +116,16 @@ const SubjectCommentsPage = ({
       return;
     }
     event.preventDefault();
-    if (!isBrowsingLocked && !option.active) {
-      commentsNavigation.navigate(option.href, option.label);
+    if (isBrowsingLocked || option.active) {
+      return;
     }
+    if (option.requiresLogin && !interest.loggedIn) {
+      requestLogin(`查看${option.label}短评`, () => {
+        commentsNavigation.navigate(option.href, option.label);
+      });
+      return;
+    }
+    commentsNavigation.navigate(option.href, option.label);
   };
 
   useEffect(() => {

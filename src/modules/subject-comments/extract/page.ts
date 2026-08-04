@@ -152,6 +152,9 @@ const extractSorts = (
           status,
         }),
         label,
+        ...(link
+          ? { requiresLogin: link.classList.contains("a_show_login") }
+          : {}),
       },
     ];
   });
