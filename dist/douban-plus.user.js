@@ -9087,7 +9087,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	owner.setVoteState(review, result.ok ? reviewVoteApi.resolve(optimistic, direction, result) : previous, result.ok ? { persist: true } : void 0);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-CKGN09Mg-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-VIKDM0aJ-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -17187,7 +17187,8 @@ var extractSorts$1 = (doc, subjectId, status, pageHref) => (() => {
 			...sort ? { sort } : {},
 			status
 		}),
-		label
+		label,
+		...link ? { requiresLogin: link.classList.contains("a_show_login") } : {}
 	}];
 });
 var extractScoreFilters = (doc, subjectId, status, pageHref) => $$(".comment-filter input[type=radio]", doc).flatMap((input) => {
@@ -17207,6 +17208,16 @@ var ratingFromComment = (comment) => {
 	const rating = (comment.querySelector(".comment-info .rating")?.className ?? "").match(/allstar(?<rating>[1-5])0/u)?.groups?.rating;
 	return rating ? Number(rating) : null;
 };
+var votesFromComment = (item) => {
+	const canVote = item.querySelector(".vote-comment") !== null;
+	const count = Number(safeText(item.querySelector(".vote-count")));
+	return {
+		canVote,
+		count: Number.isSafeInteger(count) && count >= 0 ? count : 0,
+		requiresLogin: !canVote && item.querySelector(".comment-vote .a_show_login") !== null,
+		voted: !canVote && /已投票|已赞|已推荐/u.test(safeText(item.querySelector(".comment-vote")))
+	};
+};
 var extractComment = (item, pageHref) => {
 	const id = item.dataset.cid?.trim();
 	const commentInfo = item.querySelector(".comment-info");
@@ -17217,7 +17228,6 @@ var extractComment = (item, pageHref) => {
 	const status = $$(":scope > span", commentInfo).find((span) => !span.classList.contains("rating") && !span.classList.contains("comment-location"));
 	const time = commentInfo.querySelector(".comment-time");
 	const location = safeText(commentInfo.querySelector(".comment-location"));
-	const voteCount = Number(safeText(item.querySelector(".vote-count")));
 	const avatar = item.querySelector(".avatar img[src]");
 	return {
 		author: {
@@ -17234,10 +17244,7 @@ var extractComment = (item, pageHref) => {
 			href: time instanceof HTMLAnchorElement ? absoluteHref$1(time, pageHref) : null,
 			label: time.title || safeText(time)
 		} : null,
-		votes: {
-			canVote: item.querySelector(".vote-comment") !== null,
-			count: Number.isSafeInteger(voteCount) && voteCount >= 0 ? voteCount : 0
-		}
+		votes: votesFromComment(item)
 	};
 };
 var extractPagination$1 = (doc, pageHref) => $$("#paginator > a, #paginator > span", doc).flatMap((item) => {
@@ -17287,9 +17294,13 @@ var votesFromNativeComment = (doc, commentId, fallback) => {
 	const item = nativeComment(doc, commentId);
 	if (!item) return fallback;
 	const count = Number(item.querySelector(".vote-count")?.textContent?.trim());
+	const canVote = item.querySelector(".vote-comment") !== null;
+	const requiresLogin = !canVote && item.querySelector(".comment-vote .a_show_login") !== null;
 	return {
-		canVote: item.querySelector(".vote-comment") !== null,
-		count: Number.isSafeInteger(count) && count >= 0 ? count : fallback.count
+		canVote,
+		count: Number.isSafeInteger(count) && count >= 0 ? count : fallback.count,
+		requiresLogin,
+		voted: !canVote && /已投票|已赞|已推荐/u.test(safeText(item.querySelector(".comment-vote")))
 	};
 };
 var Avatar = ({ comment }) => /* @__PURE__ */ u(SafeImage, {
@@ -17322,7 +17333,7 @@ var CommentTime = ({ time }) => {
 		children: time.label
 	});
 };
-var Comment = ({ comment, doc }) => {
+var Comment = ({ comment, doc, onLoginRequired }) => {
 	const [votes, setVotes] = d(comment.votes);
 	h(() => {
 		const item = nativeComment(doc, comment.id);
@@ -17377,14 +17388,18 @@ var Comment = ({ comment, doc }) => {
 					ariaLabel: `有用，${numberFormatter$1.format(votes.count)} 人觉得有用`,
 					className: "atv-comment-votes atv-subject-comments-vote",
 					count: votes.count,
-					disabled: !votes.canVote,
+					disabled: votes.voted || !votes.canVote && !votes.requiresLogin,
 					onVote: () => {
+						if (votes.requiresLogin) {
+							onLoginRequired();
+							return;
+						}
 						if (votes.canVote) {
 							triggerNativeVote(doc, comment.id);
 							setVotes((current) => votesFromNativeComment(doc, comment.id, current));
 						}
 					},
-					voted: !votes.canVote
+					voted: votes.voted
 				})
 			})]
 		})]
@@ -17534,7 +17549,14 @@ var SubjectCommentsPage = ({ data: initialData, doc, navigation: commentsNavigat
 	const navigateBrowse = (event, option) => {
 		if (!commentsNavigation || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 		event.preventDefault();
-		if (!isBrowsingLocked && !option.active) commentsNavigation.navigate(option.href, option.label);
+		if (isBrowsingLocked || option.active) return;
+		if (option.requiresLogin && !interest.loggedIn) {
+			requestLogin(`查看${option.label}短评`, () => {
+				commentsNavigation.navigate(option.href, option.label);
+			});
+			return;
+		}
+		commentsNavigation.navigate(option.href, option.label);
 	};
 	h(() => {
 		const controls = controlsRef.current;
@@ -17619,7 +17641,8 @@ var SubjectCommentsPage = ({ data: initialData, doc, navigation: commentsNavigat
 							class: "atv-subject-comments-results",
 							children: [data.comments.map((comment) => /* @__PURE__ */ u(Comment, {
 								comment,
-								doc
+								doc,
+								onLoginRequired: () => requestLogin("给短评投票")
 							}, comment.id)), /* @__PURE__ */ u(CommentsPagination, {
 								isBrowsingLocked,
 								navigateBrowse,
@@ -17641,45 +17664,22 @@ var SubjectCommentsPage = ({ data: initialData, doc, navigation: commentsNavigat
 		interestMarking.form
 	] });
 };
-var MOVIE_ORIGIN$2 = "https://movie.douban.com";
-var isSubjectCommentsUrl = (url) => url.origin === MOVIE_ORIGIN$2 && /^\/subject\/\d+\/comments\/?$/u.test(url.pathname);
-var fetchSubjectCommentsPage = async (href, signal) => {
-	const requestedUrl = new URL(href, MOVIE_ORIGIN$2);
-	if (!isSubjectCommentsUrl(requestedUrl)) throw new Error("短评导航目标无效");
-	const response = await fetch(requestedUrl.href, {
-		credentials: "include",
-		signal
-	});
-	if (!response.ok) throw new Error(`短评页面请求失败：${response.status}`);
-	const responseHref = response.url || requestedUrl.href;
-	const responseUrl = new URL(responseHref, MOVIE_ORIGIN$2);
-	if (!isSubjectCommentsUrl(responseUrl)) throw new Error("短评页面响应无效");
-	const sourceDoc = new DOMParser().parseFromString(await response.text(), "text/html");
-	const data = extractSubjectCommentsPage(sourceDoc, responseUrl.href);
-	const nativeContent = sourceDoc.querySelector("#content");
-	if (!data || !nativeContent) throw new Error("短评页面数据不完整");
-	return {
-		data,
-		href: responseUrl.href,
-		nativeContent
-	};
-};
-var replaceNativeContent$1 = (doc, sourceContent) => {
+var replaceNativeContent = (doc, sourceContent) => {
 	const currentContent = doc.querySelector("#content");
-	if (!currentContent) throw new Error("当前短评页缺少原生内容容器");
+	if (!currentContent) throw new Error("当前原生页面缺少内容容器");
 	currentContent.replaceWith(doc.importNode(sourceContent, true));
 };
-var isAbortError$1 = (error) => error instanceof DOMException && error.name === "AbortError";
-var writeHistory$1 = (doc, method, href) => {
+var isAbortError = (error) => error instanceof DOMException && error.name === "AbortError";
+var writeHistory = (doc, method, href) => {
 	try {
 		doc.defaultView?.history[method](null, "", href);
 	} catch {}
 };
-var createSubjectCommentsNavigator = ({ doc, loadPage, onFailure, onPending, onSuccess }) => {
+var createNativeNavigation = ({ doc, getTitle, loadPage, onFailure, onPending, onSuccess }) => {
 	let activeController = null;
-	let sequence = 0;
 	let lastSuccessfulHref = doc.location.href;
-	const navigate = (target) => {
+	let sequence = 0;
+	const navigate = async (target) => {
 		activeController?.abort();
 		const controller = new AbortController();
 		activeController = controller;
@@ -17687,22 +17687,21 @@ var createSubjectCommentsNavigator = ({ doc, loadPage, onFailure, onPending, onS
 		const requestSequence = sequence;
 		const previousHref = lastSuccessfulHref;
 		onPending(target);
-		const load = async () => {
-			try {
-				const result = await loadPage(target.href, controller.signal);
-				if (controller.signal.aborted || requestSequence !== sequence) return;
-				replaceNativeContent$1(doc, result.nativeContent);
-				lastSuccessfulHref = result.href;
-				doc.title = `${result.data.title} — 全部短评`;
-				if (target.source === "user") writeHistory$1(doc, "pushState", result.href);
-				onSuccess(result, target);
-			} catch (error) {
-				if (controller.signal.aborted || requestSequence !== sequence) return;
-				if (target.source === "history" && !isAbortError$1(error)) writeHistory$1(doc, "replaceState", previousHref);
-				if (!isAbortError$1(error)) onFailure(target);
-			}
-		};
-		return load();
+		try {
+			const result = await loadPage(target.href, controller.signal);
+			if (controller.signal.aborted || requestSequence !== sequence) return false;
+			replaceNativeContent(doc, result.nativeContent);
+			lastSuccessfulHref = result.href;
+			doc.title = getTitle(result);
+			if (target.source === "user") writeHistory(doc, "pushState", result.href);
+			onSuccess(result, target);
+			return true;
+		} catch (error) {
+			if (controller.signal.aborted || requestSequence !== sequence) return false;
+			if (!isAbortError(error) && doc.location.href !== previousHref) writeHistory(doc, "replaceState", previousHref);
+			if (!isAbortError(error)) onFailure(target);
+			return false;
+		}
 	};
 	return {
 		dispose: () => {
@@ -17713,19 +17712,20 @@ var createSubjectCommentsNavigator = ({ doc, loadPage, onFailure, onPending, onS
 		navigate
 	};
 };
-var useSubjectCommentsNavigation = (doc, initialData) => {
+var useNativeNavigation = ({ doc, getTitle, initialData, loadPage, refreshLabel }) => {
 	const [data, setData] = d(initialData);
 	const [pending, setPending] = d(null);
 	const [failure, setFailure] = d(null);
 	const [version, setVersion] = d(0);
 	const retryTargetRef = A(null);
-	const navigator = T(() => createSubjectCommentsNavigator({
+	const navigator = T(() => createNativeNavigation({
 		doc,
-		loadPage: fetchSubjectCommentsPage,
+		getTitle,
+		loadPage,
 		onFailure: (target) => {
 			retryTargetRef.current = target;
 			setPending(null);
-			setFailure({ target });
+			setFailure(target);
 		},
 		onPending: (target) => {
 			setFailure(null);
@@ -17738,10 +17738,14 @@ var useSubjectCommentsNavigation = (doc, initialData) => {
 			setFailure(null);
 			if (target.source !== "sync") setVersion((current) => current + 1);
 		}
-	}), [doc]);
+	}), [
+		doc,
+		getTitle,
+		loadPage
+	]);
 	h(() => {
 		const view = doc.defaultView;
-		if (!view) return;
+		if (!view) return () => navigator.dispose();
 		const onPopState = () => {
 			navigator.navigate({
 				href: view.location.href,
@@ -17777,13 +17781,48 @@ var useSubjectCommentsNavigation = (doc, initialData) => {
 		pending,
 		refresh: q(() => navigator.navigate({
 			href: doc.location.href,
-			label: "同步短评",
+			label: refreshLabel,
 			source: "sync"
-		}), [doc, navigator]),
+		}), [
+			doc,
+			navigator,
+			refreshLabel
+		]),
 		retry,
 		version
 	};
 };
+var MOVIE_ORIGIN$2 = "https://movie.douban.com";
+var isSubjectCommentsUrl = (url) => url.origin === MOVIE_ORIGIN$2 && /^\/subject\/\d+\/comments\/?$/u.test(url.pathname);
+var fetchSubjectCommentsPage = async (href, signal) => {
+	const requestedUrl = new URL(href, MOVIE_ORIGIN$2);
+	if (!isSubjectCommentsUrl(requestedUrl)) throw new Error("短评导航目标无效");
+	const response = await fetch(requestedUrl.href, {
+		credentials: "include",
+		signal
+	});
+	if (!response.ok) throw new Error(`短评页面请求失败：${response.status}`);
+	const responseHref = response.url || requestedUrl.href;
+	const responseUrl = new URL(responseHref, MOVIE_ORIGIN$2);
+	if (!isSubjectCommentsUrl(responseUrl)) throw new Error("短评页面响应无效");
+	const sourceDoc = new DOMParser().parseFromString(await response.text(), "text/html");
+	const data = extractSubjectCommentsPage(sourceDoc, responseUrl.href);
+	const nativeContent = sourceDoc.querySelector("#content");
+	if (!data || !nativeContent) throw new Error("短评页面数据不完整");
+	return {
+		data,
+		href: responseUrl.href,
+		nativeContent
+	};
+};
+var getSubjectCommentsTitle = ({ data }) => `${data.title} — 全部短评`;
+var useSubjectCommentsNavigation = (doc, initialData) => useNativeNavigation({
+	doc,
+	getTitle: getSubjectCommentsTitle,
+	initialData,
+	loadPage: fetchSubjectCommentsPage,
+	refreshLabel: "同步短评"
+});
 var SubjectCommentsRuntimePage = ({ data: initialData, doc }) => {
 	return /* @__PURE__ */ u(SubjectCommentsPage, {
 		doc,
@@ -18507,125 +18546,14 @@ var fetchSubjectReviewsPage = async (href, signal) => {
 		nativeContent
 	};
 };
-var replaceNativeContent = (doc, sourceContent) => {
-	const currentContent = doc.querySelector("#content");
-	if (!currentContent) throw new Error("当前影评页缺少原生内容容器");
-	currentContent.replaceWith(doc.importNode(sourceContent, true));
-};
-var isAbortError = (error) => error instanceof DOMException && error.name === "AbortError";
-var writeHistory = (doc, method, href) => {
-	try {
-		doc.defaultView?.history[method](null, "", href);
-	} catch {}
-};
-var createSubjectReviewsNavigator = ({ doc, loadPage, onFailure, onPending, onSuccess }) => {
-	let activeController = null;
-	let lastSuccessfulHref = doc.location.href;
-	let sequence = 0;
-	const navigate = async (target) => {
-		activeController?.abort();
-		const controller = new AbortController();
-		activeController = controller;
-		sequence += 1;
-		const requestSequence = sequence;
-		const previousHref = lastSuccessfulHref;
-		onPending(target);
-		try {
-			const result = await loadPage(target.href, controller.signal);
-			if (controller.signal.aborted || requestSequence !== sequence) return false;
-			replaceNativeContent(doc, result.nativeContent);
-			lastSuccessfulHref = result.href;
-			doc.title = `${result.data.title} — 全部${result.data.reviewKind}`;
-			if (target.source === "user") writeHistory(doc, "pushState", result.href);
-			onSuccess(result, target);
-			return true;
-		} catch (error) {
-			if (controller.signal.aborted || requestSequence !== sequence) return false;
-			if (target.source === "history" && !isAbortError(error)) writeHistory(doc, "replaceState", previousHref);
-			if (!isAbortError(error)) onFailure(target);
-			return false;
-		}
-	};
-	return {
-		dispose: () => {
-			activeController?.abort();
-			activeController = null;
-			sequence += 1;
-		},
-		navigate
-	};
-};
-var useSubjectReviewsNavigation = (doc, initialData) => {
-	const [data, setData] = d(initialData);
-	const [pending, setPending] = d(null);
-	const [failure, setFailure] = d(null);
-	const [version, setVersion] = d(0);
-	const retryTargetRef = A(null);
-	const navigator = T(() => createSubjectReviewsNavigator({
-		doc,
-		loadPage: fetchSubjectReviewsPage,
-		onFailure: (target) => {
-			retryTargetRef.current = target;
-			setPending(null);
-			setFailure(target);
-		},
-		onPending: (target) => {
-			setFailure(null);
-			setPending(target);
-		},
-		onSuccess: (result, target) => {
-			retryTargetRef.current = null;
-			setData(result.data);
-			setPending(null);
-			setFailure(null);
-			if (target.source !== "sync") setVersion((current) => current + 1);
-		}
-	}), [doc]);
-	h(() => {
-		const view = doc.defaultView;
-		if (!view) return;
-		const onPopState = () => {
-			navigator.navigate({
-				href: view.location.href,
-				label: "历史记录",
-				source: "history"
-			});
-		};
-		view.addEventListener("popstate", onPopState);
-		return () => {
-			view.removeEventListener("popstate", onPopState);
-			navigator.dispose();
-		};
-	}, [doc, navigator]);
-	const navigate = q((href, label) => {
-		navigator.navigate({
-			href,
-			label,
-			source: "user"
-		});
-	}, [navigator]);
-	const retry = q(() => {
-		const target = retryTargetRef.current;
-		if (target) navigator.navigate({
-			...target,
-			source: "user"
-		});
-	}, [navigator]);
-	return {
-		data,
-		dismissFailure: q(() => setFailure(null), []),
-		failure,
-		navigate,
-		pending,
-		refresh: q(() => navigator.navigate({
-			href: doc.location.href,
-			label: "同步影评",
-			source: "sync"
-		}), [doc, navigator]),
-		retry,
-		version
-	};
-};
+var getSubjectReviewsTitle = ({ data }) => `${data.title} — 全部${data.reviewKind}`;
+var useSubjectReviewsNavigation = (doc, initialData) => useNativeNavigation({
+	doc,
+	getTitle: getSubjectReviewsTitle,
+	initialData,
+	loadPage: fetchSubjectReviewsPage,
+	refreshLabel: "同步影评"
+});
 var SubjectReviewsRuntimePage = ({ data, doc }) => /* @__PURE__ */ u(SubjectReviewsPage, {
 	doc,
 	navigation: useSubjectReviewsNavigation(doc, data)
@@ -18684,7 +18612,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-CKGN09Mg-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-VIKDM0aJ-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
