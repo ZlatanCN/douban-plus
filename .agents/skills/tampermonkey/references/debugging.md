@@ -46,15 +46,15 @@ When a script doesn't work, check these first:
 // @match        https://example.com/*
 // ==/UserScript==
 
-alert("Script is running!"); // Will definitely show if script loads
+alert('Script is running!');  // Will definitely show if script loads
 ```
 
 ### Method 2: Console Log
 
 ```javascript
-console.log("=== USERSCRIPT LOADED ===");
-console.log("URL:", location.href);
-console.log("Time:", new Date().toISOString());
+console.log('=== USERSCRIPT LOADED ===');
+console.log('URL:', location.href);
+console.log('Time:', new Date().toISOString());
 ```
 
 ### Method 3: Visual Indicator
@@ -87,19 +87,19 @@ GM_addStyle(`
 
 ```javascript
 // Error
-document.querySelector("#missing").textContent = "Hi";
+document.querySelector('#missing').textContent = 'Hi';
 
 // Fix: Check if element exists
-const el = document.querySelector("#missing");
+const el = document.querySelector('#missing');
 if (el) {
-  el.textContent = "Hi";
+    el.textContent = 'Hi';
 } else {
-  console.log("Element not found");
+    console.log('Element not found');
 }
 
 // Better fix: Wait for element
-waitForElement("#missing").then((el) => {
-  el.textContent = "Hi";
+waitForElement('#missing').then(el => {
+    el.textContent = 'Hi';
 });
 ```
 
@@ -109,11 +109,11 @@ waitForElement("#missing").then((el) => {
 
 ```javascript
 // Error - forgot @grant
-GM_setValue("key", "value"); // ReferenceError
+GM_setValue('key', 'value');  // ReferenceError
 
 // Fix - add @grant
 // @grant GM_setValue
-GM_setValue("key", "value"); // Works
+GM_setValue('key', 'value');  // Works
 ```
 
 ### "Access to XMLHttpRequest blocked by CORS"
@@ -122,15 +122,15 @@ GM_setValue("key", "value"); // Works
 
 ```javascript
 // Error - blocked by CORS
-fetch("https://api.example.com/data");
+fetch('https://api.example.com/data');
 
 // Fix - use GM_xmlhttpRequest
 // @grant GM_xmlhttpRequest
 // @connect api.example.com
 
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => console.log(r.responseText),
+    url: 'https://api.example.com/data',
+    onload: (r) => console.log(r.responseText)
 });
 ```
 
@@ -140,14 +140,14 @@ GM_xmlhttpRequest({
 
 ```javascript
 // Error - blocked by CSP
-const script = document.createElement("script");
+const script = document.createElement('script');
 script.textContent = 'console.log("blocked")';
 document.head.appendChild(script);
 
 // Fix - use GM_addElement
 // @grant GM_addElement
-GM_addElement("script", {
-  textContent: 'console.log("works")',
+GM_addElement('script', {
+    textContent: 'console.log("works")'
 });
 ```
 
@@ -160,23 +160,23 @@ GM_addElement("script", {
 Comment out sections to find what's breaking:
 
 ```javascript
-console.log("Step 1");
+console.log('Step 1');
 // doSomething();
 
-console.log("Step 2");
+console.log('Step 2');
 // doSomethingElse();
 
-console.log("Step 3");
+console.log('Step 3');
 // maybeBroken();  // Uncomment one at a time
 ```
 
 ### 2. Log Variables
 
 ```javascript
-const element = document.querySelector("#target");
-console.log("Element:", element);
-console.log("Element exists:", !!element);
-console.log("Element HTML:", element?.outerHTML);
+const element = document.querySelector('#target');
+console.log('Element:', element);
+console.log('Element exists:', !!element);
+console.log('Element HTML:', element?.outerHTML);
 ```
 
 ### 3. Breakpoints
@@ -204,7 +204,7 @@ For GM_xmlhttpRequest issues:
 
 ```javascript
 // Log when script runs to verify @match
-console.log("Script matched:", location.href);
+console.log('Script matched:', location.href);
 
 // Test pattern manually:
 // @match https://example.com/*
@@ -220,19 +220,19 @@ console.log("Script matched:", location.href);
 
 ```javascript
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (response) => {
-    console.log("Response received"); // Never logs
-  },
+    url: 'https://api.example.com/data',
+    onload: (response) => {
+        console.log('Response received');  // Never logs
+    }
 });
 
 // Debug: Add all callbacks
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => console.log("Success:", r.status),
-  onerror: (e) => console.log("Error:", e),
-  ontimeout: () => console.log("Timeout"),
-  onabort: () => console.log("Aborted"),
+    url: 'https://api.example.com/data',
+    onload: (r) => console.log('Success:', r.status),
+    onerror: (e) => console.log('Error:', e),
+    ontimeout: () => console.log('Timeout'),
+    onabort: () => console.log('Aborted')
 });
 ```
 
@@ -240,14 +240,14 @@ GM_xmlhttpRequest({
 
 ```javascript
 // Stuck promise
-const data = await someAsyncFunction(); // Never continues
+const data = await someAsyncFunction();  // Never continues
 
 // Debug: Add timeout
 const data = await Promise.race([
-  someAsyncFunction(),
-  new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("Timeout after 10s")), 10000)
-  ),
+    someAsyncFunction(),
+    new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Timeout after 10s')), 10000)
+    )
 ]);
 ```
 
@@ -260,20 +260,20 @@ const data = await Promise.race([
 ```javascript
 // Watch for element in console
 const observer = new MutationObserver((mutations) => {
-  const el = document.querySelector("#target");
-  if (el) {
-    console.log("FOUND:", el);
-    observer.disconnect();
-  }
+    const el = document.querySelector('#target');
+    if (el) {
+        console.log('FOUND:', el);
+        observer.disconnect();
+    }
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
 // After 30 seconds, report if not found
 setTimeout(() => {
-  if (document.querySelector("#target") === null) {
-    console.log("Element never appeared after 30s");
-    console.log("Current DOM:", document.body.innerHTML.substring(0, 1000));
-  }
+    if (document.querySelector('#target') === null) {
+        console.log('Element never appeared after 30s');
+        console.log('Current DOM:', document.body.innerHTML.substring(0, 1000));
+    }
 }, 30000);
 ```
 
@@ -285,26 +285,26 @@ setTimeout(() => {
 
 ```javascript
 // Save
-GM_setValue("test", { foo: "bar" });
-console.log("Saved");
+GM_setValue('test', { foo: 'bar' });
+console.log('Saved');
 
 // Read back immediately
-const value = GM_getValue("test");
-console.log("Retrieved:", value);
-console.log("Type:", typeof value);
+const value = GM_getValue('test');
+console.log('Retrieved:', value);
+console.log('Type:', typeof value);
 
 // List all keys
 const keys = GM_listValues();
-console.log("All keys:", keys);
+console.log('All keys:', keys);
 ```
 
 ### Clear Storage for Fresh Start
 
 ```javascript
 // Delete all stored values
-GM_listValues().forEach((key) => {
-  console.log("Deleting:", key);
-  GM_deleteValue(key);
+GM_listValues().forEach(key => {
+    console.log('Deleting:', key);
+    GM_deleteValue(key);
 });
 ```
 
@@ -337,7 +337,7 @@ If you can't solve the issue:
 
 ```javascript
 // Get debug info to share
-console.log("Browser:", navigator.userAgent);
-console.log("Tampermonkey:", GM_info.version);
-console.log("Script:", GM_info.script.name, GM_info.script.version);
+console.log('Browser:', navigator.userAgent);
+console.log('Tampermonkey:', GM_info.version);
+console.log('Script:', GM_info.script.name, GM_info.script.version);
 ```

@@ -21,3 +21,19 @@ describe("hero rank-label typography", () => {
     );
   });
 });
+
+describe("hero metadata separators", () => {
+  it("positions separators in the flex gap instead of the text flow", () => {
+    expect(heroCss).toContain(
+      ".atv-hero-meta {\n  --atv-meta-column-gap: 18px;"
+    );
+    expect(heroCss).toContain("  gap: 10px var(--atv-meta-column-gap);");
+    expect(heroCss).toContain(
+      ".atv-meta-dot {\n  position: relative;\n  display: inline-flex;"
+    );
+    expect(heroCss).toContain(
+      '.atv-meta-dot + .atv-meta-dot::before {\n  position: absolute;\n  width: 4px;\n  color: var(--atv-text-tertiary);\n  content: "·";\n  inset-block-start: 50%;\n  inset-inline-end: calc(\n    100% + (var(--atv-meta-column-gap) - 4px) / 2\n  );'
+    );
+    expect(heroCss).toContain("  transform: translateY(-50%);");
+  });
+});

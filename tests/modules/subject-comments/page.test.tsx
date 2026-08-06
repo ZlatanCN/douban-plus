@@ -164,6 +164,11 @@ const loggedOutNativePage = nativePage.replace(
   '<a class="j a_show_login" href="javascript:;">有用</a>'
 );
 
+const nativePageWithoutWatchingStatus = nativePage.replace(
+  '          <li><a href="https://movie.douban.com/subject/3016187/comments?status=N">在看(3723)</a></li>\n',
+  ""
+);
+
 describe(extractSubjectCommentsPage, () => {
   it("extracts the complete native reading state and interaction exits", () => {
     const { cleanup, doc } = createTestDoc(
@@ -172,6 +177,23 @@ describe(extractSubjectCommentsPage, () => {
     );
 
     expect(extractSubjectCommentsPage(doc)).toStrictEqual(pageData);
+
+    cleanup();
+  });
+
+  it("accepts a native page that omits an unavailable viewing status", () => {
+    const { cleanup, doc } = createTestDoc(
+      nativePageWithoutWatchingStatus,
+      "/subject/3016187/comments?status=P"
+    );
+
+    const data = extractSubjectCommentsPage(doc);
+
+    expect(data?.statuses).toStrictEqual([
+      pageData.statuses[0],
+      pageData.statuses[2],
+    ]);
+    expect(data?.comments).toHaveLength(1);
 
     cleanup();
   });
@@ -640,22 +662,40 @@ describe(mountSubjectComments, () => {
 
   it("mounts only after complete extraction", () => {
     const ready = createTestDoc(nativePage, "/subject/3016187/comments");
+    const withoutWatchingStatus = createTestDoc(
+      nativePageWithoutWatchingStatus,
+      "/subject/3016187/comments?status=P"
+    );
     const fallback = createTestDoc(
       '<main id="content"><h1>作品甲的短评</h1></main>',
       "/subject/123/comments"
     );
 
     mountSubjectComments(ready.doc);
+    mountSubjectComments(withoutWatchingStatus.doc);
     mountSubjectComments(fallback.doc);
 
-    expect(ready.doc.body.classList).toContain("atv-enhanced");
-    expect(ready.doc.querySelector("#atv-douban-root h1")?.textContent).toBe(
-      "权力的游戏 第一季"
-    );
-    expect(fallback.doc.body.classList).not.toContain("atv-enhanced");
-    expect(fallback.doc.querySelector("#atv-douban-root")).toBeNull();
+    expect({
+      fallbackEnhanced: fallback.doc.body.classList.contains("atv-enhanced"),
+      fallbackRoot: fallback.doc.querySelector("#atv-douban-root"),
+      readyEnhanced: ready.doc.body.classList.contains("atv-enhanced"),
+      readyTitle: ready.doc.querySelector("#atv-douban-root h1")?.textContent,
+      withoutWatchingStatusEnhanced:
+        withoutWatchingStatus.doc.body.classList.contains("atv-enhanced"),
+      withoutWatchingStatusTitle: withoutWatchingStatus.doc.querySelector(
+        "#atv-douban-root h1"
+      )?.textContent,
+    }).toStrictEqual({
+      fallbackEnhanced: false,
+      fallbackRoot: null,
+      readyEnhanced: true,
+      readyTitle: "权力的游戏 第一季",
+      withoutWatchingStatusEnhanced: true,
+      withoutWatchingStatusTitle: "权力的游戏 第一季",
+    });
 
     ready.cleanup();
+    withoutWatchingStatus.cleanup();
     fallback.cleanup();
   });
 });

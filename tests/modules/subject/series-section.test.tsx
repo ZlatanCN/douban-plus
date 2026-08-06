@@ -32,6 +32,22 @@ describe(SeriesSection, () => {
     );
   });
 
+  it("uses the shared section more-link copy", () => {
+    const root = renderIntoRoot(
+      <SeriesSection
+        items={[makeItem()]}
+        moreLink={{
+          href: "https://movie.douban.com/subject/series/",
+          text: "查看全部 →",
+        }}
+      />
+    );
+
+    expect(root.querySelector(".atv-section-more")?.textContent).toBe(
+      "查看全部 →"
+    );
+  });
+
   it("renders card with poster, title and external link attrs", () => {
     const root = renderIntoRoot(<SeriesSection items={[makeItem()]} />);
     const card = root.querySelector<HTMLAnchorElement>(".atv-series-card");

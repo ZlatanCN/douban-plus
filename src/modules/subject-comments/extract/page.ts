@@ -114,9 +114,10 @@ const extractStatuses = (
     return status ? [status] : [];
   });
 
-  return statuses.length === 3 && statuses.some((status) => status.active)
-    ? statuses
-    : null;
+  // Douban omits viewing statuses that are unavailable for the current work.
+  // The native option set is authoritative; only an absent current selection
+  // makes the page ambiguous.
+  return statuses.some((status) => status.active) ? statuses : null;
 };
 
 const currentStatus = (statuses: readonly SubjectCommentStatus[]): string =>

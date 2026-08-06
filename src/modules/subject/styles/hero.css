@@ -274,6 +274,8 @@
 }
 
 .atv-hero-meta {
+  --atv-meta-column-gap: 18px;
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -281,7 +283,7 @@
   color: var(--atv-text-secondary);
   font-size: var(--atv-type-caption);
   font-weight: var(--atv-font-weight-medium);
-  gap: 10px 14px;
+  gap: 10px var(--atv-meta-column-gap);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -350,13 +352,23 @@
 }
 
 .atv-meta-dot {
+  position: relative;
   display: inline-flex;
   align-items: center;
 }
 
 .atv-meta-dot + .atv-meta-dot::before {
+  position: absolute;
+  width: 4px;
   color: var(--atv-text-tertiary);
   content: "·";
+  inset-block-start: 50%;
+  inset-inline-end: calc(
+    100% + (var(--atv-meta-column-gap) - 4px) / 2
+  );
+  line-height: 1;
+  text-align: center;
+  transform: translateY(-50%);
 }
 
 .atv-meta-chips {
