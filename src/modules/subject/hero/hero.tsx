@@ -1,6 +1,7 @@
 import type { HeroCallbacks, HeroData } from "@/modules/subject/domain";
 import type { RatingResultMap } from "@/modules/subject/resolve/types";
 import { IconArrow } from "@/shared/components/common/icons";
+import { noop } from "@/shared/utils/dom";
 
 import { RatingPanel } from "../ratings/rating-panel";
 import { FirstBroadcastPlatform } from "./first-broadcast-platform";
@@ -17,8 +18,6 @@ type HeroProps = {
   firstBroadcastPlatform?: string | null;
   onOpenPoster?: (src: string, alt: string) => void;
 };
-
-const noop = (): undefined => undefined;
 
 const Hero = ({
   callbacks,

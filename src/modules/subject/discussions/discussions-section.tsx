@@ -80,7 +80,7 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
             },
           }
         : {})}
-      title={getSubjectSectionCopy("discussions").sectionTitle}
+      title={getSubjectSectionCopy("discussions")}
     >
       <div class="atv-discussion-board">
         {discussions.topics.map((topic, index) => (

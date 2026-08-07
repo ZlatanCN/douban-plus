@@ -12,10 +12,7 @@ const RecommendationsSection = ({
   recommendations,
 }: RecommendationsSectionProps) =>
   recommendations.length ? (
-    <Section
-      id="atv-recs"
-      title={getSubjectSectionCopy("recommendations").sectionTitle}
-    >
+    <Section id="atv-recs" title={getSubjectSectionCopy("recommendations")}>
       <div class="atv-recs">
         {recommendations.map((item) => {
           const content = (

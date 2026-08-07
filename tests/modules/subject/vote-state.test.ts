@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { createVoteState } from "@/modules/subject/voting/vote-state";
 import type { Cache } from "@/shared/utils/cache";
+import { createVoteState } from "@/shared/voting/vote-state";
 
 type Axis = "up" | "down";
 type TestState = { up: number; down: number; voted: Axis | null };

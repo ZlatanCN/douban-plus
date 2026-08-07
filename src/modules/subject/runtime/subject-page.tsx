@@ -19,6 +19,7 @@ import { LoginModal } from "@/shared/components/login-modal";
 import { ModalSession, PosterModal } from "@/shared/components/modal";
 import type { ImageModalSource } from "@/shared/components/modal";
 import { useModalRequest } from "@/shared/hooks/use-modal-request";
+import { useVoteState } from "@/shared/voting/use-vote-state";
 
 import { CommentsSection } from "../comments";
 import { CommentModal } from "../comments/comment-modal";
@@ -37,7 +38,6 @@ import {
 import { SubjectStickyNav } from "../navigation/sticky-nav";
 import { ReviewsSection } from "../reviews";
 import { SubjectSwitcher } from "../search/subject-switcher";
-import { useVoteState } from "../voting/use-vote-state";
 import type { SubjectPageRuntime } from "./types";
 
 type SubjectPageProps = {

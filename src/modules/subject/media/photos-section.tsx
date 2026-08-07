@@ -4,6 +4,7 @@ import { PlayIcon } from "@/shared/components/common/icons";
 import { SafeImage } from "@/shared/components/common/safe-image";
 import { Section } from "@/shared/components/layout/section";
 import type { ImageModalSource } from "@/shared/components/modal";
+import { noop } from "@/shared/utils/dom";
 
 import { getSubjectSectionCopy } from "../navigation/section-copy";
 
@@ -17,8 +18,6 @@ type PhotosSectionProps = {
   onOpenVideo?: (trailer: Trailer) => void;
   resolvingPhotos?: boolean;
 };
-
-const noop = (): undefined => undefined;
 
 const PhotoTile = ({
   index,
@@ -82,7 +81,7 @@ const PhotosSection = ({
             },
           }
         : {})}
-      title={getSubjectSectionCopy("media").sectionTitle}
+      title={getSubjectSectionCopy("media")}
     >
       <div class="atv-carousel atv-photos">
         {data.trailers.map((trailer) => (

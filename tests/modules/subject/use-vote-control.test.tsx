@@ -2,8 +2,8 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useVoteControl } from "@/modules/subject/voting/use-vote-control";
-import type { VoteApi } from "@/modules/subject/voting/vote-state";
+import { useVoteControl } from "@/shared/voting/use-vote-control";
+import type { VoteApi } from "@/shared/voting/vote-state";
 
 type TestItem = { count: number; id: string };
 type TestState = { count: number; voted: boolean };

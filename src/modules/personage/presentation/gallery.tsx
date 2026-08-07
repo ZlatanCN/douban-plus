@@ -3,6 +3,7 @@ import { useState } from "preact/hooks";
 import { SafeImage } from "@/shared/components/common/safe-image";
 import { Section } from "@/shared/components/layout/section";
 import type { ImageModalSource } from "@/shared/components/modal";
+import { noop } from "@/shared/utils/dom";
 
 import type { PersonageGallery } from "../domain";
 
@@ -11,8 +12,6 @@ type PersonageGallerySectionProps = {
   name: string;
   onOpenImage?: (image: ImageModalSource) => void;
 };
-
-const noop = (): undefined => undefined;
 
 type PersonageGalleryImageTileProps = {
   alt: string;

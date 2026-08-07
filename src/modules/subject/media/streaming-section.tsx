@@ -47,10 +47,7 @@ const StreamingLogo = ({
 
 const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   streaming.length ? (
-    <Section
-      id="atv-stream"
-      title={getSubjectSectionCopy("streaming").sectionTitle}
-    >
+    <Section id="atv-stream" title={getSubjectSectionCopy("streaming")}>
       <div class="atv-stream-row">
         {streaming.map((item) => {
           const provider = resolveStreamingProvider(item);

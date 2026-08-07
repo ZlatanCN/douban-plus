@@ -147,4 +147,3 @@ const useEntranceExitAnimation = (
 };
 
 export { useEntranceExitAnimation };
-export type { EntranceExitResult };

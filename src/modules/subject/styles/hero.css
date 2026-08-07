@@ -363,9 +363,7 @@
   color: var(--atv-text-tertiary);
   content: "·";
   inset-block-start: 50%;
-  inset-inline-end: calc(
-    100% + (var(--atv-meta-column-gap) - 4px) / 2
-  );
+  inset-inline-end: calc(100% + (var(--atv-meta-column-gap) - 4px) / 2);
   line-height: 1;
   text-align: center;
   transform: translateY(-50%);

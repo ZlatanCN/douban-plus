@@ -1,5 +1,19 @@
-import { extractFirstBroadcastPlatform } from "@/modules/subject/extract/first-broadcast-platform";
 import { gmGet } from "@/shared/utils/request";
+
+const extractFirstBroadcastPlatform = (doc: Document): string | null => {
+  const label = [...doc.querySelectorAll("label")].find(
+    (candidate) => candidate.textContent?.trim() === "电视台"
+  );
+  if (!label?.htmlFor) {
+    return null;
+  }
+
+  const input = [...doc.querySelectorAll<HTMLInputElement>("input")].find(
+    (candidate) => candidate.id === label.htmlFor
+  );
+  const platform = input?.value.trim();
+  return platform || null;
+};
 
 const fetchFirstBroadcastPlatform = async (
   subjectId: string,
@@ -21,4 +35,4 @@ const fetchFirstBroadcastPlatform = async (
   }
 };
 
-export { fetchFirstBroadcastPlatform };
+export { extractFirstBroadcastPlatform, fetchFirstBroadcastPlatform };

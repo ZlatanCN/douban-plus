@@ -32,7 +32,7 @@ describe("hero metadata separators", () => {
       ".atv-meta-dot {\n  position: relative;\n  display: inline-flex;"
     );
     expect(heroCss).toContain(
-      '.atv-meta-dot + .atv-meta-dot::before {\n  position: absolute;\n  width: 4px;\n  color: var(--atv-text-tertiary);\n  content: "·";\n  inset-block-start: 50%;\n  inset-inline-end: calc(\n    100% + (var(--atv-meta-column-gap) - 4px) / 2\n  );'
+      '.atv-meta-dot + .atv-meta-dot::before {\n  position: absolute;\n  width: 4px;\n  color: var(--atv-text-tertiary);\n  content: "·";\n  inset-block-start: 50%;\n  inset-inline-end: calc(100% + (var(--atv-meta-column-gap) - 4px) / 2);'
     );
     expect(heroCss).toContain("  transform: translateY(-50%);");
   });

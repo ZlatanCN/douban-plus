@@ -1,5 +1,8 @@
 /* ── DOM Query Helpers ────────────────────────────────── */
 
+/** No-op default for optional callbacks. */
+const noop = (): undefined => undefined;
+
 const $ = <T extends Element = Element>(
   selector: string,
   ctx?: ParentNode
@@ -15,4 +18,4 @@ const safeText = (el?: Node | null): string =>
 
 /* ── Exports ─────────────────────────────────────────── */
 
-export { $, $$, safeText };
+export { $, $$, noop, safeText };

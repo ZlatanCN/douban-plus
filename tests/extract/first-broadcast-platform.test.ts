@@ -1,8 +1,15 @@
-import { describe, expect, it } from "vitest";
-
-import { extractFirstBroadcastPlatform } from "@/modules/subject/extract/first-broadcast-platform";
+import { describe, expect, it, vi } from "vitest";
 
 import { buildDoc } from "../helpers/doc";
+
+vi.mock(import("../../src/shared/utils/request"), () => ({
+  gmGet: vi.fn<(url: string, referer?: string) => Promise<string>>(),
+  gmPost:
+    vi.fn<(url: string, data: string, referer?: string) => Promise<string>>(),
+}));
+
+const { extractFirstBroadcastPlatform } =
+  await import("@/modules/subject/api/first-broadcast-platform");
 
 describe(extractFirstBroadcastPlatform, () => {
   it("extracts the TV network from a signed-in edit form", () => {

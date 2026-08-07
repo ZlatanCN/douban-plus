@@ -2,14 +2,13 @@ import { useState } from "preact/hooks";
 
 import type { TitleInfo } from "@/modules/subject/domain";
 import { PosterPlaceholder } from "@/shared/components/common/poster-placeholder";
+import { noop } from "@/shared/utils/dom";
 
 type HeroPosterProps = {
   onOpenPoster?: (src: string, alt: string) => void;
   poster: string | null;
   title: TitleInfo;
 };
-
-const noop = (): undefined => undefined;
 
 const HeroPoster = ({
   onOpenPoster = noop,
