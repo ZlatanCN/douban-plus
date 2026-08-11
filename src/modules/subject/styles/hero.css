@@ -326,12 +326,6 @@
   height: 20px;
 }
 
-.atv-first-broadcast-platform-mark.is-surface-paper {
-  border-color: var(--atv-border-emphasis);
-  background: var(--atv-surface-paper);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 56%);
-}
-
 .atv-first-broadcast-platform.is-unknown {
   color: var(--atv-text-tertiary);
   font-size: var(--atv-type-micro);

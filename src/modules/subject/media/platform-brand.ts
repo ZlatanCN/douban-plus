@@ -87,7 +87,7 @@ type PlatformBrand = {
   key: PlatformBrandKey;
   label: string;
   presentation?: "wordmark";
-  surface: "dark" | "paper";
+  surface: "dark";
 };
 
 const PLATFORM_BRANDS: PlatformBrand[] = [

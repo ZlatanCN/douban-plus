@@ -16,7 +16,7 @@ type StreamingLogoProps = {
   fallbackLabel: string;
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   imgSrc?: string;
-  surface?: "dark" | "paper";
+  surface?: "dark";
 };
 
 const StreamingLogo = ({

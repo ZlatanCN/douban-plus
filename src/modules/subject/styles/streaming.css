@@ -102,14 +102,6 @@
   color: var(--atv-stream-brand, var(--atv-accent-bright));
 }
 
-.atv-stream-logo.is-surface-paper {
-  border-color: var(--atv-border-emphasis);
-  background: var(--atv-surface-paper);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 56%),
-    0 8px 18px rgb(0 0 0 / 18%);
-}
-
 .atv-stream-logo-fallback {
   display: inline-flex;
   width: 100%;
