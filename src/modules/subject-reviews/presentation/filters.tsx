@@ -6,7 +6,6 @@ type ReviewsFiltersProps = {
   sorts: SubjectReviewsBrowseOption[];
   ratings: SubjectReviewsBrowseOption[];
   selected: (option: SubjectReviewsBrowseOption) => boolean;
-  browse: (event: MouseEvent, option: SubjectReviewsBrowseOption) => void;
   navigate: (event: MouseEvent, option: SubjectReviewsBrowseOption) => void;
   locked: boolean;
   reviewKind: string;
@@ -16,7 +15,6 @@ const ReviewsFilters = ({
   sorts,
   ratings,
   selected,
-  browse,
   navigate,
   locked,
   reviewKind,
@@ -35,7 +33,7 @@ const ReviewsFilters = ({
             class={`atv-subject-reviews-option${selected(option) ? " is-active" : ""}`}
             href={option.href}
             key={option.value}
-            onClick={(event) => browse(event, option)}
+            onClick={(event) => navigate(event, option)}
           >
             {option.label}
           </a>

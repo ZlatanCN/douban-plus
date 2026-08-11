@@ -1,4 +1,7 @@
-import { useNativeNavigation } from "@/shared/runtime/native-navigation";
+import {
+  fetchNativePage,
+  useNativeNavigation,
+} from "@/shared/runtime/native-navigation";
 import type {
   NativeNavigationResult,
   NativeNavigationState,
@@ -6,7 +9,7 @@ import type {
 } from "@/shared/runtime/native-navigation";
 
 import type { SubjectCommentsPageData } from "../domain";
-import { extractSubjectCommentsPage } from "../extract/page";
+import { extractSubjectCommentsPage, subjectIdFromPath } from "../extract/page";
 
 type SubjectCommentsPageLoader = NativePageLoader<SubjectCommentsPageData>;
 type SubjectCommentsNavigationResult =
@@ -17,43 +20,20 @@ type SubjectCommentsNavigationState =
 const MOVIE_ORIGIN = "https://movie.douban.com";
 
 const isSubjectCommentsUrl = (url: URL): boolean =>
-  url.origin === MOVIE_ORIGIN &&
-  /^\/subject\/\d+\/comments\/?$/u.test(url.pathname);
+  url.origin === MOVIE_ORIGIN && subjectIdFromPath(url.pathname) !== null;
 
-const fetchSubjectCommentsPage: SubjectCommentsPageLoader = async (
-  href,
-  signal
-) => {
-  const requestedUrl = new URL(href, MOVIE_ORIGIN);
-  if (!isSubjectCommentsUrl(requestedUrl)) {
-    throw new Error("短评导航目标无效");
-  }
-
-  const response = await fetch(requestedUrl.href, {
-    credentials: "include",
+const fetchSubjectCommentsPage: SubjectCommentsPageLoader = (href, signal) =>
+  fetchNativePage({
+    extract: extractSubjectCommentsPage,
+    href,
+    incompleteMessage: "短评页面数据不完整",
+    invalidResponseMessage: "短评页面响应无效",
+    invalidTargetMessage: "短评导航目标无效",
+    isValidUrl: isSubjectCommentsUrl,
+    origin: MOVIE_ORIGIN,
+    requestErrorMessage: (status) => `短评页面请求失败：${status}`,
     signal,
   });
-  if (!response.ok) {
-    throw new Error(`短评页面请求失败：${response.status}`);
-  }
-
-  const responseHref = response.url || requestedUrl.href;
-  const responseUrl = new URL(responseHref, MOVIE_ORIGIN);
-  if (!isSubjectCommentsUrl(responseUrl)) {
-    throw new Error("短评页面响应无效");
-  }
-
-  const sourceDoc = new DOMParser().parseFromString(
-    await response.text(),
-    "text/html"
-  );
-  const data = extractSubjectCommentsPage(sourceDoc, responseUrl.href);
-  const nativeContent = sourceDoc.querySelector<HTMLElement>("#content");
-  if (!data || !nativeContent) {
-    throw new Error("短评页面数据不完整");
-  }
-  return { data, href: responseUrl.href, nativeContent };
-};
 
 const getSubjectCommentsTitle = ({
   data,

@@ -124,8 +124,6 @@ const loadPhotoAspectRatio = (doc: Document): ResolvePhotoAspectRatio => {
 export {
   FALLBACK_ASPECT_RATIO,
   loadPhotoAspectRatio,
-  PREVIEW_GEOMETRY_CONCURRENCY,
   PREVIEW_GEOMETRY_TIMEOUT_MS,
   resolvePreviewGeometry,
 };
-export type { ResolvePhotoAspectRatio };

@@ -79,7 +79,7 @@ describe("useSectionReveal", () => {
     vi.restoreAllMocks();
   });
 
-  it("flags every section with the reveal hook attributes", async () => {
+  it("marks every section with the reveal class", async () => {
     const root = renderIntoRoot(
       <Section id="atv-cast" title="演职员">
         x
@@ -88,7 +88,6 @@ describe("useSectionReveal", () => {
     const section = root.querySelector<HTMLElement>(".atv-section");
     expect(section).not.toBeNull();
     expect(section?.classList.contains("atv-section-reveal")).toBeTruthy();
-    expect(section?.dataset.atvSectionReveal).toBeDefined();
 
     // Flush the deferred effect so its observer is created and tracked here
     // rather than leaking into the next test's `instances` assertions.

@@ -194,4 +194,3 @@ const DetailsSection = ({ data }: DetailsSectionProps) => {
 };
 
 export { DetailsSection, collectDetailRows };
-export type { DetailRow, DetailsSectionProps };

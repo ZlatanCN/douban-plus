@@ -8,7 +8,7 @@ import type { PersonageProfile } from "../domain";
 import { PersonageAwardsSection } from "./awards";
 import { PersonageCollaborators } from "./collaborators";
 import { PersonageGallerySection } from "./gallery";
-import { PersonageHero } from "./hero";
+import { PersonageHero, splitPersonageName } from "./hero";
 import { PersonageTimeline } from "./timeline";
 import { PersonageWorkRail } from "./works";
 
@@ -17,19 +17,9 @@ type PersonagePageProps = {
   profile: PersonageProfile;
 };
 
-type ActivePersonageImage = ImageModalSource;
-
-const extractPrimaryName = (name: string): string => {
-  const originalNameStart = name.search(/\p{Script=Latin}/u);
-  if (originalNameStart <= 0) {
-    return name;
-  }
-  return name.slice(0, originalNameStart).trim();
-};
-
 const PersonagePage = ({ navigation, profile }: PersonagePageProps) => {
-  const activeImage = useModalRequest<ActivePersonageImage>();
-  const primaryName = extractPrimaryName(profile.name);
+  const activeImage = useModalRequest<ImageModalSource>();
+  const { primaryName } = splitPersonageName(profile.name);
 
   const handleOpenPortrait = (src: string, alt: string) => {
     activeImage.handleOpen({ alt, src });
@@ -75,4 +65,3 @@ const PersonagePage = ({ navigation, profile }: PersonagePageProps) => {
 };
 
 export { PersonagePage };
-export type { PersonagePageProps };

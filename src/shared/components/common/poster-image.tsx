@@ -18,4 +18,3 @@ const PosterImage = ({ alt, className, poster }: PosterImageProps) => (
 );
 
 export { PosterImage };
-export type { PosterImageProps };

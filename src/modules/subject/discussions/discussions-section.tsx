@@ -114,4 +114,3 @@ const DiscussionsSection = ({ discussions }: DiscussionsSectionProps) =>
   ) : null;
 
 export { DiscussionsSection };
-export type { DiscussionsSectionProps };

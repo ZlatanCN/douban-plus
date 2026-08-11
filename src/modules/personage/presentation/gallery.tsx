@@ -102,4 +102,3 @@ const PersonageGallerySection = ({
 };
 
 export { PersonageGallerySection };
-export type { PersonageGallerySectionProps };

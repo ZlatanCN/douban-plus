@@ -1,4 +1,7 @@
-import { useNativeNavigation } from "@/shared/runtime/native-navigation";
+import {
+  fetchNativePage,
+  useNativeNavigation,
+} from "@/shared/runtime/native-navigation";
 import type {
   NativeNavigationResult,
   NativeNavigationState,
@@ -20,40 +23,18 @@ const isSubjectReviewsUrl = (url: URL): boolean =>
   url.origin === MOVIE_ORIGIN &&
   /^\/subject\/\d+\/reviews\/?$/u.test(url.pathname);
 
-const fetchSubjectReviewsPage: SubjectReviewsPageLoader = async (
-  href,
-  signal
-) => {
-  const requestedUrl = new URL(href, MOVIE_ORIGIN);
-  if (!isSubjectReviewsUrl(requestedUrl)) {
-    throw new Error("影评导航目标无效");
-  }
-
-  const response = await fetch(requestedUrl.href, {
-    credentials: "include",
+const fetchSubjectReviewsPage: SubjectReviewsPageLoader = (href, signal) =>
+  fetchNativePage({
+    extract: extractSubjectReviewsPage,
+    href,
+    incompleteMessage: "影评页面数据不完整",
+    invalidResponseMessage: "影评页面响应无效",
+    invalidTargetMessage: "影评导航目标无效",
+    isValidUrl: isSubjectReviewsUrl,
+    origin: MOVIE_ORIGIN,
+    requestErrorMessage: (status) => `影评页面请求失败：${status}`,
     signal,
   });
-  if (!response.ok) {
-    throw new Error(`影评页面请求失败：${response.status}`);
-  }
-
-  const responseHref = response.url || requestedUrl.href;
-  const responseUrl = new URL(responseHref, MOVIE_ORIGIN);
-  if (!isSubjectReviewsUrl(responseUrl)) {
-    throw new Error("影评页面响应无效");
-  }
-
-  const sourceDoc = new DOMParser().parseFromString(
-    await response.text(),
-    "text/html"
-  );
-  const data = extractSubjectReviewsPage(sourceDoc, responseUrl.href);
-  const nativeContent = sourceDoc.querySelector<HTMLElement>("#content");
-  if (!data || !nativeContent) {
-    throw new Error("影评页面数据不完整");
-  }
-  return { data, href: responseUrl.href, nativeContent };
-};
 
 const getSubjectReviewsTitle = ({
   data,

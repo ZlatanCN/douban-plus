@@ -62,4 +62,3 @@ const CommentVoteButton = ({
 };
 
 export { CommentVoteButton };
-export type { CommentVoteButtonProps };

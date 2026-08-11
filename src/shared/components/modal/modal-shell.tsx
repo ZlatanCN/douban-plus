@@ -197,4 +197,4 @@ const ModalShell = ({
   );
 };
 
-export { ModalShell, type ModalShellProps };
+export { ModalShell };

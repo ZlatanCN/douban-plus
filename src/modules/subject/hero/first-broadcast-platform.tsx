@@ -50,4 +50,3 @@ const FirstBroadcastPlatform = ({
 };
 
 export { FirstBroadcastPlatform };
-export type { FirstBroadcastPlatformProps };

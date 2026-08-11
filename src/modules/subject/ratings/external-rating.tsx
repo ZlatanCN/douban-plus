@@ -190,4 +190,3 @@ const ExternalRating = (props: ExternalRatingProps) => {
 };
 
 export { ExternalRating };
-export type { ExternalRatingProps };

@@ -20,4 +20,3 @@ const CommentAvatar = ({ className, comment }: CommentAvatarProps) => (
 );
 
 export { CommentAvatar };
-export type { CommentAvatarProps };

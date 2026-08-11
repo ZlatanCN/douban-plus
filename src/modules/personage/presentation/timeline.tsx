@@ -97,4 +97,3 @@ const PersonageTimeline = ({ id, rail, title }: PersonageTimelineProps) => {
 };
 
 export { PersonageTimeline };
-export type { PersonageTimelineProps };

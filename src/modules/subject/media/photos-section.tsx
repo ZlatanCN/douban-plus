@@ -1,6 +1,6 @@
 import type { Trailer } from "@/modules/subject/domain";
 import type { ResolvedPhoto } from "@/modules/subject/runtime/types";
-import { PlayIcon } from "@/shared/components/common/icons";
+import { IconPlay } from "@/shared/components/common/icons";
 import { SafeImage } from "@/shared/components/common/safe-image";
 import { Section } from "@/shared/components/layout/section";
 import type { ImageModalSource } from "@/shared/components/modal";
@@ -98,7 +98,7 @@ const PhotosSection = ({
           >
             <div class="atv-trailer-play-overlay">
               <div class="atv-trailer-play-btn">
-                <PlayIcon />
+                <IconPlay height={24} style={{ color: "white" }} width={24} />
               </div>
             </div>
             <span class="atv-trailer-label">{trailer.title || "预告片"}</span>
@@ -123,5 +123,4 @@ const PhotosSection = ({
   );
 };
 
-export { PhotoTile, PhotosSection };
-export type { PhotosSectionProps };
+export { PhotosSection };

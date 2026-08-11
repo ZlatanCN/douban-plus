@@ -69,4 +69,4 @@ const useResolvedPhotoGeometry = (
   return resolution;
 };
 
-export { FALLBACK_ASPECT_RATIO, useResolvedPhotoGeometry };
+export { useResolvedPhotoGeometry };

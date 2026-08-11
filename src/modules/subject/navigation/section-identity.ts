@@ -68,4 +68,3 @@ const SUBJECT_SECTIONS: readonly SubjectSectionEntry[] = [
 ] as const;
 
 export { SUBJECT_SECTIONS };
-export type { SubjectSectionEntry };

@@ -12,7 +12,6 @@
   "license": "MIT",
   "author": "Gabriel Zhu",
   "type": "module",
-  "main": "douban-plus.user.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -55,4 +55,3 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
   ) : null;
 
 export { SeriesSection };
-export type { SeriesSectionProps };

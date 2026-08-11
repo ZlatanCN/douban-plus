@@ -358,10 +358,4 @@ const extractSubjectReviewsPage = (
   };
 };
 
-export {
-  diagnoseSubjectReviewsPage,
-  extractSubjectReviewsPage,
-  reviewsHref,
-  subjectIdFromPath,
-};
-export type { SubjectReviewsExtractionDiagnostics };
+export { diagnoseSubjectReviewsPage, extractSubjectReviewsPage };

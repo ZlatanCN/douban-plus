@@ -36,4 +36,3 @@ const SubjectStickyNav = ({
 };
 
 export { SubjectStickyNav };
-export type { SubjectStickyNavProps };

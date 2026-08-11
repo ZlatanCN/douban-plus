@@ -8,13 +8,11 @@ import type {
 import type { InterestState } from "@/shared/components/interest-form";
 
 export type {
-  InterestActionResult,
   InterestFormCallbacks as ModalCallbacks,
   InterestFormSnapshot,
   InterestFormState,
   InterestMarkingActions,
   InterestState,
-  InterestWriteOptions,
 } from "@/shared/components/interest-form";
 
 type Review = ReaderReview;
@@ -257,13 +255,6 @@ type HeroCallbacks = {
   ) => void;
 };
 
-/** Data slice for buildPhotos */
-type PhotosData = {
-  photos: Photo[];
-  trailers: Trailer[];
-  subjectId: string;
-};
-
 /** Data slice for buildComments */
 type CommentsData = {
   comments: Comment[];
@@ -327,7 +318,6 @@ export type {
   RtRating,
   NavSection,
   Photo,
-  PhotosData,
   RatingInfo,
   RankLabel,
   Recommendation,

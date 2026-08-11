@@ -16,4 +16,4 @@ const TrailerModal = ({ onClose, trailer }: TrailerModalProps) => {
   );
 };
 
-export { TrailerModal, type TrailerModalProps };
+export { TrailerModal };

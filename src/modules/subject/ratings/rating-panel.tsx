@@ -43,4 +43,3 @@ const RatingPanel = ({ douban, externalRatings, imdbId }: RatingPanelProps) => {
 };
 
 export { RatingPanel };
-export type { RatingPanelProps };

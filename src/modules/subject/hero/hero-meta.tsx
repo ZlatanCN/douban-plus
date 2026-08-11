@@ -65,4 +65,3 @@ const HeroMeta = ({ info, isTV, leading, year }: HeroMetaProps) => {
 };
 
 export { HeroMeta };
-export type { HeroMetaProps };

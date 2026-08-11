@@ -41,13 +41,6 @@ const gmRequest = (
   });
 };
 
-const gmPostOnce = (
-  url: string,
-  data: string,
-  referer?: string,
-  extraHeaders?: Record<string, string>
-): Promise<string> => gmRequest("POST", url, referer, extraHeaders, data);
-
 const RETRY_DELAYS = [300, 800, 2000];
 
 const gmPost = async (
@@ -59,7 +52,7 @@ const gmPost = async (
   for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt += 1) {
     try {
       // oxlint-disable-next-line no-await-in-loop
-      return await gmPostOnce(url, data, referer, extraHeaders);
+      return await gmRequest("POST", url, referer, extraHeaders, data);
     } catch (error) {
       if (attempt < RETRY_DELAYS.length) {
         console.warn(

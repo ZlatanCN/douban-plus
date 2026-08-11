@@ -87,4 +87,3 @@ const fetchPhotoGeometry = (
 };
 
 export { extractPhotoGeometry, fetchPhotoGeometry, isDoubanPhotoDetailUrl };
-export type { PhotoGeometry };

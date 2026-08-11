@@ -124,4 +124,3 @@ const CommentModal = ({
 );
 
 export { CommentModal };
-export type { CommentModalProps };

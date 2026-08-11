@@ -1,7 +1,3 @@
-const activateEnhancedDocument = (doc: Document): void => {
-  doc.body.classList.add("atv-enhanced");
-};
-
 const installEnhancedRoot = (
   doc: Document,
   renderRoot: (root: HTMLElement) => void
@@ -18,7 +14,7 @@ const installEnhancedRoot = (
     return false;
   }
 
-  activateEnhancedDocument(doc);
+  doc.body.classList.add("atv-enhanced");
   return true;
 };
 

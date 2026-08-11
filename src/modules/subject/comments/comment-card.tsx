@@ -129,4 +129,3 @@ const CommentCard = ({
 };
 
 export { CommentCard };
-export type { CommentCardProps };

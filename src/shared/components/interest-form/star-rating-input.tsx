@@ -41,4 +41,3 @@ const StarRatingInput = ({
 );
 
 export { StarRatingInput };
-export type { StarRatingInputProps };

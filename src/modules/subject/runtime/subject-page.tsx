@@ -9,7 +9,6 @@ import type { ReviewVoteDirection } from "@/domains/review-reader";
 import type {
   Comment,
   DoubanData,
-  HeroData,
   Review,
   Trailer,
 } from "@/modules/subject/domain";
@@ -54,25 +53,6 @@ type LoginRequest = {
   action: string;
   onAuthenticated?: (interest: DoubanData["interest"]) => void;
 };
-
-const toHeroData = (
-  data: DoubanData,
-  summary: string | null,
-  interest = data.interest
-): HeroData => ({
-  imdbId: data.info.imdb || null,
-  info: data.info,
-  interest,
-  isTV: data.isTV,
-  photos: data.photos,
-  poster: data.poster,
-  rankLabel: data.rankLabel,
-  rating: data.rating,
-  subjectId: data.subjectId,
-  summary,
-  title: data.title,
-  year: data.year,
-});
 
 const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
   const [interest, setInterest] = useState(data.interest);
@@ -184,7 +164,20 @@ const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
       />
       <Hero
         callbacks={interestMarking.callbacks}
-        data={toHeroData(data, runtime.summary, interest)}
+        data={{
+          imdbId: data.info.imdb || null,
+          info: data.info,
+          interest,
+          isTV: data.isTV,
+          photos: data.photos,
+          poster: data.poster,
+          rankLabel: data.rankLabel,
+          rating: data.rating,
+          subjectId: data.subjectId,
+          summary: runtime.summary,
+          title: data.title,
+          year: data.year,
+        }}
         externalRatings={runtime.externalRatings}
         firstBroadcastPlatform={runtime.firstBroadcastPlatform}
         onOpenPoster={(src, alt) =>
@@ -303,5 +296,4 @@ const SubjectPage = ({ data, onAuthenticated, runtime }: SubjectPageProps) => {
   );
 };
 
-export { SubjectPage, toHeroData };
-export type { SubjectPageProps };
+export { SubjectPage };

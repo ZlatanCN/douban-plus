@@ -68,4 +68,3 @@ const CommentsSection = ({
 };
 
 export { CommentsSection };
-export type { CommentsSectionProps };

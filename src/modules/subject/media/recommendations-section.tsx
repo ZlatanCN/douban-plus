@@ -45,4 +45,3 @@ const RecommendationsSection = ({
   ) : null;
 
 export { RecommendationsSection };
-export type { RecommendationsSectionProps };

@@ -25,7 +25,7 @@ const computePersonageNavSections = (
 ): StickyNavigationSection[] =>
   PERSONAGE_SECTIONS.filter((entry) => entry.visible(profile)).map((entry) => ({
     id: entry.id,
-    label: entry.navLabel(profile),
+    label: entry.label,
   }));
 
 const PersonageProfileAdoption = ({
@@ -130,4 +130,3 @@ const PersonageProfileAdoption = ({
 };
 
 export { PersonageProfileAdoption };
-export type { PersonageProfileAdoptionProps };

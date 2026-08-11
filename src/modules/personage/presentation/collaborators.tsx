@@ -96,4 +96,3 @@ const PersonageCollaborators = ({
 };
 
 export { PersonageCollaborators };
-export type { PersonageCollaboratorsProps };

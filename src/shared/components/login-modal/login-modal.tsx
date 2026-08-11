@@ -117,4 +117,3 @@ const LoginModal = ({ action, onAuthenticated, onClose }: LoginModalProps) => {
 };
 
 export { LoginModal };
-export type { LoginModalProps };

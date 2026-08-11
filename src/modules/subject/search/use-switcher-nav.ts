@@ -69,4 +69,4 @@ const useSwitcherNav = <T>({
   return { activeIndex, activeItem, handleKeyDown, handleReset };
 };
 
-export { useSwitcherNav, type UseSwitcherNavOptions };
+export { useSwitcherNav };

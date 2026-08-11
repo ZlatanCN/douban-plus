@@ -84,4 +84,4 @@ const useVoteAction = <
 };
 
 export { runVoteTransition, useVoteAction };
-export type { VoteActionWiring, VoteTransitionApi };
+export type { VoteTransitionApi };

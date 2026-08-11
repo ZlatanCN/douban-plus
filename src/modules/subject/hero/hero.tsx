@@ -88,4 +88,3 @@ const Hero = ({
 );
 
 export { Hero };
-export type { HeroProps };

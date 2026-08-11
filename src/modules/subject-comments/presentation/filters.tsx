@@ -92,5 +92,4 @@ const CommentsFilters = ({
   </aside>
 );
 
-export { BrowseOption, CommentsFilters };
-export type { CommentsFiltersProps };
+export { CommentsFilters };

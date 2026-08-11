@@ -69,4 +69,4 @@ const useSubjectSuggestionRequest = (
     : request;
 };
 
-export { useSubjectSuggestionRequest, type SuggestionRequest };
+export { useSubjectSuggestionRequest };

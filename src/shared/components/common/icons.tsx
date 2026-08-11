@@ -234,22 +234,6 @@ const LogoRT = (props: IconProps) => (
   </svg>
 );
 
-const PlayIcon = (props: IconProps) => (
-  <svg
-    viewBox="0 0 24 24"
-    width="24"
-    height="24"
-    fill="none"
-    stroke="white"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    {...props}
-  >
-    <polygon points="6 3 20 12 6 21 6 3" fill="white" stroke="none" />
-  </svg>
-);
-
 export {
   IconArrow,
   IconCheck,
@@ -269,5 +253,4 @@ export {
   LogoImdb,
   LogoMetacritic,
   LogoRT,
-  PlayIcon,
 };

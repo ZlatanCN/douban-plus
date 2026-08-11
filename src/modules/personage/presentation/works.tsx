@@ -55,4 +55,3 @@ const PersonageWorkRail = ({ id, rail, title }: PersonageWorkRailProps) => {
 };
 
 export { PersonageWorkRail };
-export type { PersonageWorkRailProps };

@@ -1,6 +1,9 @@
 import { render } from "preact";
 
-import { extractSubjectCommentsPage } from "@/modules/subject-comments/extract/page";
+import {
+  extractSubjectCommentsPage,
+  subjectIdFromPath,
+} from "@/modules/subject-comments/extract/page";
 import { installEnhancedRoot } from "@/shared/runtime/enhanced-document";
 import type { PageLocation, PageMount } from "@/shared/runtime/page-mount";
 
@@ -8,7 +11,7 @@ import { SubjectCommentsRuntimePage } from "./page";
 
 const isSubjectCommentsPage = (location: PageLocation): boolean =>
   location.hostname === "movie.douban.com" &&
-  /^\/subject\/\d+\/comments\/?$/u.test(location.pathname);
+  subjectIdFromPath(location.pathname) !== null;
 
 const mountSubjectComments = (doc: Document = document): void => {
   if (doc.querySelector("#atv-douban-root")) {

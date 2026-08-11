@@ -128,4 +128,3 @@ const SubjectAllPhotosPage = ({ data, doc }: SubjectAllPhotosPageProps) => {
 };
 
 export { SubjectAllPhotosPage };
-export type { SubjectAllPhotosPageProps };

@@ -64,4 +64,3 @@ const subjectAllPhotosPage: PageMount = {
 };
 
 export { isSubjectAllPhotosPage, mountSubjectAllPhotos, subjectAllPhotosPage };
-export type { PrepareSubjectAllPhotosPage };

@@ -62,7 +62,6 @@ type PlatformBrandKey =
   | "iqiyi"
   | "itvx"
   | "mango-tv"
-  | "migu"
   | "nbc"
   | "nhk"
   | "netflix"

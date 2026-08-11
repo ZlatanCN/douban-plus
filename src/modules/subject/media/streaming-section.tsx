@@ -93,4 +93,3 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   ) : null;
 
 export { StreamingSection };
-export type { StreamingSectionProps };

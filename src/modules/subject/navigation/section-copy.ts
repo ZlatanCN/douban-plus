@@ -27,4 +27,3 @@ const getSubjectSectionCopy = (section: SubjectSectionKey): string =>
   SECTION_COPY[section];
 
 export { getSubjectSectionCopy };
-export type { SubjectSectionKey };

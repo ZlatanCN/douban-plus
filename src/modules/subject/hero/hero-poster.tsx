@@ -41,4 +41,3 @@ const HeroPoster = ({
 };
 
 export { HeroPoster };
-export type { HeroPosterProps };

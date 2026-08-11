@@ -1,7 +1,6 @@
 import { useEffect, useState } from "preact/hooks";
 
 import type { Photo } from "@/modules/subject/domain";
-import { hashStr } from "@/shared/utils/hash";
 
 type HeroBackgroundProps = {
   photos: Photo[];
@@ -13,7 +12,12 @@ const pickStill = (photos: Photo[], seed: string): Photo | null => {
   if (!photos.length) {
     return null;
   }
-  return photos[hashStr(String(seed || "")) % photos.length] ?? null;
+  let hash = 0;
+  const value = String(seed || "");
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + (value.codePointAt(index) ?? 0)) % 1_000_000_007;
+  }
+  return photos[hash % photos.length] ?? null;
 };
 
 const backgroundStyle = (still: Photo | null, poster: string | null) => {
@@ -90,4 +94,3 @@ const HeroBackground = ({ photos, poster, subjectId }: HeroBackgroundProps) => {
 };
 
 export { HeroBackground, pickStill };
-export type { HeroBackgroundProps };

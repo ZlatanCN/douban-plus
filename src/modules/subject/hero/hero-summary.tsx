@@ -76,4 +76,3 @@ const HeroSummary = ({ text }: HeroSummaryProps) => {
 };
 
 export { HeroSummary };
-export type { HeroSummaryProps };

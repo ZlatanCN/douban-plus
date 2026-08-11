@@ -131,12 +131,6 @@ const SubjectReviewsPage = ({
       votes
     );
   }, [data.subjectId, doc, login, navigation, votes]);
-  const browse = (
-    event: MouseEvent,
-    option: SubjectReviewsBrowseOption
-  ): void => {
-    navigate(event, option);
-  };
   const handleRetry = (): void => navigation.retry();
   const handleDismissFailure = (): void => navigation.dismissFailure();
   const handleNavigateAll = (event: MouseEvent, href: string): void => {
@@ -173,7 +167,6 @@ const SubjectReviewsPage = ({
         />
         <div class="atv-subject-reviews-layout">
           <ReviewsFilters
-            browse={browse}
             locked={locked}
             navigate={navigate}
             ratings={data.ratings}

@@ -34,7 +34,6 @@ const data: SubjectCelebritiesPageData = {
     },
   ],
   subjectHref: "https://movie.douban.com/subject/34825964/",
-  subjectId: "34825964",
   title: "龙之家族 第一季",
 };
 

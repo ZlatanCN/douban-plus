@@ -47,7 +47,6 @@
   --atv-radius-sm: 8px;
   --atv-radius-md: 12px;
   --atv-radius-lg: 16px;
-  --atv-radius-xl: 24px;
 
   /* ---------- Typography: font stacks (system, no webfonts) ---------- */
   --atv-font-sans:
@@ -103,12 +102,8 @@
   --atv-line-height-body-loose: 1.8; /* CJK long-form reading */
   --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
-  --atv-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --atv-duration-press: 160ms;
   --atv-duration-hover: 160ms;
   --atv-duration-feedback: 200ms;
   --atv-duration-content: 300ms;
-  --atv-duration-overlay: 200ms;
-  --atv-duration-modal-backdrop: 400ms;
-  --atv-duration-modal-surface: 350ms;
 }

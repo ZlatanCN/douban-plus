@@ -62,19 +62,18 @@ const SafeImage = ({
   fallback,
 }: SafeImageProps) => {
   const [failed, setFailed] = useState(false);
+  const fallbackContent = fallback ?? (
+    <div aria-hidden="true" class="atv-safe-image-fallback" />
+  );
 
   // --- Null src → show fallback (cannot retry) ---
   if (!src) {
-    return (
-      fallback ?? <div aria-hidden="true" class="atv-safe-image-fallback" />
-    );
+    return fallbackContent;
   }
 
   // --- Load failure → show fallback ---
   if (failed) {
-    return (
-      fallback ?? <div aria-hidden="true" class="atv-safe-image-fallback" />
-    );
+    return fallbackContent;
   }
 
   // --- Image element ---
@@ -119,4 +118,3 @@ const SafeImage = ({
 };
 
 export { SafeImage };
-export type { SafeImageProps };

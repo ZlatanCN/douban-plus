@@ -179,4 +179,3 @@ const InterestTagEditor = ({
 };
 
 export { InterestTagEditor };
-export type { InterestTagEditorProps };

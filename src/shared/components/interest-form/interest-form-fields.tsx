@@ -154,4 +154,3 @@ const InterestFormFields = ({
 };
 
 export { InterestFormFields, statusEntries };
-export type { InterestFormFieldsProps };

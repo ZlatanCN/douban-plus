@@ -62,4 +62,3 @@ const CastSection = ({ celebrities, subjectId }: CastSectionProps) =>
   ) : null;
 
 export { CastSection };
-export type { CastSectionProps };

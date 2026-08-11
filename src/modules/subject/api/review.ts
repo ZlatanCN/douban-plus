@@ -47,4 +47,3 @@ const postReviewVote = async (
 };
 
 export { postReviewVote };
-export type { ReviewVoteResult };

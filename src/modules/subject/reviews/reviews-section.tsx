@@ -79,4 +79,3 @@ const ReviewsSection = ({
 };
 
 export { ReviewsSection };
-export type { ReviewsSectionProps };

@@ -93,4 +93,3 @@ const createRatingFetcher =
   };
 
 export { createRatingFetcher };
-export type { RatingFetcher, RatingFetcherConfig, RatingUrlContext };

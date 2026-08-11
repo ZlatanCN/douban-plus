@@ -1,4 +1,4 @@
 {
   "*.{css,scss}": ["pnpm exec stylelint --fix"],
-  "*.{js,jsx,ts,tsx,json,jsonc,md,mdx}": ["pnpm dlx ultracite fix"]
+  "*.{js,jsx,ts,tsx,json,jsonc,md,mdx}": ["pnpm exec ultracite fix"]
 }
