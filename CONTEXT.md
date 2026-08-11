@@ -150,6 +150,20 @@ Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metac
 
 ### 架构概念
 
+**死 CSS**: 在项目静态证据中没有任何可能匹配目标节点的项目拥有 CSS 规则，且不受动态 CSS 边界或宿主页面依赖影响；它不是“当前某一次页面访问没有显示”的同义词。 _Avoid_: 未验证 CSS、失效声明、暂时隐藏的样式
+
+**死 CSS 候选**: 缺少静态使用证据且不受动态 CSS 边界或宿主页面依赖影响的 CSS 规则；它需要先报告再删除。 _Avoid_: 自动删除样式、确定无用变量
+
+**死 CSS 规则**: 一条完整 CSS rule 的所有 selector 分支都没有静态使用证据的死 CSS 候选。 _Avoid_: 死声明、未覆盖规则
+
+**死 selector 分支**: 一条仍有使用证据的 CSS rule 中，单独没有使用证据的 selector 分支；移除它不能改变其他分支的样式语义。 _Avoid_: 死 CSS 规则、无效 selector
+
+**动态 CSS 边界**: class、selector、style 或 CSS 文本无法由静态分析枚举的运行时表达式；边界内的 CSS 不得被判定为死 CSS。 _Avoid_: 动态样式、运行时 CSS
+
+**未验证 CSS**: 因动态 CSS 边界、未执行的页面状态或缺失宿主 DOM 而无法证明生死的样式；它不是死 CSS。 _Avoid_: 未覆盖即无用、低覆盖率 CSS
+
+**宿主选择器**: 项目样式用于匹配豆瓣原生文档节点的 selector；它的使用证据来自目标页面的宿主 DOM，而不要求在项目 TSX 中再次出现同名 class。 _Avoid_: 第三方样式、外部 CSS
+
 **Host integration boundary**: The narrow layer where douban-plus reads or interoperates with Douban's existing document and browser platform APIs. _Avoid_: imperative UI, DOM-builder
 
 **页面模块所有权**: `subject`、`subject-all-photos`、`subject-celebrities`、`subject-comments`、`subject-reviews` 与 `personage` 各自拥有页面组件、领域数据类型、DOM 提取、页面语义的外部数据读写适配、运行时补全和页面专属样式。跨 subject 路由的作品标记与登录分别由 `shared/components/interest-form/` 和 `shared/components/login-modal/` 拥有；跨路由的影评阅读由独立 `domains/review-reader` 深模块拥有。三者都经公开入口服务多个页面，且不得反向导入任何页面模块。其余共享层只承载不含页面语义的设计 token、基础布局、通用导航、模态、小型交互原语及通用 HTTP、缓存、DOM 工具和样式。顶层入口只根据 URL 选择并挂载页面运行时；它只能使用模块公开入口，并通过唯一的样式清单加载模块与共享样式。页面模块彼此不依赖，模块内部实现不得被模块外部生产代码深层导入，共享层也不得反向依赖页面模块；白盒单元测试可作为模块实现的一部分直接测试内部 seam。跨越模块边界的领域类型只能经公开契约传递；为迁移创建的兼容转发必须随所属模块迁移完成而删除。 _Avoid_: 让人物页复用 subject 的数据契约、把非复用的页面语义请求适配留在共享层、让共享组件导入页面分区文案、在入口层堆积页面数据判断、跨模块或跨层深层导入、永久共享页面领域模型、把页面样式伪装成共享样式
