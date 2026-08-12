@@ -78,7 +78,7 @@ Use headings that describe their sections and form a coherent outline; one page-
 
 ### 14. Survive Zoom and Text Resize
 
-The page must work at 200% zoom and reflow at 320px width without horizontal scrolling. Use `min-height` instead of fixed `height` on text containers, prefer `rem` breakpoints where they fit the codebase's conventions, and never use `user-scalable=no` or `maximum-scale=1`.
+The page must work at 200% zoom and reflow at 320px width without horizontal scrolling. Use `min-height` instead of fixed `height` on text containers, prefer `rem` breakpoints where they fit the codebase's conventions, and keep the viewport meta from capping how far the reader can zoom.
 
 ## Common Mistakes
 
@@ -93,7 +93,6 @@ The page must work at 200% zoom and reflow at 320px width without horizontal scr
 | `assertive` live region for a routine toast | Use `polite`; reserve `assertive` for errors |
 | `aria-hidden="true"` on a focusable element | Remove it or make the element non-focusable |
 | Functional icon alt describes the picture | Describe the action: `alt="Search"`, not `alt="magnifying glass"` |
-| `maximum-scale=1` to stop iOS input zoom | 16px input font on mobile (see `better-typography`); never block zoom |
 | Submit disabled until the form is valid | Keep it enabled; validate on submit and focus the first error |
 
 ## Review Output Format
