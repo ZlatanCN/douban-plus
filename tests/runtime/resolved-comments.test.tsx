@@ -9,7 +9,9 @@ const mockRequest = vi.hoisted(() =>
 );
 
 vi.hoisted(() => {
-  globalThis.GM_xmlhttpRequest = (() => null) as never;
+  globalThis.GM_xmlhttpRequest = vi.fn<
+    NonNullable<typeof globalThis.GM_xmlhttpRequest>
+  >() as never;
 });
 
 vi.mock(import("../../src/shared/utils/request"), () => ({

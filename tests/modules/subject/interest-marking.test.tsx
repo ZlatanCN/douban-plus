@@ -10,7 +10,9 @@ import { useInterestMarking } from "@/shared/components/interest-form";
 import { renderIntoRoot } from "../../helpers/render";
 
 vi.hoisted(() => {
-  globalThis.GM_xmlhttpRequest = (() => null) as never;
+  globalThis.GM_xmlhttpRequest = vi.fn<
+    NonNullable<typeof globalThis.GM_xmlhttpRequest>
+  >() as never;
 });
 
 type InterestMarkingHarnessProps = {

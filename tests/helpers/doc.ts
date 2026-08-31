@@ -17,7 +17,9 @@ const buildDoc = (html: string): Document =>
 const mockLocation = (doc: Document, pathname: string): (() => void) => {
   const win = doc.defaultView;
   if (!win) {
-    return () => null;
+    return function noopCleanup(): void {
+      // No defaultView to restore.
+    };
   }
   const orig = Object.getOwnPropertyDescriptor(win.location, "pathname");
   Object.defineProperty(win.location, "pathname", {

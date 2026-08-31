@@ -31,7 +31,9 @@ const TestHarness = ({
       <button
         data-testid="vote"
         disabled={loading}
-        onClick={() => void vote("up")}
+        onClick={() => {
+          void vote("up");
+        }}
         type="button"
       >
         vote

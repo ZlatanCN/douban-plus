@@ -108,6 +108,7 @@ describe(HeroBackground, () => {
     vi.unstubAllGlobals();
     imageInstances.length = 0;
   });
+
   it("picks a deterministic still from the provided photos", () => {
     const photos = [
       makePhoto({ thumbUrl: "a.jpg" }),

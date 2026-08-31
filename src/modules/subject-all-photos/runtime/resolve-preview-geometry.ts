@@ -23,12 +23,10 @@ const resolvePreviewGeometry = async (
 ): Promise<ResolvedSubjectAllPhotosPageData> => {
   const groups = data.groups.map((group) => ({
     ...group,
-    photos: group.photos.map(
-      (photo): ResolvedSubjectPhotoPreview => ({
-        ...photo,
-        aspectRatio: FALLBACK_ASPECT_RATIO,
-      })
-    ),
+    photos: group.photos.map((photo): ResolvedSubjectPhotoPreview => ({
+      ...photo,
+      aspectRatio: FALLBACK_ASPECT_RATIO,
+    })),
   }));
   const previews = data.groups.flatMap((group, groupIndex) =>
     group.photos.map((photo, photoIndex) => ({

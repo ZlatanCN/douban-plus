@@ -47,15 +47,14 @@ const createRatingCacheKey = (
   return key;
 };
 
-const createRatingFetcher =
-  <T>({
-    cache,
-    parse,
-    referer,
-    slugSeparator,
-    urls,
-  }: RatingFetcherConfig<T>): RatingFetcher<T> =>
-  async (title, isTV, season, year) => {
+const createRatingFetcher = <T>({
+  cache,
+  parse,
+  referer,
+  slugSeparator,
+  urls,
+}: RatingFetcherConfig<T>): RatingFetcher<T> =>
+  async function fetchRating(title, isTV, season, year) {
     if (!title) {
       return null;
     }

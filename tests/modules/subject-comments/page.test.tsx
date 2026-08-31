@@ -13,7 +13,9 @@ import type { SubjectCommentsNavigationState } from "@/modules/subject-comments/
 import { createTestDoc, mockCookie } from "../../helpers/doc";
 
 vi.hoisted(() => {
-  globalThis.GM_xmlhttpRequest = (() => null) as never;
+  globalThis.GM_xmlhttpRequest = vi.fn<
+    NonNullable<typeof globalThis.GM_xmlhttpRequest>
+  >() as never;
 });
 
 const pageData: SubjectCommentsPageData = {

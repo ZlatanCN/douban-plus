@@ -158,7 +158,9 @@ const InterestFormContent = ({
                 </button>
                 <button
                   disabled={disabled}
-                  onClick={() => void remove()}
+                  onClick={() => {
+                    void remove();
+                  }}
                   type="button"
                 >
                   确认取消
@@ -170,7 +172,9 @@ const InterestFormContent = ({
               <button
                 class="atv-interest-modal-submit"
                 disabled={disabled}
-                onClick={() => void save()}
+                onClick={() => {
+                  void save();
+                }}
                 type="button"
               >
                 {loading ? "保存中..." : "保存标记"}

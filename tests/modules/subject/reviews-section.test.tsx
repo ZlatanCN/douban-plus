@@ -84,6 +84,7 @@ describe(ReviewsSection, () => {
       )
     );
   });
+
   it("renders nothing when reviews are empty", () => {
     const root = renderReviews(makeData({ reviews: [] }));
 

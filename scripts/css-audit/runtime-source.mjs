@@ -445,9 +445,14 @@ const visitAttributeCall = (node, source, bindings, state) => {
 const parseRuntimeSource = (source, state) => {
   let ast;
   try {
+    const isJsx = /\.(?:jsx|tsx)$/u.test(source.path);
+    const isTypeScript = /\.(?:ts|tsx)$/u.test(source.path);
     ast = parseJavaScript(source.text, {
       errorRecovery: false,
-      plugins: ["jsx", "typescript"],
+      plugins: [
+        ...(isJsx ? ["jsx"] : []),
+        ...(isTypeScript ? ["typescript"] : []),
+      ],
       sourceType: "unambiguous",
     });
   } catch (error) {
