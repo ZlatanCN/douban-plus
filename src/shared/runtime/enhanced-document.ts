@@ -4,6 +4,7 @@ const installEnhancedRoot = (
 ): boolean => {
   const root = doc.createElement("div");
   root.id = "atv-douban-root";
+  root.tabIndex = -1;
 
   try {
     renderRoot(root);

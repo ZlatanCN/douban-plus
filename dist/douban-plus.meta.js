@@ -41,6 +41,10 @@
 // @connect      graphql.imdb.com
 // @connect      www.rottentomatoes.com
 // @connect      www.metacritic.com
+// @grant        GM.getValue
+// @grant        GM.registerMenuCommand
+// @grant        GM.setValue
+// @grant        GM.unregisterMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @run-at       document-start

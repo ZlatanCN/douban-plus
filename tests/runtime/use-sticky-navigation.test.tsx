@@ -2,6 +2,7 @@ import { render } from "preact";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
+import { stickyNavPreference } from "@/shared/runtime/sticky-nav-preference";
 import type { animateWithReducedMotion } from "@/shared/utils/springs";
 
 const motion = vi.hoisted(() => ({
@@ -45,8 +46,10 @@ const stubIntersectionObserver = () => {
 describe(useStickyNavigation, () => {
   let root: HTMLElement;
 
-  afterEach(() => {
+  afterEach(async () => {
     render(null, root);
+    root.remove();
+    await stickyNavPreference.setMode("auto");
     motion.animate.mockReset();
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
@@ -80,6 +83,42 @@ describe(useStickyNavigation, () => {
           reducedMotionProperties: { opacity: 1 },
         })
       );
+    });
+  });
+
+  it("shows the navigation from the top in always-visible mode", async () => {
+    await stickyNavPreference.setMode("always");
+    stubIntersectionObserver();
+    root = document.createElement("div");
+    render(<NavHarness />, root);
+
+    await vi.waitFor(() => {
+      expect(motion.animate).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        expect.objectContaining({
+          properties: { opacity: 1, transform: "translateY(0)" },
+        })
+      );
+    });
+  });
+
+  it("moves focus out before hiding a focused navigation", async () => {
+    await stickyNavPreference.setMode("always");
+    stubIntersectionObserver();
+    root = document.createElement("div");
+    root.id = "atv-douban-root";
+    root.tabIndex = -1;
+    document.body.append(root);
+    render(<NavHarness />, root);
+    const nav = root.querySelector("nav");
+    const navControl = document.createElement("button");
+    nav?.append(navControl);
+    navControl.focus();
+
+    await stickyNavPreference.setMode("auto");
+
+    await vi.waitFor(() => {
+      expect(document.activeElement).toBe(root);
     });
   });
 

@@ -41,6 +41,10 @@
 // @connect      graphql.imdb.com
 // @connect      www.rottentomatoes.com
 // @connect      www.metacritic.com
+// @grant        GM.getValue
+// @grant        GM.registerMenuCommand
+// @grant        GM.setValue
+// @grant        GM.unregisterMenuCommand
 // @grant        GM_addStyle
 // @grant        GM_xmlhttpRequest
 // @run-at       document-start
@@ -496,6 +500,7 @@ var extractPersonageProfile = (doc) => {
 var installEnhancedRoot = (doc, renderRoot) => {
 	const root = doc.createElement("div");
 	root.id = "atv-douban-root";
+	root.tabIndex = -1;
 	try {
 		renderRoot(root);
 		doc.body.insertBefore(root, doc.body.firstChild);
@@ -6820,20 +6825,125 @@ var PERSONAGE_SECTIONS = [
 		visible: (p) => (p.gallery?.images.length ?? 0) > 0
 	}
 ];
+var DEFAULT_MODE = "auto";
+var STORAGE_KEY = "douban-plus.sticky-nav.visibility";
+var isStickyNavVisibilityMode = (value) => value === "always" || value === "auto";
+var getUserscriptApi = () => {
+	const gm = globalThis.GM;
+	if (!gm || typeof gm.getValue !== "function" || typeof gm.setValue !== "function" || typeof gm.registerMenuCommand !== "function" || typeof gm.unregisterMenuCommand !== "function") return;
+	return {
+		getValue: gm.getValue,
+		registerMenuCommand: gm.registerMenuCommand,
+		setValue: gm.setValue,
+		unregisterMenuCommand: gm.unregisterMenuCommand
+	};
+};
+var createStickyNavPreference = (api) => {
+	let mode = DEFAULT_MODE;
+	let initialization;
+	let menuCommandIds = [];
+	let menuRefreshVersion = 0;
+	const listeners = /* @__PURE__ */ new Set();
+	const notify = () => {
+		for (const listener of listeners) listener(mode);
+	};
+	const unregisterMenuCommand = async (id) => {
+		try {
+			await api?.unregisterMenuCommand(id);
+			return true;
+		} catch {
+			return false;
+		}
+	};
+	const registerMenuCommands = async (onSelect) => {
+		if (api) {
+			menuRefreshVersion += 1;
+			const refreshVersion = menuRefreshVersion;
+			const previousIds = menuCommandIds;
+			if (!(await Promise.all(previousIds.map(unregisterMenuCommand))).every(Boolean)) return;
+			menuCommandIds = [];
+			const registeredIds = (await Promise.all(["auto", "always"].map(async (option) => {
+				try {
+					return await api.registerMenuCommand(`顶部导航：${option === "auto" ? "自动显示" : "始终显示"}${mode === option ? "（当前）" : ""}`, () => onSelect(option));
+				} catch {
+					return null;
+				}
+			}))).filter((id) => id !== null);
+			if (refreshVersion === menuRefreshVersion) menuCommandIds = registeredIds;
+			else await Promise.all(registeredIds.map(unregisterMenuCommand));
+		}
+	};
+	const setMode = async (nextMode) => {
+		if (mode !== nextMode) {
+			mode = nextMode;
+			notify();
+			await registerMenuCommands((option) => {
+				setMode(option);
+			});
+		}
+		if (!api) return;
+		try {
+			await api.setValue(STORAGE_KEY, nextMode);
+		} catch {}
+	};
+	const initialize = () => {
+		if (initialization) return initialization;
+		initialization = (async () => {
+			if (api) {
+				try {
+					const storedMode = await api.getValue(STORAGE_KEY, DEFAULT_MODE);
+					mode = isStickyNavVisibilityMode(storedMode) ? storedMode : DEFAULT_MODE;
+				} catch {
+					mode = DEFAULT_MODE;
+				}
+				await registerMenuCommands((option) => {
+					setMode(option);
+				});
+			}
+			notify();
+			return mode;
+		})();
+		return initialization;
+	};
+	const subscribe = (listener) => {
+		listeners.add(listener);
+		listener(mode);
+		return () => listeners.delete(listener);
+	};
+	return {
+		getMode: () => mode,
+		initialize,
+		setMode,
+		subscribe
+	};
+};
+var stickyNavPreference = createStickyNavPreference(getUserscriptApi());
 var useStickyNavigation = (doc, sections) => {
 	const [activeSectionId, setActiveSectionId] = d("");
-	const [visible, setVisible] = d(false);
+	const [scrolledPastThreshold, setScrolledPastThreshold] = d(false);
 	const [scrolling, setScrolling] = d(false);
-	const lastVisibleRef = A(false);
+	const [mode, setMode] = d(stickyNavPreference.getMode);
+	const lastScrolledPastThresholdRef = A(false);
 	const navRef = A(null);
+	const visible = mode === "always" || scrolledPastThreshold;
+	const moveFocusOutOfNavigation = q(() => {
+		const nav = navRef.current;
+		if (!nav || !nav.contains(doc.activeElement)) return;
+		(doc.querySelector("#atv-douban-root") ?? doc.body).focus({ preventScroll: true });
+	}, [doc]);
+	h(() => stickyNavPreference.subscribe((nextMode) => {
+		if (nextMode === "auto" && !scrolledPastThreshold) moveFocusOutOfNavigation();
+		setMode(nextMode);
+	}), [moveFocusOutOfNavigation, scrolledPastThreshold]);
 	h(() => {
 		const view = doc.defaultView ?? window;
 		let scrollTimer;
 		const handleScroll = () => {
-			const isVisible = view.scrollY > 300;
-			if (isVisible !== lastVisibleRef.current) {
-				lastVisibleRef.current = isVisible;
-				setVisible(isVisible);
+			const isPastRevealThreshold = view.scrollY > 300;
+			if (isPastRevealThreshold !== lastScrolledPastThresholdRef.current) {
+				lastScrolledPastThresholdRef.current = isPastRevealThreshold;
+				if (!isPastRevealThreshold && mode === "auto") moveFocusOutOfNavigation();
+				setScrolledPastThreshold(isPastRevealThreshold);
 			}
 			setScrolling(true);
 			view.clearTimeout(scrollTimer);
@@ -6845,7 +6955,11 @@ var useStickyNavigation = (doc, sections) => {
 			view.removeEventListener("scroll", handleScroll);
 			view.clearTimeout(scrollTimer);
 		};
-	}, [doc]);
+	}, [
+		doc,
+		mode,
+		moveFocusOutOfNavigation
+	]);
 	h(() => {
 		const nav = navRef.current;
 		if (!nav) return;
@@ -8908,7 +9022,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-D9WGUax0-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-ehidygFo-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -9314,7 +9428,9 @@ var InterestFormContent = ({ callbacks, onRetry, source, state, subjectTitle }) 
 						children: "保留标记"
 					}), /* @__PURE__ */ u("button", {
 						disabled,
-						onClick: () => void remove(),
+						onClick: () => {
+							remove();
+						},
 						type: "button",
 						children: "确认取消"
 					})] })]
@@ -9323,7 +9439,9 @@ var InterestFormContent = ({ callbacks, onRetry, source, state, subjectTitle }) 
 					children: [/* @__PURE__ */ u("button", {
 						class: "atv-interest-modal-submit",
 						disabled,
-						onClick: () => void save(),
+						onClick: () => {
+							save();
+						},
 						type: "button",
 						children: loading ? "保存中..." : "保存标记"
 					}), isExistingMark ? /* @__PURE__ */ u("button", {
@@ -15797,7 +15915,7 @@ var createRatingCacheKey = (slug, separator, season, year) => {
 	if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
 	return key;
 };
-var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async (title, isTV, season, year) => {
+var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async function fetchRating(title, isTV, season, year) {
 	if (!title) return null;
 	const slug = toRatingSlug(title, slugSeparator);
 	if (!slug) return null;
@@ -18288,13 +18406,14 @@ var pageMounts = [
 ];
 var mountPageWhenReady = async () => {
 	if (!hasMatchingPage(pageMounts)) return;
+	await stickyNavPreference.initialize();
 	await _css(styles_default);
 	if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => mountMatchingPage(pageMounts, document), { once: true });
 	else mountMatchingPage(pageMounts, document);
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-D9WGUax0-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-ehidygFo-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

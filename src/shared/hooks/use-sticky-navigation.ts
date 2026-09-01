@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
+import { stickyNavPreference } from "@/shared/runtime/sticky-nav-preference";
 import {
   animateWithReducedMotion,
   springConfigs,
@@ -24,10 +25,34 @@ const useStickyNavigation = (
   sections: readonly StickyNavigationSection[]
 ): StickyNavigation => {
   const [activeSectionId, setActiveSectionId] = useState("");
-  const [visible, setVisible] = useState(false);
+  const [scrolledPastThreshold, setScrolledPastThreshold] = useState(false);
   const [scrolling, setScrolling] = useState(false);
-  const lastVisibleRef = useRef(false);
+  const [mode, setMode] = useState(stickyNavPreference.getMode);
+  const lastScrolledPastThresholdRef = useRef(false);
   const navRef = useRef<HTMLElement | null>(null);
+  const visible = mode === "always" || scrolledPastThreshold;
+
+  const moveFocusOutOfNavigation = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav || !nav.contains(doc.activeElement)) {
+      return;
+    }
+    const focusTarget =
+      doc.querySelector<HTMLElement>("#atv-douban-root") ?? doc.body;
+    focusTarget.focus({ preventScroll: true });
+  }, [doc]);
+
+  /* ── User visibility preference ───────────────────────── */
+  useEffect(
+    () =>
+      stickyNavPreference.subscribe((nextMode) => {
+        if (nextMode === "auto" && !scrolledPastThreshold) {
+          moveFocusOutOfNavigation();
+        }
+        setMode(nextMode);
+      }),
+    [moveFocusOutOfNavigation, scrolledPastThreshold]
+  );
 
   /* ── Scroll visibility & activity ───────────────────── */
   useEffect(() => {
@@ -35,10 +60,13 @@ const useStickyNavigation = (
     let scrollTimer: number | undefined;
 
     const handleScroll = (): void => {
-      const isVisible = view.scrollY > 300;
-      if (isVisible !== lastVisibleRef.current) {
-        lastVisibleRef.current = isVisible;
-        setVisible(isVisible);
+      const isPastRevealThreshold = view.scrollY > 300;
+      if (isPastRevealThreshold !== lastScrolledPastThresholdRef.current) {
+        lastScrolledPastThresholdRef.current = isPastRevealThreshold;
+        if (!isPastRevealThreshold && mode === "auto") {
+          moveFocusOutOfNavigation();
+        }
+        setScrolledPastThreshold(isPastRevealThreshold);
       }
 
       setScrolling(true);
@@ -53,7 +81,7 @@ const useStickyNavigation = (
       view.removeEventListener("scroll", handleScroll);
       view.clearTimeout(scrollTimer);
     };
-  }, [doc]);
+  }, [doc, mode, moveFocusOutOfNavigation]);
 
   /* ── Spring animation on visibility change ────────────── */
   useEffect(() => {
