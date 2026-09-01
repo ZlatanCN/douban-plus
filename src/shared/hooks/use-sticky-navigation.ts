@@ -20,6 +20,15 @@ type StickyNavigation = {
   visible: boolean;
 };
 
+const SCROLL_BOUNDARY_TOLERANCE = 1;
+
+const getScrollMarginTop = (element: Element, view: Window): number => {
+  const scrollMarginTop = Number(
+    view.getComputedStyle(element).scrollMarginTop.replace("px", "")
+  );
+  return Number.isFinite(scrollMarginTop) ? scrollMarginTop : 0;
+};
+
 const useStickyNavigation = (
   doc: Document,
   sections: readonly StickyNavigationSection[]
@@ -110,45 +119,53 @@ const useStickyNavigation = (
       }
     }
     let pending = false;
+    let frame: number | undefined;
 
     const pick = (): void => {
-      let activeId = "";
-      let bestScore = -Infinity;
+      let activeId = sections[0]?.id ?? "";
       for (const section of sections) {
         const element = elements.get(section.id);
         if (!element) {
           continue;
         }
         const rect = element.getBoundingClientRect();
-        const visibleTop = Math.max(rect.top, 56);
-        const visibleBottom = Math.min(rect.bottom, view.innerHeight * 0.55);
-        const score = Math.max(0, visibleBottom - visibleTop);
-        if (score > bestScore) {
+        if (
+          rect.top <=
+          getScrollMarginTop(element, view) + SCROLL_BOUNDARY_TOLERANCE
+        ) {
           activeId = section.id;
-          bestScore = score;
         }
       }
       setActiveSectionId(activeId);
       pending = false;
+      frame = undefined;
     };
 
-    const observer = new view.IntersectionObserver(
-      () => {
-        if (pending) {
-          return;
-        }
-        pending = true;
-        view.requestAnimationFrame(pick);
-      },
-      { threshold: [0, 0.25, 0.5] }
-    );
+    const schedulePick = (): void => {
+      if (pending) {
+        return;
+      }
+      pending = true;
+      frame = view.requestAnimationFrame(pick);
+    };
+
+    const observer = new view.IntersectionObserver(schedulePick, {
+      threshold: [0, 0.25, 0.5],
+    });
 
     for (const element of elements.values()) {
       observer.observe(element);
     }
+    view.addEventListener("scroll", schedulePick, { passive: true });
     pick();
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      view.removeEventListener("scroll", schedulePick);
+      if (frame !== undefined) {
+        view.cancelAnimationFrame(frame);
+      }
+    };
   }, [doc, sections]);
 
   /* ── Smooth jump to section ─────────────────────────── */

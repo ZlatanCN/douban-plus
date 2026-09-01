@@ -328,7 +328,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - External runtime seam is `mountSubject(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, late-series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module; review-content acquisition is owned by `domains/review-reader`
    - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/modules/subject/runtime/`; `useSeriesRuntime` owns the initial/late series result, current-series identity, more-link adoption, DOM observation, and cleanup
-   - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `IntersectionObserver` owns active-section updates for the sticky nav
+   - Web API lifecycle matches the platform contracts: `useSeriesRuntime` observes late series DOM and disconnects on unmount; `useStickyNavigation` combines `IntersectionObserver` layout notifications with a requestAnimationFrame-coalesced scroll-margin boundary check for active-section updates, using each target's computed `scroll-margin-top` as the shared click-and-scroll anchor
 
 8. **作品标记 module (2026-07-28)** — `src/shared/components/interest-form/` owns the complete "想看 / 在看 / 看过" flow:
    - External seam is `useInterestMarking({ subjectId, subjectTitle, loggedIn, onLoginRequired, adapters })`; it returns the Hero callbacks and optional Interest form, so Subject page does not learn form lifecycle or writes.

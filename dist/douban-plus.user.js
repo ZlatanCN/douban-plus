@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.8.1
+// @version      1.8.2
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -6918,6 +6918,11 @@ var createStickyNavPreference = (api) => {
 	};
 };
 var stickyNavPreference = createStickyNavPreference(getUserscriptApi());
+var SCROLL_BOUNDARY_TOLERANCE = 1;
+var getScrollMarginTop = (element, view) => {
+	const scrollMarginTop = Number(view.getComputedStyle(element).scrollMarginTop.replace("px", ""));
+	return Number.isFinite(scrollMarginTop) ? scrollMarginTop : 0;
+};
 var useStickyNavigation = (doc, sections) => {
 	const [activeSectionId, setActiveSectionId] = d("");
 	const [scrolledPastThreshold, setScrolledPastThreshold] = d(false);
@@ -6983,36 +6988,36 @@ var useStickyNavigation = (doc, sections) => {
 			if (element) elements.set(section.id, element);
 		}
 		let pending = false;
+		let frame;
 		const pick = () => {
-			let activeId = "";
-			let bestScore = -Infinity;
+			let activeId = sections[0]?.id ?? "";
 			for (const section of sections) {
 				const element = elements.get(section.id);
 				if (!element) continue;
-				const rect = element.getBoundingClientRect();
-				const visibleTop = Math.max(rect.top, 56);
-				const visibleBottom = Math.min(rect.bottom, view.innerHeight * .55);
-				const score = Math.max(0, visibleBottom - visibleTop);
-				if (score > bestScore) {
-					activeId = section.id;
-					bestScore = score;
-				}
+				if (element.getBoundingClientRect().top <= getScrollMarginTop(element, view) + SCROLL_BOUNDARY_TOLERANCE) activeId = section.id;
 			}
 			setActiveSectionId(activeId);
 			pending = false;
+			frame = void 0;
 		};
-		const observer = new view.IntersectionObserver(() => {
+		const schedulePick = () => {
 			if (pending) return;
 			pending = true;
-			view.requestAnimationFrame(pick);
-		}, { threshold: [
+			frame = view.requestAnimationFrame(pick);
+		};
+		const observer = new view.IntersectionObserver(schedulePick, { threshold: [
 			0,
 			.25,
 			.5
 		] });
 		for (const element of elements.values()) observer.observe(element);
+		view.addEventListener("scroll", schedulePick, { passive: true });
 		pick();
-		return () => observer.disconnect();
+		return () => {
+			observer.disconnect();
+			view.removeEventListener("scroll", schedulePick);
+			if (frame !== void 0) view.cancelAnimationFrame(frame);
+		};
 	}, [doc, sections]);
 	return {
 		activeSectionId,
@@ -9022,7 +9027,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-ehidygFo-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-BFcYFGt8-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -18413,7 +18418,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-ehidygFo-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-BFcYFGt8-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
