@@ -10,7 +10,7 @@ Expert guidance for writing Tampermonkey userscripts - browser scripts that modi
 
 ## Quick Start Template
 
-_*JavaScript (simple scripts with no GM.* APIs)_*
+**JavaScript (simple scripts with no GM.* APIs)**
 
 ```javascript
 // ==UserScript==
@@ -24,13 +24,13 @@ _*JavaScript (simple scripts with no GM.* APIs)_*
 // @run-at       document-idle                     // <- ADJUST timing if needed
 // ==/UserScript==
 
-(function () {
-  "use strict";
-  // Your code here
+(function() {
+    'use strict';
+    // Your code here
 })();
 ```
 
-_*Modern (async/await - recommended when using GM.* APIs)_*
+**Modern (async/await - recommended when using GM.* APIs)**
 
 ```javascript
 // ==UserScript==
@@ -46,10 +46,10 @@ _*Modern (async/await - recommended when using GM.* APIs)_*
 // ==/UserScript==
 
 (async () => {
-  "use strict";
-  // Async entry point — use await with GM.* APIs
-  const setting = await GM.getValue("myKey", "default");
-  console.log("Script loaded, setting:", setting);
+    'use strict';
+    // Async entry point — use await with GM.* APIs
+    const setting = await GM.getValue('myKey', 'default');
+    console.log('Script loaded, setting:', setting);
 })();
 ```
 
@@ -60,7 +60,7 @@ _*Modern (async/await - recommended when using GM.* APIs)_*
 ## Essential Header Tags
 
 | Tag | Required | Purpose | Example |
-| --- | --- | --- | --- |
+|-----|----------|---------|---------|
 | `@name` | Yes | Script name (supports i18n with `:locale`) | `@name My Script` |
 | `@namespace` | Recommended | Unique identifier namespace | `@namespace https://yoursite.com/` |
 | `@version` | Yes* | Version for updates (*required for auto-update) | `@version 1.2.3` |
@@ -90,7 +90,7 @@ _*Modern (async/await - recommended when using GM.* APIs)_*
 ## @grant Permissions Quick Reference
 
 | You Need To... | Grant This |
-| --- | --- |
+|----------------|------------|
 | Store persistent data | `@grant GM_setValue` + `@grant GM_getValue` |
 | Make cross-origin requests | `@grant GM_xmlhttpRequest` + `@connect domain` |
 | Add custom CSS | `@grant GM_addStyle` |
@@ -118,7 +118,7 @@ _*Modern (async/await - recommended when using GM.* APIs)_*
 ## @run-at Injection Timing
 
 | Value | When Script Runs | Use Case |
-| --- | --- | --- |
+|-------|------------------|----------|
 | `document-start` | Before DOM exists | Block resources, modify globals early |
 | `document-body` | When body exists | Early DOM manipulation |
 | `document-end` | At DOMContentLoaded | Most scripts - DOM ready |
@@ -178,10 +178,10 @@ npm install --save-dev @types/tampermonkey
 // ==/UserScript==
 
 (async () => {
-  "use strict";
-  const value = await GM.getValue<string>("key", "default");
-  const info: Tampermonkey.ScriptInfo = GM_info;
-  console.log(info.script.name, value);
+    'use strict';
+    const value = await GM.getValue<string>('key', 'default');
+    const info: Tampermonkey.ScriptInfo = GM_info;
+    console.log(info.script.name, value);
 })();
 ```
 
@@ -251,13 +251,13 @@ Before returning a userscript, verify:
 Load these on-demand based on user needs:
 
 | File | When to Load |
-| --- | --- |
-| **Core** |  |
+|------|--------------|
+| **Core** | |
 | [header-reference.md](references/header-reference.md) | Header syntax - all @tags with examples |
 | [url-matching.md](references/url-matching.md) | @match, @include, @exclude patterns |
 | [patterns.md](references/patterns.md) | Common implementation patterns with code |
 | [sandbox-modes.md](references/sandbox-modes.md) | Security/isolation execution contexts |
-| **API** |  |
+| **API** | |
 | [api-sync.md](references/api-sync.md) | GM_* synchronous function reference (callback-based) |
 | [api-async.md](references/api-async.md) | GM.* promise-based API reference - prefer these for new scripts |
 | [api-storage.md](references/api-storage.md) | GM_setValue, GM_getValue, listeners |
@@ -267,7 +267,7 @@ Load these on-demand based on user needs:
 | [api-dom-ui.md](references/api-dom-ui.md) | addElement, addStyle, unsafeWindow |
 | [api-tabs.md](references/api-tabs.md) | getTab, saveTab, openInTab |
 | [api-audio.md](references/api-audio.md) | Mute/unmute tabs |
-| **Quality** |  |
+| **Quality** | |
 | [common-pitfalls.md](references/common-pitfalls.md) | What breaks scripts and workarounds |
 | [debugging.md](references/debugging.md) | How to debug userscripts |
 | [browser-compatibility.md](references/browser-compatibility.md) | Chrome vs Firefox differences |

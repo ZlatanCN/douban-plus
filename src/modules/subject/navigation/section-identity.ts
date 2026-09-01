@@ -21,51 +21,50 @@ type SubjectSectionEntry = {
 const SUBJECT_SECTIONS: readonly SubjectSectionEntry[] = [
   {
     id: "atv-stream",
-    navLabel: () => getSubjectSectionCopy("streaming").navLabel,
+    navLabel: () => getSubjectSectionCopy("streaming"),
     visible: (d) => d.streaming.length > 0,
   },
   {
     id: "atv-series",
-    navLabel: () => getSubjectSectionCopy("series").navLabel,
+    navLabel: () => getSubjectSectionCopy("series"),
     visible: (d) => d.series.length > 0,
   },
   {
     id: "atv-cast",
-    navLabel: () => getSubjectSectionCopy("cast").navLabel,
+    navLabel: () => getSubjectSectionCopy("cast"),
     visible: (d) => d.celebrities.length > 0,
   },
   {
     id: "atv-photos",
-    navLabel: () => getSubjectSectionCopy("media").navLabel,
+    navLabel: () => getSubjectSectionCopy("media"),
     visible: (d) => d.photos.length > 0 || d.trailers.length > 0,
   },
   {
     id: "atv-comments",
-    navLabel: () => getSubjectSectionCopy("comments").navLabel,
+    navLabel: () => getSubjectSectionCopy("comments"),
     visible: (d) => d.comments.length > 0,
   },
   {
     id: "atv-reviews",
     navLabel: (d) =>
-      getSubjectSectionCopy(d.isTV ? "tvReviews" : "movieReviews").navLabel,
+      getSubjectSectionCopy(d.isTV ? "tvReviews" : "movieReviews"),
     visible: (d) => d.reviews.length > 0,
   },
   {
     id: "atv-discussions",
-    navLabel: () => getSubjectSectionCopy("discussions").navLabel,
+    navLabel: () => getSubjectSectionCopy("discussions"),
     visible: (d) => d.discussions.topics.length > 0,
   },
   {
     id: "atv-recs",
-    navLabel: () => getSubjectSectionCopy("recommendations").navLabel,
+    navLabel: () => getSubjectSectionCopy("recommendations"),
     visible: (d) => d.recommendations.length > 0,
   },
   {
     id: "atv-info",
-    navLabel: () => getSubjectSectionCopy("details").navLabel,
+    navLabel: () => getSubjectSectionCopy("details"),
     visible: () => true,
   },
 ] as const;
 
 export { SUBJECT_SECTIONS };
-export type { SubjectSectionEntry };

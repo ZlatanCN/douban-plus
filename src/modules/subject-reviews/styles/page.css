@@ -153,7 +153,7 @@
 .atv-subject-reviews-option[aria-disabled="true"],
 .atv-subject-reviews-pagination-prev[aria-disabled="true"],
 .atv-subject-reviews-pagination-next[aria-disabled="true"],
-.atv-subject-reviews-pagination a[aria-disabled="true"] {
+.atv-subject-reviews-pagination-disabled {
   cursor: progress;
   pointer-events: none;
 }
@@ -256,13 +256,6 @@
   justify-content: space-between;
 }
 
-/* Full mode: show all page numbers, spread across */
-.atv-subject-reviews-pagination:not(.is-condensed) {
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 2px;
-}
-
 /* All pagination links share base styling */
 .atv-subject-reviews-pagination a {
   display: inline-flex;
@@ -298,15 +291,6 @@
   color: var(--atv-text-tertiary);
   opacity: 0.35;
   pointer-events: none;
-}
-
-/* Full mode: current page vs non-current page */
-.atv-subject-reviews-pagination span[aria-current="page"] {
-  padding: 4px 6px;
-  color: var(--atv-text-primary);
-  font-size: var(--atv-type-caption);
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--atv-font-weight-bold);
 }
 
 .atv-subject-reviews-pagination

@@ -37,4 +37,3 @@ const Stars = ({
 );
 
 export { Stars };
-export type { StarsProps };

@@ -75,6 +75,7 @@ pnpm dev
 | `pnpm run fix`   | 格式化与修复源码样式。                       |
 | `pnpm typecheck` | 检查源码和测试的 TypeScript 类型。           |
 | `pnpm test`      | 运行 Vitest 单元与集成测试。                 |
+| `pnpm check:css` | 静态审计死 CSS、动态边界和宿主选择器。       |
 | `pnpm build`     | 生成 `dist/douban-plus.user.js`。            |
 | `pnpm test:e2e`  | 在真实豆瓣页面执行 Playwright QA。           |
 

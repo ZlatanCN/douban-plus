@@ -61,18 +61,18 @@ pnpm add -D vite vite-plugin-monkey
 
 ```typescript
 // vite.config.ts
-import { defineConfig } from "vite";
-import monkey from "vite-plugin-monkey";
+import { defineConfig } from 'vite';
+import monkey from 'vite-plugin-monkey';
 
 export default defineConfig({
   plugins: [
     monkey({
-      entry: "src/main.ts",
+      entry: 'src/main.ts',
       userscript: {
-        name: "My Script",
-        namespace: "https://example.com/",
-        match: ["https://example.com/*"],
-        grant: ["GM.getValue", "GM.setValue"],
+        name: 'My Script',
+        namespace: 'https://example.com/',
+        match: ['https://example.com/*'],
+        grant: ['GM.getValue', 'GM.setValue'],
       },
     }),
   ],
@@ -101,27 +101,27 @@ export default defineConfig({
 // ==/UserScript==
 
 (async () => {
-  "use strict";
+    'use strict';
 
-  // GM_info is always available, no @grant needed
-  const info: Tampermonkey.ScriptInfo = GM_info;
-  console.log("Script version:", info.script.version);
+    // GM_info is always available, no @grant needed
+    const info: Tampermonkey.ScriptInfo = GM_info;
+    console.log('Script version:', info.script.version);
 
-  // Type-safe storage
-  const theme = await GM.getValue<string>("theme", "dark");
-  await GM.setValue("lastRun", Date.now());
+    // Type-safe storage
+    const theme = await GM.getValue<string>('theme', 'dark');
+    await GM.setValue('lastRun', Date.now());
 
-  // Type-safe HTTP request
-  const response = await GM.xmlHttpRequest({
-    method: "GET",
-    url: "https://api.example.com/data",
-  });
-  const data: ApiResponse = JSON.parse(response.responseText);
+    // Type-safe HTTP request
+    const response = await GM.xmlHttpRequest({
+        method: 'GET',
+        url: 'https://api.example.com/data',
+    });
+    const data: ApiResponse = JSON.parse(response.responseText);
 })();
 
 interface ApiResponse {
-  items: string[];
-  total: number;
+    items: string[];
+    total: number;
 }
 ```
 
@@ -162,15 +162,15 @@ Alternatively, use `vite-plugin-monkey` or `webpack-tampermonkey` which inject t
 
 ```typescript
 interface Settings {
-  theme: "light" | "dark";
-  fontSize: number;
-  enabled: boolean;
+    theme: 'light' | 'dark';
+    fontSize: number;
+    enabled: boolean;
 }
 
 const defaultSettings: Settings = {
-  theme: "dark",
-  fontSize: 14,
-  enabled: true,
+    theme: 'dark',
+    fontSize: 14,
+    enabled: true,
 };
 
 // Load all settings at once (v5.3+)
@@ -181,55 +181,49 @@ const settings = await GM.getValues<Settings>(defaultSettings);
 
 ```typescript
 async function fetchJson<T>(url: string): Promise<T> {
-  const response = await GM.xmlHttpRequest({
-    method: "GET",
-    url,
-    responseType: "json",
-  });
-  return response.response as T;
+    const response = await GM.xmlHttpRequest({
+        method: 'GET',
+        url,
+        responseType: 'json',
+    });
+    return response.response as T;
 }
 
 interface User {
-  id: number;
-  name: string;
+    id: number;
+    name: string;
 }
 
-const user = await fetchJson<User>("https://api.example.com/user/1");
+const user = await fetchJson<User>('https://api.example.com/user/1');
 console.log(user.name);
 ```
 
 ### DOM Utilities with Types
 
 ```typescript
-function waitForElement<T extends Element>(
-  selector: string,
-  timeout = 10000
-): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const el = document.querySelector<T>(selector);
-    if (el) return resolve(el);
+function waitForElement<T extends Element>(selector: string, timeout = 10000): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const el = document.querySelector<T>(selector);
+        if (el) return resolve(el);
 
-    const observer = new MutationObserver((_, obs) => {
-      const found = document.querySelector<T>(selector);
-      if (found) {
-        obs.disconnect();
-        resolve(found);
-      }
-    });
+        const observer = new MutationObserver((_, obs) => {
+            const found = document.querySelector<T>(selector);
+            if (found) {
+                obs.disconnect();
+                resolve(found);
+            }
+        });
 
-    observer.observe(document.documentElement, {
-      childList: true,
-      subtree: true,
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timeout: ${selector}`));
+        }, timeout);
     });
-    setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`Timeout: ${selector}`));
-    }, timeout);
-  });
 }
 
 // Usage with type inference
-const button = await waitForElement<HTMLButtonElement>("#submit-btn");
+const button = await waitForElement<HTMLButtonElement>('#submit-btn');
 button.click();
 ```
 

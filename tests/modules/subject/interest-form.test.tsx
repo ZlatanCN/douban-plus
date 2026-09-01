@@ -96,6 +96,7 @@ describe(InterestForm, () => {
   afterAll(() => {
     vi.restoreAllMocks();
   });
+
   it("derives initial status and available statuses from interest state", () => {
     expect(initialStatus(makeState())).toBe("wish");
     expect(initialStatus(makeState({ marked: true, status: "collect" }))).toBe(

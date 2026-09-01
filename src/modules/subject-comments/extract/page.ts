@@ -41,15 +41,11 @@ const commentsHref = (
   parameters: Readonly<Record<string, string>>
 ): string => {
   const path = `/subject/${subjectId}/comments`;
-  let url = new URL(path, MOVIE_ORIGIN);
-  try {
-    const current = new URL(pageHref);
-    if (current.origin === MOVIE_ORIGIN && current.pathname === path) {
-      url = current;
-    }
-  } catch {
-    // Fall back to the canonical comments URL for detached test documents.
-  }
+  const current = new URL(pageHref);
+  const url =
+    current.origin === MOVIE_ORIGIN && current.pathname === path
+      ? current
+      : new URL(path, MOVIE_ORIGIN);
   url.searchParams.delete("start");
   url.searchParams.delete("limit");
   for (const [key, value] of Object.entries(parameters)) {
@@ -101,22 +97,23 @@ const extractStatuses = (
   subjectId: string,
   pageHref: string
 ): SubjectCommentStatus[] | null => {
-  const activeStatus = (() => {
-    try {
-      const status = new URL(pageHref).searchParams.get("status");
-      return status && /^[PNF]$/u.test(status) ? status : "P";
-    } catch {
-      return "P";
-    }
-  })();
+  const queryStatus = new URL(pageHref).searchParams.get("status");
+  const activeStatus =
+    queryStatus && /^[PNF]$/u.test(queryStatus) ? queryStatus : "P";
   const statuses = $$<HTMLElement>(".CommentTabs > li", doc).flatMap((item) => {
-    const status = statusFromItem(item, pageHref, subjectId, activeStatus);
-    return status ? [status] : [];
+    const extractedStatus = statusFromItem(
+      item,
+      pageHref,
+      subjectId,
+      activeStatus
+    );
+    return extractedStatus ? [extractedStatus] : [];
   });
 
-  return statuses.length === 3 && statuses.some((status) => status.active)
-    ? statuses
-    : null;
+  // Douban omits viewing statuses that are unavailable for the current work.
+  // The native option set is authoritative; only an absent current selection
+  // makes the page ambiguous.
+  return statuses.some((status) => status.active) ? statuses : null;
 };
 
 const currentStatus = (statuses: readonly SubjectCommentStatus[]): string =>

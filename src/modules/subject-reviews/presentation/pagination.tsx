@@ -255,4 +255,4 @@ const PaginationNav = ({
 };
 
 export { PaginationNav, getPaginationNav };
-export type { PaginationNavProps, PaginationLink };
+export type { PaginationNavProps };

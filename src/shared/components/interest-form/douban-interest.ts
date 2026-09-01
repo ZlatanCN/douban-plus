@@ -188,4 +188,3 @@ export {
   readInterestState,
   removeInterest,
 };
-export type { InterestActionResult as InterestResult } from "./types";

@@ -13,10 +13,10 @@ const ModalCloseButton = ({
   onClick,
   size = 22,
 }: ModalCloseButtonProps) => {
-  const classNames = className.split(/\s+/u);
-  const buttonClass = classNames.includes("atv-modal-close")
-    ? className
-    : `atv-modal-close ${className}`;
+  const buttonClass =
+    className === "atv-modal-close"
+      ? className
+      : `atv-modal-close ${className}`;
   return (
     <button
       aria-label={ariaLabel}
@@ -30,4 +30,3 @@ const ModalCloseButton = ({
 };
 
 export { ModalCloseButton };
-export type { ModalCloseButtonProps };

@@ -13,6 +13,7 @@ import {
   mountMatchingPage,
 } from "@/shared/runtime/page-mount";
 import type { PageMount } from "@/shared/runtime/page-mount";
+import { stickyNavPreference } from "@/shared/runtime/sticky-nav-preference";
 
 const pageMounts: readonly PageMount[] = [
   subjectCelebritiesPage,
@@ -28,6 +29,7 @@ const mountPageWhenReady = async (): Promise<void> => {
     return;
   }
 
+  await stickyNavPreference.initialize();
   await import("./styles.css");
 
   if (document.readyState === "loading") {

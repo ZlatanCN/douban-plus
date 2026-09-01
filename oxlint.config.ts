@@ -13,7 +13,7 @@ const restrictImports = (
 
 export default defineConfig({
   extends: [core, react, vitest],
-  ignorePatterns: [...(core.ignorePatterns ?? []), ".agents"],
+  ignorePatterns: [...(core.ignorePatterns ?? []), ".agents", ".claude"],
   overrides: [
     {
       files: ["src/main.ts"],

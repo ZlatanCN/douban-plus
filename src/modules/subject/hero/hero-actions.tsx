@@ -170,4 +170,3 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
 };
 
 export { HeroActions };
-export type { HeroActionsProps };

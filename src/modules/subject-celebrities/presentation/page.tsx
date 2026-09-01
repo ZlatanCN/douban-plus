@@ -39,16 +39,14 @@ const SubjectCelebritiesPage = ({ data, doc }: SubjectCelebritiesPageProps) => {
           <h1>{data.title}</h1>
           <div class="atv-celebrities-context">
             <p>{totalCredits} 位演职员</p>
-            {data.subjectHref ? (
-              <a
-                class="atv-credit-back"
-                href={data.subjectHref}
-                rel="noreferrer"
-                target="_blank"
-              >
-                查看作品详情 <span aria-hidden="true">↗</span>
-              </a>
-            ) : null}
+            <a
+              class="atv-credit-back"
+              href={data.subjectHref}
+              rel="noreferrer"
+              target="_blank"
+            >
+              查看作品详情 <span aria-hidden="true">↗</span>
+            </a>
           </div>
         </header>
         <div class="atv-credit-groups">
@@ -66,4 +64,3 @@ const SubjectCelebritiesPage = ({ data, doc }: SubjectCelebritiesPageProps) => {
 };
 
 export { SubjectCelebritiesPage };
-export type { SubjectCelebritiesPageProps };

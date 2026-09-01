@@ -56,6 +56,58 @@ type UseNativeNavigationOptions<Data> = {
   refreshLabel: string;
 };
 
+const fetchNativePage = async <Data>({
+  extract,
+  href,
+  incompleteMessage,
+  invalidResponseMessage,
+  invalidTargetMessage,
+  isValidUrl,
+  origin,
+  requestErrorMessage,
+  signal,
+}: {
+  extract: (doc: Document, href: string) => Data | null;
+  href: string;
+  incompleteMessage: string;
+  invalidResponseMessage: string;
+  invalidTargetMessage: string;
+  isValidUrl: (url: URL) => boolean;
+  origin: string;
+  requestErrorMessage: (status: number) => string;
+  signal: AbortSignal;
+}): Promise<NativeNavigationResult<Data>> => {
+  const requestedUrl = new URL(href, origin);
+  if (!isValidUrl(requestedUrl)) {
+    throw new Error(invalidTargetMessage);
+  }
+
+  const response = await fetch(requestedUrl.href, {
+    credentials: "include",
+    signal,
+  });
+  if (!response.ok) {
+    throw new Error(requestErrorMessage(response.status));
+  }
+
+  const responseHref = response.url || requestedUrl.href;
+  const responseUrl = new URL(responseHref, origin);
+  if (!isValidUrl(responseUrl)) {
+    throw new Error(invalidResponseMessage);
+  }
+
+  const sourceDoc = new DOMParser().parseFromString(
+    await response.text(),
+    "text/html"
+  );
+  const data = extract(sourceDoc, responseUrl.href);
+  const nativeContent = sourceDoc.querySelector<HTMLElement>("#content");
+  if (!data || !nativeContent) {
+    throw new Error(incompleteMessage);
+  }
+  return { data, href: responseUrl.href, nativeContent };
+};
+
 const replaceNativeContent = (
   doc: Document,
   sourceContent: HTMLElement
@@ -240,6 +292,7 @@ const useNativeNavigation = <Data>({
 
 export {
   createNativeNavigation,
+  fetchNativePage,
   useNativeNavigation,
   type NativeNavigationResult,
   type NativeNavigationState,

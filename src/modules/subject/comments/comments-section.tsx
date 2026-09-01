@@ -1,9 +1,9 @@
 import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
 import { Section } from "@/shared/components/layout/section";
+import type { VotePersistOptions } from "@/shared/voting/vote-state";
 
 import { getSubjectSectionCopy } from "../navigation/section-copy";
 import type { CommentVoteCallback } from "../runtime/types";
-import type { VotePersistOptions } from "../voting/vote-state";
 import { CommentCard } from "./comment-card";
 import type { CommentVoteState } from "./comment-vote-state";
 
@@ -45,7 +45,7 @@ const CommentsSection = ({
             },
           }
         : {})}
-      title={getSubjectSectionCopy("comments").sectionTitle}
+      title={getSubjectSectionCopy("comments")}
     >
       <div class="atv-comments">
         {comments.map((comment) => {
@@ -68,4 +68,3 @@ const CommentsSection = ({
 };
 
 export { CommentsSection };
-export type { CommentsSectionProps };

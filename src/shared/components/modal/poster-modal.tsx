@@ -78,4 +78,4 @@ const PosterModal = ({ alt, onClose, previewSrc, src }: PosterModalProps) => (
 );
 
 export { PosterModal };
-export type { ImageModalSource, PosterModalProps };
+export type { ImageModalSource };

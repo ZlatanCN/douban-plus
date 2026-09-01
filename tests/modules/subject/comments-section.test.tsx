@@ -55,6 +55,7 @@ describe(CommentsSection, () => {
     );
     /* eslint-enable promise/prefer-await-to-callbacks */
   });
+
   it("renders nothing when comments are empty", () => {
     const root = renderComments(makeData({ comments: [] }));
 

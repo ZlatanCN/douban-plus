@@ -62,7 +62,6 @@ type PlatformBrandKey =
   | "iqiyi"
   | "itvx"
   | "mango-tv"
-  | "migu"
   | "nbc"
   | "nhk"
   | "netflix"
@@ -88,7 +87,7 @@ type PlatformBrand = {
   key: PlatformBrandKey;
   label: string;
   presentation?: "wordmark";
-  surface: "dark" | "paper";
+  surface: "dark";
 };
 
 const PLATFORM_BRANDS: PlatformBrand[] = [

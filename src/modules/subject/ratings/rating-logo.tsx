@@ -23,4 +23,3 @@ const RatingLogo = ({ name }: RatingLogoProps) => (
 );
 
 export { RatingLogo };
-export type { RatingLogoProps };

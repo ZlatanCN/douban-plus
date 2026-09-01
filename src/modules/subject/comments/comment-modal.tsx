@@ -2,9 +2,9 @@ import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
 import { Stars } from "@/shared/components/common/stars";
 import { ModalCloseButton, ModalShell } from "@/shared/components/modal";
 import { useModalClose } from "@/shared/components/modal/modal-close-context";
+import type { VotePersistOptions } from "@/shared/voting/vote-state";
 
 import type { CommentVoteCallback } from "../runtime/types";
-import type { VotePersistOptions } from "../voting/vote-state";
 import { CommentAvatar } from "./comment-avatar";
 import { CommentVoteButton } from "./comment-vote-button";
 import type { CommentVoteState } from "./comment-vote-state";
@@ -124,4 +124,3 @@ const CommentModal = ({
 );
 
 export { CommentModal };
-export type { CommentModalProps };

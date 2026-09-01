@@ -1,10 +1,10 @@
 import type { AccountActionGuard, Comment } from "@/modules/subject/domain";
 import { VoteButton } from "@/shared/components/common/vote-button";
+import { useVoteAction } from "@/shared/voting/use-vote-action";
+import { useVoteControl } from "@/shared/voting/use-vote-control";
+import type { VotePersistOptions } from "@/shared/voting/vote-state";
 
 import type { CommentVoteCallback } from "../runtime/types";
-import { useVoteAction } from "../voting/use-vote-action";
-import { useVoteControl } from "../voting/use-vote-control";
-import type { VotePersistOptions } from "../voting/vote-state";
 import { commentVoteApi } from "./comment-vote-state";
 import type { CommentVoteState } from "./comment-vote-state";
 
@@ -62,4 +62,3 @@ const CommentVoteButton = ({
 };
 
 export { CommentVoteButton };
-export type { CommentVoteButtonProps };

@@ -1,7 +1,5 @@
 export { ModalCloseButton } from "./modal-close-button";
-export { ModalSession, ModalSessionContent } from "./modal-session";
+export { ModalSession } from "./modal-session";
 export { ModalShell } from "./modal-shell";
 export { PosterModal } from "./poster-modal";
-export type { ImageModalSource, PosterModalProps } from "./poster-modal";
-export { useSwipeToDismiss } from "./use-swipe-to-dismiss";
-export type { SwipeToDismissOptions } from "./use-swipe-to-dismiss";
+export type { ImageModalSource } from "./poster-modal";

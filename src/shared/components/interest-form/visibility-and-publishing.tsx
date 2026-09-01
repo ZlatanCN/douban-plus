@@ -59,4 +59,3 @@ const VisibilityAndPublishing = ({
 );
 
 export { VisibilityAndPublishing };
-export type { VisibilityAndPublishingProps };

@@ -431,11 +431,6 @@
   gap: 14px;
 }
 
-.atv-review-modal-link {
-  display: flex;
-  align-items: center;
-}
-
 #atv-douban-root .atv-review-modal-link-a {
   background: transparent;
   color: var(--atv-text-tertiary);
@@ -513,35 +508,6 @@
   margin: 0;
 }
 
-.atv-review-modal-retry {
-  display: inline-flex;
-  min-height: 34px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 18px;
-  border: 1px solid var(--atv-border-subtle);
-  border-radius: 999px;
-  appearance: none;
-  background: var(--atv-bg-elevated);
-  color: var(--atv-text-secondary);
-  cursor: pointer;
-  font: inherit;
-  font-size: var(--atv-type-caption);
-  font-weight: var(--atv-font-weight-semibold);
-  transition:
-    color var(--atv-duration-feedback) ease,
-    border-color var(--atv-duration-feedback) ease,
-    background var(--atv-duration-feedback) ease;
-}
-
-.atv-review-modal-retry:hover,
-.atv-review-modal-retry:focus-visible {
-  border-color: var(--atv-accent-border);
-  background: var(--atv-accent-hover);
-  color: var(--atv-accent);
-}
-
-.atv-review-modal-retry:focus-visible,
 .atv-review-modal .atv-modal-close:focus-visible,
 #atv-douban-root .atv-review-modal-link-a:focus-visible {
   outline: 2px solid var(--atv-accent);

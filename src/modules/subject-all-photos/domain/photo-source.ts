@@ -20,4 +20,3 @@ const archivePhotoSource = (src: string): ArchivePhotoSource => {
 };
 
 export { archivePhotoSource };
-export type { ArchivePhotoSource };

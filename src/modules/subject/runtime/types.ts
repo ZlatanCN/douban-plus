@@ -48,6 +48,5 @@ export type {
   PhotoResolution,
   ResolvedPhoto,
   ResolvedSeriesItem,
-  SubjectPageNavigation,
   SubjectPageRuntime,
 };

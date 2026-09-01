@@ -65,4 +65,3 @@ const CommentsPageHeader = ({
 );
 
 export { CommentsPageHeader };
-export type { CommentsPageHeaderProps };

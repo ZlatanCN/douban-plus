@@ -89,7 +89,7 @@ describe("Series runtime", () => {
     await vi.waitFor(() =>
       expect(root.querySelector("output")?.dataset.items).toBe("第一季|第二季")
     );
-    expect(root.querySelector("output")?.dataset.moreText).toBe("查看全部");
+    expect(root.querySelector("output")?.dataset.moreText).toBe("查看全部 →");
   });
 
   it("resolves the current series from the host document location", async () => {

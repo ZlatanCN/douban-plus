@@ -6,33 +6,33 @@ Cross-browser differences and compatibility matrix for Tampermonkey userscripts.
 
 ## Browser Support Matrix
 
-| Feature              | Chrome | Firefox | Edge | Safari             | Opera |
-| -------------------- | ------ | ------- | ---- | ------------------ | ----- |
-| **Tampermonkey**     | ✅     | ✅      | ✅   | ⚠️ Userscripts app | ✅    |
-| **Manifest Version** | V3     | V2      | V3   | N/A                | V3    |
+| Feature | Chrome | Firefox | Edge | Safari | Opera |
+|---------|--------|---------|------|--------|-------|
+| **Tampermonkey** | ✅ | ✅ | ✅ | ⚠️ Userscripts app | ✅ |
+| **Manifest Version** | V3 | V2 | V3 | N/A | V3 |
 
 ### API Compatibility
 
-| API                      | Chrome | Firefox | Edge   | Notes            |
-| ------------------------ | ------ | ------- | ------ | ---------------- |
-| `GM_setValue/getValue`   | ✅     | ✅      | ✅     | Universal        |
-| `GM_xmlhttpRequest`      | ✅     | ✅      | ✅     | Universal        |
-| `GM_addStyle`            | ✅     | ✅      | ✅     | Universal        |
-| `GM_addElement`          | ✅     | ✅      | ✅     | Universal        |
-| `GM_notification`        | ✅     | ✅      | ✅     | Universal        |
-| `GM_download`            | ✅     | ✅      | ✅     | Universal        |
-| `GM_openInTab`           | ✅     | ✅      | ✅     | Universal        |
-| `GM_registerMenuCommand` | ✅     | ✅      | ✅     | Universal        |
-| `GM_cookie`              | ✅     | ✅      | ✅     | Universal        |
-| `GM_webRequest`          | ❌ MV3 | ✅      | ❌ MV3 | Firefox only now |
-| `GM_audio`               | ✅     | ✅      | ✅     | v5.0+            |
-| `window.onurlchange`     | ✅     | ✅      | ✅     | Universal        |
-| `unsafeWindow`           | ✅     | ✅      | ✅     | Universal        |
+| API | Chrome | Firefox | Edge | Notes |
+|-----|--------|---------|------|-------|
+| `GM_setValue/getValue` | ✅ | ✅ | ✅ | Universal |
+| `GM_xmlhttpRequest` | ✅ | ✅ | ✅ | Universal |
+| `GM_addStyle` | ✅ | ✅ | ✅ | Universal |
+| `GM_addElement` | ✅ | ✅ | ✅ | Universal |
+| `GM_notification` | ✅ | ✅ | ✅ | Universal |
+| `GM_download` | ✅ | ✅ | ✅ | Universal |
+| `GM_openInTab` | ✅ | ✅ | ✅ | Universal |
+| `GM_registerMenuCommand` | ✅ | ✅ | ✅ | Universal |
+| `GM_cookie` | ✅ | ✅ | ✅ | Universal |
+| `GM_webRequest` | ❌ MV3 | ✅ | ❌ MV3 | Firefox only now |
+| `GM_audio` | ✅ | ✅ | ✅ | v5.0+ |
+| `window.onurlchange` | ✅ | ✅ | ✅ | Universal |
+| `unsafeWindow` | ✅ | ✅ | ✅ | Universal |
 
 ### Sandbox & Execution Context
 
 | Feature | Chrome | Firefox | Notes |
-| --- | --- | --- | --- |
+|---------|--------|---------|-------|
 | `@sandbox raw` | ✅ | ✅ | Page context |
 | `@sandbox JavaScript` | ✅ | ✅ USERSCRIPT_WORLD | Firefox has special context |
 | `@sandbox DOM` | ✅ | ✅ | Isolated context |
@@ -60,16 +60,16 @@ Chrome and Edge use Manifest V3, which restricts certain features:
 
 // Intercept fetch
 const originalFetch = unsafeWindow.fetch;
-unsafeWindow.fetch = function (...args) {
-  console.log("Intercepted fetch:", args[0]);
-  return originalFetch.apply(this, args);
+unsafeWindow.fetch = function(...args) {
+    console.log('Intercepted fetch:', args[0]);
+    return originalFetch.apply(this, args);
 };
 
 // Intercept XMLHttpRequest
 const originalOpen = unsafeWindow.XMLHttpRequest.prototype.open;
-unsafeWindow.XMLHttpRequest.prototype.open = function (method, url) {
-  console.log("Intercepted XHR:", method, url);
-  return originalOpen.apply(this, arguments);
+unsafeWindow.XMLHttpRequest.prototype.open = function(method, url) {
+    console.log('Intercepted XHR:', method, url);
+    return originalOpen.apply(this, arguments);
 };
 ```
 
@@ -84,31 +84,31 @@ Firefox's USERSCRIPT_WORLD requires special functions to share data with the pag
 ```javascript
 // Share object with page (Firefox)
 function shareWithPage(name, value) {
-  if (typeof cloneInto !== "undefined") {
-    // Firefox - must use cloneInto
-    unsafeWindow[name] = cloneInto(value, unsafeWindow, {
-      cloneFunctions: true,
-    });
-  } else {
-    // Chrome - direct assignment works
-    unsafeWindow[name] = value;
-  }
+    if (typeof cloneInto !== 'undefined') {
+        // Firefox - must use cloneInto
+        unsafeWindow[name] = cloneInto(value, unsafeWindow, {
+            cloneFunctions: true
+        });
+    } else {
+        // Chrome - direct assignment works
+        unsafeWindow[name] = value;
+    }
 }
 
 // Export function for page to call (Firefox)
 function exportToPage(name, fn) {
-  if (typeof exportFunction !== "undefined") {
-    // Firefox
-    unsafeWindow[name] = exportFunction(fn, unsafeWindow);
-  } else {
-    // Chrome
-    unsafeWindow[name] = fn;
-  }
+    if (typeof exportFunction !== 'undefined') {
+        // Firefox
+        unsafeWindow[name] = exportFunction(fn, unsafeWindow);
+    } else {
+        // Chrome
+        unsafeWindow[name] = fn;
+    }
 }
 
 // Usage
-shareWithPage("myData", { count: 42, items: ["a", "b"] });
-exportToPage("myFunction", (arg) => console.log("Called with:", arg));
+shareWithPage('myData', { count: 42, items: ['a', 'b'] });
+exportToPage('myFunction', (arg) => console.log('Called with:', arg));
 ```
 
 ### Firefox Containers
@@ -120,7 +120,7 @@ Firefox supports container tabs for privacy isolation.
 // @run-in container-id-3
 
 // Get container ID at runtime
-console.log("Container:", GM_info.container);
+console.log('Container:', GM_info.container);
 // { id: "2", name: "Personal" }
 ```
 
@@ -132,12 +132,12 @@ Safari uses a third-party app called "Userscripts" (not Tampermonkey).
 
 ### Key Differences
 
-| Feature        | Safari Userscripts | Tampermonkey      |
-| -------------- | ------------------ | ----------------- |
-| Installation   | Mac App Store      | Browser extension |
-| @grant support | Limited            | Full              |
-| GM_* APIs      | Subset             | Full              |
-| Auto-update    | Manual             | Automatic         |
+| Feature | Safari Userscripts | Tampermonkey |
+|---------|-------------------|--------------|
+| Installation | Mac App Store | Browser extension |
+| @grant support | Limited | Full |
+| GM_* APIs | Subset | Full |
+| Auto-update | Manual | Automatic |
 
 ### Writing Safari-Compatible Scripts
 
@@ -163,14 +163,14 @@ const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 ```javascript
 // Check if API exists before using
-if (typeof GM_notification !== "undefined") {
-  GM_notification("Hello!");
+if (typeof GM_notification !== 'undefined') {
+    GM_notification('Hello!');
 } else {
-  alert("Hello!"); // Fallback
+    alert('Hello!');  // Fallback
 }
 
 // Check for Firefox-specific features
-const isFirefox = typeof cloneInto !== "undefined";
+const isFirefox = typeof cloneInto !== 'undefined';
 ```
 
 ### 2. Graceful Degradation
@@ -178,16 +178,13 @@ const isFirefox = typeof cloneInto !== "undefined";
 ```javascript
 // Provide fallbacks for unsupported features
 async function showNotification(message) {
-  if (typeof GM_notification !== "undefined") {
-    GM_notification({ text: message });
-  } else if (
-    "Notification" in window &&
-    Notification.permission === "granted"
-  ) {
-    new Notification(message);
-  } else {
-    console.log("Notification:", message);
-  }
+    if (typeof GM_notification !== 'undefined') {
+        GM_notification({ text: message });
+    } else if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(message);
+    } else {
+        console.log('Notification:', message);
+    }
 }
 ```
 
@@ -195,15 +192,15 @@ async function showNotification(message) {
 
 ```javascript
 // Wrong - breaks in other browsers
-if (navigator.userAgent.includes("Firefox")) {
-  // Firefox-specific code
+if (navigator.userAgent.includes('Firefox')) {
+    // Firefox-specific code
 }
 
 // Right - feature detection
-if (typeof exportFunction !== "undefined") {
-  // Use exportFunction
+if (typeof exportFunction !== 'undefined') {
+    // Use exportFunction
 } else {
-  // Use alternative
+    // Use alternative
 }
 ```
 
@@ -228,10 +225,10 @@ Chrome's document-start isn't always reliable.
 // @run-at document-start
 
 // May not run early enough - add fallback
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
 } else {
-  init(); // Already loaded
+    init();  // Already loaded
 }
 ```
 
@@ -244,7 +241,7 @@ Some sites have strict CSP that even Tampermonkey can't bypass.
 // @require https://example.com/library.js
 
 // Or inject via unsafeWindow
-unsafeWindow.eval('console.log("injected")'); // Last resort
+unsafeWindow.eval('console.log("injected")');  // Last resort
 ```
 
 ### Edge: Extension Sync Issues
@@ -259,22 +256,22 @@ Edge sometimes doesn't sync Tampermonkey settings.
 
 Some features require specific Tampermonkey versions:
 
-| Feature                  | Minimum Version |
-| ------------------------ | --------------- |
-| `GM.* async APIs`        | 4.0+            |
-| `GM_audio`               | 5.0+            |
-| `@tag`                   | 5.0+            |
-| `GM_notification.tag`    | 5.0+            |
-| `@run-in`                | 5.3+            |
-| `GM_setValues/getValues` | 5.3+            |
+| Feature | Minimum Version |
+|---------|-----------------|
+| `GM.* async APIs` | 4.0+ |
+| `GM_audio` | 5.0+ |
+| `@tag` | 5.0+ |
+| `GM_notification.tag` | 5.0+ |
+| `@run-in` | 5.3+ |
+| `GM_setValues/getValues` | 5.3+ |
 
 ```javascript
 // Check Tampermonkey version
 const version = GM_info.version;
-console.log("Tampermonkey version:", version);
+console.log('Tampermonkey version:', version);
 
 // Feature detection is safer than version checking
-if (typeof GM_audio !== "undefined") {
-  // Use GM_audio
+if (typeof GM_audio !== 'undefined') {
+    // Use GM_audio
 }
 ```

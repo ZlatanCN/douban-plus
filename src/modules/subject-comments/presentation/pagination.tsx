@@ -53,4 +53,3 @@ const CommentsPagination = ({
 };
 
 export { CommentsPagination };
-export type { CommentsPaginationProps };

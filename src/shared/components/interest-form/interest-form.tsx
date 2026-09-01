@@ -1,11 +1,9 @@
+import { Fragment } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
-import {
-  ModalCloseButton,
-  ModalSessionContent,
-  ModalShell,
-} from "@/shared/components/modal";
+import { ModalCloseButton, ModalShell } from "@/shared/components/modal";
 import { useModalClose } from "@/shared/components/modal/modal-close-context";
+import { useModalSession } from "@/shared/components/modal/modal-session";
 
 import { InterestFormFields } from "./interest-form-fields";
 import { normalizeInterestTags } from "./normalize-tags";
@@ -160,7 +158,9 @@ const InterestFormContent = ({
                 </button>
                 <button
                   disabled={disabled}
-                  onClick={() => void remove()}
+                  onClick={() => {
+                    void remove();
+                  }}
                   type="button"
                 >
                   确认取消
@@ -172,7 +172,9 @@ const InterestFormContent = ({
               <button
                 class="atv-interest-modal-submit"
                 disabled={disabled}
-                onClick={() => void save()}
+                onClick={() => {
+                  void save();
+                }}
                 type="button"
               >
                 {loading ? "保存中..." : "保存标记"}
@@ -205,25 +207,27 @@ const InterestForm = ({
   source,
   state,
   subjectTitle,
-}: InterestFormProps) => (
-  <ModalShell
-    ariaLabelledBy="atv-interest-modal-title"
-    className="atv-interest-modal"
-    id="atv-interest-modal"
-    onClose={onClose}
-    surfaceClassName="atv-interest-modal-inner"
-  >
-    <ModalSessionContent>
-      <InterestFormContent
-        callbacks={callbacks}
-        {...(onRetry ? { onRetry } : {})}
-        source={source}
-        state={state}
-        subjectTitle={subjectTitle}
-      />
-    </ModalSessionContent>
-  </ModalShell>
-);
+}: InterestFormProps) => {
+  const session = useModalSession();
+  return (
+    <ModalShell
+      ariaLabelledBy="atv-interest-modal-title"
+      className="atv-interest-modal"
+      id="atv-interest-modal"
+      onClose={onClose}
+      surfaceClassName="atv-interest-modal-inner"
+    >
+      <Fragment key={session}>
+        <InterestFormContent
+          callbacks={callbacks}
+          {...(onRetry ? { onRetry } : {})}
+          source={source}
+          state={state}
+          subjectTitle={subjectTitle}
+        />
+      </Fragment>
+    </ModalShell>
+  );
+};
 
 export { initialStatus, InterestForm };
-export type { InterestFormProps };

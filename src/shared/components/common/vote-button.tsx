@@ -34,4 +34,3 @@ const VoteButton = ({
 );
 
 export { VoteButton };
-export type { VoteButtonProps };

@@ -44,4 +44,3 @@ const CreditGroup = ({ group, id }: CreditGroupProps) => {
 };
 
 export { creditGroupId, compactGroupLabel, CreditGroup };
-export type { CreditGroupProps };

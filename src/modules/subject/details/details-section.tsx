@@ -176,10 +176,7 @@ const DetailsSection = ({ data }: DetailsSectionProps) => {
   }
 
   return (
-    <Section
-      id="atv-info"
-      title={getSubjectSectionCopy("details").sectionTitle}
-    >
+    <Section id="atv-info" title={getSubjectSectionCopy("details")}>
       <dl class="atv-info-grid">
         {rows.map((row) => (
           <>
@@ -197,4 +194,3 @@ const DetailsSection = ({ data }: DetailsSectionProps) => {
 };
 
 export { DetailsSection, collectDetailRows };
-export type { DetailRow, DetailsSectionProps };

@@ -14,7 +14,6 @@ const RE_SUBJECT_ID = /subject\/(?<id>\d+)/u;
 const RE_ALLSTAR = /allstar(?<rating>\d{2})/u;
 const RE_HTTP = /^https?:\/\//u;
 const RE_ONLINE_VIDEO = /online-video/u;
-const RE_INTEREST_ACTIVE = /done|active|on\b|j_a\b/u;
 const RE_IMDB_LINK = /^tt\d+$/u;
 const RE_SEASON_SUFFIX = /\d$/u;
 const RE_SEASON_EP = /^第[一二三四五六七八九十百\d]+[季集]\s*/u;
@@ -30,7 +29,6 @@ export {
   RE_HTTP,
   RE_IMDB_ID,
   RE_IMDB_LINK,
-  RE_INTEREST_ACTIVE,
   RE_NL_MULTI,
   RE_NON_DIGIT,
   RE_ONLINE_VIDEO,

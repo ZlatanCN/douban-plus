@@ -120,19 +120,11 @@ const PersonageHeroPortrait = ({
     onOpenPortrait(portrait, `${primaryName}的头像`);
   };
 
-  const handleKeyDown = (event: globalThis.KeyboardEvent) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      handleClick();
-    }
-  };
-
   return (
     <button
       aria-label={`查看${primaryName}的头像`}
       class="atv-personage-portrait-trigger atv-image-preview-trigger"
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
       type="button"
     >
       <SafeImage
@@ -250,5 +242,4 @@ const PersonageHero = ({ profile, onOpenPortrait }: PersonageHeroProps) => {
   );
 };
 
-export { PersonageHero };
-export type { PersonageHeroProps };
+export { PersonageHero, splitPersonageName };

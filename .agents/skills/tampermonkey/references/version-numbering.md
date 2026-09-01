@@ -7,7 +7,6 @@ Rules for script version comparison and update detection.
 ## Overview
 
 The `@version` tag determines:
-
 - Whether updates are available
 - Version comparison in the script list
 - Update check eligibility (required for auto-updates)
@@ -262,7 +261,6 @@ Use `+` for build info (doesn't affect comparison order):
 ## Version Display
 
 The version appears in:
-
 - Tampermonkey dashboard
 - Script editor header
 - Update notifications

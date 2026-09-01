@@ -37,7 +37,7 @@ const extractSeriesMoreLink = (doc: Document): SeriesMoreLink | undefined => {
   return link
     ? {
         href: link.href,
-        text: (link.textContent || "").replaceAll(/[()（）]/gu, "").trim(),
+        text: "查看全部 →",
       }
     : undefined;
 };

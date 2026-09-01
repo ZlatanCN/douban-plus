@@ -15,12 +15,7 @@ const Section = ({ children, id, moreLink, title }: SectionProps) => {
   useSectionReveal(ref);
 
   return (
-    <section
-      class="atv-section atv-section-reveal"
-      data-atv-section-reveal
-      id={id}
-      ref={ref}
-    >
+    <section class="atv-section atv-section-reveal" id={id} ref={ref}>
       {moreLink ? (
         <div class="atv-section-h-row">
           <h2 class="atv-section-h">{title}</h2>
@@ -42,4 +37,3 @@ const Section = ({ children, id, moreLink, title }: SectionProps) => {
 };
 
 export { Section };
-export type { SectionProps };

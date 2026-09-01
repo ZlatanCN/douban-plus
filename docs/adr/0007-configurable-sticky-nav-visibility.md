@@ -1,0 +1,5 @@
+# Configurable Sticky nav visibility
+
+The shared Sticky nav will support two user-facing visibility strategies: “自动显示” remains the default and “始终显示” keeps the navigation visible from page load. The preference is global across enhanced Douban pages and subdomains, exposed through the userscript manager menu and persisted with userscript storage; changing it updates the current page immediately, while other open tabs apply it on their next mount or reload. We choose this over page-local storage and an in-page settings panel because the userscript already spans multiple origins and has no settings surface; invalid or unavailable preference data falls back to “自动显示”.
+
+The always-visible strategy intentionally keeps the existing top-fixed navigation; enhanced pages already hide the host page’s native global navigation, so the user-visible trade-off is that the bar overlays the enhanced page’s top content by choice. Navigation jumps must reserve space for the fixed bar, preserve keyboard focus when hiding the nav, and keep the existing 300px reveal threshold and responsive/reduced-motion behavior for “自动显示”.

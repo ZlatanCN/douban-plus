@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "preact/hooks";
 
+import { stickyNavPreference } from "@/shared/runtime/sticky-nav-preference";
 import {
   animateWithReducedMotion,
   springConfigs,
@@ -19,15 +20,48 @@ type StickyNavigation = {
   visible: boolean;
 };
 
+const SCROLL_BOUNDARY_TOLERANCE = 1;
+
+const getScrollMarginTop = (element: Element, view: Window): number => {
+  const scrollMarginTop = Number(
+    view.getComputedStyle(element).scrollMarginTop.replace("px", "")
+  );
+  return Number.isFinite(scrollMarginTop) ? scrollMarginTop : 0;
+};
+
 const useStickyNavigation = (
   doc: Document,
   sections: readonly StickyNavigationSection[]
 ): StickyNavigation => {
   const [activeSectionId, setActiveSectionId] = useState("");
-  const [visible, setVisible] = useState(false);
+  const [scrolledPastThreshold, setScrolledPastThreshold] = useState(false);
   const [scrolling, setScrolling] = useState(false);
-  const lastVisibleRef = useRef(false);
+  const [mode, setMode] = useState(stickyNavPreference.getMode);
+  const lastScrolledPastThresholdRef = useRef(false);
   const navRef = useRef<HTMLElement | null>(null);
+  const visible = mode === "always" || scrolledPastThreshold;
+
+  const moveFocusOutOfNavigation = useCallback(() => {
+    const nav = navRef.current;
+    if (!nav || !nav.contains(doc.activeElement)) {
+      return;
+    }
+    const focusTarget =
+      doc.querySelector<HTMLElement>("#atv-douban-root") ?? doc.body;
+    focusTarget.focus({ preventScroll: true });
+  }, [doc]);
+
+  /* ── User visibility preference ───────────────────────── */
+  useEffect(
+    () =>
+      stickyNavPreference.subscribe((nextMode) => {
+        if (nextMode === "auto" && !scrolledPastThreshold) {
+          moveFocusOutOfNavigation();
+        }
+        setMode(nextMode);
+      }),
+    [moveFocusOutOfNavigation, scrolledPastThreshold]
+  );
 
   /* ── Scroll visibility & activity ───────────────────── */
   useEffect(() => {
@@ -35,10 +69,13 @@ const useStickyNavigation = (
     let scrollTimer: number | undefined;
 
     const handleScroll = (): void => {
-      const isVisible = view.scrollY > 300;
-      if (isVisible !== lastVisibleRef.current) {
-        lastVisibleRef.current = isVisible;
-        setVisible(isVisible);
+      const isPastRevealThreshold = view.scrollY > 300;
+      if (isPastRevealThreshold !== lastScrolledPastThresholdRef.current) {
+        lastScrolledPastThresholdRef.current = isPastRevealThreshold;
+        if (!isPastRevealThreshold && mode === "auto") {
+          moveFocusOutOfNavigation();
+        }
+        setScrolledPastThreshold(isPastRevealThreshold);
       }
 
       setScrolling(true);
@@ -53,7 +90,7 @@ const useStickyNavigation = (
       view.removeEventListener("scroll", handleScroll);
       view.clearTimeout(scrollTimer);
     };
-  }, [doc]);
+  }, [doc, mode, moveFocusOutOfNavigation]);
 
   /* ── Spring animation on visibility change ────────────── */
   useEffect(() => {
@@ -82,45 +119,53 @@ const useStickyNavigation = (
       }
     }
     let pending = false;
+    let frame: number | undefined;
 
     const pick = (): void => {
-      let activeId = "";
-      let bestScore = -Infinity;
+      let activeId = sections[0]?.id ?? "";
       for (const section of sections) {
         const element = elements.get(section.id);
         if (!element) {
           continue;
         }
         const rect = element.getBoundingClientRect();
-        const visibleTop = Math.max(rect.top, 56);
-        const visibleBottom = Math.min(rect.bottom, view.innerHeight * 0.55);
-        const score = Math.max(0, visibleBottom - visibleTop);
-        if (score > bestScore) {
+        if (
+          rect.top <=
+          getScrollMarginTop(element, view) + SCROLL_BOUNDARY_TOLERANCE
+        ) {
           activeId = section.id;
-          bestScore = score;
         }
       }
       setActiveSectionId(activeId);
       pending = false;
+      frame = undefined;
     };
 
-    const observer = new view.IntersectionObserver(
-      () => {
-        if (pending) {
-          return;
-        }
-        pending = true;
-        view.requestAnimationFrame(pick);
-      },
-      { threshold: [0, 0.25, 0.5] }
-    );
+    const schedulePick = (): void => {
+      if (pending) {
+        return;
+      }
+      pending = true;
+      frame = view.requestAnimationFrame(pick);
+    };
+
+    const observer = new view.IntersectionObserver(schedulePick, {
+      threshold: [0, 0.25, 0.5],
+    });
 
     for (const element of elements.values()) {
       observer.observe(element);
     }
+    view.addEventListener("scroll", schedulePick, { passive: true });
     pick();
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      view.removeEventListener("scroll", schedulePick);
+      if (frame !== undefined) {
+        view.cancelAnimationFrame(frame);
+      }
+    };
   }, [doc, sections]);
 
   /* ── Smooth jump to section ─────────────────────────── */

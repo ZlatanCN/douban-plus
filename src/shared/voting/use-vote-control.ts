@@ -2,31 +2,47 @@ import { useState } from "preact/hooks";
 
 import type { VoteApi, VotePersistOptions } from "./vote-state";
 
+type VoteControlApi<State, Dir extends string, Item, Result> = Pick<
+  VoteApi<State, Dir, Item, Result>,
+  "initial" | "persist"
+>;
+
 type VoteControlWiring<State, Dir extends string, Item, Result> = {
-  api: Pick<VoteApi<State, Dir, Item, Result>, "initial" | "persist">;
+  api: VoteControlApi<State, Dir, Item, Result>;
   item: Item;
   onStateChange?: (state: State, options?: VotePersistOptions) => void;
   state?: State;
 };
-const useVoteControl = <State, Dir extends string, Item, Result>({
-  api,
-  item,
-  onStateChange,
-  state,
-}: VoteControlWiring<State, Dir, Item, Result>) => {
+
+/**
+ * Owns one item's controlled-or-standalone vote state. Controlled callers
+ * synchronize through their page-level owner; standalone callers retain and
+ * persist their local state using the same VoteApi product.
+ */
+const useVoteControl = <State, Dir extends string, Item, Result>(
+  wiring: VoteControlWiring<State, Dir, Item, Result>
+) => {
+  const { api, item, onStateChange, state } = wiring;
   const [localState, setLocalState] = useState<State>(() => api.initial(item));
   const voteState = state ?? localState;
-  const setVoteState = (next: State, options?: VotePersistOptions): void => {
+
+  const setVoteState = (
+    nextState: State,
+    options?: VotePersistOptions
+  ): void => {
     if (onStateChange) {
-      onStateChange(next, options);
+      onStateChange(nextState, options);
       return;
     }
-    setLocalState(next);
+
+    setLocalState(nextState);
     if (options?.persist) {
-      api.persist(item, next);
+      api.persist(item, nextState);
     }
   };
+
   return { setVoteState, voteState };
 };
+
 export { useVoteControl };
-export type { VoteControlWiring };
+export type { VoteControlApi, VoteControlWiring };

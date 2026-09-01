@@ -140,7 +140,6 @@ Specify pages where the script runs. Uses match patterns.
 ```
 
 **Special patterns:**
-
 - `*` in scheme matches http or https
 - `*` in host matches any subdomain
 - `*` in path matches any characters
@@ -178,13 +177,13 @@ Exclude URLs even if matched by @match or @include.
 
 When to inject the script.
 
-| Value            | Description                                 |
-| ---------------- | ------------------------------------------- |
-| `document-start` | Inject as early as possible, before DOM     |
-| `document-body`  | Inject when body element exists             |
-| `document-end`   | Inject at/after DOMContentLoaded            |
-| `document-idle`  | Inject after DOMContentLoaded (default)     |
-| `context-menu`   | Inject when clicked in browser context menu |
+| Value | Description |
+|-------|-------------|
+| `document-start` | Inject as early as possible, before DOM |
+| `document-body` | Inject when body element exists |
+| `document-end` | Inject at/after DOMContentLoaded |
+| `document-idle` | Inject after DOMContentLoaded (default) |
+| `context-menu` | Inject when clicked in browser context menu |
 
 ```javascript
 // @run-at       document-start
@@ -250,11 +249,11 @@ Whitelist GM_* functions and special window features.
 
 Control script injection context.
 
-| Value        | Behaviour                                          |
-| ------------ | -------------------------------------------------- |
-| `raw`        | Run in page context (MAIN_WORLD) - default         |
+| Value | Behaviour |
+|-------|-----------|
+| `raw` | Run in page context (MAIN_WORLD) - default |
 | `JavaScript` | Need unsafeWindow access, may use USERSCRIPT_WORLD |
-| `DOM`        | Only need DOM access, may use ISOLATED_WORLD       |
+| `DOM` | Only need DOM access, may use ISOLATED_WORLD |
 
 ```javascript
 // @sandbox      JavaScript
@@ -390,13 +389,11 @@ Inject script without wrapper/sandbox (for Scriptlets).
 Ensure external resources haven't been tampered with.
 
 **Supported hash algorithms:**
-
 - SHA-256 (native)
 - MD5 (native)
 - SHA-1, SHA-384, SHA-512 (require window.crypto)
 
 **Formats:**
-
 - Hex: `#sha256=e3b0c44298fc1c149...`
 - Base64: `#sha256-47DEQpj8HBSa+/TImW...`
 

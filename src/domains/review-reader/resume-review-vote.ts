@@ -1,3 +1,4 @@
+import { runVoteTransition } from "@/shared/voting/use-vote-action";
 import type { VotePersistOptions } from "@/shared/voting/vote-state";
 
 import type { Review, ReviewVoteCallback } from "./domain";
@@ -20,14 +21,14 @@ const resumeReviewVote = async (
   onVote: ReviewVoteCallback,
   owner: ReviewVoteStateOwner
 ): Promise<void> => {
-  const previous = owner.getVoteState(review);
-  const optimistic = reviewVoteApi.optimistic(previous, direction);
-  owner.setVoteState(review, optimistic);
-  const result = await onVote(reviewNumericId(review.id), direction);
-  owner.setVoteState(
-    review,
-    result.ok ? reviewVoteApi.resolve(optimistic, direction, result) : previous,
-    result.ok ? { persist: true } : undefined
+  await runVoteTransition(
+    reviewVoteApi,
+    {
+      getState: () => owner.getVoteState(review),
+      onVote: (dir) => onVote(reviewNumericId(review.id), dir),
+      setState: (state, options) => owner.setVoteState(review, state, options),
+    },
+    direction
   );
 };
 

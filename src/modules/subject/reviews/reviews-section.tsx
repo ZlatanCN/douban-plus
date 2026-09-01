@@ -53,9 +53,7 @@ const ReviewsSection = ({
         href: `https://movie.douban.com/subject/${subjectId}/reviews`,
         text: "查看全部 →",
       }}
-      title={
-        getSubjectSectionCopy(isTV ? "tvReviews" : "movieReviews").sectionTitle
-      }
+      title={getSubjectSectionCopy(isTV ? "tvReviews" : "movieReviews")}
     >
       <div class="atv-reviews">
         {reviews.map((review) => {
@@ -81,4 +79,3 @@ const ReviewsSection = ({
 };
 
 export { ReviewsSection };
-export type { ReviewsSectionProps };

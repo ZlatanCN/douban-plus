@@ -21,4 +21,4 @@ const useModalRequest = <T>(): ModalRequestController<T> => {
   return { active, handleClose, handleOpen };
 };
 
-export { useModalRequest, type ModalRequest, type ModalRequestController };
+export { useModalRequest };

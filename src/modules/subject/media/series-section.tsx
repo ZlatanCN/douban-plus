@@ -14,7 +14,7 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
     <Section
       id="atv-series"
       {...(moreLink ? { moreLink } : {})}
-      title={getSubjectSectionCopy("series").sectionTitle}
+      title={getSubjectSectionCopy("series")}
     >
       <div class="atv-carousel atv-series-carousel">
         {items.map((item) => {
@@ -55,4 +55,3 @@ const SeriesSection = ({ items, moreLink }: SeriesSectionProps) =>
   ) : null;
 
 export { SeriesSection };
-export type { SeriesSectionProps };

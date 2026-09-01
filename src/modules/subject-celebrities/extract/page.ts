@@ -96,9 +96,8 @@ const extractSubjectCelebritiesPage = (
   return {
     groups,
     subjectHref: `https://movie.douban.com/subject/${subjectId}/`,
-    subjectId,
     title,
   };
 };
 
-export { extractSubjectCelebritiesPage, subjectIdFromPath };
+export { extractSubjectCelebritiesPage };

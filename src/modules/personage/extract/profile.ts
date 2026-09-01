@@ -60,7 +60,7 @@ const extractCollaborators = (doc: Document): PersonageCollaborators | null => {
   }
 
   const collaborators = $$<HTMLLIElement>(".partners-mod-item", source)
-    .flatMap((item, nativeIndex) => {
+    .flatMap((item) => {
       const profileLink = item.querySelector<HTMLAnchorElement>(
         ".partners-mod-info a[title][href]"
       );
@@ -78,18 +78,12 @@ const extractCollaborators = (doc: Document): PersonageCollaborators | null => {
           avatar: imageUrl(item.querySelector("img")),
           href: profileLink.href,
           name,
-          nativeIndex,
           sharedWorkCount,
           sharedWorksHref: sharedWorksLink?.href ?? null,
         },
       ];
     })
-    .toSorted(
-      (left, right) =>
-        right.sharedWorkCount - left.sharedWorkCount ||
-        left.nativeIndex - right.nativeIndex
-    )
-    .map(({ nativeIndex: _nativeIndex, ...collaborator }) => collaborator);
+    .toSorted((left, right) => right.sharedWorkCount - left.sharedWorkCount);
 
   const allCollaboratorsHref =
     source.querySelector<HTMLAnchorElement>("h2 a[href]")?.href ?? null;
@@ -268,4 +262,4 @@ const extractPersonageProfile = (doc: Document): PersonageProfile | null => {
   };
 };
 
-export { extractPersonageProfile, personageIdFromPath };
+export { extractPersonageProfile };

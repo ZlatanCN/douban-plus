@@ -14,11 +14,11 @@ The modern, safer way to specify where scripts run.
 <scheme>://<host><path>
 ```
 
-| Component | Description               | Wildcards                  |
-| --------- | ------------------------- | -------------------------- |
-| `scheme`  | Protocol (http, https, *) | `*` matches http or https  |
-| `host`    | Domain name               | `*` matches any subdomain  |
-| `path`    | URL path                  | `*` matches any characters |
+| Component | Description | Wildcards |
+|-----------|-------------|-----------|
+| `scheme` | Protocol (http, https, *) | `*` matches http or https |
+| `host` | Domain name | `*` matches any subdomain |
+| `path` | URL path | `*` matches any characters |
 
 ### Common Patterns
 
@@ -45,7 +45,7 @@ The modern, safer way to specify where scripts run.
 ### Wildcard Rules
 
 | Pattern | Matches | Does NOT Match |
-| --- | --- | --- |
+|---------|---------|----------------|
 | `https://example.com/*` | example.com/page | sub.example.com |
 | `https://*.example.com/*` | sub.example.com | example.com |
 | `*://example.com/*` | http://example.com, https://example.com | ftp://example.com |
@@ -102,12 +102,12 @@ Wrap in forward slashes:
 
 ### @include vs @match
 
-| Feature       | @match   | @include          |
-| ------------- | -------- | ----------------- |
-| Security      | Stricter | More permissive   |
-| Regex support | No       | Yes               |
-| TLD wildcards | No       | Yes (`example.*`) |
-| Recommended   | Yes      | Legacy            |
+| Feature | @match | @include |
+|---------|--------|----------|
+| Security | Stricter | More permissive |
+| Regex support | No | Yes |
+| TLD wildcards | No | Yes (`example.*`) |
+| Recommended | Yes | Legacy |
 
 ---
 
@@ -197,9 +197,9 @@ Exclude URLs even if they match @match or @include.
 
 ```javascript
 // Add to script to verify matching
-console.log("Script matched URL:", location.href);
-console.log("Host:", location.host);
-console.log("Path:", location.pathname);
+console.log('Script matched URL:', location.href);
+console.log('Host:', location.host);
+console.log('Path:', location.pathname);
 ```
 
 ### Pattern Tester
@@ -208,15 +208,20 @@ Test if a URL matches your pattern:
 
 ```javascript
 // Manual test
-const patterns = ["https://example.com/*", "https://*.example.com/*"];
+const patterns = [
+    'https://example.com/*',
+    'https://*.example.com/*'
+];
 
-const testUrl = "https://sub.example.com/page";
+const testUrl = 'https://sub.example.com/page';
 
 // Note: This is simplified - actual matching is more complex
-patterns.forEach((pattern) => {
-  const regex = pattern.replace(/\*/g, ".*").replace(/\//g, "\\/");
-  const matches = new RegExp(`^${regex}$`).test(testUrl);
-  console.log(`${pattern}: ${matches}`);
+patterns.forEach(pattern => {
+    const regex = pattern
+        .replace(/\*/g, '.*')
+        .replace(/\//g, '\\/');
+    const matches = new RegExp(`^${regex}$`).test(testUrl);
+    console.log(`${pattern}: ${matches}`);
 });
 ```
 
@@ -299,9 +304,9 @@ For SPA fragment detection, use window.onurlchange:
 // @grant window.onurlchange
 
 if (window.onurlchange === null) {
-  window.addEventListener("urlchange", (info) => {
-    console.log("URL changed:", info.url);
-  });
+    window.addEventListener('urlchange', (info) => {
+        console.log('URL changed:', info.url);
+    });
 }
 ```
 

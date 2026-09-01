@@ -238,4 +238,3 @@ const SubjectCommentsPage = ({
 };
 
 export { SubjectCommentsPage };
-export type { SubjectCommentsPageProps };

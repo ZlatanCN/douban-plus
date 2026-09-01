@@ -27,4 +27,3 @@ const DoubanRating = ({ rating }: DoubanRatingProps) => (
 );
 
 export { DoubanRating };
-export type { DoubanRatingProps };

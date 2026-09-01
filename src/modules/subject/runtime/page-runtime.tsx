@@ -84,4 +84,3 @@ const SubjectPageRuntime = ({
 };
 
 export { SubjectPageRuntime };
-export type { SubjectPageRuntimeProps };

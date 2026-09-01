@@ -28,15 +28,15 @@ GM_xmlhttpRequest allows userscripts to make HTTP requests to any domain, bypass
 
 ```javascript
 GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://api.example.com/data",
-  onload: function (response) {
-    console.log("Status:", response.status);
-    console.log("Response:", response.responseText);
-  },
-  onerror: function (error) {
-    console.error("Request failed");
-  },
+    method: 'GET',
+    url: 'https://api.example.com/data',
+    onload: function(response) {
+        console.log('Status:', response.status);
+        console.log('Response:', response.responseText);
+    },
+    onerror: function(error) {
+        console.error('Request failed');
+    }
 });
 ```
 
@@ -44,20 +44,20 @@ GM_xmlhttpRequest({
 
 ```javascript
 GM_xmlhttpRequest({
-  method: "POST",
-  url: "https://api.example.com/submit",
-  headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-  },
-  data: JSON.stringify({
-    name: "John",
-    email: "john@example.com",
-  }),
-  onload: function (response) {
-    const result = JSON.parse(response.responseText);
-    console.log("Success:", result);
-  },
+    method: 'POST',
+    url: 'https://api.example.com/submit',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+    },
+    data: JSON.stringify({
+        name: 'John',
+        email: 'john@example.com'
+    }),
+    onload: function(response) {
+        const result = JSON.parse(response.responseText);
+        console.log('Success:', result);
+    }
 });
 ```
 
@@ -67,65 +67,63 @@ GM_xmlhttpRequest({
 
 ```javascript
 GM_xmlhttpRequest({
-  // Request configuration
-  method: "POST", // GET, HEAD, POST, PUT, DELETE, PATCH
-  url: "https://api.example.com/", // Target URL (or Blob/File v5.4.6226+)
-  headers: {
-    // Custom headers
-    "Content-Type": "application/json",
-    Authorization: "Bearer token123",
-    "X-Custom-Header": "value",
-  },
-  data: "request body", // String, Blob, File, FormData, URLSearchParams, ArrayBuffer, UInt8Array (v5.4+)
+    // Request configuration
+    method: 'POST',                    // GET, HEAD, POST, PUT, DELETE, PATCH
+    url: 'https://api.example.com/',   // Target URL (or Blob/File v5.4.6226+)
+    headers: {                         // Custom headers
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer token123',
+        'X-Custom-Header': 'value'
+    },
+    data: 'request body',              // String, Blob, File, FormData, URLSearchParams, ArrayBuffer, UInt8Array (v5.4+)
 
-  // Request modifiers
-  timeout: 30000, // Timeout in milliseconds
-  binary: false, // Send data in binary mode
-  nocache: false, // Don't cache the resource
-  revalidate: false, // Revalidate cached content
-  anonymous: false, // Don't send cookies (enforces fetch mode)
-  fetch: false, // Use fetch instead of XMLHttpRequest
+    // Request modifiers
+    timeout: 30000,                    // Timeout in milliseconds
+    binary: false,                     // Send data in binary mode
+    nocache: false,                    // Don't cache the resource
+    revalidate: false,                 // Revalidate cached content
+    anonymous: false,                  // Don't send cookies (enforces fetch mode)
+    fetch: false,                      // Use fetch instead of XMLHttpRequest
 
-  // Authentication
-  user: "username", // Basic auth username
-  password: "password", // Basic auth password
-  cookie: "name=value", // Cookie to include
-  cookiePartition: {
-    // Partitioned cookies (v5.2+)
-    topLevelSite: "https://example.com",
-  },
+    // Authentication
+    user: 'username',                  // Basic auth username
+    password: 'password',              // Basic auth password
+    cookie: 'name=value',              // Cookie to include
+    cookiePartition: {                 // Partitioned cookies (v5.2+)
+        topLevelSite: 'https://example.com'
+    },
 
-  // Response handling
-  responseType: "json", // arraybuffer, blob, json, stream
-  overrideMimeType: "text/plain", // Override response MIME type
+    // Response handling
+    responseType: 'json',              // arraybuffer, blob, json, stream
+    overrideMimeType: 'text/plain',    // Override response MIME type
 
-  // Redirect handling (v6180+)
-  redirect: "follow", // follow, error, manual
+    // Redirect handling (v6180+)
+    redirect: 'follow',                // follow, error, manual
 
-  // Context for callbacks
-  context: { custom: "data" }, // Passed to response object
+    // Context for callbacks
+    context: { custom: 'data' },       // Passed to response object
 
-  // Proxy (Firefox only v5.5.6233+)
-  proxy: {
-    type: "http", // direct, http, https, socks, socks4
-    host: "proxy.example.com",
-    port: 8080,
-    username: "proxyuser",
-    password: "proxypass",
-    proxyDNS: true,
-    failoverTimeout: 5,
-    proxyAuthorizationHeader: "Basic ...",
-    connectionIsolationKey: "key",
-  },
+    // Proxy (Firefox only v5.5.6233+)
+    proxy: {
+        type: 'http',                  // direct, http, https, socks, socks4
+        host: 'proxy.example.com',
+        port: 8080,
+        username: 'proxyuser',
+        password: 'proxypass',
+        proxyDNS: true,
+        failoverTimeout: 5,
+        proxyAuthorizationHeader: 'Basic ...',
+        connectionIsolationKey: 'key'
+    },
 
-  // Callbacks
-  onload: function (response) {},
-  onerror: function (response) {},
-  onabort: function (response) {},
-  ontimeout: function (response) {},
-  onprogress: function (progress) {},
-  onreadystatechange: function (response) {},
-  onloadstart: function (response) {}, // For stream responseType
+    // Callbacks
+    onload: function(response) {},
+    onerror: function(response) {},
+    onabort: function(response) {},
+    ontimeout: function(response) {},
+    onprogress: function(progress) {},
+    onreadystatechange: function(response) {},
+    onloadstart: function(response) {}  // For stream responseType
 });
 ```
 
@@ -175,7 +173,6 @@ Whitelist domains for GM_xmlhttpRequest.
 ```
 
 **Best practice:**
-
 1. Declare all known domains explicitly
 2. Add `@connect *` as fallback for "allow all" option
 3. Both initial URL and final URL (after redirects) are checked
@@ -188,10 +185,10 @@ Whitelist domains for GM_xmlhttpRequest.
 
 ```javascript
 const request = GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://api.example.com/large-file",
-  onload: (response) => console.log("Done"),
-  onabort: () => console.log("Aborted"),
+    method: 'GET',
+    url: 'https://api.example.com/large-file',
+    onload: response => console.log('Done'),
+    onabort: () => console.log('Aborted')
 });
 
 // Cancel after 5 seconds
@@ -202,15 +199,15 @@ setTimeout(() => request.abort(), 5000);
 
 ```javascript
 GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://example.com/large-file.zip",
-  onprogress: function (progress) {
-    if (progress.lengthComputable) {
-      const percent = ((progress.loaded / progress.total) * 100).toFixed(2);
-      console.log(`Downloaded: ${percent}%`);
-    }
-  },
-  onload: (response) => console.log("Complete"),
+    method: 'GET',
+    url: 'https://example.com/large-file.zip',
+    onprogress: function(progress) {
+        if (progress.lengthComputable) {
+            const percent = (progress.loaded / progress.total * 100).toFixed(2);
+            console.log(`Downloaded: ${percent}%`);
+        }
+    },
+    onload: response => console.log('Complete')
 });
 ```
 
@@ -218,22 +215,22 @@ GM_xmlhttpRequest({
 
 ```javascript
 GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://api.example.com/stream",
-  responseType: "stream",
-  onloadstart: function (response) {
-    const reader = response.response.getReader();
+    method: 'GET',
+    url: 'https://api.example.com/stream',
+    responseType: 'stream',
+    onloadstart: function(response) {
+        const reader = response.response.getReader();
 
-    function read() {
-      reader.read().then(({ done, value }) => {
-        if (done) return;
-        console.log("Chunk:", new TextDecoder().decode(value));
+        function read() {
+            reader.read().then(({ done, value }) => {
+                if (done) return;
+                console.log('Chunk:', new TextDecoder().decode(value));
+                read();
+            });
+        }
+
         read();
-      });
     }
-
-    read();
-  },
 });
 ```
 
@@ -248,62 +245,54 @@ GM_xmlhttpRequest({
 // @connect api.example.com
 
 const api = {
-  baseUrl: "https://api.example.com",
-  token: null,
+    baseUrl: 'https://api.example.com',
+    token: null,
 
-  request(method, endpoint, data = null) {
-    return new Promise((resolve, reject) => {
-      GM_xmlhttpRequest({
-        method: method,
-        url: this.baseUrl + endpoint,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: this.token ? `Bearer ${this.token}` : "",
-        },
-        data: data ? JSON.stringify(data) : null,
-        onload: (response) => {
-          if (response.status >= 200 && response.status < 300) {
-            resolve(JSON.parse(response.responseText));
-          } else {
-            reject(new Error(`HTTP ${response.status}`));
-          }
-        },
-        onerror: reject,
-      });
-    });
-  },
+    request(method, endpoint, data = null) {
+        return new Promise((resolve, reject) => {
+            GM_xmlhttpRequest({
+                method: method,
+                url: this.baseUrl + endpoint,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': this.token ? `Bearer ${this.token}` : ''
+                },
+                data: data ? JSON.stringify(data) : null,
+                onload: response => {
+                    if (response.status >= 200 && response.status < 300) {
+                        resolve(JSON.parse(response.responseText));
+                    } else {
+                        reject(new Error(`HTTP ${response.status}`));
+                    }
+                },
+                onerror: reject
+            });
+        });
+    },
 
-  get(endpoint) {
-    return this.request("GET", endpoint);
-  },
-  post(endpoint, data) {
-    return this.request("POST", endpoint, data);
-  },
-  put(endpoint, data) {
-    return this.request("PUT", endpoint, data);
-  },
-  delete(endpoint) {
-    return this.request("DELETE", endpoint);
-  },
+    get(endpoint) { return this.request('GET', endpoint); },
+    post(endpoint, data) { return this.request('POST', endpoint, data); },
+    put(endpoint, data) { return this.request('PUT', endpoint, data); },
+    delete(endpoint) { return this.request('DELETE', endpoint); }
 };
 
 // Usage
-api.token = "your-api-token";
-api.get("/users/123").then((user) => console.log(user));
+api.token = 'your-api-token';
+api.get('/users/123').then(user => console.log(user));
 ```
 
 ### Form Data Upload
 
 ```javascript
 const formData = new FormData();
-formData.append("file", blob, "filename.txt");
-formData.append("description", "My file");
+formData.append('file', blob, 'filename.txt');
+formData.append('description', 'My file');
 
 GM_xmlhttpRequest({
-  method: "POST",
-  url: "https://api.example.com/upload",
-  data: formData,
-  onload: (response) => console.log("Uploaded!"),
+    method: 'POST',
+    url: 'https://api.example.com/upload',
+    data: formData,
+    onload: response => console.log('Uploaded!')
 });
 ```
 
@@ -318,11 +307,11 @@ const view = new Uint8Array(buffer);
 // ... populate buffer ...
 
 GM_xmlhttpRequest({
-  method: "POST",
-  url: "https://api.example.com/binary",
-  headers: { "Content-Type": "application/octet-stream" },
-  data: buffer, // ArrayBuffer or UInt8Array
-  onload: (response) => console.log("Binary sent!"),
+    method: 'POST',
+    url: 'https://api.example.com/binary',
+    headers: { 'Content-Type': 'application/octet-stream' },
+    data: buffer,   // ArrayBuffer or UInt8Array
+    onload: response => console.log('Binary sent!')
 });
 ```
 
@@ -330,27 +319,27 @@ GM_xmlhttpRequest({
 
 ```javascript
 function requestWithRetry(options, maxRetries = 3) {
-  return new Promise((resolve, reject) => {
-    let attempt = 0;
+    return new Promise((resolve, reject) => {
+        let attempt = 0;
 
-    function tryRequest() {
-      GM_xmlhttpRequest({
-        ...options,
-        onload: resolve,
-        onerror: (error) => {
-          if (++attempt < maxRetries) {
-            const delay = Math.pow(2, attempt) * 1000;
-            console.log(`Retry ${attempt} in ${delay}ms`);
-            setTimeout(tryRequest, delay);
-          } else {
-            reject(error);
-          }
-        },
-      });
-    }
+        function tryRequest() {
+            GM_xmlhttpRequest({
+                ...options,
+                onload: resolve,
+                onerror: (error) => {
+                    if (++attempt < maxRetries) {
+                        const delay = Math.pow(2, attempt) * 1000;
+                        console.log(`Retry ${attempt} in ${delay}ms`);
+                        setTimeout(tryRequest, delay);
+                    } else {
+                        reject(error);
+                    }
+                }
+            });
+        }
 
-    tryRequest();
-  });
+        tryRequest();
+    });
 }
 ```
 
@@ -359,29 +348,29 @@ function requestWithRetry(options, maxRetries = 3) {
 ```javascript
 // JSON response
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data.json",
-  responseType: "json",
-  onload: (r) => console.log(r.response), // Already parsed
+    url: 'https://api.example.com/data.json',
+    responseType: 'json',
+    onload: r => console.log(r.response)  // Already parsed
 });
 
 // Binary data
 GM_xmlhttpRequest({
-  url: "https://example.com/image.png",
-  responseType: "blob",
-  onload: (response) => {
-    const url = URL.createObjectURL(response.response);
-    img.src = url;
-  },
+    url: 'https://example.com/image.png',
+    responseType: 'blob',
+    onload: response => {
+        const url = URL.createObjectURL(response.response);
+        img.src = url;
+    }
 });
 
 // ArrayBuffer
 GM_xmlhttpRequest({
-  url: "https://example.com/data.bin",
-  responseType: "arraybuffer",
-  onload: (response) => {
-    const view = new DataView(response.response);
-    console.log(view.getUint32(0));
-  },
+    url: 'https://example.com/data.bin',
+    responseType: 'arraybuffer',
+    onload: response => {
+        const view = new DataView(response.response);
+        console.log(view.getUint32(0));
+    }
 });
 ```
 
@@ -396,14 +385,14 @@ Use GM.xmlHttpRequest (note uppercase H) for promises:
 // @connect api.example.com
 
 try {
-  const response = await GM.xmlHttpRequest({
-    method: "GET",
-    url: "https://api.example.com/data",
-  });
-  const data = JSON.parse(response.responseText);
-  console.log(data);
+    const response = await GM.xmlHttpRequest({
+        method: 'GET',
+        url: 'https://api.example.com/data'
+    });
+    const data = JSON.parse(response.responseText);
+    console.log(data);
 } catch (error) {
-  console.error("Request failed:", error);
+    console.error('Request failed:', error);
 }
 ```
 
@@ -411,17 +400,17 @@ The promise also has an `abort()` function:
 
 ```javascript
 const request = GM.xmlHttpRequest({
-  method: "GET",
-  url: "https://api.example.com/large-file",
+    method: 'GET',
+    url: 'https://api.example.com/large-file'
 });
 
 // Cancel after 5 seconds
 setTimeout(() => request.abort(), 5000);
 
 try {
-  const response = await request;
+    const response = await request;
 } catch (error) {
-  console.log("Request was aborted or failed");
+    console.log('Request was aborted or failed');
 }
 ```
 
@@ -433,24 +422,24 @@ Always include error handlers:
 
 ```javascript
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (response) => {
-    if (response.status >= 200 && response.status < 300) {
-      try {
-        const data = JSON.parse(response.responseText);
-        processData(data);
-      } catch (e) {
-        console.error("Invalid JSON:", e);
-      }
-    } else {
-      console.error("HTTP error:", response.status, response.statusText);
+    url: 'https://api.example.com/data',
+    onload: (response) => {
+        if (response.status >= 200 && response.status < 300) {
+            try {
+                const data = JSON.parse(response.responseText);
+                processData(data);
+            } catch (e) {
+                console.error('Invalid JSON:', e);
+            }
+        } else {
+            console.error('HTTP error:', response.status, response.statusText);
+        }
+    },
+    onerror: (error) => {
+        console.error('Network error:', error);
+    },
+    ontimeout: () => {
+        console.error('Request timed out');
     }
-  },
-  onerror: (error) => {
-    console.error("Network error:", error);
-  },
-  ontimeout: () => {
-    console.error("Request timed out");
-  },
 });
 ```

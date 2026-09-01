@@ -118,13 +118,6 @@ const useInterestMarking = ({
     };
   }, [activeInterest.active, fetch, retrySequence, subjectId]);
 
-  const requireLogin = (): boolean => {
-    if (loggedIn) {
-      return true;
-    }
-    return false;
-  };
-
   const openInterest = useCallback(
     (
       state: InterestState,
@@ -143,7 +136,7 @@ const useInterestMarking = ({
   const callbacks: InterestMarking["callbacks"] = {
     handleOpenInterest: (state, options = {}) => {
       const action = options.action || "标记这部作品";
-      if (!requireLogin()) {
+      if (!loggedIn) {
         onLoginRequired(action, (interest) => openInterest(interest, options));
         return;
       }
@@ -197,4 +190,3 @@ const useInterestMarking = ({
 };
 
 export { interestAfterRemoval, interestFromSavedForm, useInterestMarking };
-export type { InterestMarking, UseInterestMarkingOptions };

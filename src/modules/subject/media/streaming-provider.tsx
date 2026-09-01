@@ -101,4 +101,3 @@ const resolveStreamingProvider = (
 };
 
 export { resolveStreamingProvider };
-export type { ResolvedStreamingProvider, StreamingProviderKey };

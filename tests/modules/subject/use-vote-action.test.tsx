@@ -2,8 +2,8 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { useVoteAction } from "@/modules/subject/voting/use-vote-action";
-import type { VoteTransitionApi } from "@/modules/subject/voting/use-vote-action";
+import { useVoteAction } from "@/shared/voting/use-vote-action";
+import type { VoteTransitionApi } from "@/shared/voting/use-vote-action";
 
 type State = { count: number; voted: "up" | null };
 type Result = { ok: boolean; count?: number };
@@ -31,7 +31,9 @@ const TestHarness = ({
       <button
         data-testid="vote"
         disabled={loading}
-        onClick={() => void vote("up")}
+        onClick={() => {
+          void vote("up");
+        }}
         type="button"
       >
         vote
@@ -63,6 +65,7 @@ describe("useVoteAction orchestration", () => {
     root.querySelector<HTMLButtonElement>('[data-testid="vote"]')?.click();
     await Promise.resolve();
     await Promise.resolve();
+    await Promise.resolve();
 
     expect(root.querySelector('[data-testid="state"]')?.textContent).toBe(
       "12:up:false"
@@ -77,6 +80,7 @@ describe("useVoteAction orchestration", () => {
     const root = renderHarness(onVote);
 
     root.querySelector<HTMLButtonElement>('[data-testid="vote"]')?.click();
+    await Promise.resolve();
     await Promise.resolve();
     await Promise.resolve();
 

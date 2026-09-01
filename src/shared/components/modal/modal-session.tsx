@@ -1,4 +1,4 @@
-import { Fragment, createContext } from "preact";
+import { createContext } from "preact";
 import type { ComponentChildren } from "preact";
 import { useContext, useLayoutEffect, useState } from "preact/hooks";
 
@@ -27,11 +27,4 @@ const ModalSession = ({ children, request }: ModalSessionProps) => {
 
 const useModalSession = (): number => useContext(ModalSessionContext);
 
-const ModalSessionContent = ({
-  children,
-}: Pick<ModalSessionProps, "children">) => (
-  <Fragment key={useModalSession()}>{children}</Fragment>
-);
-
-export { ModalSession, ModalSessionContent, useModalSession };
-export type { ModalSessionProps };
+export { ModalSession, useModalSession };

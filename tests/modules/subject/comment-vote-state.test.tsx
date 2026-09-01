@@ -6,7 +6,9 @@ import { SubjectPage } from "@/modules/subject/runtime/subject-page";
 import type { SubjectPageRuntime } from "@/modules/subject/runtime/types";
 
 vi.hoisted(() => {
-  globalThis.GM_xmlhttpRequest = (() => null) as never;
+  globalThis.GM_xmlhttpRequest = vi.fn<
+    NonNullable<typeof globalThis.GM_xmlhttpRequest>
+  >() as never;
 });
 
 const storeCommentVote = (

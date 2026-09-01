@@ -14,13 +14,13 @@ These issues can expose users to serious risks.
 
 ```javascript
 // DANGEROUS - exposed credentials
-const API_KEY = "sk-1234567890abcdef";
-const AUTH_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIs...";
+const API_KEY = 'sk-1234567890abcdef';
+const AUTH_TOKEN = 'Bearer eyJhbGciOiJIUzI1NiIs...';
 
 // SAFE - user provides credentials
-const API_KEY = GM_getValue("apiKey", "");
+const API_KEY = GM_getValue('apiKey', '');
 if (!API_KEY) {
-  alert("Please set your API key in the script settings");
+    alert('Please set your API key in the script settings');
 }
 ```
 
@@ -44,17 +44,17 @@ if (!API_KEY) {
 
 ```javascript
 // DANGEROUS - XSS vulnerability
-const userInput = prompt("Enter name:");
-element.innerHTML = `Hello, ${userInput}!`; // Can inject HTML/JS
+const userInput = prompt('Enter name:');
+element.innerHTML = `Hello, ${userInput}!`;  // Can inject HTML/JS
 
 // SAFE - use textContent
 element.textContent = `Hello, ${userInput}!`;
 
 // SAFE - escape HTML
 function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 element.innerHTML = `Hello, ${escapeHtml(userInput)}!`;
 ```
@@ -66,11 +66,11 @@ element.innerHTML = `Hello, ${escapeHtml(userInput)}!`;
 ```javascript
 // DANGEROUS - HTTP can be intercepted
 // @connect http://api.example.com
-GM_xmlhttpRequest({ url: "http://api.example.com/data" });
+GM_xmlhttpRequest({ url: 'http://api.example.com/data' });
 
 // SAFE - HTTPS encrypted
 // @connect api.example.com
-GM_xmlhttpRequest({ url: "https://api.example.com/data" });
+GM_xmlhttpRequest({ url: 'https://api.example.com/data' });
 ```
 
 ### 5. No eval() or new Function()
@@ -81,7 +81,7 @@ GM_xmlhttpRequest({ url: "https://api.example.com/data" });
 // DANGEROUS - code injection risk
 eval(userInput);
 new Function(userInput)();
-setTimeout(userInput, 1000); // If userInput is a string
+setTimeout(userInput, 1000);  // If userInput is a string
 
 // SAFE - use proper callbacks
 setTimeout(() => doSomething(), 1000);
@@ -145,9 +145,9 @@ setTimeout(() => doSomething(), 1000);
 
 ```javascript
 // REQUIRED
-(function () {
-  "use strict";
-  // Script code here
+(function() {
+    'use strict';
+    // Script code here
 })();
 ```
 
@@ -158,23 +158,23 @@ setTimeout(() => doSomething(), 1000);
 ```javascript
 // BAD - no error handling
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => process(JSON.parse(r.responseText)),
+    url: 'https://api.example.com/data',
+    onload: (r) => process(JSON.parse(r.responseText))
 });
 
 // GOOD - comprehensive error handling
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => {
-    try {
-      const data = JSON.parse(r.responseText);
-      process(data);
-    } catch (e) {
-      console.error("Parse error:", e);
-    }
-  },
-  onerror: (e) => console.error("Request failed:", e),
-  ontimeout: () => console.error("Request timed out"),
+    url: 'https://api.example.com/data',
+    onload: (r) => {
+        try {
+            const data = JSON.parse(r.responseText);
+            process(data);
+        } catch (e) {
+            console.error('Parse error:', e);
+        }
+    },
+    onerror: (e) => console.error('Request failed:', e),
+    ontimeout: () => console.error('Request timed out')
 });
 ```
 
@@ -184,16 +184,16 @@ GM_xmlhttpRequest({
 
 ```javascript
 // BAD - crashes if element missing
-document.querySelector("#target").click();
+document.querySelector('#target').click();
 
 // GOOD - safe access
-const el = document.querySelector("#target");
+const el = document.querySelector('#target');
 if (el) {
-  el.click();
+    el.click();
 }
 
 // BETTER - optional chaining
-document.querySelector("#target")?.click();
+document.querySelector('#target')?.click();
 ```
 
 ---
@@ -207,12 +207,12 @@ document.querySelector("#target")?.click();
 ```javascript
 // DANGEROUS - potential infinite loop
 while (true) {
-  if (condition) break;
+    if (condition) break;
 }
 
 // SAFE - bounded iterations
 for (let i = 0; i < 1000; i++) {
-  if (condition) break;
+    if (condition) break;
 }
 ```
 
@@ -227,9 +227,9 @@ observer.observe(document.body, { childList: true, subtree: true });
 
 // GOOD - disconnects when appropriate
 const observer = new MutationObserver((mutations, obs) => {
-  if (foundTarget) {
-    obs.disconnect();
-  }
+    if (foundTarget) {
+        obs.disconnect();
+    }
 });
 ```
 
@@ -244,8 +244,8 @@ observer.observe(document.body, { childList: true, subtree: true });
 // GOOD - debounced
 let timeout;
 const observer = new MutationObserver(() => {
-  clearTimeout(timeout);
-  timeout = setTimeout(processChanges, 100);
+    clearTimeout(timeout);
+    timeout = setTimeout(processChanges, 100);
 });
 ```
 
@@ -286,7 +286,7 @@ Before returning a userscript, verify:
 Immediately question scripts that:
 
 | Red Flag | Concern |
-| --- | --- |
+|----------|---------|
 | `@match *://*/*` | Why does it need to run everywhere? |
 | `@grant unsafeWindow` | Does it really need page context? |
 | `eval()` or `new Function()` | Code injection risk |
@@ -304,8 +304,8 @@ Immediately question scripts that:
 
 ```javascript
 // Use GM storage, not localStorage
-GM_setValue("userPrefs", { theme: "dark" });
-const prefs = GM_getValue("userPrefs", {});
+GM_setValue('userPrefs', { theme: 'dark' });
+const prefs = GM_getValue('userPrefs', {});
 ```
 
 ### Safe External Requests
@@ -313,28 +313,28 @@ const prefs = GM_getValue("userPrefs", {});
 ```javascript
 // Validate response before use
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => {
-    if (r.status !== 200) {
-      console.error("Unexpected status:", r.status);
-      return;
-    }
+    url: 'https://api.example.com/data',
+    onload: (r) => {
+        if (r.status !== 200) {
+            console.error('Unexpected status:', r.status);
+            return;
+        }
 
-    let data;
-    try {
-      data = JSON.parse(r.responseText);
-    } catch (e) {
-      console.error("Invalid JSON");
-      return;
-    }
+        let data;
+        try {
+            data = JSON.parse(r.responseText);
+        } catch (e) {
+            console.error('Invalid JSON');
+            return;
+        }
 
-    if (!data.expected_field) {
-      console.error("Missing expected field");
-      return;
-    }
+        if (!data.expected_field) {
+            console.error('Missing expected field');
+            return;
+        }
 
-    process(data);
-  },
+        process(data);
+    }
 });
 ```
 
@@ -342,8 +342,8 @@ GM_xmlhttpRequest({
 
 ```javascript
 // Create elements programmatically
-const div = document.createElement("div");
-div.textContent = userInput; // Safe - no HTML parsing
-div.className = "my-class";
+const div = document.createElement('div');
+div.textContent = userInput;  // Safe - no HTML parsing
+div.className = 'my-class';
 document.body.appendChild(div);
 ```

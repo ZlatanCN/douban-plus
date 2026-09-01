@@ -20,7 +20,7 @@ const CastSection = ({ celebrities, subjectId }: CastSectionProps) =>
             },
           }
         : {})}
-      title={getSubjectSectionCopy("cast").sectionTitle}
+      title={getSubjectSectionCopy("cast")}
     >
       <div class="atv-carousel atv-cast-carousel">
         {celebrities.map((person) => {
@@ -62,4 +62,3 @@ const CastSection = ({ celebrities, subjectId }: CastSectionProps) =>
   ) : null;
 
 export { CastSection };
-export type { CastSectionProps };

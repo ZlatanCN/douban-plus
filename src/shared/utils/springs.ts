@@ -6,7 +6,6 @@ import { animate } from "motion";
 /* ── Spring Configs ──────────────────────────────────── */
 
 const springConfigs = {
-  carouselSnap: { damping: 18, stiffness: 200, type: "spring" as const },
   contentEntrance: { damping: 28, stiffness: 300, type: "spring" as const },
   modalBackdrop: { bounce: 0, duration: 0.4, type: "spring" as const },
   modalSurface: { bounce: 0, duration: 0.35, type: "spring" as const },
@@ -14,8 +13,6 @@ const springConfigs = {
   reviewBodyEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
   stickyNav: { bounce: 0, duration: 0.3, type: "spring" as const },
   summaryEntrance: { bounce: 0, duration: 0.3, type: "spring" as const },
-  swipeDismissExit: { bounce: 0.2, duration: 0.4, type: "spring" as const },
-  swipeSettleBack: { damping: 15, stiffness: 180, type: "spring" as const },
 };
 
 type SpringConfig = (typeof springConfigs)[keyof typeof springConfigs];

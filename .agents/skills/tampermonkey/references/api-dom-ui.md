@@ -16,29 +16,29 @@ const config = unsafeWindow.pageConfig;
 const userData = unsafeWindow.APP.user;
 
 // Call page functions
-unsafeWindow.showModal("Hello from userscript!");
-unsafeWindow.analytics.track("userscript_loaded");
+unsafeWindow.showModal('Hello from userscript!');
+unsafeWindow.analytics.track('userscript_loaded');
 
 // Modify page globals
 unsafeWindow.DEBUG_MODE = true;
 unsafeWindow.featureFlags.newUI = true;
 
 // Listen to page events
-unsafeWindow.addEventListener("customEvent", (e) => {
-  console.log("Page event:", e.detail);
+unsafeWindow.addEventListener('customEvent', (e) => {
+    console.log('Page event:', e.detail);
 });
 ```
 
 ### When to Use unsafeWindow
 
-| Scenario                        | Use unsafeWindow? |
-| ------------------------------- | ----------------- |
-| Read page JavaScript variables  | Yes               |
-| Call page-defined functions     | Yes               |
-| Access page's jQuery/React/Vue  | Yes               |
-| DOM manipulation                | No (use document) |
-| Add event listeners to elements | No                |
-| Create/modify elements          | No                |
+| Scenario | Use unsafeWindow? |
+|----------|-------------------|
+| Read page JavaScript variables | Yes |
+| Call page-defined functions | Yes |
+| Access page's jQuery/React/Vue | Yes |
+| DOM manipulation | No (use document) |
+| Add event listeners to elements | No |
+| Create/modify elements | No |
 
 ### Security Considerations
 
@@ -51,9 +51,9 @@ const token = unsafeWindow.authToken;
 
 // Be careful with callbacks
 unsafeWindow.someFunction({
-  callback: function () {
-    // This runs in page context - be careful!
-  },
+    callback: function() {
+        // This runs in page context - be careful!
+    }
 });
 ```
 
@@ -101,8 +101,8 @@ GM_addStyle(`
 `);
 
 // Returns the style element
-const styleEl = GM_addStyle("body { font-size: 16px; }");
-console.log("Style element:", styleEl);
+const styleEl = GM_addStyle('body { font-size: 16px; }');
+console.log('Style element:', styleEl);
 ```
 
 ### Dynamic Styles
@@ -112,23 +112,22 @@ console.log("Style element:", styleEl);
 let darkModeStyle = null;
 
 function toggleDarkMode() {
-  if (darkModeStyle) {
-    darkModeStyle.remove();
-    darkModeStyle = null;
-  } else {
-    darkModeStyle = GM_addStyle(`
+    if (darkModeStyle) {
+        darkModeStyle.remove();
+        darkModeStyle = null;
+    } else {
+        darkModeStyle = GM_addStyle(`
             body { background: #1a1a1a; color: #fff; }
         `);
-  }
+    }
 }
 
-GM_registerMenuCommand("Toggle Dark Mode", toggleDarkMode);
+GM_registerMenuCommand('Toggle Dark Mode', toggleDarkMode);
 ```
 
 ---
 
 ## GM_addElement(tag_name, attributes)
-
 ## GM_addElement(parent_node, tag_name, attributes)
 
 Create and inject HTML elements. Can bypass Content Security Policy (CSP).
@@ -139,23 +138,23 @@ Create and inject HTML elements. Can bypass Content Security Policy (CSP).
 // @grant GM_addElement
 
 // Inline script
-GM_addElement("script", {
-  textContent: `
+GM_addElement('script', {
+    textContent: `
         window.myGlobal = 'injected';
         console.log('Script injected!');
-    `,
+    `
 });
 
 // External script
-GM_addElement("script", {
-  src: "https://example.com/library.js",
-  type: "text/javascript",
+GM_addElement('script', {
+    src: 'https://example.com/library.js',
+    type: 'text/javascript'
 });
 
 // Module script
-GM_addElement("script", {
-  src: "https://example.com/module.mjs",
-  type: "module",
+GM_addElement('script', {
+    src: 'https://example.com/module.mjs',
+    type: 'module'
 });
 ```
 
@@ -163,17 +162,17 @@ GM_addElement("script", {
 
 ```javascript
 // Inline styles
-GM_addElement("style", {
-  textContent: `
+GM_addElement('style', {
+    textContent: `
         body { font-family: Arial; }
         .highlight { background: yellow; }
-    `,
+    `
 });
 
 // External stylesheet
-GM_addElement("link", {
-  rel: "stylesheet",
-  href: "https://example.com/style.css",
+GM_addElement('link', {
+    rel: 'stylesheet',
+    href: 'https://example.com/style.css'
 });
 ```
 
@@ -181,34 +180,34 @@ GM_addElement("link", {
 
 ```javascript
 // Add to body
-GM_addElement(document.body, "div", {
-  id: "my-container",
-  className: "userscript-ui",
+GM_addElement(document.body, 'div', {
+    id: 'my-container',
+    className: 'userscript-ui'
 });
 
 // Add to specific element
-const container = document.querySelector("#main");
-GM_addElement(container, "button", {
-  textContent: "Click Me",
-  onclick: () => alert("Clicked!"),
+const container = document.querySelector('#main');
+GM_addElement(container, 'button', {
+    textContent: 'Click Me',
+    onclick: () => alert('Clicked!')
 });
 
 // Add to Shadow DOM
 const shadowRoot = element.shadowRoot;
-GM_addElement(shadowRoot, "style", {
-  textContent: "div { color: blue; }",
+GM_addElement(shadowRoot, 'style', {
+    textContent: 'div { color: blue; }'
 });
 ```
 
 ### Add Images
 
 ```javascript
-GM_addElement("img", {
-  src: "https://example.com/image.png",
-  alt: "Description",
-  width: 100,
-  height: 100,
-  style: "border-radius: 50%;",
+GM_addElement('img', {
+    src: 'https://example.com/image.png',
+    alt: 'Description',
+    width: 100,
+    height: 100,
+    style: 'border-radius: 50%;'
 });
 ```
 
@@ -219,13 +218,13 @@ GM_addElement("img", {
 // GM_addElement can bypass this
 
 // Instead of (may be blocked by CSP):
-const script = document.createElement("script");
+const script = document.createElement('script');
 script.textContent = 'console.log("blocked")';
 document.head.appendChild(script);
 
 // Use (bypasses CSP):
-GM_addElement("script", {
-  textContent: 'console.log("works!")',
+GM_addElement('script', {
+    textContent: 'console.log("works!")'
 });
 ```
 
@@ -237,9 +236,9 @@ GM_addElement("script", {
 
 ```javascript
 function createPanel() {
-  const panel = document.createElement("div");
-  panel.id = "userscript-panel";
-  panel.innerHTML = `
+    const panel = document.createElement('div');
+    panel.id = 'userscript-panel';
+    panel.innerHTML = `
         <div class="panel-header">
             <span>My Script</span>
             <button class="close-btn">&times;</button>
@@ -254,10 +253,10 @@ function createPanel() {
         </div>
     `;
 
-  document.body.appendChild(panel);
+    document.body.appendChild(panel);
 
-  // Add styles
-  GM_addStyle(`
+    // Add styles
+    GM_addStyle(`
         #userscript-panel {
             position: fixed;
             top: 20px;
@@ -300,32 +299,32 @@ function createPanel() {
         }
     `);
 
-  // Event handlers
-  panel.querySelector(".close-btn").onclick = () => panel.remove();
+    // Event handlers
+    panel.querySelector('.close-btn').onclick = () => panel.remove();
 
-  return panel;
+    return panel;
 }
 
-GM_registerMenuCommand("Open Panel", createPanel);
+GM_registerMenuCommand('Open Panel', createPanel);
 ```
 
 ### Toast Notifications
 
 ```javascript
 function showToast(message, duration = 3000) {
-  const toast = document.createElement("div");
-  toast.className = "userscript-toast";
-  toast.textContent = message;
-  document.body.appendChild(toast);
+    const toast = document.createElement('div');
+    toast.className = 'userscript-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
 
-  // Trigger animation
-  setTimeout(() => toast.classList.add("show"), 10);
+    // Trigger animation
+    setTimeout(() => toast.classList.add('show'), 10);
 
-  // Auto-remove
-  setTimeout(() => {
-    toast.classList.remove("show");
-    setTimeout(() => toast.remove(), 300);
-  }, duration);
+    // Auto-remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
 }
 
 GM_addStyle(`
@@ -350,46 +349,43 @@ GM_addStyle(`
 `);
 
 // Usage
-showToast("Settings saved!");
+showToast('Settings saved!');
 ```
 
 ### Draggable Element
 
 ```javascript
 function makeDraggable(element) {
-  let pos1 = 0,
-    pos2 = 0,
-    pos3 = 0,
-    pos4 = 0;
+    let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
 
-  const header = element.querySelector(".panel-header") || element;
-  header.style.cursor = "move";
+    const header = element.querySelector('.panel-header') || element;
+    header.style.cursor = 'move';
 
-  header.onmousedown = dragMouseDown;
+    header.onmousedown = dragMouseDown;
 
-  function dragMouseDown(e) {
-    e.preventDefault();
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    document.onmouseup = closeDragElement;
-    document.onmousemove = elementDrag;
-  }
+    function dragMouseDown(e) {
+        e.preventDefault();
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        document.onmousemove = elementDrag;
+    }
 
-  function elementDrag(e) {
-    e.preventDefault();
-    pos1 = pos3 - e.clientX;
-    pos2 = pos4 - e.clientY;
-    pos3 = e.clientX;
-    pos4 = e.clientY;
-    element.style.top = element.offsetTop - pos2 + "px";
-    element.style.left = element.offsetLeft - pos1 + "px";
-    element.style.right = "auto";
-  }
+    function elementDrag(e) {
+        e.preventDefault();
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        element.style.top = (element.offsetTop - pos2) + 'px';
+        element.style.left = (element.offsetLeft - pos1) + 'px';
+        element.style.right = 'auto';
+    }
 
-  function closeDragElement() {
-    document.onmouseup = null;
-    document.onmousemove = null;
-  }
+    function closeDragElement() {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    }
 }
 
 // Usage
@@ -408,27 +404,25 @@ makeDraggable(panel);
 
 // Wait for React
 function waitForReact(callback) {
-  const interval = setInterval(() => {
-    if (unsafeWindow.React && unsafeWindow.ReactDOM) {
-      clearInterval(interval);
-      callback(unsafeWindow.React, unsafeWindow.ReactDOM);
-    }
-  }, 100);
+    const interval = setInterval(() => {
+        if (unsafeWindow.React && unsafeWindow.ReactDOM) {
+            clearInterval(interval);
+            callback(unsafeWindow.React, unsafeWindow.ReactDOM);
+        }
+    }, 100);
 }
 
 // Access React component state
 function getReactState(element) {
-  const key = Object.keys(element).find((k) =>
-    k.startsWith("__reactInternalInstance")
-  );
-  if (key) {
-    let fiber = element[key];
-    while (fiber) {
-      if (fiber.memoizedState) return fiber.memoizedState;
-      fiber = fiber.return;
+    const key = Object.keys(element).find(k => k.startsWith('__reactInternalInstance'));
+    if (key) {
+        let fiber = element[key];
+        while (fiber) {
+            if (fiber.memoizedState) return fiber.memoizedState;
+            fiber = fiber.return;
+        }
     }
-  }
-  return null;
+    return null;
 }
 ```
 
@@ -438,13 +432,13 @@ function getReactState(element) {
 // @grant unsafeWindow
 
 // Access Vue component
-const vueElement = document.querySelector("#app");
+const vueElement = document.querySelector('#app');
 const vueInstance = vueElement.__vue__;
 
 if (vueInstance) {
-  console.log("Vue data:", vueInstance.$data);
-  // Modify Vue state
-  vueInstance.someProperty = "new value";
+    console.log('Vue data:', vueInstance.$data);
+    // Modify Vue state
+    vueInstance.someProperty = 'new value';
 }
 ```
 
@@ -454,12 +448,12 @@ if (vueInstance) {
 // @grant unsafeWindow
 
 // Access Angular scope (AngularJS)
-const element = document.querySelector("[ng-controller]");
+const element = document.querySelector('[ng-controller]');
 const scope = unsafeWindow.angular.element(element).scope();
 
 if (scope) {
-  scope.$apply(() => {
-    scope.someValue = "modified";
-  });
+    scope.$apply(() => {
+        scope.someValue = 'modified';
+    });
 }
 ```

@@ -8,17 +8,15 @@ import type { SubjectComment } from "../domain";
 
 const numberFormatter = new Intl.NumberFormat("zh-CN");
 
-const triggerNativeVote = (doc: Document, commentId: string): void => {
-  const item = [
-    ...doc.querySelectorAll<HTMLElement>("#comments .comment-item"),
-  ].find((candidate) => candidate.dataset.cid === commentId);
-  item?.querySelector<HTMLElement>(".vote-comment")?.click();
-};
-
 const nativeComment = (doc: Document, commentId: string): HTMLElement | null =>
   [...doc.querySelectorAll<HTMLElement>("#comments .comment-item")].find(
     (candidate) => candidate.dataset.cid === commentId
   ) ?? null;
+
+const triggerNativeVote = (doc: Document, commentId: string): void => {
+  const item = nativeComment(doc, commentId);
+  item?.querySelector<HTMLElement>(".vote-comment")?.click();
+};
 
 const votesFromNativeComment = (
   doc: Document,
@@ -170,5 +168,4 @@ const Comment = ({
   );
 };
 
-export { Avatar, Comment, CommentTime, Rating };
-export type { SubjectComment } from "../domain";
+export { Comment };

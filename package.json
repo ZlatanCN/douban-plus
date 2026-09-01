@@ -1,6 +1,6 @@
 {
   "name": "douban-plus",
-  "version": "1.8.1",
+  "version": "1.8.2",
   "description": "适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。",
   "keywords": [
     "apple-tv",
@@ -12,7 +12,6 @@
   "license": "MIT",
   "author": "Gabriel Zhu",
   "type": "module",
-  "main": "douban-plus.user.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -21,36 +20,41 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "tsx tests/qa.ts",
-    "lint": "ultracite check && stylelint \"src/**/*.css\"",
+    "lint": "ultracite check && stylelint \"src/**/*.css\" && node scripts/css-audit/index.mjs",
+    "check:css": "node scripts/css-audit/index.mjs",
     "fix": "ultracite fix && stylelint \"src/**/*.css\" --fix",
     "format": "ultracite fix",
     "typecheck": "tsc && tsc -p tests/tsconfig.json",
     "ci": "pnpm lint && tsc && tsc -p tests/tsconfig.json && vitest run && vite build && tsx tests/qa.ts"
   },
   "dependencies": {
-    "motion": "^12.42.2",
-    "preact": "^10.29.7"
+    "motion": "^13.0.0",
+    "preact": "^10.29.8"
   },
   "devDependencies": {
+    "@babel/parser": "^8.0.4",
     "@preact/preset-vite": "^2.10.6",
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
-    "happy-dom": "^20.11.1",
+    "happy-dom": "^20.11.2",
     "husky": "^9.1.7",
-    "lint-staged": "^17.2.0",
-    "oxfmt": "^0.60.0",
-    "oxlint": "^1.75.0",
-    "playwright": "^1.61.1",
+    "lint-staged": "^17.3.0",
+    "oxfmt": "^0.62.0",
+    "oxlint": "^1.77.0",
+    "playwright": "^1.62.1",
+    "postcss": "^8.5.26",
+    "postcss-selector-parser": "^7.1.5",
+    "postcss-value-parser": "^4.2.0",
     "stylelint": "^17.14.1",
     "stylelint-config-idiomatic-order": "^10.0.0",
     "stylelint-config-standard": "^40.0.0",
     "stylelint-prettier": "^5.0.3",
-    "tsx": "^4.23.1",
+    "tsx": "^4.23.12",
     "typescript": "^7.0.2",
-    "ultracite": "^7.9.4",
-    "vite": "^8.1.5",
+    "ultracite": "^7.10.2",
+    "vite": "^8.2.1",
     "vite-plugin-monkey": "^8.1.0",
     "vitest": "^4.1.10"
   },
-  "packageManager": "pnpm@11.20.0+sha512.9a6f330a95b66446ea088faf1521405a8a01f07fde7124cc9958dfed52d4bb436737e65b08f85f37b46fcba375092558ac51262b816844b22f63406ed166bfee"
+  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
 }

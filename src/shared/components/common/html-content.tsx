@@ -8,7 +8,7 @@
  * rich HTML is sanitized before controlled Preact HTML rendering).
  */
 
-import type { JSX, ComponentChildren } from "preact";
+import type { JSX, ComponentChildren, Ref } from "preact";
 
 const allowedTags = new Set([
   "a",
@@ -120,13 +120,16 @@ const HtmlContent = ({
   className,
   html,
   dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
+  contentRef,
   ...rest
 }: JSX.HTMLAttributes<HTMLDivElement> & {
+  contentRef?: Ref<HTMLDivElement>;
   html?: string;
   children?: ComponentChildren;
 }) => (
   <div
     class={className}
+    {...(contentRef ? { ref: contentRef } : {})}
     // eslint-disable-next-line react/no-danger -- html is sanitized by sanitizeHtml before it reaches this controlled render boundary.
     {...(html
       ? { dangerouslySetInnerHTML: { __html: sanitizeHtml(html) } }

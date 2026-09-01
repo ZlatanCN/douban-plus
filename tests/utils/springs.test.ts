@@ -59,8 +59,6 @@ describe("springConfigs", () => {
     "modalBackdrop",
     "stickyNav",
     "contentEntrance",
-    "swipeSettleBack",
-    "carouselSnap",
     "ratingEntrance",
     "reviewBodyEntrance",
     "summaryEntrance",
@@ -109,22 +107,6 @@ describe("springConfigs", () => {
     expect(springConfigs.contentEntrance).toStrictEqual({
       damping: 28,
       stiffness: 300,
-      type: "spring",
-    });
-  });
-
-  it("swipeSettleBack → stiff 180 / damp 15", () => {
-    expect(springConfigs.swipeSettleBack).toStrictEqual({
-      damping: 15,
-      stiffness: 180,
-      type: "spring",
-    });
-  });
-
-  it("carouselSnap → stiff 200 / damp 18", () => {
-    expect(springConfigs.carouselSnap).toStrictEqual({
-      damping: 18,
-      stiffness: 200,
       type: "spring",
     });
   });

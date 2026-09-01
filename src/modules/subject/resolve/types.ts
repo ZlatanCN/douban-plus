@@ -27,6 +27,4 @@ type RatingResultMap = {
   mc: McRating | null;
 };
 
-type RatingSource = "imdb" | "rt" | "mc";
-
-export type { RatingResultMap, RatingSource, ResolutionContext };
+export type { RatingResultMap, ResolutionContext };

@@ -64,4 +64,3 @@ const PersonageAwardsSection = ({ awards }: PersonageAwardsSectionProps) => {
 };
 
 export { PersonageAwardsSection };
-export type { PersonageAwardsSectionProps };

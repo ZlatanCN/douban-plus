@@ -1,8 +1,15 @@
-import { describe, expect, it } from "vitest";
-
-import { extractPhotoGeometry } from "@/modules/subject/extract/photo-geometry";
+import { describe, expect, it, vi } from "vitest";
 
 import { buildDoc } from "../helpers/doc";
+
+vi.mock(import("../../src/shared/utils/request"), () => ({
+  gmGet: vi.fn<(url: string, referer?: string) => Promise<string>>(),
+  gmPost:
+    vi.fn<(url: string, data: string, referer?: string) => Promise<string>>(),
+}));
+
+const { extractPhotoGeometry } =
+  await import("@/modules/subject/api/photo-geometry");
 
 describe(extractPhotoGeometry, () => {
   it("reads positive dimensions from a Douban photo detail page", () => {

@@ -16,7 +16,7 @@ type StreamingLogoProps = {
   fallbackLabel: string;
   Icon?: ComponentType<JSX.IntrinsicElements["svg"]>;
   imgSrc?: string;
-  surface?: "dark" | "paper";
+  surface?: "dark";
 };
 
 const StreamingLogo = ({
@@ -47,10 +47,7 @@ const StreamingLogo = ({
 
 const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   streaming.length ? (
-    <Section
-      id="atv-stream"
-      title={getSubjectSectionCopy("streaming").sectionTitle}
-    >
+    <Section id="atv-stream" title={getSubjectSectionCopy("streaming")}>
       <div class="atv-stream-row">
         {streaming.map((item) => {
           const provider = resolveStreamingProvider(item);
@@ -96,4 +93,3 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
   ) : null;
 
 export { StreamingSection };
-export type { StreamingSectionProps };

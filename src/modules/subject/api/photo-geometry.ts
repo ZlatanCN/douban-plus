@@ -1,7 +1,27 @@
-import { extractPhotoGeometry } from "@/modules/subject/extract/photo-geometry";
-import type { PhotoGeometry } from "@/modules/subject/extract/photo-geometry";
 import { createCache } from "@/shared/utils/cache";
 import { gmGet } from "@/shared/utils/request";
+
+type PhotoGeometry = {
+  height: number;
+  width: number;
+};
+
+const PHOTO_DIMENSIONS =
+  /大图尺寸\s*[：:]\s*(?<width>\d+)\s*[x×]\s*(?<height>\d+)/u;
+
+const extractPhotoGeometry = (doc: Document): PhotoGeometry | null => {
+  const match = PHOTO_DIMENSIONS.exec(doc.body?.textContent ?? "");
+  const height = Number(match?.groups?.height);
+  const width = Number(match?.groups?.width);
+
+  if (!Number.isSafeInteger(width) || !Number.isSafeInteger(height)) {
+    return null;
+  }
+  if (width < 1 || height < 1) {
+    return null;
+  }
+  return { height, width };
+};
 
 const PHOTO_GEOMETRY_CACHE_TTL_MS = 365 * 24 * 60 * 60 * 1000;
 const photoGeometryCache = createCache<PhotoGeometry>(
@@ -66,4 +86,4 @@ const fetchPhotoGeometry = (
   return request;
 };
 
-export { fetchPhotoGeometry, isDoubanPhotoDetailUrl };
+export { extractPhotoGeometry, fetchPhotoGeometry, isDoubanPhotoDetailUrl };

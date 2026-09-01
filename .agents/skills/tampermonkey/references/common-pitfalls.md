@@ -9,14 +9,12 @@ Mistakes that break userscripts and how to avoid them.
 Running on every page slows the browser and causes unexpected behaviour.
 
 **Wrong:**
-
 ```javascript
 // @match *://*/*
 // @match https://*/*
 ```
 
 **Right:**
-
 ```javascript
 // @match https://example.com/*
 // @match https://*.example.com/*
@@ -31,7 +29,6 @@ Running on every page slows the browser and causes unexpected behaviour.
 Cross-origin requests fail silently or show permission dialogs without @connect.
 
 **Wrong:**
-
 ```javascript
 // @grant GM_xmlhttpRequest
 // No @connect declaration
@@ -43,7 +40,6 @@ GM_xmlhttpRequest({
 ```
 
 **Right:**
-
 ```javascript
 // @grant GM_xmlhttpRequest
 // @connect api.example.com
@@ -63,43 +59,41 @@ GM_xmlhttpRequest({
 Elements may not exist when your script runs, especially on SPAs.
 
 **Wrong:**
-
 ```javascript
 // @run-at document-end
 
 // Element might not exist yet!
-document.querySelector("#dynamic-content").textContent = "Modified";
+document.querySelector('#dynamic-content').textContent = 'Modified';
 // TypeError: Cannot read property 'textContent' of null
 ```
 
 **Right:**
-
 ```javascript
 // Use waitForElement pattern
 async function init() {
-  const element = await waitForElement("#dynamic-content");
-  element.textContent = "Modified";
+    const element = await waitForElement('#dynamic-content');
+    element.textContent = 'Modified';
 }
 
 function waitForElement(selector, timeout = 10000) {
-  return new Promise((resolve, reject) => {
-    const el = document.querySelector(selector);
-    if (el) return resolve(el);
+    return new Promise((resolve, reject) => {
+        const el = document.querySelector(selector);
+        if (el) return resolve(el);
 
-    const observer = new MutationObserver((_, obs) => {
-      const el = document.querySelector(selector);
-      if (el) {
-        obs.disconnect();
-        resolve(el);
-      }
+        const observer = new MutationObserver((_, obs) => {
+            const el = document.querySelector(selector);
+            if (el) {
+                obs.disconnect();
+                resolve(el);
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(() => {
+            observer.disconnect();
+            reject(new Error(`Timeout: ${selector}`));
+        }, timeout);
     });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-    setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`Timeout: ${selector}`));
-    }, timeout);
-  });
 }
 
 init();
@@ -112,35 +106,32 @@ init();
 GM_xmlhttpRequest is asynchronous - you can't use its return value directly.
 
 **Wrong:**
-
 ```javascript
 const response = GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://api.example.com/data",
+    method: 'GET',
+    url: 'https://api.example.com/data'
 });
-console.log(response.responseText); // undefined!
+console.log(response.responseText);  // undefined!
 ```
 
 **Right (callback):**
-
 ```javascript
 GM_xmlhttpRequest({
-  method: "GET",
-  url: "https://api.example.com/data",
-  onload: function (response) {
-    console.log(response.responseText); // Works
-  },
+    method: 'GET',
+    url: 'https://api.example.com/data',
+    onload: function(response) {
+        console.log(response.responseText);  // Works
+    }
 });
 ```
 
-**Right (async/await with GM.\*):**
-
+**Right (async/await with GM.*):**
 ```javascript
 const response = await GM.xmlHttpRequest({
-  method: "GET",
-  url: "https://api.example.com/data",
+    method: 'GET',
+    url: 'https://api.example.com/data'
 });
-console.log(response.responseText); // Works
+console.log(response.responseText);  // Works
 ```
 
 ---
@@ -150,20 +141,18 @@ console.log(response.responseText); // Works
 Content Security Policy blocks dynamically created scripts.
 
 **Wrong:**
-
 ```javascript
-const script = document.createElement("script");
+const script = document.createElement('script');
 script.textContent = 'console.log("blocked by CSP")';
-document.head.appendChild(script); // Blocked!
+document.head.appendChild(script);  // Blocked!
 ```
 
 **Right:**
-
 ```javascript
 // @grant GM_addElement
 
-GM_addElement("script", {
-  textContent: 'console.log("bypasses CSP")',
+GM_addElement('script', {
+    textContent: 'console.log("bypasses CSP")'
 });
 ```
 
@@ -174,20 +163,18 @@ GM_addElement("script", {
 Without unsafeWindow, you can't access page variables.
 
 **Wrong:**
-
 ```javascript
 // @grant none
 
 // Trying to access page's React app
-console.log(window.React); // undefined in sandbox
+console.log(window.React);  // undefined in sandbox
 ```
 
 **Right:**
-
 ```javascript
 // @grant unsafeWindow
 
-console.log(unsafeWindow.React); // Works
+console.log(unsafeWindow.React);  // Works
 ```
 
 **Note:** `@grant none` disables the sandbox entirely (different approach).
@@ -199,29 +186,27 @@ console.log(unsafeWindow.React); // Works
 MutationObservers that never disconnect consume memory.
 
 **Wrong:**
-
 ```javascript
 const observer = new MutationObserver(() => {
-  processNewContent();
+    processNewContent();
 });
 observer.observe(document.body, { childList: true, subtree: true });
 // Never disconnected - runs forever!
 ```
 
 **Right:**
-
 ```javascript
 const observer = new MutationObserver(() => {
-  if (shouldStop()) {
-    observer.disconnect();
-    return;
-  }
-  processNewContent();
+    if (shouldStop()) {
+        observer.disconnect();
+        return;
+    }
+    processNewContent();
 });
 observer.observe(document.body, { childList: true, subtree: true });
 
 // Or disconnect on page unload
-window.addEventListener("beforeunload", () => observer.disconnect());
+window.addEventListener('beforeunload', () => observer.disconnect());
 ```
 
 ---
@@ -231,29 +216,27 @@ window.addEventListener("beforeunload", () => observer.disconnect());
 Modifying the DOM too frequently causes performance issues.
 
 **Wrong:**
-
 ```javascript
 // Runs on EVERY mutation
 const observer = new MutationObserver(() => {
-  document.querySelectorAll(".item").forEach((el) => {
-    el.style.color = "red"; // Runs thousands of times
-  });
+    document.querySelectorAll('.item').forEach(el => {
+        el.style.color = 'red';  // Runs thousands of times
+    });
 });
 ```
 
 **Right:**
-
 ```javascript
 // Debounce modifications
 let timeout;
 const observer = new MutationObserver(() => {
-  clearTimeout(timeout);
-  timeout = setTimeout(() => {
-    document.querySelectorAll(".item:not(.processed)").forEach((el) => {
-      el.style.color = "red";
-      el.classList.add("processed");
-    });
-  }, 100);
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        document.querySelectorAll('.item:not(.processed)').forEach(el => {
+            el.style.color = 'red';
+            el.classList.add('processed');
+        });
+    }, 100);
 });
 ```
 
@@ -264,36 +247,34 @@ const observer = new MutationObserver(() => {
 Network requests and async operations can fail.
 
 **Wrong:**
-
 ```javascript
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => {
-    const data = JSON.parse(r.responseText); // Crashes if invalid JSON
-    process(data);
-  },
+    url: 'https://api.example.com/data',
+    onload: (r) => {
+        const data = JSON.parse(r.responseText);  // Crashes if invalid JSON
+        process(data);
+    }
 });
 ```
 
 **Right:**
-
 ```javascript
 GM_xmlhttpRequest({
-  url: "https://api.example.com/data",
-  onload: (r) => {
-    try {
-      const data = JSON.parse(r.responseText);
-      process(data);
-    } catch (e) {
-      console.error("Failed to parse response:", e);
+    url: 'https://api.example.com/data',
+    onload: (r) => {
+        try {
+            const data = JSON.parse(r.responseText);
+            process(data);
+        } catch (e) {
+            console.error('Failed to parse response:', e);
+        }
+    },
+    onerror: (e) => {
+        console.error('Request failed:', e);
+    },
+    ontimeout: () => {
+        console.error('Request timed out');
     }
-  },
-  onerror: (e) => {
-    console.error("Request failed:", e);
-  },
-  ontimeout: () => {
-    console.error("Request timed out");
-  },
 });
 ```
 
@@ -304,7 +285,6 @@ GM_xmlhttpRequest({
 Variables leak into page scope without IIFE wrapper.
 
 **Wrong:**
-
 ```javascript
 // ==UserScript==
 // ...
@@ -315,7 +295,6 @@ function process() { ... }  // Visible to page
 ```
 
 **Right:**
-
 ```javascript
 // ==UserScript==
 // ...
@@ -336,28 +315,25 @@ function process() { ... }  // Visible to page
 Script runs before elements exist.
 
 **Wrong:**
-
 ```javascript
 // @run-at document-start
 
-document.querySelector("#header").remove(); // null - DOM doesn't exist yet!
+document.querySelector('#header').remove();  // null - DOM doesn't exist yet!
 ```
 
 **Right:**
-
 ```javascript
 // @run-at document-end
 
-document.querySelector("#header").remove(); // Works
+document.querySelector('#header').remove();  // Works
 ```
 
 **Or wait for DOM:**
-
 ```javascript
 // @run-at document-start
 
-document.addEventListener("DOMContentLoaded", () => {
-  document.querySelector("#header").remove();
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelector('#header').remove();
 });
 ```
 
@@ -368,18 +344,16 @@ document.addEventListener("DOMContentLoaded", () => {
 Firefox and Chrome behave differently.
 
 **Firefox-only features:**
-
 ```javascript
 // cloneInto and exportFunction only exist in Firefox
-if (typeof cloneInto !== "undefined") {
-  unsafeWindow.myData = cloneInto(data, unsafeWindow);
+if (typeof cloneInto !== 'undefined') {
+    unsafeWindow.myData = cloneInto(data, unsafeWindow);
 } else {
-  unsafeWindow.myData = data; // Chrome
+    unsafeWindow.myData = data;  // Chrome
 }
 ```
 
 **Manifest V3 limitations (Chrome):**
-
 ```javascript
 // @webRequest doesn't work in Chrome MV3
 // Use alternative approaches or inform user
@@ -392,23 +366,20 @@ if (typeof cloneInto !== "undefined") {
 Page structure changes break scripts.
 
 **Fragile:**
-
 ```javascript
-document.querySelector("div.sc-1234abcd > div:nth-child(3) > span");
+document.querySelector('div.sc-1234abcd > div:nth-child(3) > span');
 ```
 
 **Robust:**
-
 ```javascript
 // Use stable attributes
 document.querySelector('[data-testid="username"]');
 document.querySelector('[aria-label="Close"]');
 
 // Or multiple fallbacks
-const element =
-  document.querySelector("#username") ||
-  document.querySelector("[data-user]") ||
-  document.querySelector(".profile-name");
+const element = document.querySelector('#username') ||
+                document.querySelector('[data-user]') ||
+                document.querySelector('.profile-name');
 ```
 
 ---
@@ -418,7 +389,6 @@ const element =
 Scripts that work in Chrome may break in Firefox.
 
 **Before deploying:**
-
 1. Test in Chrome
 2. Test in Firefox
 3. Test in private/incognito mode

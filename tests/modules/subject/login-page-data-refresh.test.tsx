@@ -12,7 +12,9 @@ import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
 import type { SubjectPageSnapshot } from "@/modules/subject/runtime/read-subject-data";
 
 const mockReadSubjectData = vi.hoisted(() => {
-  globalThis.GM_xmlhttpRequest = (() => null) as never;
+  globalThis.GM_xmlhttpRequest = vi.fn<
+    NonNullable<typeof globalThis.GM_xmlhttpRequest>
+  >() as never;
   return vi.fn<(subjectId: string) => Promise<SubjectPageSnapshot>>();
 });
 

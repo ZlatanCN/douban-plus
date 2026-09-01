@@ -18,8 +18,7 @@ type SubjectCelebrityGroup = {
 
 type SubjectCelebritiesPageData = {
   groups: SubjectCelebrityGroup[];
-  subjectHref: string | null;
-  subjectId: string;
+  subjectHref: string;
   title: string;
 };
 
