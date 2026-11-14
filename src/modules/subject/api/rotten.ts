@@ -93,7 +93,9 @@ const getSnapshotObject = (
   subjectId: context.subjectId,
 });
 
-type TargetResult = { rtId: string } | { failure: RtResolution };
+type TargetResult =
+  | { rtId: string; seriesRtId: string | null }
+  | { failure: RtResolution };
 
 const resolveTarget = async (
   context: ResolutionContext,
@@ -117,7 +119,7 @@ const resolveTarget = async (
   }
 
   if (!mapping.needsSeasonLink) {
-    return { rtId: mapping.rtId };
+    return { rtId: mapping.rtId, seriesRtId: mapping.seriesRtId };
   }
   const seriesPage = await requestPage(mapping.rtId, signal);
   if (signal.aborted) {
@@ -135,13 +137,14 @@ const resolveTarget = async (
     context.season
   );
   return seasonPath
-    ? { rtId: seasonPath }
+    ? { rtId: seasonPath, seriesRtId: mapping.seriesRtId }
     : { failure: ratingFailure("season-unmatched") };
 };
 
 const loadRating = async (
   context: ResolutionContext,
   rtId: string,
+  seriesRtId: string | null,
   object: RtRating["object"],
   prior: RtRating | null,
   signal: AbortSignal,
@@ -160,18 +163,29 @@ const loadRating = async (
   if (signal.aborted) {
     return ratingFailure("aborted");
   }
-  const rating = parseScorecard(page.html, {
+  const parsed = parseScorecard(page.html, {
     fetchedAt: Date.now(),
     kind: context.kind,
     rtId,
     season: context.season,
+    seriesRtId,
     subjectId: context.subjectId,
     url: page.url,
   });
-  if (!rating) {
+  if (parsed.status === "invalid-page") {
+    if (prior) {
+      return { rating: prior, status: "stale" };
+    }
+    return ratingFailure("error");
+  }
+  if (parsed.status === "identity-conflict") {
+    return ratingFailure("identity-conflict");
+  }
+  if (parsed.status === "no-rating") {
     removeSnapshot(object);
     return ratingFailure("no-rating");
   }
+  const { rating } = parsed;
   writeSnapshot(rating);
   return { rating, status: "refreshed" };
 };
@@ -215,6 +229,7 @@ const fetchRtRating = async (
     return await loadRating(
       context,
       target.rtId,
+      target.seriesRtId,
       object,
       prior,
       signal,

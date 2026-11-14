@@ -154,6 +154,7 @@ describe("Subject page runtime", () => {
     mockGmXmlHttpRequest.mockReset();
     localStorage.clear();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
   it("renders the page from a Douban document without leaking that document into Subject page", () => {
@@ -404,6 +405,130 @@ describe("Subject page runtime", () => {
     ).toBeFalsy();
   });
 
+  it("rejects ambiguous IMDb lookup even when the Douban lookup is unique", async () => {
+    const requests: string[] = [];
+    const matchingEntity = {
+      claims: {
+        P1258: [makeClaim("m/shawshank_redemption")],
+        P31: [makeClaim({ id: "Q11424" })],
+        P345: [makeClaim("tt0111161")],
+        P4529: [makeClaim("1292052")],
+      },
+    };
+    mockNetwork((url) => {
+      requests.push(url);
+      if (!url.includes("wikidata.org/w/api.php")) {
+        return { body: "", status: 404 };
+      }
+      const requestUrl = new URL(url);
+      if (requestUrl.searchParams.get("action") === "query") {
+        const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+        const titles = identifier.includes("P345=tt0111161")
+          ? [{ title: "Q172241" }, { title: "Q555" }]
+          : [{ title: "Q172241" }];
+        return { body: JSON.stringify({ query: { search: titles } }) };
+      }
+      return {
+        body: JSON.stringify({
+          entities: {
+            Q172241: matchingEntity,
+            Q555: {
+              claims: {
+                P31: [makeClaim({ id: "Q11424" })],
+                P345: [makeClaim("tt0111161")],
+              },
+            },
+          },
+        }),
+      };
+    });
+    const data = makeData({
+      info: { ...makeData().info, imdb: "tt0111161" },
+      title: {
+        full: "The Shawshank Redemption",
+        original: "The Shawshank Redemption",
+        primary: "肖申克的救赎",
+        seasonLabel: "",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rating-panel-rt")).toBeNull()
+    );
+    expect(
+      requests.some((url) => url.includes("www.rottentomatoes.com"))
+    ).toBeFalsy();
+  });
+
+  it("checks the parent series before showing a season score", async () => {
+    const requests: string[] = [];
+    mockNetwork((url) => {
+      requests.push(url);
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          return {
+            body: JSON.stringify({ query: { search: [{ title: "Q975761" }] } }),
+          };
+        }
+        return {
+          body: JSON.stringify({
+            entities: {
+              Q975761: {
+                claims: {
+                  P1258: [makeClaim("tv/friends/s11")],
+                  P31: [makeClaim({ id: "Q3464665" })],
+                  P4529: [
+                    {
+                      ...makeClaim("1393859"),
+                      qualifiers: { P1545: [makeClaim("11")] },
+                    },
+                  ],
+                },
+              },
+            },
+          }),
+        };
+      }
+      if (url === "https://www.rottentomatoes.com/tv/friends/s11") {
+        return {
+          body: '<link rel="canonical" href="https://www.rottentomatoes.com/tv/friends/s11"><script type="application/ld+json">{"@type":"TVSeason","seasonNumber":11,"partOfSeries":{"@type":"TVSeries","url":"https://www.rottentomatoes.com/tv/wrong-series"}}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"90%","ratingCount":20}}</script>',
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: {
+        ...makeData().info,
+        seasons: "第十一季",
+        selectedSeason: "第十一季",
+      },
+      isTV: true,
+      subjectId: "1393859",
+      title: {
+        full: "老友记 第十一季",
+        original: "Friends Season 11",
+        primary: "老友记",
+        seasonLabel: "第十一季",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rating-panel-rt")).toBeNull()
+    );
+    expect(
+      requests.some(
+        (url) => url === "https://www.rottentomatoes.com/tv/friends/s11"
+      )
+    ).toBeTruthy();
+  });
+
   it("shows Rotten Tomatoes while an IMDb match remains pending", async () => {
     const metacritic = Promise.withResolvers<MockReply>();
     const rtUrl = "https://www.rottentomatoes.com/m/shawshank_redemption";
@@ -518,7 +643,9 @@ describe("Subject page runtime", () => {
   });
 
   it("keeps a confirmed snapshot for 30 days when refreshing the mapping fails", async () => {
-    const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
+    const now = 1_800_000_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(now);
+    const stale = makeRtSnapshot({}, now - 30 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
       "dp:rotten-snapshots:v1",
       JSON.stringify({
@@ -539,6 +666,156 @@ describe("Subject page runtime", () => {
     );
     expect(root.querySelector(".atv-rt-score-value")?.textContent).toBe("89%");
     expect(requests.every((url) => url.includes("wikidata.org"))).toBeTruthy();
+  });
+
+  it("replaces a stale double-sided snapshot with the scores present on refresh", async () => {
+    const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
+    localStorage.setItem(
+      "dp:rotten-snapshots:v1",
+      JSON.stringify({
+        [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
+      })
+    );
+    const rtUrl = "https://www.rottentomatoes.com/m/shawshank_redemption";
+    mockNetwork((url) => {
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          return {
+            body: JSON.stringify({ query: { search: [{ title: "Q172241" }] } }),
+          };
+        }
+        return {
+          body: JSON.stringify({
+            entities: {
+              Q172241: {
+                claims: {
+                  P1258: [makeClaim("m/shawshank_redemption")],
+                  P31: [makeClaim({ id: "Q11424" })],
+                  P4529: [makeClaim("1292052")],
+                },
+              },
+            },
+          }),
+        };
+      }
+      if (url === rtUrl) {
+        return {
+          body: '<link rel="canonical" href="https://www.rottentomatoes.com/m/shawshank_redemption"><script type="application/ld+json">{"@type":"Movie"}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":null,"audienceScore":{"scorePercent":"76%","bandedRatingCount":"3,000+ Ratings"},"overlay":{"hasAudienceAll":false,"hasAudienceVerified":true,"audienceVerified":{"scorePercent":"76%","bandedRatingCount":"3,000+ Ratings"}}}</script>',
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={makeData()} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(
+        [...root.querySelectorAll(".atv-rt-score-value")].map((node) =>
+          node.textContent?.trim()
+        )
+      ).toStrictEqual(["76%"])
+    );
+    expect(
+      root.querySelector(".is-audience .atv-rt-score-label")?.textContent
+    ).toBe("已验证观众");
+    expect(root.querySelector(".atv-rt-stale")).toBeNull();
+  });
+
+  it("uses a snapshot exactly 7 days old without refreshing RT", async () => {
+    const now = 1_800_000_000_000;
+    vi.spyOn(Date, "now").mockReturnValue(now);
+    const fresh = makeRtSnapshot({}, now - 7 * 24 * 60 * 60 * 1000);
+    localStorage.setItem(
+      "dp:rotten-snapshots:v1",
+      JSON.stringify({
+        [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: fresh,
+      })
+    );
+    const requests: string[] = [];
+    mockNetwork((url) => {
+      requests.push(url);
+      if (!url.includes("wikidata.org/w/api.php")) {
+        return { body: "", status: 404 };
+      }
+      const requestUrl = new URL(url);
+      if (requestUrl.searchParams.get("action") === "query") {
+        return {
+          body: JSON.stringify({ query: { search: [{ title: "Q172241" }] } }),
+        };
+      }
+      return {
+        body: JSON.stringify({
+          entities: {
+            Q172241: {
+              claims: {
+                P1258: [makeClaim("m/shawshank_redemption")],
+                P31: [makeClaim({ id: "Q11424" })],
+                P4529: [makeClaim("1292052")],
+              },
+            },
+          },
+        }),
+      };
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={makeData()} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rt-score-value")?.textContent).toBe("89%")
+    );
+    expect(
+      requests.some((url) => url.includes("www.rottentomatoes.com"))
+    ).toBeFalsy();
+  });
+
+  it("keeps a confirmed snapshot when the mapped RT page has an invalid structure", async () => {
+    const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
+    localStorage.setItem(
+      "dp:rotten-snapshots:v1",
+      JSON.stringify({
+        [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
+      })
+    );
+    mockNetwork((url) => {
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          return {
+            body: JSON.stringify({ query: { search: [{ title: "Q172241" }] } }),
+          };
+        }
+        return {
+          body: JSON.stringify({
+            entities: {
+              Q172241: {
+                claims: {
+                  P1258: [makeClaim("m/shawshank_redemption")],
+                  P31: [makeClaim({ id: "Q11424" })],
+                  P4529: [makeClaim("1292052")],
+                },
+              },
+            },
+          }),
+        };
+      }
+      if (url === "https://www.rottentomatoes.com/m/shawshank_redemption") {
+        return {
+          body: '<link rel="canonical" href="https://www.rottentomatoes.com/m/shawshank_redemption"><main>temporary page shape</main>',
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={makeData()} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rt-stale")?.textContent).toBe("旧评分")
+    );
+    expect(root.querySelector(".atv-rt-score-value")?.textContent).toBe("89%");
   });
 
   it("hides a snapshot older than 30 days", async () => {
@@ -588,6 +865,120 @@ describe("Subject page runtime", () => {
     ).toBeFalsy();
   });
 
+  it("rejects a Wikidata season qualifier that conflicts with the selected season", async () => {
+    const requests: string[] = [];
+    mockNetwork((url) => {
+      requests.push(url);
+      if (!url.includes("wikidata.org/w/api.php")) {
+        return { body: "", status: 404 };
+      }
+      const requestUrl = new URL(url);
+      if (requestUrl.searchParams.get("action") === "query") {
+        return {
+          body: JSON.stringify({ query: { search: [{ title: "Q975761" }] } }),
+        };
+      }
+      return {
+        body: JSON.stringify({
+          entities: {
+            Q975761: {
+              claims: {
+                P1258: [makeClaim("tv/friends/s11")],
+                P31: [makeClaim({ id: "Q3464665" })],
+                P4529: [
+                  {
+                    ...makeClaim("1393859"),
+                    qualifiers: { P1545: [makeClaim("10")] },
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      };
+    });
+    const data = makeData({
+      info: {
+        ...makeData().info,
+        seasons: "第十一季",
+        selectedSeason: "第十一季",
+      },
+      isTV: true,
+      subjectId: "1393859",
+      title: {
+        full: "老友记 第十一季",
+        original: "Friends Season 11",
+        primary: "老友记",
+        seasonLabel: "第十一季",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rating-panel-rt")).toBeNull()
+    );
+    expect(
+      requests.some((url) => url.includes("www.rottentomatoes.com"))
+    ).toBeFalsy();
+  });
+
+  it("does not use a deprecated RT identifier", async () => {
+    const requests: string[] = [];
+    mockNetwork((url) => {
+      requests.push(url);
+      if (!url.includes("wikidata.org/w/api.php")) {
+        return { body: "", status: 404 };
+      }
+      const requestUrl = new URL(url);
+      if (requestUrl.searchParams.get("action") === "query") {
+        return {
+          body: JSON.stringify({ query: { search: [{ title: "Q975761" }] } }),
+        };
+      }
+      return {
+        body: JSON.stringify({
+          entities: {
+            Q975761: {
+              claims: {
+                P1258: [
+                  {
+                    ...makeClaim("tv/friends/s01"),
+                    rank: "deprecated",
+                  },
+                ],
+                P31: [makeClaim({ id: "Q3464665" })],
+                P4529: [makeClaim("1393859")],
+              },
+            },
+          },
+        }),
+      };
+    });
+    const data = makeData({
+      info: { ...makeData().info, seasons: "第1季", selectedSeason: "1" },
+      isTV: true,
+      subjectId: "1393859",
+      title: {
+        full: "老友记 第1季",
+        original: "Friends Season 1",
+        primary: "老友记",
+        seasonLabel: "第1季",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rating-panel-rt")).toBeNull()
+    );
+    expect(
+      requests.some((url) => url.includes("www.rottentomatoes.com"))
+    ).toBeFalsy();
+  });
+
   it("uses the selected season and displays the matching RT season page", async () => {
     const seasonUrl = "https://www.rottentomatoes.com/tv/friends/s11";
     mockNetwork((url) => {
@@ -627,6 +1018,17 @@ describe("Subject page runtime", () => {
                         datavalue: { value: "1393859" },
                         snaktype: "value",
                       },
+                      qualifiers: {
+                        P1545: [
+                          {
+                            mainsnak: {
+                              datavalue: { value: "11" },
+                              snaktype: "value",
+                            },
+                            rank: "normal",
+                          },
+                        ],
+                      },
                       rank: "normal",
                     },
                   ],
@@ -638,7 +1040,7 @@ describe("Subject page runtime", () => {
       }
       if (url === seasonUrl) {
         return {
-          body: '<link rel="canonical" href="https://www.rottentomatoes.com/tv/friends/s11"><script type="application/ld+json">{"@type":"TVSeason","seasonNumber":11}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"91%","ratingCount":20},"audienceScore":null}</script>',
+          body: '<link rel="canonical" href="https://www.rottentomatoes.com/tv/friends/s11"><script type="application/ld+json">{"@type":"TVSeason","seasonNumber":11,"partOfSeries":{"@type":"TVSeries","name":"Friends","url":"https://www.rottentomatoes.com/tv/friends"}}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"91%","ratingCount":20},"audienceScore":null}</script>',
         };
       }
       return { body: "", status: 404 };

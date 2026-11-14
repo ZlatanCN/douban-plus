@@ -28,9 +28,16 @@ type ScorecardInput = {
   kind: RtObjectKind;
   rtId: string;
   season: number | null;
+  seriesRtId: string | null;
   subjectId: string;
   url: string;
 };
+
+type ScorecardParseResult =
+  | { rating: RtRating; status: "matched" }
+  | { status: "identity-conflict" }
+  | { status: "invalid-page" }
+  | { status: "no-rating" };
 
 const expectedPath = (rtId: string): string => `/${rtId}`;
 
@@ -66,6 +73,33 @@ const readPageTypes = (page: PageIdentity): Set<string> =>
       return typeof type === "string" ? [type] : [];
     })
   );
+
+const readSeriesRtId = (page: PageIdentity): string | null => {
+  const season = page.jsonLd.find((entry) => {
+    const type = entry["@type"];
+    return (
+      type === "TVSeason" || (Array.isArray(type) && type.includes("TVSeason"))
+    );
+  });
+  const partOfSeries = season?.partOfSeries;
+  if (!partOfSeries || typeof partOfSeries !== "object") {
+    return null;
+  }
+  const urlValue = Reflect.get(partOfSeries, "url");
+  if (typeof urlValue !== "string") {
+    return null;
+  }
+  try {
+    const url = new URL(urlValue);
+    const match = url.pathname.match(/^\/tv\/(?<series>[^/]+)\/?$/u);
+    if (url.hostname !== "www.rottentomatoes.com" || !match?.groups?.series) {
+      return null;
+    }
+    return `tv/${match.groups.series}`;
+  } catch {
+    return null;
+  }
+};
 
 const readSeasonNumber = (page: PageIdentity, html: string): number | null => {
   const value = page.jsonLd.find(
@@ -177,35 +211,55 @@ const audienceGroup = (scorecard: Scorecard): "all" | "verified" | null => {
   return candidates[0]?.group ?? null;
 };
 
-const matchesScorecardObject = (
+const scorecardIdentityStatus = (
   page: PageIdentity,
   html: string,
   input: ScorecardInput
-): boolean => {
+): "matched" | "identity-conflict" | "invalid-page" => {
   if (!page.canonicalUrl) {
-    return false;
+    return "invalid-page";
   }
-  const canonical = new URL(page.canonicalUrl, input.url);
-  const request = new URL(input.url);
+  let canonical: URL;
+  let request: URL;
+  try {
+    canonical = new URL(page.canonicalUrl, input.url);
+    request = new URL(input.url);
+  } catch {
+    return "invalid-page";
+  }
   if (
     canonical.hostname !== "www.rottentomatoes.com" ||
     canonical.pathname !== expectedPath(input.rtId) ||
     canonical.pathname !== request.pathname
   ) {
-    return false;
+    return "identity-conflict";
   }
   const types = readPageTypes(page);
+  if (types.size === 0) {
+    return "invalid-page";
+  }
   if (input.kind === "movie") {
-    return types.has("Movie");
+    return types.has("Movie") ? "matched" : "identity-conflict";
   }
   if (input.kind === "series") {
-    return types.has("TVSeries");
+    return types.has("TVSeries") ? "matched" : "identity-conflict";
   }
-  return (
-    types.has("TVSeason") &&
-    input.season !== null &&
-    readSeasonNumber(page, html) === input.season
-  );
+  if (!types.has("TVSeason")) {
+    return "identity-conflict";
+  }
+  const pageSeason = readSeasonNumber(page, html);
+  const pageSeries = readSeriesRtId(page);
+  if (
+    pageSeason === null ||
+    pageSeries === null ||
+    input.season === null ||
+    input.seriesRtId === null
+  ) {
+    return "invalid-page";
+  }
+  return pageSeason === input.season && pageSeries === input.seriesRtId
+    ? "matched"
+    : "identity-conflict";
 };
 
 const readScorecard = (html: string): Scorecard | null => {
@@ -259,15 +313,25 @@ const buildRating = (
 const parseScorecard = (
   html: string,
   input: ScorecardInput
-): RtRating | null => {
+): ScorecardParseResult => {
   const page = readPageIdentity(html);
-  if (!matchesScorecardObject(page, html, input) || !page.canonicalUrl) {
-    return null;
+  const identity = scorecardIdentityStatus(page, html, input);
+  if (identity === "identity-conflict") {
+    return { status: identity };
+  }
+  if (identity === "invalid-page" || !page.canonicalUrl) {
+    return { status: "invalid-page" };
   }
   const scorecard = readScorecard(html);
-  return scorecard
-    ? buildRating(scorecard, input, new URL(page.canonicalUrl, input.url).href)
-    : null;
+  if (!scorecard) {
+    return { status: "invalid-page" };
+  }
+  const rating = buildRating(
+    scorecard,
+    input,
+    new URL(page.canonicalUrl, input.url).href
+  );
+  return rating ? { rating, status: "matched" } : { status: "no-rating" };
 };
 
 const findSeasonPath = (
@@ -300,4 +364,10 @@ const findSeasonPath = (
   return null;
 };
 
-export { findSeasonPath, parseScorecard, readPageIdentity, readPageTypes };
+export {
+  findSeasonPath,
+  parseScorecard,
+  readPageIdentity,
+  readPageTypes,
+  readSeriesRtId,
+};
