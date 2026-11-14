@@ -11,33 +11,33 @@ type RatingPanelProps = {
 };
 
 const RatingPanel = ({ douban, externalRatings, imdbId }: RatingPanelProps) => {
-  if (!douban && !imdbId) {
+  const rt = externalRatings?.rt;
+  if (!douban && !imdbId && rt?.status === "resolved" && !rt.rating) {
     return null;
   }
 
-  const resolved = Boolean(externalRatings);
   return (
     <div class="atv-rating-panel">
       <DoubanRating rating={douban} />
       {imdbId ? (
         <>
           <ExternalRating
-            rating={externalRatings?.imdb?.rating ?? null}
-            resolved={resolved}
+            rating={externalRatings?.imdb.rating?.rating ?? null}
+            resolved={externalRatings?.imdb.status === "resolved"}
             source="imdb"
           />
           <ExternalRating
-            rating={externalRatings?.mc ?? null}
-            resolved={resolved}
+            rating={externalRatings?.mc.rating ?? null}
+            resolved={externalRatings?.mc.status === "resolved"}
             source="metacritic"
-          />
-          <ExternalRating
-            rating={externalRatings?.rt ?? null}
-            resolved={resolved}
-            source="rt"
           />
         </>
       ) : null}
+      <ExternalRating
+        rating={rt?.rating ?? null}
+        resolved={rt?.status === "resolved"}
+        source="rt"
+      />
     </div>
   );
 };

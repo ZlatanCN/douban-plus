@@ -24,10 +24,15 @@ const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
 });
 
 const makeRtRating = (overrides?: Partial<RtRating>): RtRating => ({
-  audienceCount: 50_000,
+  audienceCount: { kind: "exact", value: 50_000 },
+  audienceGroup: "all",
   audienceScore: 76,
-  criticsCount: 300,
+  criticsCount: { kind: "exact", value: 300 },
   criticsScore: 94,
+  fetchedAt: 1_700_000_000_000,
+  object: { kind: "movie", rtId: "m/test", subjectId: "1" },
+  sourceUrl: "https://www.rottentomatoes.com/m/test",
+  stale: false,
   ...overrides,
 });
 
@@ -165,7 +170,7 @@ describe(ExternalRating, () => {
     ).toBe("影评人");
     expect(
       el.querySelector(".is-audience .atv-rt-score-label")?.textContent
-    ).toBe("观众");
+    ).toBe("全部观众");
   });
 
   it("renders Rotten Tomatoes logo, count row and no rating stars", () => {

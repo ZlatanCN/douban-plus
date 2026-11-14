@@ -39,6 +39,7 @@
 // @connect      douban.com
 // @connect      movie.douban.com
 // @connect      graphql.imdb.com
+// @connect      www.wikidata.org
 // @connect      www.rottentomatoes.com
 // @connect      www.metacritic.com
 // @grant        GM.getValue
