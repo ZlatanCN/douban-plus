@@ -10,8 +10,16 @@ type GmXhrFn = (opts: {
   method: string;
   headers?: Record<string, string>;
   data?: string;
-  onerror: () => void;
-  onload: (r: { responseText: string }) => void;
+  onabort?: () => void;
+  onerror?: () => void;
+  onload: (r: {
+    finalUrl?: string;
+    responseText: string;
+    responseURL?: string;
+    status: number;
+  }) => void;
+  ontimeout?: () => void;
+  timeout?: number;
 }) => void;
 
 const xhr = (globalThis as { GM_xmlhttpRequest?: GmXhrFn }).GM_xmlhttpRequest;

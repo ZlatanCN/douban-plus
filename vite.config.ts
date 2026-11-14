@@ -26,6 +26,7 @@ export default defineConfig({
           "douban.com",
           "movie.douban.com",
           "graphql.imdb.com",
+          "www.wikidata.org",
           "www.rottentomatoes.com",
           "www.metacritic.com",
         ],

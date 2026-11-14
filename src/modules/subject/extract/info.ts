@@ -103,6 +103,7 @@ const extractInfo = (doc: Document): InfoBlock => {
     releaseDate: "",
     runtime: "",
     seasons: "",
+    selectedSeason: null,
     writers: [],
   };
   if (!info) {
@@ -164,6 +165,7 @@ const extractInfo = (doc: Document): InfoBlock => {
     const sel = $<HTMLSelectElement>("#season", info);
     if (sel) {
       const opt = sel.options[sel.selectedIndex];
+      out.selectedSeason = opt ? (opt.textContent || "").trim() : null;
       out.seasons = opt
         ? (opt.textContent || "").trim()
         : collectInfoTextAfter(info, "季数");

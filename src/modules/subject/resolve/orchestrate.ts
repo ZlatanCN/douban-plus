@@ -1,88 +1,88 @@
-/* ── Rating Resolution Orchestrator ───────────────────────
- * Coordinates parallel resolution of IMDb, RT, and MC ratings.
- * Strategy: parallel-first with H1 title; fallback to IMDb title. */
-
 import { fetchImdbRating } from "@/modules/subject/api/imdb";
 import type { FetchImdbResult } from "@/modules/subject/api/imdb";
 import { fetchMcRating } from "@/modules/subject/api/metacritic";
 import { fetchRtRating } from "@/modules/subject/api/rotten";
+import type { RtResolution } from "@/modules/subject/api/rotten";
 import type { McRating, RtRating } from "@/modules/subject/domain";
 
-import type { RatingResultMap, ResolutionContext } from "./types";
+import type { ResolutionContext, SourceResult } from "./types";
 
-/** Resolve all rating sources in parallel where possible.
- *
- *  Strategy:
- *  1. If englishTitle is available from H1 → run IMDb + RT + MC in parallel.
- *  2. If no H1 title but IMDb returns one → run RT + MC with IMDb title as fallback.
- *  3. Error isolation: Promise.allSettled ensures one failure never blocks others. */
-const fetchImdbFromContext = (
-  ctx: ResolutionContext
-): Promise<FetchImdbResult | null> => {
-  if (!ctx.imdbId) {
-    return Promise.resolve(null);
+type RatingUpdate =
+  | { result: SourceResult<FetchImdbResult>; source: "imdb" }
+  | { result: SourceResult<McRating>; source: "mc" }
+  | { result: SourceResult<RtRating>; source: "rt" };
+type OnRatingUpdate = (update: RatingUpdate) => void;
+
+const settle = async <TRating>(
+  request: Promise<TRating | null>,
+  signal: AbortSignal,
+  publish: (rating: TRating | null) => void
+): Promise<void> => {
+  let rating: TRating | null = null;
+  try {
+    rating = await request;
+  } catch {
+    rating = null;
   }
-  return fetchImdbRating(ctx.imdbId, ctx.season);
+  if (!signal.aborted) {
+    publish(rating);
+  }
 };
 
-const fetchRtFromContext = (
-  ctx: ResolutionContext
-): Promise<RtRating | null> => {
-  if (!ctx.englishTitle) {
-    return Promise.resolve(null);
-  }
-  return fetchRtRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
-};
-
-const fetchMcFromContext = (
-  ctx: ResolutionContext
-): Promise<McRating | null> => {
-  if (!ctx.englishTitle) {
-    return Promise.resolve(null);
-  }
-  return fetchMcRating(ctx.englishTitle, ctx.isTV, ctx.season, ctx.year);
-};
-
-const resolveAll = async (ctx: ResolutionContext): Promise<RatingResultMap> => {
-  /* ── Fast path: English title available from H1 ──── */
-  if (ctx.englishTitle) {
-    const [imdb, rt, mc] = await Promise.allSettled([
-      fetchImdbFromContext(ctx),
-      fetchRtFromContext(ctx),
-      fetchMcFromContext(ctx),
-    ]);
-
-    return {
-      imdb: imdb.status === "fulfilled" ? imdb.value : null,
-      mc: mc.status === "fulfilled" ? mc.value : null,
-      rt: rt.status === "fulfilled" ? rt.value : null,
-    };
+const resolveAll = (
+  context: ResolutionContext,
+  signal: AbortSignal,
+  onUpdate: OnRatingUpdate
+): void => {
+  if (context.imdbId) {
+    void settle(
+      fetchImdbRating(context.imdbId, context.season ?? undefined),
+      signal,
+      (rating) =>
+        onUpdate({ result: { rating, status: "resolved" }, source: "imdb" })
+    );
+  } else {
+    onUpdate({ result: { rating: null, status: "resolved" }, source: "imdb" });
   }
 
-  /* ── Fallback: try to get English title from IMDb ── */
-  const imdbResult = ctx.imdbId
-    ? await fetchImdbFromContext(ctx).catch(() => null)
-    : null;
-
-  if (imdbResult?.title) {
-    const fallbackCtx: ResolutionContext = {
-      ...ctx,
-      englishTitle: imdbResult.title,
-    };
-    const [rt, mc] = await Promise.allSettled([
-      fetchRtFromContext(fallbackCtx),
-      fetchMcFromContext(fallbackCtx),
-    ]);
-
-    return {
-      imdb: imdbResult,
-      mc: mc.status === "fulfilled" ? mc.value : null,
-      rt: rt.status === "fulfilled" ? rt.value : null,
-    };
+  if (context.englishTitle) {
+    void settle(
+      fetchMcRating(
+        context.englishTitle,
+        context.isTV,
+        context.season ?? undefined,
+        context.year ?? undefined
+      ),
+      signal,
+      (rating) =>
+        onUpdate({ result: { rating, status: "resolved" }, source: "mc" })
+    );
+  } else {
+    onUpdate({ result: { rating: null, status: "resolved" }, source: "mc" });
   }
 
-  /* ── No title anywhere, return what we have ──────── */
-  return { imdb: imdbResult, mc: null, rt: null };
+  const resolveRottenTomatoes = async (): Promise<void> => {
+    let result: RtResolution;
+    try {
+      result = await fetchRtRating(context, signal, (partial) => {
+        if (!signal.aborted) {
+          onUpdate({
+            result: { rating: partial.rating, status: "pending" },
+            source: "rt",
+          });
+        }
+      });
+    } catch {
+      result = { rating: null, status: "error" };
+    }
+    if (!signal.aborted) {
+      onUpdate({
+        result: { rating: result.rating, status: "resolved" },
+        source: "rt",
+      });
+    }
+  };
+  void resolveRottenTomatoes();
 };
 
 export { resolveAll };

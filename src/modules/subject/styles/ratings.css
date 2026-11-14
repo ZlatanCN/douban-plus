@@ -160,6 +160,10 @@
   line-height: 1;
 }
 
+.atv-rt-score-row.is-single {
+  grid-template-columns: 1fr;
+}
+
 .atv-rt-score-value.is-fresh {
   color: var(--atv-text-primary);
 }
@@ -276,6 +280,28 @@
 
 .atv-rt-count-row > .atv-rt-count-value:last-child {
   justify-self: center;
+}
+
+.atv-rt-source-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-micro);
+  gap: 6px;
+}
+
+.atv-rt-source {
+  color: inherit;
+  text-decoration: none;
+}
+
+.atv-rt-source:hover {
+  color: var(--atv-text-primary);
+}
+
+.atv-rt-stale {
+  color: var(--atv-text-secondary);
 }
 
 /* ── RT Divider ─────────────────────────────────── */
