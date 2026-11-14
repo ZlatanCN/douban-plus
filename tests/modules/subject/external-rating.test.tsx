@@ -170,7 +170,7 @@ describe(ExternalRating, () => {
     ).toBe("影评人");
     expect(
       el.querySelector(".is-audience .atv-rt-score-label")?.textContent
-    ).toBe("全部观众");
+    ).toBe("观众");
   });
 
   it("renders Rotten Tomatoes logo, count row and no rating stars", () => {

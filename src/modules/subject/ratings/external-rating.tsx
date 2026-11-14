@@ -150,32 +150,21 @@ const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
           className="is-audience"
           icon={<IconPopcorn />}
           score={rating.audienceScore}
-          text={rating.audienceGroup === "verified" ? "已验证观众" : "全部观众"}
+          text="观众"
         />
       )}
     </div>
     <div class="atv-rt-count-row">
       {rating.criticsScore !== null && rating.criticsCount !== null ? (
         <span class="atv-rt-count-value">
-          {`影评人评价 ${formatRtCount(rating.criticsCount)}`}
+          {`评价 ${formatRtCount(rating.criticsCount)}`}
         </span>
       ) : null}
       {rating.audienceScore !== null && rating.audienceCount !== null ? (
         <span class="atv-rt-count-value">
-          {`观众评价 ${formatRtCount(rating.audienceCount)}`}
+          {`评价 ${formatRtCount(rating.audienceCount)}`}
         </span>
       ) : null}
-    </div>
-    <div class="atv-rt-source-row">
-      <a
-        class="atv-rt-source"
-        href={rating.sourceUrl}
-        rel="noopener noreferrer"
-        target="_blank"
-      >
-        烂番茄 · 获取于 {new Date(rating.fetchedAt).toLocaleDateString("zh-CN")}
-      </a>
-      {rating.stale ? <span class="atv-rt-stale">旧评分</span> : null}
     </div>
   </>
 );
@@ -229,7 +218,22 @@ const ExternalRating = (props: ExternalRatingProps) => {
         props.resolved
       )}`}
     >
-      <RatingLogo name={props.source} />
+      {props.source === "rt" && props.rating ? (
+        <span class="atv-rt-logo-group">
+          <a
+            aria-label="在烂番茄打开评分"
+            class="atv-rt-source"
+            href={props.rating.sourceUrl}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <RatingLogo name="rt" />
+          </a>
+          {props.rating.stale ? <span class="atv-rt-stale">旧评分</span> : null}
+        </span>
+      ) : (
+        <RatingLogo name={props.source} />
+      )}
       {renderExternalRatingContent(props)}
     </div>
   );

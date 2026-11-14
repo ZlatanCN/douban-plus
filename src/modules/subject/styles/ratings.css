@@ -282,16 +282,14 @@
   justify-self: center;
 }
 
-.atv-rt-source-row {
+.atv-rt-logo-group {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: var(--atv-text-tertiary);
-  font-size: var(--atv-type-micro);
   gap: 6px;
 }
 
 .atv-rt-source {
+  display: inline-flex;
   color: inherit;
   text-decoration: none;
 }

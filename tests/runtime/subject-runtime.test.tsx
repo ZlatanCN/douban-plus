@@ -627,7 +627,7 @@ describe("Subject page runtime", () => {
     );
     expect(
       root.querySelector(".is-audience .atv-rt-score-label")?.textContent
-    ).toBe("全部观众");
+    ).toBe("观众");
     expect(root.querySelector(".atv-rt-count-row")?.textContent).toContain(
       "250,000+"
     );
@@ -719,7 +719,7 @@ describe("Subject page runtime", () => {
     );
     expect(
       root.querySelector(".is-audience .atv-rt-score-label")?.textContent
-    ).toBe("已验证观众");
+    ).toBe("观众");
     expect(root.querySelector(".atv-rt-stale")).toBeNull();
   });
 
