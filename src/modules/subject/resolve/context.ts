@@ -111,7 +111,7 @@ const buildContext = (data: DoubanData): ResolutionContext => {
     subjectId: data.subjectId,
     subjectTitle: data.title.full,
     unsupportedEpisode,
-    year: data.isTV ? null : data.year || null,
+    year: kind === "season" ? null : data.year || null,
   };
 };
 

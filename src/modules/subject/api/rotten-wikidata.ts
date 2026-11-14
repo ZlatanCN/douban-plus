@@ -47,7 +47,7 @@ const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
 const ACTIVE_RANKS = new Set(["normal", "preferred"]);
 const FILM_TYPES = new Set(["Q11424"]);
-const SERIES_TYPES = new Set(["Q5398426"]);
+const SERIES_TYPES = new Set(["Q5398426", "Q1259759"]);
 const SEASON_TYPES = new Set(["Q3464665"]);
 
 const entityReference = (value: unknown): string | null => {

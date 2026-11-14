@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-COV5xaiL-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-PU0-ZIqq-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -15858,7 +15858,7 @@ var buildContext = (data) => {
 		subjectId: data.subjectId,
 		subjectTitle: data.title.full,
 		unsupportedEpisode,
-		year: data.isTV ? null : data.year || null
+		year: kind === "season" ? null : data.year || null
 	};
 };
 var extractTitleFields = (parsed) => {
@@ -16335,7 +16335,7 @@ var API_URL = "https://www.wikidata.org/w/api.php";
 var REQUEST_TIMEOUT$1 = 8e3;
 var ACTIVE_RANKS = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var FILM_TYPES = /* @__PURE__ */ new Set(["Q11424"]);
-var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426"]);
+var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426", "Q1259759"]);
 var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
 var entityReference = (value) => {
 	if (!value || typeof value !== "object") return null;
@@ -19126,7 +19126,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-COV5xaiL-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-PU0-ZIqq-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
