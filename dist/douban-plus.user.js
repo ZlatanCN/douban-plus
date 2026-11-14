@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-CUbgGrbO-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-D2GOxygQ-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16117,6 +16117,23 @@ var readPageTypes = (page) => new Set(page.jsonLd.flatMap((value) => {
 	if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
 	return typeof type === "string" ? [type] : [];
 }));
+var readSeriesRtId = (page) => {
+	const partOfSeries = page.jsonLd.find((entry) => {
+		const type = entry["@type"];
+		return type === "TVSeason" || Array.isArray(type) && type.includes("TVSeason");
+	})?.partOfSeries;
+	if (!partOfSeries || typeof partOfSeries !== "object") return null;
+	const urlValue = Reflect.get(partOfSeries, "url");
+	if (typeof urlValue !== "string") return null;
+	try {
+		const url = new URL(urlValue);
+		const match = url.pathname.match(/^\/tv\/(?<series>[^/]+)\/?$/u);
+		if (url.hostname !== "www.rottentomatoes.com" || !match?.groups?.series) return null;
+		return `tv/${match.groups.series}`;
+	} catch {
+		return null;
+	}
+};
 var readSeasonNumber = (page, html) => {
 	const value = page.jsonLd.find((entry) => entry.seasonNumber !== void 0)?.seasonNumber;
 	const fromStructuredData = Number(value);
@@ -16176,15 +16193,26 @@ var audienceGroup = (scorecard) => {
 	if (candidates.length !== 1) return null;
 	return candidates[0]?.group ?? null;
 };
-var matchesScorecardObject = (page, html, input) => {
-	if (!page.canonicalUrl) return false;
-	const canonical = new URL(page.canonicalUrl, input.url);
-	const request = new URL(input.url);
-	if (canonical.hostname !== "www.rottentomatoes.com" || canonical.pathname !== expectedPath(input.rtId) || canonical.pathname !== request.pathname) return false;
+var scorecardIdentityStatus = (page, html, input) => {
+	if (!page.canonicalUrl) return "invalid-page";
+	let canonical;
+	let request;
+	try {
+		canonical = new URL(page.canonicalUrl, input.url);
+		request = new URL(input.url);
+	} catch {
+		return "invalid-page";
+	}
+	if (canonical.hostname !== "www.rottentomatoes.com" || canonical.pathname !== expectedPath(input.rtId) || canonical.pathname !== request.pathname) return "identity-conflict";
 	const types = readPageTypes(page);
-	if (input.kind === "movie") return types.has("Movie");
-	if (input.kind === "series") return types.has("TVSeries");
-	return types.has("TVSeason") && input.season !== null && readSeasonNumber(page, html) === input.season;
+	if (types.size === 0) return "invalid-page";
+	if (input.kind === "movie") return types.has("Movie") ? "matched" : "identity-conflict";
+	if (input.kind === "series") return types.has("TVSeries") ? "matched" : "identity-conflict";
+	if (!types.has("TVSeason")) return "identity-conflict";
+	const pageSeason = readSeasonNumber(page, html);
+	const pageSeries = readSeriesRtId(page);
+	if (pageSeason === null || pageSeries === null || input.season === null || input.seriesRtId === null) return "invalid-page";
+	return pageSeason === input.season && pageSeries === input.seriesRtId ? "matched" : "identity-conflict";
 };
 var readScorecard = (html) => {
 	const script = html.match(/<script\b(?=[^>]*\bdata-json=["']mediaScorecard["'])[^>]*>(?<body>[\s\S]*?)<\/script>/iu)?.groups?.body;
@@ -16220,9 +16248,16 @@ var buildRating = (data, input, sourceUrl) => {
 };
 var parseScorecard = (html, input) => {
 	const page = readPageIdentity(html);
-	if (!matchesScorecardObject(page, html, input) || !page.canonicalUrl) return null;
+	const identity = scorecardIdentityStatus(page, html, input);
+	if (identity === "identity-conflict") return { status: identity };
+	if (identity === "invalid-page" || !page.canonicalUrl) return { status: "invalid-page" };
 	const scorecard = readScorecard(html);
-	return scorecard ? buildRating(scorecard, input, new URL(page.canonicalUrl, input.url).href) : null;
+	if (!scorecard) return { status: "invalid-page" };
+	const rating = buildRating(scorecard, input, new URL(page.canonicalUrl, input.url).href);
+	return rating ? {
+		rating,
+		status: "matched"
+	} : { status: "no-rating" };
 };
 var findSeasonPath = (html, seriesRtId, season) => {
 	if (!readPageTypes(readPageIdentity(html)).has("TVSeries")) return null;
@@ -16308,10 +16343,11 @@ var entityReference = (value) => {
 	return typeof id === "string" ? id : null;
 };
 var claimValues = (claims) => (claims ?? []).filter((claim) => claim.rank !== "deprecated").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
-var hasActiveIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => {
+var activeIdentityClaims = (entity, property, value) => (entity.claims?.[property] ?? []).filter((claim) => {
 	const claimValue = claim.mainsnak?.datavalue?.value;
 	return ACTIVE_RANKS.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claimValue) === value;
 });
+var hasActiveIdentity = (entity, property, value) => activeIdentityClaims(entity, property, value).length > 0;
 var isDeprecatedIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => claim.rank === "deprecated" && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
 var normalizeRtId = (value) => {
 	if (typeof value !== "string" || !value.trim()) return null;
@@ -16330,6 +16366,58 @@ var entityKind = (entity, rtId) => {
 	if (rtId.includes("/s") && types.some((id) => SEASON_TYPES.has(id))) return "season";
 	if (rtId.startsWith("tv/") && !rtId.includes("/s") && types.some((id) => SERIES_TYPES.has(id))) return "series";
 	return null;
+};
+var readRtTarget = (entity) => {
+	const activeClaims = claimValues(entity.claims?.P1258);
+	const targets = activeClaims.map(normalizeRtId).filter((target) => target !== null);
+	if (targets.length !== activeClaims.length) return { status: "ambiguous" };
+	const uniqueTargets = new Set(targets);
+	if (uniqueTargets.size > 1) return { status: "ambiguous" };
+	const [rtId] = uniqueTargets;
+	if (rtId) return {
+		rtId,
+		status: "matched"
+	};
+	return { status: (entity.claims?.P1258 ?? []).some((claim) => claim.rank === "deprecated") ? "deprecated" : "missing" };
+};
+var readSeasonOrdinal = (claims, property) => {
+	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
+	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
+		const ordinal = typeof qualifierValue === "number" ? qualifierValue : Number(qualifierValue);
+		return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
+	}).filter((ordinal) => ordinal !== null);
+	const uniqueOrdinals = new Set(ordinals);
+	const [value] = uniqueOrdinals;
+	return {
+		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
+		value: value ?? null
+	};
+};
+var mapEntity = (entity, property, identifier) => {
+	const identityClaims = activeIdentityClaims(entity, property, identifier);
+	const target = readRtTarget(entity);
+	if (target.status !== "matched") return {
+		mappings: [],
+		state: target.status
+	};
+	const kind = entityKind(entity, target.rtId);
+	if (!kind) return {
+		mappings: [],
+		state: "missing"
+	};
+	const seasonOrdinal = readSeasonOrdinal(identityClaims, property);
+	const seriesSlug = target.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)?.groups?.series;
+	return {
+		mappings: [{
+			entity,
+			kind,
+			rtId: target.rtId,
+			seasonOrdinal: seasonOrdinal.value,
+			seasonOrdinalConflict: seasonOrdinal.conflict,
+			seriesRtId: seriesSlug ? `tv/${seriesSlug}` : null
+		}],
+		state: "matched"
+	};
 };
 var fetchEntities = async (property, value, signal) => {
 	const searchUrl = new URL(API_URL);
@@ -16384,35 +16472,7 @@ var fetchEntities = async (property, value, signal) => {
 		mappings: [],
 		state: "missing"
 	};
-	const activeTargetClaims = claimValues(entity.claims?.P1258);
-	const normalizedTargets = activeTargetClaims.map(normalizeRtId).filter((target) => target !== null);
-	if (normalizedTargets.length !== activeTargetClaims.length) return {
-		mappings: [],
-		state: "ambiguous"
-	};
-	const targets = [...new Set(normalizedTargets)];
-	if (targets.length > 1) return {
-		mappings: [],
-		state: "ambiguous"
-	};
-	const [rtId] = targets;
-	if (!rtId) return {
-		mappings: [],
-		state: (entity.claims?.P1258 ?? []).some((claim) => claim.rank === "deprecated") ? "deprecated" : "missing"
-	};
-	const kind = entityKind(entity, rtId);
-	if (!kind) return {
-		mappings: [],
-		state: "missing"
-	};
-	return {
-		mappings: [{
-			entity,
-			kind,
-			rtId
-		}],
-		state: "matched"
-	};
+	return mapEntity(entity, property, value);
 };
 var seasonPath = (rtId, season) => {
 	return rtId.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})$/u)?.groups?.season === String(season).padStart(2, "0") ? rtId : null;
@@ -16440,27 +16500,33 @@ var matchMovie = (mappings) => {
 	return {
 		needsSeasonLink: false,
 		rtId,
+		seriesRtId: null,
 		status: "matched"
 	};
 };
 var matchSeason = (seasons, series, season) => {
 	const targets = seasons.map(({ rtId }) => seasonPath(rtId, season));
 	if (targets.some((target) => target === null)) return unavailable("season");
+	if (seasons.some(({ seasonOrdinal, seasonOrdinalConflict }) => seasonOrdinalConflict || seasonOrdinal !== null && seasonOrdinal !== season)) return unavailable("season");
 	const uniqueTargets = [...new Set(targets)];
 	if (uniqueTargets.length > 1) return unavailable("conflict");
 	const [seasonTarget] = uniqueTargets;
 	if (seasonTarget) {
-		const [, parent] = seasonTarget.split("/");
-		return series.every(({ rtId }) => rtId === `tv/${parent}`) ? {
+		const seasonSeries = new Set(seasons.map(({ seriesRtId }) => seriesRtId));
+		const [seriesRtId] = seasonSeries;
+		if (!Boolean(seriesRtId && seasonSeries.size === 1 && series.every(({ rtId }) => rtId === seriesRtId)) || !seriesRtId) return unavailable("conflict");
+		return {
 			needsSeasonLink: false,
 			rtId: seasonTarget,
+			seriesRtId,
 			status: "matched"
-		} : unavailable("conflict");
+		};
 	}
 	const seriesTarget = uniqueRtTarget(series);
 	if (seriesTarget) return {
 		needsSeasonLink: true,
 		rtId: seriesTarget,
+		seriesRtId: seriesTarget,
 		status: "matched"
 	};
 	return unavailable("season");
@@ -16472,10 +16538,12 @@ var matchSeries = (seasons, series) => {
 	return {
 		needsSeasonLink: false,
 		rtId,
+		seriesRtId: null,
 		status: "matched"
 	};
 };
 var combineLookups = (imdb, douban, context) => {
+	if ([imdb?.state, douban?.state].includes("ambiguous")) return unavailable("ambiguous");
 	const mappings = [...imdb?.mappings ?? [], ...douban?.mappings ?? []];
 	if (mappings.length === 0) return unavailableLookup(imdb, douban);
 	const hasMovie = mappings.some(({ kind }) => kind === "movie");
@@ -16545,15 +16613,21 @@ var resolveTarget = async (context, signal) => {
 		if (mapping.reason === "error") return { failure: ratingFailure("error") };
 		return { failure: ratingFailure("missing-mapping") };
 	}
-	if (!mapping.needsSeasonLink) return { rtId: mapping.rtId };
+	if (!mapping.needsSeasonLink) return {
+		rtId: mapping.rtId,
+		seriesRtId: mapping.seriesRtId
+	};
 	const seriesPage = await requestPage(mapping.rtId, signal);
 	if (signal.aborted) return { failure: ratingFailure("aborted") };
 	if (!isSeriesPage(seriesPage.html, mapping.rtId, seriesPage.url)) return { failure: ratingFailure("identity-conflict") };
 	if (context.season === null) return { failure: ratingFailure("season-unmatched") };
 	const seasonPath = findSeasonPath(seriesPage.html, mapping.rtId, context.season);
-	return seasonPath ? { rtId: seasonPath } : { failure: ratingFailure("season-unmatched") };
+	return seasonPath ? {
+		rtId: seasonPath,
+		seriesRtId: mapping.seriesRtId
+	} : { failure: ratingFailure("season-unmatched") };
 };
-var loadRating = async (context, rtId, object, prior, signal, onResult) => {
+var loadRating = async (context, rtId, seriesRtId, object, prior, signal, onResult) => {
 	if (prior && !prior.stale) {
 		const result = {
 			rating: prior,
@@ -16568,18 +16642,28 @@ var loadRating = async (context, rtId, object, prior, signal, onResult) => {
 	});
 	const page = await requestPage(rtId, signal);
 	if (signal.aborted) return ratingFailure("aborted");
-	const rating = parseScorecard(page.html, {
+	const parsed = parseScorecard(page.html, {
 		fetchedAt: Date.now(),
 		kind: context.kind,
 		rtId,
 		season: context.season,
+		seriesRtId,
 		subjectId: context.subjectId,
 		url: page.url
 	});
-	if (!rating) {
+	if (parsed.status === "invalid-page") {
+		if (prior) return {
+			rating: prior,
+			status: "stale"
+		};
+		return ratingFailure("error");
+	}
+	if (parsed.status === "identity-conflict") return ratingFailure("identity-conflict");
+	if (parsed.status === "no-rating") {
 		removeSnapshot(object);
 		return ratingFailure("no-rating");
 	}
+	const { rating } = parsed;
 	writeSnapshot(rating);
 	return {
 		rating,
@@ -16607,7 +16691,7 @@ var fetchRtRating = async (context, signal, onResult) => {
 		}
 		object = getSnapshotObject(context, target.rtId);
 		prior = readSnapshot(object);
-		return await loadRating(context, target.rtId, object, prior, signal, onResult);
+		return await loadRating(context, target.rtId, target.seriesRtId, object, prior, signal, onResult);
 	} catch {
 		if (signal.aborted) return ratingFailure("aborted");
 		return fallbackSnapshot(context, object, prior, onResult);
@@ -19042,7 +19126,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-CUbgGrbO-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-D2GOxygQ-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

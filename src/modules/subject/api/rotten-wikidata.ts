@@ -13,6 +13,9 @@ type EntityMapping = {
   entity: Entity;
   kind: "movie" | "season" | "series";
   rtId: string;
+  seriesRtId: string | null;
+  seasonOrdinal: number | null;
+  seasonOrdinalConflict: boolean;
 };
 
 type IdentityLookup =
@@ -33,8 +36,12 @@ type RottenMapping =
         | "season";
       status: "unavailable";
     }
-  | { needsSeasonLink: true; rtId: string; status: "matched" }
-  | { needsSeasonLink: false; rtId: string; status: "matched" };
+  | {
+      needsSeasonLink: boolean;
+      rtId: string;
+      seriesRtId: string | null;
+      status: "matched";
+    };
 
 const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
@@ -58,12 +65,12 @@ const claimValues = (claims: Claim[] | undefined): unknown[] =>
     .map((claim) => claim.mainsnak?.datavalue?.value)
     .filter((value) => value !== undefined);
 
-const hasActiveIdentity = (
+const activeIdentityClaims = (
   entity: Entity,
   property: "P345" | "P4529",
   value: string
-): boolean =>
-  (entity.claims?.[property] ?? []).some((claim) => {
+): Claim[] =>
+  (entity.claims?.[property] ?? []).filter((claim) => {
     const claimValue = claim.mainsnak?.datavalue?.value;
     return (
       ACTIVE_RANKS.has(claim.rank ?? "") &&
@@ -71,6 +78,12 @@ const hasActiveIdentity = (
       String(claimValue) === value
     );
   });
+
+const hasActiveIdentity = (
+  entity: Entity,
+  property: "P345" | "P4529",
+  value: string
+): boolean => activeIdentityClaims(entity, property, value).length > 0;
 
 const isDeprecatedIdentity = (
   entity: Entity,
@@ -124,6 +137,96 @@ const entityKind = (
     return "series";
   }
   return null;
+};
+
+type RtTarget =
+  | { rtId: string; status: "matched" }
+  | { status: "ambiguous" | "deprecated" | "missing" };
+
+const readRtTarget = (entity: Entity): RtTarget => {
+  const activeClaims = claimValues(entity.claims?.P1258);
+  const targets = activeClaims
+    .map(normalizeRtId)
+    .filter((target): target is string => target !== null);
+  if (targets.length !== activeClaims.length) {
+    return { status: "ambiguous" };
+  }
+  const uniqueTargets = new Set(targets);
+  if (uniqueTargets.size > 1) {
+    return { status: "ambiguous" };
+  }
+  const [rtId] = uniqueTargets;
+  if (rtId) {
+    return { rtId, status: "matched" };
+  }
+  const deprecated = (entity.claims?.P1258 ?? []).some(
+    (claim) => claim.rank === "deprecated"
+  );
+  return { status: deprecated ? "deprecated" : "missing" };
+};
+
+const readSeasonOrdinal = (
+  claims: Claim[],
+  property: "P345" | "P4529"
+): { conflict: boolean; value: number | null } => {
+  const qualifiers =
+    property === "P4529"
+      ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? [])
+      : [];
+  const values = qualifiers
+    .filter(
+      (claim) =>
+        claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value"
+    )
+    .map((claim) => claim.mainsnak?.datavalue?.value)
+    .map((qualifierValue) => {
+      const ordinal =
+        typeof qualifierValue === "number"
+          ? qualifierValue
+          : Number(qualifierValue);
+      return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
+    });
+  const ordinals = values.filter(
+    (ordinal): ordinal is number => ordinal !== null
+  );
+  const uniqueOrdinals = new Set(ordinals);
+  const [value] = uniqueOrdinals;
+  return {
+    conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
+    value: value ?? null,
+  };
+};
+
+const mapEntity = (
+  entity: Entity,
+  property: "P345" | "P4529",
+  identifier: string
+): IdentityLookup => {
+  const identityClaims = activeIdentityClaims(entity, property, identifier);
+  const target = readRtTarget(entity);
+  if (target.status !== "matched") {
+    return { mappings: [], state: target.status };
+  }
+  const kind = entityKind(entity, target.rtId);
+  if (!kind) {
+    return { mappings: [], state: "missing" };
+  }
+  const seasonOrdinal = readSeasonOrdinal(identityClaims, property);
+  const seriesSlug = target.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)
+    ?.groups?.series;
+  return {
+    mappings: [
+      {
+        entity,
+        kind,
+        rtId: target.rtId,
+        seasonOrdinal: seasonOrdinal.value,
+        seasonOrdinalConflict: seasonOrdinal.conflict,
+        seriesRtId: seriesSlug ? `tv/${seriesSlug}` : null,
+      },
+    ],
+    state: "matched",
+  };
 };
 
 const fetchEntities = async (
@@ -190,37 +293,11 @@ const fetchEntities = async (
   if (entities.length === 0) {
     return { mappings: [], state: deprecated ? "deprecated" : "missing" };
   }
-
   const [entity] = entities;
   if (!entity) {
     return { mappings: [], state: "missing" };
   }
-  const activeTargetClaims = claimValues(entity.claims?.P1258);
-  const normalizedTargets = activeTargetClaims
-    .map(normalizeRtId)
-    .filter((target): target is string => target !== null);
-  if (normalizedTargets.length !== activeTargetClaims.length) {
-    return { mappings: [], state: "ambiguous" };
-  }
-  const targets = [...new Set(normalizedTargets)];
-  if (targets.length > 1) {
-    return { mappings: [], state: "ambiguous" };
-  }
-  const [rtId] = targets;
-  if (!rtId) {
-    const hasDeprecatedTarget = (entity.claims?.P1258 ?? []).some(
-      (claim) => claim.rank === "deprecated"
-    );
-    return {
-      mappings: [],
-      state: hasDeprecatedTarget ? "deprecated" : "missing",
-    };
-  }
-  const kind = entityKind(entity, rtId);
-  if (!kind) {
-    return { mappings: [], state: "missing" };
-  }
-  return { mappings: [{ entity, kind, rtId }], state: "matched" };
+  return mapEntity(entity, property, value);
 };
 
 const seasonPath = (rtId: string, season: number): string | null => {
@@ -268,7 +345,7 @@ const matchMovie = (mappings: EntityMapping[]): RottenMapping => {
   if (!rtId) {
     return unavailable("conflict");
   }
-  return { needsSeasonLink: false, rtId, status: "matched" };
+  return { needsSeasonLink: false, rtId, seriesRtId: null, status: "matched" };
 };
 
 const matchSeason = (
@@ -280,21 +357,46 @@ const matchSeason = (
   if (targets.some((target) => target === null)) {
     return unavailable("season");
   }
+  if (
+    seasons.some(
+      ({ seasonOrdinal, seasonOrdinalConflict }) =>
+        seasonOrdinalConflict ||
+        (seasonOrdinal !== null && seasonOrdinal !== season)
+    )
+  ) {
+    return unavailable("season");
+  }
   const uniqueTargets = [...new Set(targets)];
   if (uniqueTargets.length > 1) {
     return unavailable("conflict");
   }
   const [seasonTarget] = uniqueTargets;
   if (seasonTarget) {
-    const [, parent] = seasonTarget.split("/");
-    const matchesParent = series.every(({ rtId }) => rtId === `tv/${parent}`);
-    return matchesParent
-      ? { needsSeasonLink: false, rtId: seasonTarget, status: "matched" }
-      : unavailable("conflict");
+    const seasonSeries = new Set(seasons.map(({ seriesRtId }) => seriesRtId));
+    const [seriesRtId] = seasonSeries;
+    const matchesParent = Boolean(
+      seriesRtId &&
+      seasonSeries.size === 1 &&
+      series.every(({ rtId }) => rtId === seriesRtId)
+    );
+    if (!matchesParent || !seriesRtId) {
+      return unavailable("conflict");
+    }
+    return {
+      needsSeasonLink: false,
+      rtId: seasonTarget,
+      seriesRtId,
+      status: "matched",
+    };
   }
   const seriesTarget = uniqueRtTarget(series);
   if (seriesTarget) {
-    return { needsSeasonLink: true, rtId: seriesTarget, status: "matched" };
+    return {
+      needsSeasonLink: true,
+      rtId: seriesTarget,
+      seriesRtId: seriesTarget,
+      status: "matched",
+    };
   }
   return unavailable("season");
 };
@@ -310,7 +412,7 @@ const matchSeries = (
   if (!rtId) {
     return unavailable(series.length > 0 ? "conflict" : "missing");
   }
-  return { needsSeasonLink: false, rtId, status: "matched" };
+  return { needsSeasonLink: false, rtId, seriesRtId: null, status: "matched" };
 };
 
 const combineLookups = (
@@ -318,6 +420,9 @@ const combineLookups = (
   douban: IdentityLookup | null,
   context: ResolutionContext
 ): RottenMapping => {
+  if ([imdb?.state, douban?.state].includes("ambiguous")) {
+    return unavailable("ambiguous");
+  }
   const mappings = [...(imdb?.mappings ?? []), ...(douban?.mappings ?? [])];
   if (mappings.length === 0) {
     return unavailableLookup(imdb, douban);
