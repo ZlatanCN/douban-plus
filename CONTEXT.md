@@ -244,20 +244,18 @@ src/
 
 ### Rating resolution strategy
 
-`resolveAll` in `orchestrate.ts` uses a **parallel-first** strategy:
+`resolveAll` in `orchestrate.ts` starts each external rating source independently and publishes that source's result as soon as it settles:
 
-1. If H1 has an English title (95%+ of cases) → IMDb + RT + MC fire simultaneously via `Promise.allSettled`. One failure never blocks the others.
-2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
-3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
+1. IMDb requires a valid IMDb ID; Metacritic requires an English title. Their existing acquisition algorithms remain independent.
+2. RT uses the Douban subject ID and an optional IMDb ID to find a Wikidata item. It accepts only an active RT identifier whose film, series, or season identity agrees with the subject context; unresolved identity or season conflicts yield no score.
+3. The RT adapter verifies the returned canonical RT page and media type before reading the current `mediaScorecard` percentage fields. Critics and audience scores can be absent independently, and audience scores retain the page's default audience group.
+4. Each result carries an independent pending/resolved state. Unmounting aborts requests and prevents late results from updating the page.
 
-`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The subject runtime module loads async results; `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
+`resolveAll` accepts the already-extracted `ResolutionContext` and none of the resolution implementation reads the DOM. `SubjectPageRuntime` owns the asynchronous lifecycle; `ExternalRating({ source, rating, resolved })` owns the shared logo and loading/empty/loaded display state. RT ratings are cached locally with the verified subject, RT target, audience group and retrieval time.
 
-### Resolution seam tests (18 tests across 2 files)
+### External rating integration tests
 
-| File | What it covers |
-| --- | --- |
-| `tests/resolve/context.test.ts` | movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
-| `tests/resolve/orchestrate.test.ts` | fetch adapter calls, parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
+`tests/runtime/subject-runtime.test.tsx` replaces only the GM network boundary and observes runtime DOM behavior. It covers identity mapping, score display, per-source completion, snapshots, season conflicts and request timeouts. RT's previous title-slug resolver and H1-only context tests were removed with that obsolete contract.
 
 ### QA / E2E harness
 
@@ -323,11 +321,10 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 4. **Native-summary adoption runtime hook (2026-07-16)** — `modules/subject/runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
 
-5. **External rating fetcher factory (2026-07-09)** — `src/modules/subject/api/rating-fetcher.ts` owns the common provider algorithm:
-   - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
-   - The shared implementation handles empty titles, slug normalization, cache-key construction, TTL cache lookup/write, sequential URL fallback, network-error isolation, and parser-null fallback
-   - Provider modules keep only site-specific knowledge: Metacritic URL shapes + JSON-LD parser; Rotten Tomatoes URL shapes + script JSON parser
-   - Preserve sequential fallback. These provider URLs are alternatives, not independent sources, so do not parallelize them.
+5. **External rating acquisition (2026-11-14)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api`:
+   - Metacritic retains its existing title-slug adapter and JSON-LD parser.
+   - Rotten Tomatoes resolves IMDb and Douban identifiers to an active RT identifier, checks film/series/season identity, parses `scorePercent`, and stores only verified snapshots.
+   - The two sources no longer share a title-slug acquisition contract; RT matching and caching are owned by the RT adapter.
 
 6. **Canonical modal module (2026-07-09)** — `src/shared/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior
