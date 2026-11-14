@@ -827,10 +827,7 @@ describe("Subject page runtime", () => {
       })
     );
     const rtUrl = "https://www.rottentomatoes.com/m/shawshank_redemption";
-    let resolveRtResponse!: (reply: MockReply) => void;
-    const rtResponse = new Promise<MockReply>((resolve) => {
-      resolveRtResponse = resolve;
-    });
+    const rtResponse = Promise.withResolvers<MockReply>();
     mockNetwork((url) => {
       if (url.includes("wikidata.org/w/api.php")) {
         const requestUrl = new URL(url);
@@ -853,7 +850,7 @@ describe("Subject page runtime", () => {
           }),
         };
       }
-      return url === rtUrl ? rtResponse : { body: "", status: 404 };
+      return url === rtUrl ? rtResponse.promise : { body: "", status: 404 };
     });
     const root = renderIntoRoot(
       <SubjectPageRuntime data={makeData()} doc={document} />
@@ -862,7 +859,7 @@ describe("Subject page runtime", () => {
     await vi.waitFor(() =>
       expect(root.querySelector(".atv-rt-stale")?.textContent).toBe("旧评分")
     );
-    resolveRtResponse({
+    rtResponse.resolve({
       body: '<link rel="canonical" href="https://www.rottentomatoes.com/m/different_movie"><script type="application/ld+json">{"@type":"Movie"}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"90%"}}</script>',
     });
 
@@ -928,10 +925,7 @@ describe("Subject page runtime", () => {
   it("hides a snapshot older than 30 days", async () => {
     const now = 1_800_000_000_000;
     vi.spyOn(Date, "now").mockReturnValue(now);
-    const expired = makeRtSnapshot(
-      {},
-      now - 30 * 24 * 60 * 60 * 1000 - 1
-    );
+    const expired = makeRtSnapshot({}, now - 30 * 24 * 60 * 60 * 1000 - 1);
     localStorage.setItem(
       "dp:rotten-snapshots:v1",
       JSON.stringify({
