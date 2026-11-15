@@ -10,13 +10,13 @@ import {
   writeSnapshot,
 } from "./rotten-snapshot";
 import {
-  TARGET_REVALIDATION_INTERVAL,
   cacheRtTarget,
   getCachedRtTarget,
   invalidateRtTarget,
   resolveRtTarget,
 } from "./rotten-target";
 import type { ResolvedRtTarget, RtTargetResult } from "./rotten-target";
+import { TARGET_REVALIDATION_INTERVAL } from "./verified-target-cache";
 
 type RtResolution = {
   rating: RtRating | null;

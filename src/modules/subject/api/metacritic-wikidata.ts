@@ -1,5 +1,4 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
-import { createCache } from "@/shared/utils/cache";
 
 import { entityKind, readMetacriticId } from "./metacritic-wikidata-claims";
 import type {
@@ -10,18 +9,14 @@ import type {
 import { findEntity } from "./metacritic-wikidata-lookup";
 import type { LookupResult } from "./metacritic-wikidata-lookup";
 import { resolveSeasonTarget } from "./metacritic-wikidata-season";
+import { createVerifiedTargetCache } from "./verified-target-cache";
 
-type CachedTarget =
-  | { status: "resolved"; target: MetacriticTarget; verifiedAt: number }
-  | { status: "invalidated" };
 type MetacriticTargetResolution =
   | { complete: boolean; status: "error" | "missing" | "ambiguous" }
   | { complete: boolean; status: "matched"; target: MetacriticTarget };
 
-const TARGET_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
-const targetCache = createCache<CachedTarget>(
-  "dp:metacritic-targets:v1",
-  TARGET_CACHE_TTL
+const targetCache = createVerifiedTargetCache<MetacriticTarget>(
+  "dp:metacritic-targets:v1"
 );
 
 const resolveEntity = (
@@ -86,14 +81,6 @@ const resolveIdentifier = async (
   return resolveEntity(lookup.entity, context, signal);
 };
 
-const targetCacheKey = (context: ResolutionContext): string =>
-  JSON.stringify([
-    context.subjectId,
-    context.imdbId,
-    context.kind,
-    context.season,
-  ]);
-
 const resolveMetacriticTargetFresh = async (
   context: ResolutionContext,
   signal: AbortSignal
@@ -152,7 +139,7 @@ const resolveMetacriticTarget = async (
   context: ResolutionContext,
   signal: AbortSignal
 ): Promise<MetacriticTarget | null> => {
-  const cached = targetCache.get(targetCacheKey(context));
+  const cached = targetCache.get(context);
   if (cached?.status === "resolved") {
     return cached.target;
   }
@@ -160,24 +147,9 @@ const resolveMetacriticTarget = async (
   return result.status === "matched" ? result.target : null;
 };
 
-const getCachedMetacriticTarget = (
-  context: ResolutionContext
-): CachedTarget | null => targetCache.get(targetCacheKey(context)) ?? null;
-
-const cacheMetacriticTarget = (
-  context: ResolutionContext,
-  target: MetacriticTarget
-): void => {
-  targetCache.set(targetCacheKey(context), {
-    status: "resolved",
-    target,
-    verifiedAt: Date.now(),
-  });
-};
-
-const invalidateMetacriticTarget = (context: ResolutionContext): void => {
-  targetCache.set(targetCacheKey(context), { status: "invalidated" });
-};
+const getCachedMetacriticTarget = targetCache.get;
+const cacheMetacriticTarget = targetCache.set;
+const invalidateMetacriticTarget = targetCache.invalidate;
 
 export {
   cacheMetacriticTarget,

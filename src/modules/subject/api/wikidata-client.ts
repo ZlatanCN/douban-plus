@@ -3,6 +3,9 @@ import { gmGetResponse } from "@/shared/utils/request";
 type SearchResult =
   | { entityIds: string[]; status: "matched" }
   | { status: "ambiguous" | "missing" };
+type EntityCandidates<T> =
+  | { entities: T[]; status: "matched" }
+  | { status: "ambiguous" | "missing" };
 
 const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
@@ -70,5 +73,21 @@ const fetchEntities = async <T>(
   return data.entities ?? {};
 };
 
-export { fetchEntities, searchEntityIds };
-export type { SearchResult };
+const findEntityCandidates = async <T>(
+  property: string,
+  value: string,
+  signal: AbortSignal
+): Promise<EntityCandidates<T>> => {
+  const search = await searchEntityIds(property, value, signal);
+  if (search.status !== "matched") {
+    return search;
+  }
+  const fetched = await fetchEntities<T>(search.entityIds, signal);
+  const entities = Object.values(fetched);
+  return entities.length > 0
+    ? { entities, status: "matched" }
+    : { status: "missing" };
+};
+
+export { fetchEntities, findEntityCandidates };
+export type { EntityCandidates };

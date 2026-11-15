@@ -1482,6 +1482,32 @@ describe("Subject page runtime", () => {
     expect(requests).not.toContain("https://graphql.imdb.com/");
   });
 
+  it("does not use an episode IMDb ID as the series rating", async () => {
+    const requests: string[] = [];
+    mockNetwork((url) => {
+      requests.push(url);
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: { ...makeData().info, imdb: "tt0944947" },
+      isTV: true,
+      title: {
+        full: "Game of Thrones Episode 1",
+        original: "Game of Thrones Episode 1",
+        primary: "权力的游戏 第 1 集",
+        seasonLabel: "",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(root.querySelector(".atv-rating-panel-imdb")).toBeNull()
+    );
+    expect(requests).toStrictEqual([]);
+  });
+
   it("rejects a Wikidata season qualifier that conflicts with the selected season", async () => {
     const requests: string[] = [];
     mockNetwork((url) => {

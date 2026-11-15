@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-C46Jc5sc-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-B4i3QYRN-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16199,11 +16199,20 @@ var fetchEntities$1 = async (entityIds, signal) => {
 	});
 	return JSON.parse(response.responseText).entities ?? {};
 };
-var findEntity = async (property, value, signal) => {
+var findEntityCandidates = async (property, value, signal) => {
 	const search = await searchEntityIds(property, value, signal);
 	if (search.status !== "matched") return search;
-	const entities = await fetchEntities$1(search.entityIds, signal);
-	const matches = Object.values(entities).filter((entity) => hasIdentity(entity, property, value));
+	const fetched = await fetchEntities$1(search.entityIds, signal);
+	const entities = Object.values(fetched);
+	return entities.length > 0 ? {
+		entities,
+		status: "matched"
+	} : { status: "missing" };
+};
+var findEntity = async (property, value, signal) => {
+	const candidates = await findEntityCandidates(property, value, signal);
+	if (candidates.status !== "matched") return candidates;
+	const matches = candidates.entities.filter((entity) => hasIdentity(entity, property, value));
 	if (matches.length > 1) return { status: "ambiguous" };
 	const [entity] = matches;
 	return entity ? {
@@ -16253,7 +16262,31 @@ var resolveSeasonTarget = (entity, kind, season, signal) => {
 	if (kind === "series" || kind === null) return seasonForSeries(entity, season, signal);
 	return { status: "ambiguous" };
 };
-var targetCache = createCache("dp:metacritic-targets:v1", 2592e6);
+var TARGET_CACHE_TTL = 2592e6;
+var TARGET_REVALIDATION_INTERVAL = 864e5;
+var targetCacheKey = (context) => JSON.stringify([
+	context.subjectId,
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var createVerifiedTargetCache = (storageKey) => {
+	const cache = createCache(storageKey, TARGET_CACHE_TTL);
+	return {
+		get: (context) => cache.get(targetCacheKey(context)) ?? null,
+		invalidate: (context) => {
+			cache.set(targetCacheKey(context), { status: "invalidated" });
+		},
+		set: (context, target) => {
+			cache.set(targetCacheKey(context), {
+				status: "resolved",
+				target,
+				verifiedAt: Date.now()
+			});
+		}
+	};
+};
+var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v1");
 var resolveEntity = (entity, context, signal) => {
 	const kind = entityKind$1(entity);
 	if (context.kind === "movie") {
@@ -16288,12 +16321,6 @@ var resolveIdentifier = async (property, value, context, signal) => {
 	if (lookup.status !== "matched") return lookup;
 	return resolveEntity(lookup.entity, context, signal);
 };
-var targetCacheKey$1 = (context) => JSON.stringify([
-	context.subjectId,
-	context.imdbId,
-	context.kind,
-	context.season
-]);
 var resolveMetacriticTargetFresh = async (context, signal) => {
 	if (context.seasonConflict || context.unsupportedEpisode) return {
 		complete: true,
@@ -16331,25 +16358,16 @@ var resolveMetacriticTargetFresh = async (context, signal) => {
 	};
 };
 var resolveMetacriticTarget = async (context, signal) => {
-	const cached = targetCache.get(targetCacheKey$1(context));
+	const cached = targetCache.get(context);
 	if (cached?.status === "resolved") return cached.target;
 	const result = await resolveMetacriticTargetFresh(context, signal);
 	return result.status === "matched" ? result.target : null;
 };
-var getCachedMetacriticTarget = (context) => targetCache.get(targetCacheKey$1(context)) ?? null;
-var cacheMetacriticTarget = (context, target) => {
-	targetCache.set(targetCacheKey$1(context), {
-		status: "resolved",
-		target,
-		verifiedAt: Date.now()
-	});
-};
-var invalidateMetacriticTarget = (context) => {
-	targetCache.set(targetCacheKey$1(context), { status: "invalidated" });
-};
+var getCachedMetacriticTarget = targetCache.get;
+var cacheMetacriticTarget = targetCache.set;
+var invalidateMetacriticTarget = targetCache.invalidate;
 var METACRITIC_ORIGIN = "https://www.metacritic.com";
 var REQUEST_TIMEOUT$1 = 8e3;
-var TARGET_REVALIDATION_INTERVAL$1 = 864e5;
 var mcCache = createCache("dp:metacritic-cache-v2", 6048e5);
 var cacheKey = (context, target) => [
 	context.subjectId,
@@ -16415,7 +16433,7 @@ var fetchMcRating = async (context, signal, onCachedUpdate) => {
 		const targetCacheEntry = getCachedMetacriticTarget(context);
 		if (targetCacheEntry?.status === "resolved") {
 			const { target } = targetCacheEntry;
-			const shouldRevalidate = Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL$1;
+			const shouldRevalidate = Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL;
 			const cachedRating = mcCache.get(cacheKey(context, target));
 			if (cachedRating) {
 				onCachedUpdate?.(cachedRating);
@@ -16838,14 +16856,13 @@ var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
 	};
 };
 var fetchEntities = async (property, value, signal, expectedSeason) => {
-	const search = await searchEntityIds(property, value, signal);
-	if (search.status !== "matched") return {
+	const candidates = await findEntityCandidates(property, value, signal);
+	if (candidates.status !== "matched") return {
 		mappings: [],
-		state: search.status
+		state: candidates.status
 	};
-	const fetched = await fetchEntities$1(search.entityIds, signal);
-	const entities = Object.values(fetched).filter((entity) => hasActiveIdentity(entity, property, value));
-	const deprecated = Object.values(fetched).some((entity) => isDeprecatedIdentity(entity, property, value));
+	const entities = candidates.entities.filter((entity) => hasActiveIdentity(entity, property, value));
+	const deprecated = candidates.entities.some((entity) => isDeprecatedIdentity(entity, property, value));
 	if (entities.length > 1) return {
 		mappings: [],
 		state: "ambiguous"
@@ -16959,24 +16976,10 @@ var resolveRottenMapping = async (context, signal) => {
 		state: "error"
 	}, context);
 };
-var rtTargetCache = createCache("dp:rotten-targets:v1", 2592e6);
-var targetCacheKey = (context) => JSON.stringify([
-	context.subjectId,
-	context.imdbId,
-	context.kind,
-	context.season
-]);
-var getCachedRtTarget = (context) => rtTargetCache.get(targetCacheKey(context)) ?? null;
-var cacheRtTarget = (context, target) => {
-	rtTargetCache.set(targetCacheKey(context), {
-		status: "resolved",
-		target,
-		verifiedAt: Date.now()
-	});
-};
-var invalidateRtTarget = (context) => {
-	rtTargetCache.set(targetCacheKey(context), { status: "invalidated" });
-};
+var rtTargetCache = createVerifiedTargetCache("dp:rotten-targets:v1");
+var getCachedRtTarget = rtTargetCache.get;
+var cacheRtTarget = rtTargetCache.set;
+var invalidateRtTarget = rtTargetCache.invalidate;
 var resolveRtTarget = async (context, signal, refresh = false) => {
 	if (!context.subjectId) return { failure: "missing-mapping" };
 	if (context.seasonConflict || context.unsupportedEpisode) return { failure: "season-unmatched" };
@@ -17128,7 +17131,7 @@ var settle = async (request, signal, publish) => {
 	if (!signal.aborted) publish(rating);
 };
 var resolveAll = (context, signal, onUpdate) => {
-	if (context.imdbId && !context.seasonConflict) settle(fetchImdbRating(context.imdbId, context.season ?? void 0), signal, (rating) => onUpdate({
+	if (context.imdbId && !context.seasonConflict && !context.unsupportedEpisode) settle(fetchImdbRating(context.imdbId, context.season ?? void 0), signal, (rating) => onUpdate({
 		result: {
 			rating,
 			status: "resolved"
@@ -19555,7 +19558,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-C46Jc5sc-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-B4i3QYRN-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

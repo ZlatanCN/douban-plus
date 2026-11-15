@@ -1,6 +1,6 @@
 import { hasIdentity } from "./metacritic-wikidata-claims";
 import type { Entity } from "./metacritic-wikidata-claims";
-import { fetchEntities, searchEntityIds } from "./wikidata-client";
+import { findEntityCandidates } from "./wikidata-client";
 
 type LookupResult =
   | { entity: Entity; status: "matched" }
@@ -11,12 +11,15 @@ const findEntity = async (
   value: string,
   signal: AbortSignal
 ): Promise<LookupResult> => {
-  const search = await searchEntityIds(property, value, signal);
-  if (search.status !== "matched") {
-    return search;
+  const candidates = await findEntityCandidates<Entity>(
+    property,
+    value,
+    signal
+  );
+  if (candidates.status !== "matched") {
+    return candidates;
   }
-  const entities = await fetchEntities<Entity>(search.entityIds, signal);
-  const matches = Object.values(entities).filter((entity) =>
+  const matches = candidates.entities.filter((entity) =>
     hasIdentity(entity, property, value)
   );
   if (matches.length > 1) {

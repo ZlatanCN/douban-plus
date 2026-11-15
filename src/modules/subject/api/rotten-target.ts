@@ -1,9 +1,9 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
-import { createCache } from "@/shared/utils/cache";
 
 import { isRtSeriesPage, requestRtPage } from "./rotten-page";
 import { findSeasonPath } from "./rotten-parser";
 import { resolveRottenMapping } from "./rotten-wikidata";
+import { createVerifiedTargetCache } from "./verified-target-cache";
 
 type ResolvedRtTarget = { rtId: string; seriesRtId: string | null };
 type TargetFailure =
@@ -13,42 +13,13 @@ type TargetFailure =
   | "missing-mapping"
   | "season-unmatched";
 type RtTargetResult = ResolvedRtTarget | { failure: TargetFailure };
-type CachedRtTarget =
-  | { status: "resolved"; target: ResolvedRtTarget; verifiedAt: number }
-  | { status: "invalidated" };
-
-const TARGET_CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
-const TARGET_REVALIDATION_INTERVAL = 24 * 60 * 60 * 1000;
-const rtTargetCache = createCache<CachedRtTarget>(
-  "dp:rotten-targets:v1",
-  TARGET_CACHE_TTL
+const rtTargetCache = createVerifiedTargetCache<ResolvedRtTarget>(
+  "dp:rotten-targets:v1"
 );
 
-const targetCacheKey = (context: ResolutionContext): string =>
-  JSON.stringify([
-    context.subjectId,
-    context.imdbId,
-    context.kind,
-    context.season,
-  ]);
-
-const getCachedRtTarget = (context: ResolutionContext): CachedRtTarget | null =>
-  rtTargetCache.get(targetCacheKey(context)) ?? null;
-
-const cacheRtTarget = (
-  context: ResolutionContext,
-  target: ResolvedRtTarget
-): void => {
-  rtTargetCache.set(targetCacheKey(context), {
-    status: "resolved",
-    target,
-    verifiedAt: Date.now(),
-  });
-};
-
-const invalidateRtTarget = (context: ResolutionContext): void => {
-  rtTargetCache.set(targetCacheKey(context), { status: "invalidated" });
-};
+const getCachedRtTarget = rtTargetCache.get;
+const cacheRtTarget = rtTargetCache.set;
+const invalidateRtTarget = rtTargetCache.invalidate;
 
 const resolveRtTarget = async (
   context: ResolutionContext,
@@ -109,10 +80,9 @@ const resolveRtTarget = async (
 };
 
 export {
-  TARGET_REVALIDATION_INTERVAL,
   cacheRtTarget,
   getCachedRtTarget,
   invalidateRtTarget,
   resolveRtTarget,
 };
-export type { CachedRtTarget, ResolvedRtTarget, RtTargetResult };
+export type { ResolvedRtTarget, RtTargetResult };

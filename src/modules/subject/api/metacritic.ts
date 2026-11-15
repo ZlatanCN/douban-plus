@@ -12,10 +12,10 @@ import {
   resolveMetacriticTargetFresh,
 } from "./metacritic-wikidata";
 import type { MetacriticTarget } from "./metacritic-wikidata-claims";
+import { TARGET_REVALIDATION_INTERVAL } from "./verified-target-cache";
 
 const METACRITIC_ORIGIN = "https://www.metacritic.com";
 const REQUEST_TIMEOUT = 8000;
-const TARGET_REVALIDATION_INTERVAL = 24 * 60 * 60 * 1000;
 const mcCache = createCache<NonNullable<McRating>>(
   "dp:metacritic-cache-v2",
   7 * 24 * 60 * 60 * 1000

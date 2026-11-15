@@ -12,7 +12,7 @@ import {
 import type { Entity, IdentityLookup } from "./rotten-wikidata-claims";
 import {
   fetchEntities as fetchWikidataEntities,
-  searchEntityIds,
+  findEntityCandidates,
 } from "./wikidata-client";
 
 const EPISODE_TYPES = new Set(["Q21191270"]);
@@ -132,15 +132,18 @@ const fetchEntities = async (
   signal: AbortSignal,
   expectedSeason?: number
 ): Promise<IdentityLookup> => {
-  const search = await searchEntityIds(property, value, signal);
-  if (search.status !== "matched") {
-    return { mappings: [], state: search.status };
+  const candidates = await findEntityCandidates<Entity>(
+    property,
+    value,
+    signal
+  );
+  if (candidates.status !== "matched") {
+    return { mappings: [], state: candidates.status };
   }
-  const fetched = await fetchWikidataEntities<Entity>(search.entityIds, signal);
-  const entities = Object.values(fetched).filter((entity) =>
+  const entities = candidates.entities.filter((entity) =>
     hasActiveIdentity(entity, property, value)
   );
-  const deprecated = Object.values(fetched).some((entity) =>
+  const deprecated = candidates.entities.some((entity) =>
     isDeprecatedIdentity(entity, property, value)
   );
   if (entities.length > 1) {
