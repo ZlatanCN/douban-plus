@@ -34,7 +34,7 @@ const resolveAll = (
   signal: AbortSignal,
   onUpdate: OnRatingUpdate
 ): void => {
-  if (context.imdbId) {
+  if (context.imdbId && !context.seasonConflict) {
     void settle(
       fetchImdbRating(context.imdbId, context.season ?? undefined),
       signal,

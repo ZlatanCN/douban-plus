@@ -1,6 +1,6 @@
 import { gmGetResponse } from "@/shared/utils/request";
 
-import { readPageIdentity, readPageTypes } from "./rotten-parser";
+import { readStructuredPage, structuredPageTypes } from "./structured-page";
 
 const RT_ORIGIN = "https://www.rottentomatoes.com";
 const REQUEST_TIMEOUT = 8000;
@@ -38,11 +38,11 @@ const requestRtPage = async (
 };
 
 const isRtSeriesPage = (html: string, rtId: string): boolean => {
-  const page = readPageIdentity(html);
+  const page = readStructuredPage(html);
   return Boolean(
     page.canonicalUrl &&
     pathMatches(page.canonicalUrl, rtId) &&
-    readPageTypes(page).has("TVSeries")
+    structuredPageTypes(page).has("TVSeries")
   );
 };
 

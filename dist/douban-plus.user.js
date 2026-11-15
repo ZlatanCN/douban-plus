@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-BUDV-QcE-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-C46Jc5sc-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16030,20 +16030,25 @@ var fetchImdbRating = async (imdbId, season) => {
 		title: titleText
 	};
 };
-var METACRITIC_ORIGIN$1 = "https://www.metacritic.com";
-var readPageData = (html) => {
+var readStructuredPage = (html) => {
 	const canonicalUrl = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
 	const jsonLd = [];
 	for (const match of html.matchAll(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>(?<body>[\s\S]*?)<\/script>/giu)) try {
 		const parsed = JSON.parse(match.groups?.body?.trim() ?? "");
-		const values = Array.isArray(parsed) ? parsed : [parsed];
-		for (const value of values) if (value && typeof value === "object") jsonLd.push(value);
+		for (const value of Array.isArray(parsed) ? parsed : [parsed]) if (value && typeof value === "object") jsonLd.push(value);
 	} catch {}
 	return {
 		canonicalUrl: canonicalUrl ?? null,
 		jsonLd
 	};
 };
+var structuredTypes = (value) => {
+	const type = value["@type"];
+	if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
+	return typeof type === "string" ? [type] : [];
+};
+var structuredPageTypes = (page) => new Set(page.jsonLd.flatMap((value) => structuredTypes(value)));
+var METACRITIC_ORIGIN$1 = "https://www.metacritic.com";
 var pagePath = (value) => {
 	try {
 		const url = new URL(value, METACRITIC_ORIGIN$1);
@@ -16053,30 +16058,25 @@ var pagePath = (value) => {
 		return null;
 	}
 };
-var pageTypes = (page) => new Set(page.jsonLd.flatMap((value) => {
-	const type = value["@type"];
-	if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
-	return typeof type === "string" ? [type] : [];
-}));
-var matchesTarget = (page, target) => {
+var targetEntry = (page, target) => {
 	const expectedPath = `/${target.metacriticId}`;
-	if (!page.canonicalUrl || pagePath(page.canonicalUrl) !== expectedPath) return false;
-	const types = pageTypes(page);
-	if (target.kind === "movie") return types.has("Movie");
-	if (target.kind === "series") return types.has("TVSeries");
-	const season = page.jsonLd.find((entry) => {
-		const type = entry["@type"];
-		return type === "TVSeason" || Array.isArray(type) && type.includes("TVSeason");
-	});
-	if (!types.has("TVSeason") || Number(season?.seasonNumber) !== target.season) return false;
-	const partOfSeries = season?.partOfSeries;
-	const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
+	if (!page.canonicalUrl || pagePath(page.canonicalUrl) !== expectedPath) return null;
 	const expectedSeriesPath = target.metacriticId.replace(/\/season-\d+$/u, "");
-	return typeof seriesUrl === "string" && pagePath(seriesUrl) === `/${expectedSeriesPath}`;
+	return page.jsonLd.find((entry) => {
+		const types = new Set(structuredTypes(entry));
+		if (target.kind === "movie") return types.has("Movie");
+		if (target.kind === "series") return types.has("TVSeries");
+		if (!types.has("TVSeason") || Number(entry.seasonNumber) !== target.season) return false;
+		const { partOfSeries } = entry;
+		const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
+		return typeof seriesUrl === "string" && pagePath(seriesUrl) === `/${expectedSeriesPath}`;
+	}) ?? null;
 };
+var matchesTarget = (page, target) => targetEntry(page, target) !== null;
 var parseRating = (page, target) => {
-	if (!matchesTarget(page, target)) return null;
-	const aggregateRating = page.jsonLd.find((entry) => entry.aggregateRating && typeof entry.aggregateRating === "object")?.aggregateRating;
+	const matchedEntry = targetEntry(page, target);
+	if (!matchedEntry) return null;
+	const { aggregateRating } = matchedEntry;
 	if (!aggregateRating || typeof aggregateRating !== "object") return null;
 	const ratingValue = Reflect.get(aggregateRating, "ratingValue");
 	const reviewCount = Reflect.get(aggregateRating, "reviewCount");
@@ -16089,8 +16089,8 @@ var parseRating = (page, target) => {
 		score
 	};
 };
-var parseMcPage = (html, target) => parseRating(readPageData(html), target);
-var isMatchingMcPage = (html, target) => matchesTarget(readPageData(html), target);
+var parseMcPage = (html, target) => parseRating(readStructuredPage(html), target);
+var isMatchingMcPage = (html, target) => matchesTarget(readStructuredPage(html), target);
 var ACTIVE_RANKS$1 = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var TYPES = {
 	episode: /* @__PURE__ */ new Set(["Q21191270"]),
@@ -16158,26 +16158,11 @@ var readMetacriticId = (entity) => {
 	} : { status: "ambiguous" };
 };
 var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
-var API_URL$1 = "https://www.wikidata.org/w/api.php";
-var REQUEST_TIMEOUT$3 = 8e3;
-var fetchEntity$1 = async (id, signal) => {
-	const url = new URL(API_URL$1);
+var API_URL = "https://www.wikidata.org/w/api.php";
+var REQUEST_TIMEOUT$2 = 8e3;
+var searchEntityIds = async (property, value, signal) => {
+	const url = new URL(API_URL);
 	url.search = new URLSearchParams({
-		action: "wbgetentities",
-		format: "json",
-		ids: id,
-		origin: "*",
-		props: "claims"
-	}).toString();
-	const response = await gmGetResponse(url.href, void 0, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT$3
-	});
-	return JSON.parse(response.responseText).entities?.[id] ?? null;
-};
-var findEntity = async (property, value, signal) => {
-	const searchUrl = new URL(API_URL$1);
-	searchUrl.search = new URLSearchParams({
 		action: "query",
 		format: "json",
 		list: "search",
@@ -16186,28 +16171,39 @@ var findEntity = async (property, value, signal) => {
 		srnamespace: "0",
 		srsearch: `haswbstatement:${property}=${value}`
 	}).toString();
-	const searchResponse = await gmGetResponse(searchUrl.href, void 0, {
+	const response = await gmGetResponse(url.href, void 0, {
 		signal,
-		timeoutMs: REQUEST_TIMEOUT$3
+		timeoutMs: REQUEST_TIMEOUT$2
 	});
-	const search = JSON.parse(searchResponse.responseText);
-	if (search.continue) return { status: "ambiguous" };
-	const ids = [...new Set((search.query?.search ?? []).map((item) => item.title).filter((id) => /^Q\d+$/u.test(id ?? "")))];
-	if (ids.length === 0) return { status: "missing" };
-	const claimsUrl = new URL(API_URL$1);
-	claimsUrl.search = new URLSearchParams({
+	const data = JSON.parse(response.responseText);
+	if (data.continue) return { status: "ambiguous" };
+	const entityIds = [...new Set((data.query?.search ?? []).map((item) => item.title).filter((id) => /^Q\d+$/u.test(id ?? "")))];
+	return entityIds.length > 0 ? {
+		entityIds,
+		status: "matched"
+	} : { status: "missing" };
+};
+var fetchEntities$1 = async (entityIds, signal) => {
+	if (entityIds.length === 0) return {};
+	const url = new URL(API_URL);
+	url.search = new URLSearchParams({
 		action: "wbgetentities",
 		format: "json",
-		ids: ids.join("|"),
+		ids: entityIds.join("|"),
 		origin: "*",
 		props: "claims"
 	}).toString();
-	const claimsResponse = await gmGetResponse(claimsUrl.href, void 0, {
+	const response = await gmGetResponse(url.href, void 0, {
 		signal,
-		timeoutMs: REQUEST_TIMEOUT$3
+		timeoutMs: REQUEST_TIMEOUT$2
 	});
-	const data = JSON.parse(claimsResponse.responseText);
-	const matches = Object.values(data.entities ?? {}).filter((entity) => hasIdentity(entity, property, value));
+	return JSON.parse(response.responseText).entities ?? {};
+};
+var findEntity = async (property, value, signal) => {
+	const search = await searchEntityIds(property, value, signal);
+	if (search.status !== "matched") return search;
+	const entities = await fetchEntities$1(search.entityIds, signal);
+	const matches = Object.values(entities).filter((entity) => hasIdentity(entity, property, value));
 	if (matches.length > 1) return { status: "ambiguous" };
 	const [entity] = matches;
 	return entity ? {
@@ -16235,7 +16231,7 @@ var seasonForEpisode = async (episode, season, signal) => {
 	if (seasonRef.status !== "matched") return { status: seasonRef.status };
 	const expectedSeries = uniqueReference(episode.claims, "P179");
 	if (expectedSeries.status === "ambiguous") return expectedSeries;
-	const entity = await fetchEntity$1(seasonRef.id, signal);
+	const entity = (await fetchEntities$1([seasonRef.id], signal))[seasonRef.id];
 	return entity ? seasonTarget(entity, season, expectedSeries.status === "matched" ? expectedSeries.id : null) : { status: "missing" };
 };
 var seasonForSeries = async (series, season, signal) => {
@@ -16248,7 +16244,7 @@ var seasonForSeries = async (series, season, signal) => {
 	const uniqueSeasonIds = [...new Set(seasonIds)];
 	const [seasonId] = uniqueSeasonIds;
 	if (uniqueSeasonIds.length !== 1 || !seasonId) return { status: uniqueSeasonIds.length > 1 ? "ambiguous" : "missing" };
-	const entity = await fetchEntity$1(seasonId, signal);
+	const entity = (await fetchEntities$1([seasonId], signal))[seasonId];
 	return entity ? seasonTarget(entity, season, series.id) : { status: "missing" };
 };
 var resolveSeasonTarget = (entity, kind, season, signal) => {
@@ -16352,7 +16348,7 @@ var invalidateMetacriticTarget = (context) => {
 	targetCache.set(targetCacheKey$1(context), { status: "invalidated" });
 };
 var METACRITIC_ORIGIN = "https://www.metacritic.com";
-var REQUEST_TIMEOUT$2 = 8e3;
+var REQUEST_TIMEOUT$1 = 8e3;
 var TARGET_REVALIDATION_INTERVAL$1 = 864e5;
 var mcCache = createCache("dp:metacritic-cache-v2", 6048e5);
 var cacheKey = (context, target) => [
@@ -16371,7 +16367,7 @@ var fetchRatingForTarget = async (context, target, signal, cacheVerifiedTarget =
 	}
 	const response = await gmGetResponse(`${METACRITIC_ORIGIN}/${target.metacriticId}/`, `${METACRITIC_ORIGIN}/`, {
 		signal,
-		timeoutMs: REQUEST_TIMEOUT$2
+		timeoutMs: REQUEST_TIMEOUT$1
 	});
 	if (pagePath(response.finalUrl) !== `/${target.metacriticId}`) {
 		invalidateMetacriticTarget(context);
@@ -16387,37 +16383,48 @@ var fetchRatingForTarget = async (context, target, signal, cacheVerifiedTarget =
 	mcCache.set(key, rating);
 	return rating;
 };
-var refreshCachedTarget$1 = async (context, cachedTarget, signal, onUpdate) => {
+var revalidateCachedTarget = async (context, cachedTarget, signal) => {
 	let resolution;
 	try {
 		resolution = await resolveMetacriticTargetFresh(context, signal);
 	} catch {
-		return;
+		return cachedTarget;
 	}
-	if (!resolution.complete || signal.aborted) return;
+	if (!resolution.complete || signal.aborted) return cachedTarget;
 	if (resolution.status === "matched" && sameTarget(resolution.target, cachedTarget)) {
 		cacheMetacriticTarget(context, cachedTarget);
-		return;
+		return cachedTarget;
 	}
 	invalidateMetacriticTarget(context);
-	onUpdate?.(null);
-	if (resolution.status === "matched") {
-		const rating = await fetchRatingForTarget(context, resolution.target, signal, true).catch(() => null);
-		if (!signal.aborted) onUpdate?.(rating);
+	return resolution.status === "matched" ? resolution.target : null;
+};
+var refreshCachedTarget$1 = async (context, cachedTarget, signal, onUpdate) => {
+	const freshTarget = await revalidateCachedTarget(context, cachedTarget, signal);
+	if (signal.aborted) return;
+	if (!freshTarget) {
+		onUpdate?.(null);
+		return;
 	}
+	if (sameTarget(freshTarget, cachedTarget)) return;
+	onUpdate?.(null);
+	const rating = await fetchRatingForTarget(context, freshTarget, signal, true).catch(() => null);
+	if (!signal.aborted) onUpdate?.(rating);
 };
 var fetchMcRating = async (context, signal, onCachedUpdate) => {
 	try {
 		const targetCacheEntry = getCachedMetacriticTarget(context);
 		if (targetCacheEntry?.status === "resolved") {
 			const { target } = targetCacheEntry;
+			const shouldRevalidate = Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL$1;
 			const cachedRating = mcCache.get(cacheKey(context, target));
 			if (cachedRating) {
 				onCachedUpdate?.(cachedRating);
-				if (Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL$1) refreshCachedTarget$1(context, target, signal, onCachedUpdate);
+				if (shouldRevalidate) refreshCachedTarget$1(context, target, signal, onCachedUpdate);
 				return cachedRating;
 			}
-			return fetchRatingForTarget(context, target, signal);
+			const currentTarget = shouldRevalidate ? await revalidateCachedTarget(context, target, signal) : target;
+			if (!currentTarget || signal.aborted) return null;
+			return fetchRatingForTarget(context, currentTarget, signal, true);
 		}
 		const target = await resolveMetacriticTarget(context, signal);
 		if (!target || signal.aborted) return null;
@@ -16426,24 +16433,33 @@ var fetchMcRating = async (context, signal, onCachedUpdate) => {
 		return null;
 	}
 };
-var expectedPath = (rtId) => `/${rtId}`;
-var readPageIdentity = (html) => {
-	const canonical = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
-	const jsonLd = [];
-	for (const match of html.matchAll(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>(?<body>[\s\S]*?)<\/script>/giu)) try {
-		const parsed = JSON.parse(match.groups?.body?.trim() ?? "");
-		for (const value of Array.isArray(parsed) ? parsed : [parsed]) if (value && typeof value === "object") jsonLd.push(value);
-	} catch {}
+var RT_ORIGIN = "https://www.rottentomatoes.com";
+var REQUEST_TIMEOUT = 8e3;
+var pathMatches = (url, rtId) => {
+	try {
+		const parsed = new URL(url);
+		return parsed.hostname === "www.rottentomatoes.com" && parsed.pathname === `/${rtId}` && !parsed.search;
+	} catch {
+		return false;
+	}
+};
+var requestRtPage = async (rtId, signal) => {
+	const url = `${RT_ORIGIN}/${rtId}`;
+	const response = await gmGetResponse(url, `${RT_ORIGIN}/`, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT
+	});
+	if (response.status < 200 || response.status >= 400 || !pathMatches(response.finalUrl, rtId)) throw new Error("Rotten Tomatoes response did not match its mapped page");
 	return {
-		canonicalUrl: canonical ?? null,
-		jsonLd
+		html: response.responseText,
+		url
 	};
 };
-var readPageTypes = (page) => new Set(page.jsonLd.flatMap((value) => {
-	const type = value["@type"];
-	if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
-	return typeof type === "string" ? [type] : [];
-}));
+var isRtSeriesPage = (html, rtId) => {
+	const page = readStructuredPage(html);
+	return Boolean(page.canonicalUrl && pathMatches(page.canonicalUrl, rtId) && structuredPageTypes(page).has("TVSeries"));
+};
+var expectedPath = (rtId) => `/${rtId}`;
 var readSeriesRtId = (page) => {
 	const partOfSeries = page.jsonLd.find((entry) => {
 		const type = entry["@type"];
@@ -16468,6 +16484,37 @@ var readSeasonNumber = (page, html) => {
 	const heading = html.match(/<h1\b[^>]*>[\s\S]*?season\s+(?<season>\d+)[\s\S]*?<\/h1>/iu)?.groups?.season;
 	const fromHeading = Number(heading);
 	return Number.isSafeInteger(fromHeading) && fromHeading > 0 ? fromHeading : null;
+};
+var scorecardIdentityStatus = (page, html, input) => {
+	if (!page.canonicalUrl) return "invalid-page";
+	let canonical;
+	let request;
+	try {
+		canonical = new URL(page.canonicalUrl, input.url);
+		request = new URL(input.url);
+	} catch {
+		return "invalid-page";
+	}
+	if (canonical.hostname !== "www.rottentomatoes.com" || canonical.pathname !== expectedPath(input.rtId) || canonical.pathname !== request.pathname) return "identity-conflict";
+	const types = structuredPageTypes(page);
+	if (types.size === 0) return "invalid-page";
+	if (input.kind === "movie") return types.has("Movie") ? "matched" : "identity-conflict";
+	if (input.kind === "series") return types.has("TVSeries") ? "matched" : "identity-conflict";
+	if (!types.has("TVSeason")) return "identity-conflict";
+	const pageSeason = readSeasonNumber(page, html);
+	const pageSeries = readSeriesRtId(page);
+	if (pageSeason === null || pageSeries === null || input.season === null || input.seriesRtId === null) return "invalid-page";
+	return pageSeason === input.season && pageSeries === input.seriesRtId ? "matched" : "identity-conflict";
+};
+var findSeasonPath = (html, seriesRtId, season) => {
+	if (!structuredPageTypes(readStructuredPage(html)).has("TVSeries")) return null;
+	const prefix = `/${seriesRtId}/s`;
+	for (const match of html.matchAll(/\bhref=["'](?<href>[^"']+)["']/giu)) try {
+		const link = new URL(match.groups?.href ?? "", "https://www.rottentomatoes.com");
+		const expected = `${prefix}${String(season).padStart(2, "0")}`;
+		if (link.hostname === "www.rottentomatoes.com" && link.pathname === expected) return link.pathname.slice(1);
+	} catch {}
+	return null;
 };
 var scoreValue = (value) => {
 	if (typeof value !== "string" && typeof value !== "number") return null;
@@ -16517,29 +16564,7 @@ var audienceGroup = (scorecard) => {
 		group: "verified",
 		score: overlay.audienceVerified
 	}] : []].filter(({ score }) => scoreValue(score.scorePercent) === defaultScore && sameCount(score.bandedRatingCount ?? score.ratingCount, defaultCount));
-	if (candidates.length !== 1) return null;
-	return candidates[0]?.group ?? null;
-};
-var scorecardIdentityStatus = (page, html, input) => {
-	if (!page.canonicalUrl) return "invalid-page";
-	let canonical;
-	let request;
-	try {
-		canonical = new URL(page.canonicalUrl, input.url);
-		request = new URL(input.url);
-	} catch {
-		return "invalid-page";
-	}
-	if (canonical.hostname !== "www.rottentomatoes.com" || canonical.pathname !== expectedPath(input.rtId) || canonical.pathname !== request.pathname) return "identity-conflict";
-	const types = readPageTypes(page);
-	if (types.size === 0) return "invalid-page";
-	if (input.kind === "movie") return types.has("Movie") ? "matched" : "identity-conflict";
-	if (input.kind === "series") return types.has("TVSeries") ? "matched" : "identity-conflict";
-	if (!types.has("TVSeason")) return "identity-conflict";
-	const pageSeason = readSeasonNumber(page, html);
-	const pageSeries = readSeriesRtId(page);
-	if (pageSeason === null || pageSeries === null || input.season === null || input.seriesRtId === null) return "invalid-page";
-	return pageSeason === input.season && pageSeries === input.seriesRtId ? "matched" : "identity-conflict";
+	return candidates.length === 1 ? candidates[0]?.group ?? null : null;
 };
 var readScorecard = (html) => {
 	const script = html.match(/<script\b(?=[^>]*\bdata-json=["']mediaScorecard["'])[^>]*>(?<body>[\s\S]*?)<\/script>/iu)?.groups?.body;
@@ -16574,7 +16599,7 @@ var buildRating = (data, input, sourceUrl) => {
 	};
 };
 var parseScorecard = (html, input) => {
-	const page = readPageIdentity(html);
+	const page = readStructuredPage(html);
 	const identity = scorecardIdentityStatus(page, html, input);
 	if (identity === "identity-conflict") return { status: identity };
 	if (identity === "invalid-page" || !page.canonicalUrl) return { status: "invalid-page" };
@@ -16585,42 +16610,6 @@ var parseScorecard = (html, input) => {
 		rating,
 		status: "matched"
 	} : { status: "no-rating" };
-};
-var findSeasonPath = (html, seriesRtId, season) => {
-	if (!readPageTypes(readPageIdentity(html)).has("TVSeries")) return null;
-	const prefix = `/${seriesRtId}/s`;
-	for (const match of html.matchAll(/\bhref=["'](?<href>[^"']+)["']/giu)) try {
-		const link = new URL(match.groups?.href ?? "", "https://www.rottentomatoes.com");
-		const expected = `${prefix}${String(season).padStart(2, "0")}`;
-		if (link.hostname === "www.rottentomatoes.com" && link.pathname === expected) return link.pathname.slice(1);
-	} catch {}
-	return null;
-};
-var RT_ORIGIN = "https://www.rottentomatoes.com";
-var REQUEST_TIMEOUT$1 = 8e3;
-var pathMatches = (url, rtId) => {
-	try {
-		const parsed = new URL(url);
-		return parsed.hostname === "www.rottentomatoes.com" && parsed.pathname === `/${rtId}` && !parsed.search;
-	} catch {
-		return false;
-	}
-};
-var requestRtPage = async (rtId, signal) => {
-	const url = `${RT_ORIGIN}/${rtId}`;
-	const response = await gmGetResponse(url, `${RT_ORIGIN}/`, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT$1
-	});
-	if (response.status < 200 || response.status >= 400 || !pathMatches(response.finalUrl, rtId)) throw new Error("Rotten Tomatoes response did not match its mapped page");
-	return {
-		html: response.responseText,
-		url
-	};
-};
-var isRtSeriesPage = (html, rtId) => {
-	const page = readPageIdentity(html);
-	return Boolean(page.canonicalUrl && pathMatches(page.canonicalUrl, rtId) && readPageTypes(page).has("TVSeries"));
 };
 var STORAGE_KEY = "dp:rotten-snapshots:v1";
 var FRESH_AGE = 6048e5;
@@ -16768,23 +16757,9 @@ var readSeasonOrdinal = (claims, property) => {
 		value: value ?? null
 	};
 };
-var API_URL = "https://www.wikidata.org/w/api.php";
-var REQUEST_TIMEOUT = 8e3;
 var EPISODE_TYPES = /* @__PURE__ */ new Set(["Q21191270"]);
 var fetchEntity = async (id, signal) => {
-	const url = new URL(API_URL);
-	url.search = new URLSearchParams({
-		action: "wbgetentities",
-		format: "json",
-		ids: id,
-		origin: "*",
-		props: "claims"
-	}).toString();
-	const response = await gmGetResponse(url.href, void 0, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT
-	});
-	return JSON.parse(response.responseText).entities?.[id] ?? null;
+	return (await fetchEntities$1([id], signal))[id] ?? null;
 };
 var mapEntity = (entity, property, identifier) => {
 	const identityClaims = activeIdentityClaims(entity, property, identifier);
@@ -16863,45 +16838,14 @@ var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
 	};
 };
 var fetchEntities = async (property, value, signal, expectedSeason) => {
-	const searchUrl = new URL(API_URL);
-	searchUrl.search = new URLSearchParams({
-		action: "query",
-		format: "json",
-		list: "search",
-		origin: "*",
-		srlimit: "50",
-		srnamespace: "0",
-		srsearch: `haswbstatement:${property}=${value}`
-	}).toString();
-	const searchResponse = await gmGetResponse(searchUrl.href, void 0, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT
-	});
-	const search = JSON.parse(searchResponse.responseText);
-	if (search.continue) return {
+	const search = await searchEntityIds(property, value, signal);
+	if (search.status !== "matched") return {
 		mappings: [],
-		state: "ambiguous"
+		state: search.status
 	};
-	const ids = [...new Set((search.query?.search ?? []).map((result) => result.title).filter((id) => /^Q\d+$/u.test(id ?? "")))];
-	if (ids.length === 0) return {
-		mappings: [],
-		state: "missing"
-	};
-	const claimsUrl = new URL(API_URL);
-	claimsUrl.search = new URLSearchParams({
-		action: "wbgetentities",
-		format: "json",
-		ids: ids.join("|"),
-		origin: "*",
-		props: "claims"
-	}).toString();
-	const claimsResponse = await gmGetResponse(claimsUrl.href, void 0, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT
-	});
-	const entityResponse = JSON.parse(claimsResponse.responseText);
-	const entities = Object.values(entityResponse.entities ?? {}).filter((entity) => hasActiveIdentity(entity, property, value));
-	const deprecated = Object.values(entityResponse.entities ?? {}).some((entity) => isDeprecatedIdentity(entity, property, value));
+	const fetched = await fetchEntities$1(search.entityIds, signal);
+	const entities = Object.values(fetched).filter((entity) => hasActiveIdentity(entity, property, value));
+	const deprecated = Object.values(fetched).some((entity) => isDeprecatedIdentity(entity, property, value));
 	if (entities.length > 1) return {
 		mappings: [],
 		state: "ambiguous"
@@ -17184,7 +17128,7 @@ var settle = async (request, signal, publish) => {
 	if (!signal.aborted) publish(rating);
 };
 var resolveAll = (context, signal, onUpdate) => {
-	if (context.imdbId) settle(fetchImdbRating(context.imdbId, context.season ?? void 0), signal, (rating) => onUpdate({
+	if (context.imdbId && !context.seasonConflict) settle(fetchImdbRating(context.imdbId, context.season ?? void 0), signal, (rating) => onUpdate({
 		result: {
 			rating,
 			status: "resolved"
@@ -19611,7 +19555,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-BUDV-QcE-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-C46Jc5sc-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

@@ -78,41 +78,62 @@ const fetchRatingForTarget = async (
 
 type OnCachedMcRating = (rating: McRating | null) => void;
 
-const refreshCachedTarget = async (
+const revalidateCachedTarget = async (
   context: ResolutionContext,
   cachedTarget: MetacriticTarget,
-  signal: AbortSignal,
-  onUpdate?: OnCachedMcRating
-): Promise<void> => {
+  signal: AbortSignal
+): Promise<MetacriticTarget | null> => {
   let resolution: Awaited<ReturnType<typeof resolveMetacriticTargetFresh>>;
   try {
     resolution = await resolveMetacriticTargetFresh(context, signal);
   } catch {
-    return;
+    return cachedTarget;
   }
   if (!resolution.complete || signal.aborted) {
-    return;
+    return cachedTarget;
   }
   if (
     resolution.status === "matched" &&
     sameTarget(resolution.target, cachedTarget)
   ) {
     cacheMetacriticTarget(context, cachedTarget);
+    return cachedTarget;
+  }
+  invalidateMetacriticTarget(context);
+  return resolution.status === "matched" ? resolution.target : null;
+};
+
+const refreshCachedTarget = async (
+  context: ResolutionContext,
+  cachedTarget: MetacriticTarget,
+  signal: AbortSignal,
+  onUpdate?: OnCachedMcRating
+): Promise<void> => {
+  const freshTarget = await revalidateCachedTarget(
+    context,
+    cachedTarget,
+    signal
+  );
+  if (signal.aborted) {
+    return;
+  }
+  if (!freshTarget) {
+    onUpdate?.(null);
+    return;
+  }
+  if (sameTarget(freshTarget, cachedTarget)) {
     return;
   }
 
-  invalidateMetacriticTarget(context);
   onUpdate?.(null);
-  if (resolution.status === "matched") {
-    const rating = await fetchRatingForTarget(
-      context,
-      resolution.target,
-      signal,
-      true
-    ).catch(() => null);
-    if (!signal.aborted) {
-      onUpdate?.(rating);
-    }
+  const rating = await fetchRatingForTarget(
+    context,
+    freshTarget,
+    signal,
+    true
+  ).catch(() => null);
+  if (!signal.aborted) {
+    onUpdate?.(rating);
   }
 };
 
@@ -125,18 +146,24 @@ const fetchMcRating = async (
     const targetCacheEntry = getCachedMetacriticTarget(context);
     if (targetCacheEntry?.status === "resolved") {
       const { target } = targetCacheEntry;
+      const shouldRevalidate =
+        Date.now() - targetCacheEntry.verifiedAt >=
+        TARGET_REVALIDATION_INTERVAL;
       const cachedRating = mcCache.get(cacheKey(context, target));
       if (cachedRating) {
         onCachedUpdate?.(cachedRating);
-        if (
-          Date.now() - targetCacheEntry.verifiedAt >=
-          TARGET_REVALIDATION_INTERVAL
-        ) {
+        if (shouldRevalidate) {
           void refreshCachedTarget(context, target, signal, onCachedUpdate);
         }
         return cachedRating;
       }
-      return fetchRatingForTarget(context, target, signal);
+      const currentTarget = shouldRevalidate
+        ? await revalidateCachedTarget(context, target, signal)
+        : target;
+      if (!currentTarget || signal.aborted) {
+        return null;
+      }
+      return fetchRatingForTarget(context, currentTarget, signal, true);
     }
 
     const target = await resolveMetacriticTarget(context, signal);

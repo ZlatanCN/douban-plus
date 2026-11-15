@@ -1109,6 +1109,24 @@ describe("Subject page runtime", () => {
     expect(requests).toStrictEqual([]);
     render(null, secondRoot);
 
+    now += 8 * 24 * 60 * 60 * 1000;
+    requests.length = 0;
+    const expiredScoreRoot = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+    await vi.waitFor(() => {
+      expect(
+        expiredScoreRoot.querySelector(
+          ".atv-rating-panel-mc .atv-rating-panel-score"
+        )?.textContent
+      ).toBe("82");
+      expect(
+        requests.filter((url) => url.includes("wikidata.org/w/api.php"))
+      ).toHaveLength(8);
+    });
+    expect(requests).toContain(mcUrl);
+    render(null, expiredScoreRoot);
+
     identityConflict = true;
     now += 25 * 60 * 60 * 1000;
     requests.length = 0;
@@ -1435,7 +1453,12 @@ describe("Subject page runtime", () => {
       return { body: "", status: 404 };
     });
     const data = makeData({
-      info: { ...makeData().info, seasons: "第十季", selectedSeason: "10" },
+      info: {
+        ...makeData().info,
+        imdb: "tt0944947",
+        seasons: "第十季",
+        selectedSeason: "10",
+      },
       isTV: true,
       title: {
         full: "Game of Thrones 第十一季",
@@ -1449,11 +1472,14 @@ describe("Subject page runtime", () => {
     );
 
     await vi.waitFor(() =>
-      expect(root.querySelector(".atv-rating-panel")).toBeNull()
+      expect(root.querySelector(".atv-rating-panel-imdb")).toBeNull()
     );
+    expect(root.querySelector(".atv-rating-panel-mc")).toBeNull();
+    expect(root.querySelector(".atv-rating-panel-rt")).toBeNull();
     expect(
       requests.some((url) => url.includes("www.rottentomatoes.com"))
     ).toBeFalsy();
+    expect(requests).not.toContain("https://graphql.imdb.com/");
   });
 
   it("rejects a Wikidata season qualifier that conflicts with the selected season", async () => {

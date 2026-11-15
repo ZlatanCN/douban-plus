@@ -11,7 +11,7 @@ import type {
   EntityKind,
   TargetResult,
 } from "./metacritic-wikidata-claims";
-import { fetchEntity } from "./metacritic-wikidata-lookup";
+import { fetchEntities } from "./wikidata-client";
 
 const seasonTarget = (
   entity: Entity,
@@ -64,7 +64,8 @@ const seasonForEpisode = async (
   if (expectedSeries.status === "ambiguous") {
     return expectedSeries;
   }
-  const entity = await fetchEntity(seasonRef.id, signal);
+  const entities = await fetchEntities<Entity>([seasonRef.id], signal);
+  const entity = entities[seasonRef.id];
   return entity
     ? seasonTarget(
         entity,
@@ -105,7 +106,8 @@ const seasonForSeries = async (
   if (uniqueSeasonIds.length !== 1 || !seasonId) {
     return { status: uniqueSeasonIds.length > 1 ? "ambiguous" : "missing" };
   }
-  const entity = await fetchEntity(seasonId, signal);
+  const entities = await fetchEntities<Entity>([seasonId], signal);
+  const entity = entities[seasonId];
   return entity
     ? seasonTarget(entity, season, series.id)
     : { status: "missing" };

@@ -1,5 +1,3 @@
-import { gmGetResponse } from "@/shared/utils/request";
-
 import {
   activeIdentityClaims,
   claimValues,
@@ -12,31 +10,19 @@ import {
   readSeasonOrdinal,
 } from "./rotten-wikidata-claims";
 import type { Entity, IdentityLookup } from "./rotten-wikidata-claims";
+import {
+  fetchEntities as fetchWikidataEntities,
+  searchEntityIds,
+} from "./wikidata-client";
 
-const API_URL = "https://www.wikidata.org/w/api.php";
-const REQUEST_TIMEOUT = 8000;
 const EPISODE_TYPES = new Set(["Q21191270"]);
 
 const fetchEntity = async (
   id: string,
   signal: AbortSignal
 ): Promise<Entity | null> => {
-  const url = new URL(API_URL);
-  url.search = new URLSearchParams({
-    action: "wbgetentities",
-    format: "json",
-    ids: id,
-    origin: "*",
-    props: "claims",
-  }).toString();
-  const response = await gmGetResponse(url.href, undefined, {
-    signal,
-    timeoutMs: REQUEST_TIMEOUT,
-  });
-  const data = JSON.parse(response.responseText) as {
-    entities?: Record<string, Entity>;
-  };
-  return data.entities?.[id] ?? null;
+  const entities = await fetchWikidataEntities<Entity>([id], signal);
+  return entities[id] ?? null;
 };
 
 const mapEntity = (
@@ -146,58 +132,16 @@ const fetchEntities = async (
   signal: AbortSignal,
   expectedSeason?: number
 ): Promise<IdentityLookup> => {
-  const searchUrl = new URL(API_URL);
-  searchUrl.search = new URLSearchParams({
-    action: "query",
-    format: "json",
-    list: "search",
-    origin: "*",
-    srlimit: "50",
-    srnamespace: "0",
-    srsearch: `haswbstatement:${property}=${value}`,
-  }).toString();
-  const searchResponse = await gmGetResponse(searchUrl.href, undefined, {
-    signal,
-    timeoutMs: REQUEST_TIMEOUT,
-  });
-  const search = JSON.parse(searchResponse.responseText) as {
-    continue?: Record<string, string>;
-    query?: { search?: { title?: string }[] };
-  };
-  if (search.continue) {
-    return { mappings: [], state: "ambiguous" };
+  const search = await searchEntityIds(property, value, signal);
+  if (search.status !== "matched") {
+    return { mappings: [], state: search.status };
   }
-  const ids = [
-    ...new Set(
-      (search.query?.search ?? [])
-        .map((result) => result.title)
-        .filter((id): id is string => /^Q\d+$/u.test(id ?? ""))
-    ),
-  ];
-  if (ids.length === 0) {
-    return { mappings: [], state: "missing" };
-  }
-
-  const claimsUrl = new URL(API_URL);
-  claimsUrl.search = new URLSearchParams({
-    action: "wbgetentities",
-    format: "json",
-    ids: ids.join("|"),
-    origin: "*",
-    props: "claims",
-  }).toString();
-  const claimsResponse = await gmGetResponse(claimsUrl.href, undefined, {
-    signal,
-    timeoutMs: REQUEST_TIMEOUT,
-  });
-  const entityResponse = JSON.parse(claimsResponse.responseText) as {
-    entities?: Record<string, Entity>;
-  };
-  const entities = Object.values(entityResponse.entities ?? {}).filter(
-    (entity) => hasActiveIdentity(entity, property, value)
+  const fetched = await fetchWikidataEntities<Entity>(search.entityIds, signal);
+  const entities = Object.values(fetched).filter((entity) =>
+    hasActiveIdentity(entity, property, value)
   );
-  const deprecated = Object.values(entityResponse.entities ?? {}).some(
-    (entity) => isDeprecatedIdentity(entity, property, value)
+  const deprecated = Object.values(fetched).some((entity) =>
+    isDeprecatedIdentity(entity, property, value)
   );
   if (entities.length > 1) {
     return { mappings: [], state: "ambiguous" };

@@ -2,7 +2,7 @@ import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
 import { requestRtPage } from "./rotten-page";
-import { parseScorecard } from "./rotten-parser";
+import { parseScorecard } from "./rotten-scorecard";
 import {
   readSnapshot,
   readUniqueSnapshot,

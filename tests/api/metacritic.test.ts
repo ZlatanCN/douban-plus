@@ -64,6 +64,29 @@ describe(parseMcPage, () => {
     });
   });
 
+  it("reads the aggregate rating attached to the matching season object", () => {
+    const html = `<link rel="canonical" href="https://www.metacritic.com/tv/game-of-thrones/season-2/"><script type="application/ld+json">${JSON.stringify(
+      {
+        "@type": "TVSeries",
+        aggregateRating: { ratingValue: 75, reviewCount: 100 },
+      }
+    )}</script><script type="application/ld+json">${JSON.stringify({
+      "@type": "TVSeason",
+      aggregateRating: { ratingValue: 90, reviewCount: 26 },
+      name: "Game of Thrones: Season 2",
+      partOfSeries: {
+        "@type": "TVSeries",
+        url: "https://www.metacritic.com/tv/game-of-thrones/",
+      },
+      seasonNumber: 2,
+    })}</script>`;
+
+    expect(parseMcPage(html, seasonTarget)).toStrictEqual({
+      reviewCount: 26,
+      score: 90,
+    });
+  });
+
   it("rejects a page whose canonical URL belongs to another season", () => {
     const html = makeSeasonPage({
       canonicalUrl: "https://www.metacritic.com/tv/game-of-thrones/season-3/",
