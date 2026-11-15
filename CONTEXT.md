@@ -257,7 +257,7 @@ RT snapshots are fresh for 7 days, shown as stale while refresh is attempted fro
 
 ### External rating integration tests
 
-`tests/runtime/subject-runtime.test.tsx` replaces only the GM network boundary and observes runtime DOM behavior. It covers identity mapping, score display, per-source completion, snapshots, season conflicts and request timeouts. RT's previous title-slug resolver and H1-only context tests were removed with that obsolete contract.
+`tests/runtime/subject-runtime-*.test.tsx` exercise the real `SubjectPageRuntime` while replacing only the GM network boundary and controlling time. Cases are split by rating behavior; `subject-runtime-test-utils.ts` owns shared request mocking and subject fixtures. They cover identity mapping, score display, per-source completion, snapshots, season conflicts, episode links and request timeouts.
 
 ### QA / E2E harness
 

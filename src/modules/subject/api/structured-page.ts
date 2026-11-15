@@ -36,5 +36,9 @@ const structuredTypes = (value: Record<string, unknown>): string[] => {
 const structuredPageTypes = (page: StructuredPage): Set<string> =>
   new Set(page.jsonLd.flatMap((value) => structuredTypes(value)));
 
-export { readStructuredPage, structuredPageTypes, structuredTypes };
-export type { StructuredPage };
+export {
+  readStructuredPage,
+  structuredPageTypes,
+  structuredTypes,
+  type StructuredPage,
+};

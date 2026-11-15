@@ -1,6 +1,5 @@
 import {
   entityKind,
-  entityReference,
   readMetacriticId,
   readOrdinal,
   readQualifierOrdinal,
@@ -11,7 +10,7 @@ import type {
   EntityKind,
   TargetResult,
 } from "./metacritic-wikidata-claims";
-import { fetchEntities } from "./wikidata-client";
+import { fetchEntities, entityReference } from "./wikidata-client";
 
 const seasonTarget = (
   entity: Entity,

@@ -143,5 +143,9 @@ const findSeasonPath = (
   return null;
 };
 
-export { findSeasonPath, readSeriesRtId, scorecardIdentityStatus };
-export type { ScorecardInput };
+export {
+  findSeasonPath,
+  readSeriesRtId,
+  scorecardIdentityStatus,
+  type ScorecardInput,
+};

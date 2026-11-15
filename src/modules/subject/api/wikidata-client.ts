@@ -10,6 +10,14 @@ type EntityCandidates<T> =
 const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
 
+const entityReference = (value: unknown): string | null => {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+  const id = Reflect.get(value, "id");
+  return typeof id === "string" ? id : null;
+};
+
 const searchEntityIds = async (
   property: string,
   value: string,
@@ -89,5 +97,9 @@ const findEntityCandidates = async <T>(
     : { status: "missing" };
 };
 
-export { fetchEntities, findEntityCandidates };
-export type { EntityCandidates };
+export {
+  entityReference,
+  fetchEntities,
+  findEntityCandidates,
+  type EntityCandidates,
+};

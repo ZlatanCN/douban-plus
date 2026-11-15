@@ -56,7 +56,7 @@ const usableSnapshot = (rating: RtRating, now: number): RtRating | null => {
   if (age < 0 || age > MAX_AGE) {
     return null;
   }
-  return { ...rating, stale: age > FRESH_AGE };
+  return { ...rating, stale: age >= FRESH_AGE };
 };
 
 const readSnapshot = (

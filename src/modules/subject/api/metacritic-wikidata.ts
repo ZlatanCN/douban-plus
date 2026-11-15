@@ -157,5 +157,5 @@ export {
   invalidateMetacriticTarget,
   resolveMetacriticTarget,
   resolveMetacriticTargetFresh,
+  type MetacriticTargetResolution,
 };
-export type { MetacriticTargetResolution };

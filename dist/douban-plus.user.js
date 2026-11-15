@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-B4i3QYRN-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-D5JwtAun-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16091,75 +16091,13 @@ var parseRating = (page, target) => {
 };
 var parseMcPage = (html, target) => parseRating(readStructuredPage(html), target);
 var isMatchingMcPage = (html, target) => matchesTarget(readStructuredPage(html), target);
-var ACTIVE_RANKS$1 = /* @__PURE__ */ new Set(["normal", "preferred"]);
-var TYPES = {
-	episode: /* @__PURE__ */ new Set(["Q21191270"]),
-	movie: /* @__PURE__ */ new Set(["Q11424"]),
-	season: /* @__PURE__ */ new Set(["Q3464665"]),
-	series: /* @__PURE__ */ new Set(["Q5398426", "Q15416"])
-};
-var activeClaimValues = (claims) => (claims ?? []).filter((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "")).filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
-var entityReference$1 = (value) => {
+var API_URL = "https://www.wikidata.org/w/api.php";
+var REQUEST_TIMEOUT$2 = 8e3;
+var entityReference = (value) => {
 	if (!value || typeof value !== "object") return null;
 	const id = Reflect.get(value, "id");
 	return typeof id === "string" ? id : null;
 };
-var uniqueReference = (claims, property) => {
-	const values = activeClaimValues(claims?.[property]);
-	if (values.length === 0) return { status: "missing" };
-	const ids = values.map(entityReference$1);
-	if (ids.some((id) => id === null)) return { status: "ambiguous" };
-	const uniqueIds = [...new Set(ids)];
-	const [id] = uniqueIds;
-	return uniqueIds.length === 1 && id ? {
-		id,
-		status: "matched"
-	} : { status: "ambiguous" };
-};
-var ordinalResult = (rawValues) => {
-	const values = rawValues.map(Number);
-	if (values.length === 0) return { status: "missing" };
-	if (values.some((value) => !Number.isSafeInteger(value) || value <= 0) || new Set(values).size !== 1) return { status: "ambiguous" };
-	return {
-		status: "matched",
-		value: values[0] ?? 0
-	};
-};
-var readOrdinal = (claims) => ordinalResult(activeClaimValues(claims?.P1545));
-var readQualifierOrdinal = (snaks) => ordinalResult((snaks ?? []).filter((snak) => snak.snaktype === "value").map((snak) => snak.datavalue?.value));
-var entityKind$1 = (entity) => {
-	const types = activeClaimValues(entity.claims?.P31).map(entityReference$1).filter((id) => id !== null);
-	const matches = Object.entries(TYPES).filter(([, ids]) => types.some((id) => ids.has(id))).map(([kind]) => kind);
-	return matches.length === 1 ? matches[0] ?? null : null;
-};
-var normalizeMetacriticId = (value) => {
-	if (typeof value !== "string" || !value.trim()) return null;
-	let path = value.trim();
-	if (/^https?:\/\//iu.test(path)) try {
-		const url = new URL(path);
-		if (url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com") return null;
-		path = url.pathname;
-	} catch {
-		return null;
-	}
-	path = path.replaceAll(/^\/+|\/+$/gu, "");
-	return /^(?:movie\/[^/]+|tv\/[^/]+(?:\/season-\d+)?)$/u.test(path) ? path : null;
-};
-var readMetacriticId = (entity) => {
-	const values = activeClaimValues(entity.claims?.P1712);
-	if (values.length === 0) return { status: "missing" };
-	const ids = values.map(normalizeMetacriticId);
-	if (ids.some((id) => id === null)) return { status: "ambiguous" };
-	const uniqueIds = [...new Set(ids)];
-	const [metacriticId] = uniqueIds;
-	return uniqueIds.length === 1 && metacriticId ? {
-		metacriticId,
-		status: "matched"
-	} : { status: "ambiguous" };
-};
-var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
-var API_URL = "https://www.wikidata.org/w/api.php";
-var REQUEST_TIMEOUT$2 = 8e3;
 var searchEntityIds = async (property, value, signal) => {
 	const url = new URL(API_URL);
 	url.search = new URLSearchParams({
@@ -16209,6 +16147,68 @@ var findEntityCandidates = async (property, value, signal) => {
 		status: "matched"
 	} : { status: "missing" };
 };
+var ACTIVE_RANKS$1 = /* @__PURE__ */ new Set(["normal", "preferred"]);
+var TYPES = {
+	episode: /* @__PURE__ */ new Set(["Q21191270"]),
+	movie: /* @__PURE__ */ new Set(["Q11424"]),
+	season: /* @__PURE__ */ new Set(["Q3464665"]),
+	series: /* @__PURE__ */ new Set(["Q5398426", "Q15416"])
+};
+var activeClaimValues = (claims) => (claims ?? []).filter((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "")).filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
+var uniqueReference = (claims, property) => {
+	const values = activeClaimValues(claims?.[property]);
+	if (values.length === 0) return { status: "missing" };
+	const ids = values.map(entityReference);
+	if (ids.some((id) => id === null)) return { status: "ambiguous" };
+	const uniqueIds = [...new Set(ids)];
+	const [id] = uniqueIds;
+	return uniqueIds.length === 1 && id ? {
+		id,
+		status: "matched"
+	} : { status: "ambiguous" };
+};
+var ordinalResult = (rawValues) => {
+	const values = rawValues.map(Number);
+	if (values.length === 0) return { status: "missing" };
+	if (values.some((value) => !Number.isSafeInteger(value) || value <= 0) || new Set(values).size !== 1) return { status: "ambiguous" };
+	return {
+		status: "matched",
+		value: values[0] ?? 0
+	};
+};
+var readOrdinal = (claims) => ordinalResult(activeClaimValues(claims?.P1545));
+var readQualifierOrdinal = (snaks) => ordinalResult((snaks ?? []).filter((snak) => snak.snaktype === "value").map((snak) => snak.datavalue?.value));
+var entityKind$1 = (entity) => {
+	const types = activeClaimValues(entity.claims?.P31).map(entityReference).filter((id) => id !== null);
+	const matches = Object.entries(TYPES).filter(([, ids]) => types.some((id) => ids.has(id))).map(([kind]) => kind);
+	return matches.length === 1 ? matches[0] ?? null : null;
+};
+var normalizeMetacriticId = (value) => {
+	if (typeof value !== "string" || !value.trim()) return null;
+	let path = value.trim();
+	if (/^https?:\/\//iu.test(path)) try {
+		const url = new URL(path);
+		if (url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com") return null;
+		path = url.pathname;
+	} catch {
+		return null;
+	}
+	path = path.replaceAll(/^\/+|\/+$/gu, "");
+	return /^(?:movie\/[^/]+|tv\/[^/]+(?:\/season-\d+)?)$/u.test(path) ? path : null;
+};
+var readMetacriticId = (entity) => {
+	const values = activeClaimValues(entity.claims?.P1712);
+	if (values.length === 0) return { status: "missing" };
+	const ids = values.map(normalizeMetacriticId);
+	if (ids.some((id) => id === null)) return { status: "ambiguous" };
+	const uniqueIds = [...new Set(ids)];
+	const [metacriticId] = uniqueIds;
+	return uniqueIds.length === 1 && metacriticId ? {
+		metacriticId,
+		status: "matched"
+	} : { status: "ambiguous" };
+};
+var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
 var findEntity = async (property, value, signal) => {
 	const candidates = await findEntityCandidates(property, value, signal);
 	if (candidates.status !== "matched") return candidates;
@@ -16247,7 +16247,7 @@ var seasonForSeries = async (series, season, signal) => {
 	const seriesMetacriticId = readMetacriticId(series);
 	if (seriesMetacriticId.status !== "matched" || !seriesMetacriticId.metacriticId.startsWith("tv/") || seriesMetacriticId.metacriticId.includes("/season-")) return { status: "ambiguous" };
 	const seasonIds = (series.claims?.P527 ?? []).filter((claim) => claim.rank === "normal" || claim.rank === "preferred").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => ({
-		id: entityReference$1(claim.mainsnak?.datavalue?.value),
+		id: entityReference(claim.mainsnak?.datavalue?.value),
 		ordinal: readQualifierOrdinal(claim.qualifiers?.P1545)
 	})).filter(({ ordinal }) => ordinal.status === "matched" && ordinal.value === season).map(({ id }) => id).filter((id) => id !== null);
 	const uniqueSeasonIds = [...new Set(seasonIds)];
@@ -16597,11 +16597,12 @@ var buildRating = (data, input, sourceUrl) => {
 	const critics = data.criticsScore;
 	const audience = data.audienceScore;
 	const criticsScore = scoreValue(critics?.scorePercent);
-	const group = data.hideAudienceScore === true || audience?.hidden === true || audience?.isHidden === true ? null : audienceGroup(data);
-	const audienceScore = group ? scoreValue(audience?.scorePercent) : null;
+	const audienceScore = data.hideAudienceScore === true || audience?.hidden === true || audience?.isHidden === true ? null : scoreValue(audience?.scorePercent);
+	const hasAudienceScore = audienceScore !== null;
+	const group = hasAudienceScore ? audienceGroup(data) : null;
 	if (criticsScore === null && audienceScore === null) return null;
 	return {
-		audienceCount: group ? countValue(audience?.bandedRatingCount ?? audience?.ratingCount) : null,
+		audienceCount: hasAudienceScore ? countValue(audience?.bandedRatingCount ?? audience?.ratingCount) : null,
 		audienceGroup: group,
 		audienceScore,
 		criticsCount: countValue(critics?.ratingCount ?? critics?.bandedRatingCount),
@@ -16662,7 +16663,7 @@ var usableSnapshot = (rating, now) => {
 	if (age < 0 || age > MAX_AGE) return null;
 	return {
 		...rating,
-		stale: age > FRESH_AGE
+		stale: age >= FRESH_AGE
 	};
 };
 var readSnapshot = (object, now = Date.now()) => {
@@ -16695,11 +16696,6 @@ var ACTIVE_RANKS = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var FILM_TYPES = /* @__PURE__ */ new Set(["Q11424"]);
 var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426", "Q1259759"]);
 var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
-var entityReference = (value) => {
-	if (!value || typeof value !== "object") return null;
-	const id = Reflect.get(value, "id");
-	return typeof id === "string" ? id : null;
-};
 var claimValues = (claims) => (claims ?? []).filter((claim) => claim.rank !== "deprecated").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
 var activeIdentityClaims = (entity, property, value) => (entity.claims?.[property] ?? []).filter((claim) => {
 	const claimValue = claim.mainsnak?.datavalue?.value;
@@ -19558,7 +19554,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-B4i3QYRN-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-D5JwtAun-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

@@ -84,5 +84,6 @@ export {
   getCachedRtTarget,
   invalidateRtTarget,
   resolveRtTarget,
+  type ResolvedRtTarget,
+  type RtTargetResult,
 };
-export type { ResolvedRtTarget, RtTargetResult };

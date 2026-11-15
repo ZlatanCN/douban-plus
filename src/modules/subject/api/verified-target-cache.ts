@@ -37,5 +37,8 @@ const createVerifiedTargetCache = <T>(storageKey: string) => {
   };
 };
 
-export { createVerifiedTargetCache, TARGET_REVALIDATION_INTERVAL };
-export type { VerifiedTargetCacheEntry };
+export {
+  createVerifiedTargetCache,
+  TARGET_REVALIDATION_INTERVAL,
+  type VerifiedTargetCacheEntry,
+};

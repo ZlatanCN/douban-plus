@@ -143,13 +143,16 @@ const buildRating = (
     data.hideAudienceScore === true ||
     audience?.hidden === true ||
     audience?.isHidden === true;
-  const group = audienceHidden ? null : audienceGroup(data);
-  const audienceScore = group ? scoreValue(audience?.scorePercent) : null;
+  const audienceScore = audienceHidden
+    ? null
+    : scoreValue(audience?.scorePercent);
+  const hasAudienceScore = audienceScore !== null;
+  const group = hasAudienceScore ? audienceGroup(data) : null;
   if (criticsScore === null && audienceScore === null) {
     return null;
   }
   return {
-    audienceCount: group
+    audienceCount: hasAudienceScore
       ? countValue(audience?.bandedRatingCount ?? audience?.ratingCount)
       : null,
     audienceGroup: group,

@@ -226,5 +226,4 @@ const fetchRtRating = async (
   }
 };
 
-export { fetchRtRating };
-export type { RtResolution };
+export { fetchRtRating, type RtResolution };

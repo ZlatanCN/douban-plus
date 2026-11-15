@@ -1,3 +1,5 @@
+import { entityReference } from "./wikidata-client";
+
 type Claim = {
   mainsnak?: { datavalue?: { value?: unknown }; snaktype?: string };
   qualifiers?: Record<string, Claim[]>;
@@ -48,14 +50,6 @@ const ACTIVE_RANKS = new Set(["normal", "preferred"]);
 const FILM_TYPES = new Set(["Q11424"]);
 const SERIES_TYPES = new Set(["Q5398426", "Q1259759"]);
 const SEASON_TYPES = new Set(["Q3464665"]);
-
-const entityReference = (value: unknown): string | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const id = Reflect.get(value, "id");
-  return typeof id === "string" ? id : null;
-};
 
 const claimValues = (claims: Claim[] | undefined): unknown[] =>
   (claims ?? [])
@@ -230,19 +224,16 @@ export {
   activeIdentityClaims,
   claimValues,
   entityKind,
-  entityReference,
   hasActiveIdentity,
   isDeprecatedIdentity,
   normalizeRtId,
   readEpisodeRtTarget,
   readRtTarget,
   readSeasonOrdinal,
-};
-export type {
-  Claim,
-  Entity,
-  EntityMapping,
-  EpisodeRtTarget,
-  IdentityLookup,
-  RottenMapping,
+  type Claim,
+  type Entity,
+  type EntityMapping,
+  type EpisodeRtTarget,
+  type IdentityLookup,
+  type RottenMapping,
 };

@@ -1,3 +1,5 @@
+import { entityReference } from "./wikidata-client";
+
 type Snak = { datavalue?: { value?: unknown }; snaktype?: string };
 type Claim = {
   mainsnak?: Snak;
@@ -32,14 +34,6 @@ const activeClaimValues = (claims: Claim[] | undefined): unknown[] =>
     .filter((claim) => claim.mainsnak?.snaktype === "value")
     .map((claim) => claim.mainsnak?.datavalue?.value)
     .filter((value) => value !== undefined);
-
-const entityReference = (value: unknown): string | null => {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-  const id = Reflect.get(value, "id");
-  return typeof id === "string" ? id : null;
-};
 
 const uniqueReference = (
   claims: Record<string, Claim[]> | undefined,
@@ -162,12 +156,16 @@ const hasIdentity = (
 export {
   activeClaimValues,
   entityKind,
-  entityReference,
   hasIdentity,
   normalizeMetacriticId,
   readMetacriticId,
   readOrdinal,
   readQualifierOrdinal,
   uniqueReference,
+  type Claim,
+  type Entity,
+  type EntityKind,
+  type MetacriticTarget,
+  type Snak,
+  type TargetResult,
 };
-export type { Claim, Entity, EntityKind, MetacriticTarget, Snak, TargetResult };

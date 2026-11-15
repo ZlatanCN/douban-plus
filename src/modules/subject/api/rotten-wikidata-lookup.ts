@@ -2,7 +2,6 @@ import {
   activeIdentityClaims,
   claimValues,
   entityKind,
-  entityReference,
   hasActiveIdentity,
   isDeprecatedIdentity,
   readEpisodeRtTarget,
@@ -11,6 +10,7 @@ import {
 } from "./rotten-wikidata-claims";
 import type { Entity, IdentityLookup } from "./rotten-wikidata-claims";
 import {
+  entityReference,
   fetchEntities as fetchWikidataEntities,
   findEntityCandidates,
 } from "./wikidata-client";

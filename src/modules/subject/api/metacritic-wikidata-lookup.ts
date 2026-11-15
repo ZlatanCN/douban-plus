@@ -29,5 +29,4 @@ const findEntity = async (
   return entity ? { entity, status: "matched" } : { status: "missing" };
 };
 
-export { findEntity };
-export type { LookupResult };
+export { findEntity, type LookupResult };
