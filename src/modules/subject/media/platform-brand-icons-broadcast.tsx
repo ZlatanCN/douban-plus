@@ -1,8 +1,8 @@
 /* Provider-brand SVG implementation. Private to the subject media module. */
 
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 
-type IconProps = JSX.SVGAttributes<SVGSVGElement>;
+type IconProps = SVGAttributes<SVGSVGElement>;
 
 const LogoCbs = (props: IconProps) => (
   <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" {...props}>

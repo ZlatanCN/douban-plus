@@ -1,4 +1,4 @@
-import preact from "@preact/preset-vite";
+import preactPreset from "@preact/preset-vite";
 import { defineConfig } from "vite";
 import monkey from "vite-plugin-monkey";
 
@@ -8,7 +8,7 @@ export default defineConfig({
     minify: false,
   },
   plugins: [
-    preact(),
+    preactPreset(),
     monkey({
       build: {
         autoGrant: true,
@@ -26,6 +26,7 @@ export default defineConfig({
           "douban.com",
           "movie.douban.com",
           "graphql.imdb.com",
+          "www.wikidata.org",
           "www.rottentomatoes.com",
           "www.metacritic.com",
         ],

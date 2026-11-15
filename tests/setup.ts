@@ -37,3 +37,26 @@ const installStorageGlobal = (
 
 installStorageGlobal("localStorage", createMemoryStorage());
 installStorageGlobal("sessionStorage", createMemoryStorage());
+
+const handleAnimationCancellation = (error: unknown): void => {
+  if (error instanceof Error && error.name === "AbortError") {
+    return;
+  }
+  throw error;
+};
+
+const animationConstructors = new Set(
+  [globalThis.Animation, window.Animation].filter(
+    (constructor): constructor is typeof Animation => constructor !== undefined
+  )
+);
+
+for (const animationConstructor of animationConstructors) {
+  const cancelAnimation = animationConstructor.prototype.cancel;
+  animationConstructor.prototype.cancel = function cancel(): void {
+    // Animation.cancel() is synchronous; attach a handler before it rejects `finished`.
+    // eslint-disable-next-line promise/prefer-await-to-callbacks
+    void this.finished.catch(handleAnimationCancellation);
+    cancelAnimation.call(this);
+  };
+}

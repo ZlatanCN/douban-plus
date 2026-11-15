@@ -18,6 +18,17 @@ const springConfigs = {
 type SpringConfig = (typeof springConfigs)[keyof typeof springConfigs];
 type MotionSpringConfig = SpringConfig & { velocity?: number };
 
+const ignoreAnimationCancellation = (error: unknown): void => {
+  if (
+    error &&
+    typeof error === "object" &&
+    Reflect.get(error, "name") === "AbortError"
+  ) {
+    return;
+  }
+  throw error;
+};
+
 /* ── Reduced‑Motion Utility ──────────────────────────── */
 
 const animateWithReducedMotion = (
@@ -50,6 +61,13 @@ const animateWithReducedMotion = (
   );
 };
 
+const stopMotionAnimation = (
+  animation: ReturnType<typeof animateWithReducedMotion>
+): void => {
+  void animation.finished.catch(ignoreAnimationCancellation);
+  animation.stop();
+};
+
 /** Standard one-shot entrance animation: fade in + slide up 4px. */
 const playEntrance = (element: Element, springConfig: SpringConfig) =>
   animateWithReducedMotion(element, {
@@ -65,5 +83,6 @@ export {
   animateWithReducedMotion,
   playEntrance,
   springConfigs,
+  stopMotionAnimation,
   type SpringConfig,
 };

@@ -20,14 +20,20 @@ const makeImdbRating = (
 const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
   reviewCount: 1500,
   score: 82,
+  sourceUrl: "https://www.metacritic.com/movie/test/",
   ...overrides,
 });
 
 const makeRtRating = (overrides?: Partial<RtRating>): RtRating => ({
-  audienceCount: 50_000,
+  audienceCount: { kind: "exact", value: 50_000 },
+  audienceGroup: "all",
   audienceScore: 76,
-  criticsCount: 300,
+  criticsCount: { kind: "exact", value: 300 },
   criticsScore: 94,
+  fetchedAt: 1_700_000_000_000,
+  object: { kind: "movie", rtId: "m/test", subjectId: "1" },
+  sourceUrl: "https://www.rottentomatoes.com/m/test",
+  stale: false,
   ...overrides,
 });
 
@@ -52,7 +58,12 @@ describe(ExternalRating, () => {
 
   it("renders IMDb score, stars, count and logo when loaded", () => {
     const el = renderSingle(
-      <ExternalRating rating={makeImdbRating()} resolved source="imdb" />
+      <ExternalRating
+        rating={makeImdbRating()}
+        resolved
+        source="imdb"
+        sourceUrl="https://www.imdb.com/title/tt0111161/"
+      />
     );
 
     expect(el.classList.contains("is-loaded")).toBeTruthy();
@@ -64,6 +75,21 @@ describe(ExternalRating, () => {
     );
     expect(el.querySelector('[aria-label="IMDb"]')).not.toBeNull();
     expect(el.querySelectorAll(".atv-rating-stars svg")).toHaveLength(5);
+  });
+
+  it("links the IMDb logo to its rating page", () => {
+    const el = renderSingle(
+      <ExternalRating
+        rating={makeImdbRating()}
+        resolved
+        source="imdb"
+        sourceUrl="https://www.imdb.com/title/tt0111161/"
+      />
+    );
+
+    expect(el.querySelector<HTMLAnchorElement>(".atv-imdb-source")?.href).toBe(
+      "https://www.imdb.com/title/tt0111161/"
+    );
   });
 
   it("formats IMDb integer score to one decimal place", () => {
@@ -82,7 +108,12 @@ describe(ExternalRating, () => {
 
   it("renders Metacritic score, count and logo when loaded", () => {
     const el = renderSingle(
-      <ExternalRating rating={makeMcRating()} resolved source="metacritic" />
+      <ExternalRating
+        rating={makeMcRating()}
+        resolved
+        source="metacritic"
+        sourceUrl="https://www.metacritic.com/movie/test/"
+      />
     );
 
     expect(el.classList.contains("atv-rating-panel-mc")).toBeTruthy();
@@ -92,6 +123,22 @@ describe(ExternalRating, () => {
       "1,500"
     );
     expect(el.querySelector('[aria-label="Metacritic"]')).not.toBeNull();
+  });
+
+  it("links the Metacritic logo to its rating page", () => {
+    const rating = makeMcRating();
+    const el = renderSingle(
+      <ExternalRating
+        rating={rating}
+        resolved
+        source="metacritic"
+        sourceUrl={rating.sourceUrl}
+      />
+    );
+
+    expect(
+      el.querySelector<HTMLAnchorElement>(".atv-metacritic-source")?.href
+    ).toBe("https://www.metacritic.com/movie/test/");
   });
 
   it("renders Metacritic bar, Chinese label and no rating stars when loaded", () => {

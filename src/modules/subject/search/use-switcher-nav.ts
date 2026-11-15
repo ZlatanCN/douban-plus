@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { TargetedKeyboardEvent } from "preact";
 import { useEffect, useState } from "preact/hooks";
 
 type UseSwitcherNavOptions<T> = {
@@ -34,7 +34,7 @@ const useSwitcherNav = <T>({
   };
 
   const handleKeyDown = (
-    event: JSX.TargetedKeyboardEvent<HTMLInputElement>
+    event: TargetedKeyboardEvent<HTMLInputElement>
   ): void => {
     if (event.isComposing) {
       return;

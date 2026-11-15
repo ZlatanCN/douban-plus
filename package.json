@@ -1,6 +1,6 @@
 {
   "name": "douban-plus",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。",
   "keywords": [
     "apple-tv",
@@ -28,33 +28,33 @@
     "ci": "pnpm lint && tsc && tsc -p tests/tsconfig.json && vitest run && vite build && tsx tests/qa.ts"
   },
   "dependencies": {
-    "motion": "^13.0.0",
-    "preact": "^10.29.8"
+    "motion": "^14.14.0",
+    "preact": "^11.2.0"
   },
   "devDependencies": {
-    "@babel/parser": "^8.0.4",
+    "@babel/parser": "^8.1.2",
     "@preact/preset-vite": "^2.10.6",
-    "@types/node": "^26.2.0",
-    "@vitest/coverage-v8": "^4.1.10",
-    "happy-dom": "^20.11.2",
+    "@types/node": "^26.6.6",
+    "@vitest/coverage-v8": "^5.1.0",
+    "happy-dom": "^21.0.4",
     "husky": "^9.1.7",
-    "lint-staged": "^17.3.0",
-    "oxfmt": "^0.62.0",
-    "oxlint": "^1.77.0",
-    "playwright": "^1.62.1",
-    "postcss": "^8.5.26",
-    "postcss-selector-parser": "^7.1.5",
+    "lint-staged": "^17.6.0",
+    "oxfmt": "^0.78.0",
+    "oxlint": "^1.93.0",
+    "playwright": "^1.65.1",
+    "postcss": "^8.5.33",
+    "postcss-selector-parser": "^7.2.1",
     "postcss-value-parser": "^4.2.0",
-    "stylelint": "^17.14.1",
+    "stylelint": "^18.0.0",
     "stylelint-config-idiomatic-order": "^10.0.0",
-    "stylelint-config-standard": "^40.0.0",
-    "stylelint-prettier": "^5.0.3",
-    "tsx": "^4.23.12",
+    "stylelint-config-standard": "^41.0.0",
+    "stylelint-prettier": "^5.1.0",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "ultracite": "^7.10.2",
-    "vite": "^8.2.1",
-    "vite-plugin-monkey": "^8.1.0",
-    "vitest": "^4.1.10"
+    "ultracite": "^8.2.0",
+    "vite": "^8.3.8",
+    "vite-plugin-monkey": "^8.1.1",
+    "vitest": "^5.1.0"
   },
-  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
+  "packageManager": "pnpm@12.21.0+sha512.66fd8278ee28935ce951792d34367ff3af5c432a2756445823029533835b8da529bbe0be5130afd56ed0713fb8789e47bad82d93bd5ae2fe54b15562d6276ef0"
 }

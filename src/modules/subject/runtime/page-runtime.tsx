@@ -42,11 +42,7 @@ const SubjectPageRuntime = ({
   const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
   const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
-  const externalRatings = useExternalRatings(
-    data.info.imdb || null,
-    data.isTV,
-    doc
-  );
+  const externalRatings = useExternalRatings(data);
   const firstBroadcastPlatform = useFirstBroadcastPlatform(
     data.subjectId,
     data.interest.loggedIn

@@ -44,6 +44,16 @@ Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metac
 
 **首播平台**: 作品首次或预定首次发布的电视台或流媒体服务商，例如 Apple TV+、CBS、CCTV、FOX、FX、Showtime；不承诺该服务商拥有永久或排他的播放权。_Avoid_: 观看平台、制片公司
 
+**烂番茄评分对象**: 烂番茄评分所归属的具体电影、整部剧集或某一季；当前豆瓣作品与评分对象必须对应，单季评分不能由整剧或其他季评分替代。_Avoid_: 按同名视为同一作品、整剧评分代替单季评分
+
+**烂番茄作品映射**: 由作品标识及必要的季身份确认当前豆瓣作品与烂番茄评分对象的对应关系；IMDb ID 优先用于定位，豆瓣 ID 用于辅助核验和补查，身份冲突或已弃用的对应关系不能用于展示评分。_Avoid_: 片名相同即匹配、搜索首条即匹配、IMDb 整剧 ID 等同于单季身份
+
+**烂番茄双侧评分**: 同一评分对象的影评人百分比与观众百分比，两侧独立存在；仅有一侧时仍是可用评分，缺失侧与缺失评分人数均不表示零。_Avoid_: 两侧齐全才有评分、缺失分数记零、缺失人数记零
+
+**烂番茄观众口径**: 烂番茄页面默认展示的“已验证观众”或“全部观众”评分群体，随观众百分比保留并可在来源详情中辨认。_Avoid_: 混用两种观众百分比、不注明口径的观众评分
+
+**烂番茄评分快照**: 在明确获取日期记录的、已确认评分对象的烂番茄评分及其观众口径；刷新失败时可以带日期继续呈现仍在保留期内的旧快照。_Avoid_: 把获取日期当作上游更新日期、把旧评分当作实时评分、复用未确认对象的旧分数
+
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
 **影像卡片**: 影像轨中高度稳定、宽度由卡片进入轨道前已知的图片比例确定的视觉容器；静态剧照始终完整呈现，且图片加载不会改变已进入轨道的卡片几何尺寸。 _Avoid_: 固定比例剧照、加载后重排的卡片、额外遮幅颜色
@@ -190,6 +200,13 @@ src/
       index.ts          — public route mount
       domain.ts         — subject-owned domain types and values
       api/              — subject-specific external reads and writes
+        external-ratings/
+          imdb/              — IMDb rating interface and parsers
+          metacritic/        — Metacritic page and Wikidata resolution
+            wikidata/
+          rotten-tomatoes/   — RT page, scorecard, snapshot and target resolution
+            wikidata/
+          shared/             — rating page identity, Wikidata client and target cache
       extract/          — subject DOM extraction
       navigation/       — section copy, derived section nav items, and sticky-nav presentation
       resolve/          — subject rating resolution seam
@@ -234,20 +251,20 @@ src/
 
 ### Rating resolution strategy
 
-`resolveAll` in `orchestrate.ts` uses a **parallel-first** strategy:
+`resolveAll` in `orchestrate.ts` starts each external rating source independently and publishes that source's result as soon as it settles:
 
-1. If H1 has an English title (95%+ of cases) → IMDb + RT + MC fire simultaneously via `Promise.allSettled`. One failure never blocks the others.
-2. If no H1 title but IMDb returns one → RT + MC retry with IMDb title as fallback.
-3. Error isolation: `Promise.allSettled` wraps every source. A null result means "not available", never "crashed".
+1. IMDb requires a valid IMDb ID. Its season ratings are computed from that season's episode ratings and cached separately from direct title ratings. If season data cannot be read, the series or episode rating is not substituted.
+2. Metacritic resolves IMDb IDs and Douban subject IDs through Wikidata's Metacritic identifier (P1712). It checks movie, series, season, canonical page, season number and parent series before reading the Metascore and critic review count. Episode IMDb IDs resolve through their linked season; series mappings resolve a season through Wikidata's ordered season claims.
+3. RT uses the same IMDb and Douban identity inputs to find an active RT identifier (P1258), then verifies film, series, or season identity. Episode IMDb IDs resolve through the parent series and its season page. The RT adapter verifies the canonical page and media type before reading the current `mediaScorecard` fields. Critics and audience scores can be absent independently, and audience scores retain the page's default audience group.
+4. Each result carries an independent pending/resolved state. Unmounting aborts requests and prevents late results from updating the page.
 
-`resolveAll` accepts `ResolutionContext` and none of the rating resolution implementation touches the DOM. The small IMDb/RT/MC pass-through resolver modules were collapsed on 2026-07-09; `resolveAll` owns identifier guards and calls the fetch adapters directly. The subject runtime module loads async results; `ExternalRating({ source, rating, resolved })` owns the shared logo + loading/empty/loaded display state for IMDb, Metacritic, and Rotten Tomatoes.
+`resolveAll` accepts the already-extracted `ResolutionContext` and none of the resolution implementation reads the DOM. `SubjectPageRuntime` owns the asynchronous lifecycle; `ExternalRating({ source, rating, resolved })` owns the shared logo and loading/empty/loaded display state. RT ratings are cached locally with the verified subject, RT target, audience group and retrieval time.
 
-### Resolution seam tests (18 tests across 2 files)
+RT snapshots are fresh for 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days. RT and Metacritic verified target mappings are cached for 30 days and rechecked in the background every 24 hours. Metacritic scores are cached for 7 days.
 
-| File | What it covers |
-| --- | --- |
-| `tests/resolve/context.test.ts` | movie/TV H1 parsing, no-English-title, null imdbId, empty H1 |
-| `tests/resolve/orchestrate.test.ts` | fetch adapter calls, parallel resolution, fallback path, error isolation, no-identifiers, no-H1-no-IMDb-title |
+### External rating integration tests
+
+`tests/runtime/subject-runtime-*.test.tsx` exercise the real `SubjectPageRuntime` while replacing only the GM network boundary and controlling time. Cases are split by rating behavior; `subject-runtime-test-utils.ts` owns shared request mocking and subject fixtures. They cover identity mapping, score display, per-source completion, snapshots, season conflicts, episode links and request timeouts.
 
 ### QA / E2E harness
 
@@ -313,11 +330,10 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 4. **Native-summary adoption runtime hook (2026-07-16)** — `modules/subject/runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
 
-5. **External rating fetcher factory (2026-07-09)** — `src/modules/subject/api/rating-fetcher.ts` owns the common provider algorithm:
-   - External seam is `createRatingFetcher({ cache, parse, referer, slugSeparator, urls })`
-   - The shared implementation handles empty titles, slug normalization, cache-key construction, TTL cache lookup/write, sequential URL fallback, network-error isolation, and parser-null fallback
-   - Provider modules keep only site-specific knowledge: Metacritic URL shapes + JSON-LD parser; Rotten Tomatoes URL shapes + script JSON parser
-   - Preserve sequential fallback. These provider URLs are alternatives, not independent sources, so do not parallelize them.
+5. **External rating acquisition (2026-11-15)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api/external-ratings`. Each provider folder owns its entry module and internal resolver/parser modules; `shared/` contains the Wikidata request client, structured-page reader and verified-target cache used across providers:
+   - IMDb season ratings aggregate only that season's episode ratings; an unavailable season result does not fall back to the direct series or episode rating.
+   - Metacritic resolves IMDb and Douban identifiers through Wikidata P1712, validates the exact movie/series/season page, and reads its JSON-LD aggregate rating. Verified targets and scores use separate caches.
+   - Rotten Tomatoes resolves IMDb and Douban identifiers through Wikidata P1258, validates the exact RT page and season identity, parses `scorePercent`, and stores only verified snapshots. Verified targets use a separate cache.
 
 6. **Canonical modal module (2026-07-09)** — `src/shared/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior

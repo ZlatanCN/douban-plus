@@ -1,41 +1,64 @@
 import { useEffect, useState } from "preact/hooks";
 
-import { extractH1 } from "@/modules/subject/extract/title-helpers";
-import { buildContext } from "@/modules/subject/resolve/context";
-import { resolveAll } from "@/modules/subject/resolve/orchestrate";
+import type { DoubanData } from "@/modules/subject/domain";
+import { emptyRatingResults } from "@/modules/subject/resolve/types";
+import type { RatingResultMap } from "@/modules/subject/resolve/types";
 
-type ExternalRatings = Awaited<ReturnType<typeof resolveAll>>;
+import { buildContext } from "../resolve/context";
+import { resolveAll } from "../resolve/orchestrate";
 
-const useExternalRatings = (
-  imdbId: string | null,
-  isTV: boolean,
-  doc: Document
-): ExternalRatings | null => {
-  const [external, setExternal] = useState<ExternalRatings | null>(null);
+type ExternalRatingsState = {
+  data: DoubanData;
+  ratings: RatingResultMap;
+};
+
+const useExternalRatings = (data: DoubanData): RatingResultMap => {
+  const [state, setState] = useState<ExternalRatingsState>(() => ({
+    data,
+    ratings: emptyRatingResults(),
+  }));
 
   useEffect(() => {
-    if (!imdbId) {
-      setExternal(null);
-      return;
-    }
+    const controller = new AbortController();
+    setState((current) =>
+      current.data === data ? current : { data, ratings: emptyRatingResults() }
+    );
 
-    let cancelled = false;
-    const loadRatings = async (): Promise<void> => {
-      const ratings = await resolveAll(
-        buildContext(imdbId, isTV, extractH1(doc))
-      );
-      if (!cancelled) {
-        setExternal(ratings);
-      }
-    };
-    void loadRatings();
+    void resolveAll(buildContext(data), controller.signal, (update) => {
+      setState((current) => {
+        if (current.data !== data) {
+          return current;
+        }
+        switch (update.source) {
+          case "imdb": {
+            return {
+              ...current,
+              ratings: { ...current.ratings, imdb: update.result },
+            };
+          }
+          case "mc": {
+            return {
+              ...current,
+              ratings: { ...current.ratings, mc: update.result },
+            };
+          }
+          case "rt": {
+            return {
+              ...current,
+              ratings: { ...current.ratings, rt: update.result },
+            };
+          }
+          default: {
+            return current;
+          }
+        }
+      });
+    });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [doc, imdbId, isTV]);
+    return () => controller.abort();
+  }, [data]);
 
-  return external;
+  return state.data === data ? state.ratings : emptyRatingResults();
 };
 
 export { useExternalRatings };

@@ -1,30 +1,36 @@
-/* ── Rating Resolution Seam Types ──────────────────────── */
+import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
+import type {
+  McRating,
+  RtObjectKind,
+  RtRating,
+} from "@/modules/subject/domain";
 
-import type { FetchImdbResult } from "@/modules/subject/api/imdb";
-import type { McRating, RtRating } from "@/modules/subject/domain";
-
-/** All identifiers available for rating resolution.
- *  Every resolver reads from this context — no resolver touches the DOM
- *  or extracts identifiers independently. */
 type ResolutionContext = {
-  /** IMDb ID (tconst), e.g. "tt0111161". Null when the page has no IMDb link. */
   imdbId: string | null;
-  /** English title extracted from Douban H1, e.g. "The Shawshank Redemption". */
-  englishTitle: string | null;
-  /** True for TV series/season pages. */
-  isTV: boolean;
-  /** Season number for TV series, e.g. 5 for "Game of Thrones S5". */
-  season?: number;
-  /** Release year for movie URL disambiguation, e.g. "1994". */
-  year?: string;
+  kind: RtObjectKind;
+  season: number | null;
+  seasonConflict: boolean;
+  subjectId: string;
+  subjectTitle: string;
+  unsupportedEpisode: boolean;
 };
 
-/** The complete result of resolving all rating sources.
- *  Each field is independent — one null never implies another. */
+type SourceResult<T> = {
+  rating: T | null;
+  status: "pending" | "resolved";
+};
+
 type RatingResultMap = {
-  imdb: FetchImdbResult | null;
-  rt: RtRating | null;
-  mc: McRating | null;
+  imdb: SourceResult<FetchImdbResult>;
+  mc: SourceResult<McRating>;
+  rt: SourceResult<RtRating>;
 };
 
-export type { RatingResultMap, ResolutionContext };
+const emptyRatingResults = (): RatingResultMap => ({
+  imdb: { rating: null, status: "pending" },
+  mc: { rating: null, status: "pending" },
+  rt: { rating: null, status: "pending" },
+});
+
+export type { RatingResultMap, ResolutionContext, SourceResult };
+export { emptyRatingResults };

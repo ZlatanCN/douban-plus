@@ -10,6 +10,7 @@ import {
 import {
   animateWithReducedMotion,
   springConfigs,
+  stopMotionAnimation,
 } from "@/shared/utils/springs";
 
 import {
@@ -90,7 +91,7 @@ const ModalShell = ({
       }
 
       for (const animation of animationsRef.current) {
-        animation.stop();
+        stopMotionAnimation(animation);
       }
 
       const animationId = animationIdRef.current + 1;
@@ -156,7 +157,7 @@ const ModalShell = ({
     return () => {
       cancelAnimationFrame(frame);
       for (const animation of animationsRef.current) {
-        animation.stop();
+        stopMotionAnimation(animation);
       }
     };
   }, [animateModal]);

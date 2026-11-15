@@ -1,8 +1,8 @@
 /* Provider-brand SVG implementation. Private to the subject media module. */
 
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 
-type IconProps = JSX.SVGAttributes<SVGSVGElement>;
+type IconProps = SVGAttributes<SVGSVGElement>;
 
 const LogoIqiyiCombined = (props: IconProps) => (
   <svg width="460" height="72" viewBox="0 0 460 72" fill="none" {...props}>

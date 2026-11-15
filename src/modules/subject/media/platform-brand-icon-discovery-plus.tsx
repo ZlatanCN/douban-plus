@@ -1,8 +1,8 @@
 /* Inline Discovery+ vector asset. It remains inline because the userscript cannot rely on external image resources. */
 
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 
-type IconProps = JSX.SVGAttributes<SVGSVGElement>;
+type IconProps = SVGAttributes<SVGSVGElement>;
 
 const LogoDiscoveryPlus = (props: IconProps) => (
   <svg width="237" height="200" viewBox="0 0 237 200" fill="none" {...props}>

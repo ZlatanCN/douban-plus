@@ -51,6 +51,61 @@ describe(fetchSubjectSuggestions, () => {
     );
   });
 
+  it("parses the movie results returned for 教父", async () => {
+    const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(
+      response([
+        {
+          episode: "",
+          id: "1291841",
+          img: "https://img9.doubanio.com/view/photo/s_ratio_poster/public/p616779645.jpg",
+          sub_title: "The Godfather",
+          title: "教父",
+          type: "movie",
+          url: "https://movie.douban.com/subject/1291841/?suggest=%E6%95%99%E7%88%B6",
+          year: "1972",
+        },
+        {
+          episode: "",
+          id: "1299131",
+          img: "https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2194138787.jpg",
+          sub_title: "The Godfather: Part II",
+          title: "教父2",
+          type: "movie",
+          url: "https://movie.douban.com/subject/1299131/?suggest=%E6%95%99%E7%88%B6",
+          year: "1974",
+        },
+        {
+          episode: "",
+          id: "1294240",
+          img: "https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2169664351.jpg",
+          sub_title: "The Godfather: Part III",
+          title: "教父3",
+          type: "movie",
+          url: "https://movie.douban.com/subject/1294240/?suggest=%E6%95%99%E7%88%B6",
+          year: "1990",
+        },
+      ])
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const suggestions = await fetchSubjectSuggestions("教父");
+
+    expect(
+      suggestions.map(({ id, title, originalTitle }) => [
+        id,
+        title,
+        originalTitle,
+      ])
+    ).toStrictEqual([
+      ["1291841", "教父", "The Godfather"],
+      ["1299131", "教父2", "The Godfather: Part II"],
+      ["1294240", "教父3", "The Godfather: Part III"],
+    ]);
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      "/j/subject_suggest?q=%E6%95%99%E7%88%B6"
+    );
+  });
+
   it("uses one cached response for equivalent non-empty queries", async () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValue(response([]));
     vi.stubGlobal("fetch", fetchMock);

@@ -1,4 +1,3 @@
-import type { AnimationPlaybackControlsWithThen } from "motion";
 import { render } from "preact";
 import type { ComponentChild } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -48,7 +47,7 @@ const motion = vi.hoisted(() => {
       state: "running" as const,
       stop: vi.fn<(...args: unknown[]) => void>(),
       time: 0,
-    }) satisfies AnimationPlaybackControlsWithThen;
+    }) as unknown as ReturnType<typeof animateWithReducedMotion>;
   });
 
   return { animate, animations };
@@ -56,6 +55,9 @@ const motion = vi.hoisted(() => {
 
 vi.mock(import("@/shared/utils/springs"), () => ({
   animateWithReducedMotion: motion.animate,
+  stopMotionAnimation: (
+    animation: ReturnType<typeof animateWithReducedMotion>
+  ) => animation.stop(),
   springConfigs: {
     contentEntrance: { damping: 28, stiffness: 300, type: "spring" },
     modalBackdrop: { bounce: 0, duration: 0.4, type: "spring" },

@@ -35,18 +35,29 @@ type ImdbRating = {
   count: number;
 };
 
-/** Return type of fetchMcRating() — weighted critic score 0-100, review count */
+/** Metacritic Metascore, 0-100, and number of critic reviews. */
 type McRating = {
   score: number;
   reviewCount: number;
+  sourceUrl: string;
 };
 
-/** Rotten Tomatoes ratings — Tomatometer (critics) and Popcornmeter (audience), each score 0-100 */
+type RtCount =
+  | { kind: "exact"; value: number }
+  | { kind: "range"; lowerBound: number };
+
+type RtObjectKind = "movie" | "series" | "season";
+
 type RtRating = {
-  criticsScore: number;
-  criticsCount: number;
-  audienceScore: number;
-  audienceCount: number;
+  audienceCount: RtCount | null;
+  audienceGroup: "all" | "verified" | null;
+  audienceScore: number | null;
+  criticsCount: RtCount | null;
+  criticsScore: number | null;
+  fetchedAt: number;
+  object: { kind: RtObjectKind; rtId: string; subjectId: string };
+  sourceUrl: string;
+  stale: boolean;
 };
 
 type RatingInfo = {
@@ -74,6 +85,7 @@ type InfoBlock = {
   runtime: string;
   episodes: string;
   seasons: string;
+  selectedSeason?: string | null;
   episodeRuntime: string;
   aliases: string;
   imdb: string;
@@ -318,6 +330,8 @@ export type {
   RtRating,
   NavSection,
   Photo,
+  RtCount,
+  RtObjectKind,
   RatingInfo,
   RankLabel,
   Recommendation,

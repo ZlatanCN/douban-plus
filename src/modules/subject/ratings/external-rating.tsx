@@ -1,6 +1,11 @@
 import type { JSX } from "preact";
 
-import type { ImdbRating, McRating, RtRating } from "@/modules/subject/domain";
+import type {
+  ImdbRating,
+  McRating,
+  RtCount,
+  RtRating,
+} from "@/modules/subject/domain";
 import { IconPopcorn, IconTomato } from "@/shared/components/common/icons";
 import { Stars } from "@/shared/components/common/stars";
 import { useEntranceExitAnimation } from "@/shared/hooks/use-entrance-exit-animation";
@@ -19,22 +24,31 @@ type ExternalRatingProps =
       rating: ImdbRating | null;
       resolved: boolean;
       source: "imdb";
+      sourceUrl?: string | null;
     }
   | {
       rating: McRating | null;
       resolved: boolean;
       source: "metacritic";
+      sourceUrl?: string | null;
     }
   | {
       rating: RtRating | null;
       resolved: boolean;
       source: "rt";
+      sourceUrl?: string | null;
     };
 
 const SOURCE_CLASS = {
   imdb: "atv-rating-panel-imdb",
   metacritic: "atv-rating-panel-mc",
   rt: "atv-rating-panel-rt",
+} as const satisfies Record<ExternalRatingProps["source"], string>;
+
+const SOURCE_LINK_LABEL = {
+  imdb: "在 IMDb 打开评分",
+  metacritic: "在 Metacritic 打开评分",
+  rt: "在烂番茄打开评分",
 } as const satisfies Record<ExternalRatingProps["source"], string>;
 
 const renderImdbRating = (rating: ImdbRating): JSX.Element => (
@@ -90,46 +104,76 @@ const RtLabel = ({
   </span>
 );
 
+const formatRtCount = (count: RtCount | null): string => {
+  if (!count) {
+    return "";
+  }
+  if (count.kind === "range") {
+    return `${count.lowerBound.toLocaleString("en-US")}+`;
+  }
+  return count.value.toLocaleString("en-US");
+};
+
 const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
   <>
-    <div class="atv-rt-score-row">
-      <div
-        class={`atv-rt-score-value ${
-          isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"
-        }`}
-      >
-        {`${rating.criticsScore}%`}
-      </div>
-      <div class="atv-rt-divider" />
-      <div
-        class={`atv-rt-score-value ${
-          isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"
-        }`}
-      >
-        {`${rating.audienceScore}%`}
-      </div>
+    <div
+      class={`atv-rt-score-row ${
+        rating.criticsScore === null || rating.audienceScore === null
+          ? "is-single"
+          : ""
+      }`}
+    >
+      {rating.criticsScore !== null && (
+        <div
+          class={`atv-rt-score-value ${
+            isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"
+          }`}
+        >
+          {`${rating.criticsScore}%`}
+        </div>
+      )}
+      {rating.criticsScore !== null && rating.audienceScore !== null ? (
+        <div class="atv-rt-divider" />
+      ) : null}
+      {rating.audienceScore !== null && (
+        <div
+          class={`atv-rt-score-value ${
+            isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"
+          }`}
+        >
+          {`${rating.audienceScore}%`}
+        </div>
+      )}
     </div>
     <div class="atv-rt-label-row">
-      <RtLabel
-        className="is-critics"
-        icon={<IconTomato />}
-        score={rating.criticsScore}
-        text="影评人"
-      />
-      <RtLabel
-        className="is-audience"
-        icon={<IconPopcorn />}
-        score={rating.audienceScore}
-        text="观众"
-      />
+      {rating.criticsScore !== null && (
+        <RtLabel
+          className="is-critics"
+          icon={<IconTomato />}
+          score={rating.criticsScore}
+          text="影评人"
+        />
+      )}
+      {rating.audienceScore !== null && (
+        <RtLabel
+          className="is-audience"
+          icon={<IconPopcorn />}
+          score={rating.audienceScore}
+          text="观众"
+        />
+      )}
     </div>
     <div class="atv-rt-count-row">
-      <span class="atv-rt-count-value">
-        {`评价 ${rating.criticsCount.toLocaleString("en-US")}`}
-      </span>
-      <span class="atv-rt-count-value">
-        {`评价 ${rating.audienceCount.toLocaleString("en-US")}`}
-      </span>
+      {rating.criticsScore !== null && rating.criticsCount !== null ? (
+        <span class="atv-rt-count-value">
+          {`评价 ${formatRtCount(rating.criticsCount)}`}
+        </span>
+      ) : null}
+      {rating.audienceScore !== null && rating.audienceCount !== null ? (
+        <span class="atv-rt-count-value">
+          {`评价 ${formatRtCount(rating.audienceCount)}`}
+        </span>
+      ) : null}
     </div>
   </>
 );
@@ -164,6 +208,8 @@ const renderExternalRatingContent = (
 };
 
 const ExternalRating = (props: ExternalRatingProps) => {
+  const sourceUrl =
+    props.sourceUrl ?? (props.source === "rt" ? props.rating?.sourceUrl : null);
   const shouldRender = !props.resolved || Boolean(props.rating);
   const { rendered, setRef } = useEntranceExitAnimation(
     shouldRender,
@@ -175,6 +221,23 @@ const ExternalRating = (props: ExternalRatingProps) => {
     return null;
   }
 
+  const logo = <RatingLogo name={props.source} />;
+  const sourceLogo = sourceUrl ? (
+    <a
+      aria-label={SOURCE_LINK_LABEL[props.source]}
+      class={`atv-rating-source atv-${props.source}-source${
+        props.source === "rt" ? " atv-rt-source" : ""
+      }`}
+      href={sourceUrl}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      {logo}
+    </a>
+  ) : (
+    logo
+  );
+
   return (
     <div
       ref={setRef}
@@ -183,7 +246,16 @@ const ExternalRating = (props: ExternalRatingProps) => {
         props.resolved
       )}`}
     >
-      <RatingLogo name={props.source} />
+      {props.source === "rt" ? (
+        <span class="atv-rt-logo-group">
+          {sourceLogo}
+          {props.rating?.stale ? (
+            <span class="atv-rt-stale">旧评分</span>
+          ) : null}
+        </span>
+      ) : (
+        sourceLogo
+      )}
       {renderExternalRatingContent(props)}
     </div>
   );
