@@ -28,6 +28,7 @@ const makeTitleJson = (overrides?: {
   aggregateRating?: number;
   errors?: unknown;
   series?: { id: string; titleText: string } | null;
+  titleTypeId?: string;
   titleText?: string;
   voteCount?: number;
 }): string =>
@@ -41,6 +42,9 @@ const makeTitleJson = (overrides?: {
         },
         series: seriesField(overrides?.series),
         titleText: { text: overrides?.titleText ?? "Test Title" },
+        titleType: overrides?.titleTypeId
+          ? { id: overrides.titleTypeId }
+          : undefined,
       },
     },
     errors: overrides?.errors,
@@ -71,14 +75,17 @@ const makeSeasonJson = (
   });
 
 describe(extractTitleFields, () => {
-  it("extracts rating, title, and null seriesInfo for a movie", () => {
-    const parsed = JSON.parse(makeTitleJson({ series: null })) as ParsedRaw;
+  it("extracts rating, title type, and null seriesInfo for a movie", () => {
+    const parsed = JSON.parse(
+      makeTitleJson({ series: null, titleTypeId: "movie" })
+    ) as ParsedRaw;
     const result = extractTitleFields(parsed);
 
     expect(result).toStrictEqual({
       aggregateRating: 8.5,
       seriesInfo: null,
       titleText: "Test Title",
+      titleTypeId: "movie",
       voteCount: 1000,
     });
   });
@@ -87,6 +94,7 @@ describe(extractTitleFields, () => {
     const parsed = JSON.parse(
       makeTitleJson({
         series: { id: "tt0944947", titleText: "Game of Thrones" },
+        titleTypeId: "tvEpisode",
       })
     ) as ParsedRaw;
     const result = extractTitleFields(parsed);
@@ -134,6 +142,7 @@ describe(parseResponse, () => {
       aggregateRating: 9.3,
       seriesInfo: null,
       titleText: "Test Title",
+      titleTypeId: null,
       voteCount: 1_200_000,
     });
   });
@@ -155,6 +164,7 @@ describe(parseResponse, () => {
       aggregateRating: undefined,
       seriesInfo: null,
       titleText: null,
+      titleTypeId: null,
       voteCount: undefined,
     });
   });

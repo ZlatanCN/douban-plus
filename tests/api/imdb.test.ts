@@ -21,7 +21,8 @@ const makeGraphQLSuccess = (
   score: number,
   count: number,
   title = "The Shawshank Redemption",
-  series?: { id: string; titleText: string }
+  series?: { id: string; titleText: string },
+  titleType = series ? "tvEpisode" : "tvSeries"
 ): string =>
   JSON.stringify({
     data: {
@@ -38,6 +39,7 @@ const makeGraphQLSuccess = (
             }
           : {}),
         titleText: { text: title },
+        titleType: { id: titleType },
       },
     },
   });
@@ -250,6 +252,21 @@ describe("fetchImdbRating", () => {
       title: "Example Series",
     });
     expect(mockGmPost).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not treat an episode ID as its own parent series when IMDb omits the series", async () => {
+    mockGmPost.mockResolvedValueOnce(
+      makeGraphQLSuccess(8.2, 200, "Episode 1", undefined, "tvEpisode")
+    );
+
+    const result = await fetchImdbRating("tt-episode", 2);
+
+    expect(result).toStrictEqual({
+      rating: null,
+      sourceUrl: null,
+      title: "Episode 1",
+    });
+    expect(mockGmPost).toHaveBeenCalledOnce();
   });
 
   it("does not reuse a season rating for a direct title request", async () => {

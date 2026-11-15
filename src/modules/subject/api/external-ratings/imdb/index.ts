@@ -18,6 +18,7 @@ const GRAPHQL_QUERY = `query GetRating($id: ID!) {
   title(id: $id) {
     id
     titleText { text }
+    titleType { id }
     ratingsSummary { aggregateRating voteCount }
     series {
       series {
@@ -136,7 +137,11 @@ const fetchImdbRating = async (
     }
 
     const { titleText, seriesInfo } = titleInfo;
-    const seriesId = seriesInfo?.id ?? imdbId;
+    const seriesId =
+      seriesInfo?.id ?? (titleInfo.titleTypeId === "tvSeries" ? imdbId : null);
+    if (!seriesId) {
+      return { rating: null, sourceUrl: null, title: titleText };
+    }
     const seasonResult = await fetchSeasonRating(seriesId, season);
     const title = seriesInfo?.titleText ?? titleText;
     const sourceUrl = imdbSeasonUrl(seriesId, season);

@@ -4,6 +4,7 @@ type ParsedResponse = {
   titleText: string | null;
   aggregateRating: number | undefined;
   voteCount: number | undefined;
+  titleTypeId: string | null;
   /** When the queried tconst is an episode, the parent series id + title.
    *  Null for movies and series-level tconsts. */
   seriesInfo: {
@@ -17,6 +18,7 @@ type ParsedRaw = {
     title?: {
       id: string;
       titleText?: { text: string };
+      titleType?: { id?: string };
       ratingsSummary?: { aggregateRating: number; voteCount: number };
       series?: {
         series?: {
@@ -29,23 +31,39 @@ type ParsedRaw = {
   errors?: unknown;
 };
 
+type RawTitle = NonNullable<NonNullable<ParsedRaw["data"]>["title"]>;
+
+const readSeriesInfo = (
+  title: RawTitle | undefined
+): ParsedResponse["seriesInfo"] => {
+  const series = title?.series?.series;
+  if (!series?.id) {
+    return null;
+  }
+  return {
+    id: series.id,
+    titleText: series.titleText?.text ?? title?.titleText?.text ?? "",
+  };
+};
+
+const readTitleText = (title: RawTitle | undefined): string | null =>
+  title?.titleText?.text ?? null;
+
+const readTitleTypeId = (title: RawTitle | undefined): string | null =>
+  title?.titleType?.id ?? null;
+
 const extractTitleFields = (parsed: ParsedRaw): ParsedResponse | null => {
   if (parsed.errors) {
     return null;
   }
-  const title = parsed?.data?.title;
-  const seriesNested = title?.series?.series;
-  const seriesInfo = seriesNested?.id
-    ? {
-        id: seriesNested.id,
-        titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? "",
-      }
-    : null;
+  const title = parsed.data?.title;
+  const ratingsSummary = title?.ratingsSummary;
   return {
-    aggregateRating: title?.ratingsSummary?.aggregateRating,
-    seriesInfo,
-    titleText: title?.titleText?.text ?? null,
-    voteCount: title?.ratingsSummary?.voteCount,
+    aggregateRating: ratingsSummary?.aggregateRating,
+    seriesInfo: readSeriesInfo(title),
+    titleText: readTitleText(title),
+    titleTypeId: readTitleTypeId(title),
+    voteCount: ratingsSummary?.voteCount,
   };
 };
 

@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-VSoqBn7q-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-Cz8xpaLr-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -15872,19 +15872,26 @@ var buildContext = (data) => {
 		unsupportedEpisode
 	};
 };
+var readSeriesInfo = (title) => {
+	const series = title?.series?.series;
+	if (!series?.id) return null;
+	return {
+		id: series.id,
+		titleText: series.titleText?.text ?? title?.titleText?.text ?? ""
+	};
+};
+var readTitleText = (title) => title?.titleText?.text ?? null;
+var readTitleTypeId = (title) => title?.titleType?.id ?? null;
 var extractTitleFields = (parsed) => {
 	if (parsed.errors) return null;
-	const title = parsed?.data?.title;
-	const seriesNested = title?.series?.series;
-	const seriesInfo = seriesNested?.id ? {
-		id: seriesNested.id,
-		titleText: seriesNested.titleText?.text ?? title?.titleText?.text ?? ""
-	} : null;
+	const title = parsed.data?.title;
+	const ratingsSummary = title?.ratingsSummary;
 	return {
-		aggregateRating: title?.ratingsSummary?.aggregateRating,
-		seriesInfo,
-		titleText: title?.titleText?.text ?? null,
-		voteCount: title?.ratingsSummary?.voteCount
+		aggregateRating: ratingsSummary?.aggregateRating,
+		seriesInfo: readSeriesInfo(title),
+		titleText: readTitleText(title),
+		titleTypeId: readTitleTypeId(title),
+		voteCount: ratingsSummary?.voteCount
 	};
 };
 var parseResponse = (json) => {
@@ -15923,6 +15930,7 @@ var GRAPHQL_QUERY = `query GetRating($id: ID!) {
   title(id: $id) {
     id
     titleText { text }
+    titleType { id }
     ratingsSummary { aggregateRating voteCount }
     series {
       series {
@@ -16006,7 +16014,12 @@ var fetchImdbRating = async (imdbId, season) => {
 			title: null
 		};
 		const { titleText, seriesInfo } = titleInfo;
-		const seriesId = seriesInfo?.id ?? imdbId;
+		const seriesId = seriesInfo?.id ?? (titleInfo.titleTypeId === "tvSeries" ? imdbId : null);
+		if (!seriesId) return {
+			rating: null,
+			sourceUrl: null,
+			title: titleText
+		};
 		const seasonResult = await fetchSeasonRating(seriesId, season);
 		const title = seriesInfo?.titleText ?? titleText;
 		const sourceUrl = imdbSeasonUrl(seriesId, season);
@@ -19598,7 +19611,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-VSoqBn7q-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-Cz8xpaLr-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
