@@ -24,22 +24,31 @@ type ExternalRatingProps =
       rating: ImdbRating | null;
       resolved: boolean;
       source: "imdb";
+      sourceUrl?: string | null;
     }
   | {
       rating: McRating | null;
       resolved: boolean;
       source: "metacritic";
+      sourceUrl?: string | null;
     }
   | {
       rating: RtRating | null;
       resolved: boolean;
       source: "rt";
+      sourceUrl?: string | null;
     };
 
 const SOURCE_CLASS = {
   imdb: "atv-rating-panel-imdb",
   metacritic: "atv-rating-panel-mc",
   rt: "atv-rating-panel-rt",
+} as const satisfies Record<ExternalRatingProps["source"], string>;
+
+const SOURCE_LINK_LABEL = {
+  imdb: "在 IMDb 打开评分",
+  metacritic: "在 Metacritic 打开评分",
+  rt: "在烂番茄打开评分",
 } as const satisfies Record<ExternalRatingProps["source"], string>;
 
 const renderImdbRating = (rating: ImdbRating): JSX.Element => (
@@ -199,6 +208,8 @@ const renderExternalRatingContent = (
 };
 
 const ExternalRating = (props: ExternalRatingProps) => {
+  const sourceUrl =
+    props.sourceUrl ?? (props.source === "rt" ? props.rating?.sourceUrl : null);
   const shouldRender = !props.resolved || Boolean(props.rating);
   const { rendered, setRef } = useEntranceExitAnimation(
     shouldRender,
@@ -210,6 +221,23 @@ const ExternalRating = (props: ExternalRatingProps) => {
     return null;
   }
 
+  const logo = <RatingLogo name={props.source} />;
+  const sourceLogo = sourceUrl ? (
+    <a
+      aria-label={SOURCE_LINK_LABEL[props.source]}
+      class={`atv-rating-source atv-${props.source}-source${
+        props.source === "rt" ? " atv-rt-source" : ""
+      }`}
+      href={sourceUrl}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      {logo}
+    </a>
+  ) : (
+    logo
+  );
+
   return (
     <div
       ref={setRef}
@@ -218,21 +246,15 @@ const ExternalRating = (props: ExternalRatingProps) => {
         props.resolved
       )}`}
     >
-      {props.source === "rt" && props.rating ? (
+      {props.source === "rt" ? (
         <span class="atv-rt-logo-group">
-          <a
-            aria-label="在烂番茄打开评分"
-            class="atv-rt-source"
-            href={props.rating.sourceUrl}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <RatingLogo name="rt" />
-          </a>
-          {props.rating.stale ? <span class="atv-rt-stale">旧评分</span> : null}
+          {sourceLogo}
+          {props.rating?.stale ? (
+            <span class="atv-rt-stale">旧评分</span>
+          ) : null}
         </span>
       ) : (
-        <RatingLogo name={props.source} />
+        sourceLogo
       )}
       {renderExternalRatingContent(props)}
     </div>

@@ -44,11 +44,11 @@ describe("subject runtime season conflicts", () => {
       <SubjectPageRuntime data={data} doc={document} />
     );
 
-    await vi.waitFor(() =>
-      expect(root.querySelector(".atv-rating-panel-imdb")).toBeNull()
-    );
-    expect(root.querySelector(".atv-rating-panel-mc")).toBeNull();
-    expect(root.querySelector(".atv-rating-panel-rt")).toBeNull();
+    await vi.waitFor(() => {
+      expect(root.querySelector(".atv-rating-panel-imdb")).toBeNull();
+      expect(root.querySelector(".atv-rating-panel-mc")).toBeNull();
+      expect(root.querySelector(".atv-rating-panel-rt")).toBeNull();
+    });
     expect(
       requests.some((url) => url.includes("www.rottentomatoes.com"))
     ).toBeFalsy();

@@ -4,7 +4,7 @@ import { createCache } from "@/shared/utils/cache";
 import { gmGetResponse } from "@/shared/utils/request";
 
 import { TARGET_REVALIDATION_INTERVAL } from "../shared/verified-target-cache";
-import { isMatchingMcPage, pagePath, parseMcPage } from "./page";
+import { pagePath, readMcPage } from "./page";
 import type { MetacriticTarget } from "./wikidata/claims";
 import {
   cacheMetacriticTarget,
@@ -17,7 +17,7 @@ import {
 const METACRITIC_ORIGIN = "https://www.metacritic.com";
 const REQUEST_TIMEOUT = 8000;
 const mcCache = createCache<NonNullable<McRating>>(
-  "dp:metacritic-cache-v2",
+  "dp:metacritic-cache-v3",
   7 * 24 * 60 * 60 * 1000
 );
 
@@ -61,14 +61,15 @@ const fetchRatingForTarget = async (
     invalidateMetacriticTarget(context);
     return null;
   }
-  if (!isMatchingMcPage(response.responseText, target)) {
+  const page = readMcPage(response.responseText, target);
+  if (!page.matchesTarget) {
     invalidateMetacriticTarget(context);
     return null;
   }
   if (cacheVerifiedTarget) {
     cacheMetacriticTarget(context, target);
   }
-  const rating = parseMcPage(response.responseText, target);
+  const { rating } = page;
   if (!rating) {
     return null;
   }

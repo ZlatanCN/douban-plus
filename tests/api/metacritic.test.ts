@@ -61,6 +61,7 @@ describe(parseMcPage, () => {
     expect(parseMcPage(makeSeasonPage(), seasonTarget)).toStrictEqual({
       reviewCount: 26,
       score: 90,
+      sourceUrl: "https://www.metacritic.com/tv/game-of-thrones/season-2/",
     });
   });
 
@@ -84,6 +85,7 @@ describe(parseMcPage, () => {
     expect(parseMcPage(html, seasonTarget)).toStrictEqual({
       reviewCount: 26,
       score: 90,
+      sourceUrl: "https://www.metacritic.com/tv/game-of-thrones/season-2/",
     });
   });
 

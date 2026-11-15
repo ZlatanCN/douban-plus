@@ -80,6 +80,7 @@ describe("fetchImdbRating", () => {
 
     expect(result.rating).toStrictEqual({ count: 1_200_000, score: 9.3 });
     expect(result.title).toBe("The Shawshank Redemption");
+    expect(result.sourceUrl).toBe("https://www.imdb.com/title/tt0111161/");
   });
 
   it("sends correct GraphQL request URL and headers (t2a)", async () => {
@@ -151,6 +152,7 @@ describe("fetchImdbRating", () => {
     const result = await fetchImdbRating("tt0111161");
     expect(result).toStrictEqual({
       rating: { count: 1_200_000, score: 9.3 },
+      sourceUrl: "https://www.imdb.com/title/tt0111161/",
       title: "The Shawshank Redemption",
     });
     expect(mockGmPost).not.toHaveBeenCalled();
@@ -175,6 +177,7 @@ describe("fetchImdbRating", () => {
 
     expect(result).toStrictEqual({
       rating: { count: 300, score: 8.3 },
+      sourceUrl: "https://www.imdb.com/title/tt-series/episodes/?season=2",
       title: "Example Series",
     });
     expect(mockGmPost).toHaveBeenCalledTimes(2);
@@ -203,6 +206,7 @@ describe("fetchImdbRating", () => {
 
     expect(seasonResult).toStrictEqual({
       rating: { count: 500, score: 8.1 },
+      sourceUrl: "https://www.imdb.com/title/tt-series/episodes/?season=2",
       title: "Example Series",
     });
     expect(mockGmPost).toHaveBeenCalledTimes(3);
@@ -220,7 +224,11 @@ describe("fetchImdbRating", () => {
 
     const result = await fetchImdbRating("tt-episode", 2);
 
-    expect(result).toStrictEqual({ rating: null, title: "Example Series" });
+    expect(result).toStrictEqual({
+      rating: null,
+      sourceUrl: "https://www.imdb.com/title/tt-series/episodes/?season=2",
+      title: "Example Series",
+    });
     expect(mockGmPost).toHaveBeenCalledTimes(2);
   });
 
@@ -236,7 +244,11 @@ describe("fetchImdbRating", () => {
 
     const result = await fetchImdbRating("tt-episode", 2);
 
-    expect(result).toStrictEqual({ rating: null, title: "Example Series" });
+    expect(result).toStrictEqual({
+      rating: null,
+      sourceUrl: "https://www.imdb.com/title/tt-series/episodes/?season=2",
+      title: "Example Series",
+    });
     expect(mockGmPost).toHaveBeenCalledTimes(2);
   });
 
@@ -256,6 +268,7 @@ describe("fetchImdbRating", () => {
 
     expect(directResult).toStrictEqual({
       rating: { count: 200, score: 8.2 },
+      sourceUrl: "https://www.imdb.com/title/tt-episode/",
       title: "Episode 1",
     });
     expect(mockGmPost).toHaveBeenCalledTimes(3);
@@ -279,9 +292,10 @@ describe("fetchImdbRating", () => {
 
     expect(result).toStrictEqual({
       rating: { count: 1_200_000, score: 9.3 },
+      sourceUrl: "https://www.imdb.com/title/tt0111161/",
       title: "The Shawshank Redemption",
     });
-    // Fresh fetch (old cache key "dp:imdb-cache" vs current "dp:imdb-cache-v2" — misses on purpose)
+    // Fresh fetch (the old cache does not include source URLs).
     expect(mockGmPost).toHaveBeenCalledOnce();
   });
 
@@ -290,7 +304,11 @@ describe("fetchImdbRating", () => {
   it("returns null for empty imdbId (t8)", async () => {
     const result = await fetchImdbRating("");
 
-    expect(result).toStrictEqual({ rating: null, title: null });
+    expect(result).toStrictEqual({
+      rating: null,
+      sourceUrl: null,
+      title: null,
+    });
     expect(mockGmPost).not.toHaveBeenCalled();
   });
 });

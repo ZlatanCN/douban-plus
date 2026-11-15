@@ -123,6 +123,13 @@ describe("subject runtime rating cache", () => {
         firstRoot.querySelector(".atv-rating-panel-mc .atv-rating-panel-score")
           ?.textContent
       ).toBe("82");
+      expect(
+        firstRoot.querySelector<HTMLAnchorElement>(".atv-imdb-source")?.href
+      ).toBe("https://www.imdb.com/title/tt0111161/");
+      expect(
+        firstRoot.querySelector<HTMLAnchorElement>(".atv-metacritic-source")
+          ?.href
+      ).toBe(mcUrl);
     });
     render(null, firstRoot);
     requests.length = 0;

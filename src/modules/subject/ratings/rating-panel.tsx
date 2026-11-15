@@ -10,6 +10,37 @@ type RatingPanelProps = {
   imdbId: string | null;
 };
 
+const sourceUrlOf = (
+  rating: { sourceUrl?: string | null } | null | undefined
+): string | null => rating?.sourceUrl ?? null;
+
+const renderIdentifiedRatings = (
+  externalRatings: RatingResultMap | null,
+  imdbId: string | null
+) => {
+  if (!imdbId) {
+    return null;
+  }
+  const imdb = externalRatings?.imdb;
+  const metacritic = externalRatings?.mc;
+  return (
+    <>
+      <ExternalRating
+        rating={imdb?.rating?.rating ?? null}
+        resolved={imdb?.status === "resolved"}
+        sourceUrl={sourceUrlOf(imdb?.rating)}
+        source="imdb"
+      />
+      <ExternalRating
+        rating={metacritic?.rating ?? null}
+        resolved={metacritic?.status === "resolved"}
+        sourceUrl={sourceUrlOf(metacritic?.rating)}
+        source="metacritic"
+      />
+    </>
+  );
+};
+
 const RatingPanel = ({ douban, externalRatings, imdbId }: RatingPanelProps) => {
   const rt = externalRatings?.rt;
   if (!douban && !imdbId && rt?.status === "resolved" && !rt.rating) {
@@ -19,23 +50,11 @@ const RatingPanel = ({ douban, externalRatings, imdbId }: RatingPanelProps) => {
   return (
     <div class="atv-rating-panel">
       <DoubanRating rating={douban} />
-      {imdbId ? (
-        <>
-          <ExternalRating
-            rating={externalRatings?.imdb.rating?.rating ?? null}
-            resolved={externalRatings?.imdb.status === "resolved"}
-            source="imdb"
-          />
-          <ExternalRating
-            rating={externalRatings?.mc.rating ?? null}
-            resolved={externalRatings?.mc.status === "resolved"}
-            source="metacritic"
-          />
-        </>
-      ) : null}
+      {renderIdentifiedRatings(externalRatings, imdbId)}
       <ExternalRating
         rating={rt?.rating ?? null}
         resolved={rt?.status === "resolved"}
+        sourceUrl={sourceUrlOf(rt?.rating)}
         source="rt"
       />
     </div>

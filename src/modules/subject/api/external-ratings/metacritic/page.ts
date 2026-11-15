@@ -60,15 +60,11 @@ const targetEntry = (
   );
 };
 
-const matchesTarget = (page: PageData, target: MetacriticTarget): boolean =>
-  targetEntry(page, target) !== null;
-
 const parseRating = (
   page: PageData,
-  target: MetacriticTarget
+  matchedEntry: Record<string, unknown>
 ): McRating | null => {
-  const matchedEntry = targetEntry(page, target);
-  if (!matchedEntry) {
+  if (!page.canonicalUrl) {
     return null;
   }
   const { aggregateRating } = matchedEntry;
@@ -91,13 +87,27 @@ const parseRating = (
   ) {
     return null;
   }
-  return { reviewCount: count, score };
+  return {
+    reviewCount: count,
+    score,
+    sourceUrl: new URL(page.canonicalUrl, METACRITIC_ORIGIN).href,
+  };
+};
+
+const readMcPage = (
+  html: string,
+  target: MetacriticTarget
+):
+  | { matchesTarget: false; rating: null }
+  | { matchesTarget: true; rating: McRating | null } => {
+  const page = readStructuredPage(html);
+  const entry = targetEntry(page, target);
+  return entry
+    ? { matchesTarget: true, rating: parseRating(page, entry) }
+    : { matchesTarget: false, rating: null };
 };
 
 const parseMcPage = (html: string, target: MetacriticTarget): McRating | null =>
-  parseRating(readStructuredPage(html), target);
+  readMcPage(html, target).rating;
 
-const isMatchingMcPage = (html: string, target: MetacriticTarget): boolean =>
-  matchesTarget(readStructuredPage(html), target);
-
-export { isMatchingMcPage, pagePath, parseMcPage };
+export { pagePath, parseMcPage, readMcPage };

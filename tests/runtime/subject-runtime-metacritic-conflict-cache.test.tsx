@@ -42,13 +42,17 @@ describe("Metacritic season conflict cache", () => {
       ])
     );
     localStorage.setItem(
-      "dp:metacritic-cache-v2",
+      "dp:metacritic-cache-v3",
       JSON.stringify([
         [
           `${subjectId}:series::tv/game-of-thrones`,
           {
             expiresAt: now + 7 * 24 * 60 * 60 * 1000,
-            value: { reviewCount: 100, score: 90 },
+            value: {
+              reviewCount: 100,
+              score: 90,
+              sourceUrl: "https://www.metacritic.com/tv/game-of-thrones/",
+            },
           },
         ],
       ])

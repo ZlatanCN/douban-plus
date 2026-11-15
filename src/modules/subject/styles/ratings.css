@@ -288,13 +288,13 @@
   gap: 6px;
 }
 
-.atv-rt-source {
+.atv-rating-source {
   display: inline-flex;
   color: inherit;
   text-decoration: none;
 }
 
-.atv-rt-source:hover {
+.atv-rating-source:hover {
   color: var(--atv-text-primary);
 }
 

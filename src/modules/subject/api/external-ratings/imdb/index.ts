@@ -7,8 +7,9 @@ import type { ParsedResponse } from "./parsers";
 
 const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;
+  sourceUrl: string;
   title: string;
-}>("dp:imdb-cache", 30 * 24 * 60 * 60 * 1000);
+}>("dp:imdb-cache-v2", 30 * 24 * 60 * 60 * 1000);
 
 /* ── GraphQL Queries ────────────────────────────────── */
 
@@ -44,6 +45,7 @@ const SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String
 
 type FetchImdbResult = {
   rating: ImdbRating | null;
+  sourceUrl: string | null;
   title: string | null;
 };
 
@@ -54,6 +56,12 @@ const IMDB_HEADERS = { "Content-Type": "application/json" };
 /** Cache by requested title and season, e.g. "tt0944947-s05". */
 const seasonCacheKey = (titleId: string, season: number): string =>
   `${titleId}-s${String(season).padStart(2, "0")}`;
+
+const imdbTitleUrl = (titleId: string): string =>
+  `https://www.imdb.com/title/${encodeURIComponent(titleId)}/`;
+
+const imdbSeasonUrl = (seriesId: string, season: number): string =>
+  `${imdbTitleUrl(seriesId)}episodes/?season=${season}`;
 
 const postGraphQL = (
   query: string,
@@ -108,42 +116,55 @@ const fetchImdbRating = async (
   season?: number
 ): Promise<FetchImdbResult> => {
   if (!imdbId) {
-    return { rating: null, title: null };
+    return { rating: null, sourceUrl: null, title: null };
   }
 
   if (season !== undefined) {
     const cacheKey = seasonCacheKey(imdbId, season);
     const cachedSeason = imdbCache.get(cacheKey);
     if (cachedSeason) {
-      return { rating: cachedSeason.rating, title: cachedSeason.title };
+      return {
+        rating: cachedSeason.rating,
+        sourceUrl: cachedSeason.sourceUrl,
+        title: cachedSeason.title,
+      };
     }
 
     const titleInfo = await fetchTitleInfo(imdbId);
     if (!titleInfo) {
-      return { rating: null, title: null };
+      return { rating: null, sourceUrl: null, title: null };
     }
 
     const { titleText, seriesInfo } = titleInfo;
     const seriesId = seriesInfo?.id ?? imdbId;
     const seasonResult = await fetchSeasonRating(seriesId, season);
     const title = seriesInfo?.titleText ?? titleText;
+    const sourceUrl = imdbSeasonUrl(seriesId, season);
     if (!seasonResult) {
-      return { rating: null, title };
+      return { rating: null, sourceUrl, title };
     }
 
     const cacheTitle = title ?? "";
-    imdbCache.set(cacheKey, { rating: seasonResult.rating, title: cacheTitle });
-    return { rating: seasonResult.rating, title: cacheTitle };
+    imdbCache.set(cacheKey, {
+      rating: seasonResult.rating,
+      sourceUrl,
+      title: cacheTitle,
+    });
+    return { rating: seasonResult.rating, sourceUrl, title: cacheTitle };
   }
 
   const cachedTitle = imdbCache.get(imdbId);
   if (cachedTitle) {
-    return { rating: cachedTitle.rating, title: cachedTitle.title };
+    return {
+      rating: cachedTitle.rating,
+      sourceUrl: cachedTitle.sourceUrl,
+      title: cachedTitle.title,
+    };
   }
 
   const titleInfo = await fetchTitleInfo(imdbId);
   if (!titleInfo) {
-    return { rating: null, title: null };
+    return { rating: null, sourceUrl: null, title: null };
   }
 
   const { aggregateRating, voteCount, titleText } = titleInfo;
@@ -153,11 +174,12 @@ const fetchImdbRating = async (
       score: aggregateRating,
     };
     const title = typeof titleText === "string" ? titleText : "";
-    imdbCache.set(imdbId, { rating, title });
-    return { rating, title };
+    const sourceUrl = imdbTitleUrl(imdbId);
+    imdbCache.set(imdbId, { rating, sourceUrl, title });
+    return { rating, sourceUrl, title };
   }
 
-  return { rating: null, title: titleText };
+  return { rating: null, sourceUrl: imdbTitleUrl(imdbId), title: titleText };
 };
 
 export { fetchImdbRating };

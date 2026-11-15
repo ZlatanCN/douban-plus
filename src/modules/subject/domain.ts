@@ -39,6 +39,7 @@ type ImdbRating = {
 type McRating = {
   score: number;
   reviewCount: number;
+  sourceUrl: string;
 };
 
 type RtCount =
