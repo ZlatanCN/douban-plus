@@ -1,9 +1,9 @@
 /* Provider-brand SVG implementation. Private to the subject media module. */
 
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 import { useId } from "preact/hooks";
 
-type IconProps = JSX.SVGAttributes<SVGSVGElement>;
+type IconProps = SVGAttributes<SVGSVGElement>;
 
 const LogoNetflix = (props: IconProps) => {
   const id = useId();

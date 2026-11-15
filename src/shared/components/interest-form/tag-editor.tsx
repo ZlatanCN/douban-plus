@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { TargetedFocusEvent, TargetedKeyboardEvent } from "preact";
 import { useRef, useState } from "preact/hooks";
 
 import { normalizeInterestTags } from "./normalize-tags";
@@ -23,7 +23,7 @@ const TagSuggestionGroup = ({
 }: {
   disabled: boolean;
   label: string;
-  onBlur: (event: JSX.TargetedFocusEvent<HTMLButtonElement>) => void;
+  onBlur: (event: TargetedFocusEvent<HTMLButtonElement>) => void;
   onToggle: (tag: string) => void;
   tags: string[];
   value: string[];
@@ -81,7 +81,7 @@ const InterestTagEditor = ({
     });
     onDraftChange("");
   };
-  const onKeyDown = (event: JSX.TargetedKeyboardEvent<HTMLInputElement>) => {
+  const onKeyDown = (event: TargetedKeyboardEvent<HTMLInputElement>) => {
     const input = event.currentTarget;
     if (
       event.key === "Backspace" &&
@@ -109,11 +109,11 @@ const InterestTagEditor = ({
       setIsSuggestionTrayOpen(false);
     }
   };
-  const onInputBlur = (event: JSX.TargetedFocusEvent<HTMLInputElement>) => {
+  const onInputBlur = (event: TargetedFocusEvent<HTMLInputElement>) => {
     commitDraft();
     closeSuggestionTrayOnExit(event.relatedTarget);
   };
-  const onTagBlur = (event: JSX.TargetedFocusEvent<HTMLButtonElement>) => {
+  const onTagBlur = (event: TargetedFocusEvent<HTMLButtonElement>) => {
     closeSuggestionTrayOnExit(event.relatedTarget);
   };
 

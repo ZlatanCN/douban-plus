@@ -8,7 +8,7 @@
  * rich HTML is sanitized before controlled Preact HTML rendering).
  */
 
-import type { JSX, ComponentChildren, Ref } from "preact";
+import type { ComponentChildren, HTMLAttributes, Ref } from "preact";
 
 const allowedTags = new Set([
   "a",
@@ -122,7 +122,7 @@ const HtmlContent = ({
   dangerouslySetInnerHTML: _dangerouslySetInnerHTML,
   contentRef,
   ...rest
-}: JSX.HTMLAttributes<HTMLDivElement> & {
+}: HTMLAttributes<HTMLDivElement> & {
   contentRef?: Ref<HTMLDivElement>;
   html?: string;
   children?: ComponentChildren;

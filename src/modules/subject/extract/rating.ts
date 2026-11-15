@@ -37,10 +37,10 @@ const extractRating = (doc: Document): RatingInfo | null => {
 
 const normalizeSummaryText = (text: string): string =>
   text
-    .replace(RE_CRLF, "\n")
+    .replaceAll(RE_CRLF, "\n")
     .split("\n")
     .map((line) =>
-      line.replace(RE_LINE_EDGE_HSPACE, "").replace(RE_HSPACE, " ")
+      line.replaceAll(RE_LINE_EDGE_HSPACE, "").replaceAll(RE_HSPACE, " ")
     )
     .join("\n")
     .replace(RE_NL_MULTI, "\n")

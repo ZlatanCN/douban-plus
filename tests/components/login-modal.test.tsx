@@ -137,6 +137,6 @@ describe(LoginModal, () => {
 
     render(null, root);
 
-    expect(stop).toHaveBeenCalledOnce();
+    await vi.waitFor(() => expect(stop).toHaveBeenCalledOnce());
   });
 });

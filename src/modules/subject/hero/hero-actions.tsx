@@ -9,7 +9,11 @@ import {
   IconStarFull,
   IconThumb,
 } from "@/shared/components/common/icons";
-import { playEntrance, springConfigs } from "@/shared/utils/springs";
+import {
+  playEntrance,
+  springConfigs,
+  stopMotionAnimation,
+} from "@/shared/utils/springs";
 
 type HeroActionsProps = {
   callbacks: HeroCallbacks;
@@ -44,7 +48,7 @@ const HeroActions = ({ callbacks, state }: HeroActionsProps) => {
         interestPanelRef.current,
         springConfigs.contentEntrance
       );
-      return () => animation.stop();
+      return () => stopMotionAnimation(animation);
     }
   }, [state.marked]);
 

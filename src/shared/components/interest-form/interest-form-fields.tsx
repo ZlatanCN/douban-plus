@@ -1,4 +1,4 @@
-import type { JSX } from "preact";
+import type { CSSProperties, JSX } from "preact";
 
 import { StarRatingInput } from "./star-rating-input";
 import { InterestTagEditor } from "./tag-editor";
@@ -98,7 +98,7 @@ const InterestFormFields = ({
           {
             "--atv-interest-status-count": statuses.length,
             "--atv-interest-status-index": activeStatusIndex,
-          } as JSX.CSSProperties
+          } as CSSProperties
         }
       >
         <div aria-hidden="true" class="atv-interest-modal-status-indicator" />

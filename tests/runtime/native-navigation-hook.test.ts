@@ -84,9 +84,11 @@ describe(useNativeNavigation, () => {
     expect(loadPage.mock.calls[0]?.[0]).toBe(view.location.href);
 
     render(null, root);
-    expect(removeEventListener).toHaveBeenCalledWith(
-      "popstate",
-      popstateListener
+    await vi.waitFor(() =>
+      expect(removeEventListener).toHaveBeenCalledWith(
+        "popstate",
+        popstateListener
+      )
     );
 
     addEventListener.mockRestore();

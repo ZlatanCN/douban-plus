@@ -126,8 +126,8 @@ describe("Trailer acquisition", () => {
     const fetch = vi.fn<(url: string, init?: RequestInit) => Promise<Response>>(
       (_url, init) => {
         const { signal: requestSignal } = init ?? {};
-        if (requestSignal instanceof AbortSignal) {
-          signal = requestSignal;
+        if (requestSignal) {
+          signal = requestSignal as AbortSignal;
         }
         // oxlint-disable-next-line promise/avoid-new -- the test keeps the request in flight until cleanup.
         return new Promise(() => {});
@@ -139,7 +139,7 @@ describe("Trailer acquisition", () => {
     await vi.waitFor(() => expect(fetch).toHaveBeenCalledOnce());
     render(null, root);
 
-    expect(signal?.aborted).toBeTruthy();
+    await vi.waitFor(() => expect(signal?.aborted).toBeTruthy());
   });
 
   it("does not render a previous trailer while a replacement is loading", async () => {

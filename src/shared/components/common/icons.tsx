@@ -1,13 +1,13 @@
 /* ── SVG icon components ───────────────────────────────── */
 /* Replacements for dangerouslySetInnerHTML-based icon rendering */
 
-import type { JSX } from "preact";
+import type { SVGAttributes } from "preact";
 
 // HtmlContent (the controlled-HTML render seam) now lives in
 // @/shared/components/common/html-content so the project's only
 // dangerouslySetInnerHTML boundary has a single, findable owner.
 
-type IconProps = JSX.SVGAttributes<SVGSVGElement>;
+type IconProps = SVGAttributes<SVGSVGElement>;
 
 const IconStarFull = (props: IconProps) => (
   <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" {...props}>

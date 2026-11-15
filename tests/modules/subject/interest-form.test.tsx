@@ -1,3 +1,4 @@
+import type { animate as MotionAnimate } from "motion";
 import { render } from "preact";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
@@ -34,7 +35,9 @@ const animate = vi.hoisted(() =>
   )
 );
 
-vi.mock(import("motion"), () => ({ animate }));
+vi.mock(import("motion"), () => ({
+  animate: animate as unknown as typeof MotionAnimate,
+}));
 
 const makeState = (overrides?: Partial<InterestState>): InterestState => ({
   ck: "token",

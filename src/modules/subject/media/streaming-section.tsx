@@ -1,4 +1,4 @@
-import type { ComponentType, JSX } from "preact";
+import type { ComponentType, CSSProperties, JSX } from "preact";
 
 import type { Streaming } from "@/modules/subject/domain";
 import { IconPlay } from "@/shared/components/common/icons";
@@ -53,7 +53,7 @@ const StreamingSection = ({ streaming }: StreamingSectionProps) =>
           const provider = resolveStreamingProvider(item);
           const style = {
             "--atv-stream-brand": provider.color,
-          } as JSX.CSSProperties;
+          } as CSSProperties;
 
           return (
             <a

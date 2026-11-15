@@ -1,3 +1,4 @@
+/* oxlint-disable jsx-a11y/no-redundant-roles -- The expanded search input exposes the active suggestion-list combobox state. */
 import {
   useCallback,
   useEffect,
@@ -274,6 +275,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           <SearchIcon />
         </span>
         <input
+          role="combobox"
           aria-activedescendant={
             nav.activeItem
               ? `atv-subject-suggestion-${nav.activeItem.id}`
@@ -284,6 +286,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           aria-expanded={hasResultsPanel}
           class="atv-subject-switcher-input"
           id="atv-subject-switcher-input"
+          list={undefined}
           onInput={(event) => {
             nav.handleReset();
             setQuery(event.currentTarget.value);
@@ -291,8 +294,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           onKeyDown={nav.handleKeyDown}
           placeholder="搜索电影、剧集"
           ref={inputRef}
-          role="combobox"
-          type="search"
+          type="text"
           value={query}
         />
         <button

@@ -1,4 +1,3 @@
-import type { AnimationPlaybackControlsWithThen } from "motion";
 import { render } from "preact";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -26,7 +25,7 @@ const motion = vi.hoisted(() => {
       state: "running" as const,
       stop,
       time: 0,
-    }) satisfies AnimationPlaybackControlsWithThen;
+    }) as unknown as ReturnType<typeof animateWithReducedMotion>;
   });
   return { animate, animations };
 });

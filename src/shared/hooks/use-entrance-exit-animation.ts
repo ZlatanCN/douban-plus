@@ -1,7 +1,10 @@
 import type { RefCallback } from "preact";
 import { useCallback, useLayoutEffect, useRef, useState } from "preact/hooks";
 
-import { animateWithReducedMotion } from "@/shared/utils/springs";
+import {
+  animateWithReducedMotion,
+  stopMotionAnimation,
+} from "@/shared/utils/springs";
 import type { SpringConfig } from "@/shared/utils/springs";
 
 type EntranceExitResult = {
@@ -44,15 +47,17 @@ const useEntranceExitAnimation = (
   const pendingEntranceRef = useRef(false);
   const prevHasContentRef = useRef(false);
 
-  const stopAnimation = useCallback(() => {
+  const stopCurrentAnimation = useCallback(() => {
     animationGenerationRef.current += 1;
-    animationRef.current?.stop();
+    if (animationRef.current) {
+      stopMotionAnimation(animationRef.current);
+    }
     animationRef.current = null;
   }, []);
 
   const animateEntrance = useCallback(
     (panel: HTMLDivElement) => {
-      stopAnimation();
+      stopCurrentAnimation();
       animationRef.current = animateWithReducedMotion(panel, {
         properties: {
           opacity: [0, 1],
@@ -62,12 +67,12 @@ const useEntranceExitAnimation = (
         springConfig,
       });
     },
-    [springConfig, stopAnimation]
+    [springConfig, stopCurrentAnimation]
   );
 
   const animateExit = useCallback(
     (panel: HTMLDivElement) => {
-      stopAnimation();
+      stopCurrentAnimation();
       const generation = animationGenerationRef.current;
       const animation = animateWithReducedMotion(panel, {
         properties: {
@@ -80,7 +85,7 @@ const useEntranceExitAnimation = (
       animationRef.current = animation;
       return { animation, generation };
     },
-    [springConfig, stopAnimation]
+    [springConfig, stopCurrentAnimation]
   );
 
   const setRef = useCallback(
@@ -102,7 +107,7 @@ const useEntranceExitAnimation = (
 
     if (shouldRender) {
       if (!wasDesired) {
-        stopAnimation();
+        stopCurrentAnimation();
       }
       if (justLoaded) {
         const panel = panelRef.current;
@@ -139,9 +144,15 @@ const useEntranceExitAnimation = (
         // A new state superseded this exit animation.
       }
     })();
-  }, [animateEntrance, animateExit, hasContent, shouldRender, stopAnimation]);
+  }, [
+    animateEntrance,
+    animateExit,
+    hasContent,
+    shouldRender,
+    stopCurrentAnimation,
+  ]);
 
-  useLayoutEffect(() => stopAnimation, [stopAnimation]);
+  useLayoutEffect(() => stopCurrentAnimation, [stopCurrentAnimation]);
 
   return { rendered, setRef };
 };

@@ -1,6 +1,7 @@
 /* ── springs — Unit Tests ─────────────────────────────── */
 /* Tests spring config constants and reduced‑motion util.  */
 
+import type { animate as MotionAnimate } from "motion";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 /* ── Module-Level Mocks ─────────────────────────────── */
@@ -26,7 +27,7 @@ const mockAnimate = vi.hoisted(() =>
 );
 
 vi.mock(import("motion"), () => ({
-  animate: mockAnimate,
+  animate: mockAnimate as unknown as typeof MotionAnimate,
 }));
 
 const { springConfigs, animateWithReducedMotion } =
