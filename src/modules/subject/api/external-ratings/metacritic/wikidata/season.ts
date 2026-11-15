@@ -1,4 +1,8 @@
-import { fetchEntities, entityReference } from "../../shared/wikidata-client";
+import {
+  entityReference,
+  fetchEntities,
+} from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+
 import {
   entityKind,
   readMetacriticId,

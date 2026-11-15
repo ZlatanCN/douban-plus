@@ -1,6 +1,6 @@
+import { createVerifiedTargetCache } from "@/modules/subject/api/external-ratings/shared/verified-target-cache";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import { createVerifiedTargetCache } from "../../shared/verified-target-cache";
 import { entityKind, readMetacriticId } from "./claims";
 import type { Entity, MetacriticTarget, TargetResult } from "./claims";
 import { findEntity } from "./lookup";

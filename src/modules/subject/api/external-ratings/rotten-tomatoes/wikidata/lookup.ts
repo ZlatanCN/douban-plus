@@ -2,7 +2,8 @@ import {
   entityReference,
   fetchEntities as fetchWikidataEntities,
   findEntityCandidates,
-} from "../../shared/wikidata-client";
+} from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+
 import {
   activeIdentityClaims,
   claimValues,

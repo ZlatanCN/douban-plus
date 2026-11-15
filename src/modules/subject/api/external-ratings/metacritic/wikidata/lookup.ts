@@ -1,4 +1,5 @@
-import { findEntityCandidates } from "../../shared/wikidata-client";
+import { findEntityCandidates } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+
 import { hasIdentity } from "./claims";
 import type { Entity } from "./claims";
 

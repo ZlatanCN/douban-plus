@@ -1,4 +1,4 @@
-import { entityReference } from "../../shared/wikidata-client";
+import { entityReference } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
 
 type Claim = {
   mainsnak?: { datavalue?: { value?: unknown }; snaktype?: string };

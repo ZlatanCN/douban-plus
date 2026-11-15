@@ -1,5 +1,5 @@
 /* ── fetchImdbRating — Unit Tests ───────────────────────── */
-/* Tests for src/api/imdb.ts. Mocks gmPost so no real HTTP.  */
+/* Tests for src/modules/subject/api/external-ratings/imdb/index.ts. Mocks gmPost so no real HTTP. */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
