@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-PU0-ZIqq-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-BUDV-QcE-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -15830,10 +15830,6 @@ var selectedSeasonNumbers = (value) => {
 	const number = selected ? chineseNumber(selected) : null;
 	return number === null ? [] : [number];
 };
-var cleanEnglishTitle = (value) => {
-	const cleaned = value.replace(/\s*\(\d{4}\)\s*$/u, "").replace(/\s*(?:\bseason\s*\d+|\bS\d+)\s*$/iu, "").replaceAll(/第[一二三四五六七八九十\d]+季/gu, "").trim();
-	return /[A-Za-z]/u.test(cleaned) ? cleaned : null;
-};
 var isEpisodeLabel = (value) => /(?:\b(?:episode|ep\.?|e)\s*\d+\b|第(?:\d+|[一二三四五六七八九十]+)集)/iu.test(value);
 var buildContext = (data) => {
 	const titles = [
@@ -15849,16 +15845,13 @@ var buildContext = (data) => {
 	let kind = "movie";
 	if (data.isTV) kind = season === null ? "series" : "season";
 	return {
-		englishTitle: cleanEnglishTitle(data.title.original) ?? cleanEnglishTitle(data.title.primary) ?? cleanEnglishTitle(data.title.full),
 		imdbId: data.info.imdb || null,
-		isTV: data.isTV,
 		kind,
 		season,
 		seasonConflict,
 		subjectId: data.subjectId,
 		subjectTitle: data.title.full,
-		unsupportedEpisode,
-		year: kind === "season" ? null : data.year || null
+		unsupportedEpisode
 	};
 };
 var extractTitleFields = (parsed) => {
@@ -15938,8 +15931,8 @@ var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!)
 var IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
 var IMDB_REFERER = "https://www.imdb.com/";
 var IMDB_HEADERS = { "Content-Type": "application/json" };
-/** Build a cache key scoped to series + season, e.g. "tt0944947-s05". */
-var seasonCacheKey = (seriesId, season) => `${seriesId}-s${String(season).padStart(2, "0")}`;
+/** Cache by requested title and season, e.g. "tt0944947-s05". */
+var seasonCacheKey = (titleId, season) => `${titleId}-s${String(season).padStart(2, "0")}`;
 var postGraphQL = (query, variables) => gmPost(IMDB_GRAPHQL_URL, JSON.stringify({
 	query,
 	variables
@@ -15954,7 +15947,7 @@ var fetchTitleInfo = async (imdbId) => {
 		return null;
 	}
 };
-/** Second pass: fetch all episode ratings for a season, return vote-weighted average. */
+/** Fetch episode ratings for a season and return their vote-weighted average. */
 var fetchSeasonRating = async (seriesId, season) => {
 	try {
 		return parseSeasonRating(await postGraphQL(SEASON_EPISODES_QUERY, {
@@ -15962,54 +15955,61 @@ var fetchSeasonRating = async (seriesId, season) => {
 			season: String(season)
 		}));
 	} catch {
-		console.warn("[IMDB] season episodes query failed, falling back");
+		console.warn("[IMDB] season episodes query failed");
 		return null;
 	}
 };
 /**
 * Resolve an IMDb rating for a title (and optionally a specific season of a
-* series/episode). Two-stage GraphQL: first pass gets title info + series
-* linkage; if a season is requested, a second pass averages episode ratings.
-* Falls back to the direct title rating when the season pass is skipped or
-* fails. Results are cached per imdbId and per series-season.
+* series/episode). Season ratings are computed from that season's episodes;
+* when the season data is unavailable, no direct title rating is substituted.
+* Results are cached separately for direct titles and requested seasons.
 */
 var fetchImdbRating = async (imdbId, season) => {
 	if (!imdbId) return {
 		rating: null,
 		title: null
 	};
-	const cached = imdbCache.get(imdbId);
-	if (cached) return {
-		rating: cached.rating,
-		title: cached.title
+	if (season !== void 0) {
+		const cacheKey = seasonCacheKey(imdbId, season);
+		const cachedSeason = imdbCache.get(cacheKey);
+		if (cachedSeason) return {
+			rating: cachedSeason.rating,
+			title: cachedSeason.title
+		};
+		const titleInfo = await fetchTitleInfo(imdbId);
+		if (!titleInfo) return {
+			rating: null,
+			title: null
+		};
+		const { titleText, seriesInfo } = titleInfo;
+		const seasonResult = await fetchSeasonRating(seriesInfo?.id ?? imdbId, season);
+		const title = seriesInfo?.titleText ?? titleText;
+		if (!seasonResult) return {
+			rating: null,
+			title
+		};
+		const cacheTitle = title ?? "";
+		imdbCache.set(cacheKey, {
+			rating: seasonResult.rating,
+			title: cacheTitle
+		});
+		return {
+			rating: seasonResult.rating,
+			title: cacheTitle
+		};
+	}
+	const cachedTitle = imdbCache.get(imdbId);
+	if (cachedTitle) return {
+		rating: cachedTitle.rating,
+		title: cachedTitle.title
 	};
 	const titleInfo = await fetchTitleInfo(imdbId);
 	if (!titleInfo) return {
 		rating: null,
 		title: null
 	};
-	const { aggregateRating, voteCount, titleText, seriesInfo } = titleInfo;
-	const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
-	if (season && seriesIdForSeason) {
-		const sKey = seasonCacheKey(seriesIdForSeason, season);
-		const sCached = imdbCache.get(sKey);
-		if (sCached) return {
-			rating: sCached.rating,
-			title: sCached.title
-		};
-		const seasonResult = await fetchSeasonRating(seriesIdForSeason, season);
-		if (seasonResult) {
-			const title = seriesInfo?.titleText ?? titleText ?? "";
-			imdbCache.set(sKey, {
-				rating: seasonResult.rating,
-				title
-			});
-			return {
-				rating: seasonResult.rating,
-				title
-			};
-		}
-	}
+	const { aggregateRating, voteCount, titleText } = titleInfo;
 	if (typeof aggregateRating === "number" && typeof voteCount === "number") {
 		const rating = {
 			count: voteCount,
@@ -16030,75 +16030,402 @@ var fetchImdbRating = async (imdbId, season) => {
 		title: titleText
 	};
 };
-var toRatingSlug = (title, separator) => title.normalize("NFD").replaceAll(/[\u0300-\u036F]/gu, "").toLowerCase().replaceAll(/[^a-z0-9]+/gu, separator).replaceAll(/^-|-$/gu , "");
-var createRatingCacheKey = (slug, separator, season, year) => {
-	let key = slug;
-	if (year) key = `${key}${separator}${year}`;
-	if (season) key = `${key}-s${String(season).padStart(2, "0")}`;
-	return key;
-};
-var createRatingFetcher = ({ cache, parse, referer, slugSeparator, urls }) => async function fetchRating(title, isTV, season, year) {
-	if (!title) return null;
-	const slug = toRatingSlug(title, slugSeparator);
-	if (!slug) return null;
-	const key = createRatingCacheKey(slug, slugSeparator, season, year);
-	const cached = cache.get(key);
-	if (cached) return cached;
-	for (const url of urls({
-		isTV: Boolean(isTV),
-		...season === void 0 ? {} : { season },
-		slug,
-		...year === void 0 ? {} : { year }
-	})) try {
-		const rating = parse(await gmGet(url, referer));
-		if (rating) {
-			cache.set(key, rating);
-			return rating;
-		}
+var METACRITIC_ORIGIN$1 = "https://www.metacritic.com";
+var readPageData = (html) => {
+	const canonicalUrl = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
+	const jsonLd = [];
+	for (const match of html.matchAll(/<script\b(?=[^>]*\btype=["']application\/ld\+json["'])[^>]*>(?<body>[\s\S]*?)<\/script>/giu)) try {
+		const parsed = JSON.parse(match.groups?.body?.trim() ?? "");
+		const values = Array.isArray(parsed) ? parsed : [parsed];
+		for (const value of values) if (value && typeof value === "object") jsonLd.push(value);
 	} catch {}
-	return null;
+	return {
+		canonicalUrl: canonicalUrl ?? null,
+		jsonLd
+	};
 };
-var mcCache = createCache("dp:metacritic-cache", 6048e5);
-/** Extract metascore and critic review count from JSON-LD.
-*  Metacritic uses Nuxt.js — no __NEXT_DATA__. The JSON-LD is
-*  server-rendered and contains aggregateRating with ratingValue (0-100)
-*  and reviewCount. User scores are client-side only. */
-var parseMcPage = (html) => {
-	const match = html.match(/<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu);
-	if (!match?.groups?.json) return null;
+var pagePath = (value) => {
 	try {
-		const rating = JSON.parse(match.groups.json.trim())?.aggregateRating;
-		if (rating?.ratingValue === null || rating?.reviewCount === null) return null;
-		const score = Math.trunc(Number(String(rating.ratingValue)));
-		const reviewCount = Math.trunc(Number(String(rating.reviewCount)));
-		if (Number.isNaN(score) || Number.isNaN(reviewCount)) return null;
-		return {
-			reviewCount,
-			score
-		};
+		const url = new URL(value, METACRITIC_ORIGIN$1);
+		if (url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com") return null;
+		return url.pathname.replaceAll(/\/+$/gu, "");
 	} catch {
 		return null;
 	}
 };
-var fetchMcRating = createRatingFetcher({
-	cache: mcCache,
-	parse: parseMcPage,
-	referer: "https://www.metacritic.com/",
-	slugSeparator: "-",
-	urls: ({ isTV, season, slug, year }) => {
-		if (isTV) {
-			const yearSlug = year ? `${slug}-${year}` : slug;
-			if (season) return [
-				...year ? [`https://www.metacritic.com/tv/${yearSlug}/season-${season}`] : [],
-				`https://www.metacritic.com/tv/${slug}/season-${season}`,
-				...year ? [`https://www.metacritic.com/tv/${yearSlug}`] : [],
-				`https://www.metacritic.com/tv/${slug}`
-			];
-			return year ? [`https://www.metacritic.com/tv/${yearSlug}`, `https://www.metacritic.com/tv/${slug}`] : [`https://www.metacritic.com/tv/${slug}`];
-		}
-		return year ? [`https://www.metacritic.com/movie/${slug}-${year}`, `https://www.metacritic.com/movie/${slug}`] : [`https://www.metacritic.com/movie/${slug}`];
+var pageTypes = (page) => new Set(page.jsonLd.flatMap((value) => {
+	const type = value["@type"];
+	if (Array.isArray(type)) return type.filter((item) => typeof item === "string");
+	return typeof type === "string" ? [type] : [];
+}));
+var matchesTarget = (page, target) => {
+	const expectedPath = `/${target.metacriticId}`;
+	if (!page.canonicalUrl || pagePath(page.canonicalUrl) !== expectedPath) return false;
+	const types = pageTypes(page);
+	if (target.kind === "movie") return types.has("Movie");
+	if (target.kind === "series") return types.has("TVSeries");
+	const season = page.jsonLd.find((entry) => {
+		const type = entry["@type"];
+		return type === "TVSeason" || Array.isArray(type) && type.includes("TVSeason");
+	});
+	if (!types.has("TVSeason") || Number(season?.seasonNumber) !== target.season) return false;
+	const partOfSeries = season?.partOfSeries;
+	const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
+	const expectedSeriesPath = target.metacriticId.replace(/\/season-\d+$/u, "");
+	return typeof seriesUrl === "string" && pagePath(seriesUrl) === `/${expectedSeriesPath}`;
+};
+var parseRating = (page, target) => {
+	if (!matchesTarget(page, target)) return null;
+	const aggregateRating = page.jsonLd.find((entry) => entry.aggregateRating && typeof entry.aggregateRating === "object")?.aggregateRating;
+	if (!aggregateRating || typeof aggregateRating !== "object") return null;
+	const ratingValue = Reflect.get(aggregateRating, "ratingValue");
+	const reviewCount = Reflect.get(aggregateRating, "reviewCount");
+	if (ratingValue === null || reviewCount === null) return null;
+	const score = Math.trunc(Number(String(ratingValue)));
+	const count = Math.trunc(Number(String(reviewCount)));
+	if (!Number.isFinite(score) || score < 0 || score > 100 || !Number.isSafeInteger(count) || count < 0) return null;
+	return {
+		reviewCount: count,
+		score
+	};
+};
+var parseMcPage = (html, target) => parseRating(readPageData(html), target);
+var isMatchingMcPage = (html, target) => matchesTarget(readPageData(html), target);
+var ACTIVE_RANKS$1 = /* @__PURE__ */ new Set(["normal", "preferred"]);
+var TYPES = {
+	episode: /* @__PURE__ */ new Set(["Q21191270"]),
+	movie: /* @__PURE__ */ new Set(["Q11424"]),
+	season: /* @__PURE__ */ new Set(["Q3464665"]),
+	series: /* @__PURE__ */ new Set(["Q5398426", "Q15416"])
+};
+var activeClaimValues = (claims) => (claims ?? []).filter((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "")).filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
+var entityReference$1 = (value) => {
+	if (!value || typeof value !== "object") return null;
+	const id = Reflect.get(value, "id");
+	return typeof id === "string" ? id : null;
+};
+var uniqueReference = (claims, property) => {
+	const values = activeClaimValues(claims?.[property]);
+	if (values.length === 0) return { status: "missing" };
+	const ids = values.map(entityReference$1);
+	if (ids.some((id) => id === null)) return { status: "ambiguous" };
+	const uniqueIds = [...new Set(ids)];
+	const [id] = uniqueIds;
+	return uniqueIds.length === 1 && id ? {
+		id,
+		status: "matched"
+	} : { status: "ambiguous" };
+};
+var ordinalResult = (rawValues) => {
+	const values = rawValues.map(Number);
+	if (values.length === 0) return { status: "missing" };
+	if (values.some((value) => !Number.isSafeInteger(value) || value <= 0) || new Set(values).size !== 1) return { status: "ambiguous" };
+	return {
+		status: "matched",
+		value: values[0] ?? 0
+	};
+};
+var readOrdinal = (claims) => ordinalResult(activeClaimValues(claims?.P1545));
+var readQualifierOrdinal = (snaks) => ordinalResult((snaks ?? []).filter((snak) => snak.snaktype === "value").map((snak) => snak.datavalue?.value));
+var entityKind$1 = (entity) => {
+	const types = activeClaimValues(entity.claims?.P31).map(entityReference$1).filter((id) => id !== null);
+	const matches = Object.entries(TYPES).filter(([, ids]) => types.some((id) => ids.has(id))).map(([kind]) => kind);
+	return matches.length === 1 ? matches[0] ?? null : null;
+};
+var normalizeMetacriticId = (value) => {
+	if (typeof value !== "string" || !value.trim()) return null;
+	let path = value.trim();
+	if (/^https?:\/\//iu.test(path)) try {
+		const url = new URL(path);
+		if (url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com") return null;
+		path = url.pathname;
+	} catch {
+		return null;
 	}
-});
+	path = path.replaceAll(/^\/+|\/+$/gu, "");
+	return /^(?:movie\/[^/]+|tv\/[^/]+(?:\/season-\d+)?)$/u.test(path) ? path : null;
+};
+var readMetacriticId = (entity) => {
+	const values = activeClaimValues(entity.claims?.P1712);
+	if (values.length === 0) return { status: "missing" };
+	const ids = values.map(normalizeMetacriticId);
+	if (ids.some((id) => id === null)) return { status: "ambiguous" };
+	const uniqueIds = [...new Set(ids)];
+	const [metacriticId] = uniqueIds;
+	return uniqueIds.length === 1 && metacriticId ? {
+		metacriticId,
+		status: "matched"
+	} : { status: "ambiguous" };
+};
+var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
+var API_URL$1 = "https://www.wikidata.org/w/api.php";
+var REQUEST_TIMEOUT$3 = 8e3;
+var fetchEntity$1 = async (id, signal) => {
+	const url = new URL(API_URL$1);
+	url.search = new URLSearchParams({
+		action: "wbgetentities",
+		format: "json",
+		ids: id,
+		origin: "*",
+		props: "claims"
+	}).toString();
+	const response = await gmGetResponse(url.href, void 0, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$3
+	});
+	return JSON.parse(response.responseText).entities?.[id] ?? null;
+};
+var findEntity = async (property, value, signal) => {
+	const searchUrl = new URL(API_URL$1);
+	searchUrl.search = new URLSearchParams({
+		action: "query",
+		format: "json",
+		list: "search",
+		origin: "*",
+		srlimit: "50",
+		srnamespace: "0",
+		srsearch: `haswbstatement:${property}=${value}`
+	}).toString();
+	const searchResponse = await gmGetResponse(searchUrl.href, void 0, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$3
+	});
+	const search = JSON.parse(searchResponse.responseText);
+	if (search.continue) return { status: "ambiguous" };
+	const ids = [...new Set((search.query?.search ?? []).map((item) => item.title).filter((id) => /^Q\d+$/u.test(id ?? "")))];
+	if (ids.length === 0) return { status: "missing" };
+	const claimsUrl = new URL(API_URL$1);
+	claimsUrl.search = new URLSearchParams({
+		action: "wbgetentities",
+		format: "json",
+		ids: ids.join("|"),
+		origin: "*",
+		props: "claims"
+	}).toString();
+	const claimsResponse = await gmGetResponse(claimsUrl.href, void 0, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$3
+	});
+	const data = JSON.parse(claimsResponse.responseText);
+	const matches = Object.values(data.entities ?? {}).filter((entity) => hasIdentity(entity, property, value));
+	if (matches.length > 1) return { status: "ambiguous" };
+	const [entity] = matches;
+	return entity ? {
+		entity,
+		status: "matched"
+	} : { status: "missing" };
+};
+var seasonTarget = (entity, season, expectedSeriesId) => {
+	if (entityKind$1(entity) !== "season") return { status: "ambiguous" };
+	const ordinal = readOrdinal(entity.claims);
+	const series = uniqueReference(entity.claims, "P179");
+	const metacritic = readMetacriticId(entity);
+	const idSeason = metacritic.status === "matched" ? Number(metacritic.metacriticId.match(/\/season-(?<season>\d+)$/u)?.groups?.season) : null;
+	if (ordinal.status === "ambiguous" || ordinal.status === "matched" && ordinal.value !== season || !Number.isSafeInteger(idSeason) || idSeason !== season || series.status !== "matched" || expectedSeriesId !== null && series.id !== expectedSeriesId || metacritic.status !== "matched") return { status: "ambiguous" };
+	return {
+		kind: "season",
+		metacriticId: metacritic.metacriticId,
+		season,
+		seriesId: series.id,
+		status: "matched"
+	};
+};
+var seasonForEpisode = async (episode, season, signal) => {
+	const seasonRef = uniqueReference(episode.claims, "P4908");
+	if (seasonRef.status !== "matched") return { status: seasonRef.status };
+	const expectedSeries = uniqueReference(episode.claims, "P179");
+	if (expectedSeries.status === "ambiguous") return expectedSeries;
+	const entity = await fetchEntity$1(seasonRef.id, signal);
+	return entity ? seasonTarget(entity, season, expectedSeries.status === "matched" ? expectedSeries.id : null) : { status: "missing" };
+};
+var seasonForSeries = async (series, season, signal) => {
+	const seriesMetacriticId = readMetacriticId(series);
+	if (seriesMetacriticId.status !== "matched" || !seriesMetacriticId.metacriticId.startsWith("tv/") || seriesMetacriticId.metacriticId.includes("/season-")) return { status: "ambiguous" };
+	const seasonIds = (series.claims?.P527 ?? []).filter((claim) => claim.rank === "normal" || claim.rank === "preferred").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => ({
+		id: entityReference$1(claim.mainsnak?.datavalue?.value),
+		ordinal: readQualifierOrdinal(claim.qualifiers?.P1545)
+	})).filter(({ ordinal }) => ordinal.status === "matched" && ordinal.value === season).map(({ id }) => id).filter((id) => id !== null);
+	const uniqueSeasonIds = [...new Set(seasonIds)];
+	const [seasonId] = uniqueSeasonIds;
+	if (uniqueSeasonIds.length !== 1 || !seasonId) return { status: uniqueSeasonIds.length > 1 ? "ambiguous" : "missing" };
+	const entity = await fetchEntity$1(seasonId, signal);
+	return entity ? seasonTarget(entity, season, series.id) : { status: "missing" };
+};
+var resolveSeasonTarget = (entity, kind, season, signal) => {
+	if (kind === "season") return seasonTarget(entity, season, null);
+	if (kind === "episode") return seasonForEpisode(entity, season, signal);
+	if (kind === "series" || kind === null) return seasonForSeries(entity, season, signal);
+	return { status: "ambiguous" };
+};
+var targetCache = createCache("dp:metacritic-targets:v1", 2592e6);
+var resolveEntity = (entity, context, signal) => {
+	const kind = entityKind$1(entity);
+	if (context.kind === "movie") {
+		if (kind !== "movie") return { status: "ambiguous" };
+		const metacritic = readMetacriticId(entity);
+		if (metacritic.status !== "matched") return metacritic;
+		return metacritic.metacriticId.startsWith("movie/") ? {
+			kind: "movie",
+			metacriticId: metacritic.metacriticId,
+			season: null,
+			seriesId: null,
+			status: "matched"
+		} : { status: "ambiguous" };
+	}
+	if (context.kind === "series") {
+		if (kind !== null && kind !== "series") return { status: "ambiguous" };
+		const metacritic = readMetacriticId(entity);
+		if (metacritic.status !== "matched") return metacritic;
+		return metacritic.metacriticId.startsWith("tv/") && !metacritic.metacriticId.includes("/season-") ? {
+			kind: "series",
+			metacriticId: metacritic.metacriticId,
+			season: null,
+			seriesId: entity.id,
+			status: "matched"
+		} : { status: "ambiguous" };
+	}
+	if (context.season === null) return { status: "ambiguous" };
+	return resolveSeasonTarget(entity, kind, context.season, signal);
+};
+var resolveIdentifier = async (property, value, context, signal) => {
+	const lookup = await findEntity(property, value, signal);
+	if (lookup.status !== "matched") return lookup;
+	return resolveEntity(lookup.entity, context, signal);
+};
+var targetCacheKey$1 = (context) => JSON.stringify([
+	context.subjectId,
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var resolveMetacriticTargetFresh = async (context, signal) => {
+	if (context.seasonConflict || context.unsupportedEpisode) return {
+		complete: true,
+		status: "ambiguous"
+	};
+	if (context.kind === "season" && context.season === null) return {
+		complete: true,
+		status: "missing"
+	};
+	const results = await Promise.allSettled([context.imdbId ? resolveIdentifier("P345", context.imdbId, context, signal) : Promise.resolve({ status: "missing" }), context.subjectId ? resolveIdentifier("P4529", context.subjectId, context, signal) : Promise.resolve({ status: "missing" })]);
+	const hasRejectedLookup = results.some((result) => result.status === "rejected");
+	const targets = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
+	if (targets.some((target) => target.status === "ambiguous")) return {
+		complete: true,
+		status: "ambiguous"
+	};
+	const matches = targets.filter((target) => target.status === "matched");
+	const uniqueTargets = new Map(matches.map((target) => [`${target.kind}:${target.metacriticId}:${target.seriesId ?? ""}`, target]));
+	if (uniqueTargets.size > 1) return {
+		complete: true,
+		status: "ambiguous"
+	};
+	if (uniqueTargets.size === 0) return {
+		complete: !hasRejectedLookup,
+		status: hasRejectedLookup ? "error" : "missing"
+	};
+	const [target] = uniqueTargets.values();
+	return target ? {
+		complete: !hasRejectedLookup,
+		status: "matched",
+		target
+	} : {
+		complete: !hasRejectedLookup,
+		status: "missing"
+	};
+};
+var resolveMetacriticTarget = async (context, signal) => {
+	const cached = targetCache.get(targetCacheKey$1(context));
+	if (cached?.status === "resolved") return cached.target;
+	const result = await resolveMetacriticTargetFresh(context, signal);
+	return result.status === "matched" ? result.target : null;
+};
+var getCachedMetacriticTarget = (context) => targetCache.get(targetCacheKey$1(context)) ?? null;
+var cacheMetacriticTarget = (context, target) => {
+	targetCache.set(targetCacheKey$1(context), {
+		status: "resolved",
+		target,
+		verifiedAt: Date.now()
+	});
+};
+var invalidateMetacriticTarget = (context) => {
+	targetCache.set(targetCacheKey$1(context), { status: "invalidated" });
+};
+var METACRITIC_ORIGIN = "https://www.metacritic.com";
+var REQUEST_TIMEOUT$2 = 8e3;
+var TARGET_REVALIDATION_INTERVAL$1 = 864e5;
+var mcCache = createCache("dp:metacritic-cache-v2", 6048e5);
+var cacheKey = (context, target) => [
+	context.subjectId,
+	target.kind,
+	target.season === null ? "" : String(target.season),
+	target.metacriticId
+].join(":");
+var sameTarget = (left, right) => left.kind === right.kind && left.metacriticId === right.metacriticId && left.season === right.season && left.seriesId === right.seriesId;
+var fetchRatingForTarget = async (context, target, signal, cacheVerifiedTarget = false) => {
+	const key = cacheKey(context, target);
+	const cached = mcCache.get(key);
+	if (cached) {
+		if (cacheVerifiedTarget) cacheMetacriticTarget(context, target);
+		return cached;
+	}
+	const response = await gmGetResponse(`${METACRITIC_ORIGIN}/${target.metacriticId}/`, `${METACRITIC_ORIGIN}/`, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$2
+	});
+	if (pagePath(response.finalUrl) !== `/${target.metacriticId}`) {
+		invalidateMetacriticTarget(context);
+		return null;
+	}
+	if (!isMatchingMcPage(response.responseText, target)) {
+		invalidateMetacriticTarget(context);
+		return null;
+	}
+	if (cacheVerifiedTarget) cacheMetacriticTarget(context, target);
+	const rating = parseMcPage(response.responseText, target);
+	if (!rating) return null;
+	mcCache.set(key, rating);
+	return rating;
+};
+var refreshCachedTarget$1 = async (context, cachedTarget, signal, onUpdate) => {
+	let resolution;
+	try {
+		resolution = await resolveMetacriticTargetFresh(context, signal);
+	} catch {
+		return;
+	}
+	if (!resolution.complete || signal.aborted) return;
+	if (resolution.status === "matched" && sameTarget(resolution.target, cachedTarget)) {
+		cacheMetacriticTarget(context, cachedTarget);
+		return;
+	}
+	invalidateMetacriticTarget(context);
+	onUpdate?.(null);
+	if (resolution.status === "matched") {
+		const rating = await fetchRatingForTarget(context, resolution.target, signal, true).catch(() => null);
+		if (!signal.aborted) onUpdate?.(rating);
+	}
+};
+var fetchMcRating = async (context, signal, onCachedUpdate) => {
+	try {
+		const targetCacheEntry = getCachedMetacriticTarget(context);
+		if (targetCacheEntry?.status === "resolved") {
+			const { target } = targetCacheEntry;
+			const cachedRating = mcCache.get(cacheKey(context, target));
+			if (cachedRating) {
+				onCachedUpdate?.(cachedRating);
+				if (Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL$1) refreshCachedTarget$1(context, target, signal, onCachedUpdate);
+				return cachedRating;
+			}
+			return fetchRatingForTarget(context, target, signal);
+		}
+		const target = await resolveMetacriticTarget(context, signal);
+		if (!target || signal.aborted) return null;
+		return await fetchRatingForTarget(context, target, signal, true);
+	} catch {
+		return null;
+	}
+};
 var expectedPath = (rtId) => `/${rtId}`;
 var readPageIdentity = (html) => {
 	const canonical = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
@@ -16269,6 +16596,32 @@ var findSeasonPath = (html, seriesRtId, season) => {
 	} catch {}
 	return null;
 };
+var RT_ORIGIN = "https://www.rottentomatoes.com";
+var REQUEST_TIMEOUT$1 = 8e3;
+var pathMatches = (url, rtId) => {
+	try {
+		const parsed = new URL(url);
+		return parsed.hostname === "www.rottentomatoes.com" && parsed.pathname === `/${rtId}` && !parsed.search;
+	} catch {
+		return false;
+	}
+};
+var requestRtPage = async (rtId, signal) => {
+	const url = `${RT_ORIGIN}/${rtId}`;
+	const response = await gmGetResponse(url, `${RT_ORIGIN}/`, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$1
+	});
+	if (response.status < 200 || response.status >= 400 || !pathMatches(response.finalUrl, rtId)) throw new Error("Rotten Tomatoes response did not match its mapped page");
+	return {
+		html: response.responseText,
+		url
+	};
+};
+var isRtSeriesPage = (html, rtId) => {
+	const page = readPageIdentity(html);
+	return Boolean(page.canonicalUrl && pathMatches(page.canonicalUrl, rtId) && readPageTypes(page).has("TVSeries"));
+};
 var STORAGE_KEY = "dp:rotten-snapshots:v1";
 var FRESH_AGE = 6048e5;
 var MAX_AGE = 2592e6;
@@ -16331,8 +16684,6 @@ var writeSnapshot = (rating) => {
 var removeSnapshot = (object) => {
 	writeStore(withoutKey(readStore(), identityKey(object)));
 };
-var API_URL = "https://www.wikidata.org/w/api.php";
-var REQUEST_TIMEOUT$1 = 8e3;
 var ACTIVE_RANKS = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var FILM_TYPES = /* @__PURE__ */ new Set(["Q11424"]);
 var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426", "Q1259759"]);
@@ -16380,6 +16731,30 @@ var readRtTarget = (entity) => {
 	};
 	return { status: (entity.claims?.P1258 ?? []).some((claim) => claim.rank === "deprecated") ? "deprecated" : "missing" };
 };
+var readEpisodeRtTarget = (entity) => {
+	const activeClaims = claimValues(entity.claims?.P1258);
+	if (activeClaims.length === 0) return { status: "missing" };
+	const targets = activeClaims.map((value) => {
+		if (typeof value !== "string") return null;
+		const match = value.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})\/e\d+$/u);
+		const series = match?.groups?.series;
+		const season = Number(match?.groups?.season);
+		if (!series || !Number.isSafeInteger(season) || season <= 0) return null;
+		return {
+			rtId: value,
+			season,
+			seriesRtId: `tv/${series}`
+		};
+	});
+	if (targets.some((target) => target === null)) return { status: "ambiguous" };
+	const uniqueTargets = new Set(targets.map((target) => target?.rtId));
+	const [target] = targets;
+	if (uniqueTargets.size !== 1 || !target) return { status: "ambiguous" };
+	return {
+		...target,
+		status: "matched"
+	};
+};
 var readSeasonOrdinal = (claims, property) => {
 	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
 	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
@@ -16392,6 +16767,24 @@ var readSeasonOrdinal = (claims, property) => {
 		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
 		value: value ?? null
 	};
+};
+var API_URL = "https://www.wikidata.org/w/api.php";
+var REQUEST_TIMEOUT = 8e3;
+var EPISODE_TYPES = /* @__PURE__ */ new Set(["Q21191270"]);
+var fetchEntity = async (id, signal) => {
+	const url = new URL(API_URL);
+	url.search = new URLSearchParams({
+		action: "wbgetentities",
+		format: "json",
+		ids: id,
+		origin: "*",
+		props: "claims"
+	}).toString();
+	const response = await gmGetResponse(url.href, void 0, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT
+	});
+	return JSON.parse(response.responseText).entities?.[id] ?? null;
 };
 var mapEntity = (entity, property, identifier) => {
 	const identityClaims = activeIdentityClaims(entity, property, identifier);
@@ -16419,7 +16812,57 @@ var mapEntity = (entity, property, identifier) => {
 		state: "matched"
 	};
 };
-var fetchEntities = async (property, value, signal) => {
+var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
+	if (!claimValues(episode.claims?.P31).map(entityReference).filter((value) => value !== null).some((id) => EPISODE_TYPES.has(id))) return {
+		mappings: [],
+		state: "missing"
+	};
+	const episodeTarget = readEpisodeRtTarget(episode);
+	if (episodeTarget.status === "ambiguous" || episodeTarget.status === "matched" && episodeTarget.season !== expectedSeason) return {
+		mappings: [],
+		state: "ambiguous"
+	};
+	const seriesIds = [...new Set(claimValues(episode.claims?.P179).map(entityReference).filter((value) => value !== null))];
+	if (seriesIds.length !== 1) return {
+		mappings: [],
+		state: seriesIds.length > 1 ? "ambiguous" : "missing"
+	};
+	const [seriesId] = seriesIds;
+	if (!seriesId) return {
+		mappings: [],
+		state: "missing"
+	};
+	const series = await fetchEntity(seriesId, signal);
+	if (!series) return {
+		mappings: [],
+		state: "missing"
+	};
+	const target = readRtTarget(series);
+	if (target.status !== "matched") return {
+		mappings: [],
+		state: target.status
+	};
+	if (entityKind(series, target.rtId) !== "series") return {
+		mappings: [],
+		state: "missing"
+	};
+	if (episodeTarget.status === "matched" && episodeTarget.seriesRtId !== target.rtId) return {
+		mappings: [],
+		state: "ambiguous"
+	};
+	return {
+		mappings: [{
+			entity: series,
+			kind: "series",
+			rtId: target.rtId,
+			seasonOrdinal: null,
+			seasonOrdinalConflict: false,
+			seriesRtId: null
+		}],
+		state: "matched"
+	};
+};
+var fetchEntities = async (property, value, signal, expectedSeason) => {
 	const searchUrl = new URL(API_URL);
 	searchUrl.search = new URLSearchParams({
 		action: "query",
@@ -16432,7 +16875,7 @@ var fetchEntities = async (property, value, signal) => {
 	}).toString();
 	const searchResponse = await gmGetResponse(searchUrl.href, void 0, {
 		signal,
-		timeoutMs: REQUEST_TIMEOUT$1
+		timeoutMs: REQUEST_TIMEOUT
 	});
 	const search = JSON.parse(searchResponse.responseText);
 	if (search.continue) return {
@@ -16444,17 +16887,17 @@ var fetchEntities = async (property, value, signal) => {
 		mappings: [],
 		state: "missing"
 	};
-	const entityUrl = new URL(API_URL);
-	entityUrl.search = new URLSearchParams({
+	const claimsUrl = new URL(API_URL);
+	claimsUrl.search = new URLSearchParams({
 		action: "wbgetentities",
 		format: "json",
 		ids: ids.join("|"),
 		origin: "*",
 		props: "claims"
 	}).toString();
-	const claimsResponse = await gmGetResponse(entityUrl.href, void 0, {
+	const claimsResponse = await gmGetResponse(claimsUrl.href, void 0, {
 		signal,
-		timeoutMs: REQUEST_TIMEOUT$1
+		timeoutMs: REQUEST_TIMEOUT
 	});
 	const entityResponse = JSON.parse(claimsResponse.responseText);
 	const entities = Object.values(entityResponse.entities ?? {}).filter((entity) => hasActiveIdentity(entity, property, value));
@@ -16463,16 +16906,14 @@ var fetchEntities = async (property, value, signal) => {
 		mappings: [],
 		state: "ambiguous"
 	};
-	if (entities.length === 0) return {
-		mappings: [],
-		state: deprecated ? "deprecated" : "missing"
-	};
 	const [entity] = entities;
 	if (!entity) return {
 		mappings: [],
-		state: "missing"
+		state: deprecated ? "deprecated" : "missing"
 	};
-	return mapEntity(entity, property, value);
+	const mapping = mapEntity(entity, property, value);
+	if (property === "P345" && expectedSeason !== void 0 && (mapping.state === "missing" || mapping.state === "ambiguous")) return mapEpisodeToSeries(entity, signal, expectedSeason);
+	return mapping;
 };
 var seasonPath = (rtId, season) => {
 	return rtId.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})$/u)?.groups?.season === String(season).padStart(2, "0") ? rtId : null;
@@ -16560,74 +17001,77 @@ var fromSettledLookup = (result) => result.status === "fulfilled" ? result.value
 	state: "error"
 };
 var resolveRottenMapping = async (context, signal) => {
-	if (!context.subjectId) return unavailable("missing");
-	if (context.seasonConflict || context.unsupportedEpisode) return unavailable("season");
-	const [imdbResult, doubanResult] = await Promise.allSettled([context.imdbId ? fetchEntities("P345", context.imdbId, signal) : null, fetchEntities("P4529", context.subjectId, signal)]);
+	if (!context.subjectId) return {
+		reason: "missing",
+		status: "unavailable"
+	};
+	if (context.seasonConflict || context.unsupportedEpisode) return {
+		reason: "season",
+		status: "unavailable"
+	};
+	const [imdbResult, doubanResult] = await Promise.allSettled([context.imdbId ? fetchEntities("P345", context.imdbId, signal, context.kind === "season" ? context.season ?? void 0 : void 0) : null, fetchEntities("P4529", context.subjectId, signal)]);
 	return combineLookups(fromSettledLookup(imdbResult), fromSettledLookup(doubanResult) ?? {
 		mappings: [],
 		state: "error"
 	}, context);
 };
-var RT_ORIGIN = "https://www.rottentomatoes.com";
-var REQUEST_TIMEOUT = 8e3;
-var ratingFailure = (status, rating = null) => ({
-	rating,
-	status
-});
-var rtUrl = (rtId) => `${RT_ORIGIN}/${rtId}`;
-var pathMatches = (url, rtId) => {
-	try {
-		const parsed = new URL(url);
-		return parsed.hostname === "www.rottentomatoes.com" && parsed.pathname === `/${rtId}` && !parsed.search;
-	} catch {
-		return false;
-	}
-};
-var requestPage = async (rtId, signal) => {
-	const url = rtUrl(rtId);
-	const response = await gmGetResponse(url, `${RT_ORIGIN}/`, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT
+var rtTargetCache = createCache("dp:rotten-targets:v1", 2592e6);
+var targetCacheKey = (context) => JSON.stringify([
+	context.subjectId,
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var getCachedRtTarget = (context) => rtTargetCache.get(targetCacheKey(context)) ?? null;
+var cacheRtTarget = (context, target) => {
+	rtTargetCache.set(targetCacheKey(context), {
+		status: "resolved",
+		target,
+		verifiedAt: Date.now()
 	});
-	if (response.status < 200 || response.status >= 400 || !pathMatches(response.finalUrl, rtId)) throw new Error("Rotten Tomatoes response did not match its mapped page");
-	return {
-		html: response.responseText,
-		url
-	};
 };
-var isSeriesPage = (html, rtId, url) => {
-	const canonical = readPageIdentity(html).canonicalUrl;
-	return Boolean(canonical && pathMatches(canonical, rtId) && readPageTypes(readPageIdentity(html)).has("TVSeries") && pathMatches(url, rtId));
+var invalidateRtTarget = (context) => {
+	rtTargetCache.set(targetCacheKey(context), { status: "invalidated" });
 };
-var getSnapshotObject = (context, rtId) => ({
-	kind: context.kind,
-	rtId,
-	subjectId: context.subjectId
-});
-var resolveTarget = async (context, signal) => {
+var resolveRtTarget = async (context, signal, refresh = false) => {
+	if (!context.subjectId) return { failure: "missing-mapping" };
+	if (context.seasonConflict || context.unsupportedEpisode) return { failure: "season-unmatched" };
+	if (!refresh) {
+		const cached = getCachedRtTarget(context);
+		if (cached?.status === "resolved") return cached.target;
+	}
 	const mapping = await resolveRottenMapping(context, signal);
-	if (signal.aborted) return { failure: ratingFailure("aborted") };
+	if (signal.aborted) return { failure: "aborted" };
 	if (mapping.status === "unavailable") {
-		if (mapping.reason === "conflict") return { failure: ratingFailure("identity-conflict") };
-		if (mapping.reason === "season") return { failure: ratingFailure("season-unmatched") };
-		if (mapping.reason === "error") return { failure: ratingFailure("error") };
-		return { failure: ratingFailure("missing-mapping") };
+		if (mapping.reason === "conflict") return { failure: "identity-conflict" };
+		if (mapping.reason === "season") return { failure: "season-unmatched" };
+		if (mapping.reason === "error") return { failure: "error" };
+		return { failure: "missing-mapping" };
 	}
 	if (!mapping.needsSeasonLink) return {
 		rtId: mapping.rtId,
 		seriesRtId: mapping.seriesRtId
 	};
-	const seriesPage = await requestPage(mapping.rtId, signal);
-	if (signal.aborted) return { failure: ratingFailure("aborted") };
-	if (!isSeriesPage(seriesPage.html, mapping.rtId, seriesPage.url)) return { failure: ratingFailure("identity-conflict") };
-	if (context.season === null) return { failure: ratingFailure("season-unmatched") };
+	const seriesPage = await requestRtPage(mapping.rtId, signal);
+	if (signal.aborted) return { failure: "aborted" };
+	if (!isRtSeriesPage(seriesPage.html, mapping.rtId)) return { failure: "identity-conflict" };
+	if (context.season === null) return { failure: "season-unmatched" };
 	const seasonPath = findSeasonPath(seriesPage.html, mapping.rtId, context.season);
 	return seasonPath ? {
 		rtId: seasonPath,
 		seriesRtId: mapping.seriesRtId
-	} : { failure: ratingFailure("season-unmatched") };
+	} : { failure: "season-unmatched" };
 };
-var loadRating = async (context, rtId, seriesRtId, object, prior, signal, onResult) => {
+var ratingFailure = (status, rating = null) => ({
+	rating,
+	status
+});
+var getSnapshotObject = (context, rtId) => ({
+	kind: context.kind,
+	rtId,
+	subjectId: context.subjectId
+});
+var loadRating = async (context, target, object, prior, signal, onResult) => {
 	if (prior && !prior.stale) {
 		const result = {
 			rating: prior,
@@ -16640,14 +17084,14 @@ var loadRating = async (context, rtId, seriesRtId, object, prior, signal, onResu
 		rating: prior,
 		status: "stale"
 	});
-	const page = await requestPage(rtId, signal);
+	const page = await requestRtPage(target.rtId, signal);
 	if (signal.aborted) return ratingFailure("aborted");
 	const parsed = parseScorecard(page.html, {
 		fetchedAt: Date.now(),
 		kind: context.kind,
-		rtId,
+		rtId: target.rtId,
 		season: context.season,
-		seriesRtId,
+		seriesRtId: target.seriesRtId,
 		subjectId: context.subjectId,
 		url: page.url
 	});
@@ -16663,10 +17107,9 @@ var loadRating = async (context, rtId, seriesRtId, object, prior, signal, onResu
 		removeSnapshot(object);
 		return ratingFailure("no-rating");
 	}
-	const { rating } = parsed;
-	writeSnapshot(rating);
+	writeSnapshot(parsed.rating);
 	return {
-		rating,
+		rating: parsed.rating,
 		status: "refreshed"
 	};
 };
@@ -16680,18 +17123,52 @@ var fallbackSnapshot = (context, object, prior, onResult) => {
 	onResult?.(result);
 	return result;
 };
+var isConfirmedRatingStatus = (status) => status === "cached" || status === "no-rating" || status === "refreshed" || status === "stale";
+var refreshCachedTarget = async (context, priorTarget, signal, onResult) => {
+	let freshTarget;
+	try {
+		freshTarget = await resolveRtTarget(context, signal, true);
+	} catch {
+		return;
+	}
+	if (signal.aborted) return;
+	const priorObject = getSnapshotObject(context, priorTarget.rtId);
+	if ("failure" in freshTarget) {
+		if (freshTarget.failure === "error") return;
+		invalidateRtTarget(context);
+		removeSnapshot(priorObject);
+		onResult?.(ratingFailure(freshTarget.failure));
+		return;
+	}
+	if (freshTarget.rtId === priorTarget.rtId && freshTarget.seriesRtId === priorTarget.seriesRtId) {
+		cacheRtTarget(context, freshTarget);
+		return;
+	}
+	invalidateRtTarget(context);
+	removeSnapshot(priorObject);
+	onResult?.(ratingFailure("identity-conflict"));
+	const object = getSnapshotObject(context, freshTarget.rtId);
+	const prior = readSnapshot(object);
+	const result = await loadRating(context, freshTarget, object, prior, signal);
+	if (isConfirmedRatingStatus(result.status)) cacheRtTarget(context, freshTarget);
+	if (!signal.aborted) onResult?.(result);
+};
 var fetchRtRating = async (context, signal, onResult) => {
 	let object = null;
 	let prior = null;
 	try {
-		const target = await resolveTarget(context, signal);
+		const cacheEntry = !context.subjectId || context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null ? null : getCachedRtTarget(context);
+		const target = cacheEntry?.status === "resolved" ? cacheEntry.target : await resolveRtTarget(context, signal);
 		if ("failure" in target) {
-			if (target.failure.status === "error") return fallbackSnapshot(context, null, null, onResult);
-			return target.failure;
+			if (target.failure === "error") return fallbackSnapshot(context, null, null, onResult);
+			return ratingFailure(target.failure);
 		}
 		object = getSnapshotObject(context, target.rtId);
 		prior = readSnapshot(object);
-		return await loadRating(context, target.rtId, target.seriesRtId, object, prior, signal, onResult);
+		if (cacheEntry?.status === "resolved" && Date.now() - cacheEntry.verifiedAt >= 864e5) refreshCachedTarget(context, cacheEntry.target, signal, onResult);
+		const result = await loadRating(context, target, object, prior, signal, onResult);
+		if (cacheEntry?.status !== "resolved" && isConfirmedRatingStatus(result.status)) cacheRtTarget(context, target);
+		return result;
 	} catch {
 		if (signal.aborted) return ratingFailure("aborted");
 		return fallbackSnapshot(context, object, prior, onResult);
@@ -16721,7 +17198,15 @@ var resolveAll = (context, signal, onUpdate) => {
 		},
 		source: "imdb"
 	});
-	if (context.englishTitle) settle(fetchMcRating(context.englishTitle, context.isTV, context.season ?? void 0, context.year ?? void 0), signal, (rating) => onUpdate({
+	if (context.imdbId || context.subjectId) settle(fetchMcRating(context, signal, (rating) => {
+		if (!signal.aborted) onUpdate({
+			result: {
+				rating,
+				status: "resolved"
+			},
+			source: "mc"
+		});
+	}), signal, (rating) => onUpdate({
 		result: {
 			rating,
 			status: "resolved"
@@ -16742,7 +17227,7 @@ var resolveAll = (context, signal, onUpdate) => {
 				if (!signal.aborted) onUpdate({
 					result: {
 						rating: partial.rating,
-						status: "pending"
+						status: partial.status === "stale" ? "pending" : "resolved"
 					},
 					source: "rt"
 				});
@@ -19126,7 +19611,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-PU0-ZIqq-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-BUDV-QcE-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

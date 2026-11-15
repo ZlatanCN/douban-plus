@@ -68,15 +68,6 @@ const selectedSeasonNumbers = (value: string | null | undefined): number[] => {
   return number === null ? [] : [number];
 };
 
-const cleanEnglishTitle = (value: string): string | null => {
-  const cleaned = value
-    .replace(/\s*\(\d{4}\)\s*$/u, "")
-    .replace(/\s*(?:\bseason\s*\d+|\bS\d+)\s*$/iu, "")
-    .replaceAll(/第[一二三四五六七八九十\d]+季/gu, "")
-    .trim();
-  return /[A-Za-z]/u.test(cleaned) ? cleaned : null;
-};
-
 const isEpisodeLabel = (value: string): boolean =>
   /(?:\b(?:episode|ep\.?|e)\s*\d+\b|第(?:\d+|[一二三四五六七八九十]+)集)/iu.test(
     value
@@ -96,22 +87,14 @@ const buildContext = (data: DoubanData): ResolutionContext => {
   if (data.isTV) {
     kind = season === null ? "series" : "season";
   }
-  const englishTitle =
-    cleanEnglishTitle(data.title.original) ??
-    cleanEnglishTitle(data.title.primary) ??
-    cleanEnglishTitle(data.title.full);
-
   return {
-    englishTitle,
     imdbId: data.info.imdb || null,
-    isTV: data.isTV,
     kind,
     season,
     seasonConflict,
     subjectId: data.subjectId,
     subjectTitle: data.title.full,
     unsupportedEpisode,
-    year: kind === "season" ? null : data.year || null,
   };
 };
 

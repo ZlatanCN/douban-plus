@@ -19,13 +19,43 @@ const { fetchImdbRating } = await import("../../src/modules/subject/api/imdb");
 const makeGraphQLSuccess = (
   score: number,
   count: number,
-  title = "The Shawshank Redemption"
+  title = "The Shawshank Redemption",
+  series?: { id: string; titleText: string }
 ): string =>
   JSON.stringify({
     data: {
       title: {
         ratingsSummary: { aggregateRating: score, voteCount: count },
+        ...(series
+          ? {
+              series: {
+                series: {
+                  id: series.id,
+                  titleText: { text: series.titleText },
+                },
+              },
+            }
+          : {}),
         titleText: { text: title },
+      },
+    },
+  });
+
+const makeSeasonEpisodes = (
+  episodes: { score: number; count: number }[]
+): string =>
+  JSON.stringify({
+    data: {
+      title: {
+        episodes: {
+          episodes: {
+            edges: episodes.map(({ score, count }) => ({
+              node: {
+                ratingsSummary: { aggregateRating: score, voteCount: count },
+              },
+            })),
+          },
+        },
       },
     },
   });
@@ -123,6 +153,111 @@ describe("fetchImdbRating", () => {
       title: "The Shawshank Redemption",
     });
     expect(mockGmPost).not.toHaveBeenCalled();
+  });
+
+  it("uses the parent series and only that season's episode ratings", async () => {
+    mockGmPost
+      .mockResolvedValueOnce(
+        makeGraphQLSuccess(9.8, 400, "Episode 1", {
+          id: "tt-series",
+          titleText: "Example Series",
+        })
+      )
+      .mockResolvedValueOnce(
+        makeSeasonEpisodes([
+          { count: 100, score: 9 },
+          { count: 200, score: 8 },
+        ])
+      );
+
+    const result = await fetchImdbRating("tt-episode", 2);
+
+    expect(result).toStrictEqual({
+      rating: { count: 300, score: 8.3 },
+      title: "Example Series",
+    });
+    expect(mockGmPost).toHaveBeenCalledTimes(2);
+    const seasonRequest = mockGmPost.mock.calls[1]?.[1];
+    const parsedSeasonRequest = JSON.parse(seasonRequest ?? "{}");
+    expect(parsedSeasonRequest.query).toContain("GetSeasonEpisodes");
+    expect(parsedSeasonRequest.variables).toStrictEqual({
+      id: "tt-series",
+      season: "2",
+    });
+  });
+
+  it("does not reuse a direct title rating for a season request", async () => {
+    mockGmPost
+      .mockResolvedValueOnce(makeGraphQLSuccess(9.8, 400, "Episode 1"))
+      .mockResolvedValueOnce(
+        makeGraphQLSuccess(9.8, 400, "Episode 1", {
+          id: "tt-series",
+          titleText: "Example Series",
+        })
+      )
+      .mockResolvedValueOnce(makeSeasonEpisodes([{ count: 500, score: 8.1 }]));
+
+    await fetchImdbRating("tt-episode");
+    const seasonResult = await fetchImdbRating("tt-episode", 2);
+
+    expect(seasonResult).toStrictEqual({
+      rating: { count: 500, score: 8.1 },
+      title: "Example Series",
+    });
+    expect(mockGmPost).toHaveBeenCalledTimes(3);
+  });
+
+  it("returns no season rating when season episodes are unavailable", async () => {
+    mockGmPost
+      .mockResolvedValueOnce(
+        makeGraphQLSuccess(9.8, 400, "Episode 1", {
+          id: "tt-series",
+          titleText: "Example Series",
+        })
+      )
+      .mockResolvedValueOnce(makeSeasonEpisodes([]));
+
+    const result = await fetchImdbRating("tt-episode", 2);
+
+    expect(result).toStrictEqual({ rating: null, title: "Example Series" });
+    expect(mockGmPost).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not fall back to the title rating when the season query fails", async () => {
+    mockGmPost
+      .mockResolvedValueOnce(
+        makeGraphQLSuccess(9.8, 400, "Episode 1", {
+          id: "tt-series",
+          titleText: "Example Series",
+        })
+      )
+      .mockRejectedValueOnce(new Error("Network failure"));
+
+    const result = await fetchImdbRating("tt-episode", 2);
+
+    expect(result).toStrictEqual({ rating: null, title: "Example Series" });
+    expect(mockGmPost).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not reuse a season rating for a direct title request", async () => {
+    mockGmPost
+      .mockResolvedValueOnce(
+        makeGraphQLSuccess(8.2, 200, "Episode 1", {
+          id: "tt-series",
+          titleText: "Example Series",
+        })
+      )
+      .mockResolvedValueOnce(makeSeasonEpisodes([{ count: 500, score: 8.1 }]))
+      .mockResolvedValueOnce(makeGraphQLSuccess(8.2, 200, "Episode 1"));
+
+    await fetchImdbRating("tt-episode", 2);
+    const directResult = await fetchImdbRating("tt-episode");
+
+    expect(directResult).toStrictEqual({
+      rating: { count: 200, score: 8.2 },
+      title: "Episode 1",
+    });
+    expect(mockGmPost).toHaveBeenCalledTimes(3);
   });
 
   it("skips expired cache entries (t7)", async () => {

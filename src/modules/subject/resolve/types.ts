@@ -6,16 +6,13 @@ import type {
 } from "@/modules/subject/domain";
 
 type ResolutionContext = {
-  englishTitle: string | null;
   imdbId: string | null;
-  isTV: boolean;
   kind: RtObjectKind;
   season: number | null;
   seasonConflict: boolean;
   subjectId: string;
   subjectTitle: string;
   unsupportedEpisode: boolean;
-  year: string | null;
 };
 
 type SourceResult<T> = {

@@ -35,7 +35,7 @@ type ImdbRating = {
   count: number;
 };
 
-/** Return type of fetchMcRating() — weighted critic score 0-100, review count */
+/** Metacritic Metascore, 0-100, and number of critic reviews. */
 type McRating = {
   score: number;
   reviewCount: number;

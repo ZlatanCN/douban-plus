@@ -347,10 +347,10 @@ describe("Subject page runtime", () => {
     );
   });
 
-  it("resolves Lucky from IMDb and fetches its year-qualified Metacritic page", async () => {
+  it("resolves Lucky from IMDb and follows its Metacritic ID", async () => {
     const requests: string[] = [];
     const rtUrl = "https://www.rottentomatoes.com/tv/lucky_2026";
-    const metacriticUrl = "https://www.metacritic.com/tv/lucky-2026";
+    const metacriticUrl = "https://www.metacritic.com/tv/lucky-2026/";
     mockNetwork((url) => {
       requests.push(url);
       if (url === "https://graphql.imdb.com/") {
@@ -380,6 +380,7 @@ describe("Subject page runtime", () => {
               Q131378846: {
                 claims: {
                   P1258: [makeClaim("tv/lucky_2026")],
+                  P1712: [makeClaim("tv/lucky-2026")],
                   P31: [makeClaim({ id: "Q1259759" })],
                   P345: [makeClaim("tt34866681")],
                 },
@@ -395,7 +396,9 @@ describe("Subject page runtime", () => {
       }
       if (url === metacriticUrl) {
         return {
-          body: '<script type="application/ld+json">{"name":"Lucky (2026)","aggregateRating":{"ratingValue":68,"reviewCount":29}}</script>',
+          body:
+            `<link rel="canonical" href="${metacriticUrl}">` +
+            '<script type="application/ld+json">{"@type":"TVSeries","name":"Lucky (2026)","aggregateRating":{"ratingValue":68,"reviewCount":29}}</script>',
         };
       }
       return { body: "", status: 404 };
@@ -437,6 +440,253 @@ describe("Subject page runtime", () => {
     expect(requests).toContain(rtUrl);
     expect(requests).toContain(metacriticUrl);
     expect(requests).not.toContain("https://www.metacritic.com/tv/lucky");
+  });
+
+  it("uses the Wikidata Metacritic season ID when a title slug points elsewhere", async () => {
+    const requests: string[] = [];
+    const metacriticSeasonUrl =
+      "https://www.metacritic.com/tv/game-of-thrones/season-2/";
+    const guessedSeasonUrl =
+      "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones/season-2";
+    const guessedSeriesUrl =
+      "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones";
+    mockNetwork((url) => {
+      requests.push(url);
+      if (url === "https://graphql.imdb.com/") {
+        return {
+          body: JSON.stringify({
+            data: {
+              title: {
+                id: "tt1971833",
+                ratingsSummary: { aggregateRating: 8.6, voteCount: 52_000 },
+                series: {
+                  series: {
+                    id: "tt0944947",
+                    titleText: { text: "Game of Thrones" },
+                  },
+                },
+                titleText: { text: "The North Remembers" },
+              },
+            },
+          }),
+        };
+      }
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+          const search = identifier.includes("P345=tt1971833")
+            ? [{ title: "Q7754352" }]
+            : [];
+          return { body: JSON.stringify({ query: { search } }) };
+        }
+        const ids = (requestUrl.searchParams.get("ids") ?? "").split("|");
+        if (ids.includes("Q7754352")) {
+          return {
+            body: JSON.stringify({
+              entities: {
+                Q7754352: {
+                  claims: {
+                    P31: [makeClaim({ id: "Q21191270" })],
+                    P345: [makeClaim("tt1971833")],
+                    P4908: [
+                      {
+                        ...makeClaim({ id: "Q302358" }),
+                        qualifiers: { P1545: [makeClaim("1")] },
+                      },
+                    ],
+                  },
+                },
+              },
+            }),
+          };
+        }
+        if (ids.includes("Q302358")) {
+          return {
+            body: JSON.stringify({
+              entities: {
+                Q302358: {
+                  claims: {
+                    P1545: [makeClaim("2")],
+                    P1712: [makeClaim("tv/game-of-thrones/season-2")],
+                    P179: [makeClaim({ id: "Q23572" })],
+                    P31: [makeClaim({ id: "Q3464665" })],
+                  },
+                },
+              },
+            }),
+          };
+        }
+        return {
+          body: JSON.stringify({
+            entities: {
+              Q23572: {
+                claims: {
+                  P31: [makeClaim({ id: "Q5398426" })],
+                  P345: [makeClaim("tt0944947")],
+                },
+              },
+            },
+          }),
+        };
+      }
+      if (url === metacriticSeasonUrl) {
+        return {
+          body:
+            `<link rel="canonical" href="${metacriticSeasonUrl}">` +
+            '<script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 2","seasonNumber":2,"partOfSeries":{"@type":"TVSeries","url":"https://www.metacritic.com/tv/game-of-thrones/"},"aggregateRating":{"@type":"AggregateRating","ratingValue":90,"reviewCount":26}}</script>',
+        };
+      }
+      if (url === guessedSeasonUrl) {
+        return { body: "", status: 404 };
+      }
+      if (url === guessedSeriesUrl) {
+        return {
+          body: '<script type="application/ld+json">{"aggregateRating":{"ratingValue":84,"reviewCount":200}}</script>',
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: {
+        ...makeData().info,
+        episodes: "10",
+        imdb: "tt1971833",
+        seasons: "第2季",
+        selectedSeason: "2",
+      },
+      isTV: true,
+      subjectId: "6558062",
+      title: {
+        full: "权力的游戏 第二季 Game of Thrones Season 2",
+        original: "A Song of Ice and Fire: Game of Thrones Season 2",
+        primary: "权力的游戏 第二季",
+        seasonLabel: "第二季",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector(".atv-rating-panel-mc .atv-rating-panel-score")
+          ?.textContent
+      ).toBe("90")
+    );
+    expect(requests).toContain(metacriticSeasonUrl);
+    expect(requests).not.toContain(guessedSeasonUrl);
+    expect(requests).not.toContain(guessedSeriesUrl);
+  });
+
+  it("resolves a Metacritic season ID when Wikidata omits the season ordinal", async () => {
+    const requests: string[] = [];
+    const metacriticSeasonUrl =
+      "https://www.metacritic.com/tv/game-of-thrones/season-8/";
+    mockNetwork((url) => {
+      requests.push(url);
+      if (url === "https://graphql.imdb.com/") {
+        return {
+          body: JSON.stringify({
+            data: {
+              title: {
+                id: "tt5924366",
+                ratingsSummary: { aggregateRating: 7.6, voteCount: 100_000 },
+                series: {
+                  series: {
+                    id: "tt0944947",
+                    titleText: { text: "Game of Thrones" },
+                  },
+                },
+                titleText: { text: "Winterfell" },
+              },
+            },
+          }),
+        };
+      }
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+          let search: { title: string }[] = [];
+          if (identifier.includes("P345=tt5924366")) {
+            search = [{ title: "Q63154005" }];
+          } else if (identifier.includes("P4529=26584183")) {
+            search = [{ title: "Q30887543" }];
+          }
+          return { body: JSON.stringify({ query: { search } }) };
+        }
+        const ids = (requestUrl.searchParams.get("ids") ?? "").split("|");
+        const entities: Record<string, unknown> = {};
+        if (ids.includes("Q63154005")) {
+          entities.Q63154005 = {
+            claims: {
+              P179: [makeClaim({ id: "Q23572" })],
+              P31: [makeClaim({ id: "Q21191270" })],
+              P345: [makeClaim("tt5924366")],
+              P4908: [makeClaim({ id: "Q30887543" })],
+            },
+            id: "Q63154005",
+          };
+        }
+        if (ids.includes("Q30887543")) {
+          entities.Q30887543 = {
+            claims: {
+              P1712: [makeClaim("tv/game-of-thrones/season-8")],
+              P179: [makeClaim({ id: "Q23572" })],
+              P31: [makeClaim({ id: "Q3464665" })],
+            },
+            id: "Q30887543",
+          };
+        }
+        if (ids.includes("Q23572")) {
+          entities.Q23572 = {
+            claims: {
+              P31: [makeClaim({ id: "Q5398426" })],
+              P345: [makeClaim("tt0944947")],
+            },
+            id: "Q23572",
+          };
+        }
+        return { body: JSON.stringify({ entities }) };
+      }
+      if (url === metacriticSeasonUrl) {
+        return {
+          body:
+            `<link rel="canonical" href="${metacriticSeasonUrl}">` +
+            '<script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 8","seasonNumber":8,"partOfSeries":{"@type":"TVSeries","url":"https://www.metacritic.com/tv/game-of-thrones/"},"aggregateRating":{"@type":"AggregateRating","ratingValue":57,"reviewCount":24}}</script>',
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: {
+        ...makeData().info,
+        episodes: "6",
+        imdb: "tt5924366",
+        seasons: "第八季",
+        selectedSeason: "8",
+      },
+      isTV: true,
+      subjectId: "26584183",
+      title: {
+        full: "权力的游戏 第八季 Game of Thrones Season 8",
+        original: "Game of Thrones Season 8",
+        primary: "权力的游戏 第八季",
+        seasonLabel: "第八季",
+      },
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(
+        root.querySelector(".atv-rating-panel-mc .atv-rating-panel-score")
+          ?.textContent
+      ).toBe("57")
+    );
+    expect(requests).toContain(metacriticSeasonUrl);
   });
 
   it("hides Rotten Tomatoes when the IMDb and Douban mappings conflict", async () => {
@@ -662,6 +912,7 @@ describe("Subject page runtime", () => {
                       rank: "normal",
                     },
                   ],
+                  P1712: [makeClaim("movie/the-shawshank-redemption")],
                   P31: [
                     {
                       mainsnak: {
@@ -732,6 +983,148 @@ describe("Subject page runtime", () => {
       expect(root.querySelector(".atv-rating-panel-mc")).toBeNull()
     );
     render(null, root);
+  });
+
+  it("renders verified RT and Metacritic caches without refetching identity on reload", async () => {
+    const requests: string[] = [];
+    const rtUrl = "https://www.rottentomatoes.com/m/shawshank_redemption";
+    const mcUrl = "https://www.metacritic.com/movie/the-shawshank-redemption/";
+    let identityConflict = false;
+    let now = Date.now();
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    mockNetwork((url) => {
+      requests.push(url);
+      if (url === "https://graphql.imdb.com/") {
+        return {
+          body: JSON.stringify({
+            data: {
+              title: {
+                id: "tt0111161",
+                ratingsSummary: { aggregateRating: 9.3, voteCount: 1_200_000 },
+                titleText: { text: "The Shawshank Redemption" },
+              },
+            },
+          }),
+        };
+      }
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+          const doubanMatch = identifier.includes("P4529=1292052");
+          return {
+            body: JSON.stringify({
+              query: {
+                search: [
+                  {
+                    title: doubanMatch && identityConflict ? "Q555" : "Q172241",
+                  },
+                ],
+              },
+            }),
+          };
+        }
+        const ids = (requestUrl.searchParams.get("ids") ?? "").split("|");
+        const entities: Record<string, unknown> = {};
+        if (ids.includes("Q172241")) {
+          entities.Q172241 = {
+            claims: {
+              P1258: [makeClaim("m/shawshank_redemption")],
+              P1712: [makeClaim("movie/the-shawshank-redemption")],
+              P31: [makeClaim({ id: "Q11424" })],
+              P345: [makeClaim("tt0111161")],
+              P4529: [makeClaim("1292052")],
+            },
+            id: "Q172241",
+          };
+        }
+        if (ids.includes("Q555")) {
+          entities.Q555 = {
+            claims: {
+              P1258: [makeClaim("m/another-shawshank")],
+              P1712: [makeClaim("movie/another-shawshank")],
+              P31: [makeClaim({ id: "Q11424" })],
+              P4529: [makeClaim("1292052")],
+            },
+            id: "Q555",
+          };
+        }
+        return {
+          body: JSON.stringify({ entities }),
+        };
+      }
+      if (url === rtUrl) {
+        return {
+          body: `<link rel="canonical" href="${rtUrl}"><script type="application/ld+json">{"@type":"Movie"}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"89%","ratingCount":147},"audienceScore":{"scorePercent":"98%","bandedRatingCount":"250,000+ Ratings"},"overlay":{"hasAudienceAll":true,"hasAudienceVerified":false,"audienceAll":{"scorePercent":"98%","bandedRatingCount":"250,000+ Ratings"}}}</script>`,
+        };
+      }
+      if (url === mcUrl) {
+        return {
+          body: `<link rel="canonical" href="${mcUrl}"><script type="application/ld+json">{"@type":"Movie","aggregateRating":{"ratingValue":82,"reviewCount":22}}</script>`,
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: { ...makeData().info, imdb: "tt0111161" },
+      title: {
+        full: "The Shawshank Redemption",
+        original: "The Shawshank Redemption",
+        primary: "肖申克的救赎",
+        seasonLabel: "",
+      },
+    });
+    const firstRoot = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() => {
+      expect(
+        [...firstRoot.querySelectorAll(".atv-rt-score-value")].map((node) =>
+          node.textContent?.trim()
+        )
+      ).toStrictEqual(["89%", "98%"]);
+      expect(
+        firstRoot.querySelector(".atv-rating-panel-mc .atv-rating-panel-score")
+          ?.textContent
+      ).toBe("82");
+    });
+    render(null, firstRoot);
+    requests.length = 0;
+
+    const secondRoot = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+    await vi.waitFor(() => {
+      expect(
+        [...secondRoot.querySelectorAll(".atv-rt-score-value")].map((node) =>
+          node.textContent?.trim()
+        )
+      ).toStrictEqual(["89%", "98%"]);
+      expect(
+        secondRoot.querySelector(".atv-rating-panel-mc .atv-rating-panel-score")
+          ?.textContent
+      ).toBe("82");
+    });
+    expect(requests).toStrictEqual([]);
+    render(null, secondRoot);
+
+    identityConflict = true;
+    now += 25 * 60 * 60 * 1000;
+    requests.length = 0;
+    const conflictRoot = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+    await vi.waitFor(() =>
+      expect(
+        requests.filter((url) => url.includes("wikidata.org/w/api.php"))
+      ).toHaveLength(8)
+    );
+    await vi.waitFor(() => {
+      expect(conflictRoot.querySelector(".atv-rating-panel-rt")).toBeNull();
+      expect(conflictRoot.querySelector(".atv-rating-panel-mc")).toBeNull();
+    });
+    render(null, conflictRoot);
   });
 
   it("keeps a confirmed snapshot for 30 days when refreshing the mapping fails", async () => {
@@ -1176,6 +1569,227 @@ describe("Subject page runtime", () => {
       requests.some((url) => url.includes("www.rottentomatoes.com"))
     ).toBeFalsy();
   });
+
+  it("follows a season's first-episode IMDb ID through its parent series to the selected RT season", async () => {
+    const requests: string[] = [];
+    const seriesUrl =
+      "https://www.rottentomatoes.com/tv/your_friends_and_neighbors";
+    const seasonUrl = `${seriesUrl}/s02`;
+    mockNetwork((url) => {
+      requests.push(url);
+      if (url.includes("wikidata.org/w/api.php")) {
+        const requestUrl = new URL(url);
+        if (requestUrl.searchParams.get("action") === "query") {
+          const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+          const search = identifier.includes("P345=tt34728946")
+            ? [{ title: "Q139973685" }]
+            : [];
+          return { body: JSON.stringify({ query: { search } }) };
+        }
+        const id = requestUrl.searchParams.get("ids") ?? "";
+        if (id === "Q139973685") {
+          return {
+            body: JSON.stringify({
+              entities: {
+                Q139973685: {
+                  claims: {
+                    P179: [makeClaim({ id: "Q125388657" })],
+                    P31: [makeClaim({ id: "Q21191270" })],
+                    P345: [makeClaim("tt34728946")],
+                  },
+                },
+              },
+            }),
+          };
+        }
+        return {
+          body: JSON.stringify({
+            entities: {
+              Q125388657: {
+                claims: {
+                  P1258: [makeClaim("tv/your_friends_and_neighbors")],
+                  P31: [makeClaim({ id: "Q5398426" })],
+                },
+              },
+            },
+          }),
+        };
+      }
+      if (url === seriesUrl) {
+        return {
+          body: `<link rel="canonical" href="${
+            seriesUrl
+          }"><script type="application/ld+json">{"@type":"TVSeries","name":"Your Friends &amp; Neighbors"}</script><a href="${
+            seasonUrl
+          }">Season 2</a>`,
+        };
+      }
+      if (url === seasonUrl) {
+        return {
+          body: `<link rel="canonical" href="${
+            seasonUrl
+          }"><script type="application/ld+json">{"@type":"TVSeason","seasonNumber":2,"partOfSeries":{"@type":"TVSeries","url":"${
+            seriesUrl
+          }"}}</script><script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"90%","ratingCount":30},"audienceScore":{"scorePercent":"69%","bandedRatingCount":"250+ Ratings"},"overlay":{"hasAudienceAll":true,"hasAudienceVerified":false,"audienceAll":{"scorePercent":"69%","bandedRatingCount":"250+ Ratings"}}}</script>`,
+        };
+      }
+      return { body: "", status: 404 };
+    });
+    const data = makeData({
+      info: {
+        ...makeData().info,
+        episodes: "10",
+        imdb: "tt34728946",
+        seasons: "第2季",
+        selectedSeason: "2",
+      },
+      isTV: true,
+      subjectId: "37200350",
+      title: {
+        full: "掩耳盗邻 第二季 Your Friends and Neighbors Season 2",
+        original: "Your Friends and Neighbors Season 2",
+        primary: "掩耳盗邻 第二季",
+        seasonLabel: "第二季",
+      },
+      year: "2026",
+    });
+    const root = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+
+    await vi.waitFor(() =>
+      expect(
+        [...root.querySelectorAll(".atv-rt-score-value")].map((node) =>
+          node.textContent?.trim()
+        )
+      ).toStrictEqual(["90%", "69%"])
+    );
+    expect(requests).toContain(seriesUrl);
+    expect(requests).toContain(seasonUrl);
+    expect(root.querySelector<HTMLAnchorElement>(".atv-rt-source")?.href).toBe(
+      seasonUrl
+    );
+  });
+
+  it.each([
+    {
+      doubanId: "6558062",
+      episodeId: "Q7754352",
+      episodeRtId: "tv/game_of_thrones/s02/e01",
+      imdbId: "tt1971833",
+      season: 2,
+    },
+    {
+      doubanId: "10590706",
+      episodeId: "Q10923486",
+      episodeRtId: "tv/game_of_thrones/s03/e01",
+      imdbId: "tt2178782",
+      season: 3,
+    },
+    {
+      doubanId: "23232876",
+      episodeId: "Q16180779",
+      episodeRtId: "tv/game_of_thrones/s04/e01",
+      imdbId: "tt2816136",
+      season: 4,
+    },
+  ])(
+    "resolves Game of Thrones season $season from its IMDb episode mapping",
+    async ({ doubanId, episodeId, episodeRtId, imdbId, season }) => {
+      const requests: string[] = [];
+      const seriesUrl = "https://www.rottentomatoes.com/tv/game_of_thrones";
+      const seasonUrl = `${seriesUrl}/s${String(season).padStart(2, "0")}`;
+      mockNetwork((url) => {
+        requests.push(url);
+        if (url.includes("wikidata.org/w/api.php")) {
+          const requestUrl = new URL(url);
+          if (requestUrl.searchParams.get("action") === "query") {
+            const identifier = requestUrl.searchParams.get("srsearch") ?? "";
+            const search = identifier.includes(`P345=${imdbId}`)
+              ? [{ title: episodeId }]
+              : [];
+            return { body: JSON.stringify({ query: { search } }) };
+          }
+          const id = requestUrl.searchParams.get("ids") ?? "";
+          if (id === episodeId) {
+            return {
+              body: JSON.stringify({
+                entities: {
+                  [episodeId]: {
+                    claims: {
+                      P1258: [makeClaim(episodeRtId)],
+                      P179: [makeClaim({ id: "Q23572" })],
+                      P31: [makeClaim({ id: "Q21191270" })],
+                      P345: [makeClaim(imdbId)],
+                    },
+                  },
+                },
+              }),
+            };
+          }
+          return {
+            body: JSON.stringify({
+              entities: {
+                Q23572: {
+                  claims: {
+                    P1258: [makeClaim("tv/game_of_thrones")],
+                    P31: [makeClaim({ id: "Q5398426" })],
+                  },
+                },
+              },
+            }),
+          };
+        }
+        if (url === seriesUrl) {
+          return {
+            body:
+              `<link rel="canonical" href="${seriesUrl}">` +
+              '<script type="application/ld+json">{"@type":"TVSeries","name":"Game of Thrones"}</script>' +
+              `<a href="${seasonUrl}">Season ${season}</a>`,
+          };
+        }
+        if (url === seasonUrl) {
+          return {
+            body:
+              `<link rel="canonical" href="${seasonUrl}">` +
+              `<script type="application/ld+json">{"@type":"TVSeason","seasonNumber":${season},"partOfSeries":{"@type":"TVSeries","url":"${seriesUrl}"}}</script>` +
+              '<script type="application/json" data-json="mediaScorecard">{"criticsScore":{"scorePercent":"97%","ratingCount":100}}</script>',
+          };
+        }
+        return { body: "", status: 404 };
+      });
+      const data = makeData({
+        info: {
+          ...makeData().info,
+          episodes: "10",
+          imdb: imdbId,
+          seasons: `第${season}季`,
+          selectedSeason: String(season),
+        },
+        isTV: true,
+        subjectId: doubanId,
+        title: {
+          full: `权力的游戏 第${season}季 Game of Thrones Season ${season}`,
+          original: `Game of Thrones Season ${season}`,
+          primary: `权力的游戏 第${season}季`,
+          seasonLabel: `第${season}季`,
+        },
+      });
+      const root = renderIntoRoot(
+        <SubjectPageRuntime data={data} doc={document} />
+      );
+
+      await vi.waitFor(() =>
+        expect(
+          [...root.querySelectorAll(".atv-rt-score-value")].map((node) =>
+            node.textContent?.trim()
+          )
+        ).toStrictEqual(["97%"])
+      );
+      expect(requests).toContain(seriesUrl);
+      expect(requests).toContain(seasonUrl);
+    }
+  );
 
   it("uses the selected season and displays the matching RT season page", async () => {
     const seasonUrl = "https://www.rottentomatoes.com/tv/friends/s11";

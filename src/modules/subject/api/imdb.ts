@@ -51,9 +51,9 @@ const IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
 const IMDB_REFERER = "https://www.imdb.com/";
 const IMDB_HEADERS = { "Content-Type": "application/json" };
 
-/** Build a cache key scoped to series + season, e.g. "tt0944947-s05". */
-const seasonCacheKey = (seriesId: string, season: number): string =>
-  `${seriesId}-s${String(season).padStart(2, "0")}`;
+/** Cache by requested title and season, e.g. "tt0944947-s05". */
+const seasonCacheKey = (titleId: string, season: number): string =>
+  `${titleId}-s${String(season).padStart(2, "0")}`;
 
 const postGraphQL = (
   query: string,
@@ -80,7 +80,7 @@ const fetchTitleInfo = async (
   }
 };
 
-/** Second pass: fetch all episode ratings for a season, return vote-weighted average. */
+/** Fetch episode ratings for a season and return their vote-weighted average. */
 const fetchSeasonRating = async (
   seriesId: string,
   season: number
@@ -92,17 +92,16 @@ const fetchSeasonRating = async (
     });
     return parseSeasonRating(json);
   } catch {
-    console.warn("[IMDB] season episodes query failed, falling back");
+    console.warn("[IMDB] season episodes query failed");
     return null;
   }
 };
 
 /**
  * Resolve an IMDb rating for a title (and optionally a specific season of a
- * series/episode). Two-stage GraphQL: first pass gets title info + series
- * linkage; if a season is requested, a second pass averages episode ratings.
- * Falls back to the direct title rating when the season pass is skipped or
- * fails. Results are cached per imdbId and per series-season.
+ * series/episode). Season ratings are computed from that season's episodes;
+ * when the season data is unavailable, no direct title rating is substituted.
+ * Results are cached separately for direct titles and requested seasons.
  */
 const fetchImdbRating = async (
   imdbId: string,
@@ -112,9 +111,34 @@ const fetchImdbRating = async (
     return { rating: null, title: null };
   }
 
-  const cached = imdbCache.get(imdbId);
-  if (cached) {
-    return { rating: cached.rating, title: cached.title };
+  if (season !== undefined) {
+    const cacheKey = seasonCacheKey(imdbId, season);
+    const cachedSeason = imdbCache.get(cacheKey);
+    if (cachedSeason) {
+      return { rating: cachedSeason.rating, title: cachedSeason.title };
+    }
+
+    const titleInfo = await fetchTitleInfo(imdbId);
+    if (!titleInfo) {
+      return { rating: null, title: null };
+    }
+
+    const { titleText, seriesInfo } = titleInfo;
+    const seriesId = seriesInfo?.id ?? imdbId;
+    const seasonResult = await fetchSeasonRating(seriesId, season);
+    const title = seriesInfo?.titleText ?? titleText;
+    if (!seasonResult) {
+      return { rating: null, title };
+    }
+
+    const cacheTitle = title ?? "";
+    imdbCache.set(cacheKey, { rating: seasonResult.rating, title: cacheTitle });
+    return { rating: seasonResult.rating, title: cacheTitle };
+  }
+
+  const cachedTitle = imdbCache.get(imdbId);
+  if (cachedTitle) {
+    return { rating: cachedTitle.rating, title: cachedTitle.title };
   }
 
   const titleInfo = await fetchTitleInfo(imdbId);
@@ -122,23 +146,7 @@ const fetchImdbRating = async (
     return { rating: null, title: null };
   }
 
-  const { aggregateRating, voteCount, titleText, seriesInfo } = titleInfo;
-  const seriesIdForSeason = seriesInfo?.id ?? (season ? imdbId : null);
-
-  if (season && seriesIdForSeason) {
-    const sKey = seasonCacheKey(seriesIdForSeason, season);
-    const sCached = imdbCache.get(sKey);
-    if (sCached) {
-      return { rating: sCached.rating, title: sCached.title };
-    }
-    const seasonResult = await fetchSeasonRating(seriesIdForSeason, season);
-    if (seasonResult) {
-      const title = seriesInfo?.titleText ?? titleText ?? "";
-      imdbCache.set(sKey, { rating: seasonResult.rating, title });
-      return { rating: seasonResult.rating, title };
-    }
-  }
-
+  const { aggregateRating, voteCount, titleText } = titleInfo;
   if (typeof aggregateRating === "number" && typeof voteCount === "number") {
     const rating: NonNullable<ImdbRating> = {
       count: voteCount,

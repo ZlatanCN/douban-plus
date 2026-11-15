@@ -246,12 +246,14 @@ src/
 
 `resolveAll` in `orchestrate.ts` starts each external rating source independently and publishes that source's result as soon as it settles:
 
-1. IMDb requires a valid IMDb ID; Metacritic requires an English title. Their existing acquisition algorithms remain independent.
-2. RT uses the Douban subject ID and an optional IMDb ID to find a Wikidata item. It accepts only an active RT identifier whose film, series, or season identity agrees with the subject context; unresolved identity or season conflicts yield no score.
-3. The RT adapter verifies the returned canonical RT page and media type before reading the current `mediaScorecard` percentage fields. Critics and audience scores can be absent independently, and audience scores retain the page's default audience group.
+1. IMDb requires a valid IMDb ID. Its season ratings are computed from that season's episode ratings and cached separately from direct title ratings. If season data cannot be read, the series or episode rating is not substituted.
+2. Metacritic resolves IMDb IDs and Douban subject IDs through Wikidata's Metacritic identifier (P1712). It checks movie, series, season, canonical page, season number and parent series before reading the Metascore and critic review count. Episode IMDb IDs resolve through their linked season; series mappings resolve a season through Wikidata's ordered season claims.
+3. RT uses the same IMDb and Douban identity inputs to find an active RT identifier (P1258), then verifies film, series, or season identity. Episode IMDb IDs resolve through the parent series and its season page. The RT adapter verifies the canonical page and media type before reading the current `mediaScorecard` fields. Critics and audience scores can be absent independently, and audience scores retain the page's default audience group.
 4. Each result carries an independent pending/resolved state. Unmounting aborts requests and prevents late results from updating the page.
 
 `resolveAll` accepts the already-extracted `ResolutionContext` and none of the resolution implementation reads the DOM. `SubjectPageRuntime` owns the asynchronous lifecycle; `ExternalRating({ source, rating, resolved })` owns the shared logo and loading/empty/loaded display state. RT ratings are cached locally with the verified subject, RT target, audience group and retrieval time.
+
+RT snapshots are fresh for 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days. RT and Metacritic verified target mappings are cached for 30 days and rechecked in the background every 24 hours. Metacritic scores are cached for 7 days.
 
 ### External rating integration tests
 
@@ -321,10 +323,10 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 4. **Native-summary adoption runtime hook (2026-07-16)** — `modules/subject/runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
 
-5. **External rating acquisition (2026-11-14)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api`:
-   - Metacritic retains its existing title-slug adapter and JSON-LD parser.
-   - Rotten Tomatoes resolves IMDb and Douban identifiers to an active RT identifier, checks film/series/season identity, parses `scorePercent`, and stores only verified snapshots.
-   - The two sources no longer share a title-slug acquisition contract; RT matching and caching are owned by the RT adapter.
+5. **External rating acquisition (2026-11-15)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api`:
+   - IMDb season ratings aggregate only that season's episode ratings; an unavailable season result does not fall back to the direct series or episode rating.
+   - Metacritic resolves IMDb and Douban identifiers through Wikidata P1712, validates the exact movie/series/season page, and reads its JSON-LD aggregate rating. Verified targets and scores use separate caches.
+   - Rotten Tomatoes resolves IMDb and Douban identifiers through Wikidata P1258, validates the exact RT page and season identity, parses `scorePercent`, and stores only verified snapshots. Verified targets use a separate cache.
 
 6. **Canonical modal module (2026-07-09)** — `src/shared/components/modal/modal-shell.tsx` is the single modal implementation:
    - `ModalShell` owns dialog semantics, `aria-modal`, body scroll lock, outside-click close, Escape close, close-transition timing, and focus trap behavior

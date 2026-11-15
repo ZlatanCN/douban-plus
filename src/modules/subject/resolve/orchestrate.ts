@@ -45,14 +45,16 @@ const resolveAll = (
     onUpdate({ result: { rating: null, status: "resolved" }, source: "imdb" });
   }
 
-  if (context.englishTitle) {
+  if (context.imdbId || context.subjectId) {
     void settle(
-      fetchMcRating(
-        context.englishTitle,
-        context.isTV,
-        context.season ?? undefined,
-        context.year ?? undefined
-      ),
+      fetchMcRating(context, signal, (rating) => {
+        if (!signal.aborted) {
+          onUpdate({
+            result: { rating, status: "resolved" },
+            source: "mc",
+          });
+        }
+      }),
       signal,
       (rating) =>
         onUpdate({ result: { rating, status: "resolved" }, source: "mc" })
@@ -67,7 +69,10 @@ const resolveAll = (
       result = await fetchRtRating(context, signal, (partial) => {
         if (!signal.aborted) {
           onUpdate({
-            result: { rating: partial.rating, status: "pending" },
+            result: {
+              rating: partial.rating,
+              status: partial.status === "stale" ? "pending" : "resolved",
+            },
             source: "rt",
           });
         }

@@ -1,23 +1,22 @@
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
-import { gmGetResponse } from "@/shared/utils/request";
 
-import {
-  findSeasonPath,
-  parseScorecard,
-  readPageIdentity,
-  readPageTypes,
-} from "./rotten-parser";
+import { requestRtPage } from "./rotten-page";
+import { parseScorecard } from "./rotten-parser";
 import {
   readSnapshot,
   readUniqueSnapshot,
   removeSnapshot,
   writeSnapshot,
 } from "./rotten-snapshot";
-import { resolveRottenMapping } from "./rotten-wikidata";
-
-const RT_ORIGIN = "https://www.rottentomatoes.com";
-const REQUEST_TIMEOUT = 8000;
+import {
+  TARGET_REVALIDATION_INTERVAL,
+  cacheRtTarget,
+  getCachedRtTarget,
+  invalidateRtTarget,
+  resolveRtTarget,
+} from "./rotten-target";
+import type { ResolvedRtTarget, RtTargetResult } from "./rotten-target";
 
 type RtResolution = {
   rating: RtRating | null;
@@ -40,50 +39,6 @@ const ratingFailure = (
   rating: RtRating | null = null
 ): RtResolution => ({ rating, status });
 
-const rtUrl = (rtId: string): string => `${RT_ORIGIN}/${rtId}`;
-
-const pathMatches = (url: string, rtId: string): boolean => {
-  try {
-    const parsed = new URL(url);
-    return (
-      parsed.hostname === "www.rottentomatoes.com" &&
-      parsed.pathname === `/${rtId}` &&
-      !parsed.search
-    );
-  } catch {
-    return false;
-  }
-};
-
-const requestPage = async (
-  rtId: string,
-  signal: AbortSignal
-): Promise<{ html: string; url: string }> => {
-  const url = rtUrl(rtId);
-  const response = await gmGetResponse(url, `${RT_ORIGIN}/`, {
-    signal,
-    timeoutMs: REQUEST_TIMEOUT,
-  });
-  if (
-    response.status < 200 ||
-    response.status >= 400 ||
-    !pathMatches(response.finalUrl, rtId)
-  ) {
-    throw new Error("Rotten Tomatoes response did not match its mapped page");
-  }
-  return { html: response.responseText, url };
-};
-
-const isSeriesPage = (html: string, rtId: string, url: string): boolean => {
-  const canonical = readPageIdentity(html).canonicalUrl;
-  return Boolean(
-    canonical &&
-    pathMatches(canonical, rtId) &&
-    readPageTypes(readPageIdentity(html)).has("TVSeries") &&
-    pathMatches(url, rtId)
-  );
-};
-
 const getSnapshotObject = (
   context: ResolutionContext,
   rtId: string
@@ -93,58 +48,9 @@ const getSnapshotObject = (
   subjectId: context.subjectId,
 });
 
-type TargetResult =
-  | { rtId: string; seriesRtId: string | null }
-  | { failure: RtResolution };
-
-const resolveTarget = async (
-  context: ResolutionContext,
-  signal: AbortSignal
-): Promise<TargetResult> => {
-  const mapping = await resolveRottenMapping(context, signal);
-  if (signal.aborted) {
-    return { failure: ratingFailure("aborted") };
-  }
-  if (mapping.status === "unavailable") {
-    if (mapping.reason === "conflict") {
-      return { failure: ratingFailure("identity-conflict") };
-    }
-    if (mapping.reason === "season") {
-      return { failure: ratingFailure("season-unmatched") };
-    }
-    if (mapping.reason === "error") {
-      return { failure: ratingFailure("error") };
-    }
-    return { failure: ratingFailure("missing-mapping") };
-  }
-
-  if (!mapping.needsSeasonLink) {
-    return { rtId: mapping.rtId, seriesRtId: mapping.seriesRtId };
-  }
-  const seriesPage = await requestPage(mapping.rtId, signal);
-  if (signal.aborted) {
-    return { failure: ratingFailure("aborted") };
-  }
-  if (!isSeriesPage(seriesPage.html, mapping.rtId, seriesPage.url)) {
-    return { failure: ratingFailure("identity-conflict") };
-  }
-  if (context.season === null) {
-    return { failure: ratingFailure("season-unmatched") };
-  }
-  const seasonPath = findSeasonPath(
-    seriesPage.html,
-    mapping.rtId,
-    context.season
-  );
-  return seasonPath
-    ? { rtId: seasonPath, seriesRtId: mapping.seriesRtId }
-    : { failure: ratingFailure("season-unmatched") };
-};
-
 const loadRating = async (
   context: ResolutionContext,
-  rtId: string,
-  seriesRtId: string | null,
+  target: ResolvedRtTarget,
   object: RtRating["object"],
   prior: RtRating | null,
   signal: AbortSignal,
@@ -159,16 +65,16 @@ const loadRating = async (
     onResult?.({ rating: prior, status: "stale" });
   }
 
-  const page = await requestPage(rtId, signal);
+  const page = await requestRtPage(target.rtId, signal);
   if (signal.aborted) {
     return ratingFailure("aborted");
   }
   const parsed = parseScorecard(page.html, {
     fetchedAt: Date.now(),
     kind: context.kind,
-    rtId,
+    rtId: target.rtId,
     season: context.season,
-    seriesRtId,
+    seriesRtId: target.seriesRtId,
     subjectId: context.subjectId,
     url: page.url,
   });
@@ -185,9 +91,8 @@ const loadRating = async (
     removeSnapshot(object);
     return ratingFailure("no-rating");
   }
-  const { rating } = parsed;
-  writeSnapshot(rating);
-  return { rating, status: "refreshed" };
+  writeSnapshot(parsed.rating);
+  return { rating: parsed.rating, status: "refreshed" };
 };
 
 const fallbackSnapshot = (
@@ -209,6 +114,62 @@ const fallbackSnapshot = (
   return result;
 };
 
+const isConfirmedRatingStatus = (status: RtResolution["status"]): boolean =>
+  status === "cached" ||
+  status === "no-rating" ||
+  status === "refreshed" ||
+  status === "stale";
+
+const refreshCachedTarget = async (
+  context: ResolutionContext,
+  priorTarget: ResolvedRtTarget,
+  signal: AbortSignal,
+  onResult?: OnRtResolution
+): Promise<void> => {
+  let freshTarget: RtTargetResult;
+  try {
+    freshTarget = await resolveRtTarget(context, signal, true);
+  } catch {
+    return;
+  }
+  if (signal.aborted) {
+    return;
+  }
+
+  const priorObject = getSnapshotObject(context, priorTarget.rtId);
+  if ("failure" in freshTarget) {
+    if (freshTarget.failure === "error") {
+      return;
+    }
+    invalidateRtTarget(context);
+    removeSnapshot(priorObject);
+    onResult?.(ratingFailure(freshTarget.failure));
+    return;
+  }
+
+  if (
+    freshTarget.rtId === priorTarget.rtId &&
+    freshTarget.seriesRtId === priorTarget.seriesRtId
+  ) {
+    cacheRtTarget(context, freshTarget);
+    return;
+  }
+
+  invalidateRtTarget(context);
+  removeSnapshot(priorObject);
+  onResult?.(ratingFailure("identity-conflict"));
+
+  const object = getSnapshotObject(context, freshTarget.rtId);
+  const prior = readSnapshot(object);
+  const result = await loadRating(context, freshTarget, object, prior, signal);
+  if (isConfirmedRatingStatus(result.status)) {
+    cacheRtTarget(context, freshTarget);
+  }
+  if (!signal.aborted) {
+    onResult?.(result);
+  }
+};
+
 const fetchRtRating = async (
   context: ResolutionContext,
   signal: AbortSignal,
@@ -217,24 +178,46 @@ const fetchRtRating = async (
   let object: RtRating["object"] | null = null;
   let prior: RtRating | null = null;
   try {
-    const target = await resolveTarget(context, signal);
+    const cacheEntry =
+      !context.subjectId ||
+      context.seasonConflict ||
+      context.unsupportedEpisode ||
+      (context.kind === "season" && context.season === null)
+        ? null
+        : getCachedRtTarget(context);
+    const target =
+      cacheEntry?.status === "resolved"
+        ? cacheEntry.target
+        : await resolveRtTarget(context, signal);
     if ("failure" in target) {
-      if (target.failure.status === "error") {
+      if (target.failure === "error") {
         return fallbackSnapshot(context, null, null, onResult);
       }
-      return target.failure;
+      return ratingFailure(target.failure);
     }
     object = getSnapshotObject(context, target.rtId);
     prior = readSnapshot(object);
-    return await loadRating(
+    if (
+      cacheEntry?.status === "resolved" &&
+      Date.now() - cacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL
+    ) {
+      void refreshCachedTarget(context, cacheEntry.target, signal, onResult);
+    }
+    const result = await loadRating(
       context,
-      target.rtId,
-      target.seriesRtId,
+      target,
       object,
       prior,
       signal,
       onResult
     );
+    if (
+      cacheEntry?.status !== "resolved" &&
+      isConfirmedRatingStatus(result.status)
+    ) {
+      cacheRtTarget(context, target);
+    }
+    return result;
   } catch {
     if (signal.aborted) {
       return ratingFailure("aborted");

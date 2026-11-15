@@ -1,76 +1,152 @@
-import { createRatingFetcher } from "@/modules/subject/api/rating-fetcher";
 import type { McRating } from "@/modules/subject/domain";
+import type { ResolutionContext } from "@/modules/subject/resolve/types";
 import { createCache } from "@/shared/utils/cache";
+import { gmGetResponse } from "@/shared/utils/request";
 
+import { isMatchingMcPage, pagePath, parseMcPage } from "./metacritic-parser";
+import {
+  cacheMetacriticTarget,
+  getCachedMetacriticTarget,
+  invalidateMetacriticTarget,
+  resolveMetacriticTarget,
+  resolveMetacriticTargetFresh,
+} from "./metacritic-wikidata";
+import type { MetacriticTarget } from "./metacritic-wikidata-claims";
+
+const METACRITIC_ORIGIN = "https://www.metacritic.com";
+const REQUEST_TIMEOUT = 8000;
+const TARGET_REVALIDATION_INTERVAL = 24 * 60 * 60 * 1000;
 const mcCache = createCache<NonNullable<McRating>>(
-  "dp:metacritic-cache",
+  "dp:metacritic-cache-v2",
   7 * 24 * 60 * 60 * 1000
 );
 
-/** Extract metascore and critic review count from JSON-LD.
- *  Metacritic uses Nuxt.js — no __NEXT_DATA__. The JSON-LD is
- *  server-rendered and contains aggregateRating with ratingValue (0-100)
- *  and reviewCount. User scores are client-side only. */
-const parseMcPage = (html: string): McRating | null => {
-  const match = html.match(
-    /<script[^>]*type="application\/ld\+json"[^>]*>(?<json>[\s\S]*?)<\/script>/iu
-  );
-  if (!match?.groups?.json) {
+const cacheKey = (
+  context: ResolutionContext,
+  target: MetacriticTarget
+): string =>
+  [
+    context.subjectId,
+    target.kind,
+    target.season === null ? "" : String(target.season),
+    target.metacriticId,
+  ].join(":");
+
+const sameTarget = (left: MetacriticTarget, right: MetacriticTarget): boolean =>
+  left.kind === right.kind &&
+  left.metacriticId === right.metacriticId &&
+  left.season === right.season &&
+  left.seriesId === right.seriesId;
+
+const fetchRatingForTarget = async (
+  context: ResolutionContext,
+  target: MetacriticTarget,
+  signal: AbortSignal,
+  cacheVerifiedTarget = false
+): Promise<McRating | null> => {
+  const key = cacheKey(context, target);
+  const cached = mcCache.get(key);
+  if (cached) {
+    if (cacheVerifiedTarget) {
+      cacheMetacriticTarget(context, target);
+    }
+    return cached;
+  }
+  const url = `${METACRITIC_ORIGIN}/${target.metacriticId}/`;
+  const response = await gmGetResponse(url, `${METACRITIC_ORIGIN}/`, {
+    signal,
+    timeoutMs: REQUEST_TIMEOUT,
+  });
+  if (pagePath(response.finalUrl) !== `/${target.metacriticId}`) {
+    invalidateMetacriticTarget(context);
     return null;
   }
+  if (!isMatchingMcPage(response.responseText, target)) {
+    invalidateMetacriticTarget(context);
+    return null;
+  }
+  if (cacheVerifiedTarget) {
+    cacheMetacriticTarget(context, target);
+  }
+  const rating = parseMcPage(response.responseText, target);
+  if (!rating) {
+    return null;
+  }
+  mcCache.set(key, rating);
+  return rating;
+};
+
+type OnCachedMcRating = (rating: McRating | null) => void;
+
+const refreshCachedTarget = async (
+  context: ResolutionContext,
+  cachedTarget: MetacriticTarget,
+  signal: AbortSignal,
+  onUpdate?: OnCachedMcRating
+): Promise<void> => {
+  let resolution: Awaited<ReturnType<typeof resolveMetacriticTargetFresh>>;
   try {
-    const data = JSON.parse(match.groups.json.trim());
-    const rating = data?.aggregateRating;
-    if (rating?.ratingValue === null || rating?.reviewCount === null) {
+    resolution = await resolveMetacriticTargetFresh(context, signal);
+  } catch {
+    return;
+  }
+  if (!resolution.complete || signal.aborted) {
+    return;
+  }
+  if (
+    resolution.status === "matched" &&
+    sameTarget(resolution.target, cachedTarget)
+  ) {
+    cacheMetacriticTarget(context, cachedTarget);
+    return;
+  }
+
+  invalidateMetacriticTarget(context);
+  onUpdate?.(null);
+  if (resolution.status === "matched") {
+    const rating = await fetchRatingForTarget(
+      context,
+      resolution.target,
+      signal,
+      true
+    ).catch(() => null);
+    if (!signal.aborted) {
+      onUpdate?.(rating);
+    }
+  }
+};
+
+const fetchMcRating = async (
+  context: ResolutionContext,
+  signal: AbortSignal,
+  onCachedUpdate?: OnCachedMcRating
+): Promise<McRating | null> => {
+  try {
+    const targetCacheEntry = getCachedMetacriticTarget(context);
+    if (targetCacheEntry?.status === "resolved") {
+      const { target } = targetCacheEntry;
+      const cachedRating = mcCache.get(cacheKey(context, target));
+      if (cachedRating) {
+        onCachedUpdate?.(cachedRating);
+        if (
+          Date.now() - targetCacheEntry.verifiedAt >=
+          TARGET_REVALIDATION_INTERVAL
+        ) {
+          void refreshCachedTarget(context, target, signal, onCachedUpdate);
+        }
+        return cachedRating;
+      }
+      return fetchRatingForTarget(context, target, signal);
+    }
+
+    const target = await resolveMetacriticTarget(context, signal);
+    if (!target || signal.aborted) {
       return null;
     }
-    const score = Math.trunc(Number(String(rating.ratingValue)));
-    const reviewCount = Math.trunc(Number(String(rating.reviewCount)));
-    if (Number.isNaN(score) || Number.isNaN(reviewCount)) {
-      return null;
-    }
-    return { reviewCount, score };
+    return await fetchRatingForTarget(context, target, signal, true);
   } catch {
     return null;
   }
 };
-
-const fetchMcRating = createRatingFetcher<McRating>({
-  cache: mcCache,
-  parse: parseMcPage,
-  referer: "https://www.metacritic.com/",
-  slugSeparator: "-",
-  urls: ({ isTV, season, slug, year }) => {
-    if (isTV) {
-      const yearSlug = year ? `${slug}-${year}` : slug;
-      if (season) {
-        return [
-          // Priority 1: year-disambiguated slug with exact season
-          ...(year
-            ? [`https://www.metacritic.com/tv/${yearSlug}/season-${season}`]
-            : []),
-          // Priority 2: bare slug with exact season (current behaviour)
-          `https://www.metacritic.com/tv/${slug}/season-${season}`,
-          // Priority 3: year-disambiguated main page (fallback when season-URL fails)
-          ...(year ? [`https://www.metacritic.com/tv/${yearSlug}`] : []),
-          // Priority 4: bare slug main page
-          `https://www.metacritic.com/tv/${slug}`,
-        ];
-      }
-      return year
-        ? [
-            `https://www.metacritic.com/tv/${yearSlug}`,
-            `https://www.metacritic.com/tv/${slug}`,
-          ]
-        : [`https://www.metacritic.com/tv/${slug}`];
-    }
-    return year
-      ? [
-          `https://www.metacritic.com/movie/${slug}-${year}`,
-          `https://www.metacritic.com/movie/${slug}`,
-        ]
-      : [`https://www.metacritic.com/movie/${slug}`];
-  },
-});
 
 export { fetchMcRating };
