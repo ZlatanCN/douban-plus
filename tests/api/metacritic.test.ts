@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parseMcPage } from "@/modules/subject/api/metacritic-parser";
-import type { TargetResult } from "@/modules/subject/api/metacritic-wikidata-claims";
+import { parseMcPage } from "@/modules/subject/api/external-ratings/metacritic/page";
+import type { TargetResult } from "@/modules/subject/api/external-ratings/metacritic/wikidata/claims";
 
 const mockGmGetResponse = vi.hoisted(() =>
   vi.fn<

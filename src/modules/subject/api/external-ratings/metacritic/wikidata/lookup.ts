@@ -1,6 +1,6 @@
-import { hasIdentity } from "./metacritic-wikidata-claims";
-import type { Entity } from "./metacritic-wikidata-claims";
-import { findEntityCandidates } from "./wikidata-client";
+import { findEntityCandidates } from "../../shared/wikidata-client";
+import { hasIdentity } from "./claims";
+import type { Entity } from "./claims";
 
 type LookupResult =
   | { entity: Entity; status: "matched" }

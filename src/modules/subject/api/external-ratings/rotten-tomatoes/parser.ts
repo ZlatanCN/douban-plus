@@ -1,7 +1,10 @@
 import type { RtObjectKind } from "@/modules/subject/domain";
 
-import { readStructuredPage, structuredPageTypes } from "./structured-page";
-import type { StructuredPage } from "./structured-page";
+import {
+  readStructuredPage,
+  structuredPageTypes,
+} from "../shared/structured-page";
+import type { StructuredPage } from "../shared/structured-page";
 
 type ScorecardInput = {
   fetchedAt: number;

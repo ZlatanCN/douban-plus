@@ -1,8 +1,8 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import type { IdentityLookup, RottenMapping } from "./rotten-wikidata-claims";
-import { fetchEntities } from "./rotten-wikidata-lookup";
-import { combineLookups } from "./rotten-wikidata-match";
+import type { IdentityLookup, RottenMapping } from "./claims";
+import { fetchEntities } from "./lookup";
+import { combineLookups } from "./match";
 
 const fromSettledLookup = (
   result: PromiseSettledResult<IdentityLookup | null>

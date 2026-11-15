@@ -1,22 +1,22 @@
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import { requestRtPage } from "./rotten-page";
-import { parseScorecard } from "./rotten-scorecard";
+import { TARGET_REVALIDATION_INTERVAL } from "../shared/verified-target-cache";
+import { requestRtPage } from "./page";
+import { parseScorecard } from "./scorecard";
 import {
   readSnapshot,
   readUniqueSnapshot,
   removeSnapshot,
   writeSnapshot,
-} from "./rotten-snapshot";
+} from "./snapshot";
 import {
   cacheRtTarget,
   getCachedRtTarget,
   invalidateRtTarget,
   resolveRtTarget,
-} from "./rotten-target";
-import type { ResolvedRtTarget, RtTargetResult } from "./rotten-target";
-import { TARGET_REVALIDATION_INTERVAL } from "./verified-target-cache";
+} from "./target";
+import type { ResolvedRtTarget, RtTargetResult } from "./target";
 
 type RtResolution = {
   rating: RtRating | null;

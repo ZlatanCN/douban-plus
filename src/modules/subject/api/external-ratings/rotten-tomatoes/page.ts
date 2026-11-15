@@ -1,6 +1,9 @@
 import { gmGetResponse } from "@/shared/utils/request";
 
-import { readStructuredPage, structuredPageTypes } from "./structured-page";
+import {
+  readStructuredPage,
+  structuredPageTypes,
+} from "../shared/structured-page";
 
 const RT_ORIGIN = "https://www.rottentomatoes.com";
 const REQUEST_TIMEOUT = 8000;

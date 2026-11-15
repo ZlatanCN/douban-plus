@@ -12,7 +12,8 @@ vi.mock(import("../../src/shared/utils/request"), () => ({
 }));
 
 // Import after mocking
-const { fetchImdbRating } = await import("../../src/modules/subject/api/imdb");
+const { fetchImdbRating } =
+  await import("../../src/modules/subject/api/external-ratings/imdb");
 
 /* ── Helpers ──────────────────────────────────────────── */
 

@@ -1,8 +1,8 @@
-import { fetchImdbRating } from "@/modules/subject/api/imdb";
-import type { FetchImdbResult } from "@/modules/subject/api/imdb";
-import { fetchMcRating } from "@/modules/subject/api/metacritic";
-import { fetchRtRating } from "@/modules/subject/api/rotten";
-import type { RtResolution } from "@/modules/subject/api/rotten";
+import { fetchImdbRating } from "@/modules/subject/api/external-ratings/imdb";
+import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
+import { fetchMcRating } from "@/modules/subject/api/external-ratings/metacritic";
+import { fetchRtRating } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
+import type { RtResolution } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
 import type { McRating, RtRating } from "@/modules/subject/domain";
 
 import type { ResolutionContext, SourceResult } from "./types";

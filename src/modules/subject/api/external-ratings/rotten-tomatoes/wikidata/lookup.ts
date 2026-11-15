@@ -1,4 +1,9 @@
 import {
+  entityReference,
+  fetchEntities as fetchWikidataEntities,
+  findEntityCandidates,
+} from "../../shared/wikidata-client";
+import {
   activeIdentityClaims,
   claimValues,
   entityKind,
@@ -7,13 +12,8 @@ import {
   readEpisodeRtTarget,
   readRtTarget,
   readSeasonOrdinal,
-} from "./rotten-wikidata-claims";
-import type { Entity, IdentityLookup } from "./rotten-wikidata-claims";
-import {
-  entityReference,
-  fetchEntities as fetchWikidataEntities,
-  findEntityCandidates,
-} from "./wikidata-client";
+} from "./claims";
+import type { Entity, IdentityLookup } from "./claims";
 
 const EPISODE_TYPES = new Set(["Q21191270"]);
 

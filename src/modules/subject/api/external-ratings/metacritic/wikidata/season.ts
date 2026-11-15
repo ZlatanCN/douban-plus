@@ -1,16 +1,12 @@
+import { fetchEntities, entityReference } from "../../shared/wikidata-client";
 import {
   entityKind,
   readMetacriticId,
   readOrdinal,
   readQualifierOrdinal,
   uniqueReference,
-} from "./metacritic-wikidata-claims";
-import type {
-  Entity,
-  EntityKind,
-  TargetResult,
-} from "./metacritic-wikidata-claims";
-import { fetchEntities, entityReference } from "./wikidata-client";
+} from "./claims";
+import type { Entity, EntityKind, TargetResult } from "./claims";
 
 const seasonTarget = (
   entity: Entity,

@@ -1,4 +1,4 @@
-import type { FetchImdbResult } from "@/modules/subject/api/imdb";
+import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
 import type {
   McRating,
   RtObjectKind,

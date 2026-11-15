@@ -1,8 +1,8 @@
 import type { RtCount, RtRating } from "@/modules/subject/domain";
 
-import { scorecardIdentityStatus } from "./rotten-parser";
-import type { ScorecardInput } from "./rotten-parser";
-import { readStructuredPage } from "./structured-page";
+import { readStructuredPage } from "../shared/structured-page";
+import { scorecardIdentityStatus } from "./parser";
+import type { ScorecardInput } from "./parser";
 
 type RatingSide = {
   bandedRatingCount?: unknown;

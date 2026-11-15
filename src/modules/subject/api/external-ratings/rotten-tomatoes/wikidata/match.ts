@@ -1,10 +1,6 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import type {
-  EntityMapping,
-  IdentityLookup,
-  RottenMapping,
-} from "./rotten-wikidata-claims";
+import type { EntityMapping, IdentityLookup, RottenMapping } from "./claims";
 
 const seasonPath = (rtId: string, season: number): string | null => {
   const match = rtId.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})$/u);

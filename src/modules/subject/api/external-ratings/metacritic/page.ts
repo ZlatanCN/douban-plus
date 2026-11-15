@@ -1,8 +1,8 @@
 import type { McRating } from "@/modules/subject/domain";
 
-import type { MetacriticTarget } from "./metacritic-wikidata-claims";
-import { readStructuredPage, structuredTypes } from "./structured-page";
-import type { StructuredPage } from "./structured-page";
+import { readStructuredPage, structuredTypes } from "../shared/structured-page";
+import type { StructuredPage } from "../shared/structured-page";
+import type { MetacriticTarget } from "./wikidata/claims";
 
 type PageData = StructuredPage;
 

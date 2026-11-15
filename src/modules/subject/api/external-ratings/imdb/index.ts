@@ -2,8 +2,8 @@ import type { ImdbRating } from "@/modules/subject/domain";
 import { createCache } from "@/shared/utils/cache";
 import { gmPost } from "@/shared/utils/request";
 
-import { parseResponse, parseSeasonRating } from "./imdb-parsers";
-import type { ParsedResponse } from "./imdb-parsers";
+import { parseResponse, parseSeasonRating } from "./parsers";
+import type { ParsedResponse } from "./parsers";
 
 const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;

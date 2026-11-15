@@ -1,9 +1,9 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import { isRtSeriesPage, requestRtPage } from "./rotten-page";
-import { findSeasonPath } from "./rotten-parser";
-import { resolveRottenMapping } from "./rotten-wikidata";
-import { createVerifiedTargetCache } from "./verified-target-cache";
+import { createVerifiedTargetCache } from "../shared/verified-target-cache";
+import { isRtSeriesPage, requestRtPage } from "./page";
+import { findSeasonPath } from "./parser";
+import { resolveRottenMapping } from "./wikidata/resolve";
 
 type ResolvedRtTarget = { rtId: string; seriesRtId: string | null };
 type TargetFailure =

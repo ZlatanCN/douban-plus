@@ -200,6 +200,13 @@ src/
       index.ts          — public route mount
       domain.ts         — subject-owned domain types and values
       api/              — subject-specific external reads and writes
+        external-ratings/
+          imdb/              — IMDb rating interface and parsers
+          metacritic/        — Metacritic page and Wikidata resolution
+            wikidata/
+          rotten-tomatoes/   — RT page, scorecard, snapshot and target resolution
+            wikidata/
+          shared/             — rating page identity, Wikidata client and target cache
       extract/          — subject DOM extraction
       navigation/       — section copy, derived section nav items, and sticky-nav presentation
       resolve/          — subject rating resolution seam
@@ -323,7 +330,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
 
 4. **Native-summary adoption runtime hook (2026-07-16)** — `modules/subject/runtime/use-native-summary.ts` owns selecting Douban's native expansion trigger, reading the pre-expansion visible text, clicking, rereading the post-expansion visible text, and falling back to extracted text. `SubjectPageRuntime` provides the adopted summary result through the runtime value; `HeroSummary` only controls its own collapsed/expanded presentation and never receives a host callback or document knowledge.
 
-5. **External rating acquisition (2026-11-15)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api`:
+5. **External rating acquisition (2026-11-15)** — the `subject` page runtime owns per-source lifecycle; provider and identity work stays within `subject/api/external-ratings`. Each provider folder owns its entry module and internal resolver/parser modules; `shared/` contains the Wikidata request client, structured-page reader and verified-target cache used across providers:
    - IMDb season ratings aggregate only that season's episode ratings; an unavailable season result does not fall back to the direct series or episode rating.
    - Metacritic resolves IMDb and Douban identifiers through Wikidata P1712, validates the exact movie/series/season page, and reads its JSON-LD aggregate rating. Verified targets and scores use separate caches.
    - Rotten Tomatoes resolves IMDb and Douban identifiers through Wikidata P1258, validates the exact RT page and season identity, parses `scorePercent`, and stores only verified snapshots. Verified targets use a separate cache.

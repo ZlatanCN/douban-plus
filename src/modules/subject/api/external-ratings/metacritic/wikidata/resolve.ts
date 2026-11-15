@@ -1,15 +1,11 @@
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import { entityKind, readMetacriticId } from "./metacritic-wikidata-claims";
-import type {
-  Entity,
-  MetacriticTarget,
-  TargetResult,
-} from "./metacritic-wikidata-claims";
-import { findEntity } from "./metacritic-wikidata-lookup";
-import type { LookupResult } from "./metacritic-wikidata-lookup";
-import { resolveSeasonTarget } from "./metacritic-wikidata-season";
-import { createVerifiedTargetCache } from "./verified-target-cache";
+import { createVerifiedTargetCache } from "../../shared/verified-target-cache";
+import { entityKind, readMetacriticId } from "./claims";
+import type { Entity, MetacriticTarget, TargetResult } from "./claims";
+import { findEntity } from "./lookup";
+import type { LookupResult } from "./lookup";
+import { resolveSeasonTarget } from "./season";
 
 type MetacriticTargetResolution =
   | { complete: boolean; status: "error" | "missing" | "ambiguous" }

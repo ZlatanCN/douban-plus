@@ -13,7 +13,7 @@ vi.mock(import("../../src/shared/utils/request"), () => ({
 }));
 
 const { resolveMetacriticTarget } =
-  await import("../../src/modules/subject/api/metacritic-wikidata");
+  await import("../../src/modules/subject/api/external-ratings/metacritic/wikidata/resolve");
 
 const makeClaim = (value: string | { id: string }) => ({
   mainsnak: { datavalue: { value }, snaktype: "value" },

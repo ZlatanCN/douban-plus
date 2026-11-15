@@ -1,4 +1,4 @@
-import { entityReference } from "./wikidata-client";
+import { entityReference } from "../../shared/wikidata-client";
 
 type Snak = { datavalue?: { value?: unknown }; snaktype?: string };
 type Claim = {

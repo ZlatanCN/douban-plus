@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-DIulOO6E-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-DaSFjeqX-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16030,6 +16030,30 @@ var fetchImdbRating = async (imdbId, season) => {
 		title: titleText
 	};
 };
+var TARGET_CACHE_TTL = 2592e6;
+var TARGET_REVALIDATION_INTERVAL = 864e5;
+var targetCacheKey = (context) => JSON.stringify([
+	context.subjectId,
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var createVerifiedTargetCache = (storageKey) => {
+	const cache = createCache(storageKey, TARGET_CACHE_TTL);
+	return {
+		get: (context) => cache.get(targetCacheKey(context)) ?? null,
+		invalidate: (context) => {
+			cache.set(targetCacheKey(context), { status: "invalidated" });
+		},
+		set: (context, target) => {
+			cache.set(targetCacheKey(context), {
+				status: "resolved",
+				target,
+				verifiedAt: Date.now()
+			});
+		}
+	};
+};
 var readStructuredPage = (html) => {
 	const canonicalUrl = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
 	const jsonLd = [];
@@ -16261,30 +16285,6 @@ var resolveSeasonTarget = (entity, kind, season, signal) => {
 	if (kind === "episode") return seasonForEpisode(entity, season, signal);
 	if (kind === "series" || kind === null) return seasonForSeries(entity, season, signal);
 	return { status: "ambiguous" };
-};
-var TARGET_CACHE_TTL = 2592e6;
-var TARGET_REVALIDATION_INTERVAL = 864e5;
-var targetCacheKey = (context) => JSON.stringify([
-	context.subjectId,
-	context.imdbId,
-	context.kind,
-	context.season
-]);
-var createVerifiedTargetCache = (storageKey) => {
-	const cache = createCache(storageKey, TARGET_CACHE_TTL);
-	return {
-		get: (context) => cache.get(targetCacheKey(context)) ?? null,
-		invalidate: (context) => {
-			cache.set(targetCacheKey(context), { status: "invalidated" });
-		},
-		set: (context, target) => {
-			cache.set(targetCacheKey(context), {
-				status: "resolved",
-				target,
-				verifiedAt: Date.now()
-			});
-		}
-	};
 };
 var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v1");
 var resolveEntity = (entity, context, signal) => {
@@ -19555,7 +19555,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-DIulOO6E-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-DaSFjeqX-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

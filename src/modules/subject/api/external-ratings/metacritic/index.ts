@@ -3,16 +3,16 @@ import type { ResolutionContext } from "@/modules/subject/resolve/types";
 import { createCache } from "@/shared/utils/cache";
 import { gmGetResponse } from "@/shared/utils/request";
 
-import { isMatchingMcPage, pagePath, parseMcPage } from "./metacritic-parser";
+import { TARGET_REVALIDATION_INTERVAL } from "../shared/verified-target-cache";
+import { isMatchingMcPage, pagePath, parseMcPage } from "./page";
+import type { MetacriticTarget } from "./wikidata/claims";
 import {
   cacheMetacriticTarget,
   getCachedMetacriticTarget,
   invalidateMetacriticTarget,
   resolveMetacriticTarget,
   resolveMetacriticTargetFresh,
-} from "./metacritic-wikidata";
-import type { MetacriticTarget } from "./metacritic-wikidata-claims";
-import { TARGET_REVALIDATION_INTERVAL } from "./verified-target-cache";
+} from "./wikidata/resolve";
 
 const METACRITIC_ORIGIN = "https://www.metacritic.com";
 const REQUEST_TIMEOUT = 8000;
