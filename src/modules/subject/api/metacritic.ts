@@ -142,6 +142,13 @@ const fetchMcRating = async (
   signal: AbortSignal,
   onCachedUpdate?: OnCachedMcRating
 ): Promise<McRating | null> => {
+  if (
+    context.seasonConflict ||
+    context.unsupportedEpisode ||
+    (context.kind === "season" && context.season === null)
+  ) {
+    return null;
+  }
   try {
     const targetCacheEntry = getCachedMetacriticTarget(context);
     if (targetCacheEntry?.status === "resolved") {

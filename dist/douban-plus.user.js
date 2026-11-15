@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-D5JwtAun-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-DIulOO6E-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -16429,6 +16429,7 @@ var refreshCachedTarget$1 = async (context, cachedTarget, signal, onUpdate) => {
 	if (!signal.aborted) onUpdate?.(rating);
 };
 var fetchMcRating = async (context, signal, onCachedUpdate) => {
+	if (context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null) return null;
 	try {
 		const targetCacheEntry = getCachedMetacriticTarget(context);
 		if (targetCacheEntry?.status === "resolved") {
@@ -19554,7 +19555,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-D5JwtAun-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-DIulOO6E-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
