@@ -2,8 +2,9 @@ name: Release
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [master]
+    paths:
+      - package.json
 
 permissions:
   contents: read
@@ -17,6 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - uses: pnpm/action-setup@v6
@@ -26,45 +28,83 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
 
-      - name: Validate release tag
+      - name: Detect version change
+        id: version
         env:
-          GH_TOKEN: ${{ github.token }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
-          version="$(node -p "JSON.parse(require('node:fs').readFileSync('package.json', 'utf8')).version")"
-          expected_tag="v${version}"
+          previous_version=""
+          if git cat-file -e "${BEFORE_SHA}^{commit}" 2>/dev/null; then
+            previous_version="$(git show "${BEFORE_SHA}:package.json" | jq -r '.version')"
+          fi
+          current_version="$(jq -r '.version // empty' package.json)"
 
-          if [ "$GITHUB_REF_NAME" != "$expected_tag" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match package.json version $expected_tag"
+          if [ -z "$current_version" ]; then
+            echo "::error::package.json has no version"
             exit 1
           fi
 
-          compare_status="$(gh api "repos/${GITHUB_REPOSITORY}/compare/master...${GITHUB_SHA}" --jq .status)"
-          case "$compare_status" in
-            behind|identical) ;;
-            *)
-              echo "::error::Tag commit must already be included in master (comparison status: $compare_status)"
+          if [ "$current_version" = "$previous_version" ]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          tag="v${current_version}"
+          if git show-ref --verify --quiet "refs/tags/${tag}"; then
+            existing_sha="$(git rev-parse "${tag}^{commit}")"
+            if [ "$existing_sha" != "$GITHUB_SHA" ]; then
+              echo "::error::Tag $tag already points to a different commit"
               exit 1
-              ;;
-          esac
+            fi
+            echo "tag_exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag_exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "release=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
       - run: pnpm install --frozen-lockfile
+        if: steps.version.outputs.release == 'true'
       - run: pnpm run lint
+        if: steps.version.outputs.release == 'true'
       - run: pnpm run typecheck
+        if: steps.version.outputs.release == 'true'
       - run: pnpm run test --reporter=verbose
+        if: steps.version.outputs.release == 'true'
       - run: pnpm run build
+        if: steps.version.outputs.release == 'true'
 
       - name: Verify release assets
+        if: steps.version.outputs.release == 'true'
         run: |
           test -s dist/douban-plus.user.js
           test -s dist/douban-plus.meta.js
 
       - name: Publish GitHub Release
+        if: steps.version.outputs.release == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.version.outputs.tag }}
+          TAG_EXISTS: ${{ steps.version.outputs.tag_exists }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            dist/douban-plus.user.js \
-            dist/douban-plus.meta.js \
-            --verify-tag \
-            --generate-notes \
-            --title "$GITHUB_REF_NAME"
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" \
+              dist/douban-plus.user.js \
+              dist/douban-plus.meta.js \
+              --clobber
+          elif [ "$TAG_EXISTS" = "true" ]; then
+            gh release create "$RELEASE_TAG" \
+              dist/douban-plus.user.js \
+              dist/douban-plus.meta.js \
+              --verify-tag \
+              --generate-notes \
+              --title "$RELEASE_TAG"
+          else
+            gh release create "$RELEASE_TAG" \
+              dist/douban-plus.user.js \
+              dist/douban-plus.meta.js \
+              --target "$GITHUB_SHA" \
+              --generate-notes \
+              --title "$RELEASE_TAG"
+          fi
