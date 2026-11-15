@@ -63,7 +63,7 @@ const resolveRtTarget = async (
   if (signal.aborted) {
     return { failure: "aborted" };
   }
-  if (!isRtSeriesPage(seriesPage.html, mapping.rtId)) {
+  if (!isRtSeriesPage(seriesPage.html, seriesPage.url)) {
     return { failure: "identity-conflict" };
   }
   if (context.season === null) {
@@ -71,11 +71,11 @@ const resolveRtTarget = async (
   }
   const seasonPath = findSeasonPath(
     seriesPage.html,
-    mapping.rtId,
+    seriesPage.rtId,
     context.season
   );
   return seasonPath
-    ? { rtId: seasonPath, seriesRtId: mapping.seriesRtId }
+    ? { rtId: seasonPath, seriesRtId: seriesPage.rtId }
     : { failure: "season-unmatched" };
 };
 

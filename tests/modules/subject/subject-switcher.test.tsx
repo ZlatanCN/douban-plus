@@ -29,15 +29,49 @@ describe(SubjectSwitcher, () => {
     await vi.waitFor(() => {
       expect(fetchSuggestions).toHaveBeenCalledOnce();
     });
+    const expandedSearch = root.querySelector(".atv-subject-switcher-expanded");
+    const searchField = root.querySelector(".atv-subject-switcher-field");
+    const resultList = root.querySelector(".atv-subject-suggestion-rail");
 
     expect(fetchSuggestions).toHaveBeenCalledWith(
       "权力",
       expect.any(AbortSignal)
     );
-    expect(input.getAttribute("aria-expanded")).toBe("true");
-    expect(root.textContent).toContain("权力的游戏 第一季");
-    expect(root.textContent).toContain("Game of Thrones");
-    expect(root.textContent).toContain("共 10 集");
+    expect({
+      animation: root.querySelector<HTMLElement>(".atv-subject-switcher")
+        ?.dataset.animation,
+      inputExpanded: input.getAttribute("aria-expanded"),
+      hasChineseTitle: root.textContent?.includes("权力的游戏 第一季"),
+      hasEnglishTitle: root.textContent?.includes("Game of Thrones"),
+      hasEpisodeCount: root.textContent?.includes("共 10 集"),
+      resultsOutsideAnimatedField:
+        Boolean(expandedSearch && searchField && resultList) &&
+        searchField?.parentElement === expandedSearch &&
+        resultList?.parentElement === expandedSearch,
+    }).toStrictEqual({
+      animation: "enabled",
+      inputExpanded: "true",
+      hasChineseTitle: true,
+      hasEnglishTitle: true,
+      hasEpisodeCount: true,
+      resultsOutsideAnimatedField: true,
+    });
+  });
+
+  it("opens without motion for keyboard-triggered activation", async () => {
+    const root = renderSwitcher();
+    root
+      .querySelector<HTMLButtonElement>(".atv-subject-switcher-trigger")
+      ?.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 0 }));
+    await Promise.resolve();
+
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+    ).toBe("open");
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset
+        .animation
+    ).toBe("none");
   });
 
   it("shows loading rows throughout the request debounce", async () => {
@@ -164,8 +198,14 @@ describe(SubjectSwitcher, () => {
       window.dispatchEvent(
         new KeyboardEvent("keydown", { bubbles: true, key: "/" })
       );
-      expect(root.querySelector(".atv-subject-switcher-input")).not.toBeNull();
+      expect(
+        root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
+      ).toBe("open");
     });
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset
+        .animation
+    ).toBe("none");
   });
 
   it("closes with Escape", async () => {
@@ -182,6 +222,10 @@ describe(SubjectSwitcher, () => {
     expect(
       root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset.state
     ).toBe("closed");
+    expect(
+      root.querySelector<HTMLElement>(".atv-subject-switcher")?.dataset
+        .animation
+    ).toBe("none");
   });
 
   it("does not open from a slash typed within contenteditable text", async () => {

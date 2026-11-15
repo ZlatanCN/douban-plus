@@ -47,27 +47,12 @@ const SearchIcon = () => (
   </svg>
 );
 
-/** Shared spring-like cubic bezier for both WAAPI and CSS transitions. */
-const springEasing = "cubic-bezier(0.23, 1, 0.32, 1)";
-
-/** Captures the current left-edge position of the expanded element for FLIP. */
-const captureExpandedLeft = (el: HTMLElement): number | null => {
-  const expanded = el.querySelector(
-    ".atv-subject-switcher-expanded"
-  ) as HTMLElement | null;
-  if (!expanded) {
-    return null;
-  }
-  return expanded.getBoundingClientRect().left;
-};
-
 const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [animateSearch, setAnimateSearch] = useState(true);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const animRef = useRef<Animation | null>(null);
-  const [flipSnapshot, setFlipSnapshot] = useState<number | null>(null);
 
   const normalizedQuery = normalizeSubjectQuery(query);
   const displayedRequest = useSubjectSuggestionRequest(normalizedQuery);
@@ -79,96 +64,59 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
     displayedRequest.status === "failed" ||
     (displayedRequest.status === "ready" && !suggestions.length);
 
-  /* -------- open / close with FLIP snapshot -------- */
-  const closeSwitcher = useCallback(() => {
-    const el = rootRef.current;
-    if (el) {
-      setFlipSnapshot(captureExpandedLeft(el));
-    }
+  /* -------- open / close -------- */
+  const closeSwitcher = useCallback((animate = true) => {
+    setAnimateSearch(animate);
     setIsOpen(false);
     setQuery("");
   }, []);
 
-  const openSwitcher = useCallback(() => {
-    const el = rootRef.current;
-    if (el) {
-      setFlipSnapshot(captureExpandedLeft(el));
-    }
+  const openSwitcher = useCallback((animate = true) => {
+    setAnimateSearch(animate);
     setIsOpen(true);
   }, []);
 
   useLayoutEffect(() => {
-    const el = rootRef.current;
-    if (!el) {
-      return;
-    }
-
-    // Sync the wrapper's data-state so CSS centering changes apply.
-    const wrapper = el.closest(
+    const wrapper = rootRef.current?.closest(
       ".atv-stickynav-subject-switcher"
     ) as HTMLElement | null;
-    if (!wrapper) {
+    const switcher = rootRef.current;
+    if (!wrapper || !switcher) {
       return;
     }
+
     wrapper.dataset.state = isOpen ? "open" : "closed";
-
-    // The expanded element is the one that repositions (absolute nav-center vs
-    // in-flow right-aligned). FLIP on the expanded, not the wrapper.
-    const expanded = el.querySelector(
+    const nav = wrapper.closest(".atv-stickynav");
+    const title = nav?.querySelector<HTMLElement>(".atv-stickynav-title");
+    const expanded = switcher.querySelector<HTMLElement>(
       ".atv-subject-switcher-expanded"
-    ) as HTMLElement | null;
-    if (!expanded) {
-      return;
-    }
-
-    // FLIP: if we captured a pre-state-change snapshot, animate from it.
-    const snap = flipSnapshot;
-    if (snap === null) {
-      return;
-    }
-
-    animRef.current?.cancel();
-
-    // Read the new layout position (post-state-change).
-    // For open:  absolute → centered via left: 50%; transform: translateX(-50%)
-    // For close: in-flow → right-aligned after the trigger
-    const newLeft = expanded.getBoundingClientRect().left;
-
-    const dx = snap - newLeft;
-
-    // No meaningful movement → skip animation.
-    if (Math.abs(dx) < 0.5) {
-      return;
-    }
-
-    // Compensate: visually stay at the OLD position via transform.
-    expanded.style.transform = `translateX(${dx}px)`;
-    void expanded.offsetHeight;
-
-    // WAAPI animates from compensated position to target CSS position.
-    // Open:  end = translateX(-50%)  (the CSS centering transform)
-    // Close: end = none             (in-flow, no CSS transform)
-    const targetTransform = isOpen ? "translateX(-50%)" : "none";
-    const anim = expanded.animate(
-      [{ transform: `translateX(${dx}px)` }, { transform: targetTransform }],
-      {
-        duration: isOpen ? 400 : 350,
-        easing: springEasing,
-        fill: "both",
-      }
     );
+    if (!(nav && title && expanded)) {
+      return;
+    }
 
-    anim.onfinish = () => {
-      expanded.style.transform = "";
-      anim.cancel();
-      animRef.current = null;
+    const updateMaxWidth = (): void => {
+      // Computed CSS lengths keep their `px` suffix, so parse the numeric part.
+      // oxlint-disable-next-line unicorn/prefer-number-coercion
+      const navGap = Number.parseFloat(window.getComputedStyle(nav).columnGap);
+      const preferredWidth = Math.min(
+        window.innerWidth * (window.innerWidth <= 768 ? 0.78 : 0.44),
+        520
+      );
+      const availableWidth = Math.max(
+        0,
+        switcher.getBoundingClientRect().right -
+          title.getBoundingClientRect().right -
+          (Number.isFinite(navGap) ? navGap : 0)
+      );
+      expanded.style.maxWidth = `${Math.min(preferredWidth, availableWidth)}px`;
     };
-    animRef.current = anim;
 
-    return () => {
-      animRef.current?.cancel();
-    };
-  }, [isOpen, flipSnapshot]);
+    updateMaxWidth();
+    window.addEventListener("resize", updateMaxWidth);
+    return () => window.removeEventListener("resize", updateMaxWidth);
+  }, [isOpen]);
+
   useEffect(() => onOpenChange?.(isOpen), [isOpen, onOpenChange]);
 
   useEffect(() => {
@@ -190,7 +138,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
         return;
       }
       event.preventDefault();
-      openSwitcher();
+      openSwitcher(false);
     };
 
     window.addEventListener("keydown", onShortcut);
@@ -210,7 +158,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
           .querySelector(".atv-subject-switcher-expanded")
           ?.contains(event.target)
       ) {
-        closeSwitcher();
+        closeSwitcher(false);
       }
     };
 
@@ -221,7 +169,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   const openInNewTab = useCallback(
     (url: string) => {
       window.open(url, "_blank", "noopener");
-      closeSwitcher();
+      closeSwitcher(false);
     },
     [closeSwitcher]
   );
@@ -239,7 +187,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
 
   const nav = useSwitcherNav({
     items: suggestions,
-    onClose: closeSwitcher,
+    onClose: () => closeSwitcher(false),
     onSelect: openSuggestion,
     onSubmit: submitSearch,
   });
@@ -249,6 +197,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
   return (
     <div
       class="atv-subject-switcher"
+      data-animation={animateSearch ? "enabled" : "none"}
       data-state={isOpen ? "open" : "closed"}
       ref={rootRef}
     >
@@ -256,7 +205,7 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
       <button
         aria-label="搜索作品"
         class="atv-subject-switcher-trigger"
-        onClick={openSwitcher}
+        onClick={(event) => openSwitcher(event.detail > 0)}
         type="button"
       >
         <SearchIcon />
@@ -265,46 +214,48 @@ const SubjectSwitcher = ({ onOpenChange }: SubjectSwitcherProps) => {
 
       {/* ---- Expanded search bar (always in DOM, revealed when open) ---- */}
       <div class="atv-subject-switcher-expanded">
-        <label
-          class="atv-screen-reader-only"
-          htmlFor="atv-subject-switcher-input"
-        >
-          搜索电影、剧集
-        </label>
-        <span class="atv-subject-switcher-search-icon" aria-hidden="true">
-          <SearchIcon />
-        </span>
-        <input
-          role="combobox"
-          aria-activedescendant={
-            nav.activeItem
-              ? `atv-subject-suggestion-${nav.activeItem.id}`
-              : undefined
-          }
-          aria-autocomplete="list"
-          aria-controls={hasResultsPanel ? suggestionListId : undefined}
-          aria-expanded={hasResultsPanel}
-          class="atv-subject-switcher-input"
-          id="atv-subject-switcher-input"
-          list={undefined}
-          onInput={(event) => {
-            nav.handleReset();
-            setQuery(event.currentTarget.value);
-          }}
-          onKeyDown={nav.handleKeyDown}
-          placeholder="搜索电影、剧集"
-          ref={inputRef}
-          type="text"
-          value={query}
-        />
-        <button
-          aria-label="关闭作品搜索"
-          class="atv-subject-switcher-close"
-          onClick={closeSwitcher}
-          type="button"
-        >
-          Esc
-        </button>
+        <div class="atv-subject-switcher-field">
+          <label
+            class="atv-screen-reader-only"
+            htmlFor="atv-subject-switcher-input"
+          >
+            搜索电影、剧集
+          </label>
+          <span class="atv-subject-switcher-search-icon" aria-hidden="true">
+            <SearchIcon />
+          </span>
+          <input
+            role="combobox"
+            aria-activedescendant={
+              nav.activeItem
+                ? `atv-subject-suggestion-${nav.activeItem.id}`
+                : undefined
+            }
+            aria-autocomplete="list"
+            aria-controls={hasResultsPanel ? suggestionListId : undefined}
+            aria-expanded={hasResultsPanel}
+            class="atv-subject-switcher-input"
+            id="atv-subject-switcher-input"
+            list={undefined}
+            onInput={(event) => {
+              nav.handleReset();
+              setQuery(event.currentTarget.value);
+            }}
+            onKeyDown={nav.handleKeyDown}
+            placeholder="搜索电影、剧集"
+            ref={inputRef}
+            type="text"
+            value={query}
+          />
+          <button
+            aria-label="关闭作品搜索"
+            class="atv-subject-switcher-close"
+            onClick={(event) => closeSwitcher(event.detail > 0)}
+            type="button"
+          >
+            Esc
+          </button>
+        </div>
 
         {/* ---- Suggestion / status panel ---- */}
         {hasResultsPanel ? (

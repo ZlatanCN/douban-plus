@@ -69,12 +69,15 @@ const loadRating = async (
   if (signal.aborted) {
     return ratingFailure("aborted");
   }
+  const pageSeries = page.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)?.groups
+    ?.series;
   const parsed = parseScorecard(page.html, {
     fetchedAt: Date.now(),
     kind: context.kind,
+    pageRtId: page.rtId,
     rtId: target.rtId,
     season: context.season,
-    seriesRtId: target.seriesRtId,
+    seriesRtId: pageSeries ? `tv/${pageSeries}` : target.seriesRtId,
     subjectId: context.subjectId,
     url: page.url,
   });

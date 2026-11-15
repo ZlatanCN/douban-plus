@@ -9,6 +9,7 @@ import type { StructuredPage } from "../shared/structured-page";
 type ScorecardInput = {
   fetchedAt: number;
   kind: RtObjectKind;
+  pageRtId: string;
   rtId: string;
   season: number | null;
   seriesRtId: string | null;
@@ -16,7 +17,38 @@ type ScorecardInput = {
   url: string;
 };
 
-const expectedPath = (rtId: string): string => `/${rtId}`;
+const normalizedPath = (pathname: string): string =>
+  pathname.replaceAll(/\/+$/gu, "") || "/";
+
+const matchesRtPageIdentity = (
+  canonicalUrl: string,
+  pageUrl: string,
+  pageRtId: string
+): boolean => {
+  let canonical: URL;
+  let request: URL;
+  try {
+    canonical = new URL(canonicalUrl, pageUrl);
+    request = new URL(pageUrl);
+  } catch {
+    return false;
+  }
+  if (
+    canonical.protocol !== "https:" ||
+    canonical.hostname !== "www.rottentomatoes.com" ||
+    canonical.search ||
+    request.protocol !== "https:" ||
+    request.hostname !== "www.rottentomatoes.com" ||
+    request.search
+  ) {
+    return false;
+  }
+  const expectedPath = normalizedPath(`/${pageRtId}`);
+  return (
+    normalizedPath(canonical.pathname) === expectedPath &&
+    normalizedPath(request.pathname) === expectedPath
+  );
+};
 
 const readSeriesRtId = (page: StructuredPage): string | null => {
   const season = page.jsonLd.find((entry) => {
@@ -73,19 +105,7 @@ const scorecardIdentityStatus = (
   if (!page.canonicalUrl) {
     return "invalid-page";
   }
-  let canonical: URL;
-  let request: URL;
-  try {
-    canonical = new URL(page.canonicalUrl, input.url);
-    request = new URL(input.url);
-  } catch {
-    return "invalid-page";
-  }
-  if (
-    canonical.hostname !== "www.rottentomatoes.com" ||
-    canonical.pathname !== expectedPath(input.rtId) ||
-    canonical.pathname !== request.pathname
-  ) {
+  if (!matchesRtPageIdentity(page.canonicalUrl, input.url, input.pageRtId)) {
     return "identity-conflict";
   }
   const types = structuredPageTypes(page);

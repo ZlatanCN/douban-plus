@@ -54,7 +54,7 @@ const inputQuery = async (
 const openSwitcher = async (root: HTMLElement): Promise<void> => {
   root
     .querySelector<HTMLButtonElement>(".atv-subject-switcher-trigger")
-    ?.click();
+    ?.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
   await Promise.resolve();
 };
 
