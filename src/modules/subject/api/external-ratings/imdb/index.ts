@@ -9,7 +9,7 @@ const imdbCache = createCache<{
   rating: NonNullable<ImdbRating>;
   sourceUrl: string;
   title: string;
-}>("dp:imdb-cache-v2", 30 * 24 * 60 * 60 * 1000);
+}>("dp:imdb-cache-v3", 30 * 24 * 60 * 60 * 1000);
 
 /* ── GraphQL Queries ────────────────────────────────── */
 

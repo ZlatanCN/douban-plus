@@ -9074,7 +9074,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-Cz8xpaLr-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-B3wapDTC-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ u("fieldset", {
@@ -15880,8 +15880,6 @@ var readSeriesInfo = (title) => {
 		titleText: series.titleText?.text ?? title?.titleText?.text ?? ""
 	};
 };
-var readTitleText = (title) => title?.titleText?.text ?? null;
-var readTitleTypeId = (title) => title?.titleType?.id ?? null;
 var extractTitleFields = (parsed) => {
 	if (parsed.errors) return null;
 	const title = parsed.data?.title;
@@ -15889,8 +15887,8 @@ var extractTitleFields = (parsed) => {
 	return {
 		aggregateRating: ratingsSummary?.aggregateRating,
 		seriesInfo: readSeriesInfo(title),
-		titleText: readTitleText(title),
-		titleTypeId: readTitleTypeId(title),
+		titleText: title?.titleText?.text ?? null,
+		titleTypeId: title?.titleType?.id ?? null,
 		voteCount: ratingsSummary?.voteCount
 	};
 };
@@ -15924,7 +15922,7 @@ var parseSeasonRating = (json) => {
 		return null;
 	}
 };
-var imdbCache = createCache("dp:imdb-cache-v2", 2592e6);
+var imdbCache = createCache("dp:imdb-cache-v3", 2592e6);
 /** First query: get title info + parent series id (if episode). */
 var GRAPHQL_QUERY = `query GetRating($id: ID!) {
   title(id: $id) {
@@ -19611,7 +19609,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-Cz8xpaLr-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-B3wapDTC-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

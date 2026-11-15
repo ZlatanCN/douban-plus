@@ -46,12 +46,6 @@ const readSeriesInfo = (
   };
 };
 
-const readTitleText = (title: RawTitle | undefined): string | null =>
-  title?.titleText?.text ?? null;
-
-const readTitleTypeId = (title: RawTitle | undefined): string | null =>
-  title?.titleType?.id ?? null;
-
 const extractTitleFields = (parsed: ParsedRaw): ParsedResponse | null => {
   if (parsed.errors) {
     return null;
@@ -61,8 +55,8 @@ const extractTitleFields = (parsed: ParsedRaw): ParsedResponse | null => {
   return {
     aggregateRating: ratingsSummary?.aggregateRating,
     seriesInfo: readSeriesInfo(title),
-    titleText: readTitleText(title),
-    titleTypeId: readTitleTypeId(title),
+    titleText: title?.titleText?.text ?? null,
+    titleTypeId: title?.titleType?.id ?? null,
     voteCount: ratingsSummary?.voteCount,
   };
 };

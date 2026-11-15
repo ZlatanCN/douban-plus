@@ -269,6 +269,38 @@ describe("fetchImdbRating", () => {
     expect(mockGmPost).toHaveBeenCalledOnce();
   });
 
+  it("does not reuse a legacy season cache created without a parent-series check", async () => {
+    localStorage.setItem(
+      "dp:imdb-cache-v2",
+      JSON.stringify([
+        [
+          "tt-episode-s02",
+          {
+            expiresAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+            value: {
+              rating: { count: 500, score: 8.1 },
+              sourceUrl:
+                "https://www.imdb.com/title/tt-episode/episodes/?season=2",
+              title: "Episode 1",
+            },
+          },
+        ],
+      ])
+    );
+    mockGmPost.mockResolvedValueOnce(
+      makeGraphQLSuccess(8.1, 500, "Episode 1", undefined, "tvEpisode")
+    );
+
+    const result = await fetchImdbRating("tt-episode", 2);
+
+    expect(result).toStrictEqual({
+      rating: null,
+      sourceUrl: null,
+      title: "Episode 1",
+    });
+    expect(mockGmPost).toHaveBeenCalledOnce();
+  });
+
   it("does not reuse a season rating for a direct title request", async () => {
     mockGmPost
       .mockResolvedValueOnce(
@@ -302,7 +334,7 @@ describe("fetchImdbRating", () => {
         },
       ],
     ]);
-    localStorage.setItem("dp:imdb-cache", expiredEntry);
+    localStorage.setItem("dp:imdb-cache-v2", expiredEntry);
 
     mockGmPost.mockResolvedValue(makeGraphQLSuccess(9.3, 1_200_000));
     const result = await fetchImdbRating("tt0111161");
@@ -312,7 +344,7 @@ describe("fetchImdbRating", () => {
       sourceUrl: "https://www.imdb.com/title/tt0111161/",
       title: "The Shawshank Redemption",
     });
-    // Fresh fetch (the old cache does not include source URLs).
+    // Fresh fetch: the previous cache did not validate the IMDb parent series.
     expect(mockGmPost).toHaveBeenCalledOnce();
   });
 
