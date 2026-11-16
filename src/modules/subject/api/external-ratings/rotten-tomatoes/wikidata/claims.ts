@@ -1,4 +1,8 @@
 import { entityReference } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+import {
+  isFilmInstance,
+  parseRottenTomatoesPath,
+} from "@/modules/subject/api/external-ratings/shared/wikidata-identity";
 
 type Claim = {
   mainsnak?: { datavalue?: { value?: unknown }; snaktype?: string };
@@ -47,7 +51,6 @@ type EpisodeRtTarget =
   | { status: "ambiguous" | "missing" };
 
 const ACTIVE_RANKS = new Set(["normal", "preferred"]);
-const FILM_TYPES = new Set(["Q11424"]);
 const SERIES_TYPES = new Set(["Q5398426", "Q1259759"]);
 const SEASON_TYPES = new Set(["Q3464665"]);
 
@@ -103,30 +106,31 @@ const normalizeRtId = (value: unknown): string | null => {
       return null;
     }
     const path = url.pathname.replaceAll(/^\/+|\/+$/gu, "");
-    return /^(?:m\/[^/]+|tv\/[^/]+(?:\/s\d{2,})?)$/u.test(path) ? path : null;
+    return parseRottenTomatoesPath(path) ? path : null;
   } catch {
     return null;
   }
 };
 
-const entityKind = (
+const entityKind = async (
   entity: Entity,
-  rtId: string
-): EntityMapping["kind"] | null => {
+  rtId: string,
+  signal: AbortSignal
+): Promise<EntityMapping["kind"] | null> => {
+  const path = parseRottenTomatoesPath(rtId);
+  if (!path) {
+    return null;
+  }
   const types = claimValues(entity.claims?.P31)
     .map(entityReference)
     .filter((value): value is string => value !== null);
-  if (rtId.startsWith("m/") && types.some((id) => FILM_TYPES.has(id))) {
+  if (path.kind === "movie" && (await isFilmInstance(types, signal))) {
     return "movie";
   }
-  if (rtId.includes("/s") && types.some((id) => SEASON_TYPES.has(id))) {
+  if (path.kind === "season" && types.some((id) => SEASON_TYPES.has(id))) {
     return "season";
   }
-  if (
-    rtId.startsWith("tv/") &&
-    !rtId.includes("/s") &&
-    types.some((id) => SERIES_TYPES.has(id))
-  ) {
+  if (path.kind === "series" && types.some((id) => SERIES_TYPES.has(id))) {
     return "series";
   }
   return null;

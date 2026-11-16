@@ -15,12 +15,12 @@ const targetCache = createVerifiedTargetCache<MetacriticTarget>(
   "dp:metacritic-targets:v1"
 );
 
-const resolveEntity = (
+const resolveEntity = async (
   entity: Entity,
   context: ResolutionContext,
   signal: AbortSignal
-): TargetResult | Promise<TargetResult> => {
-  const kind = entityKind(entity);
+): Promise<TargetResult> => {
+  const kind = await entityKind(entity, signal);
   if (context.kind === "movie") {
     if (kind !== "movie") {
       return { status: "ambiguous" };

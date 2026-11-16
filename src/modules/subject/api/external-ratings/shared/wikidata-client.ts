@@ -6,6 +6,7 @@ type SearchResult =
 type EntityCandidates<T> =
   | { entities: T[]; status: "matched" }
   | { status: "ambiguous" | "missing" };
+type WikidataResponse = { error?: unknown };
 
 const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
@@ -16,6 +17,12 @@ const entityReference = (value: unknown): string | null => {
   }
   const id = Reflect.get(value, "id");
   return typeof id === "string" ? id : null;
+};
+
+const throwApiError = (data: WikidataResponse): void => {
+  if (data.error !== undefined) {
+    throw new Error("Wikidata API error");
+  }
 };
 
 const searchEntityIds = async (
@@ -39,8 +46,10 @@ const searchEntityIds = async (
   });
   const data = JSON.parse(response.responseText) as {
     continue?: Record<string, string>;
+    error?: unknown;
     query?: { search?: { title?: string }[] };
   };
+  throwApiError(data);
   if (data.continue) {
     return { status: "ambiguous" };
   }
@@ -75,9 +84,10 @@ const fetchEntities = async <T>(
     signal,
     timeoutMs: REQUEST_TIMEOUT,
   });
-  const data = JSON.parse(response.responseText) as {
+  const data = JSON.parse(response.responseText) as WikidataResponse & {
     entities?: Record<string, T>;
   };
+  throwApiError(data);
   return data.entities ?? {};
 };
 
