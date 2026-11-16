@@ -10587,7 +10587,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-Cl1hW5UX-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-DbQn6ETy-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -17830,7 +17830,9 @@ var findSeasonPageLink = (html, seriesPageUrl, season) => {
 };
 var targetEntry = (page, target, expectedSeriesUrl = target.seriesMetacriticId) => {
 	const expectedSeriesPath = expectedSeriesUrl ? pagePath(expectedSeriesUrl) : null;
-	return page.jsonLd.find((entry) => {
+	const targetPath = pagePath(`/${target.metacriticId}`);
+	const canonicalPath = page.canonicalUrl ? pagePath(page.canonicalUrl) : null;
+	const typedEntries = page.jsonLd.filter((entry) => {
 		const types = new Set(structuredTypes(entry));
 		if (target.kind === "movie") return types.has("Movie");
 		if (target.kind === "series") return types.has("TVSeries");
@@ -17839,7 +17841,15 @@ var targetEntry = (page, target, expectedSeriesUrl = target.seriesMetacriticId) 
 		const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
 		const seriesPath = typeof seriesUrl === "string" ? pagePath(seriesUrl) : null;
 		return Boolean(seriesPath && /^\/tv\/[^/]+$/u.test(seriesPath) && (expectedSeriesPath === null || seriesPath === expectedSeriesPath));
-	}) ?? null;
+	});
+	const expectedPaths = new Set([canonicalPath, targetPath].filter((value) => value !== null));
+	const linkedEntries = typedEntries.filter((entry) => {
+		const url = typeof entry.url === "string" ? entry.url : entry["@id"];
+		return typeof url === "string" && expectedPaths.has(pagePath(url) ?? "");
+	});
+	if (linkedEntries.length === 1) return linkedEntries[0] ?? null;
+	if (linkedEntries.length > 1) return null;
+	return typedEntries.length === 1 ? typedEntries[0] ?? null : null;
 };
 var parseRating = (page, matchedEntry) => {
 	if (!page.canonicalUrl) return { status: "invalid-page" };
@@ -23014,7 +23024,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-Cl1hW5UX-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-DbQn6ETy-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
