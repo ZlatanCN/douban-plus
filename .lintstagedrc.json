@@ -1,5 +1,8 @@
 {
   "*.{css,scss}": ["pnpm exec stylelint --fix"],
-  "*.{js,jsx,ts,tsx}": ["pnpm exec ultracite fix"],
+  "src/**/*.{js,jsx,ts,tsx}": ["pnpm exec ultracite fix"],
+  "tests/**/*.{js,jsx,ts,tsx}": ["pnpm exec ultracite fix"],
+  "scripts/**/*.{js,jsx,ts,tsx}": ["pnpm exec ultracite fix"],
+  "*.config.{js,ts,mjs,mts}": ["pnpm exec ultracite fix"],
   "*.{json,jsonc}": ["pnpm exec oxfmt --write"]
 }
