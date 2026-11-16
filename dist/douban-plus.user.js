@@ -10587,7 +10587,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-FwhV7LQk-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-Cl1hW5UX-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -17400,6 +17400,21 @@ var buildContext = (data) => {
 		unsupportedEpisode
 	};
 };
+var createExternalRatingDiagnostic = (input) => {
+	const acceptedEvidence = [...new Set(input.acceptedEvidence)].slice(0, 8);
+	const candidateTargets = [...new Set(input.candidateTargets)].slice(0, 4);
+	const missingEvidence = [...new Set(input.missingEvidence)].slice(0, 8);
+	const rejectedEvidence = [...new Set(input.rejectedEvidence)].slice(0, 8);
+	const unverifiedEvidence = [...new Set(input.unverifiedEvidence)].filter((category) => !acceptedEvidence.includes(category) && !missingEvidence.includes(category)).slice(0, 8);
+	return {
+		...input,
+		acceptedEvidence,
+		candidateTargets,
+		missingEvidence,
+		rejectedEvidence,
+		unverifiedEvidence
+	};
+};
 var readSeriesInfo = (title) => {
 	const series = title?.series?.series;
 	if (!series?.id) return null;
@@ -17450,8 +17465,6 @@ var parseSeasonRating = (json) => {
 		return null;
 	}
 };
-var imdbCache = createCache("dp:imdb-cache-v4", 2592e6);
-/** First query: get title info + parent series id (if episode). */
 var GRAPHQL_QUERY = `query GetRating($id: ID!) {
   title(id: $id) {
     id
@@ -17466,7 +17479,6 @@ var GRAPHQL_QUERY = `query GetRating($id: ID!) {
     }
   }
 }`;
-/** Second query: get all episode ratings for a specific season. */
 var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
   title(id: $id) {
     episodes {
@@ -17483,22 +17495,11 @@ var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!)
 var IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
 var IMDB_REFERER = "https://www.imdb.com/";
 var IMDB_HEADERS = { "Content-Type": "application/json" };
-var makeDiagnostic$3 = (reason, stage, target, cacheAgeMs = null, errorCode = null) => ({
-	cacheAgeMs,
-	errorCode,
-	reason,
-	stage,
-	target
-});
 var failureReason = (error) => {
 	if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
 	if (error instanceof SyntaxError) return "parse-error";
 	return "request-error";
 };
-/** Cache by requested title and season, e.g. "tt0944947-s05". */
-var seasonCacheKey = (titleId, season) => `${titleId}-s${String(season).padStart(2, "0")}`;
-var imdbTitleUrl = (titleId) => `https://www.imdb.com/title/${encodeURIComponent(titleId)}/`;
-var imdbSeasonUrl = (seriesId, season) => `${imdbTitleUrl(seriesId)}episodes/?season=${season}`;
 var postGraphQL = (query, variables, signal) => gmPost(IMDB_GRAPHQL_URL, JSON.stringify({
 	query,
 	variables
@@ -17520,7 +17521,6 @@ var parsedResponseFailure = (json) => {
 		};
 	}
 };
-/** First pass: get title info + detect whether the tconst is an episode. */
 var fetchTitleInfo = async (imdbId, signal) => {
 	try {
 		const json = await postGraphQL(GRAPHQL_QUERY, { id: imdbId }, signal);
@@ -17535,7 +17535,6 @@ var fetchTitleInfo = async (imdbId, signal) => {
 		};
 	}
 };
-/** Fetch episode ratings for a season and return their vote-weighted average. */
 var fetchSeasonRating = async (seriesId, season, signal) => {
 	let json;
 	try {
@@ -17573,6 +17572,17 @@ var fetchSeasonRating = async (seriesId, season, signal) => {
 		status: "rating"
 	} : { status: "source-no-rating" };
 };
+var imdbCache = createCache("dp:imdb-cache-v4", 2592e6);
+var makeDiagnostic$3 = (reason, stage, target, cacheAgeMs = null, errorCode = null) => createExternalRatingDiagnostic({
+	cacheAgeMs,
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var seasonCacheKey = (titleId, season) => `${titleId}-s${String(season).padStart(2, "0")}`;
+var imdbTitleUrl = (titleId) => `https://www.imdb.com/title/${encodeURIComponent(titleId)}/`;
+var imdbSeasonUrl = (seriesId, season) => `${imdbTitleUrl(seriesId)}episodes/?season=${season}`;
 var cachedRating = (imdbId, entry, onOutcome) => {
 	if (!entry) return null;
 	onOutcome?.(makeDiagnostic$3("rating", "cache", imdbId, Number.isFinite(entry.fetchedAt) ? Math.max(0, Date.now() - entry.fetchedAt) : null));
@@ -17582,10 +17592,7 @@ var cachedRating = (imdbId, entry, onOutcome) => {
 		title: entry.title
 	};
 };
-var diagnosticStage = (reason) => {
-	if (reason === "request-error" || reason === "cancelled") return "request";
-	return "parse";
-};
+var diagnosticStage = (reason) => reason === "request-error" || reason === "cancelled" ? "request" : "parse";
 var publishTitleFailure = (target, failure, onOutcome) => {
 	onOutcome?.(makeDiagnostic$3(failure.reason, diagnosticStage(failure.reason), target, null, failure.errorCode));
 };
@@ -17686,10 +17693,6 @@ var fetchDirectTitleRating = async (imdbId, signal, onOutcome) => {
 		title
 	};
 };
-/**
-* Resolve an IMDb rating for a title and optionally a specific season.
-* Failure reasons are reported separately from the rating data for runtime diagnostics.
-*/
 var fetchImdbRating = (imdbId, season, signal, onOutcome) => {
 	if (!imdbId) {
 		onOutcome?.(makeDiagnostic$3("mapping-missing", "mapping", null, null, "no-imdb-id"));
@@ -17707,8 +17710,7 @@ var fetchImdbRating = (imdbId, season, signal, onOutcome) => {
 			title: null
 		});
 	}
-	if (season !== void 0) return fetchSeasonTitleRating(imdbId, season, signal, onOutcome);
-	return fetchDirectTitleRating(imdbId, signal, onOutcome);
+	return season === void 0 ? fetchDirectTitleRating(imdbId, signal, onOutcome) : fetchSeasonTitleRating(imdbId, season, signal, onOutcome);
 };
 var TARGET_CACHE_TTL = 2592e6;
 var TARGET_REVALIDATION_INTERVAL = 864e5;
@@ -17734,6 +17736,19 @@ var createVerifiedTargetCache = (storageKey) => {
 		}
 	};
 };
+var makeDiagnostic$2 = (reason, stage, target, fetchedAt = null, errorCode = null) => createExternalRatingDiagnostic({
+	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var failureReasonFromError$1 = (error) => {
+	if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
+	if (error instanceof SyntaxError) return "parse-error";
+	return "request-error";
+};
+var failureDiagnostic = (error, stage, target, errorCode) => ({ ...makeDiagnostic$2(failureReasonFromError$1(error), stage, target, null, errorCode) });
 var readStructuredPage = (html) => {
 	const canonicalUrl = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
 	const jsonLd = [];
@@ -18298,14 +18313,25 @@ var readMetacriticId = (entity) => {
 var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
 var findEntity = async (property, value, signal) => {
 	const candidates = await findEntityCandidates(property, value, signal);
-	if (candidates.status !== "matched") return candidates;
+	if (candidates.status !== "matched") return {
+		...candidates,
+		candidateTargets: []
+	};
+	const candidateTargets = candidates.entities.map((entity) => entity.id).filter((id) => /^Q\d+$/u.test(id));
 	const matches = candidates.entities.filter((entity) => hasIdentity(entity, property, value));
-	if (matches.length > 1) return { status: "ambiguous" };
+	if (matches.length > 1) return {
+		candidateTargets,
+		status: "ambiguous"
+	};
 	const [entity] = matches;
 	return entity ? {
+		candidateTargets,
 		entity,
 		status: "matched"
-	} : { status: "missing" };
+	} : {
+		candidateTargets,
+		status: "missing"
+	};
 };
 var metacriticSeriesTarget = (entity, fallbackMetacriticId) => {
 	const metacritic = readMetacriticId(entity);
@@ -18423,7 +18449,6 @@ var resolveSeasonTarget = (entity, kind, season, signal) => {
 	if (kind === "series") return seasonForSeries(entity, season, signal);
 	return { status: "ambiguous" };
 };
-var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v4");
 var resolveEntity = async (entity, context, signal) => {
 	const kind = await entityKind$1(entity, signal);
 	if (context.kind === "movie") {
@@ -18454,70 +18479,137 @@ var resolveEntity = async (entity, context, signal) => {
 			status: "matched"
 		} : { status: "ambiguous" };
 	}
-	if (context.season === null) return { status: "ambiguous" };
-	if (kind === null) return { status: "ambiguous" };
+	if (context.season === null || kind === null) return { status: "ambiguous" };
 	return resolveSeasonTarget(entity, kind, context.season, signal);
 };
 var resolveIdentifier = async (property, value, context, signal) => {
 	const lookup = await findEntity(property, value, signal);
-	if (lookup.status !== "matched") return lookup;
-	return resolveEntity(lookup.entity, context, signal);
-};
-var resolveIdentifierResults = (results) => {
-	const hasRejectedLookup = results.some((result) => result.status === "rejected");
-	const failure = results.find((result) => result.status === "rejected")?.reason instanceof SyntaxError ? "parse-error" : "request-error";
-	const targets = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
-	if (targets.some((target) => target.status === "ambiguous")) return {
-		complete: true,
-		status: "ambiguous"
+	const evidence = {
+		acceptedEvidence: [],
+		candidateTargets: lookup.candidateTargets,
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: []
 	};
+	if (lookup.status !== "matched") return {
+		evidence: {
+			...evidence,
+			missingEvidence: ["exact-id"],
+			unverifiedEvidence: [
+				"type",
+				"canonical",
+				"aggregate-rating"
+			]
+		},
+		target: lookup
+	};
+	const target = await resolveEntity(lookup.entity, context, signal);
+	const acceptedEvidence = ["exact-id", ...target.status === "matched" || target.status === "missing" || target.status === "season-link-needed" ? ["type"] : []];
+	if (target.status === "missing") return {
+		evidence: {
+			...evidence,
+			acceptedEvidence,
+			missingEvidence: ["exact-id"],
+			unverifiedEvidence: ["canonical", "aggregate-rating"]
+		},
+		target
+	};
+	if (target.status === "ambiguous") return {
+		evidence: {
+			...evidence,
+			acceptedEvidence,
+			rejectedEvidence: ["type"]
+		},
+		target
+	};
+	return {
+		evidence: {
+			...evidence,
+			acceptedEvidence
+		},
+		target
+	};
+};
+var resolveTargetResults = (targets, evidence, hasRejectedLookup, failure) => {
 	const matches = targets.filter((target) => target.status === "matched");
 	const seasonLinks = targets.filter((target) => target.status === "season-link-needed");
 	const uniqueTargets = new Map(matches.map((target) => [`${target.kind}:${target.metacriticId}:${target.seriesId ?? ""}:${target.seriesMetacriticId ?? ""}`, target]));
-	if (uniqueTargets.size > 1) return {
-		complete: true,
-		status: "identity-conflict"
-	};
 	const uniqueSeasonLinks = new Map(seasonLinks.map((result) => [`${result.season}:${result.seriesTarget.seriesId ?? ""}:${result.seriesTarget.metacriticId}`, result]));
-	if (uniqueSeasonLinks.size > 1) return {
+	if (uniqueTargets.size > 1 || uniqueSeasonLinks.size > 1) return {
 		complete: true,
-		status: "identity-conflict"
+		status: "identity-conflict",
+		...evidence
 	};
 	const [matchedTarget] = uniqueTargets.values();
 	const [seasonLink] = uniqueSeasonLinks.values();
 	if (matchedTarget && seasonLink) {
 		if (matchedTarget.kind !== "season" || matchedTarget.season !== seasonLink.season || matchedTarget.seriesId !== seasonLink.seriesTarget.seriesId) return {
 			complete: true,
-			status: "identity-conflict"
+			status: "identity-conflict",
+			...evidence
 		};
 		return {
 			complete: !hasRejectedLookup,
 			...hasRejectedLookup ? { failure } : {},
 			status: "matched",
-			target: matchedTarget
+			target: matchedTarget,
+			...evidence
 		};
 	}
-	if (uniqueTargets.size === 0 && seasonLink) return {
+	if (seasonLink) return {
 		complete: !hasRejectedLookup,
 		...hasRejectedLookup ? { failure } : {},
-		...seasonLink
-	};
-	if (uniqueTargets.size === 0) return {
-		complete: !hasRejectedLookup,
-		...hasRejectedLookup ? { failure } : {},
-		status: hasRejectedLookup ? "error" : "missing"
+		...seasonLink,
+		...evidence
 	};
 	if (matchedTarget) return {
 		complete: !hasRejectedLookup,
 		...hasRejectedLookup ? { failure } : {},
 		status: "matched",
-		target: matchedTarget
+		target: matchedTarget,
+		...evidence
 	};
 	return {
 		complete: !hasRejectedLookup,
-		status: "missing"
+		...hasRejectedLookup ? { failure } : {},
+		status: hasRejectedLookup ? "error" : "missing",
+		...evidence
 	};
 };
+var resolveIdentifierResults = (results) => {
+	const hasRejectedLookup = results.some((result) => result.status === "rejected");
+	const failure = results.find((result) => result.status === "rejected")?.reason instanceof SyntaxError ? "parse-error" : "request-error";
+	const completed = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+	const targets = completed.map(({ target }) => target);
+	if (targets.some((target) => target.status === "ambiguous")) return {
+		complete: true,
+		status: "ambiguous",
+		...aggregateEvidence(completed)
+	};
+	return resolveTargetResults(targets, aggregateEvidence(completed, !hasRejectedLookup && targets.some((target) => target.status === "matched" || target.status === "season-link-needed")), hasRejectedLookup, failure);
+};
+var aggregateEvidence = (completed, hasResolvedTarget = false) => ({
+	acceptedEvidence: completed.flatMap(({ evidence: item }) => item.acceptedEvidence),
+	candidateTargets: [...new Set(completed.flatMap(({ evidence: item }) => item.candidateTargets))],
+	missingEvidence: hasResolvedTarget ? [] : completed.flatMap(({ evidence: item }) => item.missingEvidence),
+	rejectedEvidence: completed.flatMap(({ evidence: item }) => item.rejectedEvidence),
+	unverifiedEvidence: hasResolvedTarget ? [] : completed.flatMap(({ evidence: item }) => item.unverifiedEvidence)
+});
+var missingIdentifierResult = () => ({
+	evidence: {
+		acceptedEvidence: [],
+		candidateTargets: [],
+		missingEvidence: ["exact-id"],
+		rejectedEvidence: [],
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
+	},
+	target: { status: "missing" }
+});
+var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v4");
 var resolveMetacriticTargetFresh = async (context, signal) => {
 	if (context.seasonConflict || context.unsupportedEpisode) return {
 		complete: true,
@@ -18527,7 +18619,7 @@ var resolveMetacriticTargetFresh = async (context, signal) => {
 		complete: true,
 		status: "missing"
 	};
-	return resolveIdentifierResults(await Promise.allSettled([context.imdbId ? resolveIdentifier("P345", context.imdbId, context, signal) : Promise.resolve({ status: "missing" }), context.subjectId ? resolveIdentifier("P4529", context.subjectId, context, signal) : Promise.resolve({ status: "missing" })]));
+	return resolveIdentifierResults(await Promise.allSettled([context.imdbId ? resolveIdentifier("P345", context.imdbId, context, signal) : Promise.resolve(missingIdentifierResult()), context.subjectId ? resolveIdentifier("P4529", context.subjectId, context, signal) : Promise.resolve(missingIdentifierResult())]));
 };
 var resolveMetacriticTarget = (context, signal) => {
 	const cached = targetCache.get(context);
@@ -18568,100 +18660,6 @@ var targetObject = (context, target) => ({
 	subjectId: context.subjectId
 });
 var sameTarget = (left, right) => left.kind === right.kind && left.metacriticId === right.metacriticId && left.season === right.season && left.seriesId === right.seriesId && left.seriesMetacriticId === right.seriesMetacriticId && JSON.stringify(left.identityReferences) === JSON.stringify(right.identityReferences);
-var finishSeasonLinkResolution = async (context, resolution, signal) => {
-	if (resolution.status !== "season-link-needed" || !resolution.complete) return resolution;
-	try {
-		const seriesResponse = await requestMcPage(`${METACRITIC_ORIGIN}/${resolution.seriesTarget.metacriticId}/`, signal);
-		const identityNames = await identityNamesForAlias(seriesResponse.responseText, resolution.seriesTarget, signal);
-		const seriesPage = readMcPage(seriesResponse.responseText, resolution.seriesTarget, {
-			finalUrl: seriesResponse.finalUrl,
-			identityNames: identityNames.names,
-			identityNamesComplete: identityNames.complete,
-			identityEvidence: context.identityEvidence
-		});
-		if (seriesPage.matchesTarget === false) return seriesPage.reason === "identity-conflict" ? {
-			complete: true,
-			status: "identity-conflict"
-		} : {
-			complete: false,
-			failure: seriesPage.reason === "request-error" ? "request-error" : "parse-error",
-			status: "error"
-		};
-		if (!seriesPage.canonicalUrl) return {
-			complete: false,
-			failure: "parse-error",
-			status: "error"
-		};
-		const seasonUrl = findSeasonPageLink(seriesResponse.responseText, seriesPage.canonicalUrl, resolution.season);
-		if (!seasonUrl) return {
-			complete: true,
-			status: "missing"
-		};
-		const seasonResponse = await requestMcPage(seasonUrl, signal);
-		const seasonPath = pagePath(seasonResponse.finalUrl);
-		const seriesPath = pagePath(seriesPage.canonicalUrl);
-		if (!seasonPath || !seriesPath) return {
-			complete: false,
-			failure: "parse-error",
-			status: "error"
-		};
-		const seasonMatch = seasonPath.match(/^\/tv\/[^/]+\/season-(?<season>\d+)$/u);
-		if (Number(seasonMatch?.groups?.season) !== resolution.season) return {
-			complete: true,
-			status: "identity-conflict"
-		};
-		const target = {
-			kind: "season",
-			identityReferences: resolution.seriesTarget.identityReferences,
-			metacriticId: seasonPath.replaceAll(/^\/+|\/+$/gu, ""),
-			season: resolution.season,
-			seriesId: resolution.seriesTarget.seriesId,
-			seriesMetacriticId: seriesPath.replaceAll(/^\/+|\/+$/gu, ""),
-			status: "matched"
-		};
-		const seasonIdentityNames = await identityNamesForAlias(seasonResponse.responseText, target, signal);
-		const seasonPage = readMcPage(seasonResponse.responseText, target, {
-			expectedSeriesUrl: seriesPage.canonicalUrl,
-			finalUrl: seasonResponse.finalUrl,
-			allowVerifiedSeasonAlias: true,
-			identityNames: seasonIdentityNames.names,
-			identityNamesComplete: seasonIdentityNames.complete,
-			identityEvidence: context.identityEvidence
-		});
-		if (seasonPage.matchesTarget === false) return seasonPage.reason === "identity-conflict" ? {
-			complete: true,
-			status: "identity-conflict"
-		} : {
-			complete: false,
-			failure: seasonPage.reason === "request-error" ? "request-error" : "parse-error",
-			status: "error"
-		};
-		return {
-			complete: true,
-			status: "matched",
-			target
-		};
-	} catch (error) {
-		return {
-			complete: false,
-			failure: error instanceof SyntaxError ? "parse-error" : "request-error",
-			status: "error"
-		};
-	}
-};
-var makeDiagnostic$2 = (reason, stage, target, fetchedAt = null, errorCode = null) => ({
-	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
-	errorCode,
-	reason,
-	stage,
-	target
-});
-var failureReasonFromError$1 = (error) => {
-	if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
-	if (error instanceof SyntaxError) return "parse-error";
-	return "request-error";
-};
-var failureDiagnostic = (error, stage, target, errorCode) => ({ ...makeDiagnostic$2(failureReasonFromError$1(error), stage, target, null, errorCode) });
 var loadPageForTarget = async (context, target, signal, generation, onOutcome) => {
 	let response;
 	try {
@@ -18762,6 +18760,87 @@ var fetchRatingForTarget = async (context, target, signal, onOutcome) => {
 	cacheMetacriticTarget(context, target);
 	return finishParsedPage(context, target, object, prior, page, generation, onOutcome);
 };
+var finishSeasonLinkResolution = async (context, resolution, signal) => {
+	if (resolution.status !== "season-link-needed" || !resolution.complete) return resolution;
+	try {
+		const seriesResponse = await requestMcPage(`${METACRITIC_ORIGIN}/${resolution.seriesTarget.metacriticId}/`, signal);
+		const identityNames = await identityNamesForAlias(seriesResponse.responseText, resolution.seriesTarget, signal);
+		const seriesPage = readMcPage(seriesResponse.responseText, resolution.seriesTarget, {
+			finalUrl: seriesResponse.finalUrl,
+			identityNames: identityNames.names,
+			identityNamesComplete: identityNames.complete,
+			identityEvidence: context.identityEvidence
+		});
+		if (seriesPage.matchesTarget === false) return seriesPage.reason === "identity-conflict" ? {
+			complete: true,
+			status: "identity-conflict"
+		} : {
+			complete: false,
+			failure: seriesPage.reason === "request-error" ? "request-error" : "parse-error",
+			status: "error"
+		};
+		if (!seriesPage.canonicalUrl) return {
+			complete: false,
+			failure: "parse-error",
+			status: "error"
+		};
+		const seasonUrl = findSeasonPageLink(seriesResponse.responseText, seriesPage.canonicalUrl, resolution.season);
+		if (!seasonUrl) return {
+			complete: true,
+			status: "missing"
+		};
+		const seasonResponse = await requestMcPage(seasonUrl, signal);
+		const seasonPath = pagePath(seasonResponse.finalUrl);
+		const seriesPath = pagePath(seriesPage.canonicalUrl);
+		if (!seasonPath || !seriesPath) return {
+			complete: false,
+			failure: "parse-error",
+			status: "error"
+		};
+		const seasonMatch = seasonPath.match(/^\/tv\/[^/]+\/season-(?<season>\d+)$/u);
+		if (Number(seasonMatch?.groups?.season) !== resolution.season) return {
+			complete: true,
+			status: "identity-conflict"
+		};
+		const target = {
+			kind: "season",
+			identityReferences: resolution.seriesTarget.identityReferences,
+			metacriticId: seasonPath.replaceAll(/^\/+|\/+$/gu, ""),
+			season: resolution.season,
+			seriesId: resolution.seriesTarget.seriesId,
+			seriesMetacriticId: seriesPath.replaceAll(/^\/+|\/+$/gu, ""),
+			status: "matched"
+		};
+		const seasonIdentityNames = await identityNamesForAlias(seasonResponse.responseText, target, signal);
+		const seasonPage = readMcPage(seasonResponse.responseText, target, {
+			expectedSeriesUrl: seriesPage.canonicalUrl,
+			finalUrl: seasonResponse.finalUrl,
+			allowVerifiedSeasonAlias: true,
+			identityNames: seasonIdentityNames.names,
+			identityNamesComplete: seasonIdentityNames.complete,
+			identityEvidence: context.identityEvidence
+		});
+		if (seasonPage.matchesTarget === false) return seasonPage.reason === "identity-conflict" ? {
+			complete: true,
+			status: "identity-conflict"
+		} : {
+			complete: false,
+			failure: seasonPage.reason === "request-error" ? "request-error" : "parse-error",
+			status: "error"
+		};
+		return {
+			complete: true,
+			status: "matched",
+			target
+		};
+	} catch (error) {
+		return {
+			complete: false,
+			failure: error instanceof SyntaxError ? "parse-error" : "request-error",
+			status: "error"
+		};
+	}
+};
 var cachedTargetFailureDiagnostic = (resolution, signal, target) => {
 	if (signal.aborted) return makeDiagnostic$2("cancelled", "mapping", target, null, "aborted");
 	if (resolution.status === "ambiguous" || resolution.status === "missing") return makeDiagnostic$2("mapping-missing", "mapping", target, null, "mc-mapping-missing");
@@ -18798,14 +18877,22 @@ var failureReasonFromError = (error, signal) => {
 	return error instanceof SyntaxError ? "parse-error" : "request-error";
 };
 var report = (onOutcome, reason, stage, target, errorCode = null, fetchedAt = null) => {
-	onOutcome?.({
+	onOutcome?.(createExternalRatingDiagnostic({
 		cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
 		errorCode,
 		reason,
 		stage,
 		target
-	});
+	}));
 };
+var withResolutionEvidence = (diagnostic, resolution) => createExternalRatingDiagnostic({
+	...diagnostic,
+	acceptedEvidence: [...resolution.acceptedEvidence ?? [], ...diagnostic.acceptedEvidence],
+	candidateTargets: [...resolution.candidateTargets ?? [], ...diagnostic.candidateTargets],
+	missingEvidence: [...resolution.missingEvidence ?? [], ...diagnostic.missingEvidence],
+	rejectedEvidence: [...resolution.rejectedEvidence ?? [], ...diagnostic.rejectedEvidence],
+	unverifiedEvidence: [...resolution.unverifiedEvidence ?? [], ...diagnostic.unverifiedEvidence]
+});
 var refreshCachedTarget$1 = async (context, cachedTarget, prior, signal, onUpdate, onOutcome) => {
 	const freshTarget = await revalidateCachedTarget(context, cachedTarget, signal, onOutcome);
 	if (signal.aborted) {
@@ -18851,25 +18938,26 @@ var fetchCachedTargetRating = async (context, target, verifiedAt, signal, onUpda
 };
 var fetchFreshMappedRating = async (context, signal, onUpdate, onOutcome) => {
 	const resolution = await finishSeasonLinkResolution(context, await resolveMetacriticTarget(context, signal), signal);
+	const reportOutcome = onOutcome ? (diagnostic) => onOutcome(withResolutionEvidence(diagnostic, resolution)) : void 0;
 	if (signal.aborted) {
-		report(onOutcome, "cancelled", "mapping", null, "aborted");
+		report(reportOutcome, "cancelled", "mapping", null, "aborted");
 		return null;
 	}
 	if (!resolution.complete || resolution.status === "error") {
-		report(onOutcome, resolution.failure ?? "request-error", "mapping", null, resolution.failure ?? "mc-target-resolution");
+		report(reportOutcome, resolution.failure ?? "request-error", "mapping", null, resolution.failure ?? "mc-target-resolution");
 		return fallbackSnapshot$1(context, onUpdate);
 	}
 	if (resolution.status === "identity-conflict") {
 		invalidateRatingTarget(context);
-		report(onOutcome, "identity-conflict", "identity", null, "mc-identity-conflict");
+		report(reportOutcome, "identity-conflict", "identity", null, "mc-identity-conflict");
 		return null;
 	}
 	if (resolution.status === "missing" || resolution.status === "ambiguous") {
-		report(onOutcome, "mapping-missing", "mapping", null, "mc-mapping-missing");
+		report(reportOutcome, "mapping-missing", "mapping", null, "mc-mapping-missing");
 		return fallbackSnapshot$1(context, onUpdate);
 	}
 	if (resolution.status !== "matched") {
-		report(onOutcome, "mapping-missing", "mapping", null, "mc-season-unresolved");
+		report(reportOutcome, "mapping-missing", "mapping", null, "mc-season-unresolved");
 		return null;
 	}
 	const { target } = resolution;
@@ -18878,17 +18966,17 @@ var fetchFreshMappedRating = async (context, signal, onUpdate, onOutcome) => {
 		cacheMetacriticTarget(context, target);
 		onUpdate?.(prior);
 		if (!prior.stale) {
-			report(onOutcome, "rating", "cache", target.metacriticId, null, prior.fetchedAt);
+			report(reportOutcome, "rating", "cache", target.metacriticId, null, prior.fetchedAt);
 			return prior;
 		}
 		const generation = generationOf(context);
-		const refreshed = await fetchRatingForTarget(context, target, signal, onOutcome);
+		const refreshed = await fetchRatingForTarget(context, target, signal, reportOutcome);
 		const result = generationOf(context) === generation ? refreshed : readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
 		onUpdate?.(result);
 		return result;
 	}
 	const generation = generationOf(context);
-	const rating = await fetchRatingForTarget(context, target, signal, onOutcome);
+	const rating = await fetchRatingForTarget(context, target, signal, reportOutcome);
 	return generationOf(context) === generation ? rating : readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
 };
 var fetchMcRating = async (context, signal, onCachedUpdate, onOutcome) => {
@@ -19200,6 +19288,100 @@ var validateRtPage = (input, signal) => {
 	});
 	return verifyWorkAlias(input.context, input.target, input.page, input.context.kind, signal);
 };
+var STORAGE_KEY$1 = "dp:rotten-snapshots:v2";
+var FRESH_AGE = 6048e5;
+var MAX_AGE = 2592e6;
+var identityKey = (object) => JSON.stringify([
+	object.subjectId,
+	object.kind,
+	object.rtId
+]);
+var readStore = () => {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$1) ?? "{}");
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+		return parsed;
+	} catch {
+		return {};
+	}
+};
+var writeStore = (store) => {
+	try {
+		localStorage.setItem(STORAGE_KEY$1, JSON.stringify(store));
+	} catch {}
+};
+var withoutKey = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
+var isRating = (value) => {
+	if (!value || typeof value !== "object") return false;
+	const rating = value;
+	return Boolean(rating.object && typeof rating.object.subjectId === "string" && typeof rating.object.rtId === "string" && typeof rating.object.kind === "string" && typeof rating.fetchedAt === "number" && typeof rating.sourceUrl === "string");
+};
+var usableSnapshot = (rating, now) => {
+	const age = now - rating.fetchedAt;
+	if (age < 0 || age > MAX_AGE) return null;
+	return {
+		...rating,
+		stale: age >= FRESH_AGE
+	};
+};
+var readSnapshot = (object, now = Date.now()) => {
+	const store = readStore();
+	const key = identityKey(object);
+	const value = store[key];
+	if (!isRating(value) || identityKey(value.object) !== key) return null;
+	const snapshot = usableSnapshot(value, now);
+	if (!snapshot) writeStore(withoutKey(store, key));
+	return snapshot;
+};
+var readUniqueSnapshot = (subjectId, kind, now = Date.now()) => {
+	const store = readStore();
+	const matches = Object.values(store).filter(isRating).filter((rating) => rating.object.subjectId === subjectId && rating.object.kind === kind).map((rating) => usableSnapshot(rating, now)).filter((rating) => rating !== null);
+	return matches.length === 1 ? matches[0] ?? null : null;
+};
+var writeSnapshot = (rating) => {
+	const store = readStore();
+	store[identityKey(rating.object)] = {
+		...rating,
+		stale: false
+	};
+	const entries = Object.entries(store).toSorted(([, left], [, right]) => right.fetchedAt - left.fetchedAt);
+	writeStore(Object.fromEntries(entries.slice(0, 200)));
+};
+var removeSnapshot = (object) => {
+	writeStore(withoutKey(readStore(), identityKey(object)));
+};
+var removeSnapshotsForContext = (subjectId, kind) => {
+	const store = readStore();
+	writeStore(Object.fromEntries(Object.entries(store).filter(([, value]) => !isRating(value) || value.object.subjectId !== subjectId || value.object.kind !== kind)));
+};
+var ratingFailure = (status, rating = null, diagnostic) => ({
+	...diagnostic ? { diagnostic } : {},
+	rating,
+	status
+});
+var makeDiagnostic$1 = (reason, stage, target, errorCode = null, fetchedAt = null) => createExternalRatingDiagnostic({
+	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var getSnapshotObject = (context, rtId) => ({
+	kind: context.kind,
+	rtId,
+	subjectId: context.subjectId
+});
+var fallbackSnapshot = (context, object, prior, onResult) => {
+	const rating = prior ?? (object === null ? readUniqueSnapshot(context.subjectId, context.kind) : readSnapshot(object));
+	if (!rating) return ratingFailure("error");
+	const result = {
+		rating,
+		status: "stale"
+	};
+	onResult?.(result);
+	return result;
+};
+var isConfirmedRatingStatus = (status) => status === "cached" || status === "no-rating" || status === "refreshed" || status === "stale";
 var revisions = /* @__PURE__ */ new Map();
 var requestKey = (context) => JSON.stringify([
 	context.subjectId,
@@ -19310,75 +19492,8 @@ var parseScorecard = (html, input) => {
 		status: "matched"
 	} : { status: "no-rating" };
 };
-var STORAGE_KEY$1 = "dp:rotten-snapshots:v2";
-var FRESH_AGE = 6048e5;
-var MAX_AGE = 2592e6;
-var identityKey = (object) => JSON.stringify([
-	object.subjectId,
-	object.kind,
-	object.rtId
-]);
-var readStore = () => {
-	try {
-		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$1) ?? "{}");
-		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-		return parsed;
-	} catch {
-		return {};
-	}
-};
-var writeStore = (store) => {
-	try {
-		localStorage.setItem(STORAGE_KEY$1, JSON.stringify(store));
-	} catch {}
-};
-var withoutKey = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
-var isRating = (value) => {
-	if (!value || typeof value !== "object") return false;
-	const rating = value;
-	return Boolean(rating.object && typeof rating.object.subjectId === "string" && typeof rating.object.rtId === "string" && typeof rating.object.kind === "string" && typeof rating.fetchedAt === "number" && typeof rating.sourceUrl === "string");
-};
-var usableSnapshot = (rating, now) => {
-	const age = now - rating.fetchedAt;
-	if (age < 0 || age > MAX_AGE) return null;
-	return {
-		...rating,
-		stale: age >= FRESH_AGE
-	};
-};
-var readSnapshot = (object, now = Date.now()) => {
-	const store = readStore();
-	const key = identityKey(object);
-	const value = store[key];
-	if (!isRating(value) || identityKey(value.object) !== key) return null;
-	const snapshot = usableSnapshot(value, now);
-	if (!snapshot) writeStore(withoutKey(store, key));
-	return snapshot;
-};
-var readUniqueSnapshot = (subjectId, kind, now = Date.now()) => {
-	const store = readStore();
-	const matches = Object.values(store).filter(isRating).filter((rating) => rating.object.subjectId === subjectId && rating.object.kind === kind).map((rating) => usableSnapshot(rating, now)).filter((rating) => rating !== null);
-	return matches.length === 1 ? matches[0] ?? null : null;
-};
-var writeSnapshot = (rating) => {
-	const store = readStore();
-	store[identityKey(rating.object)] = {
-		...rating,
-		stale: false
-	};
-	const entries = Object.entries(store).toSorted(([, left], [, right]) => right.fetchedAt - left.fetchedAt);
-	writeStore(Object.fromEntries(entries.slice(0, 200)));
-};
-var removeSnapshot = (object) => {
-	writeStore(withoutKey(readStore(), identityKey(object)));
-};
-var removeSnapshotsForContext = (subjectId, kind) => {
-	const store = readStore();
-	writeStore(Object.fromEntries(Object.entries(store).filter(([, value]) => !isRating(value) || value.object.subjectId !== subjectId || value.object.kind !== kind)));
-};
 var ACTIVE_RANKS = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426", "Q1259759"]);
-var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
 var claimValues = (claims) => (claims ?? []).filter((claim) => claim.rank !== "deprecated").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
 var activeIdentityClaims = (entity, property, value) => (entity.claims?.[property] ?? []).filter((claim) => {
 	const claimValue = claim.mainsnak?.datavalue?.value;
@@ -19386,6 +19501,21 @@ var activeIdentityClaims = (entity, property, value) => (entity.claims?.[propert
 });
 var hasActiveIdentity = (entity, property, value) => activeIdentityClaims(entity, property, value).length > 0;
 var isDeprecatedIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => claim.rank === "deprecated" && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
+var isSeriesEntity = (entity) => claimValues(entity.claims?.P31).map(entityReference).some((id) => id !== null && SERIES_TYPES.has(id));
+var readSeasonOrdinal = (claims, property) => {
+	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
+	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
+		const ordinal = typeof qualifierValue === "number" ? qualifierValue : Number(qualifierValue);
+		return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
+	}).filter((ordinal) => ordinal !== null);
+	const uniqueOrdinals = new Set(ordinals);
+	const [value] = uniqueOrdinals;
+	return {
+		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
+		value: value ?? null
+	};
+};
+var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
 var normalizeRtId = (value) => {
 	if (typeof value !== "string" || !value.trim()) return null;
 	try {
@@ -19441,19 +19571,6 @@ var readEpisodeRtTarget = (entity) => {
 	return {
 		...target,
 		status: "matched"
-	};
-};
-var readSeasonOrdinal = (claims, property) => {
-	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
-	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
-		const ordinal = typeof qualifierValue === "number" ? qualifierValue : Number(qualifierValue);
-		return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
-	}).filter((ordinal) => ordinal !== null);
-	const uniqueOrdinals = new Set(ordinals);
-	const [value] = uniqueOrdinals;
-	return {
-		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
-		value: value ?? null
 	};
 };
 var EPISODE_TYPES = /* @__PURE__ */ new Set(["Q21191270"]);
@@ -19540,23 +19657,62 @@ var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
 var fetchEntities = async (property, value, signal, expectedSeason) => {
 	const candidates = await findEntityCandidates(property, value, signal);
 	if (candidates.status !== "matched") return {
+		candidateTargets: [],
 		mappings: [],
-		state: candidates.status
+		state: candidates.status,
+		unverifiedEvidence: [
+			"exact-id",
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
+	const candidateTargets = candidates.entities.map((entity) => entity.id).filter((id) => /^Q\d+$/u.test(id));
 	const entities = candidates.entities.filter((entity) => hasActiveIdentity(entity, property, value));
 	const deprecated = candidates.entities.some((entity) => isDeprecatedIdentity(entity, property, value));
 	if (entities.length > 1) return {
+		candidateTargets,
 		mappings: [],
-		state: "ambiguous"
+		rejectedEvidence: ["exact-id"],
+		state: "ambiguous",
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
 	const [entity] = entities;
 	if (!entity) return {
+		candidateTargets,
 		mappings: [],
-		state: deprecated ? "deprecated" : "missing"
+		rejectedEvidence: deprecated ? ["exact-id"] : [],
+		state: deprecated ? "deprecated" : "missing",
+		...deprecated ? {} : { missingEvidence: ["exact-id"] },
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
 	const mapping = await mapEntity(entity, property, value, signal);
-	if (property === "P345" && expectedSeason !== void 0 && (mapping.state === "missing" || mapping.state === "ambiguous")) return mapEpisodeToSeries(entity, signal, expectedSeason);
-	return mapping;
+	const mappingEvidence = {
+		acceptedEvidence: ["exact-id", ...mapping.state === "matched" || isSeriesEntity(entity) ? ["type"] : []],
+		candidateTargets,
+		...mapping.state === "matched" ? {} : { missingEvidence: ["exact-id"] },
+		unverifiedEvidence: mapping.state === "matched" ? [] : [
+			"canonical",
+			"aggregate-rating",
+			...expectedSeason === void 0 ? [] : ["season-link", "season-number"]
+		]
+	};
+	if (property === "P345" && expectedSeason !== void 0 && (mapping.state === "missing" || mapping.state === "ambiguous")) return {
+		...await mapEpisodeToSeries(entity, signal, expectedSeason),
+		...mappingEvidence
+	};
+	return {
+		...mapping,
+		...mappingEvidence
+	};
 };
 var seasonPath = (rtId, season) => {
 	return rtId.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})$/u)?.groups?.season === String(season).padStart(2, "0") ? rtId : null;
@@ -19677,12 +19833,24 @@ var resolveRottenMapping = async (context, signal) => {
 		mappings: [],
 		state: "error"
 	};
+	const evidenceLookups = [imdb, douban].filter((lookup) => lookup !== null);
+	const evidence = {
+		acceptedEvidence: evidenceLookups.flatMap((lookup) => lookup.acceptedEvidence ?? []),
+		candidateTargets: [...new Set(evidenceLookups.flatMap((lookup) => lookup.candidateTargets ?? []))],
+		missingEvidence: evidenceLookups.flatMap((lookup) => lookup.missingEvidence ?? []),
+		rejectedEvidence: evidenceLookups.flatMap((lookup) => lookup.rejectedEvidence ?? []),
+		unverifiedEvidence: evidenceLookups.flatMap((lookup) => lookup.unverifiedEvidence ?? [])
+	};
 	const result = combineLookups(imdb, douban, context);
-	if (result.status === "unavailable") return result;
+	if (result.status === "unavailable") return {
+		...result,
+		...evidence
+	};
 	const identity = identityFor([...imdb?.mappings ?? [], ...douban?.mappings ?? []], context, result);
 	return {
 		...result,
-		...identity
+		...identity,
+		...evidence
 	};
 };
 var rtTargetCache = createVerifiedTargetCache("dp:rotten-targets:v2");
@@ -19754,26 +19922,16 @@ var resolveRtTarget = async (context, signal, refresh = false) => {
 	}
 	const mapping = await resolveRottenMapping(context, signal);
 	if (signal.aborted) return { failure: "aborted" };
-	if (mapping.status === "unavailable") return { failure: mapFailure(mapping) };
+	if (mapping.status === "unavailable") return {
+		failure: mapFailure(mapping),
+		acceptedEvidence: mapping.acceptedEvidence ?? [],
+		candidateTargets: mapping.candidateTargets ?? [],
+		missingEvidence: mapping.missingEvidence ?? [],
+		rejectedEvidence: mapping.rejectedEvidence ?? [],
+		unverifiedEvidence: mapping.unverifiedEvidence ?? []
+	};
 	return mapping.needsSeasonLink ? resolveSeasonLink(context, mapping, signal) : mappedTarget(mapping);
 };
-var ratingFailure = (status, rating = null, diagnostic) => ({
-	...diagnostic ? { diagnostic } : {},
-	rating,
-	status
-});
-var makeDiagnostic$1 = (reason, stage, target, errorCode = null, fetchedAt = null) => ({
-	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
-	errorCode,
-	reason,
-	stage,
-	target
-});
-var getSnapshotObject = (context, rtId) => ({
-	kind: context.kind,
-	rtId,
-	subjectId: context.subjectId
-});
 var currentFailure = (context, revision, signal) => {
 	if (signal.aborted) return ratingFailure("aborted");
 	return isCurrent(context, revision) ? null : ratingFailure("identity-conflict");
@@ -19858,21 +20016,77 @@ var loadRating = async (context, target, object, prior, signal, revision, onResu
 		status: "refreshed"
 	};
 };
-var fallbackSnapshot = (context, object, prior, onResult) => {
-	const rating = prior ?? (object === null ? readUniqueSnapshot(context.subjectId, context.kind) : readSnapshot(object));
-	if (!rating) return ratingFailure("error");
-	const result = {
-		rating,
-		status: "stale"
+var targetFailureReason = (failure) => {
+	switch (failure) {
+		case "identity-conflict": return "identity-conflict";
+		case "aborted": return "cancelled";
+		case "parse-error": return "parse-error";
+		case "error":
+		case "identity-unavailable":
+		case "request-error": return "request-error";
+		default: return "mapping-missing";
+	}
+};
+var targetFailureStage = (failure) => {
+	switch (failure) {
+		case "identity-conflict":
+		case "identity-unavailable": return "identity";
+		case "aborted":
+		case "error":
+		case "request-error": return "request";
+		case "parse-error": return "parse";
+		default: return "mapping";
+	}
+};
+var targetFailureDiagnostic = (targetFailure) => {
+	const { failure } = targetFailure;
+	return createExternalRatingDiagnostic({
+		acceptedEvidence: targetFailure.acceptedEvidence ?? [],
+		cacheAgeMs: null,
+		candidateTargets: targetFailure.candidateTargets ?? [],
+		errorCode: failure === "error" ? "rt-mapping-request" : failure,
+		missingEvidence: targetFailure.missingEvidence ?? [],
+		reason: targetFailureReason(failure),
+		rejectedEvidence: targetFailure.rejectedEvidence ?? [],
+		stage: targetFailureStage(failure),
+		target: null,
+		unverifiedEvidence: targetFailure.unverifiedEvidence ?? []
+	});
+};
+var targetFailureResult = (context, targetFailure, onResult) => {
+	const { failure } = targetFailure;
+	const diagnostic = targetFailureDiagnostic(targetFailure);
+	if (failure === "error" || failure === "request-error" || failure === "parse-error") return {
+		...fallbackSnapshot(context, null, null, onResult),
+		diagnostic
 	};
+	if (failure === "identity-unavailable") {
+		const fallback = fallbackSnapshot(context, null, null, onResult);
+		const unavailable = fallback.rating ? {
+			...fallback,
+			diagnostic
+		} : ratingFailure("identity-unavailable", null, diagnostic);
+		onResult?.(unavailable);
+		return unavailable;
+	}
+	if (failure === "identity-conflict") {
+		invalidateRequests(context);
+		invalidateRtTarget(context);
+		removeSnapshotsForContext(context.subjectId, context.kind);
+	}
+	const result = ratingFailure(failure, null, diagnostic);
 	onResult?.(result);
 	return result;
 };
-var isConfirmedRatingStatus = (status) => status === "cached" || status === "no-rating" || status === "refreshed" || status === "stale";
 var handleTargetFailure = (context, priorObject, failure, onResult) => {
 	if (failure === "error" || failure === "request-error" || failure === "parse-error") {
 		const diagnostic = {
+			acceptedEvidence: [],
 			cacheAgeMs: null,
+			candidateTargets: [],
+			missingEvidence: [],
+			rejectedEvidence: [],
+			unverifiedEvidence: [],
 			errorCode: failure === "error" ? "rt-target-refresh" : failure,
 			reason: failure === "parse-error" ? "parse-error" : "request-error",
 			stage: failure === "parse-error" ? "parse" : "mapping",
@@ -19890,7 +20104,12 @@ var handleTargetFailure = (context, priorObject, failure, onResult) => {
 		const prior = readSnapshot(priorObject);
 		onResult?.(prior ? {
 			diagnostic: {
+				acceptedEvidence: [],
 				cacheAgeMs: null,
+				candidateTargets: [],
+				missingEvidence: [],
+				rejectedEvidence: [],
+				unverifiedEvidence: [],
 				errorCode: "identity-unavailable",
 				reason: "request-error",
 				stage: "identity",
@@ -19899,7 +20118,12 @@ var handleTargetFailure = (context, priorObject, failure, onResult) => {
 			rating: prior,
 			status: "stale"
 		} : ratingFailure("identity-unavailable", null, {
+			acceptedEvidence: [],
 			cacheAgeMs: null,
+			candidateTargets: [],
+			missingEvidence: [],
+			rejectedEvidence: [],
+			unverifiedEvidence: [],
 			errorCode: "identity-unavailable",
 			reason: "request-error",
 			stage: "identity",
@@ -19954,63 +20178,26 @@ var resolveTargetForRequest = async (context, signal) => {
 		target: cacheEntry?.status === "resolved" ? cacheEntry.target : await resolveRtTarget(context, signal)
 	};
 };
-var targetFailureResult = (context, failure, onResult) => {
-	if (failure === "error" || failure === "request-error" || failure === "parse-error") {
-		const fallback = fallbackSnapshot(context, null, null, onResult);
-		const reason = failure === "parse-error" ? "parse-error" : "request-error";
-		return {
-			...fallback,
-			diagnostic: {
-				cacheAgeMs: null,
-				errorCode: failure === "error" ? "rt-mapping-request" : failure,
-				reason,
-				stage: failure === "parse-error" ? "parse" : "mapping",
-				target: null
-			}
-		};
-	}
-	if (failure === "identity-unavailable") {
-		const snapshotFallback = fallbackSnapshot(context, null, null, onResult);
-		if (snapshotFallback.rating) return {
-			...snapshotFallback,
-			diagnostic: {
-				cacheAgeMs: null,
-				errorCode: "identity-unavailable",
-				reason: "request-error",
-				stage: "identity",
-				target: null
-			}
-		};
-		const unavailable = ratingFailure("identity-unavailable", null, {
-			cacheAgeMs: null,
-			errorCode: "identity-unavailable",
-			reason: "request-error",
-			stage: "identity",
-			target: null
-		});
-		onResult?.(unavailable);
-		return unavailable;
-	}
-	if (failure === "identity-conflict") {
-		invalidateRequests(context);
-		invalidateRtTarget(context);
-		removeSnapshotsForContext(context.subjectId, context.kind);
-		const conflict = ratingFailure("identity-conflict");
-		onResult?.(conflict);
-		return conflict;
-	}
-	return ratingFailure(failure);
-};
 var failedRtFetch = (context, revision, signal, object, prior, error, onResult) => {
 	if (signal.aborted) return ratingFailure("aborted", null, {
+		acceptedEvidence: [],
 		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
 		errorCode: "aborted",
 		reason: "cancelled",
 		stage: "request",
 		target: object?.rtId ?? null
 	});
 	if (!isCurrent(context, revision)) return ratingFailure("identity-conflict", null, {
+		acceptedEvidence: [],
 		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
 		errorCode: "stale-request",
 		reason: "identity-conflict",
 		stage: "identity",
@@ -20021,7 +20208,12 @@ var failedRtFetch = (context, revision, signal, object, prior, error, onResult) 
 	else if (error instanceof SyntaxError) reason = "parse-error";
 	else reason = "request-error";
 	const diagnostic = {
+		acceptedEvidence: [],
 		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
 		errorCode: reason === "cancelled" ? "aborted" : "rt-fetch",
 		reason,
 		stage: reason === "parse-error" ? "parse" : "request",
@@ -20039,7 +20231,7 @@ var fetchRtRating = async (context, signal, onResult) => {
 	try {
 		const { cacheEntry, target } = await resolveTargetForRequest(context, signal);
 		if (signal.aborted || !isCurrent(context, revision)) return ratingFailure(signal.aborted ? "aborted" : "identity-conflict");
-		if ("failure" in target) return targetFailureResult(context, target.failure, onResult);
+		if ("failure" in target) return targetFailureResult(context, target, onResult);
 		object = getSnapshotObject(context, target.rtId);
 		prior = readSnapshot(object);
 		if (cacheEntry?.status === "resolved" && Date.now() - cacheEntry.verifiedAt >= 864e5) refreshCachedTarget(context, cacheEntry.target, signal, revision, onResult);
@@ -20050,7 +20242,7 @@ var fetchRtRating = async (context, signal, onResult) => {
 		return failedRtFetch(context, revision, signal, object, prior, error, onResult);
 	}
 };
-var makeDiagnostic = (reason, stage, target, fetchedAt = null, errorCode = null) => ({
+var makeDiagnostic = (reason, stage, target, fetchedAt = null, errorCode = null) => createExternalRatingDiagnostic({
 	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
 	errorCode,
 	reason,
@@ -20084,6 +20276,49 @@ var rtDiagnostic = (result) => {
 		default: return makeDiagnostic("request-error", "request", null, null, "rt-unresolved");
 	}
 };
+var contextCandidates = (context) => [context.imdbId, context.subjectId].filter((target) => target !== null);
+var addDiagnosticEvidence = (diagnostic, source, context) => {
+	const accepted = [...diagnostic.acceptedEvidence];
+	const rejected = [...diagnostic.rejectedEvidence];
+	const missing = [...diagnostic.missingEvidence];
+	const unverified = [...diagnostic.unverifiedEvidence];
+	if (diagnostic.reason === "rating") {
+		accepted.push("exact-id");
+		if (source !== "imdb") {
+			accepted.push("type", "canonical");
+			if (context.kind === "season") accepted.push("season-number");
+		}
+	} else if (diagnostic.reason === "source-no-rating") {
+		accepted.push("exact-id");
+		if (source !== "imdb") {
+			accepted.push("type", "canonical");
+			missing.push("aggregate-rating");
+			if (context.kind === "season") accepted.push("season-number");
+		}
+	} else if (diagnostic.reason === "mapping-missing") {
+		missing.push("exact-id");
+		unverified.push("type", "canonical", "aggregate-rating");
+		if (context.kind === "season") unverified.push("season-link", "season-number");
+	} else if (diagnostic.reason === "identity-conflict") {
+		rejected.push("exact-id");
+		unverified.push("aggregate-rating");
+	} else if (diagnostic.reason === "parse-error") {
+		accepted.push("exact-id", "type");
+		unverified.push("canonical", "aggregate-rating");
+	} else unverified.push("exact-id", "type", "canonical", "aggregate-rating");
+	return createExternalRatingDiagnostic({
+		...diagnostic,
+		acceptedEvidence: accepted,
+		candidateTargets: [
+			...diagnostic.target ? [diagnostic.target] : [],
+			...diagnostic.candidateTargets,
+			...contextCandidates(context)
+		],
+		missingEvidence: missing,
+		rejectedEvidence: rejected,
+		unverifiedEvidence: unverified
+	});
+};
 var sourceResult = (rating, diagnostic, status = "resolved") => ({
 	diagnostic,
 	rating,
@@ -20104,28 +20339,28 @@ var resolveAll = (context, signal, onUpdate) => {
 		settle(fetchImdbRating(context.imdbId, context.season ?? void 0, signal, (diagnostic) => {
 			imdbOutcome = diagnostic;
 		}), signal, (rating) => onUpdate({
-			result: sourceResult(rating, imdbOutcome ?? imdbDiagnostic(rating, context)),
+			result: sourceResult(rating, addDiagnosticEvidence(imdbOutcome ?? imdbDiagnostic(rating, context), "imdb", context)),
 			source: "imdb"
 		}));
 	} else onUpdate({
-		result: sourceResult(null, imdbDiagnostic(null, context)),
+		result: sourceResult(null, addDiagnosticEvidence(imdbDiagnostic(null, context), "imdb", context)),
 		source: "imdb"
 	});
 	if (context.imdbId || context.subjectId) {
 		let mcOutcome = null;
 		settle(fetchMcRating(context, signal, (rating) => {
 			if (!signal.aborted) onUpdate({
-				result: sourceResult(rating, mcOutcome ?? metacriticDiagnostic(rating, context)),
+				result: sourceResult(rating, addDiagnosticEvidence(mcOutcome ?? metacriticDiagnostic(rating, context), "mc", context)),
 				source: "mc"
 			});
 		}, (diagnostic) => {
 			mcOutcome = diagnostic;
 		}), signal, (rating) => onUpdate({
-			result: sourceResult(rating, mcOutcome ?? metacriticDiagnostic(rating, context)),
+			result: sourceResult(rating, addDiagnosticEvidence(mcOutcome ?? metacriticDiagnostic(rating, context), "mc", context)),
 			source: "mc"
 		}));
 	} else onUpdate({
-		result: sourceResult(null, metacriticDiagnostic(null, context)),
+		result: sourceResult(null, addDiagnosticEvidence(metacriticDiagnostic(null, context), "mc", context)),
 		source: "mc"
 	});
 	const resolveRottenTomatoes = async () => {
@@ -20133,7 +20368,7 @@ var resolveAll = (context, signal, onUpdate) => {
 		try {
 			result = await fetchRtRating(context, signal, (partial) => {
 				if (!signal.aborted) onUpdate({
-					result: sourceResult(partial.rating, rtDiagnostic(partial), partial.status === "stale" ? "pending" : "resolved"),
+					result: sourceResult(partial.rating, addDiagnosticEvidence(rtDiagnostic(partial), "rt", context), partial.status === "stale" ? "pending" : "resolved"),
 					source: "rt"
 				});
 			});
@@ -20144,33 +20379,12 @@ var resolveAll = (context, signal, onUpdate) => {
 			};
 		}
 		if (!signal.aborted) onUpdate({
-			result: sourceResult(result.rating, rtDiagnostic(result)),
+			result: sourceResult(result.rating, addDiagnosticEvidence(rtDiagnostic(result), "rt", context)),
 			source: "rt"
 		});
 	};
 	resolveRottenTomatoes();
 };
-var package_default = {
-	version: "1.8.4"};
-var STORAGE_KEY = "dp:rating-diagnostics-enabled";
-var MAX_RECORDS = 3;
-var DIAGNOSTIC_STAGES = /* @__PURE__ */ new Set([
-	"cache",
-	"identity",
-	"mapping",
-	"parse",
-	"rating",
-	"request"
-]);
-var DIAGNOSTIC_REASONS = /* @__PURE__ */ new Set([
-	"cancelled",
-	"identity-conflict",
-	"mapping-missing",
-	"parse-error",
-	"rating",
-	"request-error",
-	"source-no-rating"
-]);
 var getUserscriptApi = () => {
 	const globals = globalThis;
 	const gm = globals.GM;
@@ -20187,8 +20401,37 @@ var getUserscriptApi = () => {
 		...setClipboard ? { setClipboard } : {}
 	};
 };
+var package_default = {
+	version: "1.8.4"};
+var EVIDENCE_CATEGORIES = /* @__PURE__ */ new Set([
+	"aggregate-rating",
+	"canonical",
+	"creator",
+	"exact-id",
+	"season-link",
+	"season-number",
+	"title",
+	"type",
+	"year"
+]);
 var safeErrorCode = (value) => value !== null && /^[a-z0-9-]{1,64}$/u.test(value) ? value : null;
 var safeTarget = (value) => value !== null && /^[a-z0-9][a-z0-9._/-]{0,119}$/iu.test(value) && !value.split("/").includes("..") ? value : null;
+var safeCandidateTargets = (values) => [...new Set(values.map(safeTarget).filter((value) => value !== null))].slice(0, 4);
+var safeEvidence = (values) => [...new Set(values.filter((value) => EVIDENCE_CATEGORIES.has(value)))].slice(0, 8);
+var sanitizeRatingDiagnosticRecord = (record) => ({
+	acceptedEvidence: safeEvidence(record.acceptedEvidence),
+	cacheAgeMs: record.cacheAgeMs !== null && Number.isFinite(record.cacheAgeMs) && record.cacheAgeMs >= 0 ? record.cacheAgeMs : null,
+	candidateTargets: safeCandidateTargets(record.candidateTargets),
+	errorCode: safeErrorCode(record.errorCode),
+	hasRating: record.hasRating === true,
+	missingEvidence: safeEvidence(record.missingEvidence),
+	reason: record.reason,
+	rejectedEvidence: safeEvidence(record.rejectedEvidence),
+	source: record.source,
+	stage: record.stage,
+	target: safeTarget(record.target),
+	unverifiedEvidence: safeEvidence(record.unverifiedEvidence)
+});
 var reportWork = (page) => {
 	if (page === null) return null;
 	const { imdbId: pageImdbId, kind, season: pageSeason, subjectId } = page;
@@ -20203,6 +20446,15 @@ var reportWork = (page) => {
 		subjectId: /^\d{1,32}$/u.test(subjectId) ? subjectId : null
 	};
 };
+var createRatingDiagnosticsReportText = (page, records) => JSON.stringify({
+	scriptVersion: package_default.version,
+	work: reportWork(page),
+	records: [
+		"imdb",
+		"mc",
+		"rt"
+	].map((source) => records.find((record) => record.source === source)).filter((record) => record !== void 0)
+}, null, 2);
 var showSelectableReport = (text) => {
 	const { body } = document;
 	if (!body) return;
@@ -20247,6 +20499,25 @@ var showSelectableReport = (text) => {
 	textarea.focus();
 	textarea.select();
 };
+var STORAGE_KEY = "dp:rating-diagnostics-enabled";
+var MAX_RECORDS = 3;
+var DIAGNOSTIC_STAGES = /* @__PURE__ */ new Set([
+	"cache",
+	"identity",
+	"mapping",
+	"parse",
+	"rating",
+	"request"
+]);
+var DIAGNOSTIC_REASONS = /* @__PURE__ */ new Set([
+	"cancelled",
+	"identity-conflict",
+	"mapping-missing",
+	"parse-error",
+	"rating",
+	"request-error",
+	"source-no-rating"
+]);
 var createRatingDiagnostics = (api) => {
 	let enabled = false;
 	let page = null;
@@ -20255,15 +20526,7 @@ var createRatingDiagnostics = (api) => {
 	let commandVersion = 0;
 	let disposed = false;
 	const records = /* @__PURE__ */ new Map();
-	const reportText = () => JSON.stringify({
-		scriptVersion: package_default.version,
-		work: reportWork(page),
-		records: [
-			"imdb",
-			"mc",
-			"rt"
-		].map((source) => records.get(source)).filter((record) => record !== void 0)
-	}, null, 2);
+	const reportText = () => createRatingDiagnosticsReportText(page, [...records.values()]);
 	const copyReport = async () => {
 		if (disposed) return;
 		const text = reportText();
@@ -20337,12 +20600,7 @@ var createRatingDiagnostics = (api) => {
 		initialize,
 		record: (record) => {
 			if (disposed || !enabled || !DIAGNOSTIC_STAGES.has(record.stage) || !DIAGNOSTIC_REASONS.has(record.reason)) return;
-			records.set(record.source, {
-				...record,
-				cacheAgeMs: record.cacheAgeMs !== null && Number.isFinite(record.cacheAgeMs) && record.cacheAgeMs >= 0 ? record.cacheAgeMs : null,
-				errorCode: safeErrorCode(record.errorCode),
-				target: safeTarget(record.target)
-			});
+			records.set(record.source, sanitizeRatingDiagnosticRecord(record));
 			while (records.size > MAX_RECORDS) {
 				const oldest = records.keys().next().value;
 				if (oldest === void 0) break;
@@ -22756,7 +23014,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-FwhV7LQk-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-Cl1hW5UX-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
