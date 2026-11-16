@@ -1,0 +1,342 @@
+{
+  "version": 1,
+  "pairs": [
+    {
+      "id": "spirited-away-animated-film-type",
+      "mechanism": "P31 ancestry identifies an animated film",
+      "work": {
+        "doubanSubjectId": "1291561",
+        "imdbId": "tt0245429",
+        "wikidataId": "Q155653",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/m/spirited_away",
+        "https://www.metacritic.com/movie/spirited-away/"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "fullCase": "resolves an animated film whose P31 is anime film through its film ancestry",
+      "ablatedCase": "ablation: an unsupported P31 value does not inherit the animated-film mapping",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "resolves an animated film whose P31 is anime film through its film ancestry",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "ablation: an unsupported P31 value does not inherit the animated-film mapping",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT and Meta ratings",
+        "ablated": "no ratings"
+      }
+    },
+    {
+      "id": "severance-s-leading-series-path",
+      "mechanism": "a series slug beginning with s is not a season path",
+      "work": {
+        "doubanSubjectId": "34885342",
+        "imdbId": "tt11280740",
+        "wikidataId": "Q101096725",
+        "granularity": "series"
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/tv/severance",
+        "https://www.metacritic.com/tv/severance/"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "fullCase": "recognizes an s-leading RT slug as a series because it has no season path segment",
+      "ablatedCase": "ablation: an exact season path segment is not accepted as the same series",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "recognizes an s-leading RT slug as a series because it has no season path segment",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "ablation: an exact season path segment is not accepted as the same series",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT 95%/88% and Meta 85",
+        "ablated": "no ratings"
+      }
+    },
+    {
+      "id": "game-of-thrones-s02-first-episode-parent",
+      "mechanism": "the first episode IMDb match needs its P179 series relationship",
+      "work": {
+        "doubanSubjectId": "6558062",
+        "imdbId": "tt1971833",
+        "wikidataId": "Q7754352",
+        "granularity": "season",
+        "season": 2
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://movie.douban.com/subject/6558062/",
+        "https://www.wikidata.org/wiki/Q7754352",
+        "https://www.rottentomatoes.com/tv/game_of_thrones"
+      ],
+      "testFile": "tests/runtime/subject-runtime-episode-season-link.test.tsx",
+      "fullCase": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
+      "ablatedCase": "same subject, IMDb ID, episode mapping and source pages with only P179 omitted",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-episode-season-link.test.tsx",
+          "case": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
+          "role": "paired"
+        }
+      ],
+      "expected": {
+        "full": "season 2 RT 97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "chernobyl-rt-season-source-link",
+      "mechanism": "an explicit RT Miniseries season link completes missing season mapping",
+      "work": {
+        "doubanSubjectId": "30140083",
+        "granularity": "season",
+        "season": 1
+      },
+      "controlledEntityId": "Q501",
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/tv/chernobyl",
+        "https://www.rottentomatoes.com/tv/chernobyl/s01"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/chernobyl-series.html",
+        "tests/fixtures/rotten-tomatoes/chernobyl-miniseries.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+      "fullCase": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+      "ablatedCase": "does not resolve a season after its explicit source link is removed",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "does not resolve a season after its explicit source link is removed",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT 95%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "chernobyl-metacritic-season-link-identity",
+      "mechanism": "a series page season link must match the requested season and parent",
+      "work": {
+        "doubanSubjectId": "35286229",
+        "imdbId": "tt7366338",
+        "wikidataId": "Q48741246",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "rendered-Meta-series-fragment-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.metacritic.com/tv/chernobyl/",
+        "https://www.metacritic.com/tv/chernobyl/season-1/"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": ["tests/fixtures/metacritic/chernobyl-series.html"],
+      "testFile": "tests/runtime/subject-runtime-metacritic-season-link.test.tsx",
+      "fullCase": "follows an explicit Chernobyl season link when Wikidata only lists episodes",
+      "ablatedScenarios": [
+        "remove the explicit season link",
+        "redirect to a different series parent",
+        "return season 2 for a season 1 request"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-season-link.test.tsx",
+          "case": "follows an explicit Chernobyl season link when Wikidata only lists episodes",
+          "role": "full-and-ablated-scenarios"
+        }
+      ],
+      "expected": {
+        "full": "Meta season score 82",
+        "ablated": "no Meta rating"
+      }
+    },
+    {
+      "id": "godfather-part-ii-rt-alias-identity",
+      "mechanism": "RT alias acceptance needs independent work identity evidence",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/m/godfather_part_ii",
+        "https://www.rottentomatoes.com/m/the_godfather_part_ii",
+        "https://www.rottentomatoes.com/m/the_godfather"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/godfather-part-ii.html",
+        "tests/fixtures/rotten-tomatoes/godfather.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+      "fullCase": "accepts the Godfather II alias using its original title, theatrical year, and director",
+      "ablatedCases": [
+        "rejects an alias when its Wikidata work has no director identity evidence",
+        "rejects a redirect to The Godfather even when its canonical page is self-consistent"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "accepts the Godfather II alias using its original title, theatrical year, and director",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "rejects an alias when its Wikidata work has no director identity evidence",
+          "role": "ablated"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "rejects a redirect to The Godfather even when its canonical page is self-consistent",
+          "role": "wrong-title-negative"
+        }
+      ],
+      "expected": {
+        "full": "RT 96%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "chernobyl-season-redirect-parent-and-number",
+      "mechanism": "a season redirect must retain the requested parent and season number",
+      "work": {
+        "doubanSubjectId": "30140083",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/chernobyl-series.html",
+        "tests/fixtures/rotten-tomatoes/chernobyl-miniseries.html",
+        "tests/fixtures/rotten-tomatoes/queens-gambit-miniseries.html"
+      ],
+      "testFiles": [
+        "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+        "tests/runtime/subject-runtime-rt-season-aliases.test.tsx"
+      ],
+      "fullCase": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+      "ablatedCases": [
+        "rejects a Severance season 1 redirect to its season 2 page",
+        "rejects a season alias whose confirmed parent is another series"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-season-aliases.test.tsx",
+          "case": "rejects a Severance season 1 redirect to its season 2 page",
+          "role": "wrong-season-negative"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-season-aliases.test.tsx",
+          "case": "rejects a season alias whose confirmed parent is another series",
+          "role": "wrong-parent-negative"
+        }
+      ],
+      "expected": {
+        "full": "Chernobyl season 1 RT 95%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "spirited-away-http-200-api-error-vs-empty-search",
+      "mechanism": "HTTP-200 Wikidata API errors are not valid missing mappings",
+      "work": {
+        "doubanSubjectId": "1291561",
+        "imdbId": "tt0245429",
+        "wikidataId": "Q155653",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-responses-and-cached-snapshot",
+      "sourceUrls": [
+        "https://www.wikidata.org/w/api.php",
+        "https://www.rottentomatoes.com/m/spirited_away"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "fullCase": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
+      "ablatedCase": "ablation: a valid empty search does not preserve a snapshot",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
+          "role": "HTTP-200-error"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "ablation: a valid empty search does not preserve a snapshot",
+          "role": "empty-result-control"
+        }
+      ],
+      "expected": {
+        "full": "retained stale score",
+        "ablated": "snapshot removed"
+      }
+    },
+    {
+      "id": "shawshank-conflict-late-response-orderings",
+      "mechanism": "a changed identity invalidates the old snapshot regardless of response order",
+      "work": {
+        "doubanSubjectId": "1292052",
+        "imdbId": "tt0111161",
+        "wikidataId": "Q172241",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-race-responses-with-captured-RT-page",
+      "sourceFragments": ["tests/fixtures/rotten-tomatoes/shawshank.html"],
+      "testFiles": [
+        "tests/runtime/subject-runtime-rt-late-request-invalidation.test.tsx",
+        "tests/runtime/subject-runtime-rt-identity-ordering.test.tsx"
+      ],
+      "fullCases": [
+        "does not restore an old snapshot, target, or score when its request finishes after identity changes",
+        "removes a refreshed old rating when the conflicting mapping resolves second"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-late-request-invalidation.test.tsx",
+          "case": "does not restore an old snapshot, target, or score when its request finishes after identity changes",
+          "role": "conflict-first"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-identity-ordering.test.tsx",
+          "case": "removes a refreshed old rating when the conflicting mapping resolves second",
+          "role": "old-rating-first"
+        }
+      ],
+      "expected": {
+        "conflictFirst": "old response cannot restore rating or snapshot",
+        "ratingFirst": "later conflict removes the old rating and snapshot"
+      }
+    }
+  ]
+}

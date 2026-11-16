@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
 
+import chernobylSeries from "../fixtures/metacritic/chernobyl-series.html?raw";
 import { renderIntoRoot } from "../helpers/render";
 import {
   makeClaim,
@@ -87,12 +88,17 @@ describe("SubjectPageRuntime Metacritic", () => {
         return { body: JSON.stringify({ entities }) };
       }
       if (url === seriesUrl) {
-        const seasonLink = hasSeasonLink
-          ? '<a href="/tv/chernobyl/season-1/">Season 1</a>'
-          : "";
-        return {
-          body: `<link rel="canonical" href="${seriesUrl}">${seasonLink}<script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeries","name":"Chernobyl","datePublished":"2019-05-06"}</script>`,
-        };
+        let body = chernobylSeries;
+        if (!hasSeasonLink) {
+          const page = new DOMParser().parseFromString(body, "text/html");
+          page
+            .querySelector(
+              'a[href="https://www.metacritic.com/tv/chernobyl/season-1/"]'
+            )
+            ?.remove();
+          body = page.documentElement.outerHTML;
+        }
+        return { body };
       }
       if (url === seasonUrl) {
         return {

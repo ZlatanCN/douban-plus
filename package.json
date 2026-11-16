@@ -20,6 +20,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "tsx tests/qa.ts",
+    "qa:ratings-live": "DP_LIVE_RATING_AUDIT=1 vitest run tests/qa/live-rating-audit.test.tsx --reporter=verbose",
     "lint": "ultracite check && stylelint \"src/**/*.css\" && node scripts/css-audit/index.mjs",
     "check:css": "node scripts/css-audit/index.mjs",
     "fix": "ultracite fix && stylelint \"src/**/*.css\" --fix",

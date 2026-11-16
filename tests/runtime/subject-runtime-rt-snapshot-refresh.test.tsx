@@ -44,6 +44,13 @@ describe("subject runtime rt snapshot refresh", () => {
     );
     expect(root.querySelector(".atv-rt-score-value")?.textContent).toBe("89%");
     expect(requests.every((url) => url.includes("wikidata.org"))).toBeTruthy();
+    const snapshots = JSON.parse(
+      localStorage.getItem("dp:rotten-snapshots:v2") ?? "{}"
+    ) as Record<string, { fetchedAt: number }>;
+    expect(
+      snapshots[JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]
+        ?.fetchedAt
+    ).toBe(now - 30 * 24 * 60 * 60 * 1000);
   });
 
   it("keeps the default audience score when RT omits overlay metadata", async () => {
