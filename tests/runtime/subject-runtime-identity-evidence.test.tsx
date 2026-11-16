@@ -174,7 +174,7 @@ describe("subject runtime shared Wikidata identity evidence", () => {
   it("ablation: an unsupported P31 value does not inherit the animated-film mapping", async () => {
     mockAnimatedMovieNetwork("Q999999");
     const root = renderIntoRoot(
-      <SubjectPageRuntime data={animatedMovieData("")} doc={document} />
+      <SubjectPageRuntime data={animatedMovieData()} doc={document} />
     );
 
     await vi.waitFor(() => {
