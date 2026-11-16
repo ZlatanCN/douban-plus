@@ -120,7 +120,7 @@ type McPageReadResult =
   | {
       matchesTarget: false;
       rating: null;
-      reason: "identity-conflict" | "invalid-page";
+      reason: "identity-conflict" | "invalid-page" | "request-error";
     }
   | {
       canonicalUrl: string;

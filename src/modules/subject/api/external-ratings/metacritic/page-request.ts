@@ -15,7 +15,24 @@ type McPageResponse = {
   responseText: string;
   status: number;
 };
-type IdentityNameResolution = { complete: boolean; names: string[] };
+type IdentityNameResolution = {
+  complete: boolean;
+  failure?: "cancelled" | "parse-error" | "request-error";
+  names: string[];
+};
+
+const identityFailureReason = (
+  error: unknown,
+  signal: AbortSignal
+): "cancelled" | "parse-error" | "request-error" => {
+  if (
+    signal.aborted ||
+    (error instanceof DOMException && error.name === "AbortError")
+  ) {
+    return "cancelled";
+  }
+  return error instanceof SyntaxError ? "parse-error" : "request-error";
+};
 
 const requestMcPage = async (
   targetUrl: string,
@@ -60,8 +77,12 @@ const identityNamesForAlias = async (
       complete: ids.every((id) => (namesById[id]?.length ?? 0) > 0),
       names: [...new Set(Object.values(namesById).flat())],
     };
-  } catch {
-    return { complete: false, names: [] };
+  } catch (error) {
+    return {
+      complete: false,
+      failure: identityFailureReason(error, signal),
+      names: [],
+    };
   }
 };
 
@@ -126,7 +147,7 @@ const readVerifiedSeasonPage = async (
       signal
     );
   } catch {
-    return { matchesTarget: false, rating: null, reason: "invalid-page" };
+    return { matchesTarget: false, rating: null, reason: "request-error" };
   }
   const seriesNames = await identityNamesForAlias(
     seriesResponse.responseText,

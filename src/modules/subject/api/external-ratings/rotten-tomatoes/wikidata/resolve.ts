@@ -56,7 +56,14 @@ const fromSettledLookup = (
 ): IdentityLookup | null =>
   result.status === "fulfilled"
     ? result.value
-    : { mappings: [], state: "error" };
+    : {
+        failure:
+          result.reason instanceof SyntaxError
+            ? "parse-error"
+            : "request-error",
+        mappings: [],
+        state: "error",
+      };
 
 const resolveRottenMapping = async (
   context: ResolutionContext,
@@ -82,6 +89,7 @@ const resolveRottenMapping = async (
   const [imdbResult, doubanResult] = lookups;
   const imdb = fromSettledLookup(imdbResult);
   const douban = fromSettledLookup(doubanResult) ?? {
+    failure: "request-error",
     mappings: [],
     state: "error",
   };

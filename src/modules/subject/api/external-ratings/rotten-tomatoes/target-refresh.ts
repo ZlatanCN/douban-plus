@@ -19,15 +19,49 @@ const handleTargetFailure = (
   failure: TargetFailure,
   onResult?: OnRtResolution
 ): void => {
-  if (failure === "error") {
+  if (
+    failure === "error" ||
+    failure === "request-error" ||
+    failure === "parse-error"
+  ) {
+    const reason = failure === "parse-error" ? "parse-error" : "request-error";
+    const diagnostic = {
+      cacheAgeMs: null,
+      errorCode: failure === "error" ? "rt-target-refresh" : failure,
+      reason,
+      stage: failure === "parse-error" ? "parse" : "mapping",
+      target: priorObject.rtId,
+    } satisfies NonNullable<RtResolution["diagnostic"]>;
+    const prior = readSnapshot(priorObject);
+    onResult?.(
+      prior
+        ? { diagnostic, rating: prior, status: "stale" }
+        : ratingFailure("error", null, diagnostic)
+    );
     return;
   }
   if (failure === "identity-unavailable") {
     const prior = readSnapshot(priorObject);
     onResult?.(
       prior
-        ? { rating: prior, status: "stale" }
-        : ratingFailure("identity-unavailable")
+        ? {
+            diagnostic: {
+              cacheAgeMs: null,
+              errorCode: "identity-unavailable",
+              reason: "request-error",
+              stage: "identity",
+              target: priorObject.rtId,
+            },
+            rating: prior,
+            status: "stale",
+          }
+        : ratingFailure("identity-unavailable", null, {
+            cacheAgeMs: null,
+            errorCode: "identity-unavailable",
+            reason: "request-error",
+            stage: "identity",
+            target: priorObject.rtId,
+          })
     );
     return;
   }

@@ -23,6 +23,8 @@ type TargetFailure =
   | "identity-conflict"
   | "identity-unavailable"
   | "missing-mapping"
+  | "parse-error"
+  | "request-error"
   | "season-unmatched";
 type RtTargetResult = ResolvedRtTarget | { failure: TargetFailure };
 const rtTargetCache = createVerifiedTargetCache<ResolvedRtTarget>(
@@ -34,15 +36,19 @@ const cacheRtTarget = rtTargetCache.set;
 const invalidateRtTarget = rtTargetCache.invalidate;
 
 const mapFailure = (
-  reason: Extract<RottenMapping, { status: "unavailable" }>["reason"]
+  mapping: Extract<RottenMapping, { status: "unavailable" }>
 ): TargetFailure => {
+  const { reason } = mapping;
   if (reason === "conflict") {
     return "identity-conflict";
   }
   if (reason === "season") {
     return "season-unmatched";
   }
-  return reason === "error" ? "error" : "missing-mapping";
+  if (reason === "error") {
+    return mapping.failure ?? "error";
+  }
+  return "missing-mapping";
 };
 
 const mappedTarget = (
@@ -169,7 +175,7 @@ const resolveRtTarget = async (
     return { failure: "aborted" };
   }
   if (mapping.status === "unavailable") {
-    return { failure: mapFailure(mapping.reason) };
+    return { failure: mapFailure(mapping) };
   }
   return mapping.needsSeasonLink
     ? resolveSeasonLink(context, mapping, signal)

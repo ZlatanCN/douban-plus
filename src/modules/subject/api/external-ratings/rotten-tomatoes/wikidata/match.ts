@@ -10,8 +10,13 @@ const seasonPath = (rtId: string, season: number): string | null => {
 };
 
 const unavailable = (
-  reason: Extract<RottenMapping, { status: "unavailable" }>["reason"]
-): RottenMapping => ({ reason, status: "unavailable" });
+  reason: Extract<RottenMapping, { status: "unavailable" }>["reason"],
+  failure?: "parse-error" | "request-error"
+): RottenMapping => ({
+  ...(failure ? { failure } : {}),
+  reason,
+  status: "unavailable",
+});
 
 const uniqueRtTarget = (mappings: EntityMapping[]): string | null => {
   const targets = new Set(mappings.map(({ rtId }) => rtId));
@@ -34,7 +39,15 @@ const unavailableLookup = (
     return unavailable("deprecated");
   }
   if (states.has("error")) {
-    return unavailable("error");
+    const errorLookup = [imdb, douban].find(
+      (lookup) => lookup?.state === "error"
+    );
+    return unavailable(
+      "error",
+      errorLookup?.state === "error"
+        ? (errorLookup.failure ?? "request-error")
+        : "request-error"
+    );
   }
   return unavailable("missing");
 };

@@ -42,6 +42,8 @@ export default defineConfig({
           "GM.registerMenuCommand",
           "GM.setValue",
           "GM.unregisterMenuCommand",
+          "GM.setClipboard",
+          "GM_setClipboard",
           "GM_addStyle",
           "GM_xmlhttpRequest",
         ],

@@ -10,15 +10,22 @@ import { resolveSeasonTarget } from "./season";
 type MetacriticTargetResolution =
   | {
       complete: boolean;
+      failure?: "parse-error" | "request-error";
       season: number;
       seriesTarget: MetacriticTarget;
       status: "season-link-needed";
     }
   | {
       complete: boolean;
+      failure?: "parse-error" | "request-error";
       status: "ambiguous" | "error" | "identity-conflict" | "missing";
     }
-  | { complete: boolean; status: "matched"; target: MetacriticTarget };
+  | {
+      complete: boolean;
+      failure?: "parse-error" | "request-error";
+      status: "matched";
+      target: MetacriticTarget;
+    };
 
 const targetCache = createVerifiedTargetCache<MetacriticTarget>(
   "dp:metacritic-targets:v4"
@@ -93,33 +100,20 @@ const resolveIdentifier = async (
   return resolveEntity(lookup.entity, context, signal);
 };
 
-const resolveMetacriticTargetFresh = async (
-  context: ResolutionContext,
-  signal: AbortSignal
-): Promise<MetacriticTargetResolution> => {
-  if (context.seasonConflict || context.unsupportedEpisode) {
-    return { complete: true, status: "identity-conflict" };
-  }
-  if (context.kind === "season" && context.season === null) {
-    return { complete: true, status: "missing" };
-  }
-  const results = await Promise.allSettled([
-    context.imdbId
-      ? resolveIdentifier("P345", context.imdbId, context, signal)
-      : Promise.resolve<TargetResult>({ status: "missing" }),
-    context.subjectId
-      ? resolveIdentifier("P4529", context.subjectId, context, signal)
-      : Promise.resolve<TargetResult>({ status: "missing" }),
-  ]);
+const resolveIdentifierResults = (
+  results: PromiseSettledResult<TargetResult>[]
+): MetacriticTargetResolution => {
   const hasRejectedLookup = results.some(
     (result) => result.status === "rejected"
   );
-  const targets = results
-    .filter(
-      (result): result is PromiseFulfilledResult<TargetResult> =>
-        result.status === "fulfilled"
-    )
-    .map((result) => result.value);
+  const rejectedReason = results.find(
+    (result): result is PromiseRejectedResult => result.status === "rejected"
+  )?.reason;
+  const failure =
+    rejectedReason instanceof SyntaxError ? "parse-error" : "request-error";
+  const targets = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : []
+  );
   if (targets.some((target) => target.status === "ambiguous")) {
     return { complete: true, status: "ambiguous" };
   }
@@ -162,22 +156,55 @@ const resolveMetacriticTargetFresh = async (
     }
     return {
       complete: !hasRejectedLookup,
+      ...(hasRejectedLookup ? { failure } : {}),
       status: "matched",
       target: matchedTarget,
     };
   }
-  if (uniqueTargets.size === 0) {
-    if (seasonLink) {
-      return { complete: !hasRejectedLookup, ...seasonLink };
-    }
+  if (uniqueTargets.size === 0 && seasonLink) {
     return {
       complete: !hasRejectedLookup,
+      ...(hasRejectedLookup ? { failure } : {}),
+      ...seasonLink,
+    };
+  }
+  if (uniqueTargets.size === 0) {
+    return {
+      complete: !hasRejectedLookup,
+      ...(hasRejectedLookup ? { failure } : {}),
       status: hasRejectedLookup ? "error" : "missing",
     };
   }
-  return matchedTarget
-    ? { complete: !hasRejectedLookup, status: "matched", target: matchedTarget }
-    : { complete: !hasRejectedLookup, status: "missing" };
+  if (matchedTarget) {
+    return {
+      complete: !hasRejectedLookup,
+      ...(hasRejectedLookup ? { failure } : {}),
+      status: "matched",
+      target: matchedTarget,
+    };
+  }
+  return { complete: !hasRejectedLookup, status: "missing" };
+};
+
+const resolveMetacriticTargetFresh = async (
+  context: ResolutionContext,
+  signal: AbortSignal
+): Promise<MetacriticTargetResolution> => {
+  if (context.seasonConflict || context.unsupportedEpisode) {
+    return { complete: true, status: "identity-conflict" };
+  }
+  if (context.kind === "season" && context.season === null) {
+    return { complete: true, status: "missing" };
+  }
+  const results = await Promise.allSettled([
+    context.imdbId
+      ? resolveIdentifier("P345", context.imdbId, context, signal)
+      : Promise.resolve<TargetResult>({ status: "missing" }),
+    context.subjectId
+      ? resolveIdentifier("P4529", context.subjectId, context, signal)
+      : Promise.resolve<TargetResult>({ status: "missing" }),
+  ]);
+  return resolveIdentifierResults(results);
 };
 
 const resolveMetacriticTarget = (

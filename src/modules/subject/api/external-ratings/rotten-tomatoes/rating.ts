@@ -1,3 +1,7 @@
+import type {
+  ExternalRatingDiagnostic,
+  ExternalRatingReason,
+} from "@/modules/subject/api/external-ratings/outcome";
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
@@ -15,6 +19,7 @@ import { invalidateRtTarget } from "./target";
 import type { ResolvedRtTarget } from "./target";
 
 type RtResolution = {
+  diagnostic?: ExternalRatingDiagnostic;
   rating: RtRating | null;
   status:
     | "aborted"
@@ -33,8 +38,27 @@ type OnRtResolution = (result: RtResolution) => void;
 
 const ratingFailure = (
   status: RtResolution["status"],
-  rating: RtRating | null = null
-): RtResolution => ({ rating, status });
+  rating: RtRating | null = null,
+  diagnostic?: ExternalRatingDiagnostic
+): RtResolution => ({
+  ...(diagnostic ? { diagnostic } : {}),
+  rating,
+  status,
+});
+
+const makeDiagnostic = (
+  reason: ExternalRatingReason,
+  stage: ExternalRatingDiagnostic["stage"],
+  target: string | null,
+  errorCode: string | null = null,
+  fetchedAt: number | null = null
+): ExternalRatingDiagnostic => ({
+  cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+  errorCode,
+  reason,
+  stage,
+  target,
+});
 
 const getSnapshotObject = (
   context: ResolutionContext,
@@ -90,8 +114,26 @@ const identityResultFailure = (
   }
   if (identity.status === "identity-unavailable") {
     const result: RtResolution = prior
-      ? { rating: prior, status: "stale" }
-      : ratingFailure("identity-unavailable");
+      ? {
+          diagnostic: makeDiagnostic(
+            "request-error",
+            "identity",
+            object.rtId,
+            "identity-unavailable"
+          ),
+          rating: prior,
+          status: "stale",
+        }
+      : ratingFailure(
+          "identity-unavailable",
+          null,
+          makeDiagnostic(
+            "request-error",
+            "identity",
+            object.rtId,
+            "identity-unavailable"
+          )
+        );
     onResult?.(result);
     return result;
   }
@@ -155,14 +197,26 @@ const loadRating = async (
     url: page.url,
   });
   if (parsed.status === "invalid-page") {
-    return prior ? { rating: prior, status: "stale" } : ratingFailure("error");
+    const diagnostic = makeDiagnostic(
+      "parse-error",
+      "parse",
+      target.rtId,
+      "invalid-scorecard"
+    );
+    return prior
+      ? { diagnostic, rating: prior, status: "stale" }
+      : ratingFailure("error", null, diagnostic);
   }
   if (parsed.status === "identity-conflict") {
     return confirmedIdentityConflict(context, object, prior, onResult);
   }
   if (parsed.status === "no-rating") {
     removeSnapshot(object);
-    return ratingFailure("no-rating");
+    return ratingFailure(
+      "no-rating",
+      null,
+      makeDiagnostic("source-no-rating", "parse", target.rtId)
+    );
   }
   if (!isCurrent(context, revision)) {
     return ratingFailure("identity-conflict");

@@ -1,3 +1,7 @@
+import type {
+  ExternalRatingDiagnostic,
+  ExternalRatingReason,
+} from "@/modules/subject/api/external-ratings/outcome";
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
@@ -53,15 +57,46 @@ const targetFailureResult = (
   failure: Exclude<RtTargetResult, ResolvedRtTarget>["failure"],
   onResult?: (result: RtResolution) => void
 ): RtResolution => {
-  if (failure === "error") {
-    return fallbackSnapshot(context, null, null, onResult);
+  if (
+    failure === "error" ||
+    failure === "request-error" ||
+    failure === "parse-error"
+  ) {
+    const fallback = fallbackSnapshot(context, null, null, onResult);
+    const reason: ExternalRatingReason =
+      failure === "parse-error" ? "parse-error" : "request-error";
+    return {
+      ...fallback,
+      diagnostic: {
+        cacheAgeMs: null,
+        errorCode: failure === "error" ? "rt-mapping-request" : failure,
+        reason,
+        stage: failure === "parse-error" ? "parse" : "mapping",
+        target: null,
+      },
+    };
   }
   if (failure === "identity-unavailable") {
     const snapshotFallback = fallbackSnapshot(context, null, null, onResult);
     if (snapshotFallback.rating) {
-      return snapshotFallback;
+      return {
+        ...snapshotFallback,
+        diagnostic: {
+          cacheAgeMs: null,
+          errorCode: "identity-unavailable",
+          reason: "request-error",
+          stage: "identity",
+          target: null,
+        },
+      };
     }
-    const unavailable = ratingFailure("identity-unavailable");
+    const unavailable = ratingFailure("identity-unavailable", null, {
+      cacheAgeMs: null,
+      errorCode: "identity-unavailable",
+      reason: "request-error",
+      stage: "identity",
+      target: null,
+    });
     onResult?.(unavailable);
     return unavailable;
   }
@@ -74,6 +109,54 @@ const targetFailureResult = (
     return conflict;
   }
   return ratingFailure(failure);
+};
+
+const failedRtFetch = (
+  context: ResolutionContext,
+  revision: number,
+  signal: AbortSignal,
+  object: RtRating["object"] | null,
+  prior: RtRating | null,
+  error: unknown,
+  onResult?: (result: RtResolution) => void
+): RtResolution => {
+  if (signal.aborted) {
+    return ratingFailure("aborted", null, {
+      cacheAgeMs: null,
+      errorCode: "aborted",
+      reason: "cancelled",
+      stage: "request",
+      target: object?.rtId ?? null,
+    });
+  }
+  if (!isCurrent(context, revision)) {
+    return ratingFailure("identity-conflict", null, {
+      cacheAgeMs: null,
+      errorCode: "stale-request",
+      reason: "identity-conflict",
+      stage: "identity",
+      target: object?.rtId ?? null,
+    });
+  }
+  let reason: ExternalRatingReason;
+  if (error instanceof DOMException && error.name === "AbortError") {
+    reason = "cancelled";
+  } else if (error instanceof SyntaxError) {
+    reason = "parse-error";
+  } else {
+    reason = "request-error";
+  }
+  const diagnostic: ExternalRatingDiagnostic = {
+    cacheAgeMs: null,
+    errorCode: reason === "cancelled" ? "aborted" : "rt-fetch",
+    reason,
+    stage: reason === "parse-error" ? "parse" : "request",
+    target: object?.rtId ?? null,
+  };
+  return {
+    ...fallbackSnapshot(context, object, prior, onResult),
+    diagnostic,
+  };
 };
 
 const fetchRtRating = async (
@@ -128,14 +211,16 @@ const fetchRtRating = async (
     return isCurrent(context, revision)
       ? result
       : ratingFailure("identity-conflict");
-  } catch {
-    if (signal.aborted) {
-      return ratingFailure("aborted");
-    }
-    if (!isCurrent(context, revision)) {
-      return ratingFailure("identity-conflict");
-    }
-    return fallbackSnapshot(context, object, prior, onResult);
+  } catch (error) {
+    return failedRtFetch(
+      context,
+      revision,
+      signal,
+      object,
+      prior,
+      error,
+      onResult
+    );
   }
 };
 

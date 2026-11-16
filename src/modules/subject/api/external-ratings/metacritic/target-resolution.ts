@@ -42,10 +42,17 @@ const finishSeasonLinkResolution = async (
     if (seriesPage.matchesTarget === false) {
       return seriesPage.reason === "identity-conflict"
         ? { complete: true, status: "identity-conflict" }
-        : { complete: false, status: "error" };
+        : {
+            complete: false,
+            failure:
+              seriesPage.reason === "request-error"
+                ? "request-error"
+                : "parse-error",
+            status: "error",
+          };
     }
     if (!seriesPage.canonicalUrl) {
-      return { complete: false, status: "error" };
+      return { complete: false, failure: "parse-error", status: "error" };
     }
     const seasonUrl = findSeasonPageLink(
       seriesResponse.responseText,
@@ -59,7 +66,7 @@ const finishSeasonLinkResolution = async (
     const seasonPath = pagePath(seasonResponse.finalUrl);
     const seriesPath = pagePath(seriesPage.canonicalUrl);
     if (!seasonPath || !seriesPath) {
-      return { complete: false, status: "error" };
+      return { complete: false, failure: "parse-error", status: "error" };
     }
     const seasonMatch = seasonPath.match(
       /^\/tv\/[^/]+\/season-(?<season>\d+)$/u
@@ -92,11 +99,22 @@ const finishSeasonLinkResolution = async (
     if (seasonPage.matchesTarget === false) {
       return seasonPage.reason === "identity-conflict"
         ? { complete: true, status: "identity-conflict" }
-        : { complete: false, status: "error" };
+        : {
+            complete: false,
+            failure:
+              seasonPage.reason === "request-error"
+                ? "request-error"
+                : "parse-error",
+            status: "error",
+          };
     }
     return { complete: true, status: "matched", target };
-  } catch {
-    return { complete: false, status: "error" };
+  } catch (error) {
+    return {
+      complete: false,
+      failure: error instanceof SyntaxError ? "parse-error" : "request-error",
+      status: "error",
+    };
   }
 };
 

@@ -1,4 +1,5 @@
 import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
+import type { ExternalRatingDiagnostic } from "@/modules/subject/api/external-ratings/outcome";
 import type {
   McRating,
   RtObjectKind,
@@ -24,6 +25,7 @@ type ResolutionContext = {
 };
 
 type SourceResult<T> = {
+  diagnostic: ExternalRatingDiagnostic | null;
   rating: T | null;
   status: "pending" | "resolved";
 };
@@ -35,9 +37,9 @@ type RatingResultMap = {
 };
 
 const emptyRatingResults = (): RatingResultMap => ({
-  imdb: { rating: null, status: "pending" },
-  mc: { rating: null, status: "pending" },
-  rt: { rating: null, status: "pending" },
+  imdb: { diagnostic: null, rating: null, status: "pending" },
+  mc: { diagnostic: null, rating: null, status: "pending" },
+  rt: { diagnostic: null, rating: null, status: "pending" },
 });
 
 export type {

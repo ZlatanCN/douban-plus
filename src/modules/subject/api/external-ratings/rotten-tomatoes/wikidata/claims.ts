@@ -24,12 +24,18 @@ type EntityMapping = {
 type IdentityLookup =
   | {
       mappings: EntityMapping[];
-      state: "ambiguous" | "deprecated" | "error" | "missing";
+      state: "ambiguous" | "deprecated" | "missing";
+    }
+  | {
+      failure?: "parse-error" | "request-error";
+      mappings: EntityMapping[];
+      state: "error";
     }
   | { mappings: EntityMapping[]; state: "matched" };
 
 type RottenMapping =
   | {
+      failure?: "parse-error" | "request-error";
       reason:
         | "ambiguous"
         | "conflict"
