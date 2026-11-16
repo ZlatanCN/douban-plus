@@ -21,35 +21,51 @@ const targetEntry = (
   const expectedSeriesPath = expectedSeriesUrl
     ? pagePath(expectedSeriesUrl)
     : null;
-  return (
-    page.jsonLd.find((entry) => {
-      const types = new Set(structuredTypes(entry));
-      if (target.kind === "movie") {
-        return types.has("Movie");
-      }
-      if (target.kind === "series") {
-        return types.has("TVSeries");
-      }
-      if (
-        !types.has("TVSeason") ||
-        Number(entry.seasonNumber) !== target.season
-      ) {
-        return false;
-      }
-      const { partOfSeries } = entry;
-      const seriesUrl =
-        partOfSeries && typeof partOfSeries === "object"
-          ? Reflect.get(partOfSeries, "url")
-          : null;
-      const seriesPath =
-        typeof seriesUrl === "string" ? pagePath(seriesUrl) : null;
-      return Boolean(
-        seriesPath &&
-        /^\/tv\/[^/]+$/u.test(seriesPath) &&
-        (expectedSeriesPath === null || seriesPath === expectedSeriesPath)
-      );
-    }) ?? null
+  const targetPath = pagePath(`/${target.metacriticId}`);
+  const canonicalPath = page.canonicalUrl ? pagePath(page.canonicalUrl) : null;
+  const typedEntries = page.jsonLd.filter((entry) => {
+    const types = new Set(structuredTypes(entry));
+    if (target.kind === "movie") {
+      return types.has("Movie");
+    }
+    if (target.kind === "series") {
+      return types.has("TVSeries");
+    }
+    if (
+      !types.has("TVSeason") ||
+      Number(entry.seasonNumber) !== target.season
+    ) {
+      return false;
+    }
+    const { partOfSeries } = entry;
+    const seriesUrl =
+      partOfSeries && typeof partOfSeries === "object"
+        ? Reflect.get(partOfSeries, "url")
+        : null;
+    const seriesPath =
+      typeof seriesUrl === "string" ? pagePath(seriesUrl) : null;
+    return Boolean(
+      seriesPath &&
+      /^\/tv\/[^/]+$/u.test(seriesPath) &&
+      (expectedSeriesPath === null || seriesPath === expectedSeriesPath)
+    );
+  });
+  const expectedPaths = new Set(
+    [canonicalPath, targetPath].filter(
+      (value): value is string => value !== null
+    )
   );
+  const linkedEntries = typedEntries.filter((entry) => {
+    const url = typeof entry.url === "string" ? entry.url : entry["@id"];
+    return typeof url === "string" && expectedPaths.has(pagePath(url) ?? "");
+  });
+  if (linkedEntries.length === 1) {
+    return linkedEntries[0] ?? null;
+  }
+  if (linkedEntries.length > 1) {
+    return null;
+  }
+  return typedEntries.length === 1 ? (typedEntries[0] ?? null) : null;
 };
 
 const parseRating = (
