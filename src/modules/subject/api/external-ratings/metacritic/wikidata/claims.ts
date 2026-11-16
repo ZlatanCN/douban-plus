@@ -1,4 +1,5 @@
 import { entityReference } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+import { isFilmInstance } from "@/modules/subject/api/external-ratings/shared/wikidata-identity";
 
 type Snak = { datavalue?: { value?: unknown }; snaktype?: string };
 type Claim = {
@@ -23,10 +24,12 @@ type MetacriticTarget = Extract<TargetResult, { status: "matched" }>;
 const ACTIVE_RANKS = new Set(["normal", "preferred"]);
 const TYPES = {
   episode: new Set(["Q21191270"]),
-  movie: new Set(["Q11424"]),
   season: new Set(["Q3464665"]),
   series: new Set(["Q5398426", "Q15416"]),
-} satisfies Record<EntityKind, Set<string>>;
+} satisfies Record<Exclude<EntityKind, "movie">, Set<string>>;
+const NON_MOVIE_TYPE_IDS = new Set(
+  Object.values(TYPES).flatMap((types) => [...types])
+);
 
 const activeClaimValues = (claims: Claim[] | undefined): unknown[] =>
   (claims ?? [])
@@ -86,13 +89,23 @@ const readQualifierOrdinal = (
       .map((snak) => snak.datavalue?.value)
   );
 
-const entityKind = (entity: Entity): EntityKind | null => {
+const entityKind = async (
+  entity: Entity,
+  signal: AbortSignal
+): Promise<EntityKind | null> => {
   const types = activeClaimValues(entity.claims?.P31)
     .map(entityReference)
     .filter((id): id is string => id !== null);
-  const matches = (Object.entries(TYPES) as [EntityKind, Set<string>][])
-    .filter(([, ids]) => types.some((id) => ids.has(id)))
-    .map(([kind]) => kind);
+  const matches: EntityKind[] = [];
+  const filmCandidateTypes = types.filter((id) => !NON_MOVIE_TYPE_IDS.has(id));
+  if (await isFilmInstance(filmCandidateTypes, signal)) {
+    matches.push("movie");
+  }
+  matches.push(
+    ...(Object.entries(TYPES) as [Exclude<EntityKind, "movie">, Set<string>][])
+      .filter(([, ids]) => types.some((id) => ids.has(id)))
+      .map(([kind]) => kind)
+  );
   return matches.length === 1 ? (matches[0] ?? null) : null;
 };
 

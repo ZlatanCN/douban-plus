@@ -12,12 +12,13 @@ import {
 } from "./claims";
 import type { Entity, EntityKind, TargetResult } from "./claims";
 
-const seasonTarget = (
+const seasonTarget = async (
   entity: Entity,
   season: number,
-  expectedSeriesId: string | null
-): TargetResult => {
-  if (entityKind(entity) !== "season") {
+  expectedSeriesId: string | null,
+  signal: AbortSignal
+): Promise<TargetResult> => {
+  if ((await entityKind(entity, signal)) !== "season") {
     return { status: "ambiguous" };
   }
   const ordinal = readOrdinal(entity.claims);
@@ -69,7 +70,8 @@ const seasonForEpisode = async (
     ? seasonTarget(
         entity,
         season,
-        expectedSeries.status === "matched" ? expectedSeries.id : null
+        expectedSeries.status === "matched" ? expectedSeries.id : null,
+        signal
       )
     : { status: "missing" };
 };
@@ -108,7 +110,7 @@ const seasonForSeries = async (
   const entities = await fetchEntities<Entity>([seasonId], signal);
   const entity = entities[seasonId];
   return entity
-    ? seasonTarget(entity, season, series.id)
+    ? seasonTarget(entity, season, series.id, signal)
     : { status: "missing" };
 };
 
@@ -119,7 +121,7 @@ const resolveSeasonTarget = (
   signal: AbortSignal
 ): TargetResult | Promise<TargetResult> => {
   if (kind === "season") {
-    return seasonTarget(entity, season, null);
+    return seasonTarget(entity, season, null, signal);
   }
   if (kind === "episode") {
     return seasonForEpisode(entity, season, signal);

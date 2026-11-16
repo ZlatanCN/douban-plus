@@ -3,6 +3,7 @@ import {
   fetchEntities as fetchWikidataEntities,
   findEntityCandidates,
 } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+import { parseRottenTomatoesPath } from "@/modules/subject/api/external-ratings/shared/wikidata-identity";
 
 import {
   activeIdentityClaims,
@@ -26,23 +27,24 @@ const fetchEntity = async (
   return entities[id] ?? null;
 };
 
-const mapEntity = (
+const mapEntity = async (
   entity: Entity,
   property: "P345" | "P4529",
-  identifier: string
-): IdentityLookup => {
+  identifier: string,
+  signal: AbortSignal
+): Promise<IdentityLookup> => {
   const identityClaims = activeIdentityClaims(entity, property, identifier);
   const target = readRtTarget(entity);
   if (target.status !== "matched") {
     return { mappings: [], state: target.status };
   }
-  const kind = entityKind(entity, target.rtId);
+  const kind = await entityKind(entity, target.rtId, signal);
   if (!kind) {
     return { mappings: [], state: "missing" };
   }
   const seasonOrdinal = readSeasonOrdinal(identityClaims, property);
-  const seriesSlug = target.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)
-    ?.groups?.series;
+  const parsedPath = parseRottenTomatoesPath(target.rtId);
+  const seriesSlug = parsedPath?.kind === "season" ? parsedPath.series : null;
   return {
     mappings: [
       {
@@ -103,7 +105,7 @@ const mapEpisodeToSeries = async (
   if (target.status !== "matched") {
     return { mappings: [], state: target.status };
   }
-  if (entityKind(series, target.rtId) !== "series") {
+  if ((await entityKind(series, target.rtId, signal)) !== "series") {
     return { mappings: [], state: "missing" };
   }
   if (
@@ -154,7 +156,7 @@ const fetchEntities = async (
   if (!entity) {
     return { mappings: [], state: deprecated ? "deprecated" : "missing" };
   }
-  const mapping = mapEntity(entity, property, value);
+  const mapping = await mapEntity(entity, property, value, signal);
   // Episode IDs identify an episode page; validate the parent series for the requested season.
   if (
     property === "P345" &&
