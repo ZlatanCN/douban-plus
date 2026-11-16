@@ -68,9 +68,9 @@ describe("subject runtime episode season link", () => {
         return {
           body: `<link rel="canonical" href="${
             seriesUrl
-          }"><script type="application/ld+json">{"@type":"TVSeries","name":"Your Friends &amp; Neighbors"}</script><a href="${
+          }"><script type="application/ld+json">{"@type":"TVSeries","name":"Your Friends &amp; Neighbors"}</script><tile-season href="${
             seasonUrl
-          }">Season 2</a>`,
+          }">Season 2</tile-season>`,
         };
       }
       if (url === seasonUrl) {
@@ -194,7 +194,7 @@ describe("subject runtime episode season link", () => {
             body:
               `<link rel="canonical" href="${seriesUrl}">` +
               '<script type="application/ld+json">{"@type":"TVSeries","name":"Game of Thrones"}</script>' +
-              `<a href="${seasonUrl}">Season ${season}</a>`,
+              `<tile-season href="${seasonUrl}">Season ${season}</tile-season>`,
           };
         }
         if (url === seasonUrl) {

@@ -25,7 +25,7 @@ describe("subject runtime rt snapshot refresh", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const stale = makeRtSnapshot({}, now - 30 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -49,7 +49,7 @@ describe("subject runtime rt snapshot refresh", () => {
   it("keeps the default audience score when RT omits overlay metadata", async () => {
     const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -106,7 +106,7 @@ describe("subject runtime rt snapshot refresh", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const fresh = makeRtSnapshot({}, now - 7 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: fresh,
       })

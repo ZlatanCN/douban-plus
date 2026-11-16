@@ -227,7 +227,7 @@ describe("subject runtime shared Wikidata identity evidence", () => {
       Date.now() - 10 * 24 * 60 * 60 * 1000
     );
     localStorage.setItem(
-      ["dp", "rotten-snapshots", "v1"].join(":"),
+      ["dp", "rotten-snapshots", "v2"].join(":"),
       JSON.stringify({
         [JSON.stringify([subjectId, "movie", "m/spirited_away"])]: stale,
       })
@@ -257,7 +257,7 @@ describe("subject runtime shared Wikidata identity evidence", () => {
       Date.now() - 10 * 24 * 60 * 60 * 1000
     );
     localStorage.setItem(
-      ["dp", "rotten-snapshots", "v1"].join(":"),
+      ["dp", "rotten-snapshots", "v2"].join(":"),
       JSON.stringify({
         [JSON.stringify([subjectId, "movie", "m/spirited_away"])]: stale,
       })
@@ -288,7 +288,7 @@ describe("subject runtime shared Wikidata identity evidence", () => {
       Date.now() - 10 * 24 * 60 * 60 * 1000
     );
     localStorage.setItem(
-      ["dp", "rotten-snapshots", "v1"].join(":"),
+      ["dp", "rotten-snapshots", "v2"].join(":"),
       JSON.stringify({
         [JSON.stringify([subjectId, "movie", "m/spirited_away"])]: stale,
       })
@@ -326,7 +326,7 @@ describe("subject runtime shared Wikidata identity evidence", () => {
       Date.now() - 10 * 24 * 60 * 60 * 1000
     );
     localStorage.setItem(
-      ["dp", "rotten-snapshots", "v1"].join(":"),
+      ["dp", "rotten-snapshots", "v2"].join(":"),
       JSON.stringify({
         [JSON.stringify([subjectId, "movie", "m/spirited_away"])]: stale,
       })

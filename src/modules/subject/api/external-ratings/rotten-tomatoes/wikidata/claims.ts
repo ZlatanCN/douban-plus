@@ -40,6 +40,8 @@ type RottenMapping =
       status: "unavailable";
     }
   | {
+      identityImdbIds?: string[];
+      identityPersonIds?: string[];
       needsSeasonLink: boolean;
       rtId: string;
       seriesRtId: string | null;

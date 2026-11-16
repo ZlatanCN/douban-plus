@@ -24,7 +24,7 @@ describe("subject runtime rt snapshot identity", () => {
   it("keeps a confirmed snapshot when the mapped RT page has an invalid structure", async () => {
     const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -71,7 +71,7 @@ describe("subject runtime rt snapshot identity", () => {
   it("hides a stale snapshot when the mapped RT page proves a different target", async () => {
     const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -126,7 +126,7 @@ describe("subject runtime rt snapshot identity", () => {
       "m/shawshank_redemption",
     ]);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({ [snapshotKey]: stale })
     );
     mockNetwork((url) => {
@@ -164,7 +164,7 @@ describe("subject runtime rt snapshot identity", () => {
 
     await vi.waitFor(() =>
       expect(
-        JSON.parse(localStorage.getItem("dp:rotten-snapshots:v1") ?? "{}")
+        JSON.parse(localStorage.getItem("dp:rotten-snapshots:v2") ?? "{}")
       ).not.toHaveProperty(snapshotKey)
     );
     await vi.waitFor(() =>
@@ -177,7 +177,7 @@ describe("subject runtime rt snapshot identity", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const expired = makeRtSnapshot({}, now - 30 * 24 * 60 * 60 * 1000 - 1);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]:
           expired,

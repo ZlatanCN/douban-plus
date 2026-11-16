@@ -1,6 +1,6 @@
 import type { RtObjectKind, RtRating } from "@/modules/subject/domain";
 
-const STORAGE_KEY = "dp:rotten-snapshots:v1";
+const STORAGE_KEY = "dp:rotten-snapshots:v2";
 const FRESH_AGE = 7 * 24 * 60 * 60 * 1000;
 const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
@@ -107,4 +107,26 @@ const removeSnapshot = (object: RtRating["object"]): void => {
   writeStore(withoutKey(store, identityKey(object)));
 };
 
-export { readSnapshot, readUniqueSnapshot, removeSnapshot, writeSnapshot };
+const removeSnapshotsForContext = (
+  subjectId: string,
+  kind: RtObjectKind
+): void => {
+  const store = readStore();
+  const retained = Object.fromEntries(
+    Object.entries(store).filter(
+      ([, value]) =>
+        !isRating(value) ||
+        value.object.subjectId !== subjectId ||
+        value.object.kind !== kind
+    )
+  );
+  writeStore(retained);
+};
+
+export {
+  readSnapshot,
+  readUniqueSnapshot,
+  removeSnapshot,
+  removeSnapshotsForContext,
+  writeSnapshot,
+};
