@@ -18,9 +18,19 @@ const makeImdbRating = (
 });
 
 const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
+  fetchedAt: 1_700_000_000_000,
+  object: {
+    kind: "movie",
+    metacriticId: "movie/test",
+    season: null,
+    seriesId: null,
+    seriesMetacriticId: null,
+    subjectId: "1",
+  },
   reviewCount: 1500,
   score: 82,
   sourceUrl: "https://www.metacritic.com/movie/test/",
+  stale: false,
   ...overrides,
 });
 

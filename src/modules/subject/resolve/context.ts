@@ -1,4 +1,5 @@
 import type { DoubanData, RtObjectKind } from "@/modules/subject/domain";
+import { extractEnglishSeriesName } from "@/modules/subject/extract/title-helpers";
 
 import type { ResolutionContext } from "./types";
 
@@ -73,6 +74,15 @@ const isEpisodeLabel = (value: string): boolean =>
     value
   );
 
+const yearIn = (value: string): string =>
+  value.match(/\b(?<year>(?:19|20)\d{2})\b/u)?.groups?.year ?? "";
+
+const namesFrom = (people: { text: string }[]): string[] =>
+  people.flatMap(({ text }) => {
+    const name = text.trim();
+    return name ? [name] : [];
+  });
+
 const buildContext = (data: DoubanData): ResolutionContext => {
   const titles = [data.title.seasonLabel, data.title.full, data.title.original];
   const seasons = [
@@ -87,7 +97,17 @@ const buildContext = (data: DoubanData): ResolutionContext => {
   if (data.isTV) {
     kind = season === null ? "series" : "season";
   }
+  const releaseDate = data.isTV ? data.info.firstAired : data.info.releaseDate;
+  const originalTitle = data.isTV
+    ? extractEnglishSeriesName(data.title.full) || data.title.original.trim()
+    : data.title.original.trim();
   return {
+    identityEvidence: {
+      creators: [...new Set(namesFrom(data.info.writers))],
+      directors: [...new Set(namesFrom(data.info.director))],
+      originalTitle,
+      releaseYear: yearIn(releaseDate),
+    },
     imdbId: data.info.imdb || null,
     kind,
     season,

@@ -5,7 +5,15 @@ import type {
   RtRating,
 } from "@/modules/subject/domain";
 
+type WorkIdentityEvidence = {
+  creators: string[];
+  directors: string[];
+  originalTitle: string;
+  releaseYear: string;
+};
+
 type ResolutionContext = {
+  identityEvidence: WorkIdentityEvidence;
   imdbId: string | null;
   kind: RtObjectKind;
   season: number | null;
@@ -32,5 +40,10 @@ const emptyRatingResults = (): RatingResultMap => ({
   rt: { rating: null, status: "pending" },
 });
 
-export type { RatingResultMap, ResolutionContext, SourceResult };
+export type {
+  RatingResultMap,
+  ResolutionContext,
+  SourceResult,
+  WorkIdentityEvidence,
+};
 export { emptyRatingResults };

@@ -19,9 +19,11 @@ type MetacriticTarget = Extract<TargetResult, { status: "matched" }>;
 
 const seasonTarget: MetacriticTarget = {
   kind: "season",
+  identityReferences: { creators: [], directors: [] },
   metacriticId: "tv/game-of-thrones/season-2",
   season: 2,
   seriesId: "Q23572",
+  seriesMetacriticId: "tv/game-of-thrones",
   status: "matched",
 };
 

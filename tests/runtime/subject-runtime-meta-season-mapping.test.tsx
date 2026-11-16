@@ -1,3 +1,4 @@
+import { render } from "preact";
 import { describe, expect, it, vi } from "vitest";
 
 import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
@@ -19,14 +20,18 @@ vi.hoisted(() => {
 describe("subject runtime meta season mapping", () => {
   setupSubjectRuntimeHooks();
 
-  it("uses the Wikidata Metacritic season ID when a title slug points elsewhere", async () => {
+  it("uses the mapped season ID and validates its canonical alias", async () => {
     const requests: string[] = [];
     const metacriticSeasonUrl =
       "https://www.metacritic.com/tv/game-of-thrones/season-2/";
+    const canonicalSeasonUrl =
+      "https://www.metacritic.com/tv/game-of-thrones/season-02/";
     const guessedSeasonUrl =
       "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones/season-2";
     const guessedSeriesUrl =
       "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones";
+    let pageParentUrl = "https://www.metacritic.com/tv/game-of-thrones/";
+    let pageSeasonNumber = 2;
     mockNetwork((url) => {
       requests.push(url);
       if (url === "https://graphql.imdb.com/") {
@@ -98,6 +103,7 @@ describe("subject runtime meta season mapping", () => {
           body: JSON.stringify({
             entities: {
               Q23572: {
+                id: "Q23572",
                 claims: {
                   P31: [makeClaim({ id: "Q5398426" })],
                   P345: [makeClaim("tt0944947")],
@@ -109,9 +115,8 @@ describe("subject runtime meta season mapping", () => {
       }
       if (url === metacriticSeasonUrl) {
         return {
-          body:
-            `<link rel="canonical" href="${metacriticSeasonUrl}">` +
-            '<script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 2","seasonNumber":2,"partOfSeries":{"@type":"TVSeries","url":"https://www.metacritic.com/tv/game-of-thrones/"},"aggregateRating":{"@type":"AggregateRating","ratingValue":90,"reviewCount":26}}</script>',
+          body: `<link rel="canonical" href="${canonicalSeasonUrl}"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 2","seasonNumber":${pageSeasonNumber},"partOfSeries":{"@type":"TVSeries","url":"${pageParentUrl}"},"aggregateRating":{"@type":"AggregateRating","ratingValue":90,"reviewCount":26}}</script>`,
+          finalUrl: canonicalSeasonUrl,
         };
       }
       if (url === guessedSeasonUrl) {
@@ -154,5 +159,31 @@ describe("subject runtime meta season mapping", () => {
     expect(requests).toContain(metacriticSeasonUrl);
     expect(requests).not.toContain(guessedSeasonUrl);
     expect(requests).not.toContain(guessedSeriesUrl);
+    expect(
+      root.querySelector<HTMLAnchorElement>(".atv-metacritic-source")?.href
+    ).toBe(canonicalSeasonUrl);
+
+    render(null, root);
+    localStorage.clear();
+    requests.length = 0;
+    pageParentUrl = "https://www.metacritic.com/tv/another-series/";
+    const crossParent = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+    await vi.waitFor(() =>
+      expect(crossParent.querySelector(".atv-rating-panel-mc")).toBeNull()
+    );
+
+    render(null, crossParent);
+    localStorage.clear();
+    requests.length = 0;
+    pageParentUrl = "https://www.metacritic.com/tv/game-of-thrones/";
+    pageSeasonNumber = 3;
+    const crossSeason = renderIntoRoot(
+      <SubjectPageRuntime data={data} doc={document} />
+    );
+    await vi.waitFor(() =>
+      expect(crossSeason.querySelector(".atv-rating-panel-mc")).toBeNull()
+    );
   });
 });

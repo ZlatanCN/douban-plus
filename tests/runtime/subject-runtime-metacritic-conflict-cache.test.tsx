@@ -24,13 +24,15 @@ describe("Metacritic season conflict cache", () => {
     const imdbId = "tt0944947";
     const target = {
       kind: "series",
+      identityReferences: { creators: [], directors: [] },
       metacriticId: "tv/game-of-thrones",
       season: null,
       seriesId: "Q23572",
+      seriesMetacriticId: "tv/game-of-thrones",
       status: "matched",
     };
     localStorage.setItem(
-      "dp:metacritic-targets:v1",
+      "dp:metacritic-targets:v4",
       JSON.stringify([
         [
           JSON.stringify([subjectId, imdbId, "series", null]),
@@ -42,20 +44,31 @@ describe("Metacritic season conflict cache", () => {
       ])
     );
     localStorage.setItem(
-      "dp:metacritic-cache-v3",
-      JSON.stringify([
-        [
-          `${subjectId}:series::tv/game-of-thrones`,
-          {
-            expiresAt: now + 7 * 24 * 60 * 60 * 1000,
-            value: {
-              reviewCount: 100,
-              score: 90,
-              sourceUrl: "https://www.metacritic.com/tv/game-of-thrones/",
-            },
+      "dp:metacritic-snapshots:v1",
+      JSON.stringify({
+        [JSON.stringify([
+          subjectId,
+          "series",
+          null,
+          "Q23572",
+          "tv/game-of-thrones",
+          "tv/game-of-thrones",
+        ])]: {
+          fetchedAt: now,
+          object: {
+            kind: "series",
+            metacriticId: "tv/game-of-thrones",
+            season: null,
+            seriesId: "Q23572",
+            seriesMetacriticId: "tv/game-of-thrones",
+            subjectId,
           },
-        ],
-      ])
+          reviewCount: 100,
+          score: 90,
+          sourceUrl: "https://www.metacritic.com/tv/game-of-thrones/",
+          stale: false,
+        },
+      })
     );
     const requests: string[] = [];
     mockNetwork((url) => {

@@ -36,10 +36,25 @@ type ImdbRating = {
 };
 
 /** Metacritic Metascore, 0-100, and number of critic reviews. */
-type McRating = {
+type McScore = {
+  reviewCount: number | null;
   score: number;
-  reviewCount: number;
   sourceUrl: string;
+};
+
+type McObject = {
+  kind: RtObjectKind;
+  metacriticId: string;
+  season: number | null;
+  seriesId: string | null;
+  seriesMetacriticId: string | null;
+  subjectId: string;
+};
+
+type McRating = McScore & {
+  fetchedAt: number;
+  object: McObject;
+  stale: boolean;
 };
 
 type RtCount =
@@ -327,6 +342,8 @@ export type {
   InfoBlock,
   InterestOpenOptions,
   McRating,
+  McObject,
+  McScore,
   RtRating,
   NavSection,
   Photo,

@@ -75,11 +75,11 @@ const renderMetacriticRating = (rating: McRating): JSX.Element => (
       </span>
       <span class="atv-mc-word-label">{mcWordRatingChinese(rating.score)}</span>
     </div>
-    <div class="atv-rating-panel-count">
-      {rating.reviewCount
-        ? `评价 ${rating.reviewCount.toLocaleString("en-US")}`
-        : "已评分"}
-    </div>
+    {rating.reviewCount === null ? null : (
+      <div class="atv-rating-panel-count">
+        {`评价 ${rating.reviewCount.toLocaleString("en-US")}`}
+      </div>
+    )}
   </>
 );
 
@@ -222,6 +222,10 @@ const ExternalRating = (props: ExternalRatingProps) => {
   }
 
   const logo = <RatingLogo name={props.source} />;
+  const staleLabel =
+    props.source === "metacritic" && props.rating?.stale ? (
+      <span class="atv-mc-stale">旧评分</span>
+    ) : null;
   const sourceLogo = sourceUrl ? (
     <a
       aria-label={SOURCE_LINK_LABEL[props.source]}
@@ -237,6 +241,22 @@ const ExternalRating = (props: ExternalRatingProps) => {
   ) : (
     logo
   );
+  let logoGroup: JSX.Element = sourceLogo;
+  if (props.source === "rt") {
+    logoGroup = (
+      <span class="atv-rt-logo-group">
+        {sourceLogo}
+        {props.rating?.stale ? <span class="atv-rt-stale">旧评分</span> : null}
+      </span>
+    );
+  } else if (props.source === "metacritic") {
+    logoGroup = (
+      <span class="atv-mc-logo-group">
+        {sourceLogo}
+        {staleLabel}
+      </span>
+    );
+  }
 
   return (
     <div
@@ -246,16 +266,7 @@ const ExternalRating = (props: ExternalRatingProps) => {
         props.resolved
       )}`}
     >
-      {props.source === "rt" ? (
-        <span class="atv-rt-logo-group">
-          {sourceLogo}
-          {props.rating?.stale ? (
-            <span class="atv-rt-stale">旧评分</span>
-          ) : null}
-        </span>
-      ) : (
-        sourceLogo
-      )}
+      {logoGroup}
       {renderExternalRatingContent(props)}
     </div>
   );

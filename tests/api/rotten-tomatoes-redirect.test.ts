@@ -21,11 +21,18 @@ const claim = (value: unknown) => ({
 });
 
 const rtPage = `<link rel="canonical" href="https://www.rottentomatoes.com/m/the_godfather_part_ii"><script type="application/ld+json">${JSON.stringify(
-  { "@type": "Movie" }
-)}</script><script data-json="mediaScorecard">${JSON.stringify({
-  audienceScore: { ratingCount: "250,000+", scorePercent: "97" },
-  criticsScore: { ratingCount: 130, scorePercent: "96" },
-})}</script>`;
+  {
+    "@type": "Movie",
+    dateCreated: "2012-11-27",
+    director: [{ "@type": "Person", name: "Francis Ford Coppola" }],
+    name: "The Godfather: Part II",
+  }
+)}</script><dl><dt><rt-text data-qa="item-label">Release Date (Theaters)</rt-text></dt><dd data-qa="item-value-group"><rt-text data-qa="item-value">Dec 12, 1974, Wide</rt-text></dd></dl><script data-json="mediaScorecard">${JSON.stringify(
+  {
+    audienceScore: { ratingCount: "250,000+", scorePercent: "97" },
+    criticsScore: { ratingCount: 130, scorePercent: "96" },
+  }
+)}</script>`;
 
 describe(fetchRtRating, () => {
   beforeEach(() => {
@@ -50,6 +57,27 @@ describe(fetchRtRating, () => {
           });
         }
 
+        if (requestUrl.searchParams.get("props") === "labels|aliases") {
+          return Promise.resolve({
+            finalUrl: url,
+            responseText: JSON.stringify({
+              entities: {
+                Q56094: {
+                  aliases: {
+                    en: [{ value: "Francis Ford Coppola" }],
+                    zh: [{ value: "弗朗西斯·福特·科波拉" }],
+                  },
+                  labels: {
+                    en: { value: "Francis Ford Coppola" },
+                    zh: { value: "弗朗西斯·福特·科波拉" },
+                  },
+                },
+              },
+            }),
+            status: 200,
+          });
+        }
+
         return Promise.resolve({
           finalUrl: url,
           responseText: JSON.stringify({
@@ -59,6 +87,7 @@ describe(fetchRtRating, () => {
                   P31: [claim({ id: "Q11424" })],
                   P1258: [claim("m/godfather_part_ii")],
                   P345: [claim("tt0071562")],
+                  P57: [claim({ id: "Q56094" })],
                 },
                 id: "Q184768",
               },
@@ -84,6 +113,12 @@ describe(fetchRtRating, () => {
           seasonConflict: false,
           subjectId: "1299131",
           subjectTitle: "教父2",
+          identityEvidence: {
+            originalTitle: "The Godfather: Part II",
+            releaseYear: "1974",
+            directors: ["弗朗西斯·福特·科波拉"],
+            creators: [],
+          },
           unsupportedEpisode: false,
         },
         new AbortController().signal

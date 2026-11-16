@@ -7,6 +7,11 @@ type EntityCandidates<T> =
   | { entities: T[]; status: "matched" }
   | { status: "ambiguous" | "missing" };
 type WikidataResponse = { error?: unknown };
+type EntityName = { value?: unknown };
+type EntityNames = {
+  aliases?: Record<string, EntityName[]>;
+  labels?: Record<string, EntityName>;
+};
 
 const API_URL = "https://www.wikidata.org/w/api.php";
 const REQUEST_TIMEOUT = 8000;
@@ -91,6 +96,49 @@ const fetchEntities = async <T>(
   return data.entities ?? {};
 };
 
+const fetchEntityNames = async (
+  entityIds: string[],
+  signal: AbortSignal
+): Promise<Record<string, string[]>> => {
+  const uniqueIds = [...new Set(entityIds.filter((id) => /^Q\d+$/u.test(id)))];
+  if (uniqueIds.length === 0) {
+    return {};
+  }
+  const url = new URL(API_URL);
+  url.search = new URLSearchParams({
+    action: "wbgetentities",
+    format: "json",
+    ids: uniqueIds.slice(0, 50).join("|"),
+    origin: "*",
+    props: "labels|aliases",
+  }).toString();
+  const response = await gmGetResponse(url.href, undefined, {
+    signal,
+    timeoutMs: REQUEST_TIMEOUT,
+  });
+  const data = JSON.parse(response.responseText) as WikidataResponse & {
+    entities?: Record<string, EntityNames>;
+  };
+  throwApiError(data);
+  return Object.fromEntries(
+    Object.entries(data.entities ?? {}).map(([id, entity]) => [
+      id,
+      [
+        ...new Set([
+          ...Object.values(entity.labels ?? {}).flatMap((label) =>
+            typeof label.value === "string" ? [label.value] : []
+          ),
+          ...Object.values(entity.aliases ?? {}).flatMap((aliases) =>
+            aliases.flatMap((alias) =>
+              typeof alias.value === "string" ? [alias.value] : []
+            )
+          ),
+        ]),
+      ],
+    ])
+  );
+};
+
 const findEntityCandidates = async <T>(
   property: string,
   value: string,
@@ -109,6 +157,7 @@ const findEntityCandidates = async <T>(
 
 export {
   entityReference,
+  fetchEntityNames,
   fetchEntities,
   findEntityCandidates,
   type EntityCandidates,
