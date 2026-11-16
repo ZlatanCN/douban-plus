@@ -4,7 +4,16 @@ import type {
 } from "@/modules/subject/api/external-ratings/outcome";
 import type { RtObjectKind } from "@/modules/subject/domain";
 
-import packageJson from "../../../../package.json";
+import { getUserscriptApi } from "./rating-diagnostics-api";
+import type {
+  MenuCommandId,
+  RatingDiagnosticsApi,
+} from "./rating-diagnostics-api";
+import {
+  createRatingDiagnosticsReportText,
+  sanitizeRatingDiagnosticRecord,
+  showSelectableReport,
+} from "./rating-diagnostics-report";
 
 type RatingDiagnosticRecord = ExternalRatingDiagnostic & {
   hasRating: boolean;
@@ -16,18 +25,6 @@ type RatingDiagnosticPage = {
   kind: RtObjectKind;
   season: number | null;
   subjectId: string;
-};
-
-type MenuCommandId = number | string;
-type RatingDiagnosticsApi = {
-  getValue: (key: string, defaultValue: unknown) => Promise<unknown>;
-  registerMenuCommand: (
-    caption: string,
-    onClick: () => void
-  ) => MenuCommandId | Promise<MenuCommandId>;
-  setValue: (key: string, value: boolean) => Promise<void>;
-  unregisterMenuCommand: (id: MenuCommandId) => void | Promise<void>;
-  setClipboard?: (text: string, type?: string) => void | Promise<void>;
 };
 
 type RatingDiagnostics = {
@@ -57,120 +54,6 @@ const DIAGNOSTIC_REASONS = new Set<ExternalRatingReason>([
   "source-no-rating",
 ]);
 
-const getUserscriptApi = (): RatingDiagnosticsApi | undefined => {
-  const globals = globalThis as typeof globalThis & {
-    GM?: RatingDiagnosticsApi;
-    GM_setClipboard?: (text: string, type?: string) => void;
-  };
-  const gm = globals.GM;
-  if (
-    !gm ||
-    typeof gm.getValue !== "function" ||
-    typeof gm.setValue !== "function" ||
-    typeof gm.registerMenuCommand !== "function" ||
-    typeof gm.unregisterMenuCommand !== "function"
-  ) {
-    return undefined;
-  }
-  const { setClipboard: gmClipboard } = gm;
-  let setClipboard: RatingDiagnosticsApi["setClipboard"];
-  if (typeof gmClipboard === "function") {
-    setClipboard = gmClipboard;
-  } else if (typeof globals.GM_setClipboard === "function") {
-    setClipboard = globals.GM_setClipboard;
-  }
-  return {
-    getValue: gm.getValue,
-    registerMenuCommand: gm.registerMenuCommand,
-    setValue: gm.setValue,
-    unregisterMenuCommand: gm.unregisterMenuCommand,
-    ...(setClipboard ? { setClipboard } : {}),
-  };
-};
-
-const safeErrorCode = (value: string | null): string | null =>
-  value !== null && /^[a-z0-9-]{1,64}$/u.test(value) ? value : null;
-
-const safeTarget = (value: string | null): string | null =>
-  value !== null &&
-  /^[a-z0-9][a-z0-9._/-]{0,119}$/iu.test(value) &&
-  !value.split("/").includes("..")
-    ? value
-    : null;
-
-const reportWork = (page: RatingDiagnosticPage | null) => {
-  if (page === null) {
-    return null;
-  }
-  const { imdbId: pageImdbId, kind, season: pageSeason, subjectId } = page;
-  let imdbId: string | null = null;
-  let season: number | null = null;
-  if (pageImdbId !== null && /^tt\d{5,16}$/u.test(pageImdbId)) {
-    imdbId = pageImdbId;
-  }
-  if (
-    pageSeason !== null &&
-    Number.isSafeInteger(pageSeason) &&
-    pageSeason > 0
-  ) {
-    season = pageSeason;
-  }
-  return {
-    imdbId,
-    kind,
-    season,
-    subjectId: /^\d{1,32}$/u.test(subjectId) ? subjectId : null,
-  };
-};
-
-const showSelectableReport = (text: string): void => {
-  const { body } = document;
-  if (!body) {
-    return;
-  }
-  body.querySelector("#dp-rating-diagnostics-copy")?.remove();
-  const panel = document.createElement("section");
-  panel.id = "dp-rating-diagnostics-copy";
-  panel.setAttribute("role", "dialog");
-  panel.setAttribute("aria-label", "评分诊断报告");
-  Object.assign(panel.style, {
-    background: "#fff",
-    border: "1px solid #777",
-    borderRadius: "8px",
-    boxShadow: "0 8px 32px #0005",
-    color: "#111",
-    inset: "auto 16px 16px auto",
-    maxWidth: "min(680px, calc(100vw - 32px))",
-    padding: "12px",
-    position: "fixed",
-    zIndex: "2147483647",
-  });
-
-  const label = document.createElement("label");
-  label.htmlFor = "dp-rating-diagnostics-copy-text";
-  label.textContent = "剪贴板不可用。请复制以下本页评分诊断报告。";
-  const textarea = document.createElement("textarea");
-  textarea.id = label.htmlFor;
-  textarea.readOnly = true;
-  textarea.rows = 14;
-  textarea.value = text;
-  textarea.setAttribute("aria-label", "可复制的本页评分诊断报告");
-  Object.assign(textarea.style, {
-    display: "block",
-    fontFamily: "monospace",
-    marginBlock: "8px",
-    width: "min(640px, calc(100vw - 64px))",
-  });
-  const close = document.createElement("button");
-  close.type = "button";
-  close.textContent = "关闭";
-  close.addEventListener("click", () => panel.remove());
-  panel.append(label, textarea, close);
-  body.append(panel);
-  textarea.focus();
-  textarea.select();
-};
-
 const createRatingDiagnostics = (
   api: RatingDiagnosticsApi | undefined
 ): RatingDiagnostics => {
@@ -186,21 +69,7 @@ const createRatingDiagnostics = (
   >();
 
   const reportText = (): string =>
-    JSON.stringify(
-      {
-        scriptVersion: packageJson.version,
-        work: reportWork(page),
-        records: ["imdb", "mc", "rt"]
-          .map((source) =>
-            records.get(source as RatingDiagnosticRecord["source"])
-          )
-          .filter(
-            (record): record is RatingDiagnosticRecord => record !== undefined
-          ),
-      },
-      null,
-      2
-    );
+    createRatingDiagnosticsReportText(page, [...records.values()]);
 
   const copyReport = async (): Promise<void> => {
     if (disposed) {
@@ -327,17 +196,7 @@ const createRatingDiagnostics = (
       ) {
         return;
       }
-      records.set(record.source, {
-        ...record,
-        cacheAgeMs:
-          record.cacheAgeMs !== null &&
-          Number.isFinite(record.cacheAgeMs) &&
-          record.cacheAgeMs >= 0
-            ? record.cacheAgeMs
-            : null,
-        errorCode: safeErrorCode(record.errorCode),
-        target: safeTarget(record.target),
-      });
+      records.set(record.source, sanitizeRatingDiagnosticRecord(record));
       while (records.size > MAX_RECORDS) {
         const oldest = records.keys().next().value;
         if (oldest === undefined) {

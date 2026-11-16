@@ -93,15 +93,38 @@ const resolveRottenMapping = async (
     mappings: [],
     state: "error",
   };
+  const evidenceLookups = [imdb, douban].filter(
+    (lookup): lookup is IdentityLookup => lookup !== null
+  );
+  const evidence = {
+    acceptedEvidence: evidenceLookups.flatMap(
+      (lookup) => lookup.acceptedEvidence ?? []
+    ),
+    candidateTargets: [
+      ...new Set(
+        evidenceLookups.flatMap((lookup) => lookup.candidateTargets ?? [])
+      ),
+    ],
+    missingEvidence: evidenceLookups.flatMap(
+      (lookup) => lookup.missingEvidence ?? []
+    ),
+    rejectedEvidence: evidenceLookups.flatMap(
+      (lookup) => lookup.rejectedEvidence ?? []
+    ),
+    unverifiedEvidence: evidenceLookups.flatMap(
+      (lookup) => lookup.unverifiedEvidence ?? []
+    ),
+  };
   const result = combineLookups(imdb, douban, context);
   if (result.status === "unavailable") {
-    return result;
+    return { ...result, ...evidence };
   }
   const mappings = [...(imdb?.mappings ?? []), ...(douban?.mappings ?? [])];
   const identity = identityFor(mappings, context, result);
   return {
     ...result,
     ...identity,
+    ...evidence,
   };
 };
 

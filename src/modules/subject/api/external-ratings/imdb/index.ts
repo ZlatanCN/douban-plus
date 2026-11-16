@@ -2,12 +2,12 @@ import type {
   ExternalRatingDiagnostic,
   ExternalRatingReason,
 } from "@/modules/subject/api/external-ratings/outcome";
+import { createExternalRatingDiagnostic } from "@/modules/subject/api/external-ratings/outcome";
 import type { ImdbRating } from "@/modules/subject/domain";
 import { createCache } from "@/shared/utils/cache";
-import { gmPost } from "@/shared/utils/request";
 
-import { parseResponse, parseSeasonRating } from "./parsers";
-import type { ParsedResponse } from "./parsers";
+import { fetchSeasonRating, fetchTitleInfo } from "./query";
+import type { TitleInfoResult } from "./query";
 
 const imdbCache = createCache<{
   fetchedAt: number;
@@ -16,62 +16,12 @@ const imdbCache = createCache<{
   title: string;
 }>("dp:imdb-cache-v4", 30 * 24 * 60 * 60 * 1000);
 
-/* ── GraphQL Queries ────────────────────────────────── */
-
-/** First query: get title info + parent series id (if episode). */
-const GRAPHQL_QUERY = `query GetRating($id: ID!) {
-  title(id: $id) {
-    id
-    titleText { text }
-    titleType { id }
-    ratingsSummary { aggregateRating voteCount }
-    series {
-      series {
-        id
-        titleText { text }
-      }
-    }
-  }
-}`;
-
-/** Second query: get all episode ratings for a specific season. */
-const SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
-  title(id: $id) {
-    episodes {
-      episodes(first: 50, filter: {includeSeasons: [$season]}) {
-        edges {
-          node {
-            ratingsSummary { aggregateRating voteCount }
-          }
-        }
-      }
-    }
-  }
-}`;
-
 type FetchImdbResult = {
   rating: ImdbRating | null;
   sourceUrl: string | null;
   title: string | null;
 };
 type OnImdbOutcome = (diagnostic: ExternalRatingDiagnostic) => void;
-type TitleInfoResult =
-  | { response: ParsedResponse }
-  | {
-      errorCode: string;
-      reason: "cancelled" | "parse-error" | "request-error";
-    };
-type SeasonRatingResult =
-  | { rating: NonNullable<ImdbRating>; status: "rating" }
-  | {
-      errorCode: string;
-      status: "cancelled" | "parse-error" | "request-error";
-    }
-  | { status: "source-no-rating" };
-
-const IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
-const IMDB_REFERER = "https://www.imdb.com/";
-const IMDB_HEADERS = { "Content-Type": "application/json" };
 
 const makeDiagnostic = (
   reason: ExternalRatingReason,
@@ -79,27 +29,15 @@ const makeDiagnostic = (
   target: string | null,
   cacheAgeMs: number | null = null,
   errorCode: string | null = null
-): ExternalRatingDiagnostic => ({
-  cacheAgeMs,
-  errorCode,
-  reason,
-  stage,
-  target,
-});
+): ExternalRatingDiagnostic =>
+  createExternalRatingDiagnostic({
+    cacheAgeMs,
+    errorCode,
+    reason,
+    stage,
+    target,
+  });
 
-const failureReason = (
-  error: unknown
-): "cancelled" | "parse-error" | "request-error" => {
-  if (error instanceof DOMException && error.name === "AbortError") {
-    return "cancelled";
-  }
-  if (error instanceof SyntaxError) {
-    return "parse-error";
-  }
-  return "request-error";
-};
-
-/** Cache by requested title and season, e.g. "tt0944947-s05". */
 const seasonCacheKey = (titleId: string, season: number): string =>
   `${titleId}-s${String(season).padStart(2, "0")}`;
 
@@ -108,100 +46,6 @@ const imdbTitleUrl = (titleId: string): string =>
 
 const imdbSeasonUrl = (seriesId: string, season: number): string =>
   `${imdbTitleUrl(seriesId)}episodes/?season=${season}`;
-
-const postGraphQL = (
-  query: string,
-  variables: Record<string, unknown>,
-  signal?: AbortSignal
-): Promise<string> =>
-  gmPost(
-    IMDB_GRAPHQL_URL,
-    JSON.stringify({ query, variables }),
-    IMDB_REFERER,
-    IMDB_HEADERS,
-    signal ? { signal } : undefined
-  );
-
-const parsedResponseFailure = (
-  json: string
-): { errorCode: string; reason: "parse-error" | "request-error" } => {
-  try {
-    const data = JSON.parse(json) as { errors?: unknown };
-    if (data.errors !== undefined) {
-      return { errorCode: "imdb-api-error", reason: "request-error" };
-    }
-    return { errorCode: "invalid-title-response", reason: "parse-error" };
-  } catch {
-    return { errorCode: "invalid-json", reason: "parse-error" };
-  }
-};
-
-/** First pass: get title info + detect whether the tconst is an episode. */
-const fetchTitleInfo = async (
-  imdbId: string,
-  signal?: AbortSignal
-): Promise<TitleInfoResult> => {
-  try {
-    const json = await postGraphQL(GRAPHQL_QUERY, { id: imdbId }, signal);
-    const parsed = parseResponse(json);
-    if ("error" in parsed) {
-      return parsedResponseFailure(json);
-    }
-    return { response: parsed };
-  } catch (error) {
-    const reason = failureReason(error);
-    return {
-      errorCode: reason === "cancelled" ? "aborted" : "imdb-request",
-      reason,
-    };
-  }
-};
-
-/** Fetch episode ratings for a season and return their vote-weighted average. */
-const fetchSeasonRating = async (
-  seriesId: string,
-  season: number,
-  signal?: AbortSignal
-): Promise<SeasonRatingResult> => {
-  let json: string;
-  try {
-    json = await postGraphQL(
-      SEASON_EPISODES_QUERY,
-      { id: seriesId, season: String(season) },
-      signal
-    );
-  } catch (error) {
-    const reason = failureReason(error);
-    return {
-      errorCode: reason === "cancelled" ? "aborted" : "imdb-season-request",
-      status: reason,
-    };
-  }
-
-  let parsed: {
-    data?: {
-      title?: {
-        episodes?: { episodes?: { edges?: unknown[] } };
-      };
-    };
-    errors?: unknown;
-  };
-  try {
-    parsed = JSON.parse(json) as typeof parsed;
-  } catch {
-    return { errorCode: "invalid-json", status: "parse-error" };
-  }
-  if (parsed.errors !== undefined) {
-    return { errorCode: "imdb-api-error", status: "request-error" };
-  }
-  if (!Array.isArray(parsed.data?.title?.episodes?.episodes?.edges)) {
-    return { errorCode: "invalid-season-response", status: "parse-error" };
-  }
-  const result = parseSeasonRating(json);
-  return result
-    ? { rating: result.rating, status: "rating" }
-    : { status: "source-no-rating" };
-};
 
 const cachedRating = (
   imdbId: string,
@@ -230,12 +74,8 @@ const cachedRating = (
 
 const diagnosticStage = (
   reason: ExternalRatingReason
-): ExternalRatingDiagnostic["stage"] => {
-  if (reason === "request-error" || reason === "cancelled") {
-    return "request";
-  }
-  return "parse";
-};
+): ExternalRatingDiagnostic["stage"] =>
+  reason === "request-error" || reason === "cancelled" ? "request" : "parse";
 
 const publishTitleFailure = (
   target: string,
@@ -352,10 +192,6 @@ const fetchDirectTitleRating = async (
   return { rating, sourceUrl, title };
 };
 
-/**
- * Resolve an IMDb rating for a title and optionally a specific season.
- * Failure reasons are reported separately from the rating data for runtime diagnostics.
- */
 const fetchImdbRating = (
   imdbId: string,
   season?: number,
@@ -374,10 +210,9 @@ const fetchImdbRating = (
     );
     return Promise.resolve({ rating: null, sourceUrl: null, title: null });
   }
-  if (season !== undefined) {
-    return fetchSeasonTitleRating(imdbId, season, signal, onOutcome);
-  }
-  return fetchDirectTitleRating(imdbId, signal, onOutcome);
+  return season === undefined
+    ? fetchDirectTitleRating(imdbId, signal, onOutcome)
+    : fetchSeasonTitleRating(imdbId, season, signal, onOutcome);
 };
 
 export { fetchImdbRating };

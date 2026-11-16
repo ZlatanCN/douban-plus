@@ -1,3 +1,4 @@
+import type { ExternalRatingDiagnostic } from "@/modules/subject/api/external-ratings/outcome";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
 import {
@@ -26,7 +27,18 @@ type TargetFailure =
   | "parse-error"
   | "request-error"
   | "season-unmatched";
-type RtTargetResult = ResolvedRtTarget | { failure: TargetFailure };
+type RtTargetResult =
+  | ResolvedRtTarget
+  | ({ failure: TargetFailure } & Partial<
+      Pick<
+        ExternalRatingDiagnostic,
+        | "acceptedEvidence"
+        | "candidateTargets"
+        | "missingEvidence"
+        | "rejectedEvidence"
+        | "unverifiedEvidence"
+      >
+    >);
 const rtTargetCache = createVerifiedTargetCache<ResolvedRtTarget>(
   "dp:rotten-targets:v2"
 );
@@ -175,7 +187,14 @@ const resolveRtTarget = async (
     return { failure: "aborted" };
   }
   if (mapping.status === "unavailable") {
-    return { failure: mapFailure(mapping) };
+    return {
+      failure: mapFailure(mapping),
+      acceptedEvidence: mapping.acceptedEvidence ?? [],
+      candidateTargets: mapping.candidateTargets ?? [],
+      missingEvidence: mapping.missingEvidence ?? [],
+      rejectedEvidence: mapping.rejectedEvidence ?? [],
+      unverifiedEvidence: mapping.unverifiedEvidence ?? [],
+    };
   }
   return mapping.needsSeasonLink
     ? resolveSeasonLink(context, mapping, signal)

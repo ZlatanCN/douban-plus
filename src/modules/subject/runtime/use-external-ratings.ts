@@ -1,15 +1,12 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
 
-import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
-import type { DoubanData, McRating, RtRating } from "@/modules/subject/domain";
+import type { DoubanData } from "@/modules/subject/domain";
 import { emptyRatingResults } from "@/modules/subject/resolve/types";
-import type {
-  RatingResultMap,
-  SourceResult,
-} from "@/modules/subject/resolve/types";
+import type { RatingResultMap } from "@/modules/subject/resolve/types";
 
 import { buildContext } from "../resolve/context";
 import { resolveAll } from "../resolve/orchestrate";
+import type { RatingUpdate } from "../resolve/orchestrate";
 import {
   createRatingDiagnostics,
   getUserscriptApi,
@@ -19,11 +16,6 @@ type ExternalRatingsState = {
   data: DoubanData;
   ratings: RatingResultMap;
 };
-
-type DiagnosticUpdate =
-  | { result: SourceResult<FetchImdbResult>; source: "imdb" }
-  | { result: SourceResult<McRating>; source: "mc" }
-  | { result: SourceResult<RtRating>; source: "rt" };
 
 const useExternalRatings = (data: DoubanData): RatingResultMap => {
   const [state, setState] = useState<ExternalRatingsState>(() => ({
@@ -51,11 +43,8 @@ const useExternalRatings = (data: DoubanData): RatingResultMap => {
     );
 
     let captureReady = false;
-    const pendingUpdates = new Map<
-      DiagnosticUpdate["source"],
-      DiagnosticUpdate
-    >();
-    const capture = (update: DiagnosticUpdate): void => {
+    const pendingUpdates = new Map<RatingUpdate["source"], RatingUpdate>();
+    const capture = (update: RatingUpdate): void => {
       if (update.result.diagnostic) {
         diagnostics.record({
           ...update.result.diagnostic,

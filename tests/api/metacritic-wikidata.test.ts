@@ -98,7 +98,11 @@ describe(resolveMetacriticTarget, () => {
     );
 
     expect(result).toStrictEqual({
+      acceptedEvidence: ["exact-id", "type"],
+      candidateTargets: ["Q23572"],
       complete: true,
+      missingEvidence: [],
+      rejectedEvidence: [],
       status: "matched",
       target: {
         kind: "season",
@@ -109,6 +113,7 @@ describe(resolveMetacriticTarget, () => {
         seriesMetacriticId: "tv/game-of-thrones",
         status: "matched",
       },
+      unverifiedEvidence: [],
     });
   });
 });

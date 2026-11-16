@@ -11,11 +11,12 @@ import {
   entityKind,
   hasActiveIdentity,
   isDeprecatedIdentity,
+  isSeriesEntity,
   readEpisodeRtTarget,
   readRtTarget,
   readSeasonOrdinal,
 } from "./claims";
-import type { Entity, IdentityLookup } from "./claims";
+import type { Entity, IdentityLookup, MappingEvidence } from "./claims";
 
 const EPISODE_TYPES = new Set(["Q21191270"]);
 
@@ -105,7 +106,8 @@ const mapEpisodeToSeries = async (
   if (target.status !== "matched") {
     return { mappings: [], state: target.status };
   }
-  if ((await entityKind(series, target.rtId, signal)) !== "series") {
+  const parentKind = await entityKind(series, target.rtId, signal);
+  if (parentKind !== "series") {
     return { mappings: [], state: "missing" };
   }
   if (
@@ -141,8 +143,16 @@ const fetchEntities = async (
     signal
   );
   if (candidates.status !== "matched") {
-    return { mappings: [], state: candidates.status };
+    return {
+      candidateTargets: [],
+      mappings: [],
+      state: candidates.status,
+      unverifiedEvidence: ["exact-id", "type", "canonical", "aggregate-rating"],
+    };
   }
+  const candidateTargets = candidates.entities
+    .map((entity) => entity.id)
+    .filter((id) => /^Q\d+$/u.test(id));
   const entities = candidates.entities.filter((entity) =>
     hasActiveIdentity(entity, property, value)
   );
@@ -150,22 +160,61 @@ const fetchEntities = async (
     isDeprecatedIdentity(entity, property, value)
   );
   if (entities.length > 1) {
-    return { mappings: [], state: "ambiguous" };
+    return {
+      candidateTargets,
+      mappings: [],
+      rejectedEvidence: ["exact-id"],
+      state: "ambiguous",
+      unverifiedEvidence: ["type", "canonical", "aggregate-rating"],
+    };
   }
   const [entity] = entities;
   if (!entity) {
-    return { mappings: [], state: deprecated ? "deprecated" : "missing" };
+    return {
+      candidateTargets,
+      mappings: [],
+      rejectedEvidence: deprecated ? ["exact-id"] : [],
+      state: deprecated ? "deprecated" : "missing",
+      ...(deprecated ? {} : { missingEvidence: ["exact-id"] }),
+      unverifiedEvidence: ["type", "canonical", "aggregate-rating"],
+    };
   }
   const mapping = await mapEntity(entity, property, value, signal);
+  const acceptedEvidence = [
+    "exact-id" as const,
+    ...(mapping.state === "matched" || isSeriesEntity(entity)
+      ? (["type"] as const)
+      : []),
+  ];
+  const mappingEvidence: Partial<MappingEvidence> = {
+    acceptedEvidence,
+    candidateTargets,
+    ...(mapping.state === "matched" ? {} : { missingEvidence: ["exact-id"] }),
+    unverifiedEvidence:
+      mapping.state === "matched"
+        ? []
+        : [
+            "canonical" as const,
+            "aggregate-rating" as const,
+            ...(expectedSeason === undefined
+              ? []
+              : (["season-link", "season-number"] as const)),
+          ],
+  };
   // Episode IDs identify an episode page; validate the parent series for the requested season.
   if (
     property === "P345" &&
     expectedSeason !== undefined &&
     (mapping.state === "missing" || mapping.state === "ambiguous")
   ) {
-    return mapEpisodeToSeries(entity, signal, expectedSeason);
+    const episodeMapping = await mapEpisodeToSeries(
+      entity,
+      signal,
+      expectedSeason
+    );
+    return { ...episodeMapping, ...mappingEvidence };
   }
-  return mapping;
+  return { ...mapping, ...mappingEvidence };
 };
 
 export { fetchEntities };

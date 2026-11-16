@@ -3,9 +3,14 @@ import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imd
 import { fetchMcRating } from "@/modules/subject/api/external-ratings/metacritic";
 import type { ExternalRatingDiagnostic } from "@/modules/subject/api/external-ratings/outcome";
 import { fetchRtRating } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
-import type { RtResolution } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
 import type { McRating, RtRating } from "@/modules/subject/domain";
 
+import {
+  addDiagnosticEvidence,
+  imdbDiagnostic,
+  metacriticDiagnostic,
+  rtDiagnostic,
+} from "./diagnostics";
 import type { ResolutionContext, SourceResult } from "./types";
 
 type RatingUpdate =
@@ -13,161 +18,6 @@ type RatingUpdate =
   | { result: SourceResult<McRating>; source: "mc" }
   | { result: SourceResult<RtRating>; source: "rt" };
 type OnRatingUpdate = (update: RatingUpdate) => void;
-
-const makeDiagnostic = (
-  reason: ExternalRatingDiagnostic["reason"],
-  stage: ExternalRatingDiagnostic["stage"],
-  target: string | null,
-  fetchedAt: number | null = null,
-  errorCode: string | null = null
-): ExternalRatingDiagnostic => ({
-  cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
-  errorCode,
-  reason,
-  stage,
-  target,
-});
-
-const imdbDiagnostic = (
-  result: FetchImdbResult | null,
-  context: ResolutionContext
-): ExternalRatingDiagnostic => {
-  if (!context.imdbId) {
-    return makeDiagnostic(
-      "mapping-missing",
-      "mapping",
-      null,
-      null,
-      "no-imdb-id"
-    );
-  }
-  if (result?.rating) {
-    return makeDiagnostic("rating", "rating", context.imdbId);
-  }
-  return result?.sourceUrl
-    ? makeDiagnostic("source-no-rating", "rating", context.imdbId)
-    : makeDiagnostic(
-        "request-error",
-        "request",
-        context.imdbId,
-        null,
-        "imdb-fetch"
-      );
-};
-
-const metacriticDiagnostic = (
-  rating: McRating | null,
-  context: ResolutionContext
-): ExternalRatingDiagnostic => {
-  if (rating) {
-    return makeDiagnostic(
-      "rating",
-      rating.stale ? "cache" : "rating",
-      rating.object.metacriticId,
-      rating.fetchedAt
-    );
-  }
-  if (
-    !context.subjectId ||
-    context.seasonConflict ||
-    context.unsupportedEpisode ||
-    (context.kind === "season" && context.season === null)
-  ) {
-    return makeDiagnostic(
-      "mapping-missing",
-      "mapping",
-      null,
-      null,
-      "no-target"
-    );
-  }
-  return makeDiagnostic(
-    "request-error",
-    "request",
-    null,
-    null,
-    "mc-unresolved"
-  );
-};
-
-const rtDiagnostic = (result: RtResolution): ExternalRatingDiagnostic => {
-  if (result.diagnostic) {
-    return result.diagnostic;
-  }
-  if (result.rating) {
-    return makeDiagnostic(
-      "rating",
-      result.status === "cached" || result.status === "stale"
-        ? "cache"
-        : "rating",
-      result.rating.object.rtId,
-      result.rating.fetchedAt
-    );
-  }
-  switch (result.status) {
-    case "aborted": {
-      return makeDiagnostic("cancelled", "request", null, null, "aborted");
-    }
-    case "identity-conflict": {
-      return makeDiagnostic(
-        "identity-conflict",
-        "identity",
-        null,
-        null,
-        "rt-conflict"
-      );
-    }
-    case "missing-mapping":
-    case "season-unmatched": {
-      return makeDiagnostic(
-        "mapping-missing",
-        "mapping",
-        null,
-        null,
-        result.status
-      );
-    }
-    case "no-rating": {
-      return makeDiagnostic(
-        "source-no-rating",
-        "parse",
-        null,
-        null,
-        "no-rating"
-      );
-    }
-    case "error":
-    case "identity-unavailable": {
-      return makeDiagnostic(
-        "request-error",
-        "request",
-        null,
-        null,
-        result.status
-      );
-    }
-    case "cached":
-    case "refreshed":
-    case "stale": {
-      return makeDiagnostic(
-        "source-no-rating",
-        "parse",
-        null,
-        null,
-        "missing-result"
-      );
-    }
-    default: {
-      return makeDiagnostic(
-        "request-error",
-        "request",
-        null,
-        null,
-        "rt-unresolved"
-      );
-    }
-  }
-};
 
 const sourceResult = <TRating>(
   rating: TRating | null,
@@ -216,7 +66,11 @@ const resolveAll = (
         onUpdate({
           result: sourceResult(
             rating,
-            imdbOutcome ?? imdbDiagnostic(rating, context)
+            addDiagnosticEvidence(
+              imdbOutcome ?? imdbDiagnostic(rating, context),
+              "imdb",
+              context
+            )
           ),
           source: "imdb",
         })
@@ -225,7 +79,7 @@ const resolveAll = (
     onUpdate({
       result: sourceResult<FetchImdbResult>(
         null,
-        imdbDiagnostic(null, context)
+        addDiagnosticEvidence(imdbDiagnostic(null, context), "imdb", context)
       ),
       source: "imdb",
     });
@@ -242,7 +96,11 @@ const resolveAll = (
             onUpdate({
               result: sourceResult(
                 rating,
-                mcOutcome ?? metacriticDiagnostic(rating, context)
+                addDiagnosticEvidence(
+                  mcOutcome ?? metacriticDiagnostic(rating, context),
+                  "mc",
+                  context
+                )
               ),
               source: "mc",
             });
@@ -257,27 +115,38 @@ const resolveAll = (
         onUpdate({
           result: sourceResult(
             rating,
-            mcOutcome ?? metacriticDiagnostic(rating, context)
+            addDiagnosticEvidence(
+              mcOutcome ?? metacriticDiagnostic(rating, context),
+              "mc",
+              context
+            )
           ),
           source: "mc",
         })
     );
   } else {
     onUpdate({
-      result: sourceResult<McRating>(null, metacriticDiagnostic(null, context)),
+      result: sourceResult<McRating>(
+        null,
+        addDiagnosticEvidence(
+          metacriticDiagnostic(null, context),
+          "mc",
+          context
+        )
+      ),
       source: "mc",
     });
   }
 
   const resolveRottenTomatoes = async (): Promise<void> => {
-    let result: RtResolution;
+    let result: Awaited<ReturnType<typeof fetchRtRating>>;
     try {
       result = await fetchRtRating(context, signal, (partial) => {
         if (!signal.aborted) {
           onUpdate({
             result: sourceResult(
               partial.rating,
-              rtDiagnostic(partial),
+              addDiagnosticEvidence(rtDiagnostic(partial), "rt", context),
               partial.status === "stale" ? "pending" : "resolved"
             ),
             source: "rt",
@@ -289,7 +158,10 @@ const resolveAll = (
     }
     if (!signal.aborted) {
       onUpdate({
-        result: sourceResult(result.rating, rtDiagnostic(result)),
+        result: sourceResult(
+          result.rating,
+          addDiagnosticEvidence(rtDiagnostic(result), "rt", context)
+        ),
         source: "rt",
       });
     }
@@ -298,3 +170,4 @@ const resolveAll = (
 };
 
 export { resolveAll };
+export type { OnRatingUpdate, RatingUpdate };

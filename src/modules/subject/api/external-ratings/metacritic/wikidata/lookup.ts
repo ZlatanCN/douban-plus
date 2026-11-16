@@ -4,8 +4,8 @@ import { hasIdentity } from "./claims";
 import type { Entity } from "./claims";
 
 type LookupResult =
-  | { entity: Entity; status: "matched" }
-  | { status: "ambiguous" | "missing" };
+  | { candidateTargets: string[]; entity: Entity; status: "matched" }
+  | { candidateTargets: string[]; status: "ambiguous" | "missing" };
 
 const findEntity = async (
   property: "P345" | "P4529",
@@ -18,16 +18,21 @@ const findEntity = async (
     signal
   );
   if (candidates.status !== "matched") {
-    return candidates;
+    return { ...candidates, candidateTargets: [] };
   }
+  const candidateTargets = candidates.entities
+    .map((entity) => entity.id)
+    .filter((id) => /^Q\d+$/u.test(id));
   const matches = candidates.entities.filter((entity) =>
     hasIdentity(entity, property, value)
   );
   if (matches.length > 1) {
-    return { status: "ambiguous" };
+    return { candidateTargets, status: "ambiguous" };
   }
   const [entity] = matches;
-  return entity ? { entity, status: "matched" } : { status: "missing" };
+  return entity
+    ? { candidateTargets, entity, status: "matched" }
+    : { candidateTargets, status: "missing" };
 };
 
 export { findEntity, type LookupResult };

@@ -6,27 +6,19 @@ import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
 import { TARGET_REVALIDATION_INTERVAL } from "../shared/verified-target-cache";
+import { loadRating } from "./rating";
 import {
   fallbackSnapshot,
   getSnapshotObject,
   isConfirmedRatingStatus,
-  loadRating,
   ratingFailure,
-} from "./rating";
-import type { RtResolution } from "./rating";
-import {
-  currentRevision,
-  invalidateRequests,
-  isCurrent,
-} from "./request-revision";
-import { readSnapshot, removeSnapshotsForContext } from "./snapshot";
-import type { ResolvedRtTarget, RtTargetResult } from "./target";
-import {
-  cacheRtTarget,
-  getCachedRtTarget,
-  invalidateRtTarget,
-  resolveRtTarget,
-} from "./target";
+} from "./rating-outcome";
+import type { RtResolution } from "./rating-outcome";
+import { currentRevision, isCurrent } from "./request-revision";
+import { readSnapshot } from "./snapshot";
+import type { RtTargetResult } from "./target";
+import { cacheRtTarget, getCachedRtTarget, resolveRtTarget } from "./target";
+import { targetFailureResult } from "./target-failure";
 import { refreshCachedTarget } from "./target-refresh";
 
 type TargetLookup = {
@@ -52,65 +44,6 @@ const resolveTargetForRequest = async (
   return { cacheEntry, target };
 };
 
-const targetFailureResult = (
-  context: ResolutionContext,
-  failure: Exclude<RtTargetResult, ResolvedRtTarget>["failure"],
-  onResult?: (result: RtResolution) => void
-): RtResolution => {
-  if (
-    failure === "error" ||
-    failure === "request-error" ||
-    failure === "parse-error"
-  ) {
-    const fallback = fallbackSnapshot(context, null, null, onResult);
-    const reason: ExternalRatingReason =
-      failure === "parse-error" ? "parse-error" : "request-error";
-    return {
-      ...fallback,
-      diagnostic: {
-        cacheAgeMs: null,
-        errorCode: failure === "error" ? "rt-mapping-request" : failure,
-        reason,
-        stage: failure === "parse-error" ? "parse" : "mapping",
-        target: null,
-      },
-    };
-  }
-  if (failure === "identity-unavailable") {
-    const snapshotFallback = fallbackSnapshot(context, null, null, onResult);
-    if (snapshotFallback.rating) {
-      return {
-        ...snapshotFallback,
-        diagnostic: {
-          cacheAgeMs: null,
-          errorCode: "identity-unavailable",
-          reason: "request-error",
-          stage: "identity",
-          target: null,
-        },
-      };
-    }
-    const unavailable = ratingFailure("identity-unavailable", null, {
-      cacheAgeMs: null,
-      errorCode: "identity-unavailable",
-      reason: "request-error",
-      stage: "identity",
-      target: null,
-    });
-    onResult?.(unavailable);
-    return unavailable;
-  }
-  if (failure === "identity-conflict") {
-    invalidateRequests(context);
-    invalidateRtTarget(context);
-    removeSnapshotsForContext(context.subjectId, context.kind);
-    const conflict = ratingFailure("identity-conflict");
-    onResult?.(conflict);
-    return conflict;
-  }
-  return ratingFailure(failure);
-};
-
 const failedRtFetch = (
   context: ResolutionContext,
   revision: number,
@@ -122,7 +55,12 @@ const failedRtFetch = (
 ): RtResolution => {
   if (signal.aborted) {
     return ratingFailure("aborted", null, {
+      acceptedEvidence: [],
       cacheAgeMs: null,
+      candidateTargets: [],
+      missingEvidence: [],
+      rejectedEvidence: [],
+      unverifiedEvidence: [],
       errorCode: "aborted",
       reason: "cancelled",
       stage: "request",
@@ -131,7 +69,12 @@ const failedRtFetch = (
   }
   if (!isCurrent(context, revision)) {
     return ratingFailure("identity-conflict", null, {
+      acceptedEvidence: [],
       cacheAgeMs: null,
+      candidateTargets: [],
+      missingEvidence: [],
+      rejectedEvidence: [],
+      unverifiedEvidence: [],
       errorCode: "stale-request",
       reason: "identity-conflict",
       stage: "identity",
@@ -147,7 +90,12 @@ const failedRtFetch = (
     reason = "request-error";
   }
   const diagnostic: ExternalRatingDiagnostic = {
+    acceptedEvidence: [],
     cacheAgeMs: null,
+    candidateTargets: [],
+    missingEvidence: [],
+    rejectedEvidence: [],
+    unverifiedEvidence: [],
     errorCode: reason === "cancelled" ? "aborted" : "rt-fetch",
     reason,
     stage: reason === "parse-error" ? "parse" : "request",
@@ -176,7 +124,7 @@ const fetchRtRating = async (
       return ratingFailure(signal.aborted ? "aborted" : "identity-conflict");
     }
     if ("failure" in target) {
-      return targetFailureResult(context, target.failure, onResult);
+      return targetFailureResult(context, target, onResult);
     }
     object = getSnapshotObject(context, target.rtId);
     prior = readSnapshot(object);

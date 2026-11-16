@@ -1,13 +1,13 @@
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
+import { loadRating } from "./rating";
 import {
   getSnapshotObject,
   isConfirmedRatingStatus,
-  loadRating,
   ratingFailure,
-} from "./rating";
-import type { OnRtResolution, RtResolution } from "./rating";
+} from "./rating-outcome";
+import type { OnRtResolution, RtResolution } from "./rating-outcome";
 import { invalidateRequests, isCurrent } from "./request-revision";
 import { readSnapshot, removeSnapshot } from "./snapshot";
 import { cacheRtTarget, invalidateRtTarget, resolveRtTarget } from "./target";
@@ -26,7 +26,12 @@ const handleTargetFailure = (
   ) {
     const reason = failure === "parse-error" ? "parse-error" : "request-error";
     const diagnostic = {
+      acceptedEvidence: [],
       cacheAgeMs: null,
+      candidateTargets: [],
+      missingEvidence: [],
+      rejectedEvidence: [],
+      unverifiedEvidence: [],
       errorCode: failure === "error" ? "rt-target-refresh" : failure,
       reason,
       stage: failure === "parse-error" ? "parse" : "mapping",
@@ -46,7 +51,12 @@ const handleTargetFailure = (
       prior
         ? {
             diagnostic: {
+              acceptedEvidence: [],
               cacheAgeMs: null,
+              candidateTargets: [],
+              missingEvidence: [],
+              rejectedEvidence: [],
+              unverifiedEvidence: [],
               errorCode: "identity-unavailable",
               reason: "request-error",
               stage: "identity",
@@ -56,7 +66,12 @@ const handleTargetFailure = (
             status: "stale",
           }
         : ratingFailure("identity-unavailable", null, {
+            acceptedEvidence: [],
             cacheAgeMs: null,
+            candidateTargets: [],
+            missingEvidence: [],
+            rejectedEvidence: [],
+            unverifiedEvidence: [],
             errorCode: "identity-unavailable",
             reason: "request-error",
             stage: "identity",

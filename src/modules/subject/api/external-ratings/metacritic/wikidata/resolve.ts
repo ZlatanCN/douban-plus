@@ -1,190 +1,36 @@
 import { createVerifiedTargetCache } from "@/modules/subject/api/external-ratings/shared/verified-target-cache";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
-import { entityKind, identityReferences, readMetacriticId } from "./claims";
-import type { Entity, MetacriticTarget, TargetResult } from "./claims";
-import { findEntity } from "./lookup";
-import type { LookupResult } from "./lookup";
-import { resolveSeasonTarget } from "./season";
+import type { MetacriticTarget } from "./claims";
+import { resolveIdentifier } from "./resolve-identifier";
+import { resolveIdentifierResults } from "./resolve-identifiers";
+import type { IdentifierResult, MetacriticTargetResolution } from "./types";
 
-type MetacriticTargetResolution =
-  | {
-      complete: boolean;
-      failure?: "parse-error" | "request-error";
-      season: number;
-      seriesTarget: MetacriticTarget;
-      status: "season-link-needed";
-    }
-  | {
-      complete: boolean;
-      failure?: "parse-error" | "request-error";
-      status: "ambiguous" | "error" | "identity-conflict" | "missing";
-    }
-  | {
-      complete: boolean;
-      failure?: "parse-error" | "request-error";
-      status: "matched";
-      target: MetacriticTarget;
-    };
+type MissingIdentifierResult = {
+  evidence: {
+    acceptedEvidence: [];
+    candidateTargets: [];
+    missingEvidence: ["exact-id"];
+    rejectedEvidence: [];
+    unverifiedEvidence: ["type", "canonical", "aggregate-rating"];
+  };
+  target: { status: "missing" };
+};
+
+const missingIdentifierResult = (): MissingIdentifierResult => ({
+  evidence: {
+    acceptedEvidence: [],
+    candidateTargets: [],
+    missingEvidence: ["exact-id"],
+    rejectedEvidence: [],
+    unverifiedEvidence: ["type", "canonical", "aggregate-rating"],
+  },
+  target: { status: "missing" },
+});
 
 const targetCache = createVerifiedTargetCache<MetacriticTarget>(
   "dp:metacritic-targets:v4"
 );
-
-const resolveEntity = async (
-  entity: Entity,
-  context: ResolutionContext,
-  signal: AbortSignal
-): Promise<TargetResult> => {
-  const kind = await entityKind(entity, signal);
-  if (context.kind === "movie") {
-    if (kind !== "movie") {
-      return { status: "ambiguous" };
-    }
-    const metacritic = readMetacriticId(entity);
-    if (metacritic.status !== "matched") {
-      return metacritic;
-    }
-    return metacritic.metacriticId.startsWith("movie/")
-      ? {
-          kind: "movie",
-          identityReferences: identityReferences(entity),
-          metacriticId: metacritic.metacriticId,
-          season: null,
-          seriesId: null,
-          seriesMetacriticId: null,
-          status: "matched",
-        }
-      : { status: "ambiguous" };
-  }
-  if (context.kind === "series") {
-    if (kind !== "series") {
-      return { status: "ambiguous" };
-    }
-    const metacritic = readMetacriticId(entity);
-    if (metacritic.status !== "matched") {
-      return metacritic;
-    }
-    return metacritic.metacriticId.startsWith("tv/") &&
-      !metacritic.metacriticId.includes("/season-")
-      ? {
-          kind: "series",
-          identityReferences: identityReferences(entity),
-          metacriticId: metacritic.metacriticId,
-          season: null,
-          seriesId: entity.id,
-          seriesMetacriticId: metacritic.metacriticId,
-          status: "matched",
-        }
-      : { status: "ambiguous" };
-  }
-  if (context.season === null) {
-    return { status: "ambiguous" };
-  }
-  if (kind === null) {
-    return { status: "ambiguous" };
-  }
-  return resolveSeasonTarget(entity, kind, context.season, signal);
-};
-
-const resolveIdentifier = async (
-  property: "P345" | "P4529",
-  value: string,
-  context: ResolutionContext,
-  signal: AbortSignal
-): Promise<TargetResult> => {
-  const lookup: LookupResult = await findEntity(property, value, signal);
-  if (lookup.status !== "matched") {
-    return lookup;
-  }
-  return resolveEntity(lookup.entity, context, signal);
-};
-
-const resolveIdentifierResults = (
-  results: PromiseSettledResult<TargetResult>[]
-): MetacriticTargetResolution => {
-  const hasRejectedLookup = results.some(
-    (result) => result.status === "rejected"
-  );
-  const rejectedReason = results.find(
-    (result): result is PromiseRejectedResult => result.status === "rejected"
-  )?.reason;
-  const failure =
-    rejectedReason instanceof SyntaxError ? "parse-error" : "request-error";
-  const targets = results.flatMap((result) =>
-    result.status === "fulfilled" ? [result.value] : []
-  );
-  if (targets.some((target) => target.status === "ambiguous")) {
-    return { complete: true, status: "ambiguous" };
-  }
-  const matches = targets.filter(
-    (target): target is MetacriticTarget => target.status === "matched"
-  );
-  const seasonLinks = targets.filter(
-    (
-      target
-    ): target is Extract<TargetResult, { status: "season-link-needed" }> =>
-      target.status === "season-link-needed"
-  );
-  const uniqueTargets = new Map(
-    matches.map((target) => [
-      `${target.kind}:${target.metacriticId}:${target.seriesId ?? ""}:${target.seriesMetacriticId ?? ""}`,
-      target,
-    ])
-  );
-  if (uniqueTargets.size > 1) {
-    return { complete: true, status: "identity-conflict" };
-  }
-  const uniqueSeasonLinks = new Map(
-    seasonLinks.map((result) => [
-      `${result.season}:${result.seriesTarget.seriesId ?? ""}:${result.seriesTarget.metacriticId}`,
-      result,
-    ])
-  );
-  if (uniqueSeasonLinks.size > 1) {
-    return { complete: true, status: "identity-conflict" };
-  }
-  const [matchedTarget] = uniqueTargets.values();
-  const [seasonLink] = uniqueSeasonLinks.values();
-  if (matchedTarget && seasonLink) {
-    if (
-      matchedTarget.kind !== "season" ||
-      matchedTarget.season !== seasonLink.season ||
-      matchedTarget.seriesId !== seasonLink.seriesTarget.seriesId
-    ) {
-      return { complete: true, status: "identity-conflict" };
-    }
-    return {
-      complete: !hasRejectedLookup,
-      ...(hasRejectedLookup ? { failure } : {}),
-      status: "matched",
-      target: matchedTarget,
-    };
-  }
-  if (uniqueTargets.size === 0 && seasonLink) {
-    return {
-      complete: !hasRejectedLookup,
-      ...(hasRejectedLookup ? { failure } : {}),
-      ...seasonLink,
-    };
-  }
-  if (uniqueTargets.size === 0) {
-    return {
-      complete: !hasRejectedLookup,
-      ...(hasRejectedLookup ? { failure } : {}),
-      status: hasRejectedLookup ? "error" : "missing",
-    };
-  }
-  if (matchedTarget) {
-    return {
-      complete: !hasRejectedLookup,
-      ...(hasRejectedLookup ? { failure } : {}),
-      status: "matched",
-      target: matchedTarget,
-    };
-  }
-  return { complete: !hasRejectedLookup, status: "missing" };
-};
 
 const resolveMetacriticTargetFresh = async (
   context: ResolutionContext,
@@ -199,10 +45,10 @@ const resolveMetacriticTargetFresh = async (
   const results = await Promise.allSettled([
     context.imdbId
       ? resolveIdentifier("P345", context.imdbId, context, signal)
-      : Promise.resolve<TargetResult>({ status: "missing" }),
+      : Promise.resolve<IdentifierResult>(missingIdentifierResult()),
     context.subjectId
       ? resolveIdentifier("P4529", context.subjectId, context, signal)
-      : Promise.resolve<TargetResult>({ status: "missing" }),
+      : Promise.resolve<IdentifierResult>(missingIdentifierResult()),
   ]);
   return resolveIdentifierResults(results);
 };
@@ -232,5 +78,5 @@ export {
   invalidateMetacriticTarget,
   resolveMetacriticTarget,
   resolveMetacriticTargetFresh,
-  type MetacriticTargetResolution,
 };
+export type { MetacriticTargetResolution };

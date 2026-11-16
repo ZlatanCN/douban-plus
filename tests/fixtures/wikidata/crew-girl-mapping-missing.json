@@ -1,0 +1,30 @@
+{
+  "capturedAt": "2026-11-16",
+  "entity": {
+    "id": "Q141155312",
+    "claims": {
+      "P31": [
+        {
+          "mainsnak": {
+            "datavalue": {
+              "value": { "id": "Q5398426" }
+            },
+            "snaktype": "value"
+          },
+          "rank": "normal"
+        }
+      ],
+      "P345": [
+        {
+          "mainsnak": {
+            "datavalue": { "value": "tt38218082" },
+            "snaktype": "value"
+          },
+          "rank": "normal"
+        }
+      ]
+    }
+  },
+  "missingSourceClaims": ["P1258", "P1712", "P4529"],
+  "sourceUrl": "https://www.wikidata.org/wiki/Q141155312"
+}
