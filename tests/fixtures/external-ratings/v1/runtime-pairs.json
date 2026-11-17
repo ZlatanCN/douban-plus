@@ -141,7 +141,10 @@
       },
       "inputKind": "local raw Metacritic response fragments with runtime-controlled identity responses",
       "sourceUrls": ["https://www.metacritic.com/tv/lucky-2026/"],
-      "retrievedAt": "source file mtime 2026-11-14T18:18:29+08:00; acquisition time/method unknown",
+      "captureTimeBasis": "local raw file mtime; capture-time evidence, not an HTTP Date or independently recorded retrieval timestamp",
+      "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
+      "httpStatus": "unknown (not recorded)",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error https://www.metacritic.com/tv/lucky-2026/ -o /tmp/metacritic-lucky-2026.html",
       "sourceFragments": [
         "tests/fixtures/metacritic/lucky-2026-user-score.html"
       ],
@@ -161,7 +164,7 @@
         "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
         "ablated": "at least one native score string or scale assertion fails"
       },
-      "provenanceLimit": "Local raw HTML and its SHA-256 are recorded; HTTP status and acquisition method were not available."
+      "provenanceLimit": "HTTP status is unknown (not recorded). The local file mtime records capture-time evidence, not an HTTP Date or more precise retrieval timestamp."
     },
     {
       "id": "chernobyl-rt-season-source-link",
@@ -533,7 +536,11 @@
         "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
         "ablated": "native scale or decimal assertion fails"
       },
-      "provenanceLimit": "Local raw HTML SHA is recorded; HTTP status and acquisition method are unknown."
+      "captureTimeBasis": "local raw file mtime; capture-time evidence, not an HTTP Date or independently recorded retrieval timestamp",
+      "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
+      "httpStatus": "unknown (not recorded)",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error https://www.metacritic.com/tv/lucky-2026/ -o /tmp/metacritic-lucky-2026.html",
+      "provenanceLimit": "HTTP status is unknown (not recorded). The local file mtime records capture-time evidence, not an HTTP Date or more precise retrieval timestamp."
     },
     {
       "id": "metacritic-user-score-partial-snapshot-write-protection",

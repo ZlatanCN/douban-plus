@@ -144,10 +144,10 @@
       "rawCapture": "metacritic-lucky-2026.html",
       "rawByteLength": 619024,
       "rawSha256": "d0cc959ca8811ac4a6ac14f30bc30b1846f1fc2f9f444306312605aac1051c96",
-      "captureTimeBasis": "local raw file mtime, not an independently recorded retrieval timestamp",
+      "captureTimeBasis": "local raw file mtime; capture-time evidence, not an HTTP Date or independently recorded retrieval timestamp",
       "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
       "httpStatus": "unknown (not recorded)",
-      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error; HTTP status was not recorded",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error https://www.metacritic.com/tv/lucky-2026/ -o /tmp/metacritic-lucky-2026.html",
       "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
     }
   ],
