@@ -26,7 +26,7 @@
   display: grid;
   min-width: 0;
   flex: 1 1 0;
-  padding: 16px 24px 14px;
+  padding: 16px;
   grid-template-rows:
     var(--atv-rating-logo-row-height)
     var(--atv-rating-score-row-height)
@@ -114,7 +114,7 @@
   min-width: 0;
   align-items: baseline;
   align-self: center;
-  gap: 3px;
+  gap: 2px;
   white-space: nowrap;
 }
 
@@ -142,7 +142,7 @@
 .atv-mc-score-scale,
 .atv-rt-score-scale {
   color: var(--atv-text-secondary);
-  font-size: var(--atv-type-caption-sm);
+  font-size: 10px;
   line-height: 1;
 }
 
@@ -152,7 +152,8 @@
   font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 .atv-rating-stars {
@@ -185,7 +186,8 @@
   font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
 @media (width <= 768px) {
@@ -248,7 +250,7 @@
   }
 }
 
-@container (width <= 1024px) {
+@container (width <= 640px) {
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb {
     flex-basis: 50%;

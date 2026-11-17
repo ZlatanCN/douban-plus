@@ -83,7 +83,7 @@
   --atv-type-micro: 11px; /* kickers, tiny labels */
 
   /* ---------- Typography: display numerals ---------- */
-  --atv-type-stat: clamp(32px, 4vw, 38px); /* rating panel score */
+  --atv-type-stat: 30px; /* rating panel score */
   --atv-type-stat-lg: clamp(28px, 3.5vw, 40px); /* timeline years */
 
   /* ---------- Typography: weight ladder (real faces on all platforms) ---------- */
