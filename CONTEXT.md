@@ -52,6 +52,12 @@ Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metac
 
 **烂番茄观众口径**: 烂番茄页面默认展示的“已验证观众”或“全部观众”评分群体，随观众百分比保留并可在来源详情中辨认。_Avoid_: 混用两种观众百分比、不注明口径的观众评分
 
+**Metascore**: Metacritic 对专业影评汇总得到的 0–100 分评分，与观众投票形成的 User score 分开。_Avoid_: 观众评分、好评百分比、与 User score 混合的总分
+
+**Meta 观众评分（User score）**: Metacritic 根据观众评分形成的 0–10 分评分；其评分票数与带文字的用户评论数是不同统计。_Avoid_: Metascore、好评百分比、用户文字评论数
+
+**Meta 双侧评分**: 同一已确认电影、整剧或单季的 Metascore 与 User score，两侧保留各自量表并独立存在；任一有效侧可展示，缺分或缺人数不表示零。_Avoid_: 两侧齐全才有评分、统一换算后的混合分数、整剧观众分补单季
+
 **烂番茄评分快照**: 在明确获取日期记录的、已确认评分对象的烂番茄评分及其观众口径；刷新失败时可以带日期继续呈现仍在保留期内的旧快照。_Avoid_: 把获取日期当作上游更新日期、把旧评分当作实时评分、复用未确认对象的旧分数
 
 **外部评分获取结果**: 对某个已知豆瓣作品从指定评分来源获取评分的结论，区分取得评分、来源无评分、作品映射不足、评分对象冲突、请求失败与页面无法解析。_Avoid_: 把所有空值称为无评分、把请求失败称为作品不存在
@@ -276,7 +282,7 @@ src/
 
 `resolveAll` accepts the already-extracted `ResolutionContext` and none of the resolution implementation reads the DOM. `SubjectPageRuntime` owns the asynchronous lifecycle; `ExternalRating({ source, rating, resolved })` owns the shared logo and loading/empty/loaded display state. RT ratings are cached locally with the verified subject, RT target, audience group and retrieval time.
 
-RT snapshots are fresh for 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days. RT and Metacritic verified target mappings are cached for 30 days and rechecked in the background every 24 hours. Metacritic scores are cached for 7 days.
+RT and Metacritic snapshots are fresh below 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days or for future-dated timestamps. Verified target mappings are cached separately for 30 days and rechecked after 24 hours.
 
 ### External rating integration tests
 
