@@ -1,0 +1,21 @@
+import { describe, expect, it } from "vitest";
+
+import { ExternalRating } from "@/modules/subject/ratings/external-rating";
+
+import { renderSingle } from "../../helpers/render";
+import { makeRtRating } from "./external-rating-test-support";
+
+describe("Rotten Tomatoes rating freshness labels", () => {
+  it("applies fresh and rotten classes independently", () => {
+    const el = renderSingle(
+      <ExternalRating
+        rating={makeRtRating({ audienceScore: 88, criticsScore: 45 })}
+        resolved
+        source="rt"
+      />
+    );
+
+    expect(el.querySelector(".is-critics")?.classList).toContain("is-rotten");
+    expect(el.querySelector(".is-audience")?.classList).toContain("is-fresh");
+  });
+});

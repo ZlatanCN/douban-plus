@@ -85,12 +85,12 @@
         "https://www.wikidata.org/wiki/Q7754352",
         "https://www.rottentomatoes.com/tv/game_of_thrones"
       ],
-      "testFile": "tests/runtime/subject-runtime-episode-season-link.test.tsx",
+      "testFile": "tests/runtime/subject-runtime-episode-season-pairing.test.tsx",
       "fullCase": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
       "ablatedCase": "same subject, IMDb ID, episode mapping and source pages with only P179 omitted",
       "testRefs": [
         {
-          "file": "tests/runtime/subject-runtime-episode-season-link.test.tsx",
+          "file": "tests/runtime/subject-runtime-episode-season-pairing.test.tsx",
           "case": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
           "role": "paired"
         }
@@ -282,17 +282,17 @@
         "https://www.wikidata.org/w/api.php",
         "https://www.rottentomatoes.com/m/spirited_away"
       ],
-      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "testFile": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
       "fullCase": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
       "ablatedCase": "ablation: a valid empty search does not preserve a snapshot",
       "testRefs": [
         {
-          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "file": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
           "case": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
           "role": "HTTP-200-error"
         },
         {
-          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "file": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
           "case": "ablation: a valid empty search does not preserve a snapshot",
           "role": "empty-result-control"
         }

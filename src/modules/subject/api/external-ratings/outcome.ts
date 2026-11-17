@@ -44,14 +44,6 @@ type ExternalRatingOutcome<T> = {
   rating: T | null;
 };
 
-export type {
-  ExternalRatingDiagnostic,
-  ExternalRatingOutcome,
-  ExternalRatingReason,
-  ExternalRatingStage,
-  RatingEvidenceCategory,
-};
-
 type ExternalRatingDiagnosticInput = Omit<
   ExternalRatingDiagnostic,
   | "acceptedEvidence"
@@ -91,4 +83,11 @@ const createExternalRatingDiagnostic = (
   };
 };
 
-export { createExternalRatingDiagnostic };
+export {
+  createExternalRatingDiagnostic,
+  type ExternalRatingDiagnostic,
+  type ExternalRatingOutcome,
+  type ExternalRatingReason,
+  type ExternalRatingStage,
+  type RatingEvidenceCategory,
+};

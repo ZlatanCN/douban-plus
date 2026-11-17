@@ -8340,9 +8340,9 @@ var PERSONAGE_SECTIONS = [
 	}
 ];
 var DEFAULT_MODE = "auto";
-var STORAGE_KEY$3 = "douban-plus.sticky-nav.visibility";
+var STORAGE_KEY$2 = "douban-plus.sticky-nav.visibility";
 var isStickyNavVisibilityMode = (value) => value === "always" || value === "auto";
-var getUserscriptApi$1 = () => {
+var getUserscriptApi = () => {
 	const gm = globalThis.GM;
 	if (!gm || typeof gm.getValue !== "function" || typeof gm.setValue !== "function" || typeof gm.registerMenuCommand !== "function" || typeof gm.unregisterMenuCommand !== "function") return;
 	return {
@@ -8397,7 +8397,7 @@ var createStickyNavPreference = (api) => {
 		}
 		if (!api) return;
 		try {
-			await api.setValue(STORAGE_KEY$3, nextMode);
+			await api.setValue(STORAGE_KEY$2, nextMode);
 		} catch {}
 	};
 	const initialize = () => {
@@ -8405,7 +8405,7 @@ var createStickyNavPreference = (api) => {
 		initialization = (async () => {
 			if (api) {
 				try {
-					const storedMode = await api.getValue(STORAGE_KEY$3, DEFAULT_MODE);
+					const storedMode = await api.getValue(STORAGE_KEY$2, DEFAULT_MODE);
 					mode = isStickyNavVisibilityMode(storedMode) ? storedMode : DEFAULT_MODE;
 				} catch {
 					mode = DEFAULT_MODE;
@@ -8431,7 +8431,7 @@ var createStickyNavPreference = (api) => {
 		subscribe
 	};
 };
-var stickyNavPreference = createStickyNavPreference(getUserscriptApi$1());
+var stickyNavPreference = createStickyNavPreference(getUserscriptApi());
 var SCROLL_BOUNDARY_TOLERANCE = 1;
 var getScrollMarginTop = (element, view) => {
 	const scrollMarginTop = Number(view.getComputedStyle(element).scrollMarginTop.replace("px", ""));
@@ -10587,7 +10587,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-DbQn6ETy-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-CrRD3uOh-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -18106,7 +18106,7 @@ var readVerifiedSeasonPage = async (context, response, target, identityNameResol
 		identityEvidence: context.identityEvidence
 	});
 };
-var STORAGE_KEY$2 = "dp:metacritic-snapshots:v1";
+var STORAGE_KEY$1 = "dp:metacritic-snapshots:v1";
 var FRESH_AGE$1 = 6048e5;
 var MAX_AGE$1 = 2592e6;
 var identityKey$1 = (object) => JSON.stringify([
@@ -18119,7 +18119,7 @@ var identityKey$1 = (object) => JSON.stringify([
 ]);
 var readStore$1 = () => {
 	try {
-		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$2) ?? "{}");
+		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$1) ?? "{}");
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
 		return parsed;
 	} catch {
@@ -18128,7 +18128,7 @@ var readStore$1 = () => {
 };
 var writeStore$1 = (store) => {
 	try {
-		localStorage.setItem(STORAGE_KEY$2, JSON.stringify(store));
+		localStorage.setItem(STORAGE_KEY$1, JSON.stringify(store));
 	} catch {}
 };
 var withoutKey$1 = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
@@ -19298,7 +19298,7 @@ var validateRtPage = (input, signal) => {
 	});
 	return verifyWorkAlias(input.context, input.target, input.page, input.context.kind, signal);
 };
-var STORAGE_KEY$1 = "dp:rotten-snapshots:v2";
+var STORAGE_KEY = "dp:rotten-snapshots:v2";
 var FRESH_AGE = 6048e5;
 var MAX_AGE = 2592e6;
 var identityKey = (object) => JSON.stringify([
@@ -19308,7 +19308,7 @@ var identityKey = (object) => JSON.stringify([
 ]);
 var readStore = () => {
 	try {
-		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$1) ?? "{}");
+		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
 		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
 		return parsed;
 	} catch {
@@ -19317,7 +19317,7 @@ var readStore = () => {
 };
 var writeStore = (store) => {
 	try {
-		localStorage.setItem(STORAGE_KEY$1, JSON.stringify(store));
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
 	} catch {}
 };
 var withoutKey = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
@@ -20395,277 +20395,21 @@ var resolveAll = (context, signal, onUpdate) => {
 	};
 	resolveRottenTomatoes();
 };
-var getUserscriptApi = () => {
-	const globals = globalThis;
-	const gm = globals.GM;
-	if (!gm || typeof gm.getValue !== "function" || typeof gm.setValue !== "function" || typeof gm.registerMenuCommand !== "function" || typeof gm.unregisterMenuCommand !== "function") return;
-	const { setClipboard: gmClipboard } = gm;
-	let setClipboard;
-	if (typeof gmClipboard === "function") setClipboard = gmClipboard;
-	else if (typeof globals.GM_setClipboard === "function") setClipboard = globals.GM_setClipboard;
-	return {
-		getValue: gm.getValue,
-		registerMenuCommand: gm.registerMenuCommand,
-		setValue: gm.setValue,
-		unregisterMenuCommand: gm.unregisterMenuCommand,
-		...setClipboard ? { setClipboard } : {}
-	};
-};
-var package_default = {
-	version: "1.8.4"};
-var EVIDENCE_CATEGORIES = /* @__PURE__ */ new Set([
-	"aggregate-rating",
-	"canonical",
-	"creator",
-	"exact-id",
-	"season-link",
-	"season-number",
-	"title",
-	"type",
-	"year"
-]);
-var safeErrorCode = (value) => value !== null && /^[a-z0-9-]{1,64}$/u.test(value) ? value : null;
-var safeTarget = (value) => value !== null && /^[a-z0-9][a-z0-9._/-]{0,119}$/iu.test(value) && !value.split("/").includes("..") ? value : null;
-var safeCandidateTargets = (values) => [...new Set(values.map(safeTarget).filter((value) => value !== null))].slice(0, 4);
-var safeEvidence = (values) => [...new Set(values.filter((value) => EVIDENCE_CATEGORIES.has(value)))].slice(0, 8);
-var sanitizeRatingDiagnosticRecord = (record) => ({
-	acceptedEvidence: safeEvidence(record.acceptedEvidence),
-	cacheAgeMs: record.cacheAgeMs !== null && Number.isFinite(record.cacheAgeMs) && record.cacheAgeMs >= 0 ? record.cacheAgeMs : null,
-	candidateTargets: safeCandidateTargets(record.candidateTargets),
-	errorCode: safeErrorCode(record.errorCode),
-	hasRating: record.hasRating === true,
-	missingEvidence: safeEvidence(record.missingEvidence),
-	reason: record.reason,
-	rejectedEvidence: safeEvidence(record.rejectedEvidence),
-	source: record.source,
-	stage: record.stage,
-	target: safeTarget(record.target),
-	unverifiedEvidence: safeEvidence(record.unverifiedEvidence)
-});
-var reportWork = (page) => {
-	if (page === null) return null;
-	const { imdbId: pageImdbId, kind, season: pageSeason, subjectId } = page;
-	let imdbId = null;
-	let season = null;
-	if (pageImdbId !== null && /^tt\d{5,16}$/u.test(pageImdbId)) imdbId = pageImdbId;
-	if (pageSeason !== null && Number.isSafeInteger(pageSeason) && pageSeason > 0) season = pageSeason;
-	return {
-		imdbId,
-		kind,
-		season,
-		subjectId: /^\d{1,32}$/u.test(subjectId) ? subjectId : null
-	};
-};
-var createRatingDiagnosticsReportText = (page, records) => JSON.stringify({
-	scriptVersion: package_default.version,
-	work: reportWork(page),
-	records: [
-		"imdb",
-		"mc",
-		"rt"
-	].map((source) => records.find((record) => record.source === source)).filter((record) => record !== void 0)
-}, null, 2);
-var showSelectableReport = (text) => {
-	const { body } = document;
-	if (!body) return;
-	body.querySelector("#dp-rating-diagnostics-copy")?.remove();
-	const panel = document.createElement("section");
-	panel.id = "dp-rating-diagnostics-copy";
-	panel.setAttribute("role", "dialog");
-	panel.setAttribute("aria-label", "评分诊断报告");
-	Object.assign(panel.style, {
-		background: "#fff",
-		border: "1px solid #777",
-		borderRadius: "8px",
-		boxShadow: "0 8px 32px #0005",
-		color: "#111",
-		inset: "auto 16px 16px auto",
-		maxWidth: "min(680px, calc(100vw - 32px))",
-		padding: "12px",
-		position: "fixed",
-		zIndex: "2147483647"
-	});
-	const label = document.createElement("label");
-	label.htmlFor = "dp-rating-diagnostics-copy-text";
-	label.textContent = "剪贴板不可用。请复制以下本页评分诊断报告。";
-	const textarea = document.createElement("textarea");
-	textarea.id = label.htmlFor;
-	textarea.readOnly = true;
-	textarea.rows = 14;
-	textarea.value = text;
-	textarea.setAttribute("aria-label", "可复制的本页评分诊断报告");
-	Object.assign(textarea.style, {
-		display: "block",
-		fontFamily: "monospace",
-		marginBlock: "8px",
-		width: "min(640px, calc(100vw - 64px))"
-	});
-	const close = document.createElement("button");
-	close.type = "button";
-	close.textContent = "关闭";
-	close.addEventListener("click", () => panel.remove());
-	panel.append(label, textarea, close);
-	body.append(panel);
-	textarea.focus();
-	textarea.select();
-};
-var STORAGE_KEY = "dp:rating-diagnostics-enabled";
-var MAX_RECORDS = 3;
-var DIAGNOSTIC_STAGES = /* @__PURE__ */ new Set([
-	"cache",
-	"identity",
-	"mapping",
-	"parse",
-	"rating",
-	"request"
-]);
-var DIAGNOSTIC_REASONS = /* @__PURE__ */ new Set([
-	"cancelled",
-	"identity-conflict",
-	"mapping-missing",
-	"parse-error",
-	"rating",
-	"request-error",
-	"source-no-rating"
-]);
-var createRatingDiagnostics = (api) => {
-	let enabled = false;
-	let page = null;
-	let initialization;
-	let commandIds = [];
-	let commandVersion = 0;
-	let disposed = false;
-	const records = /* @__PURE__ */ new Map();
-	const reportText = () => createRatingDiagnosticsReportText(page, [...records.values()]);
-	const copyReport = async () => {
-		if (disposed) return;
-		const text = reportText();
-		try {
-			if (api?.setClipboard) await api.setClipboard(text, "text");
-			else if (globalThis.navigator.clipboard?.writeText) await globalThis.navigator.clipboard.writeText(text);
-			else throw new Error("clipboard-unavailable");
-		} catch {
-			showSelectableReport(text);
-		}
-	};
-	const registerCommands = async () => {
-		if (!api || disposed) return;
-		commandVersion += 1;
-		const version = commandVersion;
-		const previousIds = commandIds;
-		commandIds = [];
-		await Promise.all(previousIds.map(async (id) => {
-			try {
-				await api.unregisterMenuCommand(id);
-			} catch {}
-		}));
-		const ids = (await Promise.all([() => api.registerMenuCommand(`评分诊断：${enabled ? "关闭" : "开启"}`, () => {
-			setEnabled(!enabled);
-		}), () => api.registerMenuCommand("评分诊断：复制本页报告", () => {
-			copyReport();
-		})].map(async (register) => {
-			try {
-				return await register();
-			} catch {
-				return null;
-			}
-		}))).filter((id) => id !== null);
-		if (version === commandVersion) commandIds = ids;
-		else await Promise.all(ids.map(async (id) => {
-			try {
-				await api.unregisterMenuCommand(id);
-			} catch {}
-		}));
-	};
-	const setEnabled = async (nextEnabled) => {
-		if (disposed) return;
-		enabled = nextEnabled;
-		if (!enabled) records.clear();
-		try {
-			await api?.setValue(STORAGE_KEY, enabled);
-		} catch {}
-		await registerCommands();
-	};
-	const initialize = () => {
-		if (!initialization) initialization = (async () => {
-			if (api) {
-				try {
-					enabled = await api.getValue(STORAGE_KEY, false) === true;
-				} catch {
-					enabled = false;
-				}
-				if (disposed) return false;
-				registerCommands();
-			}
-			return enabled;
-		})();
-		return initialization;
-	};
-	return {
-		beginPage: (nextPage) => {
-			disposed = false;
-			page = nextPage;
-			records.clear();
-		},
-		initialize,
-		record: (record) => {
-			if (disposed || !enabled || !DIAGNOSTIC_STAGES.has(record.stage) || !DIAGNOSTIC_REASONS.has(record.reason)) return;
-			records.set(record.source, sanitizeRatingDiagnosticRecord(record));
-			while (records.size > MAX_RECORDS) {
-				const oldest = records.keys().next().value;
-				if (oldest === void 0) break;
-				records.delete(oldest);
-			}
-		},
-		dispose: () => {
-			disposed = true;
-			records.clear();
-			page = null;
-			enabled = false;
-			commandVersion += 1;
-			Promise.all(commandIds.map(async (id) => {
-				try {
-					await api?.unregisterMenuCommand(id);
-				} catch {}
-			}));
-			commandIds = [];
-		}
-	};
-};
-var useExternalRatings = (data) => {
+var useExternalRatings = (data, onRatingUpdate) => {
 	const [state, setState] = d(() => ({
 		data,
 		ratings: emptyRatingResults()
 	}));
-	const diagnostics = w(() => createRatingDiagnostics(getUserscriptApi()), []);
-	A(() => () => diagnostics.dispose(), [diagnostics]);
+	const onRatingUpdateRef = T(onRatingUpdate);
+	A(() => {
+		onRatingUpdateRef.current = onRatingUpdate;
+	}, [onRatingUpdate]);
 	A(() => {
 		const controller = new AbortController();
 		const context = buildContext(data);
-		diagnostics.beginPage({
-			imdbId: context.imdbId,
-			kind: context.kind,
-			season: context.season,
-			subjectId: context.subjectId
-		});
 		setState((current) => current.data === data ? current : {
 			data,
 			ratings: emptyRatingResults()
-		});
-		let captureReady = false;
-		const pendingUpdates = /* @__PURE__ */ new Map();
-		const capture = (update) => {
-			if (update.result.diagnostic) diagnostics.record({
-				...update.result.diagnostic,
-				hasRating: update.source === "imdb" ? Boolean(update.result.rating?.rating) : Boolean(update.result.rating),
-				source: update.source
-			});
-		};
-		diagnostics.initialize().then(() => {
-			captureReady = true;
-			for (const update of pendingUpdates.values()) capture(update);
-			pendingUpdates.clear();
-			return true;
 		});
 		resolveAll(context, controller.signal, (update) => {
 			setState((current) => {
@@ -20695,14 +20439,10 @@ var useExternalRatings = (data) => {
 					default: return current;
 				}
 			});
-			if (!captureReady) {
-				pendingUpdates.set(update.source, update);
-				return;
-			}
-			capture(update);
+			onRatingUpdateRef.current?.(update);
 		});
 		return () => controller.abort();
-	}, [data, diagnostics]);
+	}, [data]);
 	return state.data === data ? state.ratings : emptyRatingResults();
 };
 var extractFirstBroadcastPlatform = (doc) => {
@@ -20994,7 +20734,7 @@ var useSeriesRuntime = (initial, doc) => {
 	}, [doc, initial]);
 	return result;
 };
-var SubjectPageRuntime = ({ data: initialData, doc }) => {
+var SubjectPageRuntime = ({ data: initialData, doc, onRatingUpdate }) => {
 	const [data, setData] = d(initialData);
 	const refreshAuthenticatedData = b(async () => {
 		const snapshot = await readSubjectData(data.subjectId);
@@ -21008,7 +20748,7 @@ var SubjectPageRuntime = ({ data: initialData, doc }) => {
 	const summary = useNativeSummary(data.summary, doc);
 	const resolvedComments = useResolvedComments(data.comments, doc);
 	const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
-	const externalRatings = useExternalRatings(data);
+	const externalRatings = useExternalRatings(data, onRatingUpdate);
 	const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 	const navigation = useStickyNavigation(doc, w(() => computeNavSections({
 		...data,
@@ -23024,7 +22764,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-DbQn6ETy-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-CrRD3uOh-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

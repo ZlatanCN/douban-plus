@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import type { DoubanData } from "@/modules/subject/domain";
 import { emptyRatingResults } from "@/modules/subject/resolve/types";
@@ -6,64 +6,34 @@ import type { RatingResultMap } from "@/modules/subject/resolve/types";
 
 import { buildContext } from "../resolve/context";
 import { resolveAll } from "../resolve/orchestrate";
-import type { RatingUpdate } from "../resolve/orchestrate";
-import {
-  createRatingDiagnostics,
-  getUserscriptApi,
-} from "./rating-diagnostics";
+import type { OnRatingUpdate } from "../resolve/orchestrate";
 
 type ExternalRatingsState = {
   data: DoubanData;
   ratings: RatingResultMap;
 };
 
-const useExternalRatings = (data: DoubanData): RatingResultMap => {
+const useExternalRatings = (
+  data: DoubanData,
+  onRatingUpdate?: OnRatingUpdate
+): RatingResultMap => {
   const [state, setState] = useState<ExternalRatingsState>(() => ({
     data,
     ratings: emptyRatingResults(),
   }));
-  const diagnostics = useMemo(
-    () => createRatingDiagnostics(getUserscriptApi()),
-    []
-  );
+  const onRatingUpdateRef = useRef(onRatingUpdate);
 
-  useEffect(() => () => diagnostics.dispose(), [diagnostics]);
+  useEffect(() => {
+    onRatingUpdateRef.current = onRatingUpdate;
+  }, [onRatingUpdate]);
 
   useEffect(() => {
     const controller = new AbortController();
     const context = buildContext(data);
-    diagnostics.beginPage({
-      imdbId: context.imdbId,
-      kind: context.kind,
-      season: context.season,
-      subjectId: context.subjectId,
-    });
     setState((current) =>
       current.data === data ? current : { data, ratings: emptyRatingResults() }
     );
 
-    let captureReady = false;
-    const pendingUpdates = new Map<RatingUpdate["source"], RatingUpdate>();
-    const capture = (update: RatingUpdate): void => {
-      if (update.result.diagnostic) {
-        diagnostics.record({
-          ...update.result.diagnostic,
-          hasRating:
-            update.source === "imdb"
-              ? Boolean(update.result.rating?.rating)
-              : Boolean(update.result.rating),
-          source: update.source,
-        });
-      }
-    };
-    void diagnostics.initialize().then(() => {
-      captureReady = true;
-      for (const update of pendingUpdates.values()) {
-        capture(update);
-      }
-      pendingUpdates.clear();
-      return true;
-    });
     void resolveAll(context, controller.signal, (update) => {
       setState((current) => {
         if (current.data !== data) {
@@ -93,15 +63,11 @@ const useExternalRatings = (data: DoubanData): RatingResultMap => {
           }
         }
       });
-      if (!captureReady) {
-        pendingUpdates.set(update.source, update);
-        return;
-      }
-      capture(update);
+      onRatingUpdateRef.current?.(update);
     });
 
     return () => controller.abort();
-  }, [data, diagnostics]);
+  }, [data]);
 
   return state.data === data ? state.ratings : emptyRatingResults();
 };

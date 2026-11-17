@@ -1,51 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  ImdbRating as ImdbRatingData,
-  McRating,
-  RtRating,
-} from "@/modules/subject/domain";
 import { ExternalRating } from "@/modules/subject/ratings/external-rating";
 
 import { renderIntoRoot, renderSingle } from "../../helpers/render";
-
-const makeImdbRating = (
-  overrides?: Partial<ImdbRatingData>
-): ImdbRatingData => ({
-  count: 1_200_000,
-  score: 8.5,
-  ...overrides,
-});
-
-const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
-  fetchedAt: 1_700_000_000_000,
-  object: {
-    kind: "movie",
-    metacriticId: "movie/test",
-    season: null,
-    seriesId: null,
-    seriesMetacriticId: null,
-    subjectId: "1",
-  },
-  reviewCount: 1500,
-  score: 82,
-  sourceUrl: "https://www.metacritic.com/movie/test/",
-  stale: false,
-  ...overrides,
-});
-
-const makeRtRating = (overrides?: Partial<RtRating>): RtRating => ({
-  audienceCount: { kind: "exact", value: 50_000 },
-  audienceGroup: "all",
-  audienceScore: 76,
-  criticsCount: { kind: "exact", value: 300 },
-  criticsScore: 94,
-  fetchedAt: 1_700_000_000_000,
-  object: { kind: "movie", rtId: "m/test", subjectId: "1" },
-  sourceUrl: "https://www.rottentomatoes.com/m/test",
-  stale: false,
-  ...overrides,
-});
+import {
+  makeImdbRating,
+  makeMcRating,
+  makeRtRating,
+} from "./external-rating-test-support";
 
 describe(ExternalRating, () => {
   it("renders shared loading state for external sources", () => {
@@ -235,18 +197,5 @@ describe(ExternalRating, () => {
     expect(el.querySelector(".atv-rt-count-row")?.textContent).toContain(
       "50,000"
     );
-  });
-
-  it("applies Rotten Tomatoes fresh and rotten classes independently", () => {
-    const el = renderSingle(
-      <ExternalRating
-        rating={makeRtRating({ audienceScore: 88, criticsScore: 45 })}
-        resolved
-        source="rt"
-      />
-    );
-
-    expect(el.querySelector(".is-critics")?.classList).toContain("is-rotten");
-    expect(el.querySelector(".is-audience")?.classList).toContain("is-fresh");
   });
 });
