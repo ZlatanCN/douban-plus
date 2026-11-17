@@ -1,16 +1,21 @@
 /* ── Ratings Panel ──────────────────────────────── */
 
-/* Unified card presenting Douban + IMDb + RT side by side */
+/* Unified card for Douban, IMDb, Metacritic and Rotten Tomatoes */
 
 .atv-rating-panel {
+  --atv-rating-logo-row-height: 28px;
+  --atv-rating-score-row-height: 44px;
+  --atv-rating-label-row-height: 20px;
+
   display: flex;
-  width: fit-content;
+  width: 100%;
   min-width: 320px;
   flex-wrap: wrap;
   align-items: stretch;
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   margin-bottom: 28px;
+  container-type: inline-size;
   gap: 0;
 }
 
@@ -22,7 +27,11 @@
   min-width: 0;
   flex: 1 1 0;
   padding: 16px 24px 14px;
-  grid-template-rows: 28px 44px 20px minmax(14px, 1fr);
+  grid-template-rows:
+    var(--atv-rating-logo-row-height)
+    var(--atv-rating-score-row-height)
+    var(--atv-rating-label-row-height)
+    minmax(14px, 1fr);
   place-items: center center;
   text-align: center;
   transition: background var(--atv-duration-feedback) ease;
@@ -104,6 +113,7 @@
   display: flex;
   min-width: 0;
   align-items: baseline;
+  align-self: center;
   gap: 3px;
   white-space: nowrap;
 }
@@ -112,21 +122,13 @@
   display: flex;
   min-width: 0;
   align-items: center;
+  align-self: start;
   justify-content: center;
 }
 
 .atv-rating-dual-count {
   min-height: 14px;
   align-self: start;
-}
-
-.atv-rating-panel-mc .atv-mc-score-value,
-.atv-rt-score-value {
-  font-family: var(--atv-font-display);
-  font-size: var(--atv-type-stat-sm);
-  font-weight: var(--atv-font-weight-bold);
-  letter-spacing: -0.03em;
-  line-height: 1;
 }
 
 .atv-mc-score-label,
@@ -141,6 +143,7 @@
 .atv-rt-score-scale {
   color: var(--atv-text-secondary);
   font-size: var(--atv-type-caption-sm);
+  line-height: 1;
 }
 
 .atv-mc-rating-count,
@@ -152,12 +155,9 @@
   white-space: nowrap;
 }
 
-.atv-mc-score-label {
-  align-self: center;
-}
-
 .atv-rating-stars {
   display: inline-flex;
+  align-self: start;
   color: var(--atv-rating-gold);
   gap: 2px;
 }
@@ -228,6 +228,14 @@
   white-space: nowrap;
 }
 
+@media (width <= 768px) {
+  .atv-rating-panel {
+    --atv-rating-logo-row-height: 24px;
+    --atv-rating-score-row-height: 38px;
+    --atv-rating-label-row-height: 18px;
+  }
+}
+
 .atv-rt-logo-group {
   display: flex;
   align-items: center;
@@ -264,11 +272,18 @@
   .atv-rating-panel-rt,
   .atv-rating-panel-mc {
     padding: 12px 14px 10px;
-    grid-template-rows: 24px 38px 18px minmax(14px, 1fr);
+    grid-template-rows:
+      var(--atv-rating-logo-row-height)
+      var(--atv-rating-score-row-height)
+      var(--atv-rating-label-row-height)
+      minmax(14px, 1fr);
   }
 
   .atv-rating-dual-side {
-    grid-template-rows: 38px 18px minmax(14px, 1fr);
+    grid-template-rows:
+      var(--atv-rating-score-row-height)
+      var(--atv-rating-label-row-height)
+      minmax(14px, 1fr);
   }
 
   .atv-rating-panel {
@@ -283,7 +298,7 @@
   }
 }
 
-@media (width <= 420px) {
+@container (width <= 1024px) {
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb {
     flex-basis: 50%;

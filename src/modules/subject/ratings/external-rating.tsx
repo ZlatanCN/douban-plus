@@ -84,7 +84,7 @@ const RtSide = ({
   return (
     <div class={`atv-rating-dual-side atv-rt-score-side atv-rt-${kind}`}>
       <div class="atv-rating-dual-reading atv-rt-score-reading">
-        <span class={`atv-rt-score-value ${freshness}`}>
+        <span class={`atv-rating-panel-score atv-rt-score-value ${freshness}`}>
           {score}
           <span class="atv-rt-score-scale">%</span>
         </span>
