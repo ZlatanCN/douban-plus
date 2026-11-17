@@ -52,6 +52,34 @@
       "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
     },
     {
+      "id": "game-of-thrones-season-2",
+      "url": "https://www.metacritic.com/tv/game-of-thrones/season-2/",
+      "effectiveUrl": "https://www.metacritic.com/tv/game-of-thrones/season-2/",
+      "httpStatus": 200,
+      "fileMtimeLocal": "2026-11-17T16:03:14+08:00",
+      "captureTimeBasis": "raw capture file mtime",
+      "work": {
+        "doubanSubjectId": "6558062",
+        "imdbId": "tt1971833",
+        "wikidataId": "Q302358",
+        "granularity": "season",
+        "season": 2,
+        "firstEpisodeWikidataId": "Q7754352"
+      },
+      "expected": {
+        "metascore": 90,
+        "criticReviewCount": 26,
+        "userScore": 9.1,
+        "userRatingCount": 2447
+      },
+      "fragment": "tests/fixtures/metacritic/got-season-2-user-score.html",
+      "rawCapture": "dp-mc-got-s02-raw.html",
+      "rawByteLength": 683810,
+      "rawSha256": "1e6926f2dd2525c9a0098a579d8ccea35ee51d47937fc49329cf677cf6555e79",
+      "captureMethod": "curl --location --fail --max-time 25 --silent --show-error --output /private/tmp/dp-mc-got-s02-raw.html --write-out ...",
+      "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
+    },
+    {
       "id": "crew-girl-season-1",
       "url": "https://www.metacritic.com/tv/crew-girl/season-1/",
       "retrievedAtUtc": "2026-11-17T03:54:35.374Z",
@@ -88,11 +116,12 @@
         "writtenReviewCount": 0,
         "interpretation": "The inner score is not displayable; native page state is authoritative."
       },
-      "runtimeTbdProbe": {
-        "status": "test-only controlled probe",
+      "runtimeTbdCoverage": {
+        "status": "captured page parsed through a controlled target seed",
         "test": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
         "mapping": "A synthetic cached season target is seeded only to reach the page parser; it does not represent a real Crew Girl mapping.",
-        "payload": "A minimal normalized JSON data probe is added to the captured UI fragment at test time; it is not part of the archived raw fragment and does not add a production Nuxt decoder."
+        "input": "The raw captured User score cards have a visible TBD marker and no review-count link; no score payload is added to the page.",
+        "realMappingRegression": "The separate real-mapping test still resolves mapping-missing and asserts that no Metacritic page is requested."
       }
     },
     {
@@ -115,8 +144,10 @@
       "rawCapture": "metacritic-lucky-2026.html",
       "rawByteLength": 619024,
       "rawSha256": "d0cc959ca8811ac4a6ac14f30bc30b1846f1fc2f9f444306312605aac1051c96",
+      "captureTimeBasis": "local raw file mtime, not an independently recorded retrieval timestamp",
       "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
-      "captureMethod": "not recorded; no browser or live test evidence was supplied",
+      "httpStatus": "unknown (not recorded)",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error; HTTP status was not recorded",
       "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
     }
   ],
@@ -124,8 +155,8 @@
     "movie": "captured and exercised: The Godfather Part II",
     "season": "captured and exercised: Chernobyl season 1",
     "miniseries": "Chernobyl is the captured season-level miniseries sample; this is not a standalone series page",
-    "independentSeries": "captured and exercised: Lucky (2026); raw-capture HTTP status and acquisition method remain unknown.",
-    "firstEpisodeImdbMapping": "Existing runtime identity coverage maps Game of Thrones season 2 from first-episode IMDb tt1971833. tests/runtime/subject-runtime-meta-season-mapping.test.tsx now exercises that Meta path with controlled User score markup; its audience card is not a raw source capture."
+    "independentSeries": "captured and exercised: Lucky (2026); raw-capture HTTP status was not recorded.",
+    "firstEpisodeImdbMapping": "The runtime test maps first-episode IMDb tt1971833 through its Wikidata parent to Game of Thrones season 2, then exercises the path with the captured Metacritic page and its 9.1 User score/2,447 ratings."
   },
   "pairedAblations": "tests/fixtures/metacritic/user-score-ablation-results.md"
 }

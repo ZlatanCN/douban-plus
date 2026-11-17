@@ -110,23 +110,23 @@
         "granularity": "season",
         "season": 2
       },
-      "inputKind": "captured Wikidata episode/parent claims with controlled Metacritic response and User score markup",
+      "inputKind": "captured Metacritic season page with runtime-controlled Wikidata and Douban identity responses",
       "sourceUrls": ["https://www.metacritic.com/tv/game-of-thrones/season-2/"],
-      "controlledEvidence": "The Q7754352 first-episode identity and parent-season claims are represented in the existing runtime fixture. Metascore and User score HTML are controlled test markup, not a captured source page.",
+      "controlledEvidence": "The Q7754352 first-episode identity and parent-season claims are represented in the existing runtime fixture. The canonical page, season JSON-LD, Metascore, and both User score cards come from the captured source fragment.",
       "testFile": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
-      "fullCase": "uses the mapped season ID and binds the controlled User score card to season two",
+      "fullCase": "uses the mapped season ID and binds the captured User score cards to season two",
       "ablatedScenarios": [
         "Change only the controlled User score review-link query from season-2 to season-3; retain the same IMDb ID, Wikidata claims, canonical season page, and Metascore."
       ],
       "testRefs": [
         {
           "file": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
-          "case": "uses the mapped season ID and binds the controlled User score card to season two",
+          "case": "uses the mapped season ID and binds the captured User score cards to season two",
           "role": "full-and-wrong-user-season-pair"
         }
       ],
       "expected": {
-        "full": "season 2 Meta 90/100 plus controlled User score 8.2/10 with 42 ratings",
+        "full": "season 2 Meta 90/100 plus captured User score 9.1/10 with 2,447 ratings",
         "ablated": "season 2 Meta remains; User side is rejected with parse-error and is not cached"
       }
     },
@@ -439,7 +439,7 @@
     },
     {
       "id": "metacritic-user-score-tbd-visible-state",
-      "mechanism": "native User score TBD overrides the test-only embedded zero observation",
+      "mechanism": "a visible TBD card without a User Ratings link is accepted as explicit no-rating after season-page identity verification",
       "work": {
         "doubanSubjectId": "37516033",
         "imdbId": "tt38218082",
@@ -447,29 +447,61 @@
         "granularity": "season",
         "season": 1
       },
-      "inputKind": "captured Crew Girl TBD HTML with a clearly marked test-only target/payload probe",
+      "inputKind": "captured Crew Girl TBD HTML with a clearly marked test-only target seed",
       "sourceUrls": ["https://www.metacritic.com/tv/crew-girl/season-1/"],
       "retrievedAt": "2026-11-17T03:54:35.374Z",
       "sourceFragments": [
         "tests/fixtures/metacritic/crew-girl-season-1-tbd.html"
       ],
       "testFile": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
-      "fullCase": "ignores a test-only embedded zero when the captured Crew Girl card is TBD under a controlled target",
+      "fullCase": "accepts the captured no-link TBD card after verifying its season page",
       "ablatedScenarios": [
-        "Remove the native TBD-state guard and consume the test-only normalized summary score 0; the single-sided result assertion must fail."
+        "Add a season-2 User review link to the season-1 TBD cards; preserve the verified Metascore but reject the User side and do not cache the partial result."
       ],
       "testRefs": [
         {
           "file": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
-          "case": "ignores a test-only embedded zero when the captured Crew Girl card is TBD under a controlled target",
+          "case": "accepts the captured no-link TBD card after verifying its season page",
           "role": "full; controlled target is not a real mapping"
         }
       ],
       "expected": {
         "realMapping": "mapping-missing with no Meta request",
-        "controlledProbe": "Metascore 60; no audience score; successful one-sided snapshot"
+        "controlledTarget": "Metascore 60; no audience score; successful one-sided snapshot",
+        "wrongSeasonLink": "Metascore 60 remains; User side is rejected with parse-error and no snapshot is written"
       },
-      "provenanceLimit": "The normalized zero payload is test-only and not part of the captured source fragment; production does not decode Nuxt data."
+      "provenanceLimit": "The synthetic cached target is only a parser test seam; real Crew Girl mapping remains missing and is tested separately without a Meta request."
+    },
+    {
+      "id": "metacritic-user-score-tbd-conflicting-zero",
+      "mechanism": "a visible native TBD marker rejects a conflicting numeric zero and prevents caching",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured Godfather II page with only the visible User score card changed to show a labeled 0.0 alongside TBD",
+      "sourceUrls": ["https://www.metacritic.com/movie/the-godfather-part-ii/"],
+      "sourceFragments": [
+        "tests/fixtures/metacritic/godfather-part-ii-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score.test.tsx",
+      "fullCase": "rejects a visible TBD marker paired with a labeled numeric zero",
+      "ablatedScenarios": [
+        "Remove only the native TBD/conflict handling from readVisibleUserScore in page-user-score.ts; the same visible numeric 0.0 is accepted and cached."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score.test.tsx",
+          "case": "rejects a visible TBD marker paired with a labeled numeric zero",
+          "role": "full-and-native-state-ablation-pair"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 90 remains; User side is rejected and no snapshot is written",
+        "ablated": "User score 0.0/10 appears and snapshot stores score 0"
+      }
     },
     {
       "id": "metacritic-user-score-native-scales",

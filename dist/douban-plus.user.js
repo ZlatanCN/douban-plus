@@ -10587,7 +10587,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-DQSuk1uG-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-vFaFcK_3-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -17887,8 +17887,15 @@ var readVisibleUserScore = (valueWrapper) => {
 };
 var readUserScoreCard = (card, target, canonicalUrl) => {
 	const value = readVisibleUserScore(card.querySelector("[data-testid=\"global-score-value-wrapper\"]"));
-	if (value.status !== "matched") return value;
+	if (value.status === "invalid") return value;
 	const link = card.querySelector("a[data-testid=\"global-score-review-count-link\"]");
+	if (value.status === "no-rating") {
+		if (link && (!link.getAttribute("href") || !isUserRatingsLink(link, target, canonicalUrl))) return {
+			reason: "user-score-identity",
+			status: "invalid"
+		};
+		return value;
+	}
 	if (!link?.getAttribute("href") || !isUserRatingsLink(link, target, canonicalUrl)) return {
 		reason: "user-score-identity",
 		status: "invalid"
@@ -22955,7 +22962,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-DQSuk1uG-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-vFaFcK_3-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

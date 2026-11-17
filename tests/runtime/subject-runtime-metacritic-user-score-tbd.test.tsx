@@ -22,33 +22,6 @@ const targetUrl = "https://www.metacritic.com/tv/crew-girl/season-1/";
 const subjectId = "37516033";
 const imdbId = "tt38218082";
 const now = Date.UTC(2026, 10, 17);
-// Test-only normalized payload probe derived from the captured summary fields.
-// The raw Nuxt reference array remains unarchived and production never reads it.
-const controlledPayloadProbe = JSON.stringify({
-  loadPage: {
-    components: [
-      {
-        data: {
-          item: {
-            id: "5001368604",
-            max: 10,
-            reviewCount: 1,
-            score: 0,
-            url: "/tv/crew-girl/user-reviews/?season=season-1",
-          },
-        },
-        meta: {
-          componentName: "user-score-summary",
-          componentType: "MetaScoreSummary",
-        },
-      },
-    ],
-  },
-});
-const tbdPageWithProbe = crewGirl.replace(
-  "</body>",
-  `<script id="__NUXT_DATA_TEST_PROBE__" type="application/json">${controlledPayloadProbe}</script></body>`
-);
 
 const crewGirlData = () =>
   makeData({
@@ -96,7 +69,7 @@ const seedControlledCrewGirlTarget = (): void => {
 describe("SubjectPageRuntime Metacritic TBD state", () => {
   setupSubjectRuntimeHooks();
 
-  it("ignores a test-only embedded zero when the captured Crew Girl card is TBD under a controlled target", async () => {
+  it("accepts the captured no-link TBD card after verifying its season page", async () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const capturedPage = new DOMParser().parseFromString(crewGirl, "text/html");
     // The real fixture remains mapping-missing. This synthetic cache entry only
@@ -106,9 +79,7 @@ describe("SubjectPageRuntime Metacritic TBD state", () => {
     const updates: RatingUpdate[] = [];
     mockNetwork((url) => {
       requests.push(url);
-      return url === targetUrl
-        ? { body: tbdPageWithProbe }
-        : { body: "", status: 404 };
+      return url === targetUrl ? { body: crewGirl } : { body: "", status: 404 };
     });
     const root = renderIntoRoot(
       <SubjectPageRuntime
@@ -132,8 +103,8 @@ describe("SubjectPageRuntime Metacritic TBD state", () => {
     expect({
       nativeTbd: capturedPage.querySelector('[data-testid="global-score-tbd"]')
         ?.textContent,
-      visibleNumericScore: capturedPage.querySelector(
-        '[data-testid="global-score-value"]'
+      noReviewLink: capturedPage.querySelector(
+        '[data-testid="global-score-review-count-link"]'
       ),
       criticsScore: root.querySelector(".atv-mc-critics .atv-mc-score-value")
         ?.textContent,
@@ -146,7 +117,7 @@ describe("SubjectPageRuntime Metacritic TBD state", () => {
         .rating,
     }).toMatchObject({
       nativeTbd: "tbd",
-      visibleNumericScore: null,
+      noReviewLink: null,
       criticsScore: "60",
       audience: null,
       requestedPage: true,
@@ -160,6 +131,65 @@ describe("SubjectPageRuntime Metacritic TBD state", () => {
     });
     render(null, root);
   });
+
+  it.each([
+    ["wrong-season", ' href="/tv/crew-girl/user-reviews/?season=season-2"'],
+    ["missing-href", ""],
+  ] as const)(
+    "rejects a TBD card with a %s review link after verifying the season page",
+    async (_kind, linkAttributes) => {
+      vi.spyOn(Date, "now").mockReturnValue(now);
+      seedControlledCrewGirlTarget();
+      const page = new DOMParser().parseFromString(crewGirl, "text/html");
+      for (const card of page.querySelectorAll<HTMLElement>(
+        '[data-testid="global-score-wrapper"]'
+      )) {
+        if (
+          card
+            .querySelector('[data-testid="global-score-header"]')
+            ?.textContent?.trim() === "User score"
+        ) {
+          card.insertAdjacentHTML(
+            "beforeend",
+            `<a data-testid="global-score-review-count-link"${linkAttributes}>Based on 4 User Ratings</a>`
+          );
+        }
+      }
+      const updates: RatingUpdate[] = [];
+      mockNetwork((url) =>
+        url === targetUrl
+          ? { body: page.documentElement.outerHTML }
+          : { body: "", status: 404 }
+      );
+      const root = renderIntoRoot(
+        <SubjectPageRuntime
+          data={crewGirlData()}
+          doc={document}
+          onRatingUpdate={(update) => updates.push(update)}
+        />
+      );
+
+      await vi.waitFor(() =>
+        expect(
+          root.querySelector(".atv-mc-critics .atv-mc-score-value")?.textContent
+        ).toBe("60")
+      );
+      expect({
+        audience: root.querySelector(".atv-mc-audience"),
+        diagnostic: updates.findLast((update) => update.source === "mc")?.result
+          .diagnostic,
+        snapshot: localStorage.getItem("dp:metacritic-snapshots:v2"),
+      }).toMatchObject({
+        audience: null,
+        diagnostic: {
+          errorCode: "user-score-identity",
+          reason: "parse-error",
+        },
+        snapshot: null,
+      });
+      render(null, root);
+    }
+  );
 
   it("reports no rating only when the current page confirms both sides are unscored", async () => {
     vi.spyOn(Date, "now").mockReturnValue(now);

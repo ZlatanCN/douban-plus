@@ -73,7 +73,7 @@ describe("SubjectPageRuntime Metacritic User score", () => {
     render(null, root);
   });
 
-  it("rejects a visible User score region that says both TBD and numeric", async () => {
+  it("rejects a visible TBD marker paired with a labeled numeric zero", async () => {
     const page = new DOMParser().parseFromString(godfather, "text/html");
     for (const card of page.querySelectorAll<HTMLElement>(
       '[data-testid="global-score-wrapper"]'
@@ -83,12 +83,21 @@ describe("SubjectPageRuntime Metacritic User score", () => {
           .querySelector('[data-testid="global-score-header"]')
           ?.textContent?.trim() === "User score"
       ) {
-        card
-          .querySelector('[data-testid="global-score-value-wrapper"]')
-          ?.insertAdjacentHTML(
+        const wrapper = card.querySelector<HTMLElement>(
+          '[data-testid="global-score-value-wrapper"]'
+        );
+        const score = wrapper?.querySelector<HTMLElement>(
+          '[data-testid="global-score-value"]'
+        );
+        if (wrapper && score) {
+          score.textContent = "0.0";
+          wrapper.setAttribute("aria-label", "User score 0.0 out of 10");
+          wrapper.title = "User score 0.0 out of 10";
+          wrapper.insertAdjacentHTML(
             "beforeend",
             '<span data-testid="global-score-tbd">tbd</span>'
           );
+        }
       }
     }
     const updates: RatingUpdate[] = [];
@@ -102,17 +111,25 @@ describe("SubjectPageRuntime Metacritic User score", () => {
     );
 
     await vi.waitFor(() =>
-      expect(
-        updates.findLast((update) => update.source === "mc")?.result.diagnostic
-          ?.errorCode
-      ).toContain("conflicting-user-score-state")
+      expect(updates.findLast((update) => update.source === "mc")).toBeDefined()
     );
     expect({
       critics: root.querySelector(".atv-mc-critics .atv-mc-score-value")
         ?.textContent,
-      audience: root.querySelector(".atv-mc-audience"),
+      audienceScore: root.querySelector(".atv-mc-audience .atv-mc-score-value")
+        ?.textContent,
+      audienceScale: root.querySelector(".atv-mc-audience .atv-mc-score-scale")
+        ?.textContent,
+      errorCode: updates.findLast((update) => update.source === "mc")?.result
+        .diagnostic?.errorCode,
       snapshot: localStorage.getItem("dp:metacritic-snapshots:v2"),
-    }).toStrictEqual({ critics: "90", audience: null, snapshot: null });
+    }).toStrictEqual({
+      critics: "90",
+      audienceScore: undefined,
+      audienceScale: undefined,
+      errorCode: "conflicting-user-score-state",
+      snapshot: null,
+    });
     render(null, root);
   });
 });

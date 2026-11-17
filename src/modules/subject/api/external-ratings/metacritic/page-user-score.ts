@@ -116,13 +116,23 @@ const readUserScoreCard = (
       '[data-testid="global-score-value-wrapper"]'
     )
   );
-  if (value.status !== "matched") {
+  if (value.status === "invalid") {
     return value;
   }
 
   const link = card.querySelector<HTMLAnchorElement>(
     'a[data-testid="global-score-review-count-link"]'
   );
+  if (value.status === "no-rating") {
+    if (
+      link &&
+      (!link.getAttribute("href") ||
+        !isUserRatingsLink(link, target, canonicalUrl))
+    ) {
+      return { reason: "user-score-identity", status: "invalid" };
+    }
+    return value;
+  }
   if (
     !link?.getAttribute("href") ||
     !isUserRatingsLink(link, target, canonicalUrl)
