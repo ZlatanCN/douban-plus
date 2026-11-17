@@ -120,9 +120,9 @@ describe("subject runtime rt pending", () => {
     expect(
       root.querySelector(".is-audience .atv-rt-score-label")?.textContent
     ).toBe("观众");
-    expect(root.querySelector(".atv-rt-count-row")?.textContent).toContain(
-      "250,000+"
-    );
+    expect(
+      root.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
+    ).toContain("250,000+");
     expect(
       root.querySelector(".atv-rating-panel-mc.is-loading")
     ).not.toBeNull();

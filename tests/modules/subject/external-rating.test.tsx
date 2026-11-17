@@ -170,7 +170,9 @@ describe(ExternalRating, () => {
     expect(
       high.querySelector(".atv-mc-audience .atv-mc-score-scale")?.textContent
     ).toBe("/10");
-    expect(high.querySelector(".atv-mc-rating-count")).toBeNull();
+    expect(
+      high.querySelector(".atv-mc-rating-count")?.getAttribute("aria-hidden")
+    ).toBe("true");
   });
 
   it("renders Rotten Tomatoes critics and audience scores", () => {
@@ -206,8 +208,9 @@ describe(ExternalRating, () => {
 
     expect(el.querySelector('[aria-label="Rotten Tomatoes"]')).not.toBeNull();
     expect(el.querySelector(".atv-rating-stars")).toBeNull();
-    expect(el.querySelector(".atv-rt-count-row")?.textContent).toContain(
-      "50,000"
-    );
+    expect(el.querySelectorAll(".atv-rt-count-value")).toHaveLength(2);
+    expect(
+      el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
+    ).toContain("50,000");
   });
 });

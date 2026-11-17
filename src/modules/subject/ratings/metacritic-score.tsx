@@ -13,24 +13,33 @@ const ScoreSide = ({
   label: string;
   score: McScoreSide;
   scale: "/100" | "/10";
-}) => (
-  <div class={`atv-mc-score-side ${className}`}>
-    <div class="atv-mc-score-label">{label}</div>
-    <div class="atv-mc-score-reading">
-      <span class="atv-rating-panel-score atv-mc-score-value">
-        {score.displayScore}
-      </span>
-      <span class="atv-mc-score-scale">{scale}</span>
+}) => {
+  const count = countLabel(score.reviewCount);
+
+  return (
+    <div class={`atv-rating-dual-side atv-mc-score-side ${className}`}>
+      <div class="atv-rating-dual-reading atv-mc-score-reading">
+        <span class="atv-rating-panel-score atv-mc-score-value">
+          {score.displayScore}
+        </span>
+        <span class="atv-mc-score-scale">{scale}</span>
+      </div>
+      <div class="atv-rating-dual-label atv-mc-score-label">{label}</div>
+      <div
+        aria-hidden={count === null}
+        class={`atv-rating-dual-count atv-mc-rating-count${
+          count === null ? " is-empty" : ""
+        }`}
+      >
+        {count ?? ""}
+      </div>
     </div>
-    {countLabel(score.reviewCount) ? (
-      <div class="atv-mc-rating-count">{countLabel(score.reviewCount)}</div>
-    ) : null}
-  </div>
-);
+  );
+};
 
 const MetacriticScore = ({ rating }: { rating: McRating }) => (
   <div
-    class={`atv-mc-score-grid ${
+    class={`atv-rating-dual-grid atv-mc-score-grid ${
       rating.critics && rating.audience ? "" : "is-single"
     }`}
   >

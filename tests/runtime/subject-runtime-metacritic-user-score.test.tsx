@@ -37,6 +37,22 @@ describe("SubjectPageRuntime Metacritic User score", () => {
         root.querySelector(".atv-mc-audience .atv-mc-score-value")
       ).not.toBeNull()
     );
+    const sideRows = [...root.querySelectorAll(".atv-mc-score-side")].map(
+      (side) =>
+        [...side.children].map((child) => {
+          if (child.classList.contains("atv-mc-score-reading")) {
+            return "reading";
+          }
+          if (child.classList.contains("atv-mc-score-label")) {
+            return "label";
+          }
+          return "count";
+        })
+    );
+    expect(sideRows).toStrictEqual([
+      ["reading", "label", "count"],
+      ["reading", "label", "count"],
+    ]);
     const metaUpdate = updates.findLast(({ source }) => source === "mc");
     expect({
       critics: {

@@ -110,9 +110,12 @@ describe("SubjectPageRuntime Metacritic User score edge cases", () => {
         root.querySelector(".atv-mc-audience .atv-mc-score-value")?.textContent
       ).toBe("9.1")
     );
-    expect(
-      root.querySelector(".atv-mc-audience .atv-mc-rating-count")
-    ).toBeNull();
+    const emptyCount = root.querySelector(
+      ".atv-mc-audience .atv-mc-rating-count"
+    );
+    expect(emptyCount).not.toBeNull();
+    expect(emptyCount?.textContent).toBe("");
+    expect(emptyCount?.getAttribute("aria-hidden")).toBe("true");
     expect(latestMcUpdate(updates)?.result).toMatchObject({
       diagnostic: { reason: "rating" },
       rating: {

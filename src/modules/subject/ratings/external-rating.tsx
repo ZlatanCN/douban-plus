@@ -57,27 +57,6 @@ const renderImdbRating = (rating: ImdbRating): JSX.Element => (
   </>
 );
 
-const RtLabel = ({
-  className,
-  icon,
-  score,
-  text,
-}: {
-  className: string;
-  icon: JSX.Element;
-  score: number;
-  text: string;
-}) => (
-  <span
-    class={`atv-rt-label-item ${className} ${
-      isFresh(score) ? "is-fresh" : "is-rotten"
-    }`}
-  >
-    <span class="atv-rt-score-icon">{icon}</span>
-    <span class="atv-rt-score-label">{text}</span>
-  </span>
-);
-
 const formatRtCount = (count: RtCount | null): string => {
   if (!count) {
     return "";
@@ -88,68 +67,73 @@ const formatRtCount = (count: RtCount | null): string => {
   return count.value.toLocaleString("en-US");
 };
 
+const RtSide = ({
+  count,
+  icon,
+  kind,
+  score,
+}: {
+  count: RtCount | null;
+  icon: JSX.Element;
+  kind: "critics" | "audience";
+  score: number;
+}) => {
+  const freshness = isFresh(score) ? "is-fresh" : "is-rotten";
+  const countText = count === null ? "" : `评价 ${formatRtCount(count)}`;
+
+  return (
+    <div class={`atv-rating-dual-side atv-rt-score-side atv-rt-${kind}`}>
+      <div class="atv-rating-dual-reading atv-rt-score-reading">
+        <span class={`atv-rt-score-value ${freshness}`}>
+          {score}
+          <span class="atv-rt-score-scale">%</span>
+        </span>
+      </div>
+      <span
+        class={`atv-rating-dual-label atv-rt-label-item is-${kind} ${freshness}`}
+      >
+        <span class="atv-rt-score-icon">{icon}</span>
+        <span class="atv-rt-score-label">
+          {kind === "critics" ? "影评人" : "观众"}
+        </span>
+      </span>
+      <div
+        aria-hidden={count === null}
+        class={`atv-rating-dual-count atv-rt-count-value${
+          count === null ? " is-empty" : ""
+        }`}
+      >
+        {countText}
+      </div>
+    </div>
+  );
+};
+
 const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
-  <>
-    <div
-      class={`atv-rt-score-row ${
-        rating.criticsScore === null || rating.audienceScore === null
-          ? "is-single"
-          : ""
-      }`}
-    >
-      {rating.criticsScore !== null && (
-        <div
-          class={`atv-rt-score-value ${
-            isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"
-          }`}
-        >
-          {`${rating.criticsScore}%`}
-        </div>
-      )}
-      {rating.criticsScore !== null && rating.audienceScore !== null ? (
-        <div class="atv-rt-divider" />
-      ) : null}
-      {rating.audienceScore !== null && (
-        <div
-          class={`atv-rt-score-value ${
-            isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"
-          }`}
-        >
-          {`${rating.audienceScore}%`}
-        </div>
-      )}
-    </div>
-    <div class="atv-rt-label-row">
-      {rating.criticsScore !== null && (
-        <RtLabel
-          className="is-critics"
-          icon={<IconTomato />}
-          score={rating.criticsScore}
-          text="影评人"
-        />
-      )}
-      {rating.audienceScore !== null && (
-        <RtLabel
-          className="is-audience"
-          icon={<IconPopcorn />}
-          score={rating.audienceScore}
-          text="观众"
-        />
-      )}
-    </div>
-    <div class="atv-rt-count-row">
-      {rating.criticsScore !== null && rating.criticsCount !== null ? (
-        <span class="atv-rt-count-value">
-          {`评价 ${formatRtCount(rating.criticsCount)}`}
-        </span>
-      ) : null}
-      {rating.audienceScore !== null && rating.audienceCount !== null ? (
-        <span class="atv-rt-count-value">
-          {`评价 ${formatRtCount(rating.audienceCount)}`}
-        </span>
-      ) : null}
-    </div>
-  </>
+  <div
+    class={`atv-rating-dual-grid atv-rt-score-grid ${
+      rating.criticsScore === null || rating.audienceScore === null
+        ? "is-single"
+        : ""
+    }`}
+  >
+    {rating.criticsScore !== null && (
+      <RtSide
+        count={rating.criticsCount}
+        icon={<IconTomato />}
+        kind="critics"
+        score={rating.criticsScore}
+      />
+    )}
+    {rating.audienceScore !== null && (
+      <RtSide
+        count={rating.audienceCount}
+        icon={<IconPopcorn />}
+        kind="audience"
+        score={rating.audienceScore}
+      />
+    )}
+  </div>
 );
 
 const renderLoadedRating = (props: ExternalRatingProps): JSX.Element | null => {

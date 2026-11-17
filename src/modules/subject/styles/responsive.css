@@ -67,21 +67,6 @@
     height: 157.5px;
   }
 
-  .atv-rating-panel .atv-rating-panel-score {
-    font-size: 32px;
-  }
-
-  .atv-rating-panel-douban,
-  .atv-rating-panel-imdb,
-  .atv-rating-panel-rt,
-  .atv-rating-panel-mc {
-    padding: 12px 14px 10px;
-  }
-
-  .atv-rating-panel {
-    min-width: 0;
-  }
-
   .atv-comments {
     grid-template-columns: 1fr;
   }
