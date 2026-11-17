@@ -272,11 +272,6 @@
   .atv-rating-panel-rt,
   .atv-rating-panel-mc {
     padding: 12px 14px 10px;
-    grid-template-rows:
-      var(--atv-rating-logo-row-height)
-      var(--atv-rating-score-row-height)
-      var(--atv-rating-label-row-height)
-      minmax(14px, 1fr);
   }
 
   .atv-rating-dual-side {
