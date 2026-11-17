@@ -192,13 +192,14 @@ describe(ExternalRating, () => {
       <ExternalRating rating={makeRtRating()} resolved source="rt" />
     );
 
-    expect(el.querySelectorAll(".atv-rt-label-item")).toHaveLength(2);
+    expect(el.querySelectorAll(".atv-rating-dual-label")).toHaveLength(2);
     expect(
-      el.querySelector(".is-critics .atv-rt-score-label")?.textContent
+      el.querySelector(".atv-rt-critics .atv-rt-score-label")?.textContent
     ).toBe("影评人");
     expect(
-      el.querySelector(".is-audience .atv-rt-score-label")?.textContent
+      el.querySelector(".atv-rt-audience .atv-rt-score-label")?.textContent
     ).toBe("观众");
+    expect(el.querySelectorAll(".atv-rt-score-icon")).toHaveLength(0);
   });
 
   it("renders Rotten Tomatoes logo, count row and no rating stars", () => {

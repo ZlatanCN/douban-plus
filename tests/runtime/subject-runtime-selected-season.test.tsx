@@ -109,7 +109,7 @@ describe("subject runtime selected season", () => {
     expect(root.querySelector<HTMLAnchorElement>(".atv-rt-source")?.href).toBe(
       seasonUrl
     );
-    expect(root.querySelector(".atv-rt-label-item")?.textContent).toContain(
+    expect(root.querySelector(".atv-rating-dual-label")?.textContent).toContain(
       "影评人"
     );
   });

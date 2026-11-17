@@ -6,7 +6,6 @@ import type {
   RtCount,
   RtRating,
 } from "@/modules/subject/domain";
-import { IconPopcorn, IconTomato } from "@/shared/components/common/icons";
 import { Stars } from "@/shared/components/common/stars";
 import { useEntranceExitAnimation } from "@/shared/hooks/use-entrance-exit-animation";
 import { springConfigs } from "@/shared/utils/springs";
@@ -69,12 +68,10 @@ const formatRtCount = (count: RtCount | null): string => {
 
 const RtSide = ({
   count,
-  icon,
   kind,
   score,
 }: {
   count: RtCount | null;
-  icon: JSX.Element;
   kind: "critics" | "audience";
   score: number;
 }) => {
@@ -89,10 +86,7 @@ const RtSide = ({
           <span class="atv-rt-score-scale">%</span>
         </span>
       </div>
-      <span
-        class={`atv-rating-dual-label atv-rt-label-item is-${kind} ${freshness}`}
-      >
-        <span class="atv-rt-score-icon">{icon}</span>
+      <span class="atv-rating-dual-label">
         <span class="atv-rt-score-label">
           {kind === "critics" ? "影评人" : "观众"}
         </span>
@@ -120,7 +114,6 @@ const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
     {rating.criticsScore !== null && (
       <RtSide
         count={rating.criticsCount}
-        icon={<IconTomato />}
         kind="critics"
         score={rating.criticsScore}
       />
@@ -128,7 +121,6 @@ const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
     {rating.audienceScore !== null && (
       <RtSide
         count={rating.audienceCount}
-        icon={<IconPopcorn />}
         kind="audience"
         score={rating.audienceScore}
       />
