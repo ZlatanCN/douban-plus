@@ -68,18 +68,18 @@ const formatRtCount = (count: RtCount | null): string => {
 
 const RtSide = ({
   count,
-  kind,
+  side,
   score,
 }: {
   count: RtCount | null;
-  kind: "critics" | "audience";
+  side: "critics" | "audience";
   score: number;
 }) => {
   const freshness = isFresh(score) ? "is-fresh" : "is-rotten";
   const countText = count === null ? "" : `评价 ${formatRtCount(count)}`;
 
   return (
-    <div class={`atv-rating-dual-side atv-rt-score-side atv-rt-${kind}`}>
+    <div class={`atv-rating-dual-side atv-rt-score-side atv-rt-${side}`}>
       <div class="atv-rating-dual-reading atv-rt-score-reading">
         <span class={`atv-rating-panel-score atv-rt-score-value ${freshness}`}>
           {score}
@@ -88,7 +88,7 @@ const RtSide = ({
       </div>
       <span class="atv-rating-dual-label">
         <span class="atv-rt-score-label">
-          {kind === "critics" ? "影评人" : "观众"}
+          {side === "critics" ? "影评人" : "观众"}
         </span>
       </span>
       <div
@@ -114,14 +114,14 @@ const renderRottenTomatoesRating = (rating: RtRating): JSX.Element => (
     {rating.criticsScore !== null && (
       <RtSide
         count={rating.criticsCount}
-        kind="critics"
+        side="critics"
         score={rating.criticsScore}
       />
     )}
     {rating.audienceScore !== null && (
       <RtSide
         count={rating.audienceCount}
-        kind="audience"
+        side="audience"
         score={rating.audienceScore}
       />
     )}

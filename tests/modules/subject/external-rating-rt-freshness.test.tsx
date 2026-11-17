@@ -15,7 +15,11 @@ describe("Rotten Tomatoes rating freshness labels", () => {
       />
     );
 
-    expect(el.querySelector(".is-critics")?.classList).toContain("is-rotten");
-    expect(el.querySelector(".is-audience")?.classList).toContain("is-fresh");
+    expect(
+      el.querySelector(".atv-rt-critics .atv-rt-score-value")?.classList
+    ).toContain("is-rotten");
+    expect(
+      el.querySelector(".atv-rt-audience .atv-rt-score-value")?.classList
+    ).toContain("is-fresh");
   });
 });

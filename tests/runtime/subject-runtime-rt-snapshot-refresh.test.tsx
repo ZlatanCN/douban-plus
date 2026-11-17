@@ -103,7 +103,7 @@ describe("subject runtime rt snapshot refresh", () => {
       ).toStrictEqual(["76%"])
     );
     expect(
-      root.querySelector(".is-audience .atv-rt-score-label")?.textContent
+      root.querySelector(".atv-rt-audience .atv-rt-score-label")?.textContent
     ).toBe("观众");
     expect(root.querySelector(".atv-rt-stale")).toBeNull();
   });
