@@ -78,7 +78,7 @@ describe(ExternalRating, () => {
     );
   });
 
-  it("renders Metacritic score, count and logo when loaded", () => {
+  it("renders native Metascore and User score scales with their own counts", () => {
     const el = renderSingle(
       <ExternalRating
         rating={makeMcRating()}
@@ -88,13 +88,35 @@ describe(ExternalRating, () => {
       />
     );
 
-    expect(el.classList.contains("atv-rating-panel-mc")).toBeTruthy();
-    expect(el.classList.contains("is-loaded")).toBeTruthy();
-    expect(el.querySelector(".atv-rating-panel-score")?.textContent).toBe("82");
-    expect(el.querySelector(".atv-rating-panel-count")?.textContent).toContain(
-      "1,500"
-    );
-    expect(el.querySelector('[aria-label="Metacritic"]')).not.toBeNull();
+    expect({
+      loaded:
+        el.classList.contains("atv-rating-panel-mc") &&
+        el.classList.contains("is-loaded"),
+      critics: {
+        score: el.querySelector(".atv-mc-critics .atv-mc-score-value")
+          ?.textContent,
+        scale: el.querySelector(".atv-mc-critics .atv-mc-score-scale")
+          ?.textContent,
+        count: el.querySelector(".atv-mc-critics .atv-mc-rating-count")
+          ?.textContent,
+      },
+      audience: {
+        score: el.querySelector(".atv-mc-audience .atv-mc-score-value")
+          ?.textContent,
+        scale: el.querySelector(".atv-mc-audience .atv-mc-score-scale")
+          ?.textContent,
+        count: el.querySelector(".atv-mc-audience .atv-mc-rating-count")
+          ?.textContent,
+      },
+      oldLabel: el.querySelector(".atv-mc-label-row"),
+      logo: el.querySelector('[aria-label="Metacritic"]') !== null,
+    }).toMatchObject({
+      loaded: true,
+      critics: { score: "82", scale: "/100", count: "评价 1,500" },
+      audience: { score: "9.1", scale: "/10", count: "评价 1,269" },
+      oldLabel: null,
+      logo: true,
+    });
   });
 
   it("links the Metacritic logo to its rating page", () => {
@@ -113,52 +135,42 @@ describe(ExternalRating, () => {
     ).toBe("https://www.metacritic.com/movie/test/");
   });
 
-  it("renders Metacritic bar, Chinese label and no rating stars when loaded", () => {
+  it("renders only the available side without inventing the missing side", () => {
     const el = renderSingle(
-      <ExternalRating rating={makeMcRating()} resolved source="metacritic" />
+      <ExternalRating
+        rating={makeMcRating({ audience: null })}
+        resolved
+        source="metacritic"
+      />
     );
 
-    expect(el.querySelector(".atv-mc-bar-fill")?.getAttribute("style")).toBe(
-      "width: 82%;"
-    );
-    expect(el.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "普遍赞誉"
-    );
+    expect(el.querySelectorAll(".atv-mc-score-side")).toHaveLength(1);
+    expect(
+      el.querySelector(".atv-mc-critics .atv-mc-score-scale")?.textContent
+    ).toBe("/100");
+    expect(el.querySelector(".atv-mc-audience")).toBeNull();
     expect(el.querySelector(".atv-rating-stars")).toBeNull();
   });
 
-  it("classifies Metacritic score bands consistently", () => {
+  it("hides a missing count while keeping the valid audience score", () => {
     const high = renderSingle(
       <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 81 })}
-        resolved
-        source="metacritic"
-      />
-    );
-    const mixed = renderSingle(
-      <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 40 })}
-        resolved
-        source="metacritic"
-      />
-    );
-    const low = renderSingle(
-      <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 20 })}
+        rating={makeMcRating({
+          critics: null,
+          audience: { displayScore: "0", score: 0, reviewCount: null },
+        })}
         resolved
         source="metacritic"
       />
     );
 
-    expect(high.querySelector(".atv-mc-bar-fill")?.classList).toContain(
-      "is-high"
-    );
-    expect(mixed.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "褒贬不一"
-    );
-    expect(low.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "大体差评"
-    );
+    expect(
+      high.querySelector(".atv-mc-audience .atv-mc-score-value")?.textContent
+    ).toBe("0");
+    expect(
+      high.querySelector(".atv-mc-audience .atv-mc-score-scale")?.textContent
+    ).toBe("/10");
+    expect(high.querySelector(".atv-mc-rating-count")).toBeNull();
   });
 
   it("renders Rotten Tomatoes critics and audience scores", () => {

@@ -16,7 +16,7 @@ vi.hoisted(() => {
   >() as never;
 });
 
-const snapshotStorageKey = "dp:metacritic-snapshots:v1";
+const snapshotStorageKey = "dp:metacritic-snapshots:v2";
 const metacriticId = "movie/spider-man-into-the-spider-verse";
 const subjectId = "26374197";
 const sourceUrl = `https://www.metacritic.com/${metacriticId}/`;
@@ -36,6 +36,8 @@ const spiderVerseData = (imdb = "") =>
 
 const saveSnapshot = (now: number, age: number): void => {
   const snapshot = {
+    audience: null,
+    critics: { displayScore: "87", reviewCount: 50, score: 87 },
     fetchedAt: now - age,
     object: {
       kind: "movie",
@@ -45,8 +47,6 @@ const saveSnapshot = (now: number, age: number): void => {
       seriesMetacriticId: null,
       subjectId,
     },
-    reviewCount: 50,
-    score: 87,
     sourceUrl,
     stale: false,
   };

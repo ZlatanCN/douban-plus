@@ -146,7 +146,7 @@ describe("SubjectPageRuntime Metacritic", () => {
     );
     await vi.waitFor(() =>
       expect(
-        zeroCount.querySelector(".atv-rating-panel-mc .atv-rating-panel-count")
+        zeroCount.querySelector(".atv-mc-critics .atv-mc-rating-count")
           ?.textContent
       ).toBe("评价 0")
     );

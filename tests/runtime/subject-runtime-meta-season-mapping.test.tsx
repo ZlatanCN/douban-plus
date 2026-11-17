@@ -1,9 +1,17 @@
 import { render } from "preact";
 import { describe, expect, it, vi } from "vitest";
 
+import type { RatingUpdate } from "@/modules/subject/resolve/orchestrate";
 import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
 
 import { renderIntoRoot } from "../helpers/render";
+import {
+  canonicalSeasonUrl,
+  controlledSeasonUserScore,
+  guessedSeasonUrl,
+  guessedSeriesUrl,
+  metacriticSeasonUrl,
+} from "./subject-runtime-meta-season-mapping-user-score";
 import {
   makeClaim,
   makeData,
@@ -20,18 +28,12 @@ vi.hoisted(() => {
 describe("subject runtime meta season mapping", () => {
   setupSubjectRuntimeHooks();
 
-  it("uses the mapped season ID and validates its canonical alias", async () => {
+  it("uses the mapped season ID and binds the controlled User score card to season two", async () => {
     const requests: string[] = [];
-    const metacriticSeasonUrl =
-      "https://www.metacritic.com/tv/game-of-thrones/season-2/";
-    const canonicalSeasonUrl =
-      "https://www.metacritic.com/tv/game-of-thrones/season-02/";
-    const guessedSeasonUrl =
-      "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones/season-2";
-    const guessedSeriesUrl =
-      "https://www.metacritic.com/tv/a-song-of-ice-and-fire-game-of-thrones";
+    const updates: RatingUpdate[] = [];
     let pageParentUrl = "https://www.metacritic.com/tv/game-of-thrones/";
     let pageSeasonNumber = 2;
+    let userReviewSeason = 2;
     mockNetwork((url) => {
       requests.push(url);
       if (url === "https://graphql.imdb.com/") {
@@ -115,7 +117,7 @@ describe("subject runtime meta season mapping", () => {
       }
       if (url === metacriticSeasonUrl) {
         return {
-          body: `<link rel="canonical" href="${canonicalSeasonUrl}"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 2","seasonNumber":${pageSeasonNumber},"partOfSeries":{"@type":"TVSeries","url":"${pageParentUrl}"},"aggregateRating":{"@type":"AggregateRating","ratingValue":90,"reviewCount":26}}</script>`,
+          body: `<link rel="canonical" href="${canonicalSeasonUrl}"><script type="application/ld+json">{"@context":"https://schema.org","@type":"TVSeason","name":"Game of Thrones: Season 2","seasonNumber":${pageSeasonNumber},"partOfSeries":{"@type":"TVSeries","url":"${pageParentUrl}"},"aggregateRating":{"@type":"AggregateRating","ratingValue":90,"reviewCount":26}}</script>${controlledSeasonUserScore(userReviewSeason)}`,
           finalUrl: canonicalSeasonUrl,
         };
       }
@@ -147,7 +149,11 @@ describe("subject runtime meta season mapping", () => {
       },
     });
     const root = renderIntoRoot(
-      <SubjectPageRuntime data={data} doc={document} />
+      <SubjectPageRuntime
+        data={data}
+        doc={document}
+        onRatingUpdate={(update) => updates.push(update)}
+      />
     );
 
     await vi.waitFor(() =>
@@ -156,16 +162,69 @@ describe("subject runtime meta season mapping", () => {
           ?.textContent
       ).toBe("90")
     );
-    expect(requests).toContain(metacriticSeasonUrl);
-    expect(requests).not.toContain(guessedSeasonUrl);
-    expect(requests).not.toContain(guessedSeriesUrl);
-    expect(
-      root.querySelector<HTMLAnchorElement>(".atv-metacritic-source")?.href
-    ).toBe(canonicalSeasonUrl);
+    expect({
+      requestedMappedSeason: requests.includes(metacriticSeasonUrl),
+      requestedNoGuessedSeason: !requests.includes(guessedSeasonUrl),
+      requestedNoGuessedSeries: !requests.includes(guessedSeriesUrl),
+      source: root.querySelector<HTMLAnchorElement>(".atv-metacritic-source")
+        ?.href,
+      audience: {
+        score: root.querySelector(".atv-mc-audience .atv-mc-score-value")
+          ?.textContent,
+        count: root.querySelector(".atv-mc-audience .atv-mc-rating-count")
+          ?.textContent,
+      },
+      rating: updates.findLast((update) => update.source === "mc")?.result
+        .rating,
+    }).toMatchObject({
+      requestedMappedSeason: true,
+      requestedNoGuessedSeason: true,
+      requestedNoGuessedSeries: true,
+      source: canonicalSeasonUrl,
+      audience: { score: "8.2", count: "评价 42" },
+      rating: {
+        audience: { displayScore: "8.2", reviewCount: 42, score: 8.2 },
+        object: { kind: "season", season: 2, subjectId: "6558062" },
+      },
+    });
 
     render(null, root);
     localStorage.clear();
     requests.length = 0;
+    updates.length = 0;
+    userReviewSeason = 3;
+    const wrongAudienceSeason = renderIntoRoot(
+      <SubjectPageRuntime
+        data={data}
+        doc={document}
+        onRatingUpdate={(update) => updates.push(update)}
+      />
+    );
+    await vi.waitFor(() =>
+      expect(
+        wrongAudienceSeason.querySelector(".atv-mc-critics .atv-mc-score-value")
+          ?.textContent
+      ).toBe("90")
+    );
+    expect({
+      audience: wrongAudienceSeason.querySelector(".atv-mc-audience"),
+      diagnostic: updates.findLast((update) => update.source === "mc")?.result
+        .diagnostic,
+      snapshots: localStorage.getItem("dp:metacritic-snapshots:v2"),
+    }).toMatchObject({
+      audience: null,
+      diagnostic: {
+        errorCode: "user-score-identity",
+        reason: "parse-error",
+      },
+      snapshots: null,
+    });
+    render(null, wrongAudienceSeason);
+
+    localStorage.clear();
+    requests.length = 0;
+    updates.length = 0;
+    userReviewSeason = 2;
     pageParentUrl = "https://www.metacritic.com/tv/another-series/";
     const crossParent = renderIntoRoot(
       <SubjectPageRuntime data={data} doc={document} />

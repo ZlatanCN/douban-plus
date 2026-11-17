@@ -1,6 +1,6 @@
 import type { McObject, McRating } from "@/modules/subject/domain";
 
-const STORAGE_KEY = "dp:metacritic-snapshots:v1";
+const STORAGE_KEY = "dp:metacritic-snapshots:v2";
 const FRESH_AGE = 7 * 24 * 60 * 60 * 1000;
 const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
 
@@ -43,6 +43,39 @@ const withoutKey = (store: SnapshotStore, key: string): SnapshotStore =>
     Object.entries(store).filter(([entryKey]) => entryKey !== key)
   );
 
+const isMcScoreSide = (
+  side: unknown,
+  maximum: number,
+  requireInteger: boolean
+): side is {
+  displayScore: string;
+  reviewCount: number | null;
+  score: number;
+} => {
+  if (!side || typeof side !== "object") {
+    return false;
+  }
+  const candidate = side as {
+    displayScore?: unknown;
+    reviewCount?: unknown;
+    score?: unknown;
+  };
+  return Boolean(
+    typeof candidate.score === "number" &&
+    Number.isFinite(candidate.score) &&
+    candidate.score >= 0 &&
+    candidate.score <= maximum &&
+    (!requireInteger || Number.isInteger(candidate.score)) &&
+    typeof candidate.displayScore === "string" &&
+    /^\d+(?:\.\d+)?$/u.test(candidate.displayScore) &&
+    Number(candidate.displayScore) === candidate.score &&
+    (candidate.reviewCount === null ||
+      (typeof candidate.reviewCount === "number" &&
+        Number.isSafeInteger(candidate.reviewCount) &&
+        candidate.reviewCount >= 0))
+  );
+};
+
 const isRating = (value: unknown): value is McRating => {
   if (!value || typeof value !== "object") {
     return false;
@@ -54,15 +87,11 @@ const isRating = (value: unknown): value is McRating => {
     typeof rating.object.metacriticId === "string" &&
     typeof rating.object.kind === "string" &&
     typeof rating.fetchedAt === "number" &&
+    Number.isFinite(rating.fetchedAt) &&
     typeof rating.sourceUrl === "string" &&
-    typeof rating.score === "number" &&
-    Number.isFinite(rating.score) &&
-    rating.score >= 0 &&
-    rating.score <= 100 &&
-    (rating.reviewCount === null ||
-      (typeof rating.reviewCount === "number" &&
-        Number.isSafeInteger(rating.reviewCount) &&
-        rating.reviewCount >= 0))
+    (rating.critics === null || isMcScoreSide(rating.critics, 100, true)) &&
+    (rating.audience === null || isMcScoreSide(rating.audience, 10, false)) &&
+    (rating.critics !== null || rating.audience !== null)
   );
 };
 

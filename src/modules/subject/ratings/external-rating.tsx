@@ -11,12 +11,8 @@ import { Stars } from "@/shared/components/common/stars";
 import { useEntranceExitAnimation } from "@/shared/hooks/use-entrance-exit-animation";
 import { springConfigs } from "@/shared/utils/springs";
 
-import {
-  isFresh,
-  mcWordRatingChinese,
-  ratingStateClass,
-  scoreClass,
-} from "./rating-helpers";
+import { MetacriticScore } from "./metacritic-score";
+import { isFresh, ratingStateClass } from "./rating-helpers";
 import { RatingLogo } from "./rating-logo";
 
 type ExternalRatingProps =
@@ -58,28 +54,6 @@ const renderImdbRating = (rating: ImdbRating): JSX.Element => (
     <div class="atv-rating-panel-count">
       {rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"}
     </div>
-  </>
-);
-
-const renderMetacriticRating = (rating: McRating): JSX.Element => (
-  <>
-    <div class={`atv-rating-panel-score ${scoreClass(rating.score)}`}>
-      {String(rating.score)}
-    </div>
-    <div class="atv-mc-label-row">
-      <span class="atv-mc-bar-track">
-        <span
-          class={`atv-mc-bar-fill ${scoreClass(rating.score)}`}
-          style={{ width: `${Math.min(100, rating.score)}%` }}
-        />
-      </span>
-      <span class="atv-mc-word-label">{mcWordRatingChinese(rating.score)}</span>
-    </div>
-    {rating.reviewCount === null ? null : (
-      <div class="atv-rating-panel-count">
-        {`评价 ${rating.reviewCount.toLocaleString("en-US")}`}
-      </div>
-    )}
   </>
 );
 
@@ -184,7 +158,7 @@ const renderLoadedRating = (props: ExternalRatingProps): JSX.Element | null => {
       return props.rating ? renderImdbRating(props.rating) : null;
     }
     case "metacritic": {
-      return props.rating ? renderMetacriticRating(props.rating) : null;
+      return props.rating ? <MetacriticScore rating={props.rating} /> : null;
     }
     case "rt": {
       return props.rating ? renderRottenTomatoesRating(props.rating) : null;

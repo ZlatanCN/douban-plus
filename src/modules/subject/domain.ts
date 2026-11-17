@@ -35,10 +35,17 @@ type ImdbRating = {
   count: number;
 };
 
-/** Metacritic Metascore, 0-100, and number of critic reviews. */
-type McScore = {
+/** One native Metacritic side and its matching rating count. */
+type McScoreSide = {
+  displayScore: string;
   reviewCount: number | null;
   score: number;
+};
+
+/** Metascore (0–100) and User score (0–10) from one source response. */
+type McScore = {
+  audience: McScoreSide | null;
+  critics: McScoreSide | null;
   sourceUrl: string;
 };
 
@@ -344,6 +351,7 @@ export type {
   McRating,
   McObject,
   McScore,
+  McScoreSide,
   RtRating,
   NavSection,
   Photo,

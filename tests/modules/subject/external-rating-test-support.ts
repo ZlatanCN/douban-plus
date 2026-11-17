@@ -13,6 +13,8 @@ const makeImdbRating = (
 });
 
 const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
+  audience: { displayScore: "9.1", reviewCount: 1269, score: 9.1 },
+  critics: { displayScore: "82", reviewCount: 1500, score: 82 },
   fetchedAt: 1_700_000_000_000,
   object: {
     kind: "movie",
@@ -22,8 +24,6 @@ const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
     seriesMetacriticId: null,
     subjectId: "1",
   },
-  reviewCount: 1500,
-  score: 82,
   sourceUrl: "https://www.metacritic.com/movie/test/",
   stale: false,
   ...overrides,

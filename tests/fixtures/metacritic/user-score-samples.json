@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "captureScope": "Cropped server-rendered raw HTTP fragments; no browser hydration or JavaScript execution.",
+  "samples": [
+    {
+      "id": "godfather-part-ii",
+      "url": "https://www.metacritic.com/movie/the-godfather-part-ii/",
+      "retrievedAtUtc": "2026-11-17T03:54:35.201Z",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "expected": {
+        "metascore": 90,
+        "criticReviewCount": 18,
+        "userScore": 9.1,
+        "userRatingCount": 1269,
+        "writtenReviewCount": 127
+      },
+      "fragment": "tests/fixtures/metacritic/godfather-part-ii-user-score.html",
+      "rawCapture": "dp-mc-godfather-raw.html",
+      "rawByteLength": 641496,
+      "rawSha256": "e2c9b9be7c2d019e125530257552bf6d36ea556fb2180735622f411c63750769",
+      "captureMethod": "curl --location --compressed; raw HTTP, no browser execution or hydration",
+      "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
+    },
+    {
+      "id": "chernobyl-season-1",
+      "url": "https://www.metacritic.com/tv/chernobyl/season-1/",
+      "retrievedAtUtc": "2026-11-17T03:54:36.054Z",
+      "work": {
+        "doubanSubjectId": "35286229",
+        "imdbId": "tt7366338",
+        "wikidataId": "Q48741246",
+        "granularity": "season",
+        "season": 1
+      },
+      "expected": {
+        "metascore": 82,
+        "criticReviewCount": 27,
+        "userScore": 9.2,
+        "userRatingCount": 409,
+        "writtenReviewCount": 54
+      },
+      "fragment": "tests/fixtures/metacritic/chernobyl-season-1-user-score.html",
+      "rawCapture": "dp-mc-chernobyl-season-raw.html",
+      "rawByteLength": 640378,
+      "rawSha256": "0530bd3f510fe819345ce59d71a6e0cbf24a93162783fb298b12492f42d2cbec",
+      "captureMethod": "curl --location --compressed; raw HTTP, no browser execution or hydration",
+      "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
+    },
+    {
+      "id": "crew-girl-season-1",
+      "url": "https://www.metacritic.com/tv/crew-girl/season-1/",
+      "retrievedAtUtc": "2026-11-17T03:54:35.374Z",
+      "work": {
+        "doubanSubjectId": "37516033",
+        "imdbId": "tt38218082",
+        "wikidataId": "Q141155312",
+        "granularity": "season",
+        "season": 1
+      },
+      "expected": {
+        "metascore": 60,
+        "criticReviewCount": 8,
+        "userScore": null,
+        "userRatingCount": null,
+        "status": "TBD"
+      },
+      "fragment": "tests/fixtures/metacritic/crew-girl-season-1-tbd.html",
+      "rawCapture": "dp-mc-crew-girl-season-raw.html",
+      "rawByteLength": 574446,
+      "rawSha256": "0134cab638af80f4f514007b07e41a37d8f53289888472875a2d40f5e534a1dd",
+      "captureMethod": "curl --location --compressed; raw HTTP, no browser execution or hydration",
+      "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions",
+      "realMappingOutcome": "mapping-missing",
+      "realMappingEvidence": "Wikidata Q141155312 has no P1712 Metacritic ID; the source URL is not requested by the real-mapping runtime test.",
+      "capturedNativeState": {
+        "label": "User score TBD",
+        "availability": "Available after 4 ratings",
+        "nuxtSummary": {
+          "score": 0,
+          "max": 10,
+          "reviewCount": 1
+        },
+        "writtenReviewCount": 0,
+        "interpretation": "The inner score is not displayable; native page state is authoritative."
+      },
+      "runtimeTbdProbe": {
+        "status": "test-only controlled probe",
+        "test": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
+        "mapping": "A synthetic cached season target is seeded only to reach the page parser; it does not represent a real Crew Girl mapping.",
+        "payload": "A minimal normalized JSON data probe is added to the captured UI fragment at test time; it is not part of the archived raw fragment and does not add a production Nuxt decoder."
+      }
+    },
+    {
+      "id": "lucky-2026-series",
+      "url": "https://www.metacritic.com/tv/lucky-2026/",
+      "work": {
+        "doubanSubjectId": "37139034",
+        "imdbId": "tt34866681",
+        "wikidataId": "Q131378846",
+        "granularity": "series"
+      },
+      "expected": {
+        "metascore": 68,
+        "criticReviewCount": 29,
+        "userScore": 5,
+        "userScoreDisplay": "5.0",
+        "userRatingCount": 67
+      },
+      "fragment": "tests/fixtures/metacritic/lucky-2026-user-score.html",
+      "rawCapture": "metacritic-lucky-2026.html",
+      "rawByteLength": 619024,
+      "rawSha256": "d0cc959ca8811ac4a6ac14f30bc30b1846f1fc2f9f444306312605aac1051c96",
+      "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
+      "captureMethod": "not recorded; no browser or live test evidence was supplied",
+      "fragmentKind": "canonical plus source JSON-LD and the two responsive current-page User score regions"
+    }
+  ],
+  "coverage": {
+    "movie": "captured and exercised: The Godfather Part II",
+    "season": "captured and exercised: Chernobyl season 1",
+    "miniseries": "Chernobyl is the captured season-level miniseries sample; this is not a standalone series page",
+    "independentSeries": "captured and exercised: Lucky (2026); raw-capture HTTP status and acquisition method remain unknown.",
+    "firstEpisodeImdbMapping": "Existing runtime identity coverage maps Game of Thrones season 2 from first-episode IMDb tt1971833. tests/runtime/subject-runtime-meta-season-mapping.test.tsx now exercises that Meta path with controlled User score markup; its audience card is not a raw source capture."
+  },
+  "pairedAblations": "tests/fixtures/metacritic/user-score-ablation-results.md"
+}

@@ -95,7 +95,7 @@ describe("subject runtime rating cache", () => {
       }
       if (url === mcUrl) {
         return {
-          body: `<link rel="canonical" href="${mcUrl}"><script type="application/ld+json">{"@type":"Movie","aggregateRating":{"ratingValue":82,"reviewCount":22}}</script>`,
+          body: `<link rel="canonical" href="${mcUrl}"><script type="application/ld+json">{"@type":"Movie","aggregateRating":{"ratingValue":82,"reviewCount":22}}</script><div data-testid="global-score-wrapper"><div data-testid="global-score-header">User score</div><div data-testid="global-score-value-wrapper" aria-label="User score TBD" title="User score TBD"><span data-testid="global-score-tbd">tbd</span></div></div>`,
         };
       }
       return { body: "", status: 404 };

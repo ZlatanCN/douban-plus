@@ -101,6 +101,69 @@
       }
     },
     {
+      "id": "game-of-thrones-s02-first-episode-metacritic-user-score",
+      "mechanism": "the first episode IMDb mapping and current season link must resolve to the same Metacritic season",
+      "work": {
+        "doubanSubjectId": "6558062",
+        "imdbId": "tt1971833",
+        "wikidataId": "Q7754352",
+        "granularity": "season",
+        "season": 2
+      },
+      "inputKind": "captured Wikidata episode/parent claims with controlled Metacritic response and User score markup",
+      "sourceUrls": ["https://www.metacritic.com/tv/game-of-thrones/season-2/"],
+      "controlledEvidence": "The Q7754352 first-episode identity and parent-season claims are represented in the existing runtime fixture. Metascore and User score HTML are controlled test markup, not a captured source page.",
+      "testFile": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
+      "fullCase": "uses the mapped season ID and binds the controlled User score card to season two",
+      "ablatedScenarios": [
+        "Change only the controlled User score review-link query from season-2 to season-3; retain the same IMDb ID, Wikidata claims, canonical season page, and Metascore."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
+          "case": "uses the mapped season ID and binds the controlled User score card to season two",
+          "role": "full-and-wrong-user-season-pair"
+        }
+      ],
+      "expected": {
+        "full": "season 2 Meta 90/100 plus controlled User score 8.2/10 with 42 ratings",
+        "ablated": "season 2 Meta remains; User side is rejected with parse-error and is not cached"
+      }
+    },
+    {
+      "id": "lucky-2026-metacritic-dual-score-scale",
+      "mechanism": "the standalone series response carries Metascore and User score on distinct native scales",
+      "work": {
+        "doubanSubjectId": "37139034",
+        "imdbId": "tt34866681",
+        "wikidataId": "Q131378846",
+        "granularity": "series"
+      },
+      "inputKind": "local raw Metacritic response fragments with runtime-controlled identity responses",
+      "sourceUrls": ["https://www.metacritic.com/tv/lucky-2026/"],
+      "retrievedAt": "source file mtime 2026-11-14T18:18:29+08:00; acquisition time/method unknown",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/lucky-2026-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-meta-series.test.tsx",
+      "fullCase": "resolves Lucky from IMDb and follows its Metacritic ID",
+      "ablatedScenarios": [
+        "Collapse both displayed scales to /100 or truncate the User score to an integer; the paired runtime assertion for 5.0/10 and 68/100 must fail."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-series.test.tsx",
+          "case": "resolves Lucky from IMDb and follows its Metacritic ID",
+          "role": "full captured source sample"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
+        "ablated": "at least one native score string or scale assertion fails"
+      },
+      "provenanceLimit": "Local raw HTML and its SHA-256 are recorded; HTTP status and acquisition method were not available."
+    },
+    {
       "id": "chernobyl-rt-season-source-link",
       "mechanism": "an explicit RT Miniseries season link completes missing season mapping",
       "work": {
@@ -336,6 +399,146 @@
       "expected": {
         "conflictFirst": "old response cannot restore rating or snapshot",
         "ratingFirst": "later conflict removes the old rating and snapshot"
+      }
+    },
+    {
+      "id": "metacritic-user-score-season-link-identity",
+      "mechanism": "the User score review link must bind to the mapped current season",
+      "work": {
+        "doubanSubjectId": "35286229",
+        "imdbId": "tt7366338",
+        "wikidataId": "Q48741246",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured Chernobyl season page plus same-response controlled link ablation",
+      "sourceUrls": ["https://www.metacritic.com/tv/chernobyl/season-1/"],
+      "retrievedAt": "2026-11-17T03:54:36.054Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/chernobyl-season-1-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+      "fullCase": "binds both scores and counts to the current season response",
+      "ablatedCase": "keeps the verified Metascore but rejects a User score linked to another season",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+          "case": "binds both scores and counts to the current season response",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+          "case": "keeps the verified Metascore but rejects a User score linked to another season",
+          "role": "single link-season mutation"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 82/100 and User score 9.2/10 with 409 ratings",
+        "ablated": "Metascore 82 remains; User score rejected; no success snapshot"
+      }
+    },
+    {
+      "id": "metacritic-user-score-tbd-visible-state",
+      "mechanism": "native User score TBD overrides the test-only embedded zero observation",
+      "work": {
+        "doubanSubjectId": "37516033",
+        "imdbId": "tt38218082",
+        "wikidataId": "Q141155312",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured Crew Girl TBD HTML with a clearly marked test-only target/payload probe",
+      "sourceUrls": ["https://www.metacritic.com/tv/crew-girl/season-1/"],
+      "retrievedAt": "2026-11-17T03:54:35.374Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/crew-girl-season-1-tbd.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
+      "fullCase": "ignores a test-only embedded zero when the captured Crew Girl card is TBD under a controlled target",
+      "ablatedScenarios": [
+        "Remove the native TBD-state guard and consume the test-only normalized summary score 0; the single-sided result assertion must fail."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
+          "case": "ignores a test-only embedded zero when the captured Crew Girl card is TBD under a controlled target",
+          "role": "full; controlled target is not a real mapping"
+        }
+      ],
+      "expected": {
+        "realMapping": "mapping-missing with no Meta request",
+        "controlledProbe": "Metascore 60; no audience score; successful one-sided snapshot"
+      },
+      "provenanceLimit": "The normalized zero payload is test-only and not part of the captured source fragment; production does not decode Nuxt data."
+    },
+    {
+      "id": "metacritic-user-score-native-scales",
+      "mechanism": "Metascore and User score preserve their distinct native scales and visible decimal",
+      "work": {
+        "doubanSubjectId": "37139034",
+        "imdbId": "tt34866681",
+        "wikidataId": "Q131378846",
+        "granularity": "series"
+      },
+      "inputKind": "local raw Lucky (2026) series response with runtime-controlled identity responses",
+      "sourceUrls": ["https://www.metacritic.com/tv/lucky-2026/"],
+      "sourceFragments": [
+        "tests/fixtures/metacritic/lucky-2026-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-meta-series.test.tsx",
+      "fullCase": "resolves Lucky from IMDb and follows its Metacritic ID",
+      "ablatedScenarios": [
+        "Replace `/10` with `/100` or truncate the visible User score; exact `5.0/10` and `68/100` runtime assertions must fail."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-series.test.tsx",
+          "case": "resolves Lucky from IMDb and follows its Metacritic ID",
+          "role": "full raw source sample"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
+        "ablated": "native scale or decimal assertion fails"
+      },
+      "provenanceLimit": "Local raw HTML SHA is recorded; HTTP status and acquisition method are unknown."
+    },
+    {
+      "id": "metacritic-user-score-partial-snapshot-write-protection",
+      "mechanism": "a partial parse can show the current valid side but cannot replace or renew a successful snapshot",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured Godfather II response followed by same-response current User link identity mutation",
+      "sourceUrls": ["https://www.metacritic.com/movie/the-godfather-part-ii/"],
+      "retrievedAt": "2026-11-17T03:54:35.201Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/godfather-part-ii-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+      "fullCase": "shows a confirmed critic side after partial failure without replacing or renewing the snapshot",
+      "pairedCase": "replaces a dual snapshot with the current single-side TBD response",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+          "case": "shows a confirmed critic side after partial failure without replacing or renewing the snapshot",
+          "role": "full response then one-link failure mutation"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+          "case": "replaces a dual snapshot with the current single-side TBD response",
+          "role": "complete single-side response replacement"
+        }
+      ],
+      "ablatedScenarios": [
+        "Write the valid critic side from the partial response to the snapshot namespace; the previous dual snapshot and fetchedAt assertions must fail."
+      ],
+      "expected": {
+        "full": "current response shows critics only; prior dual snapshot and fetchedAt remain unchanged",
+        "ablated": "snapshot is replaced/renewed and the guard test fails"
       }
     }
   ]

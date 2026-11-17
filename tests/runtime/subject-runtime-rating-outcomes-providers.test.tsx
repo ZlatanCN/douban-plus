@@ -23,7 +23,7 @@ vi.hoisted(() => {
 describe("SubjectPageRuntime rating outcomes", () => {
   setupRatingOutcomeTest();
 
-  it("reports The Altruists as no-rating only after parsing its mapped Metacritic page", async () => {
+  it("keeps The Altruists parse-incomplete until native User score state is known", async () => {
     const { onRatingUpdate, outcomes } = createRatingOutcomeCapture();
     const wikidata = JSON.parse(altruistsWikidataFixture) as {
       entity: { claims: Record<string, unknown>; id: string };
@@ -105,26 +105,21 @@ describe("SubjectPageRuntime rating outcomes", () => {
       />
     );
 
-    const report = await waitForOutcomeReport(
-      outcomes,
-      "mc",
-      "source-no-rating"
-    );
+    const report = await waitForOutcomeReport(outcomes, "mc", "parse-error");
     const mcRecord = report.records.find((record) => record.source === "mc");
     expect(mcRecord).toMatchObject({
-      acceptedEvidence: expect.arrayContaining([
-        "exact-id",
-        "type",
-        "canonical",
-      ]),
+      acceptedEvidence: expect.arrayContaining(["exact-id", "type"]),
       candidateTargets: expect.arrayContaining([
         "Q135470331",
         "tv/the-altruists",
       ]),
-      missingEvidence: ["aggregate-rating"],
-      reason: "source-no-rating",
+      errorCode: "missing-user-score",
+      reason: "parse-error",
       target: "tv/the-altruists",
-      unverifiedEvidence: [],
+      unverifiedEvidence: expect.arrayContaining([
+        "canonical",
+        "aggregate-rating",
+      ]),
     });
     expect(requests).toContain(metacritic.sourceUrl);
     expect(

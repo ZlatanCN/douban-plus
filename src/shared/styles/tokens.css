@@ -32,8 +32,6 @@
   /* ---------- Rating / status colors ---------- */
   --atv-rating-gold: #ffb800;
   --atv-rating-empty: rgb(255 255 255 / 35%);
-  --atv-score-high: #3bb33b;
-  --atv-score-low: #fa320a;
   --atv-danger: #ff453a;
   --atv-content-caution: #c68f4e;
   --atv-caution-surface: rgb(198 143 78 / 10%);

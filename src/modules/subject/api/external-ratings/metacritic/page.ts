@@ -5,13 +5,11 @@ import { readStructuredPage, structuredTypes } from "../shared/structured-page";
 import type { StructuredPage } from "../shared/structured-page";
 import { hasExactIdentityEvidence } from "./page-identity";
 import type { AliasEvidenceResult } from "./page-identity";
+import { readPageRating } from "./page-rating";
 import { pagePath } from "./page-url";
 import type { MetacriticTarget } from "./wikidata/claims";
 
 type PageData = StructuredPage;
-type PageRating =
-  | { rating: McScore; status: "matched" }
-  | { status: "invalid-page" | "no-rating" };
 
 const targetEntry = (
   page: PageData,
@@ -68,62 +66,6 @@ const targetEntry = (
   return typedEntries.length === 1 ? (typedEntries[0] ?? null) : null;
 };
 
-const parseRating = (
-  page: PageData,
-  matchedEntry: Record<string, unknown>
-): PageRating => {
-  if (!page.canonicalUrl) {
-    return { status: "invalid-page" };
-  }
-  const { aggregateRating } = matchedEntry;
-  if (aggregateRating === null || aggregateRating === undefined) {
-    return { status: "no-rating" };
-  }
-  if (typeof aggregateRating !== "object") {
-    return { status: "invalid-page" };
-  }
-  const ratingValue = Reflect.get(aggregateRating, "ratingValue");
-  const reviewCount = Reflect.get(aggregateRating, "reviewCount");
-  if (
-    ratingValue === null ||
-    ratingValue === undefined ||
-    (typeof ratingValue === "string" && !ratingValue.trim())
-  ) {
-    return { status: "invalid-page" };
-  }
-  const score = Math.trunc(Number(String(ratingValue).trim()));
-  const countText =
-    typeof reviewCount === "string"
-      ? reviewCount.replaceAll(",", "").trim()
-      : "";
-  let countValue: number | null = null;
-  if (typeof reviewCount === "number") {
-    countValue = reviewCount;
-  } else if (countText) {
-    countValue = Number(countText);
-  }
-  const count =
-    countValue !== null && Number.isSafeInteger(countValue) && countValue >= 0
-      ? countValue
-      : null;
-  if (
-    !Number.isFinite(score) ||
-    score < 0 ||
-    score > 100 ||
-    (countValue !== null && count === null)
-  ) {
-    return { status: "invalid-page" };
-  }
-  return {
-    rating: {
-      reviewCount: count,
-      score,
-      sourceUrl: new URL(page.canonicalUrl, "https://www.metacritic.com").href,
-    },
-    status: "matched",
-  };
-};
-
 type ReadMcPageOptions = {
   allowVerifiedSeasonAlias?: boolean;
   expectedSeriesUrl?: string | null;
@@ -141,8 +83,31 @@ type McPageReadResult =
   | {
       canonicalUrl: string;
       matchesTarget: true;
-      rating: McScore | null;
-      ratingStatus: "invalid-page" | "matched" | "no-rating";
+      rating: McScore;
+      ratingStatus: "matched";
+      seriesUrl: string | null;
+    }
+  | {
+      canonicalUrl: string;
+      matchesTarget: true;
+      rating: McScore;
+      ratingError: string;
+      ratingStatus: "partial-error";
+      seriesUrl: string | null;
+    }
+  | {
+      canonicalUrl: string;
+      matchesTarget: true;
+      rating: null;
+      ratingStatus: "no-rating";
+      seriesUrl: string | null;
+    }
+  | {
+      canonicalUrl: string;
+      matchesTarget: true;
+      rating: null;
+      ratingError: string;
+      ratingStatus: "invalid-page";
       seriesUrl: string | null;
     };
 
@@ -198,17 +163,46 @@ const readMcPage = (
     partOfSeries && typeof partOfSeries === "object"
       ? Reflect.get(partOfSeries, "url")
       : null;
-  const parsedRating = parseRating(page, entry);
+  const parsedRating = readPageRating(html, page, target, entry);
+  const canonicalUrl = new URL(page.canonicalUrl, "https://www.metacritic.com")
+    .href;
+  const pageSeriesUrl = typeof seriesUrl === "string" ? seriesUrl : null;
+  if (parsedRating.status === "matched") {
+    return {
+      canonicalUrl,
+      matchesTarget: true,
+      rating: parsedRating.rating,
+      ratingStatus: parsedRating.status,
+      seriesUrl: pageSeriesUrl,
+    };
+  }
+  if (parsedRating.status === "partial-error") {
+    return {
+      canonicalUrl,
+      matchesTarget: true,
+      rating: parsedRating.rating,
+      ratingError: parsedRating.reason,
+      ratingStatus: parsedRating.status,
+      seriesUrl: pageSeriesUrl,
+    };
+  }
+  if (parsedRating.status === "no-rating") {
+    return {
+      canonicalUrl,
+      matchesTarget: true,
+      rating: null,
+      ratingStatus: parsedRating.status,
+      seriesUrl: pageSeriesUrl,
+    };
+  }
   return {
-    canonicalUrl: new URL(page.canonicalUrl, "https://www.metacritic.com").href,
+    canonicalUrl,
     matchesTarget: true,
-    rating: parsedRating.status === "matched" ? parsedRating.rating : null,
+    rating: null,
+    ratingError: parsedRating.reason,
     ratingStatus: parsedRating.status,
-    seriesUrl: typeof seriesUrl === "string" ? seriesUrl : null,
+    seriesUrl: pageSeriesUrl,
   };
 };
 
-const parseMcPage = (html: string, target: MetacriticTarget): McScore | null =>
-  readMcPage(html, target).rating;
-
-export { parseMcPage, readMcPage, type McPageReadResult };
+export { readMcPage, type McPageReadResult };

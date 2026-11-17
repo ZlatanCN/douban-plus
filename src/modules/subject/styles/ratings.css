@@ -44,6 +44,7 @@
 
 .atv-rating-panel-mc {
   border-right: 1px solid var(--atv-border-subtle);
+  grid-template-rows: 28px 1fr;
 }
 
 .atv-rating-panel-logo {
@@ -71,62 +72,60 @@
   line-height: 1;
 }
 
-/* ── MC Score color by range ────────────────────── */
+/* ── Metacritic's native critic and audience scales ── */
 
-.atv-rating-panel-score.is-high {
-  color: var(--atv-score-high);
-}
-
-.atv-rating-panel-score.is-medium {
-  color: var(--atv-rating-gold);
-}
-
-.atv-rating-panel-score.is-low {
-  color: var(--atv-score-low);
-}
-
-/* ── MC label row (score bar + Chinese word label) ── */
-
-.atv-mc-label-row {
-  display: inline-flex;
+.atv-mc-score-grid {
+  display: grid;
+  width: 100%;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.atv-mc-bar-track {
-  display: inline-block;
-  overflow: hidden;
-  width: 40px;
-  height: 4px;
-  flex-shrink: 0;
-  border-radius: 2px;
-  background: var(--atv-bg-elevated);
+.atv-mc-score-grid.is-single {
+  grid-template-columns: 1fr;
 }
 
-.atv-mc-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
+.atv-mc-score-side {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+  place-items: center;
+  text-align: center;
 }
 
-.atv-mc-bar-fill.is-high {
-  background: var(--atv-score-high);
-}
-
-.atv-mc-bar-fill.is-medium {
-  background: var(--atv-rating-gold);
-}
-
-.atv-mc-bar-fill.is-low {
-  background: var(--atv-score-low);
-}
-
-.atv-mc-word-label {
+.atv-mc-score-label {
   color: var(--atv-text-tertiary);
-  font-size: var(--atv-type-micro);
+  font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-medium);
-  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.atv-mc-score-reading {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.atv-rating-panel-mc .atv-mc-score-value {
+  color: var(--atv-text-primary);
+  font-family: var(--atv-font-display);
+  font-size: 26px;
+  font-weight: var(--atv-font-weight-bold);
+  letter-spacing: -0.03em;
   line-height: 1;
+}
+
+.atv-mc-score-scale {
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-caption-sm);
+}
+
+.atv-mc-rating-count {
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
   white-space: nowrap;
 }
 
@@ -335,6 +334,10 @@
     grid-template-rows: 24px 38px 18px 1fr;
   }
 
+  .atv-rating-panel-mc {
+    grid-template-rows: 24px 1fr;
+  }
+
   .atv-rt-score-value {
     font-size: 26px;
   }
@@ -348,12 +351,8 @@
     font-size: var(--atv-type-micro);
   }
 
-  .atv-mc-bar-track {
-    width: 32px;
-  }
-
-  .atv-mc-word-label {
-    font-size: var(--atv-type-micro);
+  .atv-rating-panel-mc .atv-mc-score-value {
+    font-size: 22px;
   }
 
   .atv-rating-panel {

@@ -19,7 +19,7 @@ vi.hoisted(() => {
 });
 
 const makeMoviePage = (url: string, score: number): string =>
-  `<link rel="canonical" href="${url}"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Movie","name":"Spider-Man: Into the Spider-Verse","datePublished":"2018-12-14","aggregateRating":{"@type":"AggregateRating","ratingValue":${score},"reviewCount":50}}</script>`;
+  `<link rel="canonical" href="${url}"><script type="application/ld+json">{"@context":"https://schema.org","@type":"Movie","name":"Spider-Man: Into the Spider-Verse","datePublished":"2018-12-14","aggregateRating":{"@type":"AggregateRating","ratingValue":${score},"reviewCount":50}}</script><div data-testid="global-score-wrapper"><div data-testid="global-score-header">User score</div><div data-testid="global-score-value-wrapper" aria-label="User score TBD" title="User score TBD"><span data-testid="global-score-tbd">tbd</span></div></div>`;
 
 describe("SubjectPageRuntime Metacritic", () => {
   setupSubjectRuntimeHooks();
@@ -158,7 +158,7 @@ describe("SubjectPageRuntime Metacritic", () => {
         ?.textContent
     ).toBe("64");
     const snapshots = JSON.parse(
-      localStorage.getItem("dp:metacritic-snapshots:v1") ?? "{}"
+      localStorage.getItem("dp:metacritic-snapshots:v2") ?? "{}"
     ) as Record<string, { object?: { metacriticId?: string } }>;
     expect(
       Object.values(snapshots).map((rating) => rating.object?.metacriticId)

@@ -23,6 +23,27 @@ const finishParsedPage = (
   generation: number,
   onOutcome?: OnMcOutcome
 ): McRating | null => {
+  if (page.ratingStatus === "partial-error") {
+    if (generationOf(context) !== generation) {
+      return readSnapshot(object);
+    }
+    const rating: McRating = {
+      ...page.rating,
+      fetchedAt: Date.now(),
+      object,
+      stale: false,
+    };
+    onOutcome?.(
+      makeDiagnostic(
+        "parse-error",
+        "parse",
+        target.metacriticId,
+        null,
+        page.ratingError ?? "partial-rating-parse"
+      )
+    );
+    return rating;
+  }
   if (page.ratingStatus === "invalid-page") {
     onOutcome?.(
       makeDiagnostic(
@@ -30,7 +51,7 @@ const finishParsedPage = (
         "parse",
         target.metacriticId,
         null,
-        "invalid-rating"
+        page.ratingError ?? "invalid-rating"
       )
     );
     return prior;
@@ -41,18 +62,6 @@ const finishParsedPage = (
       makeDiagnostic("source-no-rating", "parse", target.metacriticId)
     );
     return null;
-  }
-  if (page.rating === null) {
-    onOutcome?.(
-      makeDiagnostic(
-        "parse-error",
-        "parse",
-        target.metacriticId,
-        null,
-        "missing-score"
-      )
-    );
-    return prior;
   }
   const rating: McRating = {
     ...page.rating,
