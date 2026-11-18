@@ -26,7 +26,7 @@
   display: grid;
   min-width: 0;
   flex: 1 1 0;
-  padding: 16px;
+  padding: 16px 11px;
   grid-template-rows:
     var(--atv-rating-logo-row-height)
     var(--atv-rating-score-row-height)
@@ -101,12 +101,21 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.atv-rt-score-grid:not(.is-single) {
+  justify-content: center;
+  grid-template-columns: max-content max-content;
+}
+
 .atv-rating-dual-side {
   display: grid;
   min-width: 0;
   grid-template-rows: 44px 20px minmax(14px, 1fr);
   justify-items: center;
   text-align: center;
+}
+
+.atv-rt-score-side {
+  min-width: max-content;
 }
 
 .atv-rating-dual-reading {
@@ -154,6 +163,11 @@
   letter-spacing: 0.02em;
   overflow-wrap: anywhere;
   white-space: normal;
+}
+
+.atv-rt-count-value {
+  overflow-wrap: normal;
+  white-space: nowrap;
 }
 
 .atv-rating-stars {
