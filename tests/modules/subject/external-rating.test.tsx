@@ -215,43 +215,29 @@ describe(ExternalRating, () => {
     ).toContain("50,000");
   });
 
-  it("keeps the full Rotten Tomatoes audience range with its plus marker", () => {
-    const el = renderSingle(
-      <ExternalRating
-        rating={makeRtRating({
-          audienceCount: { kind: "range", lowerBound: 250_000 },
-          criticsCount: { kind: "exact", value: 147 },
-        })}
-        resolved
-        source="rt"
-      />
-    );
+  it.each([
+    { lowerBound: 250_000, expectedAudienceText: "评价 250,000+" },
+    { lowerBound: 2_500_000, expectedAudienceText: "评价 2,500,000+" },
+  ])(
+    "keeps Rotten Tomatoes range count $expectedAudienceText on the audience side",
+    ({ lowerBound, expectedAudienceText }) => {
+      const el = renderSingle(
+        <ExternalRating
+          rating={makeRtRating({
+            audienceCount: { kind: "range", lowerBound },
+            criticsCount: { kind: "exact", value: 147 },
+          })}
+          resolved
+          source="rt"
+        />
+      );
 
-    expect(
-      el.querySelector(".atv-rt-critics .atv-rt-count-value")?.textContent
-    ).toBe("评价 147");
-    expect(
-      el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
-    ).toBe("评价 250,000+");
-  });
-
-  it("keeps a longer Rotten Tomatoes audience range on the audience side", () => {
-    const el = renderSingle(
-      <ExternalRating
-        rating={makeRtRating({
-          audienceCount: { kind: "range", lowerBound: 2_500_000 },
-          criticsCount: { kind: "exact", value: 147 },
-        })}
-        resolved
-        source="rt"
-      />
-    );
-
-    expect(
-      el.querySelector(".atv-rt-critics .atv-rt-count-value")?.textContent
-    ).toBe("评价 147");
-    expect(
-      el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
-    ).toBe("评价 2,500,000+");
-  });
+      expect(
+        el.querySelector(".atv-rt-critics .atv-rt-count-value")?.textContent
+      ).toBe("评价 147");
+      expect(
+        el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
+      ).toBe(expectedAudienceText);
+    }
+  );
 });
