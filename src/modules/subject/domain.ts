@@ -35,11 +35,33 @@ type ImdbRating = {
   count: number;
 };
 
-/** Metacritic Metascore, 0-100, and number of critic reviews. */
-type McRating = {
+/** One native Metacritic side and its matching rating count. */
+type McScoreSide = {
+  displayScore: string;
+  reviewCount: number | null;
   score: number;
-  reviewCount: number;
+};
+
+/** Metascore (0–100) and User score (0–10) from one source response. */
+type McScore = {
+  audience: McScoreSide | null;
+  critics: McScoreSide | null;
   sourceUrl: string;
+};
+
+type McObject = {
+  kind: RtObjectKind;
+  metacriticId: string;
+  season: number | null;
+  seriesId: string | null;
+  seriesMetacriticId: string | null;
+  subjectId: string;
+};
+
+type McRating = McScore & {
+  fetchedAt: number;
+  object: McObject;
+  stale: boolean;
 };
 
 type RtCount =
@@ -327,6 +349,9 @@ export type {
   InfoBlock,
   InterestOpenOptions,
   McRating,
+  McObject,
+  McScore,
+  McScoreSide,
   RtRating,
   NavSection,
   Photo,

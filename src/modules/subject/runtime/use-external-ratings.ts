@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useEffect, useRef, useState } from "preact/hooks";
 
 import type { DoubanData } from "@/modules/subject/domain";
 import { emptyRatingResults } from "@/modules/subject/resolve/types";
@@ -6,25 +6,35 @@ import type { RatingResultMap } from "@/modules/subject/resolve/types";
 
 import { buildContext } from "../resolve/context";
 import { resolveAll } from "../resolve/orchestrate";
+import type { OnRatingUpdate } from "../resolve/orchestrate";
 
 type ExternalRatingsState = {
   data: DoubanData;
   ratings: RatingResultMap;
 };
 
-const useExternalRatings = (data: DoubanData): RatingResultMap => {
+const useExternalRatings = (
+  data: DoubanData,
+  onRatingUpdate?: OnRatingUpdate
+): RatingResultMap => {
   const [state, setState] = useState<ExternalRatingsState>(() => ({
     data,
     ratings: emptyRatingResults(),
   }));
+  const onRatingUpdateRef = useRef(onRatingUpdate);
+
+  useEffect(() => {
+    onRatingUpdateRef.current = onRatingUpdate;
+  }, [onRatingUpdate]);
 
   useEffect(() => {
     const controller = new AbortController();
+    const context = buildContext(data);
     setState((current) =>
       current.data === data ? current : { data, ratings: emptyRatingResults() }
     );
 
-    void resolveAll(buildContext(data), controller.signal, (update) => {
+    void resolveAll(context, controller.signal, (update) => {
       setState((current) => {
         if (current.data !== data) {
           return current;
@@ -53,6 +63,7 @@ const useExternalRatings = (data: DoubanData): RatingResultMap => {
           }
         }
       });
+      onRatingUpdateRef.current?.(update);
     });
 
     return () => controller.abort();

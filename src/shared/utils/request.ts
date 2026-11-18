@@ -118,10 +118,18 @@ const postAttempt = async (
   body: string,
   referer: string | undefined,
   extraHeaders: Record<string, string> | undefined,
-  attempt: number
+  attempt: number,
+  options?: GmRequestOptions
 ): Promise<string> => {
   try {
-    const response = await gmRequest("POST", url, referer, extraHeaders, body);
+    const response = await gmRequest(
+      "POST",
+      url,
+      referer,
+      extraHeaders,
+      body,
+      options
+    );
     return response.responseText;
   } catch (error) {
     const retryDelay = RETRY_DELAYS[attempt];
@@ -129,7 +137,7 @@ const postAttempt = async (
       throw error;
     }
     await delay(retryDelay);
-    return postAttempt(url, body, referer, extraHeaders, attempt + 1);
+    return postAttempt(url, body, referer, extraHeaders, attempt + 1, options);
   }
 };
 
@@ -137,8 +145,9 @@ const gmPost = (
   url: string,
   body: string,
   referer?: string,
-  extraHeaders?: Record<string, string>
-): Promise<string> => postAttempt(url, body, referer, extraHeaders, 0);
+  extraHeaders?: Record<string, string>,
+  options?: GmRequestOptions
+): Promise<string> => postAttempt(url, body, referer, extraHeaders, 0, options);
 
 const gmGet = async (url: string, referer?: string): Promise<string> => {
   const response = await gmRequest("GET", url, referer);

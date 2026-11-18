@@ -32,8 +32,6 @@
   /* ---------- Rating / status colors ---------- */
   --atv-rating-gold: #ffb800;
   --atv-rating-empty: rgb(255 255 255 / 35%);
-  --atv-score-high: #3bb33b;
-  --atv-score-low: #fa320a;
   --atv-danger: #ff453a;
   --atv-content-caution: #c68f4e;
   --atv-caution-surface: rgb(198 143 78 / 10%);
@@ -85,8 +83,7 @@
   --atv-type-micro: 11px; /* kickers, tiny labels */
 
   /* ---------- Typography: display numerals ---------- */
-  --atv-type-stat: clamp(32px, 4vw, 38px); /* rating panel score */
-  --atv-type-stat-sm: 30px; /* RT score */
+  --atv-type-stat: 30px; /* rating panel score */
   --atv-type-stat-lg: clamp(28px, 3.5vw, 40px); /* timeline years */
 
   /* ---------- Typography: weight ladder (real faces on all platforms) ---------- */

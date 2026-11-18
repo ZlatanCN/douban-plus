@@ -119,18 +119,6 @@ const IconExpand = (props: IconProps) => (
   </svg>
 );
 
-const IconTomato = (props: IconProps) => (
-  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" {...props}>
-    <circle cx="8" cy="8" r="5.5" fill="currentColor" />
-  </svg>
-);
-
-const IconPopcorn = (props: IconProps) => (
-  <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" {...props}>
-    <path fill="currentColor" d="M8 2l6 6-6 6-6-6z" />
-  </svg>
-);
-
 const IconClose = ({ size = 22, ...props }: IconProps & { size?: number }) => (
   <svg
     viewBox="0 0 24 24"
@@ -242,12 +230,10 @@ export {
   IconExpand,
   IconFilmPlaceholder,
   IconPlay,
-  IconPopcorn,
   IconStarEmpty,
   IconStarFull,
   IconStarHalf,
   IconThumb,
-  IconTomato,
   IconVoteTriangle,
   LogoDouban,
   LogoImdb,

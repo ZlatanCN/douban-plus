@@ -1,4 +1,5 @@
 import { entityReference } from "@/modules/subject/api/external-ratings/shared/wikidata-client";
+import { isFilmInstance } from "@/modules/subject/api/external-ratings/shared/wikidata-identity";
 
 type Snak = { datavalue?: { value?: unknown }; snaktype?: string };
 type Claim = {
@@ -9,24 +10,35 @@ type Claim = {
 
 type Entity = { claims?: Record<string, Claim[]>; id: string };
 type EntityKind = "episode" | "movie" | "season" | "series";
+type IdentityReferences = { creators: string[]; directors: string[] };
+type TargetFailure = { status: "ambiguous" } | { status: "missing" };
 type TargetResult =
+  | MetacriticTarget
   | {
-      kind: EntityKind;
-      metacriticId: string;
-      season: number | null;
-      seriesId: string | null;
-      status: "matched";
+      season: number;
+      seriesTarget: MetacriticTarget;
+      status: "season-link-needed";
     }
-  | { status: "ambiguous" | "missing" };
-type MetacriticTarget = Extract<TargetResult, { status: "matched" }>;
+  | TargetFailure;
+type MetacriticTarget = {
+  kind: "movie" | "season" | "series";
+  identityReferences: IdentityReferences;
+  metacriticId: string;
+  season: number | null;
+  seriesId: string | null;
+  seriesMetacriticId: string | null;
+  status: "matched";
+};
 
 const ACTIVE_RANKS = new Set(["normal", "preferred"]);
 const TYPES = {
   episode: new Set(["Q21191270"]),
-  movie: new Set(["Q11424"]),
   season: new Set(["Q3464665"]),
-  series: new Set(["Q5398426", "Q15416"]),
-} satisfies Record<EntityKind, Set<string>>;
+  series: new Set(["Q5398426", "Q15416", "Q1259759"]),
+} satisfies Record<Exclude<EntityKind, "movie">, Set<string>>;
+const NON_MOVIE_TYPE_IDS = new Set(
+  Object.values(TYPES).flatMap((types) => [...types])
+);
 
 const activeClaimValues = (claims: Claim[] | undefined): unknown[] =>
   (claims ?? [])
@@ -38,7 +50,10 @@ const activeClaimValues = (claims: Claim[] | undefined): unknown[] =>
 const uniqueReference = (
   claims: Record<string, Claim[]> | undefined,
   property: string
-): { id: string; status: "matched" } | { status: "ambiguous" | "missing" } => {
+):
+  | { id: string; status: "matched" }
+  | { status: "ambiguous" }
+  | { status: "missing" } => {
   const values = activeClaimValues(claims?.[property]);
   if (values.length === 0) {
     return { status: "missing" };
@@ -54,11 +69,26 @@ const uniqueReference = (
     : { status: "ambiguous" };
 };
 
+const identityReferences = (entity: Entity): IdentityReferences => {
+  const idsFor = (property: "P57" | "P170"): string[] => [
+    ...new Set(
+      activeClaimValues(entity.claims?.[property])
+        .map(entityReference)
+        .filter((id): id is string => id !== null)
+    ),
+  ];
+  return {
+    creators: idsFor("P170"),
+    directors: idsFor("P57"),
+  };
+};
+
 const ordinalResult = (
   rawValues: unknown[]
 ):
   | { status: "matched"; value: number }
-  | { status: "ambiguous" | "missing" } => {
+  | { status: "ambiguous" }
+  | { status: "missing" } => {
   const values = rawValues.map(Number);
   if (values.length === 0) {
     return { status: "missing" };
@@ -74,25 +104,40 @@ const ordinalResult = (
 
 const readOrdinal = (
   claims: Record<string, Claim[]> | undefined
-): { status: "matched"; value: number } | { status: "ambiguous" | "missing" } =>
-  ordinalResult(activeClaimValues(claims?.P1545));
+):
+  | { status: "matched"; value: number }
+  | { status: "ambiguous" }
+  | { status: "missing" } => ordinalResult(activeClaimValues(claims?.P1545));
 
 const readQualifierOrdinal = (
   snaks: Snak[] | undefined
-): { status: "matched"; value: number } | { status: "ambiguous" | "missing" } =>
+):
+  | { status: "matched"; value: number }
+  | { status: "ambiguous" }
+  | { status: "missing" } =>
   ordinalResult(
     (snaks ?? [])
       .filter((snak) => snak.snaktype === "value")
       .map((snak) => snak.datavalue?.value)
   );
 
-const entityKind = (entity: Entity): EntityKind | null => {
+const entityKind = async (
+  entity: Entity,
+  signal: AbortSignal
+): Promise<EntityKind | null> => {
   const types = activeClaimValues(entity.claims?.P31)
     .map(entityReference)
     .filter((id): id is string => id !== null);
-  const matches = (Object.entries(TYPES) as [EntityKind, Set<string>][])
-    .filter(([, ids]) => types.some((id) => ids.has(id)))
-    .map(([kind]) => kind);
+  const matches: EntityKind[] = [];
+  const filmCandidateTypes = types.filter((id) => !NON_MOVIE_TYPE_IDS.has(id));
+  if (await isFilmInstance(filmCandidateTypes, signal)) {
+    matches.push("movie");
+  }
+  matches.push(
+    ...(Object.entries(TYPES) as [Exclude<EntityKind, "movie">, Set<string>][])
+      .filter(([, ids]) => types.some((id) => ids.has(id)))
+      .map(([kind]) => kind)
+  );
   return matches.length === 1 ? (matches[0] ?? null) : null;
 };
 
@@ -125,7 +170,8 @@ const readMetacriticId = (
   entity: Entity
 ):
   | { metacriticId: string; status: "matched" }
-  | { status: "ambiguous" | "missing" } => {
+  | { status: "ambiguous" }
+  | { status: "missing" } => {
   const values = activeClaimValues(entity.claims?.P1712);
   if (values.length === 0) {
     return { status: "missing" };
@@ -156,6 +202,7 @@ const hasIdentity = (
 export {
   activeClaimValues,
   entityKind,
+  identityReferences,
   hasIdentity,
   normalizeMetacriticId,
   readMetacriticId,
@@ -165,6 +212,7 @@ export {
   type Claim,
   type Entity,
   type EntityKind,
+  type IdentityReferences,
   type MetacriticTarget,
   type Snak,
   type TargetResult,

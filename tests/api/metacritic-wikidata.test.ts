@@ -86,17 +86,34 @@ describe(resolveMetacriticTarget, () => {
         seasonConflict: false,
         subjectId: "3016187",
         subjectTitle: "权力的游戏 第一季",
+        identityEvidence: {
+          originalTitle: "Game of Thrones",
+          releaseYear: "2011",
+          directors: [],
+          creators: [],
+        },
         unsupportedEpisode: false,
       },
       new AbortController().signal
     );
 
     expect(result).toStrictEqual({
-      kind: "season",
-      metacriticId: "tv/game-of-thrones/season-1",
-      season: 1,
-      seriesId: "Q23572",
+      acceptedEvidence: ["exact-id", "type"],
+      candidateTargets: ["Q23572"],
+      complete: true,
+      missingEvidence: [],
+      rejectedEvidence: [],
       status: "matched",
+      target: {
+        kind: "season",
+        identityReferences: { creators: [], directors: [] },
+        metacriticId: "tv/game-of-thrones/season-1",
+        season: 1,
+        seriesId: "Q23572",
+        seriesMetacriticId: "tv/game-of-thrones",
+        status: "matched",
+      },
+      unverifiedEvidence: [],
     });
   });
 });

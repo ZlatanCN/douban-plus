@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { RatingUpdate } from "@/modules/subject/resolve/orchestrate";
 import { SubjectPageRuntime } from "@/modules/subject/runtime/page-runtime";
 
+import luckyMetacritic from "../fixtures/metacritic/lucky-2026-user-score.html?raw";
 import { renderIntoRoot } from "../helpers/render";
 import {
   makeClaim,
@@ -21,6 +23,7 @@ describe("subject runtime meta series", () => {
 
   it("resolves Lucky from IMDb and follows its Metacritic ID", async () => {
     const requests: string[] = [];
+    const updates: RatingUpdate[] = [];
     const rtUrl = "https://www.rottentomatoes.com/tv/lucky_2026";
     const metacriticUrl = "https://www.metacritic.com/tv/lucky-2026/";
     mockNetwork((url) => {
@@ -67,11 +70,7 @@ describe("subject runtime meta series", () => {
         };
       }
       if (url === metacriticUrl) {
-        return {
-          body:
-            `<link rel="canonical" href="${metacriticUrl}">` +
-            '<script type="application/ld+json">{"@type":"TVSeries","name":"Lucky (2026)","aggregateRating":{"ratingValue":68,"reviewCount":29}}</script>',
-        };
+        return { body: luckyMetacritic };
       }
       return { body: "", status: 404 };
     });
@@ -93,7 +92,11 @@ describe("subject runtime meta series", () => {
       year: "2026",
     });
     const root = renderIntoRoot(
-      <SubjectPageRuntime data={data} doc={document} />
+      <SubjectPageRuntime
+        data={data}
+        doc={document}
+        onRatingUpdate={(update) => updates.push(update)}
+      />
     );
 
     await vi.waitFor(() =>
@@ -109,8 +112,39 @@ describe("subject runtime meta series", () => {
           ?.textContent
       ).toBe("68")
     );
-    expect(requests).toContain(rtUrl);
-    expect(requests).toContain(metacriticUrl);
-    expect(requests).not.toContain("https://www.metacritic.com/tv/lucky");
+    expect({
+      criticScale: root.querySelector(".atv-mc-critics .atv-mc-score-scale")
+        ?.textContent,
+      criticCount: root.querySelector(".atv-mc-critics .atv-mc-rating-count")
+        ?.textContent,
+      audienceScore: root.querySelector(".atv-mc-audience .atv-mc-score-value")
+        ?.textContent,
+      audienceScale: root.querySelector(".atv-mc-audience .atv-mc-score-scale")
+        ?.textContent,
+      audienceCount: root.querySelector(".atv-mc-audience .atv-mc-rating-count")
+        ?.textContent,
+      rating: updates.findLast((update) => update.source === "mc")?.result,
+      requested: {
+        rt: requests.includes(rtUrl),
+        metacritic: requests.includes(metacriticUrl),
+        guessedMetacritic: requests.includes(
+          "https://www.metacritic.com/tv/lucky"
+        ),
+      },
+    }).toMatchObject({
+      criticScale: "/100",
+      criticCount: "评价 29",
+      audienceScore: "5.0",
+      audienceScale: "/10",
+      audienceCount: "评价 67",
+      rating: {
+        diagnostic: { reason: "rating" },
+        rating: {
+          audience: { displayScore: "5.0", reviewCount: 67, score: 5 },
+          critics: { displayScore: "68", reviewCount: 29, score: 68 },
+        },
+      },
+      requested: { rt: true, metacritic: true, guessedMetacritic: false },
+    });
   });
 });

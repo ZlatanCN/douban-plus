@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Douban Plus
 // @namespace    https://github.com/ZlatanCN/douban-plus
-// @version      1.8.3
+// @version      1.8.4
 // @author       Gabriel Zhu
 // @description  适配 ScriptCat 和 Tampermonkey 的豆瓣作品详情页与人物页增强脚本，用 Preact 重排为 Apple TV 风格沉浸式暗色界面，并保留豆瓣原生登录、标记和跳转能力。
 // @license      MIT
@@ -44,9 +44,11 @@
 // @connect      www.metacritic.com
 // @grant        GM.getValue
 // @grant        GM.registerMenuCommand
+// @grant        GM.setClipboard
 // @grant        GM.setValue
 // @grant        GM.unregisterMenuCommand
 // @grant        GM_addStyle
+// @grant        GM_setClipboard
 // @grant        GM_xmlhttpRequest
 // @run-at       document-start
 // @noframes
@@ -60,7 +62,7 @@ const _css = async (t) => {
 	if (typeof GM_addStyle === "function") GM_addStyle(c);
 	else (document.head || document.documentElement).appendChild(document.createElement("style")).append(c);
 })(t);
-};var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  /* ---------- Surfaces: page → card → modal → raised ---------- */\n  --atv-bg-primary: #0c0a09;\n  --atv-bg-card: #121214;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-bg-hover: rgb(255 255 255 / 3%);\n  --atv-bg-hover-strong: rgb(255 255 255 / 12%);\n  --atv-bg-nav: rgb(10 10 12 / 74%);\n  --atv-bg-nav-solid: rgb(10 10 12 / 95%);\n  --atv-scrim-overlay: rgb(0 0 0 / 78%);\n  --atv-scrim-overlay-solid: rgb(0 0 0 / 92%);\n\n  /* ---------- Text ladder: primary → emphasis → secondary → tertiary ---------- */\n  --atv-text-primary: #fff;\n  --atv-text-emphasis: rgb(255 255 255 / 85%);\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 50%);\n\n  /* ---------- Interaction accents ---------- */\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-text-on-accent: #062811;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-accent-hover: rgb(65 190 93 / 6%);\n  --atv-accent-active: rgb(76 217 122 / 10%);\n  --atv-accent-border: rgb(65 190 93 / 25%);\n  --atv-accent-border-strong: rgb(76 217 122 / 58%);\n  --atv-accent-outline: rgb(65 190 93 / 75%);\n\n  /* ---------- Rating / status colors ---------- */\n  --atv-rating-gold: #ffb800;\n  --atv-rating-empty: rgb(255 255 255 / 35%);\n  --atv-score-high: #3bb33b;\n  --atv-score-low: #fa320a;\n  --atv-danger: #ff453a;\n  --atv-content-caution: #c68f4e;\n  --atv-caution-surface: rgb(198 143 78 / 10%);\n\n  /* ---------- Borders: subtle → medium → strong → emphasis ---------- */\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-border-strong: rgb(255 255 255 / 22%);\n  --atv-border-emphasis: rgb(255 255 255 / 34%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n\n  /* ---------- Typography: font stacks (system, no webfonts) ---------- */\n  --atv-font-sans:\n    -apple-system, \"BlinkMacSystemFont\", \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", \"Inter\", system-ui, sans-serif;\n  --atv-font-display:\n    \"SF Pro Display\", -apple-system, \"BlinkMacSystemFont\", \"PingFang SC\",\n    \"Microsoft YaHei\", system-ui, sans-serif;\n  --atv-font-mono:\n    ui-monospace, \"SFMono-Regular\", \"Cascadia Code\", \"Consolas\", monospace;\n\n  /* ---------- Typography: role-based type scale ---------- */\n  --atv-type-display: clamp(44px, 7vw, 92px); /* page hero titles */\n  --atv-type-display-compact: clamp(\n    44px,\n    5.5vw,\n    80px\n  ); /* hero beside poster / portrait */\n\n  --atv-type-display-narrow: clamp(\n    34px,\n    10vw,\n    50px\n  ); /* compact hero (mobile) */\n\n  --atv-type-hero-orig: clamp(18px, 1.6vw, 22px); /* original-title line */\n  --atv-type-title-group: clamp(22px, 2.4vw, 32px); /* gallery group headings */\n  --atv-type-title-xl: 24px; /* section headings, modal titles */\n  --atv-type-title-lg: 20px; /* modal titles, sub-headings */\n  --atv-type-title-md: 18px; /* in-page headings */\n  --atv-type-title: 16px; /* card titles */\n  --atv-type-body-lg: 16px; /* CJK long-form reading (bio, review body) */\n  --atv-type-body: 15px; /* body text */\n  --atv-type-body-sm: 14px; /* dense text, values, actions */\n  --atv-type-caption: 13px; /* bylines, metadata */\n  --atv-type-caption-sm: 12px; /* footers, labels, small metadata */\n  --atv-type-micro: 11px; /* kickers, tiny labels */\n\n  /* ---------- Typography: display numerals ---------- */\n  --atv-type-stat: clamp(32px, 4vw, 38px); /* rating panel score */\n  --atv-type-stat-sm: 30px; /* RT score */\n  --atv-type-stat-lg: clamp(28px, 3.5vw, 40px); /* timeline years */\n\n  /* ---------- Typography: weight ladder (real faces on all platforms) ---------- */\n  --atv-font-weight-regular: 400;\n  --atv-font-weight-medium: 500;\n  --atv-font-weight-semibold: 600;\n  --atv-font-weight-bold: 700;\n\n  /* ---------- Typography: line heights (unitless) ---------- */\n  --atv-line-height-display: 1.1; /* wrapping display headings — ink-safe for CJK + Latin */\n  --atv-line-height-body: 1.65; /* short-form reading */\n  --atv-line-height-body-loose: 1.8; /* CJK long-form reading */\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n}\n\nbody.atv-enhanced > #wrapper {\n  display: none !important;\n}\n\nbody.atv-enhanced {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\nbody.atv-enhanced #db-global-nav,\nbody.atv-enhanced #db-nav-movie,\nbody.atv-enhanced #db-nav-sns {\n  display: none !important;\n}\n\nbody.atv-enhanced [id^=\"dale_\"],\nbody.atv-enhanced [class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-sans);\n  font-feature-settings: \"ss01\", \"cv11\";\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid var(--atv-border-subtle);\n  background: var(--atv-bg-nav-solid);\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: var(--atv-bg-nav);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  min-width: 0;\n  flex: 0 1 auto;\n  gap: 24px;\n  overflow-x: auto;\n  scrollbar-width: none;\n}\n\n.atv-stickynav-jumps::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: var(--atv-text-secondary);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    flex: 0 1 32%;\n    font-size: var(--atv-type-body-sm);\n  }\n\n  .atv-stickynav-jumps {\n    flex: 1 1 auto;\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: var(--atv-type-caption-sm);\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n/* ---------- Subject switcher ---------- */\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  flex: 0 0 auto;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease,\n    opacity 120ms var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-subject-switcher-trigger:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-hover-strong);\n    color: var(--atv-text-primary);\n    outline: none;\n  }\n}\n\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n.atv-subject-switcher {\n  position: relative;\n  display: flex;\n  align-items: center;\n}\n\n.atv-subject-switcher-expanded {\n  position: absolute;\n  top: 50%;\n  right: 0;\n  overflow: visible;\n  width: min(44vw, 520px);\n  max-width: min(44vw, 520px);\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-50%);\n  transition:\n    opacity 120ms var(--atv-ease-out),\n    visibility 0s linear 160ms;\n  visibility: hidden;\n}\n\n.atv-subject-switcher-field {\n  position: relative;\n  z-index: 1;\n  display: flex;\n  overflow: hidden;\n  width: 100%;\n  height: 38px;\n  align-items: center;\n  border: 1px solid var(--atv-border-strong);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n  clip-path: inset(0 0 0 72% round 999px);\n  transition: clip-path 160ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-trigger {\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity 120ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-expanded {\n  z-index: 100;\n  opacity: 1;\n  pointer-events: auto;\n  transition:\n    opacity 150ms var(--atv-ease-out),\n    visibility 0s;\n  visibility: visible;\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-field {\n  clip-path: inset(0 round 999px);\n  transition: clip-path 220ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-expanded,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-field {\n  transition: none;\n}\n\n.atv-subject-switcher[data-animation=\"none\"][data-state=\"open\"]\n  .atv-subject-switcher-trigger {\n  transition: none;\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n  opacity: 0;\n  transition: opacity 100ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: var(--atv-type-body-sm);\n  opacity: 0;\n  outline: 0;\n  transition: opacity 100ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-search-icon,\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-input {\n  opacity: 1;\n  transition: opacity 110ms var(--atv-ease-out) 60ms;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover {\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-close:focus-visible {\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n    max-width: min(78vw, 520px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-switcher-field,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-field {\n    clip-path: inset(0 round 999px);\n    transition: none;\n  }\n\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-expanded {\n    transition:\n      opacity 100ms var(--atv-ease-out),\n      visibility 0s;\n    visibility: visible;\n  }\n\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-trigger {\n    transition: opacity 100ms var(--atv-ease-out);\n  }\n\n  .atv-subject-switcher-search-icon,\n  .atv-subject-switcher-input,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-search-icon,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-input {\n    transition: opacity 100ms var(--atv-ease-out);\n  }\n}\n\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-expanded,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-search-icon,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-input,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-trigger {\n  transition: none;\n}\n\n/* Prevent iOS zoom on focus */\n@media (hover: none) and (pointer: coarse) {\n  .atv-subject-switcher-input {\n    font-size: 16px;\n  }\n}\n/* ---------- Subject suggestion results ---------- */\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-card);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: var(--atv-bg-elevated);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Hero ---------- */\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: var(--atv-bg-primary);\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    var(--atv-bg-primary) 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 64px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display-compact);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: clamp(-0.035em, -0.03em, -0.025em);\n  line-height: var(--atv-line-height-display);\n  text-shadow: 0 4px 30px rgb(0 0 0 / 50%);\n  text-wrap: balance;\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-hero-orig);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    color-mix(in srgb, var(--atv-rating-gold) 14%, transparent) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: var(--atv-font-mono);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    color-mix(in srgb, var(--atv-rating-gold) 22%, transparent) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  --atv-meta-column-gap: 18px;\n\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 10px var(--atv-meta-column-gap);\n  letter-spacing: 0.02em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: 9px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  position: absolute;\n  width: 4px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n  inset-block-start: 50%;\n  inset-inline-end: calc(100% + (var(--atv-meta-column-gap) - 4px) / 2);\n  line-height: 1;\n  text-align: center;\n  transform: translateY(-50%);\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ---------- Personage hero ---------- */\n.atv-personage-hero {\n  position: relative;\n  min-height: 70vh;\n  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;\n}\n\n.atv-personage-hero::after {\n  position: absolute;\n  right: max(28px, 7vw);\n  bottom: 0;\n  left: max(28px, 7vw);\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-border-subtle) 20%,\n    var(--atv-border-subtle) 80%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-personage-hero-inner {\n  display: grid;\n  width: min(100%, 1120px);\n  align-items: start;\n  margin: 0 auto;\n  gap: clamp(32px, 5vw, 72px);\n  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);\n}\n\n.atv-personage-portrait {\n  width: 100%;\n  border-radius: 50%;\n  aspect-ratio: 1;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n}\n\n.atv-personage-portrait.is-empty {\n  background: radial-gradient(\n    circle at 30% 25%,\n    #4a4a4d,\n    var(--atv-bg-tertiary) 62%\n  );\n}\n\n.atv-personage-portrait-trigger {\n  display: block;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: 50%;\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n}\n\n.atv-personage-kicker {\n  margin: 2px 0 16px;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-personage-identity h1 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display-compact);\n  letter-spacing: -0.04em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-personage-original-name {\n  margin: 18px 0 0;\n  color: var(--atv-text-secondary);\n  font-size: clamp(19px, 2.1vw, 28px);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  line-height: 1.2;\n}\n\n.atv-personage-facts {\n  display: flex;\n  flex-wrap: wrap;\n  margin: 32px 0 0;\n  gap: 12px 32px;\n}\n\n.atv-personage-facts div {\n  display: flex;\n  gap: 8px;\n}\n\n.atv-personage-facts dt {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  letter-spacing: 0.03em;\n  opacity: 0.7;\n}\n\n.atv-personage-facts dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-personage-biography {\n  max-width: 680px;\n  margin-top: 36px;\n}\n\n.atv-personage-biography-content {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-lg);\n  letter-spacing: 0.01em;\n  line-height: var(--atv-line-height-body-loose);\n}\n\n.atv-personage-biography-content p {\n  margin: 0;\n}\n\n.atv-personage-biography-content p + p {\n  margin-top: 1em;\n}\n\n.atv-personage-biography-content.is-clamped > p:not(:first-child) {\n  display: none;\n}\n\n.atv-personage-biography-content.is-clamped > p:first-child {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 3;\n}\n\n.atv-personage-biography button {\n  padding: 0;\n  border: 0;\n  margin-top: 12px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  transition: opacity 160ms ease;\n}\n\n/* ---------- Entrance ---------- */\n@keyframes atv-hero-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(12px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-hero-portrait-in {\n  from {\n    opacity: 0;\n    transform: scale(0.92);\n  }\n\n  to {\n    opacity: 1;\n    transform: scale(1);\n  }\n}\n\n.atv-personage-hero.is-revealed .atv-personage-portrait {\n  animation: atv-hero-portrait-in 500ms var(--atv-ease-out) both;\n  animation-delay: 80ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-identity h1 {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 180ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-kicker {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-original-name {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-facts div {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: calc(340ms + var(--fact-index, 0) * 60ms);\n}\n\n.atv-personage-hero.is-revealed .atv-personage-biography {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 500ms;\n}\n\n/* ---------- Hover ---------- */\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-biography button:hover {\n    opacity: 0.8;\n  }\n}\n/* ---------- Collaborators ---------- */\n.atv-personage-collaborators {\n  display: flex;\n  flex-direction: column;\n  padding: 0;\n  margin: 20px 0 0;\n  list-style: none;\n}\n\n.atv-personage-collaborator {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  align-items: center;\n  padding: 14px 12px;\n  border-radius: var(--atv-radius-sm, 8px);\n  gap: 14px;\n  grid-template-columns: 28px 48px 1fr auto;\n  transition: background 160ms ease;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-collaborator {\n  animation: atv-collaborator-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover {\n    background: var(--atv-bg-secondary);\n  }\n\n  .atv-personage-collaborator::before {\n    position: absolute;\n    top: 14px;\n    bottom: 14px;\n    left: 0;\n    width: 3px;\n    border-radius: 0 3px 3px 0;\n    background: var(--atv-accent);\n    content: \"\";\n    opacity: 0;\n    transform: scaleY(0.35);\n    transition:\n      opacity var(--atv-duration-feedback) ease,\n      transform var(--atv-duration-hover) var(--atv-ease-out);\n  }\n\n  .atv-personage-collaborator:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n}\n\n.atv-personage-collaborator:active {\n  transform: scale(0.98);\n}\n\n@keyframes atv-collaborator-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.atv-personage-collaborator-rank {\n  display: flex;\n  justify-content: flex-end;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-personage-collaborator-avatar {\n  width: 48px;\n  height: 48px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n  transition: border-color 160ms ease;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover .atv-personage-collaborator-avatar {\n    border-color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-avatar.is-fallback {\n  display: grid;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  place-items: center;\n}\n\n.atv-personage-collaborator-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 2px;\n}\n\n.atv-personage-collaborator-name {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  transition: color 160ms ease;\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-name:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-count {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-regular);\n}\n\n.atv-personage-collaborator-action {\n  flex-shrink: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  text-decoration: none;\n  transition:\n    color 160ms ease,\n    opacity 200ms var(--atv-ease-out),\n    transform 200ms var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-personage-collaborator-arrow {\n  display: inline-block;\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-action {\n    opacity: 0;\n    pointer-events: none;\n    transform: translateX(8px);\n  }\n\n  .atv-personage-collaborator-arrow {\n    opacity: 0.35;\n    transform: translate(1px, -2px);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-action,\n  .atv-personage-collaborator:focus-within .atv-personage-collaborator-action {\n    opacity: 1;\n    pointer-events: auto;\n    transform: translateX(0);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow,\n  .atv-personage-collaborator:focus-within .atv-personage-collaborator-arrow {\n    opacity: 1;\n    transform: translate(0, 0);\n  }\n\n  .atv-personage-collaborator-action:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-action:focus-visible {\n  border-radius: 2px;\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-personage .atv-section {\n  /* Inter-group 56px (bottom) vs intra-group 28px (header margin) = 2:1.\n     Horizontal inset matches the hero's max(28px, 7vw) so section content\n     aligns with the identity column. */\n  padding: 36px max(28px, 7vw) 56px;\n}\n\n.atv-personage .atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-personage .atv-section-h {\n  padding-left: 0;\n  margin-bottom: 28px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-personage .atv-section-h::before {\n  display: none;\n}\n\n.atv-personage .atv-section-h-row {\n  margin-bottom: 28px;\n}\n\n.atv-carousel.atv-personage-gallery-rail {\n  /* Compound selector outranks the shared `.atv-carousel` gap (see work rail). */\n  gap: 12px;\n  list-style: none;\n}\n\n@keyframes atv-gallery-tile-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-personage-gallery-rail li {\n  min-width: 0;\n  height: 256px;\n  flex: 0 0 auto;\n  aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);\n  scroll-snap-align: start;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-gallery-rail li {\n  animation: atv-gallery-tile-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n.atv-personage-gallery-rail button {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-personage-gallery-rail img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n/* ---------- WorkRail (代表作品) ---------- */\n\n.atv-carousel.atv-personage-work-rail {\n  /* Compound selector outranks the shared `.atv-carousel` gap regardless of\n     manifest import order (layout.css is imported later than this file). */\n  gap: 20px;\n}\n\n.atv-personage-work-card {\n  /* Five cards fill the rail at 20px gaps; larger selections overflow into\n     the rail's own horizontal scroll instead of being clipped. */\n  flex: 0 0 max(140px, calc((100% - 80px) / 5));\n  color: inherit;\n  cursor: pointer;\n  opacity: 0;\n  scroll-snap-align: start;\n  text-decoration: none;\n  transform: translateY(8px);\n  transition:\n    opacity 400ms var(--atv-ease-out) 200ms,\n    transform 400ms var(--atv-ease-out) 200ms;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-work-card {\n  opacity: 1;\n  transform: translateY(0);\n}\n\n.atv-personage-work-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-personage-work-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-personage-work-poster img,\n.atv-personage-work-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* Index number badge — 1‑based order on the card poster */\n.atv-work-index {\n  position: absolute;\n  z-index: 1;\n  bottom: 0;\n  left: 0;\n  display: flex;\n  width: 28px;\n  height: 28px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 0 4px 4px 0;\n  backdrop-filter: blur(2px);\n  background: rgb(0 0 0 / 60%);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.01em;\n  line-height: 1;\n}\n\n/* Rating badge — pill badge on the card poster */\n.atv-work-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-work-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-work-year {\n  display: block;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n/* ---------- Timeline (Axis + Dots) ---------- */\n\n/* Vertical axis line — accent at top fades into the dark background toward\n   the past, so newer years read as more present. */\n.atv-timeline {\n  position: relative;\n  margin-top: 20px;\n  font-size: var(--atv-type-stat-lg);\n}\n\n.atv-timeline::before {\n  position: absolute;\n  z-index: 0;\n  top: calc(0.5em);\n  bottom: 10px;\n  left: 15px;\n  width: 1px;\n  background: linear-gradient(\n    to bottom,\n    var(--atv-accent-bright) 0%,\n    var(--atv-accent) 35%,\n    var(--atv-border-subtle) 100%\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-timeline-year-group {\n  position: relative;\n  padding-bottom: 24px;\n  padding-left: 44px;\n  font-size: var(--atv-type-stat-lg);\n}\n\n.atv-timeline-year-group:last-child {\n  padding-bottom: 0;\n}\n\n.atv-timeline-year-group::before {\n  position: absolute;\n  z-index: 1;\n  top: calc(0.5em - 5px);\n  left: 10px;\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 0 transparent;\n  content: \"\";\n  opacity: 0;\n  transform: scale(0.5);\n  transition:\n    opacity 400ms var(--atv-ease-out),\n    transform 400ms var(--atv-ease-out),\n    box-shadow 400ms var(--atv-ease-out);\n  transition-delay: calc(var(--group-index, 0) * 60ms);\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-group::before {\n  box-shadow:\n    0 0 10px var(--atv-accent),\n    0 0 24px color-mix(in srgb, var(--atv-accent) 25%, transparent);\n  opacity: 1;\n  transform: scale(1);\n}\n\n.atv-timeline-year-num {\n  display: block;\n  margin-bottom: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-stat-lg);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.02em;\n  line-height: 1;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-num {\n  animation: atv-timeline-year-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--group-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@keyframes atv-timeline-year-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* Card row */\n.atv-timeline-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n}\n\n@keyframes atv-timeline-card-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-timeline-card {\n  min-width: 120px;\n  max-width: 200px;\n  flex: 1 1 160px;\n  color: inherit;\n  cursor: pointer;\n  text-decoration: none;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-card {\n  animation: atv-timeline-card-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(\n    calc(var(--stagger-index, 0) * 40ms + var(--group-index, 0) * 40ms + 20ms),\n    100ms\n  );\n}\n\n.atv-timeline-card:active {\n  transform: scale(0.97);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-timeline-card:hover {\n    transform: translateY(-3px);\n  }\n}\n\n.atv-timeline-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-timeline-card-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-timeline-card-poster img,\n.atv-timeline-card-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-timeline-card-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-timeline-card-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-awards-list {\n  padding: 0;\n  margin: 0;\n  list-style: none;\n}\n\n.atv-personage-awards-list li {\n  display: grid;\n  padding: 20px 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  gap: 24px;\n  grid-template-columns: minmax(84px, auto) 1fr;\n}\n\n.atv-personage-awards-list li:last-child {\n  border-bottom: none;\n}\n\n.atv-personage-award-year {\n  padding-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-award-detail {\n  position: relative;\n  min-width: 0;\n  padding-left: 16px;\n  border-left: 2px solid var(--atv-accent);\n}\n\n.atv-personage-award-ceremony,\n.atv-personage-award-ceremony a {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-personage-award-ceremony a {\n  border-bottom: 1px solid transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-ceremony a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n.atv-personage-award-name {\n  margin: 6px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-personage-award-work {\n  margin: 6px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body-sm);\n}\n\n.atv-personage-award-work a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-work a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n@media (width <= 640px) {\n  .atv-personage-hero-inner {\n    gap: 24px;\n    grid-template-columns: 112px minmax(0, 1fr);\n  }\n\n  .atv-personage-identity h1 {\n    font-size: var(--atv-type-display-narrow);\n  }\n\n  .atv-personage-facts {\n    margin-top: 20px;\n  }\n\n  .atv-personage-biography {\n    margin-top: 0;\n    grid-column: 1 / -1;\n  }\n\n  .atv-personage-collaborator {\n    padding: 14px 8px;\n    gap: 10px;\n    grid-template-columns: 20px 42px 1fr auto;\n  }\n\n  .atv-personage-collaborator-avatar,\n  .atv-personage-collaborator-avatar.is-fallback {\n    width: 42px;\n    height: 42px;\n  }\n\n  .atv-personage-gallery-rail li {\n    height: 160px;\n  }\n\n  .atv-personage-awards-list li {\n    padding: 16px 0;\n    gap: 10px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-personage-award-year {\n    padding-top: 0;\n    font-size: var(--atv-type-body-sm);\n    font-weight: var(--atv-font-weight-semibold);\n  }\n\n  .atv-personage-award-detail {\n    padding-left: 12px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-personage-hero .atv-personage-portrait,\n  .atv-personage-hero .atv-personage-identity h1,\n  .atv-personage-hero .atv-personage-original-name,\n  .atv-personage-hero .atv-personage-facts div,\n  .atv-personage-hero .atv-personage-biography {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator:active {\n    transform: none;\n  }\n\n  .atv-personage-gallery-rail li {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  /* Timeline: dots always visible, no entrance animations */\n  .atv-timeline-year-group::before {\n    opacity: 1;\n    transform: scale(1);\n    transition: none;\n  }\n\n  .atv-section-reveal.is-revealed .atv-timeline-year-num {\n    animation: none;\n    opacity: 1;\n  }\n\n  .atv-personage-work-card,\n  .atv-section-reveal.is-revealed .atv-timeline-card {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-work-card,\n  .atv-timeline-card {\n    transition: none;\n    will-change: auto;\n  }\n}\n\n/* ---------- Subject celebrities / Credit Atlas ---------- */\n.atv-celebrities {\n  overflow: clip;\n  padding: 0 max(28px, 5vw) 96px;\n}\n\n.atv-celebrities-hero,\n.atv-credit-groups {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-celebrities-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(52px, 8vw, 96px);\n}\n\n.atv-celebrities-kicker,\n.atv-credit-works > span {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-celebrities-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-celebrities-context {\n  display: flex;\n  align-items: center;\n  margin-top: 30px;\n  color: var(--atv-text-secondary);\n  gap: 20px;\n}\n\n.atv-celebrities-context > p {\n  margin: 0;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-credit-back {\n  display: inline-flex;\n  align-items: center;\n  padding: 7px 10px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-credit-back:active,\n.atv-credit-person:active,\n.atv-credit-work:active {\n  transform: scale(0.97);\n}\n\n.atv-credit-back:focus-visible,\n.atv-credit-person:focus-visible,\n.atv-credit-work:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-credit-groups {\n  position: relative;\n}\n\n.atv-credit-groups::before {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: clamp(0px, 13.8vw, 176px);\n  width: 1px;\n  background: linear-gradient(\n    to bottom,\n    transparent,\n    var(--atv-border-subtle) 2%,\n    var(--atv-border-subtle) 98%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-credit-group {\n  position: relative;\n  display: grid;\n  padding: clamp(42px, 6vw, 76px) 0;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(28px, 5vw, 72px);\n  grid-template-columns: minmax(128px, 176px) minmax(0, 1fr);\n  scroll-margin-top: 76px;\n}\n\n.atv-credit-group::before {\n  position: absolute;\n  top: clamp(42px, 6vw, 76px);\n  left: clamp(0px, 13.8vw, 176px);\n  width: 3px;\n  height: 32px;\n  border-radius: 3px;\n  background: var(--atv-accent);\n  box-shadow: 0 0 20px var(--atv-accent-glow);\n  content: \"\";\n  transform: translateX(-1px);\n}\n\n.atv-credit-group-heading {\n  position: sticky;\n  top: 84px;\n  align-self: start;\n  padding-right: 24px;\n}\n\n.atv-credit-group-heading > h2 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-group);\n  letter-spacing: -0.03em;\n  line-height: var(--atv-line-height-display);\n}\n\n.atv-credit-group-heading > p {\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  line-height: 1.3;\n}\n\n.atv-credit-grid {\n  display: grid;\n  gap: 0 clamp(18px, 2.5vw, 32px);\n  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));\n}\n\n.atv-credit-card {\n  min-width: 0;\n  padding: 0 0 22px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 22px;\n}\n\n.atv-credit-identity {\n  min-width: 0;\n}\n\n.atv-credit-person {\n  display: grid;\n  min-width: 0;\n  align-items: center;\n  color: var(--atv-text-primary);\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-credit-person:not(.is-static) {\n  cursor: pointer;\n}\n\n.atv-credit-avatar {\n  width: 56px;\n  height: 56px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n}\n\n.atv-credit-avatar.is-empty {\n  background:\n    radial-gradient(circle at 68% 22%, rgb(76 217 122 / 25%), transparent 38%),\n    linear-gradient(145deg, #38383b, var(--atv-bg-tertiary));\n}\n\n.atv-credit-name {\n  display: grid;\n  overflow: hidden;\n  min-width: 0;\n  gap: 3px;\n}\n\n.atv-credit-name-primary,\n.atv-credit-name-original {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-credit-name-primary {\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.005em;\n  line-height: 1.25;\n}\n\n.atv-credit-name-original {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.025em;\n  line-height: 1.2;\n}\n\n.atv-credit-role {\n  display: grid;\n  margin: 9px 0 0 68px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.01em;\n  line-height: 1.45;\n  row-gap: 2px;\n}\n\n.atv-credit-role-title {\n  color: var(--atv-text-secondary);\n}\n\n.atv-credit-role-detail,\n.atv-credit-character-prefix,\n.atv-credit-character-original {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-credit-character {\n  display: grid;\n  min-width: 0;\n  column-gap: 4px;\n  grid-template-columns: auto minmax(0, 1fr);\n}\n\n.atv-credit-character-name,\n.atv-credit-character-original {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-credit-character-original {\n  font-size: var(--atv-type-micro);\n  grid-column: 2;\n  letter-spacing: 0.025em;\n  line-height: 1.2;\n}\n\n.atv-credit-works {\n  display: grid;\n  margin: 14px 0 0 68px;\n  gap: 5px;\n}\n\n.atv-credit-works > span {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.08em;\n}\n\n.atv-credit-works > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 10px;\n}\n\n.atv-credit-work {\n  border-bottom: 1px solid transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.4;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-credit-back:hover {\n    border-color: var(--atv-accent-border-strong);\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-credit-person:not(.is-static):hover {\n    transform: translateX(3px);\n  }\n\n  .atv-credit-work:hover {\n    border-bottom-color: var(--atv-accent-bright);\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-celebrities-nav .atv-stickynav-jumps {\n  min-width: 0;\n  padding-bottom: 1px;\n  gap: 20px;\n  overflow-x: auto;\n  scrollbar-width: none;\n}\n\n.atv-celebrities-nav .atv-stickynav-jumps::-webkit-scrollbar {\n  display: none;\n}\n\n@media (width <= 768px) {\n  .atv-celebrities {\n    padding-right: 20px;\n    padding-left: 20px;\n  }\n\n  .atv-celebrities-hero {\n    padding-top: 104px;\n  }\n\n  .atv-credit-groups::before,\n  .atv-credit-group::before {\n    display: none;\n  }\n\n  .atv-credit-group {\n    gap: 24px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-credit-group-heading {\n    position: static;\n    padding-right: 0;\n  }\n\n  .atv-credit-grid {\n    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));\n  }\n\n  .atv-celebrities-nav {\n    padding-right: 20px;\n    padding-left: 20px;\n    gap: 16px;\n  }\n\n  .atv-celebrities-nav .atv-stickynav-title {\n    flex: 0 1 32%;\n  }\n\n  .atv-celebrities-nav .atv-stickynav-jumps {\n    flex: 1 1 auto;\n    gap: 16px;\n  }\n}\n\n@media (width <= 460px) {\n  .atv-credit-grid {\n    grid-template-columns: 1fr;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-credit-back,\n  .atv-credit-person,\n  .atv-credit-work {\n    transition: none;\n  }\n\n  .atv-credit-back:active,\n  .atv-credit-person:active,\n  .atv-credit-work:active {\n    transform: none;\n  }\n}\n\n/* ---------- Subject photo archive: frame and identity ---------- */\n.atv-photo-archive {\n  min-height: 100vh;\n  padding: 0 max(24px, 5vw) 96px;\n  background:\n    radial-gradient(circle at 82% -12%, rgb(65 190 93 / 12%), transparent 30%),\n    var(--atv-bg-primary);\n}\n\n.atv-photo-archive-hero,\n.atv-photo-archive-groups {\n  width: min(100%, 1320px);\n  margin: 0 auto;\n}\n\n.atv-photo-archive-hero {\n  padding: clamp(28px, 4vw, 56px) 0 clamp(52px, 8vw, 108px);\n}\n\n.atv-photo-archive-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 10px 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  gap: 18px;\n}\n\n.atv-photo-archive-back,\n.atv-photo-archive-upload,\n.atv-photo-archive-all {\n  display: inline-flex;\n  align-items: center;\n  border: 1px solid transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 7px;\n  letter-spacing: 0.015em;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-photo-archive-back:focus-visible,\n.atv-photo-archive-upload:focus-visible,\n.atv-photo-archive-all:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-photo-archive-back:active,\n.atv-photo-archive-upload:active,\n.atv-photo-archive-all:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-archive-upload {\n  padding: 7px 10px;\n  border-color: var(--atv-border-medium);\n  border-radius: 999px;\n  color: var(--atv-text-primary);\n}\n\n.atv-photo-archive-intro {\n  padding-top: clamp(48px, 9vw, 128px);\n}\n\n.atv-photo-archive-intro > p {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  line-height: 1.2;\n  text-transform: uppercase;\n}\n\n.atv-photo-archive-intro h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-photo-archive-index {\n  display: flex;\n  margin: clamp(34px, 5vw, 54px) 0 0;\n  gap: clamp(28px, 5vw, 68px);\n}\n\n.atv-photo-archive-index > div {\n  display: grid;\n  min-width: 0;\n  gap: 4px;\n}\n\n.atv-photo-archive-index dt {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.04em;\n}\n\n.atv-photo-archive-index dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-title-lg);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.02em;\n  line-height: 1;\n}\n\n/* The shared `.atv-stickynav-jumps` now shrinks and scrolls on its own\n   (sticky-nav.css); the archive page's local copies are gone. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-photo-archive-back:hover,\n  .atv-photo-archive-all:hover {\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-photo-archive-upload:hover {\n    border-color: var(--atv-accent-border-strong);\n    color: var(--atv-accent-bright);\n  }\n}\n\n@media (width <= 768px) {\n  .atv-photo-archive {\n    padding: 0 20px 64px;\n  }\n\n  .atv-photo-archive-hero {\n    padding-top: 20px;\n  }\n\n  .atv-photo-archive-intro {\n    padding-top: 56px;\n  }\n\n  .atv-photo-archive-nav {\n    padding-right: 20px;\n    padding-left: 20px;\n    gap: 16px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-photo-archive-back,\n  .atv-photo-archive-upload,\n  .atv-photo-archive-all {\n    transition: none;\n  }\n\n  .atv-photo-archive-back:active,\n  .atv-photo-archive-upload:active,\n  .atv-photo-archive-all:active {\n    transform: none;\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-photo-archive-upload {\n    border-color: var(--atv-border-emphasis);\n  }\n}\n\n/* ---------- Subject photo archive: contact sheets ---------- */\n.atv-photo-archive-group {\n  display: grid;\n  padding: clamp(38px, 6vw, 80px) 0;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(28px, 5vw, 72px);\n  grid-template-columns: minmax(150px, 200px) minmax(0, 1fr);\n  scroll-margin-top: 76px;\n}\n\n.atv-photo-archive-group-heading {\n  position: sticky;\n  top: 84px;\n  align-self: start;\n}\n\n.atv-photo-archive-group-heading h2 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-group);\n  letter-spacing: -0.035em;\n  line-height: var(--atv-line-height-display);\n}\n\n.atv-photo-archive-count {\n  margin: 10px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.04em;\n}\n\n.atv-photo-archive-all {\n  margin-top: 24px;\n  color: var(--atv-text-secondary);\n}\n\n.atv-photo-archive-grid {\n  padding: 0;\n  margin: 0;\n  column-gap: clamp(8px, 1.15vw, 16px);\n  column-width: clamp(118px, 11vw, 176px);\n  list-style: none;\n}\n\n.atv-photo-archive-item {\n  --atv-photo-archive-aspect-ratio: 1;\n\n  margin-bottom: clamp(8px, 1.15vw, 16px);\n  aspect-ratio: var(--atv-photo-archive-aspect-ratio);\n  break-inside: avoid;\n}\n\n.atv-photo-archive-tile {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  height: 100%;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 2px;\n  background: var(--atv-bg-card);\n  box-shadow: 0 12px 28px rgb(0 0 0 / 25%);\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-archive-tile::after {\n  position: absolute;\n  border: 1px solid var(--atv-border-subtle);\n  content: \"\";\n  inset: 0;\n  pointer-events: none;\n}\n\n.atv-photo-archive-tile:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-photo-archive-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-archive-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  transition: transform 240ms var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-photo-archive-tile:hover {\n    border-color: var(--atv-border-strong);\n    box-shadow: 0 22px 44px rgb(0 0 0 / 42%);\n    transform: translateY(-3px);\n  }\n\n  .atv-photo-archive-tile:hover img {\n    transform: scale(1.035);\n  }\n}\n\n@media (width <= 768px) {\n  .atv-photo-archive-group {\n    gap: 28px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-photo-archive-group-heading {\n    position: static;\n    display: flex;\n    align-items: end;\n    justify-content: space-between;\n    gap: 24px;\n  }\n\n  .atv-photo-archive-all {\n    flex: 0 0 auto;\n    margin: 0 0 3px;\n  }\n\n  .atv-photo-archive-grid {\n    columns: auto 2;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-photo-archive-tile,\n  .atv-photo-archive-tile img {\n    transition: none;\n  }\n\n  .atv-photo-archive-tile:active,\n  .atv-photo-archive-tile:hover,\n  .atv-photo-archive-tile:hover img {\n    transform: none;\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-photo-archive-tile {\n    border-color: var(--atv-border-emphasis);\n  }\n}\n\n/* ---------- Subject comments / Reading ledger ---------- */\n.atv-subject-comments {\n  min-height: 100vh;\n  padding: 0 max(28px, 5vw) 112px;\n}\n\n.atv-subject-comments-hero,\n.atv-subject-comments-layout {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-subject-comments-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(48px, 7vw, 84px);\n}\n\n.atv-subject-comments-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-subject-comments-back,\n.atv-subject-comments-write {\n  display: inline-flex;\n  align-items: center;\n  padding: 8px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-write {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-back:active,\n.atv-subject-comments-write:active,\n.atv-subject-comments-sort-option:active,\n.atv-subject-comments-score-option:active,\n.atv-subject-comments-pagination a:active {\n  transform: scale(0.97);\n}\n\n.atv-subject-comments-back:focus-visible,\n.atv-subject-comments-write:focus-visible,\n.atv-subject-comments-status:focus-visible,\n.atv-subject-comments-sort-option:focus-visible,\n.atv-subject-comments-score-option:focus-visible,\n.atv-subject-comments-author:focus-visible,\n.atv-subject-comments-meta a:focus-visible,\n.atv-subject-comments-pagination a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-subject-comments-kicker,\n.atv-subject-comments-controls h2 {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-subject-comments-kicker {\n  margin-top: clamp(42px, 6vw, 72px);\n}\n\n.atv-subject-comments-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-subject-comments-status-index {\n  display: grid;\n  width: min(100%, 600px);\n  border-top: 1px solid var(--atv-border-subtle);\n  margin-top: clamp(40px, 6vw, 72px);\n  grid-template-columns: repeat(3, 1fr);\n}\n\n.atv-subject-comments-status {\n  position: relative;\n  display: grid;\n  min-height: 78px;\n  padding: 16px 18px;\n  border-right: 1px solid var(--atv-border-subtle);\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-secondary);\n  gap: 5px;\n  transition:\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-status:first-child {\n  border-left: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-comments-status span {\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-subject-comments-status strong {\n  color: inherit;\n  font-size: clamp(18px, 2vw, 24px);\n  font-variant-numeric: tabular-nums;\n  letter-spacing: -0.035em;\n  line-height: 1;\n}\n\n.atv-subject-comments-status.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-status.is-active::after {\n  position: absolute;\n  top: -1px;\n  right: -1px;\n  left: -1px;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n}\n\n.atv-subject-comments-status[aria-disabled=\"true\"],\n.atv-subject-comments-sort-option[aria-disabled=\"true\"],\n.atv-subject-comments-score-option[aria-disabled=\"true\"],\n.atv-subject-comments-pagination a[aria-disabled=\"true\"] {\n  cursor: progress;\n  pointer-events: none;\n}\n\n.atv-subject-comments-layout {\n  display: grid;\n  justify-content: start;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(36px, 7vw, 104px);\n  grid-template-columns: minmax(142px, 176px) minmax(0, 780px);\n}\n\n.atv-subject-comments-controls {\n  position: sticky;\n  top: 84px;\n  display: grid;\n  align-self: start;\n  padding-top: clamp(32px, 4vw, 52px);\n  gap: 30px;\n}\n\n.atv-subject-comments-controls section {\n  min-width: 0;\n}\n\n.atv-subject-comments-control-options {\n  display: grid;\n  margin-top: 12px;\n  gap: 2px;\n}\n\n.atv-subject-comments-sort-option,\n.atv-subject-comments-score-option {\n  display: flex;\n  width: fit-content;\n  min-height: 30px;\n  align-items: center;\n  padding: 4px 8px;\n  border-radius: 7px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-sort-option.is-active,\n.atv-subject-comments-score-option.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-stream {\n  position: relative;\n  min-width: 0;\n}\n\n.atv-subject-comments-stream::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-stream.is-loading::before {\n  opacity: 1;\n  transform: scaleX(1);\n}\n\n.atv-subject-comments-results {\n  opacity: 1;\n  transition: opacity 160ms var(--atv-ease-out);\n}\n\n@starting-style {\n  .atv-subject-comments-results {\n    opacity: 0.72;\n  }\n}\n\n.atv-subject-comments-stream.is-loading .atv-subject-comments-results {\n  opacity: 0.72;\n}\n\n.atv-subject-comments-live {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-subject-comments-navigation-failure {\n  display: flex;\n  min-height: 42px;\n  align-items: center;\n  padding: 8px 0;\n  border-bottom: 1px solid\n    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 12px;\n}\n\n.atv-subject-comments-navigation-failure span {\n  margin-right: auto;\n}\n\n.atv-subject-comments-navigation-failure button {\n  padding: 4px 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-bold);\n  transition: color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-navigation-failure button:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-subject-comments-item {\n  --atv-subject-comments-avatar-size: 42px;\n  --atv-subject-comments-track-gap: 12px;\n\n  padding: clamp(32px, 4vw, 52px) 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-comments-item-header {\n  display: grid;\n  min-width: 0;\n  gap: 8px var(--atv-subject-comments-track-gap);\n  grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(0, 1fr);\n}\n\n.atv-subject-comments-author {\n  display: inline-flex;\n  min-width: 0;\n  max-width: 100%;\n  align-items: center;\n  color: var(--atv-text-primary);\n  gap: var(--atv-subject-comments-track-gap);\n  grid-column: 1 / -1;\n  justify-self: start;\n}\n\n.atv-subject-comments-author.is-static {\n  cursor: default;\n}\n\n.atv-subject-comments-avatar {\n  width: var(--atv-subject-comments-avatar-size);\n  height: var(--atv-subject-comments-avatar-size);\n  flex: 0 0 auto;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.atv-subject-comments-avatar.is-fallback {\n  display: grid;\n  background:\n    radial-gradient(circle at 70% 20%, rgb(76 217 122 / 30%), transparent 38%),\n    var(--atv-bg-tertiary);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-bold);\n  place-items: center;\n}\n\n.atv-subject-comments-author-name {\n  overflow: hidden;\n  font-optical-sizing: auto;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-comments-meta {\n  display: flex;\n  min-width: 0;\n  align-items: center;\n  justify-content: flex-start;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 8px;\n  grid-column: 2;\n  letter-spacing: 0.02em;\n}\n\n.atv-subject-comments-meta a {\n  color: inherit;\n}\n\n.atv-subject-comments-rating {\n  color: var(--atv-rating-gold);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.07em;\n  line-height: 1;\n}\n\n.atv-subject-comments-time,\n.atv-subject-comments-location {\n  overflow: hidden;\n  max-width: 22ch;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-comments-time::before,\n.atv-subject-comments-location::before {\n  padding-right: 8px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-subject-comments-reading-row {\n  display: grid;\n  margin-top: 18px;\n  column-gap: var(--atv-subject-comments-track-gap);\n  grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(\n      0,\n      1fr\n    ) 82px;\n}\n\n.atv-subject-comments-content {\n  max-width: 62ch;\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-optical-sizing: auto;\n  font-size: clamp(15px, 1.35vw, 17px);\n  grid-column: 2;\n  line-height: 1.8;\n  overflow-wrap: anywhere;\n}\n\n.atv-subject-comments-consensus {\n  display: grid;\n  grid-column: 3;\n  place-self: end end;\n}\n\n.atv-subject-comments-pagination {\n  display: flex;\n  flex-wrap: wrap;\n  padding: 32px 0 0;\n  gap: 8px;\n}\n\n.atv-subject-comments-pagination a {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  padding: 0 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-pagination span {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  padding: 0 11px;\n  border: 1px solid var(--atv-accent-border);\n  border-radius: 8px;\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-bold);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-subject-comments-back:hover,\n  .atv-subject-comments-write:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-status:hover {\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-status.is-active:hover {\n    background: var(--atv-accent-active);\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-subject-comments-sort-option:hover,\n  .atv-subject-comments-score-option:hover {\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-pagination a:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n}\n\n@media (width <= 720px) {\n  .atv-subject-comments {\n    padding-right: 20px;\n    padding-left: 20px;\n  }\n\n  .atv-subject-comments-hero {\n    padding-top: 100px;\n  }\n\n  .atv-subject-comments-status-index {\n    width: 100%;\n  }\n\n  .atv-subject-comments-status {\n    min-height: 72px;\n    padding: 14px 12px;\n  }\n\n  .atv-subject-comments-layout {\n    display: block;\n  }\n\n  .atv-subject-comments-controls {\n    position: relative;\n    top: auto;\n    display: grid;\n    padding: 24px 0;\n    gap: 16px;\n    grid-template-columns: max-content max-content;\n    overflow-x: auto;\n    scrollbar-width: none;\n  }\n\n  .atv-subject-comments-controls.is-overflowing::after {\n    position: absolute;\n    top: 0;\n    right: 0;\n    bottom: 0;\n    width: 30px;\n    background: linear-gradient(to right, transparent, var(--atv-bg-primary));\n    content: \"\";\n    pointer-events: none;\n  }\n\n  .atv-subject-comments-controls::-webkit-scrollbar {\n    display: none;\n  }\n\n  .atv-subject-comments-controls section {\n    min-width: max-content;\n  }\n\n  .atv-subject-comments-control-options {\n    display: flex;\n    margin-top: 8px;\n    gap: 3px;\n  }\n\n  .atv-subject-comments-sort-option,\n  .atv-subject-comments-score-option {\n    white-space: nowrap;\n  }\n\n  .atv-subject-comments-item {\n    padding: 28px 0;\n  }\n\n  .atv-subject-comments-item-header {\n    display: grid;\n    align-items: start;\n    gap: 10px;\n    grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(\n        0,\n        1fr\n      );\n  }\n\n  .atv-subject-comments-meta {\n    flex-wrap: wrap;\n    justify-content: flex-start;\n    margin-left: 0;\n  }\n\n  .atv-subject-comments-reading-row {\n    display: block;\n    margin-top: 18px;\n  }\n\n  .atv-subject-comments-content {\n    max-width: none;\n    grid-column: auto;\n  }\n\n  .atv-subject-comments-consensus {\n    display: flex;\n    align-items: center;\n    margin-top: 14px;\n    margin-left: auto;\n    gap: 8px;\n    grid-column: auto;\n    justify-self: end;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-comments-back,\n  .atv-subject-comments-write,\n  .atv-subject-comments-status,\n  .atv-subject-comments-sort-option,\n  .atv-subject-comments-score-option,\n  .atv-subject-comments-pagination a {\n    transition: none;\n  }\n\n  .atv-subject-comments-results,\n  .atv-subject-comments-stream::before,\n  .atv-subject-comments-navigation-failure button {\n    transition: none;\n  }\n}\n\n.atv-subject-reviews {\n  min-height: 100vh;\n  padding: 0 max(28px, 5vw) 112px;\n  scroll-margin-top: 84px;\n}\n\n.atv-skip-link {\n  position: fixed;\n  z-index: 999;\n  top: 12px;\n  left: 12px;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-skip-link:focus-visible,\n.atv-skip-link:focus {\n  width: auto;\n  height: auto;\n  padding: 8px 16px;\n  border-radius: 8px;\n  backdrop-filter: blur(12px);\n  background: var(--atv-bg-elevated);\n  clip-path: none;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: none;\n  white-space: normal;\n}\n\n.atv-subject-reviews-hero,\n.atv-subject-reviews-layout {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-subject-reviews-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(48px, 7vw, 84px);\n}\n\n.atv-subject-reviews-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-subject-reviews-back,\n.atv-subject-reviews-write {\n  display: inline-flex;\n  align-items: center;\n  padding: 8px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n#atv-douban-root .atv-subject-reviews-write {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-reviews-back:active,\n.atv-subject-reviews-write:active,\n.atv-subject-reviews-option:active {\n  transform: scale(0.97);\n}\n\n.atv-subject-reviews-kicker,\n.atv-subject-reviews-controls h2 {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-subject-reviews-kicker {\n  margin-top: clamp(42px, 6vw, 72px);\n}\n\n.atv-subject-reviews-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-subject-reviews-layout {\n  display: grid;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(36px, 7vw, 104px);\n  grid-template-columns: minmax(142px, 176px) 1fr;\n}\n\n.atv-subject-reviews-controls {\n  position: sticky;\n  top: 84px;\n  display: grid;\n  align-self: start;\n  padding-top: clamp(32px, 4vw, 52px);\n  gap: 30px;\n}\n\n.atv-subject-reviews-controls section > div {\n  display: grid;\n  margin-top: 12px;\n  gap: 2px;\n}\n\n.atv-subject-reviews-option {\n  display: flex;\n  width: fit-content;\n  min-height: 30px;\n  align-items: center;\n  padding: 4px 8px;\n  border-radius: 7px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-reviews-option.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-reviews-option[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-prev[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-next[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-disabled {\n  cursor: progress;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-stream {\n  position: relative;\n  min-width: 0;\n}\n\n.atv-subject-reviews-stream::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition:\n    opacity 160ms ease,\n    transform 160ms var(--atv-ease-out);\n}\n\n.atv-subject-reviews-stream.is-loading::before {\n  opacity: 1;\n  transform: scaleX(1);\n}\n\n.atv-subject-reviews-results {\n  opacity: 1;\n  transition: opacity 160ms var(--atv-ease-out);\n}\n\n.atv-subject-reviews-stream.is-loading .atv-subject-reviews-results {\n  opacity: 0.72;\n}\n\n.atv-subject-reviews-live {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-subject-reviews-failure {\n  display: flex;\n  min-height: 42px;\n  align-items: center;\n  border-bottom: 1px solid\n    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 12px;\n}\n\n.atv-subject-reviews-failure span {\n  margin-right: auto;\n}\n\n.atv-subject-reviews-failure button {\n  padding: 4px 0;\n  border: 0;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-bold);\n}\n\n.atv-subject-reviews-empty {\n  padding: clamp(44px, 7vw, 72px) 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-secondary);\n}\n\n.atv-subject-reviews-empty p {\n  margin: 0 0 14px;\n}\n\n.atv-subject-reviews-empty a {\n  color: var(--atv-accent-bright);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-subject-reviews-pagination {\n  display: flex;\n  align-items: center;\n  padding: 30px clamp(20px, 2.5vw, 32px) 0;\n}\n\n/* Condensed mode: prev | indicator | next spread across */\n.atv-subject-reviews-pagination.is-condensed {\n  justify-content: space-between;\n}\n\n/* All pagination links share base styling */\n.atv-subject-reviews-pagination a {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 6px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-regular);\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-subject-reviews-pagination a:hover {\n  color: var(--atv-text-primary);\n}\n\n.atv-subject-reviews-pagination a:active {\n  opacity: 0.65;\n}\n\n/* Condensed mode: prev/next need vertical padding only */\n.atv-subject-reviews-pagination-prev,\n.atv-subject-reviews-pagination-next {\n  padding: 6px 0;\n  color: var(--atv-text-secondary);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-subject-reviews-pagination-disabled {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  opacity: 0.35;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-pagination\n  span:not(\n    [aria-current],\n    .atv-subject-reviews-pagination-indicator,\n    .atv-subject-reviews-pagination-sep\n  ) {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 2px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-regular);\n}\n\n/* Condensed mode: page indicator */\n.atv-subject-reviews-pagination-indicator {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  gap: 2px;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-pagination-sep {\n  margin: 0 1px;\n  color: var(--atv-border-subtle);\n  font-size: var(--atv-type-micro);\n}\n\n.atv-review-card.is-directory {\n  position: relative;\n  display: grid;\n  padding: clamp(27px, 3.2vw, 36px) clamp(20px, 2.5vw, 32px)\n    clamp(31px, 3.6vw, 40px);\n  border-radius: 0;\n  background: transparent;\n  column-gap: clamp(24px, 3.8vw, 48px);\n  grid-template-columns: minmax(146px, 168px) minmax(0, 1fr);\n}\n\n.atv-review-card.is-directory::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    rgb(255 255 255 / 8%) 20%,\n    rgb(255 255 255 / 8%) 80%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory:focus-visible,\n.atv-review-card.is-directory:has(.atv-review-open-button:focus-visible) {\n  background: var(--atv-bg-hover);\n  outline: 1px solid var(--atv-border-medium);\n  outline-offset: 2px;\n}\n\n.atv-review-card.is-directory:has(.atv-review-open-button:active) {\n  transform: scale(0.99);\n}\n\n.atv-review-directory-identity {\n  position: relative;\n  z-index: 1;\n  display: flex;\n  min-width: 0;\n  padding-top: 3px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory .atv-review-avatar {\n  width: 32px;\n  height: 32px;\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-review-card.is-directory .atv-review-meta {\n  gap: 4px;\n}\n\n.atv-review-card.is-directory .atv-review-author {\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-card.is-directory .atv-review-directory-meta-line {\n  width: fit-content;\n  min-height: 14px;\n}\n\n.atv-review-card.is-directory .atv-review-stars {\n  gap: 1px;\n}\n\n.atv-review-card.is-directory .atv-review-stars svg {\n  width: 11px;\n  height: 11px;\n}\n\n.atv-review-card.is-directory .atv-review-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-variant-numeric: tabular-nums;\n  letter-spacing: 0.01em;\n  line-height: 1.38;\n}\n\n.atv-review-directory-reading {\n  position: relative;\n  z-index: 1;\n  min-width: 0;\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory .atv-review-title {\n  margin: 0 0 8px;\n  font-size: clamp(18px, 1.7vw, 21px);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.018em;\n  -webkit-line-clamp: 2;\n  line-height: 1.28;\n}\n\n.atv-review-card.is-directory .atv-review-excerpt {\n  max-width: 672px;\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  -webkit-line-clamp: 4;\n  line-height: 1.76;\n}\n\n.atv-review-card.is-directory .atv-review-foot {\n  max-width: 672px;\n  min-height: 28px;\n  justify-content: flex-start;\n  padding-top: 0;\n  border-top: 0;\n  margin-top: 16px;\n  gap: 12px;\n}\n\n.atv-review-card.is-directory .atv-review-readmore {\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n  opacity: 0.5;\n  transform: none;\n}\n\n.atv-review-card.is-directory:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.8;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  #atv-douban-root .atv-subject-reviews-back:hover,\n  #atv-douban-root .atv-subject-reviews-write:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-review-card.is-directory:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card.is-directory:hover .atv-review-readmore {\n    opacity: 0.8;\n  }\n}\n\n.atv-review-meta-line {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atv-review-reply {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-review-spoiler-note {\n  width: fit-content;\n  max-width: 100%;\n  padding: 8px 12px 8px 10px;\n  border-radius: 0 6px 6px 0;\n  border-left: 2px solid var(--atv-content-caution);\n  margin: 0 0 12px;\n  animation: atv-spoiler-fadein 250ms var(--atv-ease-out) both;\n  background: var(--atv-caution-surface);\n  color: var(--atv-content-caution);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n  line-height: 1.45;\n  pointer-events: none;\n}\n\n.atv-review-spoiler-note.is-compact {\n  padding: 0 0 0 8px;\n  border-radius: 0;\n  margin-bottom: 8px;\n  background: none;\n  font-size: var(--atv-type-caption-sm);\n  letter-spacing: 0.02em;\n}\n\n@keyframes atv-spoiler-fadein {\n  from {\n    opacity: 0;\n    transform: translateY(-4px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n@media (width <= 720px) {\n  .atv-review-spoiler-note {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-subject-reviews {\n    padding: 0 20px 72px;\n  }\n\n  .atv-subject-reviews-hero {\n    padding-top: 96px;\n  }\n\n  .atv-subject-reviews-layout {\n    display: block;\n  }\n\n  .atv-subject-reviews-controls {\n    position: relative;\n    top: auto;\n    padding: 22px 0;\n    border-bottom: 1px solid var(--atv-border-subtle);\n    gap: 18px;\n    grid-template-columns: repeat(2, max-content);\n    overflow-x: auto;\n  }\n\n  .atv-subject-reviews-controls section > div {\n    display: flex;\n  }\n\n  .atv-subject-reviews-stream {\n    padding-top: 0;\n  }\n\n  .atv-review-card.is-directory .atv-review-actions {\n    margin-left: auto;\n  }\n\n  .atv-review-card.is-directory {\n    display: block;\n    padding: 26px 20px 28px;\n  }\n\n  .atv-review-directory-identity {\n    margin-bottom: 16px;\n  }\n\n  .atv-subject-reviews-hero h1 {\n    font-size: clamp(42px, 13vw, 64px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-reviews-results,\n  .atv-subject-reviews-stream::before {\n    transition: none;\n  }\n\n  .atv-review-spoiler-note {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* Shared SafeImage implementation styles.\n   Page modules own crop, geometry, and motion around this primitive. */\n\n.atv-safe-image-container {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-container > img {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-fallback {\n  width: 100%;\n  height: 100%;\n  min-height: 48px;\n  background: var(--atv-bg-tertiary);\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card presenting Douban + IMDb + RT side by side */\n\n.atv-rating-panel {\n  display: flex;\n  width: fit-content;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  flex: 1;\n  padding: 16px 24px 14px;\n  grid-template-rows: 28px 44px 20px 1fr;\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: var(--atv-bg-hover);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-stat);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── MC Score color by range ────────────────────── */\n\n.atv-rating-panel-score.is-high {\n  color: var(--atv-score-high);\n}\n\n.atv-rating-panel-score.is-medium {\n  color: var(--atv-rating-gold);\n}\n\n.atv-rating-panel-score.is-low {\n  color: var(--atv-score-low);\n}\n\n/* ── MC label row (score bar + Chinese word label) ── */\n\n.atv-mc-label-row {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-bar-track {\n  display: inline-block;\n  overflow: hidden;\n  width: 40px;\n  height: 4px;\n  flex-shrink: 0;\n  border-radius: 2px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-mc-bar-fill {\n  display: block;\n  height: 100%;\n  border-radius: 2px;\n}\n\n.atv-mc-bar-fill.is-high {\n  background: var(--atv-score-high);\n}\n\n.atv-mc-bar-fill.is-medium {\n  background: var(--atv-rating-gold);\n}\n\n.atv-mc-bar-fill.is-low {\n  background: var(--atv-score-low);\n}\n\n.atv-mc-word-label {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  line-height: 1;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n/* ── RT Score Row (values side by side) ─────────── */\n\n.atv-rt-score-row,\n.atv-rt-label-row,\n.atv-rt-count-row {\n  display: grid;\n  width: 100%;\n  align-items: center;\n  gap: 8px;\n  grid-template-columns: 1fr auto 1fr;\n}\n\n.atv-rt-score-value {\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-stat-sm);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n.atv-rt-score-row.is-single {\n  grid-template-columns: 1fr;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {\n  color: rgb(255 167 38 / 85%);\n}\n\n.atv-rt-score-row > .atv-rt-score-value:first-child {\n  justify-self: center;\n  text-align: right;\n}\n\n.atv-rt-score-row > .atv-rt-score-value:last-child {\n  justify-self: center;\n  text-align: left;\n}\n\n/* ── RT Label Row (icons + text) ────────────────── */\n\n.atv-rt-label-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-label-item {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:first-child {\n  justify-self: center;\n}\n\n.atv-rt-label-row > .atv-rt-label-item:last-child {\n  justify-self: center;\n}\n\n.atv-rt-score-icon {\n  display: inline-flex;\n  width: 16px;\n  height: 16px;\n  color: var(--atv-text-tertiary);\n  opacity: 0.7;\n}\n\n.atv-rt-score-icon svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {\n  color: #ff6b5b;\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {\n  color: #50b85e;\n  opacity: 0.6;\n}\n\n.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {\n  color: var(--atv-rating-gold);\n  opacity: 1;\n}\n\n.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {\n  color: #888;\n  opacity: 0.6;\n}\n\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */\n\n.atv-rt-count-row {\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:first-child {\n  justify-self: center;\n}\n\n.atv-rt-count-row > .atv-rt-count-value:last-child {\n  justify-self: center;\n}\n\n.atv-rt-logo-group {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-rating-source {\n  display: inline-flex;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-rating-source:hover {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-stale {\n  color: var(--atv-text-secondary);\n}\n\n/* ── RT Divider ─────────────────────────────────── */\n\n.atv-rt-divider {\n  width: 1px;\n  flex-shrink: 0;\n  align-self: stretch;\n  margin: 2px 0;\n  background: var(--atv-border-medium);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n    grid-template-rows: 24px 38px 18px 1fr;\n  }\n\n  .atv-rt-score-value {\n    font-size: 26px;\n  }\n\n  .atv-rt-score-icon {\n    width: 14px;\n    height: 14px;\n  }\n\n  .atv-rt-score-label {\n    font-size: var(--atv-type-micro);\n  }\n\n  .atv-mc-bar-track {\n    width: 32px;\n  }\n\n  .atv-mc-word-label {\n    font-size: var(--atv-type-micro);\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: var(--atv-text-on-accent);\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border: 1px solid var(--atv-accent);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active:hover {\n  border-color: var(--atv-accent-bright);\n  background: var(--atv-bg-hover-strong);\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body-loose);\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Subject interest panel ---------- */\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-badge svg {\n  color: var(--atv-accent);\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  min-width: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.02em;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Section ---------- */\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 14px;\n  margin: 0 0 24px;\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.02em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 3px;\n  height: 20px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  display: inline-flex;\n  flex: 0 0 auto;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 4px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-section-more:hover {\n    color: var(--atv-accent-bright);\n    transform: translateX(3px);\n  }\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: var(--atv-bg-secondary);\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c var(--atv-bg-secondary);\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-regular);\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n.atv-photos {\n  gap: 12px;\n}\n\n@keyframes atv-photo-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  height: 225px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n}\n\n.atv-photo-tile-content {\n  display: block;\n  width: 100%;\n  height: 100%;\n  animation: atv-photo-in 400ms var(--atv-ease-out) both;\n  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-photo-rail-reserve {\n  height: 225px;\n  flex: 0 0 100%;\n}\n\n/* ---------- Recommendations ---------- */\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n.atv-info-grid {\n  display: grid;\n  gap: 20px 48px;\n  grid-template-columns: 140px 1fr;\n}\n\n/* Each row = label + value. We alternate even/odd children.\n   The grid children are label/value siblings, so row pairs are (4n+1, 4n+2).\n   Stagger: each row enters 24ms after the previous one, capped at 120ms.\n   The animation itself is handled by the section-reveal —\n   this just adds per-row delay on top. */\n.atv-section-reveal.is-revealed .atv-info-grid > * {\n  animation: atv-info-row-enter 180ms var(--atv-ease-out) both;\n}\n\n.atv-info-grid > :nth-child(1),\n.atv-info-grid > :nth-child(2) {\n  animation-delay: 0ms;\n}\n\n.atv-info-grid > :nth-child(3),\n.atv-info-grid > :nth-child(4) {\n  animation-delay: 24ms;\n}\n\n.atv-info-grid > :nth-child(5),\n.atv-info-grid > :nth-child(6) {\n  animation-delay: 48ms;\n}\n\n.atv-info-grid > :nth-child(7),\n.atv-info-grid > :nth-child(8) {\n  animation-delay: 72ms;\n}\n\n.atv-info-grid > :nth-child(9),\n.atv-info-grid > :nth-child(10) {\n  animation-delay: 96ms;\n}\n\n.atv-info-grid > :nth-child(11),\n.atv-info-grid > :nth-child(12) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(13),\n.atv-info-grid > :nth-child(14) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(15),\n.atv-info-grid > :nth-child(16) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(17),\n.atv-info-grid > :nth-child(18) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(19),\n.atv-info-grid > :nth-child(20) {\n  animation-delay: 120ms;\n}\n\n@keyframes atv-info-row-enter {\n  from {\n    opacity: 0;\n    transform: translateY(6px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* ---------- Labels ---------- */\n.atv-info-label {\n  padding-top: 3px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n/* ---------- Values ---------- */\n.atv-info-value {\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-regular);\n  line-height: var(--atv-line-height-body);\n  overflow-wrap: break-word;\n}\n\n/* Links inside values — subtle underline that glows on hover */\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: inherit;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* Separator between linked items: a thin middle-dot */\n.atv-info-sep {\n  margin: 0 2px;\n  color: rgb(255 255 255 / 18%);\n}\n\n/* ---------- Awards (gold accent row) ---------- */\n.atv-info-label-award {\n  color: var(--atv-rating-gold);\n}\n\n.atv-info-label-award a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  text-decoration: none;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-label-award a:hover {\n  border-color: var(--atv-rating-gold);\n}\n\n/* ---------- Reduced motion ---------- */\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Mobile (<=768px) ----------\n   Single column: label sits close to its value (4px), 12px label padding\n   separates value→label pairs (16px). The pairing depends on the label\n   describing the value BELOW it, so keep the two close. */\n@media (width <= 768px) {\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-grid > :first-child {\n    padding-top: 0;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n/* ---------- Streaming ---------- */\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    var(--atv-bg-elevated);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-bold);\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n.atv-comments {\n  display: grid;\n  gap: 16px;\n  grid-template-columns: repeat(2, 1fr);\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 16px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: var(--atv-bg-card);\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: var(--atv-text-emphasis);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body);\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 24px;\n  height: 24px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 6px;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body-loose);\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 100px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame {\n  position: relative;\n  display: grid;\n  max-width: 90vw;\n  max-height: 90vh;\n  place-items: center;\n}\n\n.atv-image-modal-frame > .atv-modal-img,\n.atv-image-modal-frame > .atv-modal-preview,\n.atv-image-modal-loading {\n  grid-area: 1 / 1;\n}\n\n.atv-modal-preview {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition:\n    filter var(--atv-duration-feedback) ease,\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-preview {\n  filter: blur(10px) saturate(0.82);\n  opacity: 0.72;\n  transform: scale(1.02);\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-img {\n  opacity: 0;\n}\n\n.atv-image-modal-frame.is-preview > .atv-modal-img {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-frame.is-loaded > .atv-modal-preview {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-loading {\n  z-index: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  gap: 10px;\n  text-shadow: 0 1px 8px rgb(0 0 0 / 65%);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid var(--atv-border-strong);\n  border-radius: 50%;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close.atv-image-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n}\n\n.atv-modal-close:hover {\n  border-color: var(--atv-border-emphasis);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n.atv-comment-overlay,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid var(--atv-border-strong);\n  border-radius: 50%;\n  border-top-color: var(--atv-accent);\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  gap: 16px;\n}\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 var(--atv-border-subtle),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: var(--atv-bg-hover);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n@media (width <= 1024px) {\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-login-modal,\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n}\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-login-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-login-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n/* ---------- Interest Modal ---------- */\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: var(--atv-border-emphasis);\n  background: var(--atv-bg-hover-strong);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-rating-empty);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: var(--atv-type-caption);\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-elevated);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px var(--atv-accent-outline);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: var(--atv-text-on-accent);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: var(--atv-border-medium);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: var(--atv-danger);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  background: var(--atv-bg-elevated);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px var(--atv-accent-outline);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: color-mix(in srgb, var(--atv-accent) 45%, transparent);\n  background: color-mix(in srgb, var(--atv-accent) 16%, transparent);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: color-mix(in srgb, var(--atv-accent) 38%, transparent);\n  background: color-mix(in srgb, var(--atv-accent) 12%, transparent);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: var(--atv-bg-hover);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: var(--atv-type-caption);\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: 999px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: color-mix(in srgb, var(--atv-danger) 35%, transparent);\n  background: color-mix(in srgb, var(--atv-danger) 18%, transparent);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-interest-modal {\n    transition: none;\n  }\n\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: var(--atv-bg-hover-strong);\n  }\n}\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-interest-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-interest-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n/* Prevent iOS zoom on focus for native inputs */\n@media (hover: none) and (pointer: coarse) {\n  .atv-interest-modal-comment,\n  .atv-interest-modal-tag-input {\n    font-size: 16px;\n  }\n}\n/* ---------- Trailer Tile ---------- */\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: var(--atv-text-primary);\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n/* ---------- Video Modal ---------- */\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n/* Two 400px columns + 20px gap + 48px section padding fit from 868px up;\n   below that a single column avoids the lone-wide-card band. */\n@media (width <= 868px) {\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-card);\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore,\n.atv-review-card:hover .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  appearance: none;\n  background: var(--atv-bg-hover);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: var(--atv-type-body-sm);\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: var(--atv-danger);\n  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);\n  color: var(--atv-danger);\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);\n  color: var(--atv-danger);\n}\n\n/* ---------- Review Modal ---------- */\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-lg);\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: var(--atv-border-medium) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-scroll::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  content: \"\";\n}\n\n.atv-review-modal-header {\n  position: relative;\n  padding-bottom: 18px;\n  margin-bottom: 20px;\n}\n\n.atv-review-modal-header::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    rgb(255 255 255 / 5%) 20%,\n    rgb(255 255 255 / 5%) 80%,\n    transparent\n  );\n  content: \"\";\n}\n\n.atv-review-modal-header-primary {\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.02em;\n  line-height: 1.32;\n  text-wrap: balance;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-header-meta {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: var(--atv-type-caption);\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body-lg);\n  line-height: var(--atv-line-height-body-loose);\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: var(--atv-bg-hover);\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-style: normal;\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: var(--atv-border-strong);\n  margin-left: 0;\n  background: var(--atv-bg-elevated);\n}\n\n/* ---------- Group discussions ---------- */\n.atv-discussion-board {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: flex;\n  overflow: hidden;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: var(--atv-bg-card);\n  gap: 6px;\n  isolation: isolate;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n/* Accent bar — reveals on hover/focus */\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0);\n  transform-origin: top;\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Entire row is clickable */\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n/* ---------- Copy (title + metadata) ---------- */\n.atv-discussion-copy {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n  pointer-events: none;\n}\n\n/* Title + arrow in one row */\n.atv-discussion-title-row {\n  display: flex;\n  align-items: flex-start;\n  gap: 12px;\n}\n\n.atv-discussion-title {\n  display: -webkit-box;\n  overflow: hidden;\n  min-width: 0;\n  flex: 1;\n  margin: 0;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: -0.015em;\n  -webkit-line-clamp: 2;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  transition: color var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Arrow — always in flow, hidden until hover */\n.atv-discussion-arrow {\n  flex-shrink: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body);\n  line-height: 1.5;\n  opacity: 0;\n  transform: translateX(-6px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ---------- Metadata row ---------- */\n.atv-discussion-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 0;\n  line-height: 1.35;\n}\n\n.atv-discussion-author {\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n/* Activity wraps replies + time inline */\n.atv-discussion-activity {\n  display: inline;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: none;\n}\n\n/* Replies — plain text, no pill */\n.atv-discussion-replies {\n  font-variant-numeric: tabular-nums;\n  letter-spacing: 0.01em;\n  white-space: nowrap;\n}\n\n/* Time — date + time on one line */\n.atv-discussion-time {\n  display: inline-flex;\n  align-items: center;\n  font-variant-numeric: tabular-nums;\n  gap: 3px;\n  white-space: nowrap;\n}\n\n/* ---------- Dot separators ---------- */\n.atv-discussion-author + .atv-discussion-activity::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n.atv-discussion-replies + .atv-discussion-time::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n/* ---------- Interactive states ---------- */\n\n/* Row hover → accent bar reveals, bg lifts */\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: var(--atv-text-primary);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-discussion-row:hover .atv-discussion-title {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n/* ---------- Mobile (<=768px) ---------- */\n@media (width <= 768px) {\n  .atv-discussion-board {\n    gap: 6px;\n  }\n\n  .atv-discussion-row {\n    padding: 14px 16px;\n    gap: 5px;\n  }\n\n  .atv-discussion-copy {\n    gap: 5px;\n  }\n\n  .atv-discussion-title-row {\n    gap: 8px;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n  }\n\n  .atv-discussion-arrow {\n    font-size: var(--atv-type-body-sm);\n    line-height: 1.45;\n  }\n\n  .atv-discussion-meta {\n    flex-wrap: wrap;\n    row-gap: 2px;\n  }\n}\n\n/* ---------- Reduced motion ---------- */\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-arrow,\n  .atv-discussion-row {\n    transition: none;\n  }\n\n  .atv-discussion-row::before {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n    opacity: 1;\n  }\n\n  .atv-discussion-arrow {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n  }\n\n  .atv-discussion-row:active {\n    transform: none;\n  }\n}\n/* ── Review content images (Douban image-container) ── */\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-style: italic;\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    var(--atv-accent-hover),\n    color-mix(in srgb, var(--atv-bg-card) 94%, transparent) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: var(--atv-bg-hover);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: var(--atv-type-caption);\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    var(--atv-rating-empty) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: var(--atv-rating-empty);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid var(--atv-accent-border);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: var(--atv-text-primary);\n  font-weight: var(--atv-font-weight-bold);\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n  font-family: var(--atv-font-mono);\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: var(--atv-bg-card);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: var(--atv-type-body-sm);\n  word-break: normal;\n}\n\n/* --- Tables --- */\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: var(--atv-font-weight-semibold);\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: var(--atv-content-caution);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: var(--atv-text-tertiary);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-loading {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-loading::before,\n.atv-review-modal-body.is-loading::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-loading::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-loading::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  /* Tablet two-column info grid — bounded to 769–1024px so the phone\n   single-column rule in details.css stays the sole source below 768px\n   (responsive.css is imported after details.css and would otherwise win). */\n  @media (width > 768px) and (width <= 1024px) {\n    .atv-info-grid {\n      column-gap: 24px;\n      grid-template-columns: 160px 1fr;\n    }\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;\n  }\n\n  .atv-rating-panel .atv-rating-panel-score {\n    font-size: 32px;\n  }\n\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-panel {\n    min-width: 0;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: var(--atv-type-body-sm);\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: var(--atv-type-body);\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay {\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n\n  .atv-review-modal-scroll::before {\n    opacity: 1;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: var(--atv-bg-hover-strong);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 1;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-hover-strong);\n  }\n\n  .atv-discussion-row:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n/* Shared affordance for every control that opens the image-preview modal. */\n.atv-image-preview-trigger {\n  box-shadow: 0 16px 40px rgb(0 0 0 / 46%);\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    box-shadow var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-image-preview-trigger:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-image-preview-trigger:hover {\n    box-shadow: 0 24px 64px rgb(0 0 0 / 56%);\n    transform: translateY(-3px);\n  }\n}\n\n.atv-image-preview-trigger:active {\n  transform: scale(0.97);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-image-preview-trigger {\n    transition: none;\n    will-change: auto;\n  }\n\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-review-modal-scroll::before {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-image-preview-trigger:hover,\n  .atv-image-preview-trigger:active,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-discussion-row:active,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-photo-tile {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-bg-primary);\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n\n  .atv-comment-card,\n  .atv-review-card {\n    background: var(--atv-bg-card);\n  }\n\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: var(--atv-border-strong);\n  }\n\n  .atv-discussion-row {\n    border: 1px solid var(--atv-border-strong);\n    border-radius: var(--atv-radius-sm);\n    background: var(--atv-bg-card);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: var(--atv-border-strong);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: var(--atv-border-emphasis);\n    background: var(--atv-bg-hover-strong);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
+};var styles_default = "/* ATV stylesheet manifest.\n   Keep this file as the single CSS entry imported from main.ts.\n   Files are ordered to preserve the original cascade from the former giant stylesheet.\n   Do not wrap these imports in @layer: this userscript runs inside Douban pages,\n   and unlayered host author CSS would outrank layered ATV normal declarations. */\n\n:root {\n  /* ---------- Surfaces: page → card → modal → raised ---------- */\n  --atv-bg-primary: #0c0a09;\n  --atv-bg-card: #121214;\n  --atv-bg-secondary: #1c1c1e;\n  --atv-bg-tertiary: #2c2c2e;\n  --atv-bg-elevated: rgb(255 255 255 / 6%);\n  --atv-bg-hover: rgb(255 255 255 / 3%);\n  --atv-bg-hover-strong: rgb(255 255 255 / 12%);\n  --atv-bg-nav: rgb(10 10 12 / 74%);\n  --atv-bg-nav-solid: rgb(10 10 12 / 95%);\n  --atv-scrim-overlay: rgb(0 0 0 / 78%);\n  --atv-scrim-overlay-solid: rgb(0 0 0 / 92%);\n\n  /* ---------- Text ladder: primary → emphasis → secondary → tertiary ---------- */\n  --atv-text-primary: #fff;\n  --atv-text-emphasis: rgb(255 255 255 / 85%);\n  --atv-text-secondary: rgb(255 255 255 / 72%);\n  --atv-text-tertiary: rgb(255 255 255 / 50%);\n\n  /* ---------- Interaction accents ---------- */\n  --atv-accent: #41be5d;\n  --atv-accent-bright: #4cd97a;\n  --atv-text-on-accent: #062811;\n  --atv-accent-glow: rgb(65 190 93 / 35%);\n  --atv-accent-hover: rgb(65 190 93 / 6%);\n  --atv-accent-active: rgb(76 217 122 / 10%);\n  --atv-accent-border: rgb(65 190 93 / 25%);\n  --atv-accent-border-strong: rgb(76 217 122 / 58%);\n  --atv-accent-outline: rgb(65 190 93 / 75%);\n\n  /* ---------- Rating / status colors ---------- */\n  --atv-rating-gold: #ffb800;\n  --atv-rating-empty: rgb(255 255 255 / 35%);\n  --atv-danger: #ff453a;\n  --atv-content-caution: #c68f4e;\n  --atv-caution-surface: rgb(198 143 78 / 10%);\n\n  /* ---------- Borders: subtle → medium → strong → emphasis ---------- */\n  --atv-border-subtle: rgb(255 255 255 / 8%);\n  --atv-border-medium: rgb(255 255 255 / 16%);\n  --atv-border-strong: rgb(255 255 255 / 22%);\n  --atv-border-emphasis: rgb(255 255 255 / 34%);\n  --atv-radius-sm: 8px;\n  --atv-radius-md: 12px;\n  --atv-radius-lg: 16px;\n\n  /* ---------- Typography: font stacks (system, no webfonts) ---------- */\n  --atv-font-sans:\n    -apple-system, \"BlinkMacSystemFont\", \"SF Pro Display\", \"PingFang SC\",\n    \"Helvetica Neue\", \"Microsoft YaHei\", \"Inter\", system-ui, sans-serif;\n  --atv-font-display:\n    \"SF Pro Display\", -apple-system, \"BlinkMacSystemFont\", \"PingFang SC\",\n    \"Microsoft YaHei\", system-ui, sans-serif;\n  --atv-font-mono:\n    ui-monospace, \"SFMono-Regular\", \"Cascadia Code\", \"Consolas\", monospace;\n\n  /* ---------- Typography: role-based type scale ---------- */\n  --atv-type-display: clamp(44px, 7vw, 92px); /* page hero titles */\n  --atv-type-display-compact: clamp(\n    44px,\n    5.5vw,\n    80px\n  ); /* hero beside poster / portrait */\n\n  --atv-type-display-narrow: clamp(\n    34px,\n    10vw,\n    50px\n  ); /* compact hero (mobile) */\n\n  --atv-type-hero-orig: clamp(18px, 1.6vw, 22px); /* original-title line */\n  --atv-type-title-group: clamp(22px, 2.4vw, 32px); /* gallery group headings */\n  --atv-type-title-xl: 24px; /* section headings, modal titles */\n  --atv-type-title-lg: 20px; /* modal titles, sub-headings */\n  --atv-type-title-md: 18px; /* in-page headings */\n  --atv-type-title: 16px; /* card titles */\n  --atv-type-body-lg: 16px; /* CJK long-form reading (bio, review body) */\n  --atv-type-body: 15px; /* body text */\n  --atv-type-body-sm: 14px; /* dense text, values, actions */\n  --atv-type-caption: 13px; /* bylines, metadata */\n  --atv-type-caption-sm: 12px; /* footers, labels, small metadata */\n  --atv-type-micro: 11px; /* kickers, tiny labels */\n\n  /* ---------- Typography: display numerals ---------- */\n  --atv-type-stat: 30px; /* rating panel score */\n  --atv-type-stat-lg: clamp(28px, 3.5vw, 40px); /* timeline years */\n\n  /* ---------- Typography: weight ladder (real faces on all platforms) ---------- */\n  --atv-font-weight-regular: 400;\n  --atv-font-weight-medium: 500;\n  --atv-font-weight-semibold: 600;\n  --atv-font-weight-bold: 700;\n\n  /* ---------- Typography: line heights (unitless) ---------- */\n  --atv-line-height-display: 1.1; /* wrapping display headings — ink-safe for CJK + Latin */\n  --atv-line-height-body: 1.65; /* short-form reading */\n  --atv-line-height-body-loose: 1.8; /* CJK long-form reading */\n  --atv-ease-out: cubic-bezier(0.23, 1, 0.32, 1);\n  --atv-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);\n  --atv-duration-press: 160ms;\n  --atv-duration-hover: 160ms;\n  --atv-duration-feedback: 200ms;\n  --atv-duration-content: 300ms;\n}\n\nbody.atv-enhanced > #wrapper {\n  display: none !important;\n}\n\nbody.atv-enhanced {\n  padding: 0 !important;\n  margin: 0 !important;\n  background: #000 !important;\n}\n\nbody.atv-enhanced #db-global-nav,\nbody.atv-enhanced #db-nav-movie,\nbody.atv-enhanced #db-nav-sns {\n  display: none !important;\n}\n\nbody.atv-enhanced [id^=\"dale_\"],\nbody.atv-enhanced [class*=\"dale_\"] {\n  display: none !important;\n}\n\n#atv-douban-root {\n  position: relative;\n  min-height: 100vh;\n  animation: atv-fadein var(--atv-duration-feedback) var(--atv-ease-out)\n    forwards;\n  background: var(--atv-bg-primary);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-sans);\n  font-feature-settings: \"ss01\", \"cv11\";\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n  line-height: 1.5;\n  opacity: 0;\n}\n\n@keyframes atv-fadein {\n  from {\n    opacity: 0;\n  }\n\n  to {\n    opacity: 1;\n  }\n}\n\n#atv-douban-root *,\n#atv-douban-root *::before,\n#atv-douban-root *::after {\n  box-sizing: border-box;\n}\n\n#atv-douban-root a {\n  color: inherit;\n  text-decoration: none;\n}\n\n#atv-douban-root a:hover {\n  background: transparent;\n}\n\n#atv-douban-root img {\n  display: block;\n  max-width: 100%;\n}\n\n/* ---------- Sticky nav ---------- */\n.atv-stickynav {\n  position: fixed;\n  z-index: 9999;\n  top: 0;\n  right: 0;\n  left: 0;\n  display: flex;\n  height: 56px;\n  box-sizing: border-box;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 max(28px, 5vw);\n  border-bottom: 1px solid var(--atv-border-subtle);\n  background: var(--atv-bg-nav-solid);\n  gap: 24px;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-100%);\n}\n\n/* Frosted glass effect only when NOT actively scrolling — Apple-style.\n   The backdrop-filter forces per-frame compositing; dropping it during\n   scroll eliminates the main source of scroll jank. */\n.atv-stickynav.is-visible:not(.is-scrolling) {\n  -webkit-backdrop-filter: saturate(180%) blur(24px);\n  backdrop-filter: saturate(180%) blur(24px);\n  background: var(--atv-bg-nav);\n}\n\n.atv-stickynav.is-visible {\n  pointer-events: auto;\n}\n\n.atv-stickynav-title {\n  overflow: hidden;\n  min-width: 0;\n  flex: 0 1 auto;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-stickynav-jumps {\n  position: relative;\n  display: flex;\n  min-width: 0;\n  flex: 0 1 auto;\n  gap: 24px;\n  overflow-x: auto;\n  scrollbar-width: none;\n}\n\n.atv-stickynav-jumps::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-stickynav-jumps a {\n  position: relative;\n  cursor: pointer;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n#atv-douban-root .atv-stickynav-jumps a {\n  color: var(--atv-text-secondary);\n}\n\n#atv-douban-root .atv-stickynav-jumps a:hover {\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n#atv-douban-root .atv-stickynav-jumps a.is-active {\n  color: var(--atv-accent-bright);\n}\n\n.atv-stickynav-marker {\n  position: absolute;\n  bottom: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  transform: translateX(0);\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n@media (width <= 768px) {\n  .atv-stickynav-title {\n    flex: 0 1 32%;\n    font-size: var(--atv-type-body-sm);\n  }\n\n  .atv-stickynav-jumps {\n    flex: 1 1 auto;\n    gap: 14px;\n  }\n\n  .atv-stickynav-jumps a {\n    font-size: var(--atv-type-caption-sm);\n  }\n}\n\n/* The sliding active marker jumps to the active item without sliding\n   motion under reduced-motion preference. */\n@media (prefers-reduced-motion: reduce) {\n  .atv-stickynav-marker {\n    transition: none;\n  }\n}\n/* ---------- Subject switcher ---------- */\n.atv-stickynav-subject-switcher {\n  position: relative;\n  flex: 0 0 auto;\n  margin-left: auto;\n}\n\n.atv-subject-switcher-trigger,\n.atv-subject-switcher-close,\n.atv-subject-search-fallback,\n.atv-subject-suggestion {\n  border: 0;\n  appearance: none;\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n}\n\n.atv-subject-switcher-trigger {\n  display: inline-flex;\n  height: 34px;\n  flex: 0 0 auto;\n  align-items: center;\n  padding: 0 13px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 7px;\n  letter-spacing: 0.01em;\n  transition:\n    background var(--atv-duration-hover) ease,\n    border-color var(--atv-duration-hover) ease,\n    color var(--atv-duration-hover) ease,\n    opacity 120ms var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-subject-switcher-trigger:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-hover-strong);\n    color: var(--atv-text-primary);\n    outline: none;\n  }\n}\n\n.atv-subject-switcher-trigger:focus-visible {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n.atv-subject-switcher {\n  position: relative;\n  display: flex;\n  align-items: center;\n}\n\n.atv-subject-switcher-expanded {\n  position: absolute;\n  top: 50%;\n  right: 0;\n  overflow: visible;\n  width: min(44vw, 520px);\n  max-width: min(44vw, 520px);\n  opacity: 0;\n  pointer-events: none;\n  transform: translateY(-50%);\n  transition:\n    opacity 120ms var(--atv-ease-out),\n    visibility 0s linear 160ms;\n  visibility: hidden;\n}\n\n.atv-subject-switcher-field {\n  position: relative;\n  z-index: 1;\n  display: flex;\n  overflow: hidden;\n  width: 100%;\n  height: 38px;\n  align-items: center;\n  border: 1px solid var(--atv-border-strong);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 12px 32px rgb(0 0 0 / 28%);\n  clip-path: inset(0 0 0 72% round 999px);\n  transition: clip-path 160ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-trigger {\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity 120ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-expanded {\n  z-index: 100;\n  opacity: 1;\n  pointer-events: auto;\n  transition:\n    opacity 150ms var(--atv-ease-out),\n    visibility 0s;\n  visibility: visible;\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-field {\n  clip-path: inset(0 round 999px);\n  transition: clip-path 220ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-expanded,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-field {\n  transition: none;\n}\n\n.atv-subject-switcher[data-animation=\"none\"][data-state=\"open\"]\n  .atv-subject-switcher-trigger {\n  transition: none;\n}\n\n.atv-subject-switcher-search-icon {\n  display: inline-flex;\n  flex: 0 0 auto;\n  margin-left: 13px;\n  color: var(--atv-text-tertiary);\n  opacity: 0;\n  transition: opacity 100ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher-input {\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0 8px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: var(--atv-type-body-sm);\n  opacity: 0;\n  outline: 0;\n  transition: opacity 100ms var(--atv-ease-out);\n}\n\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-search-icon,\n.atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-input {\n  opacity: 1;\n  transition: opacity 110ms var(--atv-ease-out) 60ms;\n}\n\n.atv-subject-switcher-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-subject-switcher-close {\n  height: 24px;\n  padding: 0 9px;\n  border-radius: 999px;\n  margin-right: 6px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.05em;\n}\n\n.atv-subject-switcher-close:hover {\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n.atv-subject-switcher-close:focus-visible {\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher-expanded {\n    width: min(78vw, 520px);\n    max-width: min(78vw, 520px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-switcher-field,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-field {\n    clip-path: inset(0 round 999px);\n    transition: none;\n  }\n\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-expanded {\n    transition:\n      opacity 100ms var(--atv-ease-out),\n      visibility 0s;\n    visibility: visible;\n  }\n\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-trigger {\n    transition: opacity 100ms var(--atv-ease-out);\n  }\n\n  .atv-subject-switcher-search-icon,\n  .atv-subject-switcher-input,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-search-icon,\n  .atv-subject-switcher[data-state=\"open\"] .atv-subject-switcher-input {\n    transition: opacity 100ms var(--atv-ease-out);\n  }\n}\n\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-expanded,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-search-icon,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-input,\n.atv-subject-switcher[data-animation=\"none\"] .atv-subject-switcher-trigger {\n  transition: none;\n}\n\n/* Prevent iOS zoom on focus */\n@media (hover: none) and (pointer: coarse) {\n  .atv-subject-switcher-input {\n    font-size: 16px;\n  }\n}\n/* ---------- Subject suggestion results ---------- */\n.atv-subject-suggestion-rail {\n  position: absolute;\n  top: calc(100% + 10px);\n  right: 0;\n  overflow: hidden;\n  width: 100%;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-card);\n  box-shadow: 0 24px 56px rgb(0 0 0 / 48%);\n}\n\n.atv-subject-suggestion {\n  position: relative;\n  display: flex;\n  width: 100%;\n  min-height: 70px;\n  align-items: center;\n  padding: 8px 18px 8px 9px;\n  background: transparent;\n  text-align: left;\n  transition: background var(--atv-duration-hover) ease;\n}\n\n.atv-subject-suggestion + .atv-subject-suggestion {\n  border-top: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-suggestion:hover,\n.atv-subject-suggestion.is-active {\n  background: var(--atv-bg-elevated);\n}\n\n.atv-subject-suggestion:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-subject-suggestion-poster {\n  position: relative;\n  overflow: hidden;\n  width: 36px;\n  height: 54px;\n  flex: 0 0 auto;\n  border-radius: 4px;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-subject-suggestion-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-subject-suggestion-copy {\n  display: grid;\n  min-width: 0;\n  margin-left: 12px;\n  gap: 4px;\n}\n\n.atv-subject-suggestion-title,\n.atv-subject-suggestion-original,\n.atv-subject-suggestion-metadata {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-suggestion-title {\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-subject-suggestion-metadata {\n  margin-left: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-subject-suggestion-original {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-subject-suggestion-marker {\n  position: absolute;\n  top: 11px;\n  bottom: 11px;\n  left: 52px;\n  width: 2px;\n  border-radius: 2px;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 12px var(--atv-accent-glow);\n  opacity: 0;\n  transform: scaleY(0.3);\n  transform-origin: center;\n  transition:\n    opacity var(--atv-duration-hover) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-subject-suggestion-rail.is-keyboard-navigating .atv-subject-suggestion,\n.atv-subject-suggestion-rail.is-keyboard-navigating\n  .atv-subject-suggestion-marker {\n  transition: none;\n}\n\n.atv-subject-suggestion.is-active .atv-subject-suggestion-marker {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-subject-suggestion-skeletons {\n  display: grid;\n  padding: 9px;\n  gap: 7px;\n}\n\n.atv-subject-suggestion-skeletons span {\n  display: block;\n  height: 54px;\n  border-radius: 6px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-subject-search-fallback {\n  display: block;\n  width: 100%;\n  padding: 15px 18px;\n  background: transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  text-align: left;\n}\n\n.atv-subject-search-fallback:hover,\n.atv-subject-search-fallback:focus-visible {\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  outline: none;\n}\n\n@media (width <= 768px) {\n  .atv-subject-switcher.is-open .atv-subject-suggestion-rail {\n    right: -8px;\n    width: calc(100vw - 24px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-suggestion-marker {\n    transition: none;\n  }\n}\n\n/* ---------- Hero ---------- */\n.atv-hero {\n  position: relative;\n  display: flex;\n  overflow: visible;\n  min-height: 75vh;\n  flex-direction: column;\n  padding: 132px max(28px, 5vw) 56px;\n  isolation: isolate;\n}\n\n.atv-hero-inner-section {\n  flex: 0 0 auto;\n}\n\n.atv-hero-bg {\n  position: absolute;\n  z-index: -4;\n  top: 0;\n  right: 0;\n  left: 0;\n  overflow: hidden;\n  height: 75vh;\n  background: var(--atv-bg-primary);\n}\n\n.atv-hero-still {\n  position: absolute;\n  backface-visibility: hidden;\n  background-position: center 30%;\n  background-repeat: no-repeat;\n  background-size: cover;\n  inset: 0;\n  transform: scale(1.04);\n}\n\n.atv-hero-still.is-thumb {\n  filter: blur(12px) saturate(1.12) brightness(0.84);\n  transform: scale(1.14);\n}\n\n.atv-hero-still.is-hd {\n  filter: saturate(1.08) brightness(0.88);\n  opacity: 0;\n  transition: opacity var(--atv-duration-content) var(--atv-ease-out);\n}\n\n.atv-hero-still.is-hd.is-loaded {\n  animation: atv-kenburns 22s linear forwards;\n  opacity: 1;\n}\n\n.atv-hero-still.is-poster {\n  background-position: center 22%;\n  filter: blur(60px) saturate(1.25) brightness(0.78);\n  transform: scale(1.25);\n}\n\n@keyframes atv-kenburns {\n  from {\n    transform: scale(1.04) translate(0, 0);\n  }\n\n  to {\n    transform: scale(1.1) translate(-1.8%, -1.2%);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-hero-still.is-hd {\n    transition: opacity var(--atv-duration-feedback) ease;\n  }\n\n  .atv-hero-still.is-hd.is-loaded {\n    animation: none;\n    transform: scale(1.04);\n  }\n}\n\n.atv-hero-vignette {\n  position: absolute;\n  z-index: -3;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: radial-gradient(\n    120% 90% at 70% 30%,\n    transparent 0%,\n    rgb(0 0 0 / 55%) 100%\n  );\n}\n\n.atv-hero-overlay-x {\n  position: absolute;\n  z-index: -2;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to right,\n    rgb(0 0 0 / 96%) 0%,\n    rgb(0 0 0 / 82%) 32%,\n    rgb(0 0 0 / 50%) 62%,\n    rgb(0 0 0 / 35%) 100%\n  );\n}\n\n.atv-hero-overlay-y {\n  position: absolute;\n  z-index: -1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 75vh;\n  background: linear-gradient(\n    to bottom,\n    rgb(0 0 0 / 45%) 0%,\n    transparent 28%,\n    transparent 55%,\n    var(--atv-bg-primary) 100%\n  );\n}\n\n.atv-hero-inner {\n  display: flex;\n  width: 100%;\n  max-width: 1100px;\n  align-items: flex-start;\n  margin: 0 auto;\n  gap: 64px;\n}\n\n.atv-poster-card {\n  display: flex;\n  overflow: hidden;\n  width: 360px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-lg);\n  appearance: none;\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-poster-card img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-hero-info {\n  min-width: 0;\n  flex: 1 1 auto;\n}\n\n.atv-hero-title {\n  margin: 0 0 8px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display-compact);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: clamp(-0.035em, -0.03em, -0.025em);\n  line-height: var(--atv-line-height-display);\n  text-shadow: 0 4px 30px rgb(0 0 0 / 50%);\n  text-wrap: balance;\n}\n\n.atv-hero-orig {\n  margin-bottom: 22px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-hero-orig);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: -0.01em;\n  opacity: 0.85;\n}\n\n.atv-rank-label {\n  display: inline-block;\n  width: fit-content;\n  max-width: 100%;\n  margin: 0 0 25px;\n  color: var(--atv-text-primary);\n  text-decoration: none;\n}\n\n.atv-rank-label-entry {\n  display: grid;\n  min-height: 34px;\n  align-items: center;\n  padding: 5px 8px 5px 12px;\n  border-left: 2px solid var(--atv-rating-gold);\n  background: linear-gradient(\n    90deg,\n    color-mix(in srgb, var(--atv-rating-gold) 14%, transparent) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n  column-gap: 12px;\n  grid-template-columns: auto minmax(0, 1fr) auto;\n}\n\n.atv-rank-label-entry strong {\n  color: var(--atv-rating-gold);\n  font-family: var(--atv-font-mono);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.04em;\n  white-space: nowrap;\n}\n\n.atv-rank-label-title {\n  overflow: hidden;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-rank-label-arrow {\n  color: var(--atv-text-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rank-label:hover,\n.atv-rank-label:focus-visible {\n  outline: none;\n}\n\n.atv-rank-label:hover .atv-rank-label-entry,\n.atv-rank-label:focus-visible .atv-rank-label-entry {\n  border-left-color: #ffd166;\n  background: linear-gradient(\n    90deg,\n    color-mix(in srgb, var(--atv-rating-gold) 22%, transparent) 0%,\n    rgb(255 184 0 / 0%) 86%\n  );\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    color: var(--atv-text-primary);\n    transform: translateX(3px);\n  }\n}\n\n@media (width <= 480px) {\n  .atv-rank-label {\n    margin-bottom: 21px;\n  }\n\n  .atv-rank-label-entry {\n    max-width: min(100%, 340px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-rank-label-arrow {\n    transition: none;\n  }\n\n  .atv-rank-label:hover .atv-rank-label-arrow {\n    transform: none;\n  }\n}\n\n.atv-hero-meta {\n  --atv-meta-column-gap: 18px;\n\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  margin-bottom: 24px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 10px var(--atv-meta-column-gap);\n  letter-spacing: 0.02em;\n  text-transform: uppercase;\n}\n\n.atv-first-broadcast-platform {\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-first-broadcast-platform-mark {\n  display: inline-flex;\n  width: 32px;\n  height: 32px;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: 9px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-first-broadcast-platform-mark.is-catalog svg {\n  width: 22px;\n  height: 22px;\n  fill: currentcolor;\n}\n\n.atv-first-broadcast-platform-mark.is-intrinsic svg {\n  width: 22px;\n  height: 22px;\n  fill: initial;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark {\n  width: 68px;\n}\n\n.atv-first-broadcast-platform-mark.is-wordmark svg {\n  width: 52px;\n  height: 20px;\n}\n\n.atv-first-broadcast-platform.is-unknown {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.08em;\n  text-transform: none;\n}\n\n.atv-screen-reader-only {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-meta-dot {\n  position: relative;\n  display: inline-flex;\n  align-items: center;\n}\n\n.atv-meta-dot + .atv-meta-dot::before {\n  position: absolute;\n  width: 4px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n  inset-block-start: 50%;\n  inset-inline-end: calc(100% + (var(--atv-meta-column-gap) - 4px) / 2);\n  line-height: 1;\n  text-align: center;\n  transform: translateY(-50%);\n}\n\n.atv-meta-chips {\n  display: inline-flex;\n  flex-wrap: wrap;\n  gap: 8px;\n}\n\n.atv-chip {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  text-transform: none;\n}\n\n/* ---------- Personage hero ---------- */\n.atv-personage-hero {\n  position: relative;\n  min-height: 70vh;\n  padding: clamp(96px, 13vw, 152px) max(28px, 7vw) 80px;\n}\n\n.atv-personage-hero::after {\n  position: absolute;\n  right: max(28px, 7vw);\n  bottom: 0;\n  left: max(28px, 7vw);\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-border-subtle) 20%,\n    var(--atv-border-subtle) 80%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-personage-hero-inner {\n  display: grid;\n  width: min(100%, 1120px);\n  align-items: start;\n  margin: 0 auto;\n  gap: clamp(32px, 5vw, 72px);\n  grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);\n}\n\n.atv-personage-portrait {\n  width: 100%;\n  border-radius: 50%;\n  aspect-ratio: 1;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n}\n\n.atv-personage-portrait.is-empty {\n  background: radial-gradient(\n    circle at 30% 25%,\n    #4a4a4d,\n    var(--atv-bg-tertiary) 62%\n  );\n}\n\n.atv-personage-portrait-trigger {\n  display: block;\n  width: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: 50%;\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n}\n\n.atv-personage-kicker {\n  margin: 2px 0 16px;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-personage-identity h1 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display-compact);\n  letter-spacing: -0.04em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-personage-original-name {\n  margin: 18px 0 0;\n  color: var(--atv-text-secondary);\n  font-size: clamp(19px, 2.1vw, 28px);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  line-height: 1.2;\n}\n\n.atv-personage-facts {\n  display: flex;\n  flex-wrap: wrap;\n  margin: 32px 0 0;\n  gap: 12px 32px;\n}\n\n.atv-personage-facts div {\n  display: flex;\n  gap: 8px;\n}\n\n.atv-personage-facts dt {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  letter-spacing: 0.03em;\n  opacity: 0.7;\n}\n\n.atv-personage-facts dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-personage-biography {\n  max-width: 680px;\n  margin-top: 36px;\n}\n\n.atv-personage-biography-content {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-lg);\n  letter-spacing: 0.01em;\n  line-height: var(--atv-line-height-body-loose);\n}\n\n.atv-personage-biography-content p {\n  margin: 0;\n}\n\n.atv-personage-biography-content p + p {\n  margin-top: 1em;\n}\n\n.atv-personage-biography-content.is-clamped > p:not(:first-child) {\n  display: none;\n}\n\n.atv-personage-biography-content.is-clamped > p:first-child {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 3;\n}\n\n.atv-personage-biography button {\n  padding: 0;\n  border: 0;\n  margin-top: 12px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  transition: opacity 160ms ease;\n}\n\n/* ---------- Entrance ---------- */\n@keyframes atv-hero-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(12px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n@keyframes atv-hero-portrait-in {\n  from {\n    opacity: 0;\n    transform: scale(0.92);\n  }\n\n  to {\n    opacity: 1;\n    transform: scale(1);\n  }\n}\n\n.atv-personage-hero.is-revealed .atv-personage-portrait {\n  animation: atv-hero-portrait-in 500ms var(--atv-ease-out) both;\n  animation-delay: 80ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-identity h1 {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 180ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-kicker {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-original-name {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 260ms;\n}\n\n.atv-personage-hero.is-revealed .atv-personage-facts div {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: calc(340ms + var(--fact-index, 0) * 60ms);\n}\n\n.atv-personage-hero.is-revealed .atv-personage-biography {\n  animation: atv-hero-fade-in 500ms var(--atv-ease-out) both;\n  animation-delay: 500ms;\n}\n\n/* ---------- Hover ---------- */\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-biography button:hover {\n    opacity: 0.8;\n  }\n}\n/* ---------- Collaborators ---------- */\n.atv-personage-collaborators {\n  display: flex;\n  flex-direction: column;\n  padding: 0;\n  margin: 20px 0 0;\n  list-style: none;\n}\n\n.atv-personage-collaborator {\n  position: relative;\n  display: grid;\n  overflow: hidden;\n  align-items: center;\n  padding: 14px 12px;\n  border-radius: var(--atv-radius-sm, 8px);\n  gap: 14px;\n  grid-template-columns: 28px 48px 1fr auto;\n  transition: background 160ms ease;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-collaborator {\n  animation: atv-collaborator-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover {\n    background: var(--atv-bg-secondary);\n  }\n\n  .atv-personage-collaborator::before {\n    position: absolute;\n    top: 14px;\n    bottom: 14px;\n    left: 0;\n    width: 3px;\n    border-radius: 0 3px 3px 0;\n    background: var(--atv-accent);\n    content: \"\";\n    opacity: 0;\n    transform: scaleY(0.35);\n    transition:\n      opacity var(--atv-duration-feedback) ease,\n      transform var(--atv-duration-hover) var(--atv-ease-out);\n  }\n\n  .atv-personage-collaborator:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n}\n\n.atv-personage-collaborator:active {\n  transform: scale(0.98);\n}\n\n@keyframes atv-collaborator-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.atv-personage-collaborator-rank {\n  display: flex;\n  justify-content: flex-end;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-personage-collaborator-avatar {\n  width: 48px;\n  height: 48px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n  transition: border-color 160ms ease;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator:hover .atv-personage-collaborator-avatar {\n    border-color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-avatar.is-fallback {\n  display: grid;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  place-items: center;\n}\n\n.atv-personage-collaborator-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 2px;\n}\n\n.atv-personage-collaborator-name {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  transition: color 160ms ease;\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-name:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-count {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-regular);\n}\n\n.atv-personage-collaborator-action {\n  flex-shrink: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  text-decoration: none;\n  transition:\n    color 160ms ease,\n    opacity 200ms var(--atv-ease-out),\n    transform 200ms var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-personage-collaborator-arrow {\n  display: inline-block;\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-personage-collaborator-action {\n    opacity: 0;\n    pointer-events: none;\n    transform: translateX(8px);\n  }\n\n  .atv-personage-collaborator-arrow {\n    opacity: 0.35;\n    transform: translate(1px, -2px);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-action,\n  .atv-personage-collaborator:focus-within .atv-personage-collaborator-action {\n    opacity: 1;\n    pointer-events: auto;\n    transform: translateX(0);\n  }\n\n  .atv-personage-collaborator:hover .atv-personage-collaborator-arrow,\n  .atv-personage-collaborator:focus-within .atv-personage-collaborator-arrow {\n    opacity: 1;\n    transform: translate(0, 0);\n  }\n\n  .atv-personage-collaborator-action:hover {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-personage-collaborator-action:focus-visible {\n  border-radius: 2px;\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-personage .atv-section {\n  /* Inter-group 56px (bottom) vs intra-group 28px (header margin) = 2:1.\n     Horizontal inset matches the hero's max(28px, 7vw) so section content\n     aligns with the identity column. */\n  padding: 36px max(28px, 7vw) 56px;\n}\n\n.atv-personage .atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-personage .atv-section-h {\n  padding-left: 0;\n  margin-bottom: 28px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-personage .atv-section-h::before {\n  display: none;\n}\n\n.atv-personage .atv-section-h-row {\n  margin-bottom: 28px;\n}\n\n.atv-carousel.atv-personage-gallery-rail {\n  /* Compound selector outranks the shared `.atv-carousel` gap (see work rail). */\n  gap: 12px;\n  list-style: none;\n}\n\n@keyframes atv-gallery-tile-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-personage-gallery-rail li {\n  min-width: 0;\n  height: 256px;\n  flex: 0 0 auto;\n  aspect-ratio: var(--atv-personage-gallery-aspect-ratio, 4 / 3);\n  scroll-snap-align: start;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-gallery-rail li {\n  animation: atv-gallery-tile-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--stagger-index, 0) * 40ms + 20ms), 100ms);\n}\n\n.atv-personage-gallery-rail button {\n  display: block;\n  overflow: hidden;\n  width: 100%;\n  min-width: 0;\n  height: 100%;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n}\n\n.atv-personage-gallery-rail img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n/* ---------- WorkRail (代表作品) ---------- */\n\n.atv-carousel.atv-personage-work-rail {\n  /* Compound selector outranks the shared `.atv-carousel` gap regardless of\n     manifest import order (layout.css is imported later than this file). */\n  gap: 20px;\n}\n\n.atv-personage-work-card {\n  /* Five cards fill the rail at 20px gaps; larger selections overflow into\n     the rail's own horizontal scroll instead of being clipped. */\n  flex: 0 0 max(140px, calc((100% - 80px) / 5));\n  color: inherit;\n  cursor: pointer;\n  opacity: 0;\n  scroll-snap-align: start;\n  text-decoration: none;\n  transform: translateY(8px);\n  transition:\n    opacity 400ms var(--atv-ease-out) 200ms,\n    transform 400ms var(--atv-ease-out) 200ms;\n}\n\n.atv-section-reveal.is-revealed .atv-personage-work-card {\n  opacity: 1;\n  transform: translateY(0);\n}\n\n.atv-personage-work-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-personage-work-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-personage-work-poster img,\n.atv-personage-work-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* Index number badge — 1‑based order on the card poster */\n.atv-work-index {\n  position: absolute;\n  z-index: 1;\n  bottom: 0;\n  left: 0;\n  display: flex;\n  width: 28px;\n  height: 28px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 0 4px 4px 0;\n  backdrop-filter: blur(2px);\n  background: rgb(0 0 0 / 60%);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.01em;\n  line-height: 1;\n}\n\n/* Rating badge — pill badge on the card poster */\n.atv-work-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-work-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-work-year {\n  display: block;\n  margin-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n/* ---------- Timeline (Axis + Dots) ---------- */\n\n/* Vertical axis line — accent at top fades into the dark background toward\n   the past, so newer years read as more present. */\n.atv-timeline {\n  position: relative;\n  margin-top: 20px;\n  font-size: var(--atv-type-stat-lg);\n}\n\n.atv-timeline::before {\n  position: absolute;\n  z-index: 0;\n  top: calc(0.5em);\n  bottom: 10px;\n  left: 15px;\n  width: 1px;\n  background: linear-gradient(\n    to bottom,\n    var(--atv-accent-bright) 0%,\n    var(--atv-accent) 35%,\n    var(--atv-border-subtle) 100%\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-timeline-year-group {\n  position: relative;\n  padding-bottom: 24px;\n  padding-left: 44px;\n  font-size: var(--atv-type-stat-lg);\n}\n\n.atv-timeline-year-group:last-child {\n  padding-bottom: 0;\n}\n\n.atv-timeline-year-group::before {\n  position: absolute;\n  z-index: 1;\n  top: calc(0.5em - 5px);\n  left: 10px;\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  background: var(--atv-accent-bright);\n  box-shadow: 0 0 0 transparent;\n  content: \"\";\n  opacity: 0;\n  transform: scale(0.5);\n  transition:\n    opacity 400ms var(--atv-ease-out),\n    transform 400ms var(--atv-ease-out),\n    box-shadow 400ms var(--atv-ease-out);\n  transition-delay: calc(var(--group-index, 0) * 60ms);\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-group::before {\n  box-shadow:\n    0 0 10px var(--atv-accent),\n    0 0 24px color-mix(in srgb, var(--atv-accent) 25%, transparent);\n  opacity: 1;\n  transform: scale(1);\n}\n\n.atv-timeline-year-num {\n  display: block;\n  margin-bottom: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-stat-lg);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.02em;\n  line-height: 1;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-year-num {\n  animation: atv-timeline-year-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(calc(var(--group-index, 0) * 40ms + 20ms), 100ms);\n}\n\n@keyframes atv-timeline-year-in {\n  from {\n    opacity: 0;\n    transform: translateY(4px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* Card row */\n.atv-timeline-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 16px;\n}\n\n@keyframes atv-timeline-card-in {\n  from {\n    opacity: 0;\n    transform: translateY(8px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-timeline-card {\n  min-width: 120px;\n  max-width: 200px;\n  flex: 1 1 160px;\n  color: inherit;\n  cursor: pointer;\n  text-decoration: none;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-section-reveal.is-revealed .atv-timeline-card {\n  animation: atv-timeline-card-in 200ms var(--atv-ease-out) both;\n  animation-delay: min(\n    calc(var(--stagger-index, 0) * 40ms + var(--group-index, 0) * 40ms + 20ms),\n    100ms\n  );\n}\n\n.atv-timeline-card:active {\n  transform: scale(0.97);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-timeline-card:hover {\n    transform: translateY(-3px);\n  }\n}\n\n.atv-timeline-card:focus-visible {\n  border-radius: var(--atv-radius-sm);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-timeline-card-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n.atv-timeline-card-poster img,\n.atv-timeline-card-poster .atv-poster-placeholder {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-timeline-card-rating {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-timeline-card-title {\n  display: block;\n  overflow: hidden;\n  margin-top: 10px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-personage-awards-list {\n  padding: 0;\n  margin: 0;\n  list-style: none;\n}\n\n.atv-personage-awards-list li {\n  display: grid;\n  padding: 20px 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  gap: 24px;\n  grid-template-columns: minmax(84px, auto) 1fr;\n}\n\n.atv-personage-awards-list li:last-child {\n  border-bottom: none;\n}\n\n.atv-personage-award-year {\n  padding-top: 4px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n.atv-personage-award-detail {\n  position: relative;\n  min-width: 0;\n  padding-left: 16px;\n  border-left: 2px solid var(--atv-accent);\n}\n\n.atv-personage-award-ceremony,\n.atv-personage-award-ceremony a {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-personage-award-ceremony a {\n  border-bottom: 1px solid transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-ceremony a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n.atv-personage-award-name {\n  margin: 6px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-personage-award-work {\n  margin: 6px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body-sm);\n}\n\n.atv-personage-award-work a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-personage-award-work a:hover {\n  border-bottom-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n@media (width <= 640px) {\n  .atv-personage-hero-inner {\n    gap: 24px;\n    grid-template-columns: 112px minmax(0, 1fr);\n  }\n\n  .atv-personage-identity h1 {\n    font-size: var(--atv-type-display-narrow);\n  }\n\n  .atv-personage-facts {\n    margin-top: 20px;\n  }\n\n  .atv-personage-biography {\n    margin-top: 0;\n    grid-column: 1 / -1;\n  }\n\n  .atv-personage-collaborator {\n    padding: 14px 8px;\n    gap: 10px;\n    grid-template-columns: 20px 42px 1fr auto;\n  }\n\n  .atv-personage-collaborator-avatar,\n  .atv-personage-collaborator-avatar.is-fallback {\n    width: 42px;\n    height: 42px;\n  }\n\n  .atv-personage-gallery-rail li {\n    height: 160px;\n  }\n\n  .atv-personage-awards-list li {\n    padding: 16px 0;\n    gap: 10px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-personage-award-year {\n    padding-top: 0;\n    font-size: var(--atv-type-body-sm);\n    font-weight: var(--atv-font-weight-semibold);\n  }\n\n  .atv-personage-award-detail {\n    padding-left: 12px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-personage-hero .atv-personage-portrait,\n  .atv-personage-hero .atv-personage-identity h1,\n  .atv-personage-hero .atv-personage-original-name,\n  .atv-personage-hero .atv-personage-facts div,\n  .atv-personage-hero .atv-personage-biography {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-collaborator:active {\n    transform: none;\n  }\n\n  .atv-personage-gallery-rail li {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  /* Timeline: dots always visible, no entrance animations */\n  .atv-timeline-year-group::before {\n    opacity: 1;\n    transform: scale(1);\n    transition: none;\n  }\n\n  .atv-section-reveal.is-revealed .atv-timeline-year-num {\n    animation: none;\n    opacity: 1;\n  }\n\n  .atv-personage-work-card,\n  .atv-section-reveal.is-revealed .atv-timeline-card {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-personage-work-card,\n  .atv-timeline-card {\n    transition: none;\n    will-change: auto;\n  }\n}\n\n/* ---------- Subject celebrities / Credit Atlas ---------- */\n.atv-celebrities {\n  overflow: clip;\n  padding: 0 max(28px, 5vw) 96px;\n}\n\n.atv-celebrities-hero,\n.atv-credit-groups {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-celebrities-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(52px, 8vw, 96px);\n}\n\n.atv-celebrities-kicker,\n.atv-credit-works > span {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-celebrities-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-celebrities-context {\n  display: flex;\n  align-items: center;\n  margin-top: 30px;\n  color: var(--atv-text-secondary);\n  gap: 20px;\n}\n\n.atv-celebrities-context > p {\n  margin: 0;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-credit-back {\n  display: inline-flex;\n  align-items: center;\n  padding: 7px 10px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-credit-back:active,\n.atv-credit-person:active,\n.atv-credit-work:active {\n  transform: scale(0.97);\n}\n\n.atv-credit-back:focus-visible,\n.atv-credit-person:focus-visible,\n.atv-credit-work:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-credit-groups {\n  position: relative;\n}\n\n.atv-credit-groups::before {\n  position: absolute;\n  top: 0;\n  bottom: 0;\n  left: clamp(0px, 13.8vw, 176px);\n  width: 1px;\n  background: linear-gradient(\n    to bottom,\n    transparent,\n    var(--atv-border-subtle) 2%,\n    var(--atv-border-subtle) 98%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-credit-group {\n  position: relative;\n  display: grid;\n  padding: clamp(42px, 6vw, 76px) 0;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(28px, 5vw, 72px);\n  grid-template-columns: minmax(128px, 176px) minmax(0, 1fr);\n  scroll-margin-top: 76px;\n}\n\n.atv-credit-group::before {\n  position: absolute;\n  top: clamp(42px, 6vw, 76px);\n  left: clamp(0px, 13.8vw, 176px);\n  width: 3px;\n  height: 32px;\n  border-radius: 3px;\n  background: var(--atv-accent);\n  box-shadow: 0 0 20px var(--atv-accent-glow);\n  content: \"\";\n  transform: translateX(-1px);\n}\n\n.atv-credit-group-heading {\n  position: sticky;\n  top: 84px;\n  align-self: start;\n  padding-right: 24px;\n}\n\n.atv-credit-group-heading > h2 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-group);\n  letter-spacing: -0.03em;\n  line-height: var(--atv-line-height-display);\n}\n\n.atv-credit-group-heading > p {\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  line-height: 1.3;\n}\n\n.atv-credit-grid {\n  display: grid;\n  gap: 0 clamp(18px, 2.5vw, 32px);\n  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));\n}\n\n.atv-credit-card {\n  min-width: 0;\n  padding: 0 0 22px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 22px;\n}\n\n.atv-credit-identity {\n  min-width: 0;\n}\n\n.atv-credit-person {\n  display: grid;\n  min-width: 0;\n  align-items: center;\n  color: var(--atv-text-primary);\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  transition: transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-credit-person:not(.is-static) {\n  cursor: pointer;\n}\n\n.atv-credit-avatar {\n  width: 56px;\n  height: 56px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-tertiary);\n  object-fit: cover;\n}\n\n.atv-credit-avatar.is-empty {\n  background:\n    radial-gradient(circle at 68% 22%, rgb(76 217 122 / 25%), transparent 38%),\n    linear-gradient(145deg, #38383b, var(--atv-bg-tertiary));\n}\n\n.atv-credit-name {\n  display: grid;\n  overflow: hidden;\n  min-width: 0;\n  gap: 3px;\n}\n\n.atv-credit-name-primary,\n.atv-credit-name-original {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-credit-name-primary {\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.005em;\n  line-height: 1.25;\n}\n\n.atv-credit-name-original {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.025em;\n  line-height: 1.2;\n}\n\n.atv-credit-role {\n  display: grid;\n  margin: 9px 0 0 68px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.01em;\n  line-height: 1.45;\n  row-gap: 2px;\n}\n\n.atv-credit-role-title {\n  color: var(--atv-text-secondary);\n}\n\n.atv-credit-role-detail,\n.atv-credit-character-prefix,\n.atv-credit-character-original {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-credit-character {\n  display: grid;\n  min-width: 0;\n  column-gap: 4px;\n  grid-template-columns: auto minmax(0, 1fr);\n}\n\n.atv-credit-character-name,\n.atv-credit-character-original {\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-credit-character-original {\n  font-size: var(--atv-type-micro);\n  grid-column: 2;\n  letter-spacing: 0.025em;\n  line-height: 1.2;\n}\n\n.atv-credit-works {\n  display: grid;\n  margin: 14px 0 0 68px;\n  gap: 5px;\n}\n\n.atv-credit-works > span {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.08em;\n}\n\n.atv-credit-works > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 4px 10px;\n}\n\n.atv-credit-work {\n  border-bottom: 1px solid transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.4;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-credit-back:hover {\n    border-color: var(--atv-accent-border-strong);\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-credit-person:not(.is-static):hover {\n    transform: translateX(3px);\n  }\n\n  .atv-credit-work:hover {\n    border-bottom-color: var(--atv-accent-bright);\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-celebrities-nav .atv-stickynav-jumps {\n  min-width: 0;\n  padding-bottom: 1px;\n  gap: 20px;\n  overflow-x: auto;\n  scrollbar-width: none;\n}\n\n.atv-celebrities-nav .atv-stickynav-jumps::-webkit-scrollbar {\n  display: none;\n}\n\n@media (width <= 768px) {\n  .atv-celebrities {\n    padding-right: 20px;\n    padding-left: 20px;\n  }\n\n  .atv-celebrities-hero {\n    padding-top: 104px;\n  }\n\n  .atv-credit-groups::before,\n  .atv-credit-group::before {\n    display: none;\n  }\n\n  .atv-credit-group {\n    gap: 24px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-credit-group-heading {\n    position: static;\n    padding-right: 0;\n  }\n\n  .atv-credit-grid {\n    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));\n  }\n\n  .atv-celebrities-nav {\n    padding-right: 20px;\n    padding-left: 20px;\n    gap: 16px;\n  }\n\n  .atv-celebrities-nav .atv-stickynav-title {\n    flex: 0 1 32%;\n  }\n\n  .atv-celebrities-nav .atv-stickynav-jumps {\n    flex: 1 1 auto;\n    gap: 16px;\n  }\n}\n\n@media (width <= 460px) {\n  .atv-credit-grid {\n    grid-template-columns: 1fr;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-credit-back,\n  .atv-credit-person,\n  .atv-credit-work {\n    transition: none;\n  }\n\n  .atv-credit-back:active,\n  .atv-credit-person:active,\n  .atv-credit-work:active {\n    transform: none;\n  }\n}\n\n/* ---------- Subject photo archive: frame and identity ---------- */\n.atv-photo-archive {\n  min-height: 100vh;\n  padding: 0 max(24px, 5vw) 96px;\n  background:\n    radial-gradient(circle at 82% -12%, rgb(65 190 93 / 12%), transparent 30%),\n    var(--atv-bg-primary);\n}\n\n.atv-photo-archive-hero,\n.atv-photo-archive-groups {\n  width: min(100%, 1320px);\n  margin: 0 auto;\n}\n\n.atv-photo-archive-hero {\n  padding: clamp(28px, 4vw, 56px) 0 clamp(52px, 8vw, 108px);\n}\n\n.atv-photo-archive-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 10px 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  gap: 18px;\n}\n\n.atv-photo-archive-back,\n.atv-photo-archive-upload,\n.atv-photo-archive-all {\n  display: inline-flex;\n  align-items: center;\n  border: 1px solid transparent;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 7px;\n  letter-spacing: 0.015em;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-photo-archive-back:focus-visible,\n.atv-photo-archive-upload:focus-visible,\n.atv-photo-archive-all:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-photo-archive-back:active,\n.atv-photo-archive-upload:active,\n.atv-photo-archive-all:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-archive-upload {\n  padding: 7px 10px;\n  border-color: var(--atv-border-medium);\n  border-radius: 999px;\n  color: var(--atv-text-primary);\n}\n\n.atv-photo-archive-intro {\n  padding-top: clamp(48px, 9vw, 128px);\n}\n\n.atv-photo-archive-intro > p {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  line-height: 1.2;\n  text-transform: uppercase;\n}\n\n.atv-photo-archive-intro h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-photo-archive-index {\n  display: flex;\n  margin: clamp(34px, 5vw, 54px) 0 0;\n  gap: clamp(28px, 5vw, 68px);\n}\n\n.atv-photo-archive-index > div {\n  display: grid;\n  min-width: 0;\n  gap: 4px;\n}\n\n.atv-photo-archive-index dt {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.04em;\n}\n\n.atv-photo-archive-index dd {\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-title-lg);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.02em;\n  line-height: 1;\n}\n\n/* The shared `.atv-stickynav-jumps` now shrinks and scrolls on its own\n   (sticky-nav.css); the archive page's local copies are gone. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-photo-archive-back:hover,\n  .atv-photo-archive-all:hover {\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-photo-archive-upload:hover {\n    border-color: var(--atv-accent-border-strong);\n    color: var(--atv-accent-bright);\n  }\n}\n\n@media (width <= 768px) {\n  .atv-photo-archive {\n    padding: 0 20px 64px;\n  }\n\n  .atv-photo-archive-hero {\n    padding-top: 20px;\n  }\n\n  .atv-photo-archive-intro {\n    padding-top: 56px;\n  }\n\n  .atv-photo-archive-nav {\n    padding-right: 20px;\n    padding-left: 20px;\n    gap: 16px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-photo-archive-back,\n  .atv-photo-archive-upload,\n  .atv-photo-archive-all {\n    transition: none;\n  }\n\n  .atv-photo-archive-back:active,\n  .atv-photo-archive-upload:active,\n  .atv-photo-archive-all:active {\n    transform: none;\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-photo-archive-upload {\n    border-color: var(--atv-border-emphasis);\n  }\n}\n\n/* ---------- Subject photo archive: contact sheets ---------- */\n.atv-photo-archive-group {\n  display: grid;\n  padding: clamp(38px, 6vw, 80px) 0;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(28px, 5vw, 72px);\n  grid-template-columns: minmax(150px, 200px) minmax(0, 1fr);\n  scroll-margin-top: 76px;\n}\n\n.atv-photo-archive-group-heading {\n  position: sticky;\n  top: 84px;\n  align-self: start;\n}\n\n.atv-photo-archive-group-heading h2 {\n  margin: 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-group);\n  letter-spacing: -0.035em;\n  line-height: var(--atv-line-height-display);\n}\n\n.atv-photo-archive-count {\n  margin: 10px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.04em;\n}\n\n.atv-photo-archive-all {\n  margin-top: 24px;\n  color: var(--atv-text-secondary);\n}\n\n.atv-photo-archive-grid {\n  padding: 0;\n  margin: 0;\n  column-gap: clamp(8px, 1.15vw, 16px);\n  column-width: clamp(118px, 11vw, 176px);\n  list-style: none;\n}\n\n.atv-photo-archive-item {\n  --atv-photo-archive-aspect-ratio: 1;\n\n  margin-bottom: clamp(8px, 1.15vw, 16px);\n  aspect-ratio: var(--atv-photo-archive-aspect-ratio);\n  break-inside: avoid;\n}\n\n.atv-photo-archive-tile {\n  position: relative;\n  display: block;\n  overflow: hidden;\n  height: 100%;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 2px;\n  background: var(--atv-bg-card);\n  box-shadow: 0 12px 28px rgb(0 0 0 / 25%);\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-photo-archive-tile::after {\n  position: absolute;\n  border: 1px solid var(--atv-border-subtle);\n  content: \"\";\n  inset: 0;\n  pointer-events: none;\n}\n\n.atv-photo-archive-tile:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-photo-archive-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-archive-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n  transition: transform 240ms var(--atv-ease-out);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-photo-archive-tile:hover {\n    border-color: var(--atv-border-strong);\n    box-shadow: 0 22px 44px rgb(0 0 0 / 42%);\n    transform: translateY(-3px);\n  }\n\n  .atv-photo-archive-tile:hover img {\n    transform: scale(1.035);\n  }\n}\n\n@media (width <= 768px) {\n  .atv-photo-archive-group {\n    gap: 28px;\n    grid-template-columns: 1fr;\n  }\n\n  .atv-photo-archive-group-heading {\n    position: static;\n    display: flex;\n    align-items: end;\n    justify-content: space-between;\n    gap: 24px;\n  }\n\n  .atv-photo-archive-all {\n    flex: 0 0 auto;\n    margin: 0 0 3px;\n  }\n\n  .atv-photo-archive-grid {\n    columns: auto 2;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-photo-archive-tile,\n  .atv-photo-archive-tile img {\n    transition: none;\n  }\n\n  .atv-photo-archive-tile:active,\n  .atv-photo-archive-tile:hover,\n  .atv-photo-archive-tile:hover img {\n    transform: none;\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-photo-archive-tile {\n    border-color: var(--atv-border-emphasis);\n  }\n}\n\n/* ---------- Subject comments / Reading ledger ---------- */\n.atv-subject-comments {\n  min-height: 100vh;\n  padding: 0 max(28px, 5vw) 112px;\n}\n\n.atv-subject-comments-hero,\n.atv-subject-comments-layout {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-subject-comments-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(48px, 7vw, 84px);\n}\n\n.atv-subject-comments-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-subject-comments-back,\n.atv-subject-comments-write {\n  display: inline-flex;\n  align-items: center;\n  padding: 8px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-write {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-back:active,\n.atv-subject-comments-write:active,\n.atv-subject-comments-sort-option:active,\n.atv-subject-comments-score-option:active,\n.atv-subject-comments-pagination a:active {\n  transform: scale(0.97);\n}\n\n.atv-subject-comments-back:focus-visible,\n.atv-subject-comments-write:focus-visible,\n.atv-subject-comments-status:focus-visible,\n.atv-subject-comments-sort-option:focus-visible,\n.atv-subject-comments-score-option:focus-visible,\n.atv-subject-comments-author:focus-visible,\n.atv-subject-comments-meta a:focus-visible,\n.atv-subject-comments-pagination a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n.atv-subject-comments-kicker,\n.atv-subject-comments-controls h2 {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-subject-comments-kicker {\n  margin-top: clamp(42px, 6vw, 72px);\n}\n\n.atv-subject-comments-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-subject-comments-status-index {\n  display: grid;\n  width: min(100%, 600px);\n  border-top: 1px solid var(--atv-border-subtle);\n  margin-top: clamp(40px, 6vw, 72px);\n  grid-template-columns: repeat(3, 1fr);\n}\n\n.atv-subject-comments-status {\n  position: relative;\n  display: grid;\n  min-height: 78px;\n  padding: 16px 18px;\n  border-right: 1px solid var(--atv-border-subtle);\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-secondary);\n  gap: 5px;\n  transition:\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-status:first-child {\n  border-left: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-comments-status span {\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.02em;\n}\n\n.atv-subject-comments-status strong {\n  color: inherit;\n  font-size: clamp(18px, 2vw, 24px);\n  font-variant-numeric: tabular-nums;\n  letter-spacing: -0.035em;\n  line-height: 1;\n}\n\n.atv-subject-comments-status.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-status.is-active::after {\n  position: absolute;\n  top: -1px;\n  right: -1px;\n  left: -1px;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n}\n\n.atv-subject-comments-status[aria-disabled=\"true\"],\n.atv-subject-comments-sort-option[aria-disabled=\"true\"],\n.atv-subject-comments-score-option[aria-disabled=\"true\"],\n.atv-subject-comments-pagination a[aria-disabled=\"true\"] {\n  cursor: progress;\n  pointer-events: none;\n}\n\n.atv-subject-comments-layout {\n  display: grid;\n  justify-content: start;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(36px, 7vw, 104px);\n  grid-template-columns: minmax(142px, 176px) minmax(0, 780px);\n}\n\n.atv-subject-comments-controls {\n  position: sticky;\n  top: 84px;\n  display: grid;\n  align-self: start;\n  padding-top: clamp(32px, 4vw, 52px);\n  gap: 30px;\n}\n\n.atv-subject-comments-controls section {\n  min-width: 0;\n}\n\n.atv-subject-comments-control-options {\n  display: grid;\n  margin-top: 12px;\n  gap: 2px;\n}\n\n.atv-subject-comments-sort-option,\n.atv-subject-comments-score-option {\n  display: flex;\n  width: fit-content;\n  min-height: 30px;\n  align-items: center;\n  padding: 4px 8px;\n  border-radius: 7px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-sort-option.is-active,\n.atv-subject-comments-score-option.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-comments-stream {\n  position: relative;\n  min-width: 0;\n}\n\n.atv-subject-comments-stream::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition:\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-stream.is-loading::before {\n  opacity: 1;\n  transform: scaleX(1);\n}\n\n.atv-subject-comments-results {\n  opacity: 1;\n  transition: opacity 160ms var(--atv-ease-out);\n}\n\n@starting-style {\n  .atv-subject-comments-results {\n    opacity: 0.72;\n  }\n}\n\n.atv-subject-comments-stream.is-loading .atv-subject-comments-results {\n  opacity: 0.72;\n}\n\n.atv-subject-comments-live {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  border: 0;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-subject-comments-navigation-failure {\n  display: flex;\n  min-height: 42px;\n  align-items: center;\n  padding: 8px 0;\n  border-bottom: 1px solid\n    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 12px;\n}\n\n.atv-subject-comments-navigation-failure span {\n  margin-right: auto;\n}\n\n.atv-subject-comments-navigation-failure button {\n  padding: 4px 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-bold);\n  transition: color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-comments-navigation-failure button:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n.atv-subject-comments-item {\n  --atv-subject-comments-avatar-size: 42px;\n  --atv-subject-comments-track-gap: 12px;\n\n  padding: clamp(32px, 4vw, 52px) 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n}\n\n.atv-subject-comments-item-header {\n  display: grid;\n  min-width: 0;\n  gap: 8px var(--atv-subject-comments-track-gap);\n  grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(0, 1fr);\n}\n\n.atv-subject-comments-author {\n  display: inline-flex;\n  min-width: 0;\n  max-width: 100%;\n  align-items: center;\n  color: var(--atv-text-primary);\n  gap: var(--atv-subject-comments-track-gap);\n  grid-column: 1 / -1;\n  justify-self: start;\n}\n\n.atv-subject-comments-author.is-static {\n  cursor: default;\n}\n\n.atv-subject-comments-avatar {\n  width: var(--atv-subject-comments-avatar-size);\n  height: var(--atv-subject-comments-avatar-size);\n  flex: 0 0 auto;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  object-fit: cover;\n}\n\n.atv-subject-comments-avatar.is-fallback {\n  display: grid;\n  background:\n    radial-gradient(circle at 70% 20%, rgb(76 217 122 / 30%), transparent 38%),\n    var(--atv-bg-tertiary);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-bold);\n  place-items: center;\n}\n\n.atv-subject-comments-author-name {\n  overflow: hidden;\n  font-optical-sizing: auto;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-comments-meta {\n  display: flex;\n  min-width: 0;\n  align-items: center;\n  justify-content: flex-start;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 8px;\n  grid-column: 2;\n  letter-spacing: 0.02em;\n}\n\n.atv-subject-comments-meta a {\n  color: inherit;\n}\n\n.atv-subject-comments-rating {\n  color: var(--atv-rating-gold);\n  font-size: var(--atv-type-micro);\n  letter-spacing: 0.07em;\n  line-height: 1;\n}\n\n.atv-subject-comments-time,\n.atv-subject-comments-location {\n  overflow: hidden;\n  max-width: 22ch;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-subject-comments-time::before,\n.atv-subject-comments-location::before {\n  padding-right: 8px;\n  color: var(--atv-text-tertiary);\n  content: \"·\";\n}\n\n.atv-subject-comments-reading-row {\n  display: grid;\n  margin-top: 18px;\n  column-gap: var(--atv-subject-comments-track-gap);\n  grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(\n      0,\n      1fr\n    ) 82px;\n}\n\n.atv-subject-comments-content {\n  max-width: 62ch;\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-optical-sizing: auto;\n  font-size: clamp(15px, 1.35vw, 17px);\n  grid-column: 2;\n  line-height: 1.8;\n  overflow-wrap: anywhere;\n}\n\n.atv-subject-comments-consensus {\n  display: grid;\n  grid-column: 3;\n  place-self: end end;\n}\n\n.atv-subject-comments-pagination {\n  display: flex;\n  flex-wrap: wrap;\n  padding: 32px 0 0;\n  gap: 8px;\n}\n\n.atv-subject-comments-pagination a {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  padding: 0 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-subject-comments-pagination span {\n  display: inline-flex;\n  min-height: 34px;\n  align-items: center;\n  padding: 0 11px;\n  border: 1px solid var(--atv-accent-border);\n  border-radius: 8px;\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-bold);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-subject-comments-back:hover,\n  .atv-subject-comments-write:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-status:hover {\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-status.is-active:hover {\n    background: var(--atv-accent-active);\n    color: var(--atv-accent-bright);\n  }\n\n  .atv-subject-comments-sort-option:hover,\n  .atv-subject-comments-score-option:hover {\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-subject-comments-pagination a:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n}\n\n@media (width <= 720px) {\n  .atv-subject-comments {\n    padding-right: 20px;\n    padding-left: 20px;\n  }\n\n  .atv-subject-comments-hero {\n    padding-top: 100px;\n  }\n\n  .atv-subject-comments-status-index {\n    width: 100%;\n  }\n\n  .atv-subject-comments-status {\n    min-height: 72px;\n    padding: 14px 12px;\n  }\n\n  .atv-subject-comments-layout {\n    display: block;\n  }\n\n  .atv-subject-comments-controls {\n    position: relative;\n    top: auto;\n    display: grid;\n    padding: 24px 0;\n    gap: 16px;\n    grid-template-columns: max-content max-content;\n    overflow-x: auto;\n    scrollbar-width: none;\n  }\n\n  .atv-subject-comments-controls.is-overflowing::after {\n    position: absolute;\n    top: 0;\n    right: 0;\n    bottom: 0;\n    width: 30px;\n    background: linear-gradient(to right, transparent, var(--atv-bg-primary));\n    content: \"\";\n    pointer-events: none;\n  }\n\n  .atv-subject-comments-controls::-webkit-scrollbar {\n    display: none;\n  }\n\n  .atv-subject-comments-controls section {\n    min-width: max-content;\n  }\n\n  .atv-subject-comments-control-options {\n    display: flex;\n    margin-top: 8px;\n    gap: 3px;\n  }\n\n  .atv-subject-comments-sort-option,\n  .atv-subject-comments-score-option {\n    white-space: nowrap;\n  }\n\n  .atv-subject-comments-item {\n    padding: 28px 0;\n  }\n\n  .atv-subject-comments-item-header {\n    display: grid;\n    align-items: start;\n    gap: 10px;\n    grid-template-columns: var(--atv-subject-comments-avatar-size) minmax(\n        0,\n        1fr\n      );\n  }\n\n  .atv-subject-comments-meta {\n    flex-wrap: wrap;\n    justify-content: flex-start;\n    margin-left: 0;\n  }\n\n  .atv-subject-comments-reading-row {\n    display: block;\n    margin-top: 18px;\n  }\n\n  .atv-subject-comments-content {\n    max-width: none;\n    grid-column: auto;\n  }\n\n  .atv-subject-comments-consensus {\n    display: flex;\n    align-items: center;\n    margin-top: 14px;\n    margin-left: auto;\n    gap: 8px;\n    grid-column: auto;\n    justify-self: end;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-comments-back,\n  .atv-subject-comments-write,\n  .atv-subject-comments-status,\n  .atv-subject-comments-sort-option,\n  .atv-subject-comments-score-option,\n  .atv-subject-comments-pagination a {\n    transition: none;\n  }\n\n  .atv-subject-comments-results,\n  .atv-subject-comments-stream::before,\n  .atv-subject-comments-navigation-failure button {\n    transition: none;\n  }\n}\n\n.atv-subject-reviews {\n  min-height: 100vh;\n  padding: 0 max(28px, 5vw) 112px;\n  scroll-margin-top: 84px;\n}\n\n.atv-skip-link {\n  position: fixed;\n  z-index: 999;\n  top: 12px;\n  left: 12px;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-skip-link:focus-visible,\n.atv-skip-link:focus {\n  width: auto;\n  height: auto;\n  padding: 8px 16px;\n  border-radius: 8px;\n  backdrop-filter: blur(12px);\n  background: var(--atv-bg-elevated);\n  clip-path: none;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: none;\n  white-space: normal;\n}\n\n.atv-subject-reviews-hero,\n.atv-subject-reviews-layout {\n  width: min(100%, 1280px);\n  margin: 0 auto;\n}\n\n.atv-subject-reviews-hero {\n  padding: clamp(112px, 15vw, 176px) 0 clamp(48px, 7vw, 84px);\n}\n\n.atv-subject-reviews-toolbar {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-subject-reviews-back,\n.atv-subject-reviews-write {\n  display: inline-flex;\n  align-items: center;\n  padding: 8px 11px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  transition:\n    border-color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n#atv-douban-root .atv-subject-reviews-write {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-reviews-back:active,\n.atv-subject-reviews-write:active,\n.atv-subject-reviews-option:active {\n  transform: scale(0.97);\n}\n\n.atv-subject-reviews-kicker,\n.atv-subject-reviews-controls h2 {\n  margin: 0;\n  color: var(--atv-accent-bright);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-subject-reviews-kicker {\n  margin-top: clamp(42px, 6vw, 72px);\n}\n\n.atv-subject-reviews-hero h1 {\n  max-width: 980px;\n  margin: 16px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-display);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.055em;\n  line-height: var(--atv-line-height-display);\n  text-wrap: balance;\n}\n\n.atv-subject-reviews-layout {\n  display: grid;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: clamp(36px, 7vw, 104px);\n  grid-template-columns: minmax(142px, 176px) 1fr;\n}\n\n.atv-subject-reviews-controls {\n  position: sticky;\n  top: 84px;\n  display: grid;\n  align-self: start;\n  padding-top: clamp(32px, 4vw, 52px);\n  gap: 30px;\n}\n\n.atv-subject-reviews-controls section > div {\n  display: grid;\n  margin-top: 12px;\n  gap: 2px;\n}\n\n.atv-subject-reviews-option {\n  display: flex;\n  width: fit-content;\n  min-height: 30px;\n  align-items: center;\n  padding: 4px 8px;\n  border-radius: 7px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) var(--atv-ease-out),\n    background-color var(--atv-duration-feedback) var(--atv-ease-out);\n}\n\n.atv-subject-reviews-option.is-active {\n  background: var(--atv-accent-active);\n  color: var(--atv-accent-bright);\n}\n\n.atv-subject-reviews-option[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-prev[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-next[aria-disabled=\"true\"],\n.atv-subject-reviews-pagination-disabled {\n  cursor: progress;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-stream {\n  position: relative;\n  min-width: 0;\n}\n\n.atv-subject-reviews-stream::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 2px;\n  background: var(--atv-accent-bright);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition:\n    opacity 160ms ease,\n    transform 160ms var(--atv-ease-out);\n}\n\n.atv-subject-reviews-stream.is-loading::before {\n  opacity: 1;\n  transform: scaleX(1);\n}\n\n.atv-subject-reviews-results {\n  opacity: 1;\n  transition: opacity 160ms var(--atv-ease-out);\n}\n\n.atv-subject-reviews-stream.is-loading .atv-subject-reviews-results {\n  opacity: 0.72;\n}\n\n.atv-subject-reviews-live {\n  position: absolute;\n  overflow: hidden;\n  width: 1px;\n  height: 1px;\n  margin: -1px;\n  clip-path: inset(50%);\n  white-space: nowrap;\n}\n\n.atv-subject-reviews-failure {\n  display: flex;\n  min-height: 42px;\n  align-items: center;\n  border-bottom: 1px solid\n    color-mix(in srgb, var(--atv-rating-gold) 24%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 12px;\n}\n\n.atv-subject-reviews-failure span {\n  margin-right: auto;\n}\n\n.atv-subject-reviews-failure button {\n  padding: 4px 0;\n  border: 0;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-bold);\n}\n\n.atv-subject-reviews-empty {\n  padding: clamp(44px, 7vw, 72px) 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-secondary);\n}\n\n.atv-subject-reviews-empty p {\n  margin: 0 0 14px;\n}\n\n.atv-subject-reviews-empty a {\n  color: var(--atv-accent-bright);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-subject-reviews-pagination {\n  display: flex;\n  align-items: center;\n  padding: 30px clamp(20px, 2.5vw, 32px) 0;\n}\n\n/* Condensed mode: prev | indicator | next spread across */\n.atv-subject-reviews-pagination.is-condensed {\n  justify-content: space-between;\n}\n\n/* All pagination links share base styling */\n.atv-subject-reviews-pagination a {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 6px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-regular);\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-subject-reviews-pagination a:hover {\n  color: var(--atv-text-primary);\n}\n\n.atv-subject-reviews-pagination a:active {\n  opacity: 0.65;\n}\n\n/* Condensed mode: prev/next need vertical padding only */\n.atv-subject-reviews-pagination-prev,\n.atv-subject-reviews-pagination-next {\n  padding: 6px 0;\n  color: var(--atv-text-secondary);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-subject-reviews-pagination-disabled {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  opacity: 0.35;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-pagination\n  span:not(\n    [aria-current],\n    .atv-subject-reviews-pagination-indicator,\n    .atv-subject-reviews-pagination-sep\n  ) {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 2px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-regular);\n}\n\n/* Condensed mode: page indicator */\n.atv-subject-reviews-pagination-indicator {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  gap: 2px;\n  pointer-events: none;\n}\n\n.atv-subject-reviews-pagination-sep {\n  margin: 0 1px;\n  color: var(--atv-border-subtle);\n  font-size: var(--atv-type-micro);\n}\n\n.atv-review-card.is-directory {\n  position: relative;\n  display: grid;\n  padding: clamp(27px, 3.2vw, 36px) clamp(20px, 2.5vw, 32px)\n    clamp(31px, 3.6vw, 40px);\n  border-radius: 0;\n  background: transparent;\n  column-gap: clamp(24px, 3.8vw, 48px);\n  grid-template-columns: minmax(146px, 168px) minmax(0, 1fr);\n}\n\n.atv-review-card.is-directory::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    rgb(255 255 255 / 8%) 20%,\n    rgb(255 255 255 / 8%) 80%,\n    transparent\n  );\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory:focus-visible,\n.atv-review-card.is-directory:has(.atv-review-open-button:focus-visible) {\n  background: var(--atv-bg-hover);\n  outline: 1px solid var(--atv-border-medium);\n  outline-offset: 2px;\n}\n\n.atv-review-card.is-directory:has(.atv-review-open-button:active) {\n  transform: scale(0.99);\n}\n\n.atv-review-directory-identity {\n  position: relative;\n  z-index: 1;\n  display: flex;\n  min-width: 0;\n  padding-top: 3px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory .atv-review-avatar {\n  width: 32px;\n  height: 32px;\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-review-card.is-directory .atv-review-meta {\n  gap: 4px;\n}\n\n.atv-review-card.is-directory .atv-review-author {\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-card.is-directory .atv-review-directory-meta-line {\n  width: fit-content;\n  min-height: 14px;\n}\n\n.atv-review-card.is-directory .atv-review-stars {\n  gap: 1px;\n}\n\n.atv-review-card.is-directory .atv-review-stars svg {\n  width: 11px;\n  height: 11px;\n}\n\n.atv-review-card.is-directory .atv-review-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-variant-numeric: tabular-nums;\n  letter-spacing: 0.01em;\n  line-height: 1.38;\n}\n\n.atv-review-directory-reading {\n  position: relative;\n  z-index: 1;\n  min-width: 0;\n  pointer-events: none;\n}\n\n.atv-review-card.is-directory .atv-review-title {\n  margin: 0 0 8px;\n  font-size: clamp(18px, 1.7vw, 21px);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.018em;\n  -webkit-line-clamp: 2;\n  line-height: 1.28;\n}\n\n.atv-review-card.is-directory .atv-review-excerpt {\n  max-width: 672px;\n  margin: 0;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  -webkit-line-clamp: 4;\n  line-height: 1.76;\n}\n\n.atv-review-card.is-directory .atv-review-foot {\n  max-width: 672px;\n  min-height: 28px;\n  justify-content: flex-start;\n  padding-top: 0;\n  border-top: 0;\n  margin-top: 16px;\n  gap: 12px;\n}\n\n.atv-review-card.is-directory .atv-review-readmore {\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n  opacity: 0.5;\n  transform: none;\n}\n\n.atv-review-card.is-directory:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 0.8;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  #atv-douban-root .atv-subject-reviews-back:hover,\n  #atv-douban-root .atv-subject-reviews-write:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-elevated);\n    color: var(--atv-text-primary);\n  }\n\n  .atv-review-card.is-directory:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card.is-directory:hover .atv-review-readmore {\n    opacity: 0.8;\n  }\n}\n\n.atv-review-meta-line {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atv-review-reply {\n  position: relative;\n  z-index: 2;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-review-spoiler-note {\n  width: fit-content;\n  max-width: 100%;\n  padding: 8px 12px 8px 10px;\n  border-radius: 0 6px 6px 0;\n  border-left: 2px solid var(--atv-content-caution);\n  margin: 0 0 12px;\n  animation: atv-spoiler-fadein 250ms var(--atv-ease-out) both;\n  background: var(--atv-caution-surface);\n  color: var(--atv-content-caution);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n  line-height: 1.45;\n  pointer-events: none;\n}\n\n.atv-review-spoiler-note.is-compact {\n  padding: 0 0 0 8px;\n  border-radius: 0;\n  margin-bottom: 8px;\n  background: none;\n  font-size: var(--atv-type-caption-sm);\n  letter-spacing: 0.02em;\n}\n\n@keyframes atv-spoiler-fadein {\n  from {\n    opacity: 0;\n    transform: translateY(-4px) scale(0.97);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n@media (width <= 720px) {\n  .atv-review-spoiler-note {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n\n  .atv-subject-reviews {\n    padding: 0 20px 72px;\n  }\n\n  .atv-subject-reviews-hero {\n    padding-top: 96px;\n  }\n\n  .atv-subject-reviews-layout {\n    display: block;\n  }\n\n  .atv-subject-reviews-controls {\n    position: relative;\n    top: auto;\n    padding: 22px 0;\n    border-bottom: 1px solid var(--atv-border-subtle);\n    gap: 18px;\n    grid-template-columns: repeat(2, max-content);\n    overflow-x: auto;\n  }\n\n  .atv-subject-reviews-controls section > div {\n    display: flex;\n  }\n\n  .atv-subject-reviews-stream {\n    padding-top: 0;\n  }\n\n  .atv-review-card.is-directory .atv-review-actions {\n    margin-left: auto;\n  }\n\n  .atv-review-card.is-directory {\n    display: block;\n    padding: 26px 20px 28px;\n  }\n\n  .atv-review-directory-identity {\n    margin-bottom: 16px;\n  }\n\n  .atv-subject-reviews-hero h1 {\n    font-size: clamp(42px, 13vw, 64px);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-subject-reviews-results,\n  .atv-subject-reviews-stream::before {\n    transition: none;\n  }\n\n  .atv-review-spoiler-note {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* Shared SafeImage implementation styles.\n   Page modules own crop, geometry, and motion around this primitive. */\n\n.atv-safe-image-container {\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-container > img {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-safe-image-fallback {\n  width: 100%;\n  height: 100%;\n  min-height: 48px;\n  background: var(--atv-bg-tertiary);\n}\n\n/* ── Ratings Panel ──────────────────────────────── */\n\n/* Unified card for Douban, IMDb, Metacritic and Rotten Tomatoes */\n\n.atv-rating-panel {\n  --atv-rating-logo-row-height: 28px;\n  --atv-rating-score-row-height: 44px;\n  --atv-rating-label-row-height: 20px;\n\n  display: flex;\n  width: 100%;\n  min-width: 320px;\n  flex-wrap: wrap;\n  align-items: stretch;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 28px;\n  container-type: inline-size;\n  gap: 0;\n}\n\n.atv-rating-panel-douban,\n.atv-rating-panel-imdb,\n.atv-rating-panel-rt,\n.atv-rating-panel-mc {\n  display: grid;\n  min-width: 0;\n  flex: 1 1 0;\n  padding: 16px 11px;\n  grid-template-rows:\n    var(--atv-rating-logo-row-height)\n    var(--atv-rating-score-row-height)\n    var(--atv-rating-label-row-height)\n    minmax(14px, 1fr);\n  place-items: center center;\n  text-align: center;\n  transition: background var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-douban:hover,\n.atv-rating-panel-imdb:hover,\n.atv-rating-panel-rt:hover,\n.atv-rating-panel-mc:hover {\n  background: var(--atv-bg-hover);\n}\n\n.atv-rating-panel-douban {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-imdb {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-mc {\n  border-right: 1px solid var(--atv-border-subtle);\n}\n\n.atv-rating-panel-rt > .atv-rating-dual-grid,\n.atv-rating-panel-mc > .atv-rating-dual-grid {\n  grid-row: 2 / 5;\n}\n\n.atv-rating-panel-logo {\n  display: inline-flex;\n  align-items: center;\n  align-self: center;\n  opacity: 0.85;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-rating-panel-logo:hover {\n  opacity: 1;\n}\n\n.atv-rating-panel-logo svg {\n  display: block;\n}\n\n.atv-rating-panel .atv-rating-panel-score {\n  color: var(--atv-text-primary);\n  font-family: var(--atv-font-display);\n  font-size: var(--atv-type-stat);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.03em;\n  line-height: 1;\n}\n\n/* ── Shared Metacritic and RT dual-score rhythm ──── */\n\n.atv-rating-dual-grid {\n  display: grid;\n  width: 100%;\n  min-width: 0;\n  align-items: stretch;\n  gap: 8px;\n  grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n\n.atv-rating-dual-grid.is-single {\n  grid-template-columns: minmax(0, 1fr);\n}\n\n.atv-rt-score-grid:not(.is-single) {\n  justify-content: center;\n  grid-template-columns: max-content max-content;\n}\n\n.atv-rating-dual-side {\n  display: grid;\n  min-width: 0;\n  grid-template-rows: 44px 20px minmax(14px, 1fr);\n  justify-items: center;\n  text-align: center;\n}\n\n.atv-rt-score-side {\n  min-width: max-content;\n}\n\n.atv-rating-dual-reading {\n  display: flex;\n  min-width: 0;\n  align-items: baseline;\n  align-self: center;\n  gap: 2px;\n  white-space: nowrap;\n}\n\n.atv-rating-dual-label {\n  display: flex;\n  min-width: 0;\n  align-items: center;\n  align-self: start;\n  justify-content: center;\n}\n\n.atv-rating-dual-count {\n  min-height: 14px;\n  align-self: start;\n}\n\n.atv-mc-score-label,\n.atv-rt-score-label {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  white-space: nowrap;\n}\n\n.atv-mc-score-scale,\n.atv-rt-score-scale {\n  color: var(--atv-text-secondary);\n  font-size: 10px;\n  line-height: 1;\n}\n\n.atv-mc-rating-count,\n.atv-rt-count-value {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  overflow-wrap: anywhere;\n  white-space: normal;\n}\n\n.atv-rt-count-value {\n  overflow-wrap: normal;\n  white-space: nowrap;\n}\n\n.atv-rating-stars {\n  display: inline-flex;\n  align-self: start;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-rating-stars svg {\n  display: block;\n}\n\n.atv-rt-score-value.is-fresh {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-critics .atv-rt-score-value.is-rotten {\n  color: rgb(255 107 91 / 85%);\n}\n\n.atv-rt-audience .atv-rt-score-value.is-rotten {\n  color: rgb(255 167 38 / 85%);\n}\n\n/* ── Shared count text (Douban / IMDb) ──────────── */\n\n.atv-rating-panel-count {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  overflow-wrap: anywhere;\n  white-space: normal;\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel {\n    --atv-rating-logo-row-height: 24px;\n    --atv-rating-score-row-height: 38px;\n    --atv-rating-label-row-height: 18px;\n  }\n}\n\n.atv-rt-logo-group {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-mc-logo-group {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-rating-source {\n  display: inline-flex;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-rating-source:hover {\n  color: var(--atv-text-primary);\n}\n\n.atv-rt-stale {\n  color: var(--atv-text-secondary);\n}\n\n.atv-mc-stale {\n  color: var(--atv-text-secondary);\n}\n\n@media (width <= 768px) {\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb,\n  .atv-rating-panel-rt,\n  .atv-rating-panel-mc {\n    padding: 12px 14px 10px;\n  }\n\n  .atv-rating-dual-side {\n    grid-template-rows:\n      var(--atv-rating-score-row-height)\n      var(--atv-rating-label-row-height)\n      minmax(14px, 1fr);\n  }\n\n  .atv-rating-panel {\n    width: 100%;\n    min-width: 0;\n    max-width: 100%;\n  }\n}\n\n@container (width <= 640px) {\n  .atv-rating-panel-douban,\n  .atv-rating-panel-imdb {\n    flex-basis: 50%;\n  }\n\n  .atv-rating-panel-mc,\n  .atv-rating-panel-rt {\n    flex-basis: 100%;\n    border-top: 1px solid var(--atv-border-subtle);\n    border-right: 0;\n  }\n}\n\n.atv-rating-empty {\n  padding: 10px 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.03em;\n}\n\n/* ── Skeleton (loading) ─────────────────────────── */\n\n.atv-rating-panel-skeleton {\n  width: 120px;\n  height: 22px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-actions {\n  display: flex;\n  flex-wrap: wrap;\n  margin-bottom: 26px;\n  gap: 12px;\n}\n\n.atv-btn {\n  display: inline-flex;\n  height: 44px;\n  align-items: center;\n  padding: 0 22px;\n  border: none;\n  border-radius: 999px;\n  appearance: none;\n  background: none;\n  color: inherit;\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 8px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-btn-primary {\n  background: var(--atv-accent);\n  box-shadow: 0 8px 24px var(--atv-accent-glow);\n  color: var(--atv-text-on-accent);\n}\n\n.atv-btn-secondary {\n  border: 1px solid var(--atv-border-medium);\n  backdrop-filter: blur(10px);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active {\n  border: 1px solid var(--atv-accent);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n}\n\n.atv-btn.is-active:hover {\n  border-color: var(--atv-accent-bright);\n  background: var(--atv-bg-hover-strong);\n}\n\n.atv-hero-summary {\n  margin-top: 16px;\n}\n\n.atv-hero-teaser {\n  display: -webkit-box;\n  overflow: hidden;\n  max-width: 660px;\n  margin: 0 0 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body-loose);\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-hero-teaser.is-clamped {\n  -webkit-line-clamp: 3;\n}\n\n.atv-hero-more {\n  display: inline-flex;\n  align-items: center;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 6px;\n  letter-spacing: 0.02em;\n}\n\n.atv-hero-more:hover {\n  color: var(--atv-accent);\n}\n\n.atv-hero-more svg {\n  transition: transform var(--atv-duration-hover) var(--atv-ease-in-out);\n}\n\n.atv-hero-more.is-open svg {\n  transform: rotate(180deg);\n}\n\n/* ---------- Subject interest panel ---------- */\n.atv-interest-panel {\n  display: flex;\n  width: 100%;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.atv-interest-panel-header {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  gap: 12px;\n}\n\n.atv-interest-badge {\n  cursor: pointer;\n}\n\n.atv-interest-badge svg {\n  color: var(--atv-accent);\n}\n\n.atv-interest-panel-stars {\n  display: inline-flex;\n  align-items: center;\n  gap: 2px;\n}\n\n.atv-interest-panel-stars svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n}\n\n.atv-interest-panel-date {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-panel-comment {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 6px 0 2px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-style: italic;\n  gap: 8px;\n  line-height: 1.6;\n}\n\n.atv-interest-panel-tags {\n  min-width: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  letter-spacing: 0.02em;\n}\n\n.atv-useful-badge {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-style: normal;\n  gap: 3px;\n  letter-spacing: 0.02em;\n  white-space: nowrap;\n}\n\n/* ---------- Section ---------- */\n.atv-section {\n  max-width: 1280px;\n  padding: 52px max(28px, 5vw);\n  margin: 0 auto;\n  contain-intrinsic-size: auto 400px;\n  content-visibility: auto;\n  scroll-margin-top: 64px;\n}\n\n.atv-section + .atv-section {\n  padding-top: 0;\n}\n\n.atv-section-h {\n  position: relative;\n  display: flex;\n  align-items: center;\n  padding-left: 14px;\n  margin: 0 0 24px;\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: -0.02em;\n}\n\n.atv-section-h::before {\n  position: absolute;\n  top: 50%;\n  left: 0;\n  width: 3px;\n  height: 20px;\n  border-radius: 2px;\n  background: var(--atv-accent);\n  content: \"\";\n  transform: translateY(-50%);\n}\n\n.atv-section-h-row {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 24px;\n  gap: 16px;\n}\n\n.atv-section-h-row .atv-section-h {\n  margin-bottom: 0;\n}\n\n.atv-section-more {\n  display: inline-flex;\n  flex: 0 0 auto;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 4px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-section-more:hover {\n    color: var(--atv-accent-bright);\n    transform: translateX(3px);\n  }\n}\n\n.atv-section-more:focus-visible {\n  color: var(--atv-accent-bright);\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Section reveal on scroll ---------- */\n\n/* Below-the-fold sections start offset and fade in once they enter the\n   viewport. The motion here is opacity + a small translateY only. */\n.atv-section-reveal {\n  opacity: 0;\n  transform: translateY(12px);\n}\n\n.atv-section-reveal.is-revealed {\n  opacity: 1;\n  transform: none;\n  transition:\n    opacity var(--atv-duration-content) var(--atv-ease-out),\n    transform var(--atv-duration-content) var(--atv-ease-out);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal,\n  .atv-section-reveal.is-revealed {\n    opacity: 1;\n    transform: none;\n    transition: none;\n  }\n}\n\n/* ---------- Carousel ---------- */\n.atv-carousel {\n  display: flex;\n  padding: 4px 4px 16px;\n  margin: 0 -4px;\n  contain: paint layout;\n  gap: 16px;\n  overflow-x: auto;\n  scroll-behavior: smooth;\n  scrollbar-width: none;\n}\n\n.atv-carousel::-webkit-scrollbar {\n  display: none;\n}\n\n/* ---------- Page scrollbar ---------- */\n:root {\n  color-scheme: dark;\n}\n\n::-webkit-scrollbar {\n  width: 5px;\n  height: 5px;\n}\n\n::-webkit-scrollbar-track {\n  background: var(--atv-bg-secondary);\n}\n\n::-webkit-scrollbar-thumb {\n  border-radius: 3px;\n  background: #3a3a3c;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #48484a;\n}\n\n::-webkit-scrollbar-corner {\n  background: transparent;\n}\n\n* {\n  scrollbar-color: #3a3a3c var(--atv-bg-secondary);\n  scrollbar-width: thin;\n}\n\n/* ---------- Series ---------- */\n.atv-series-card {\n  min-width: 0;\n  flex: 0 0 158px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ── Active season (user is currently on this season's page) ── */\n.atv-series-card.is-active .atv-series-poster {\n  box-shadow:\n    inset 0 0 0 2px var(--atv-accent),\n    0 0 20px var(--atv-accent-glow);\n}\n\n.atv-series-card.is-active .atv-series-info::after {\n  width: 20px;\n  opacity: 1;\n}\n\n/* ── Poster ── */\n.atv-series-poster {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n}\n\n/* Poster bottom gradient overlay (Apple TV+ style depth) */\n.atv-series-poster::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 45%;\n  background: linear-gradient(to top, rgb(0 0 0 / 55%) 0%, transparent 100%);\n  content: \"\";\n  pointer-events: none;\n}\n\n.atv-series-poster img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n/* ── Rating badge (overlay on poster top-right) ── */\n.atv-series-badge {\n  position: absolute;\n  z-index: 1;\n  top: 8px;\n  right: 8px;\n  display: flex;\n  min-width: 28px;\n  height: 22px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 7px;\n  border-radius: 20px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 65%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-bold);\n  letter-spacing: 0.02em;\n  line-height: 1;\n}\n\n/* ── Info row ── */\n.atv-series-info {\n  position: relative;\n  margin-top: 10px;\n}\n\n.atv-series-info::after {\n  display: block;\n  width: 100%;\n  height: 2px;\n  border-radius: 1px;\n  margin-top: 4px;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleX(0);\n  transform-origin: left;\n  transition: opacity var(--atv-duration-hover) ease;\n}\n\n.atv-series-title {\n  display: block;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n/* ---------- Cast ---------- */\n.atv-cast-card {\n  min-width: 0;\n  flex: 0 0 160px;\n  cursor: pointer;\n  scroll-snap-align: start;\n  text-align: center;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-cast-avatar {\n  width: 160px;\n  height: 160px;\n  border: 2px solid transparent;\n  border-radius: 50%;\n  background-color: var(--atv-bg-tertiary);\n  background-position: center top;\n  background-size: cover;\n}\n\n.atv-cast-name {\n  overflow: hidden;\n  margin-top: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.3;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-cast-role {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 4px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-regular);\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n}\n\n/* ---------- Photos ---------- */\n.atv-photos {\n  gap: 12px;\n}\n\n@keyframes atv-photo-in {\n  from {\n    opacity: 0;\n    transform: translateY(6px) scale(0.98);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0) scale(1);\n  }\n}\n\n.atv-photo-tile {\n  display: flex;\n  overflow: hidden;\n  height: 225px;\n  flex: 0 0 auto;\n  padding: 0;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  aspect-ratio: var(--atv-photo-aspect-ratio, 16 / 9);\n  background: var(--atv-bg-tertiary);\n  cursor: pointer;\n  scroll-snap-align: start;\n}\n\n.atv-photo-tile-content {\n  display: block;\n  width: 100%;\n  height: 100%;\n  animation: atv-photo-in 400ms var(--atv-ease-out) both;\n  animation-delay: calc(var(--stagger-index, 0) * 60ms + 100ms);\n}\n\n.atv-photo-tile img {\n  width: 100%;\n  height: 100%;\n  object-fit: contain;\n}\n\n.atv-photo-rail-reserve {\n  height: 225px;\n  flex: 0 0 100%;\n}\n\n/* ---------- Recommendations ---------- */\n.atv-recs {\n  display: grid;\n  gap: 24px;\n  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));\n}\n\n.atv-rec-card {\n  cursor: pointer;\n}\n\n.atv-rec-poster {\n  overflow: hidden;\n  width: 100%;\n  border-radius: var(--atv-radius-sm);\n  aspect-ratio: 2 / 3;\n  background: var(--atv-bg-tertiary);\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-rec-poster img {\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-series-card:hover .atv-series-title {\n    color: var(--atv-accent-bright);\n  }\n}\n\n.atv-rec-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-top: 12px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n  -webkit-line-clamp: 2;\n  text-overflow: ellipsis;\n}\n\n/* ---------- Info grid ---------- */\n.atv-info-grid {\n  display: grid;\n  gap: 20px 48px;\n  grid-template-columns: 140px 1fr;\n}\n\n/* Each row = label + value. We alternate even/odd children.\n   The grid children are label/value siblings, so row pairs are (4n+1, 4n+2).\n   Stagger: each row enters 24ms after the previous one, capped at 120ms.\n   The animation itself is handled by the section-reveal —\n   this just adds per-row delay on top. */\n.atv-section-reveal.is-revealed .atv-info-grid > * {\n  animation: atv-info-row-enter 180ms var(--atv-ease-out) both;\n}\n\n.atv-info-grid > :nth-child(1),\n.atv-info-grid > :nth-child(2) {\n  animation-delay: 0ms;\n}\n\n.atv-info-grid > :nth-child(3),\n.atv-info-grid > :nth-child(4) {\n  animation-delay: 24ms;\n}\n\n.atv-info-grid > :nth-child(5),\n.atv-info-grid > :nth-child(6) {\n  animation-delay: 48ms;\n}\n\n.atv-info-grid > :nth-child(7),\n.atv-info-grid > :nth-child(8) {\n  animation-delay: 72ms;\n}\n\n.atv-info-grid > :nth-child(9),\n.atv-info-grid > :nth-child(10) {\n  animation-delay: 96ms;\n}\n\n.atv-info-grid > :nth-child(11),\n.atv-info-grid > :nth-child(12) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(13),\n.atv-info-grid > :nth-child(14) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(15),\n.atv-info-grid > :nth-child(16) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(17),\n.atv-info-grid > :nth-child(18) {\n  animation-delay: 120ms;\n}\n\n.atv-info-grid > :nth-child(19),\n.atv-info-grid > :nth-child(20) {\n  animation-delay: 120ms;\n}\n\n@keyframes atv-info-row-enter {\n  from {\n    opacity: 0;\n    transform: translateY(6px);\n  }\n\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n/* ---------- Labels ---------- */\n.atv-info-label {\n  padding-top: 3px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.06em;\n  text-transform: uppercase;\n}\n\n/* ---------- Values ---------- */\n.atv-info-value {\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-regular);\n  line-height: var(--atv-line-height-body);\n  overflow-wrap: break-word;\n}\n\n/* Links inside values — subtle underline that glows on hover */\n.atv-info-value a {\n  border-bottom: 1px solid var(--atv-border-medium);\n  color: inherit;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-value a:hover {\n  border-color: var(--atv-accent-bright);\n  color: var(--atv-accent-bright);\n}\n\n/* Separator between linked items: a thin middle-dot */\n.atv-info-sep {\n  margin: 0 2px;\n  color: rgb(255 255 255 / 18%);\n}\n\n/* ---------- Awards (gold accent row) ---------- */\n.atv-info-label-award {\n  color: var(--atv-rating-gold);\n}\n\n.atv-info-label-award a {\n  border-bottom: 1px solid transparent;\n  color: inherit;\n  text-decoration: none;\n  transition: border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-info-label-award a:hover {\n  border-color: var(--atv-rating-gold);\n}\n\n/* ---------- Reduced motion ---------- */\n@media (prefers-reduced-motion: reduce) {\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Mobile (<=768px) ----------\n   Single column: label sits close to its value (4px), 12px label padding\n   separates value→label pairs (16px). The pairing depends on the label\n   describing the value BELOW it, so keep the two close. */\n@media (width <= 768px) {\n  .atv-info-grid {\n    grid-template-columns: 1fr;\n    row-gap: 4px;\n  }\n\n  .atv-info-grid > :first-child {\n    padding-top: 0;\n  }\n\n  .atv-info-label {\n    padding-top: 12px;\n  }\n\n  .atv-section-reveal.is-revealed .atv-info-grid > * {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n/* ---------- Streaming ---------- */\n.atv-stream-row {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 12px;\n}\n\n.atv-stream-card {\n  --atv-stream-brand: var(--atv-accent-bright);\n\n  position: relative;\n  display: inline-flex;\n  max-width: 240px;\n  height: 52px;\n  align-items: center;\n  padding: 0 20px 0 14px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: var(--atv-radius-md);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 11px;\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n/* Center-glow overlay — subtle brand bloom from card center */\n.atv-stream-card::after {\n  position: absolute;\n  border-radius: inherit;\n  background: radial-gradient(\n    circle at center,\n    var(--atv-stream-brand, var(--atv-accent-bright)) 0%,\n    transparent 70%\n  );\n  content: \"\";\n  inset: 0;\n  opacity: 0;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n/* ── Combined SVG cards ── */\n.atv-stream-card-combined {\n  height: 52px;\n  padding: 0 16px;\n  gap: 0;\n}\n\n.atv-stream-card-combined svg {\n  display: block;\n  width: auto;\n  max-width: 160px;\n  height: 32px;\n}\n\n.atv-stream-logo.is-catalog svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: currentcolor;\n}\n\n.atv-stream-logo.is-intrinsic svg {\n  display: block;\n  width: 18px;\n  height: 18px;\n  fill: initial;\n}\n\n.atv-stream-vendor-icon {\n  display: block;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  object-fit: contain;\n}\n\n.atv-stream-logo {\n  display: inline-flex;\n  overflow: hidden;\n  width: 32px;\n  height: 32px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 9px;\n  background:\n    linear-gradient(180deg, rgb(255 255 255 / 12%), rgb(255 255 255 / 0%)),\n    var(--atv-bg-elevated);\n  box-shadow:\n    inset 0 1px 0 rgb(255 255 255 / 12%),\n    0 8px 18px rgb(0 0 0 / 18%);\n  color: var(--atv-stream-brand, var(--atv-accent-bright));\n}\n\n.atv-stream-logo-fallback {\n  display: inline-flex;\n  width: 100%;\n  height: 100%;\n  align-items: center;\n  justify-content: center;\n  color: currentcolor;\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-bold);\n  line-height: 1;\n  text-transform: uppercase;\n}\n\n.atv-stream-name {\n  overflow: hidden;\n  min-width: 0;\n  text-overflow: ellipsis;\n  transition: color var(--atv-duration-feedback) ease;\n  white-space: nowrap;\n}\n\n.atv-stream-card:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 3px;\n}\n\n/* ---------- Comments ---------- */\n.atv-comments {\n  display: grid;\n  gap: 16px;\n  grid-template-columns: repeat(2, 1fr);\n}\n\n.atv-comment-card {\n  display: flex;\n  flex-direction: column;\n  padding: 16px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: var(--atv-bg-card);\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-comment-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 14px;\n  gap: 12px;\n}\n\n.atv-comment-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 36px;\n  height: 36px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-comment-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-author,\na.atv-comment-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-comment-body {\n  position: relative;\n  display: flex;\n  width: 100%;\n  flex: 1 1 auto;\n  flex-direction: column;\n  padding: 0;\n  border: none;\n  margin: 0 0 14px;\n  appearance: none;\n  background: none;\n  color: var(--atv-text-emphasis);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body);\n  overflow-wrap: break-word;\n  text-align: left;\n}\n\n.atv-comment-body-text {\n  display: -webkit-box;\n  overflow: hidden;\n  -webkit-box-orient: vertical;\n  -webkit-line-clamp: 4;\n  overflow-wrap: break-word;\n}\n\n.atv-comment-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 12px;\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 4px 10px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  background: none;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font-family: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-votes:hover {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-comment-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-votes.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-votes svg {\n  display: block;\n  width: 13px;\n  height: 13px;\n}\n\n.atv-vote-count {\n  font-variant-numeric: tabular-nums;\n}\n\n/* ---------- Comment Expand Overlay ---------- */\n.atv-comment-foot-right {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n}\n\n.atv-comment-expand {\n  display: none;\n  width: 24px;\n  height: 24px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 6px;\n  appearance: none;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 30%);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-card.has-overflow .atv-comment-expand {\n  display: inline-flex;\n}\n\n.atv-comment-expand:hover {\n  border-color: var(--atv-accent);\n  background: var(--atv-accent-active);\n  color: var(--atv-accent);\n}\n\n.atv-comment-expand:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-expand svg {\n  display: block;\n  width: 12px;\n  height: 12px;\n}\n\n/* ── Overlay ── */\n.atv-comment-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-comment-overlay-inner {\n  position: relative;\n  width: 100%;\n  max-width: 580px;\n  max-height: 80vh;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n}\n\n.atv-modal-close.atv-comment-overlay-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-comment-overlay-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close.atv-comment-overlay-close svg {\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-top {\n  display: flex;\n  align-items: center;\n  padding: 28px 28px 0;\n  gap: 14px;\n}\n\n.atv-comment-overlay-avatar {\n  display: flex;\n  overflow: hidden;\n  width: 44px;\n  height: 44px;\n  flex: 0 0 auto;\n  align-items: center;\n  justify-content: center;\n  border: 2px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background-color: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  box-shadow: 0 2px 6px rgb(0 0 0 / 15%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-comment-overlay-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n}\n\n.atv-comment-overlay-author,\na.atv-comment-overlay-author {\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-comment-overlay-author:hover {\n  background: none;\n  color: var(--atv-text-primary);\n}\n\n.atv-comment-overlay-stars {\n  display: inline-flex;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-comment-overlay-stars svg {\n  display: block;\n  width: 16px;\n  height: 16px;\n}\n\n.atv-comment-overlay-body {\n  padding: 20px 28px;\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  line-height: var(--atv-line-height-body-loose);\n  overflow-wrap: break-word;\n  white-space: pre-wrap;\n}\n\n.atv-comment-overlay-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: 0 28px 28px;\n}\n\n.atv-comment-overlay-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-comment-overlay-votes {\n  display: inline-flex;\n  align-items: center;\n  padding: 6px 14px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 100px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  letter-spacing: 0.02em;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-comment-overlay-votes:hover {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-comment-overlay-votes:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-overlay-votes.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-comment-overlay-votes svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-modal-overlay {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-modal-img {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame {\n  position: relative;\n  display: grid;\n  max-width: 90vw;\n  max-height: 90vh;\n  place-items: center;\n}\n\n.atv-image-modal-frame > .atv-modal-img,\n.atv-image-modal-frame > .atv-modal-preview,\n.atv-image-modal-loading {\n  grid-area: 1 / 1;\n}\n\n.atv-modal-preview {\n  max-width: 90vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n  object-fit: contain;\n  transition:\n    filter var(--atv-duration-feedback) ease,\n    opacity var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-feedback) ease;\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-preview {\n  filter: blur(10px) saturate(0.82);\n  opacity: 0.72;\n  transform: scale(1.02);\n}\n\n.atv-image-modal-frame.is-loading > .atv-modal-img {\n  opacity: 0;\n}\n\n.atv-image-modal-frame.is-preview > .atv-modal-img {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-frame.is-loaded > .atv-modal-preview {\n  opacity: 0;\n  pointer-events: none;\n}\n\n.atv-image-modal-loading {\n  z-index: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  gap: 10px;\n  text-shadow: 0 1px 8px rgb(0 0 0 / 65%);\n}\n\n.atv-modal-accent-bar {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  opacity: 1;\n}\n\n.atv-modal-close {\n  position: fixed;\n  z-index: 10001;\n  top: 24px;\n  right: 24px;\n  display: flex;\n  width: 44px;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0;\n  border: 1px solid var(--atv-border-strong);\n  border-radius: 50%;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease;\n}\n\n.atv-modal-close.atv-image-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n}\n\n.atv-modal-close:hover {\n  border-color: var(--atv-border-emphasis);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close:active {\n  transform: scale(0.97);\n}\n\n.atv-modal-close svg {\n  display: block;\n}\n\n.atv-comment-overlay,\n.atv-review-modal {\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n}\n\n@keyframes atv-spin {\n  from {\n    transform: rotate(0deg);\n  }\n\n  to {\n    transform: rotate(360deg);\n  }\n}\n\n.atv-spinner {\n  width: 32px;\n  height: 32px;\n  border: 3px solid var(--atv-border-strong);\n  border-radius: 50%;\n  border-top-color: var(--atv-accent);\n  animation: atv-spin 0.8s linear infinite;\n}\n\n.atv-modal-loading {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body);\n  gap: 16px;\n}\n\n.atv-footer-spacer {\n  height: 64px;\n}\n\n/* ---------- Login Prompt Modal ---------- */\ndialog::backdrop {\n  background: transparent;\n}\n\n.atv-login-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  min-height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: max(24px, env(safe-area-inset-top))\n    max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom))\n    max(24px, env(safe-area-inset-left));\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n  overscroll-behavior: contain;\n}\n\n.atv-login-modal-inner {\n  position: relative;\n  overflow: auto;\n  width: min(100%, 424px);\n  max-height: min(736px, calc(100dvh - 48px));\n  box-sizing: border-box;\n  padding: 30px 22px 22px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow:\n    inset 0 1px 0 var(--atv-border-subtle),\n    0 24px 80px rgb(0 0 0 / 55%);\n  color: var(--atv-text-primary);\n  scrollbar-width: none;\n  text-align: center;\n}\n\n.atv-login-modal-inner::-webkit-scrollbar {\n  display: none;\n}\n\n.atv-modal-close.atv-login-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 12px;\n  right: 12px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-login-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-login-modal-title {\n  margin: 0 42px 6px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.35;\n  text-wrap: balance;\n}\n\n.atv-login-modal-desc {\n  max-width: 300px;\n  margin: 0 auto 14px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  line-height: 1.55;\n  text-wrap: pretty;\n}\n\n.atv-login-modal-status {\n  min-height: 20px;\n  margin: 8px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.5;\n}\n\n.atv-login-modal-status[hidden] {\n  display: none;\n}\n\n.atv-login-modal-native {\n  position: relative;\n  overflow: hidden;\n  width: 100%;\n  box-sizing: border-box;\n  padding: 10px;\n  border-radius: 16px;\n  margin-top: 10px;\n}\n\n.atv-login-modal-native::before {\n  position: absolute;\n  z-index: 2;\n  border-radius: 10px;\n  background: var(--atv-bg-hover);\n  content: \"\";\n  inset: 10px;\n  opacity: 1;\n  pointer-events: none;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native:empty {\n  min-height: 360px;\n}\n\n.atv-login-modal-native[aria-busy=\"true\"] {\n  min-height: 360px;\n}\n\n.atv-login-modal-native.is-ready::before {\n  opacity: 0;\n}\n\n.atv-login-modal-native > iframe,\n.atv-login-modal-iframe {\n  position: relative;\n  z-index: 1;\n  display: block !important;\n  overflow: hidden !important;\n  width: 340px !important;\n  max-width: 100% !important;\n  height: 448px !important;\n  max-height: calc(100vh - 168px) !important;\n  box-sizing: border-box !important;\n  border: 0 !important;\n  border-radius: 10px !important;\n  margin: 0 auto !important;\n  background: #fff !important;\n  box-shadow: none !important;\n\n  /* Cross-origin iframe dark-mode override (first-principles):\n     invert(0.89) maps white #fff → #1c1c1c, which matches\n     --atv-bg-secondary: #1c1c1e within 2 RGB points — no more\n     pure-black void. Text #333 → #bbb, borders #e0 → #343434.\n     hue-rotate(180deg) counter-rotates the color shift from\n     invert so green stays green-ish and blue stays blue-ish.\n     invert(0.89) is the precise value calculated to hit the\n     existing modal surface color while keeping text readable. */\n  filter: invert(0.89) hue-rotate(180deg) !important;\n  opacity: 0;\n  transition: opacity var(--atv-duration-feedback) ease;\n}\n\n.atv-login-modal-native.is-ready > iframe {\n  opacity: 1;\n}\n\n.atv-login-modal-close:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n@media (width <= 1024px) {\n  .atv-login-modal {\n    align-items: flex-end;\n    padding: 16px;\n  }\n\n  .atv-login-modal-inner {\n    width: 100%;\n    padding: 28px 20px 20px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-login-modal,\n  .atv-login-modal-inner,\n  .atv-login-modal.is-open .atv-login-modal-inner {\n    transform: none;\n    transition: none;\n  }\n}\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-login-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-login-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n/* ---------- Interest Modal ---------- */\n.atv-interest-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 24px;\n  border: none;\n  margin: 0;\n  -webkit-backdrop-filter: blur(16px) saturate(1.15);\n  backdrop-filter: blur(16px) saturate(1.15);\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-interest-modal-inner {\n  position: relative;\n  width: 100%;\n  max-width: 456px;\n  max-height: 90vh;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 20px;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  color-scheme: dark;\n  overflow-y: auto;\n  overscroll-behavior: contain;\n}\n\n.atv-interest-modal-header {\n  position: relative;\n  display: flex;\n  align-items: flex-start;\n  justify-content: flex-start;\n  padding: 28px 56px 0 24px;\n}\n\n.atv-interest-modal-header-title {\n  margin: 3px 0 0;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-interest-modal-eyebrow {\n  margin: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.08em;\n  text-transform: uppercase;\n}\n\n.atv-modal-close.atv-interest-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 14px;\n  right: 14px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-modal-close.atv-interest-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-modal-close.atv-interest-modal-close:active {\n  border-color: var(--atv-border-emphasis);\n  background: var(--atv-bg-hover-strong);\n}\n\n.atv-interest-modal-body {\n  padding: 24px 20px 0;\n}\n\n.atv-interest-modal-statuses {\n  position: relative;\n  display: grid;\n  min-width: 0;\n  padding: 0;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 24px;\n  gap: 0;\n  grid-template-columns: repeat(var(--atv-interest-status-count), 1fr);\n}\n\n.atv-interest-modal-status-indicator {\n  position: absolute;\n  bottom: -1px;\n  left: 0;\n  width: calc(100% / var(--atv-interest-status-count));\n  height: 2px;\n  border-radius: 2px 2px 0 0;\n  background: var(--atv-accent);\n  pointer-events: none;\n  transform: translateX(calc(var(--atv-interest-status-index) * 100%));\n  transition: transform var(--atv-duration-feedback) var(--atv-ease-in-out);\n}\n\n.atv-interest-modal-status {\n  position: relative;\n  z-index: 1;\n  display: inline-flex;\n  height: 42px;\n  flex: 1;\n  align-items: center;\n  justify-content: center;\n  padding: 0 12px;\n  border: none;\n  border-radius: var(--atv-radius-sm) var(--atv-radius-sm) 0 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-status:hover {\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-status.is-active {\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-rating {\n  min-width: 0;\n  padding: 0 0 20px;\n  border: 0;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-rating-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-rating-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-stars {\n  display: flex;\n  gap: 4px;\n}\n\n.atv-interest-modal-star {\n  display: flex;\n  width: 32px;\n  height: 32px;\n  padding: 0;\n  border: none;\n  appearance: none;\n  background: none;\n  color: var(--atv-rating-empty);\n  cursor: pointer;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-interest-modal-star.is-full {\n  color: var(--atv-rating-gold);\n}\n\n.atv-interest-modal-star svg {\n  display: block;\n  width: 100%;\n  height: 100%;\n}\n\n.atv-interest-modal-comment {\n  display: block;\n  width: 100%;\n  min-height: 78px;\n  box-sizing: border-box;\n  padding: 10px 14px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  margin-bottom: 10px;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-primary);\n  font-family: inherit;\n  font-size: var(--atv-type-caption);\n  line-height: 1.5;\n  resize: none;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-comment::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-comment:focus {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-elevated);\n  outline: none;\n}\n\n.atv-interest-modal-comment:focus-visible {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px var(--atv-accent-outline);\n}\n\n.atv-interest-modal-submit {\n  display: flex;\n  width: 100%;\n  height: 44px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: none;\n  border-radius: var(--atv-radius-md);\n  margin-bottom: 0;\n  appearance: none;\n  background: var(--atv-accent);\n  color: var(--atv-text-on-accent);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    background var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n}\n\n.atv-interest-modal-submit:hover {\n  background: var(--atv-accent-bright);\n}\n\n.atv-interest-modal-submit:active {\n  transform: scale(0.97);\n}\n\n.atv-interest-modal-submit:disabled {\n  cursor: not-allowed;\n  opacity: 0.5;\n}\n\n.atv-interest-modal-remove {\n  display: flex;\n  width: 100%;\n  height: 36px;\n  align-items: center;\n  justify-content: center;\n  padding: 0 24px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  margin: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n  -webkit-tap-highlight-color: transparent;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-remove:hover {\n  border-color: var(--atv-border-medium);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n}\n\n.atv-interest-modal-remove:active {\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-error {\n  border-radius: 10px;\n  color: var(--atv-danger);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  text-align: center;\n}\n\n.atv-interest-modal-error:empty {\n  display: none;\n}\n\n.atv-interest-modal-error:not(:empty) {\n  padding: 8px 16px;\n  margin-top: 8px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n}\n\n.atv-interest-modal-field-header {\n  display: flex;\n  align-items: baseline;\n  justify-content: space-between;\n  margin: 0 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.01em;\n}\n\n.atv-interest-modal-field-header > span:last-child {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tags {\n  padding-bottom: 20px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  margin-bottom: 20px;\n}\n\n.atv-interest-modal-tag-input-wrap {\n  display: flex;\n  min-height: 42px;\n  flex-wrap: wrap;\n  align-items: center;\n  padding: 5px 8px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  background: var(--atv-bg-elevated);\n  gap: 5px;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    box-shadow var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag-input-wrap:focus-within {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-tag-input-wrap:has(\n  .atv-interest-modal-tag-input:focus-visible\n) {\n  border-color: var(--atv-accent-bright);\n  box-shadow: 0 0 0 2px var(--atv-accent-outline);\n}\n\n.atv-interest-modal-tag-input {\n  min-width: 84px;\n  flex: 1 1 84px;\n  padding: 4px 2px;\n  border: 0;\n  background: transparent;\n  color: var(--atv-text-primary);\n  font: inherit;\n  font-size: var(--atv-type-caption);\n  outline: 0;\n}\n\n.atv-interest-modal-tag-input::placeholder {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-interest-modal-tag {\n  display: inline-flex;\n  min-height: 26px;\n  align-items: center;\n  padding: 3px 9px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 999px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-interest-modal-tag.is-current {\n  border-color: color-mix(in srgb, var(--atv-accent) 45%, transparent);\n  background: color-mix(in srgb, var(--atv-accent) 16%, transparent);\n  color: #c3f6d0;\n}\n\n.atv-interest-modal-tag.is-selected {\n  border-color: color-mix(in srgb, var(--atv-accent) 38%, transparent);\n  background: color-mix(in srgb, var(--atv-accent) 12%, transparent);\n  color: var(--atv-text-primary);\n}\n\n.atv-interest-modal-tag-suggestions {\n  display: grid;\n  margin-top: 10px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-micro);\n  gap: 6px;\n  grid-template-columns: 48px minmax(0, 1fr);\n}\n\n.atv-interest-modal-tag-suggestions > span {\n  padding-top: 5px;\n  letter-spacing: 0.02em;\n}\n\n.atv-interest-modal-tag-suggestions > div {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 5px;\n}\n\n.atv-interest-modal-tag-skeleton {\n  display: flex;\n  height: 90px;\n  flex-wrap: wrap;\n  align-content: center;\n  padding: 12px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: var(--atv-bg-hover);\n  gap: 8px;\n}\n\n.atv-interest-modal-tag-skeleton span {\n  display: block;\n  height: 22px;\n  border-radius: 999px;\n  background: var(--atv-bg-elevated);\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(1) {\n  width: 78px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(2) {\n  width: 54px;\n}\n\n.atv-interest-modal-tag-skeleton span:nth-child(3) {\n  width: 96px;\n}\n\n.atv-interest-modal-source-error {\n  display: flex;\n  min-height: 90px;\n  align-items: center;\n  justify-content: space-between;\n  padding: 12px;\n  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  border-radius: 10px;\n  margin-bottom: 18px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 12px;\n}\n\n.atv-interest-modal-source-error button {\n  padding: 0;\n  border: 0;\n  appearance: none;\n  background: transparent;\n  color: var(--atv-accent-bright);\n  cursor: pointer;\n  font: inherit;\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-visibility {\n  display: grid;\n  padding: 0;\n  border: 0;\n  margin: 0;\n  gap: 10px;\n}\n\n.atv-interest-modal-visibility legend {\n  padding: 0;\n  margin-bottom: 10px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-visibility-option,\n.atv-interest-modal-broadcast-option {\n  display: flex;\n  align-items: center;\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font-size: var(--atv-type-caption);\n  gap: 8px;\n}\n\n.atv-interest-modal-visibility input {\n  width: 16px;\n  height: 16px;\n  margin: 0;\n  accent-color: var(--atv-accent);\n}\n\n.atv-interest-modal-broadcast-option {\n  padding-left: 24px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-interest-modal-visibility-note {\n  padding-left: 24px;\n  margin: -3px 0 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n}\n\n.atv-interest-modal-footer {\n  position: sticky;\n  z-index: 1;\n  bottom: 0;\n  padding: 16px 20px 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 20px -20px 0;\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 -12px 24px rgb(0 0 0 / 22%);\n}\n\n.atv-interest-modal-actions {\n  display: grid;\n  gap: 8px;\n}\n\n.atv-interest-modal-removal-confirmation {\n  display: grid;\n  padding: 12px;\n  border: 1px solid color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  border-radius: 10px;\n  background: color-mix(in srgb, var(--atv-danger) 8%, transparent);\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 10px;\n}\n\n.atv-interest-modal-removal-confirmation > div {\n  display: grid;\n  gap: 8px;\n  grid-template-columns: 1fr 1fr;\n}\n\n.atv-interest-modal-removal-confirmation button {\n  height: 34px;\n  border: 1px solid var(--atv-border-medium);\n  border-radius: 999px;\n  appearance: none;\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-secondary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-interest-modal-removal-confirmation button:last-child {\n  border-color: color-mix(in srgb, var(--atv-danger) 35%, transparent);\n  background: color-mix(in srgb, var(--atv-danger) 18%, transparent);\n  color: #ff9f99;\n}\n\n.atv-interest-modal button:focus-visible,\n.atv-interest-modal-visibility input:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-interest-modal-star:hover {\n    transform: scale(1.15);\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-interest-modal {\n    transition: none;\n  }\n\n  .atv-interest-modal-star:hover,\n  .atv-interest-modal-submit:active {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-interest-modal-status-indicator {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-interest-modal-status.is-active {\n    background: var(--atv-bg-hover-strong);\n  }\n}\n\n@media (prefers-reduced-transparency: reduce) {\n  .atv-interest-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n@media (prefers-contrast: more) {\n  .atv-interest-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n}\n\n/* Prevent iOS zoom on focus for native inputs */\n@media (hover: none) and (pointer: coarse) {\n  .atv-interest-modal-comment,\n  .atv-interest-modal-tag-input {\n    font-size: 16px;\n  }\n}\n/* ---------- Trailer Tile ---------- */\n.atv-trailer-tile {\n  position: relative;\n  overflow: hidden;\n  flex: 0 0 400px;\n  border-radius: var(--atv-radius-md);\n  aspect-ratio: 16 / 9;\n  background: var(--atv-bg-tertiary);\n  background-position: center;\n  background-size: cover;\n  cursor: pointer;\n  scroll-snap-align: start;\n  transition: transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-trailer-play-overlay {\n  position: absolute;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  background: rgb(0 0 0 / 12%);\n  inset: 0;\n}\n\n.atv-trailer-play-btn {\n  display: flex;\n  width: 56px;\n  height: 56px;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  background: rgb(0 0 0 / 60%);\n}\n\n.atv-trailer-play-btn svg {\n  display: block;\n  width: 24px;\n  height: 24px;\n  margin-left: 3px;\n  color: var(--atv-text-primary);\n}\n\n.atv-trailer-label {\n  position: absolute;\n  bottom: 12px;\n  left: 12px;\n  padding: 4px 10px;\n  border-radius: 6px;\n  backdrop-filter: blur(4px);\n  background: rgb(0 0 0 / 60%);\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n/* ---------- Video Modal ---------- */\n.atv-modal-overlay.is-video {\n  backdrop-filter: none;\n  background: #000;\n}\n\n.atv-modal-video {\n  display: block;\n  max-width: 95vw;\n  max-height: 90vh;\n  border-radius: var(--atv-radius-lg);\n  box-shadow: 0 40px 80px rgb(0 0 0 / 75%);\n}\n\n/* ---------- Reviews ---------- */\n.atv-reviews {\n  display: grid;\n  gap: 20px;\n  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));\n}\n\n/* Two 400px columns + 20px gap + 48px section padding fit from 868px up;\n   below that a single column avoids the lone-wide-card band. */\n@media (width <= 868px) {\n  .atv-reviews {\n    grid-template-columns: 1fr;\n  }\n}\n\n.atv-review-card {\n  position: relative;\n  display: flex;\n  flex-direction: column;\n  padding: 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  appearance: none;\n  background: var(--atv-bg-card);\n  color: inherit;\n  cursor: pointer;\n  font: inherit;\n  -webkit-tap-highlight-color: transparent;\n  text-align: left;\n  touch-action: manipulation;\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n.atv-review-open-button {\n  position: absolute;\n  z-index: 0;\n  padding: 0;\n  border: 0;\n  border-radius: var(--atv-radius-md);\n  appearance: none;\n  background: transparent;\n  cursor: pointer;\n  inset: 0;\n}\n\n.atv-review-content {\n  position: relative;\n  z-index: 1;\n  display: contents;\n}\n\n.atv-review-card:active {\n  box-shadow: none;\n  transform: translateY(0);\n}\n\n.atv-review-card:focus-visible {\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-open-button:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 4px;\n}\n\n.atv-review-top {\n  display: flex;\n  align-items: center;\n  margin-bottom: 12px;\n  gap: 10px;\n  pointer-events: none;\n}\n\n.atv-review-avatar {\n  display: flex;\n  width: 36px;\n  height: 36px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-meta {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 3px;\n  pointer-events: none;\n}\n\n.atv-review-author {\n  position: relative;\n  z-index: 2;\n  overflow: hidden;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\n.atv-review-author:hover {\n  color: var(--atv-accent);\n}\n\n.atv-review-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-title {\n  display: -webkit-box;\n  overflow: hidden;\n  margin-bottom: 8px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.01em;\n  -webkit-line-clamp: 2;\n  line-height: 1.35;\n  pointer-events: none;\n}\n\n.atv-review-excerpt {\n  display: -webkit-box;\n  overflow: hidden;\n  flex: 1;\n  margin-bottom: 14px;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  -webkit-line-clamp: 4;\n  line-height: 1.7;\n  pointer-events: none;\n}\n\n.atv-review-foot {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 14px;\n  border-top: 1px solid var(--atv-border-subtle);\n  gap: 8px;\n  pointer-events: none;\n}\n\n.atv-review-time {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n}\n\n.atv-review-readmore {\n  color: var(--atv-accent);\n  font-size: var(--atv-type-micro);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: 0.04em;\n  opacity: 0;\n  pointer-events: none;\n  transform: translateX(-3px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n.atv-review-card:focus-visible .atv-review-readmore,\n.atv-review-card:hover .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible) {\n  background: var(--atv-bg-elevated);\n  box-shadow: 0 0 0 5px rgb(65 190 93 / 12%);\n}\n\n.atv-review-card:has(.atv-review-open-button:focus-visible)\n  .atv-review-readmore {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n.atv-review-actions {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  margin-left: auto;\n  gap: 6px;\n  pointer-events: auto;\n}\n\n.atv-vote-btn {\n  display: inline-flex;\n  align-items: center;\n  padding: 5px 12px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: 8px;\n  appearance: none;\n  background: var(--atv-bg-hover);\n  color: var(--atv-text-tertiary);\n  cursor: pointer;\n  font: inherit;\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-medium);\n  gap: 5px;\n  line-height: 1;\n  transition:\n    color var(--atv-duration-feedback) ease,\n    background var(--atv-duration-feedback) ease,\n    border-color var(--atv-duration-feedback) ease,\n    transform var(--atv-duration-press) var(--atv-ease-out);\n  white-space: nowrap;\n}\n\n.atv-vote-btn:hover {\n  border-color: var(--atv-accent);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n}\n\n.atv-vote-btn:focus-visible {\n  outline: 2px solid var(--atv-accent-outline);\n  outline-offset: 3px;\n}\n\n.atv-vote-btn:active {\n  transform: scale(0.97);\n}\n\n.atv-vote-btn.is-lg {\n  padding: 8px 20px;\n  font-size: var(--atv-type-body-sm);\n}\n\n.atv-vote-btn svg {\n  display: block;\n  width: 11px;\n  height: 11px;\n  transform-box: fill-box;\n  transform-origin: center;\n}\n\n.atv-vote-btn.down:hover {\n  border-color: var(--atv-danger);\n  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);\n  color: var(--atv-danger);\n}\n\n.atv-vote-btn.down svg {\n  transform: rotate(180deg);\n}\n\n.atv-vote-btn.is-voted {\n  border-color: var(--atv-accent-border);\n  background: var(--atv-accent-hover);\n  color: var(--atv-accent);\n  cursor: default;\n}\n\n.atv-vote-btn.down.is-voted {\n  border-color: color-mix(in srgb, var(--atv-danger) 22%, transparent);\n  background: color-mix(in srgb, var(--atv-danger) 6%, transparent);\n  color: var(--atv-danger);\n}\n\n/* ---------- Review Modal ---------- */\n.atv-review-modal {\n  position: fixed;\n  z-index: 10000;\n  display: flex;\n  width: 100vw;\n  height: 100vh;\n  align-items: center;\n  justify-content: center;\n  padding: 48px;\n  border: none;\n  margin: 0;\n  background: var(--atv-scrim-overlay);\n  inset: 0;\n}\n\n.atv-review-modal .atv-modal-close {\n  position: absolute;\n  z-index: 2;\n  top: 16px;\n  right: 16px;\n  width: 32px;\n  height: 32px;\n  border-color: var(--atv-border-subtle);\n  background: var(--atv-bg-elevated);\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal .atv-modal-close:hover {\n  border-color: var(--atv-border-strong);\n  background: var(--atv-bg-hover-strong);\n  color: var(--atv-text-primary);\n}\n\n.atv-review-modal-scroll {\n  position: relative;\n  width: 100%;\n  max-width: 800px;\n  max-height: 85vh;\n  padding: 48px 56px 32px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-lg);\n  background: var(--atv-bg-secondary);\n  box-shadow: 0 24px 80px rgb(0 0 0 / 55%);\n  overflow-y: auto;\n  scrollbar-color: var(--atv-border-medium) transparent;\n  scrollbar-width: thin;\n}\n\n.atv-review-modal-scroll::before {\n  position: absolute;\n  z-index: 1;\n  top: 0;\n  right: 0;\n  left: 0;\n  height: 3px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    var(--atv-accent) 15%,\n    var(--atv-accent) 85%,\n    transparent\n  );\n  content: \"\";\n}\n\n.atv-review-modal-header {\n  position: relative;\n  padding-bottom: 18px;\n  margin-bottom: 20px;\n}\n\n.atv-review-modal-header::after {\n  position: absolute;\n  right: 0;\n  bottom: 0;\n  left: 0;\n  height: 1px;\n  background: linear-gradient(\n    to right,\n    transparent,\n    rgb(255 255 255 / 5%) 20%,\n    rgb(255 255 255 / 5%) 80%,\n    transparent\n  );\n  content: \"\";\n}\n\n.atv-review-modal-header-primary {\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-title {\n  margin-bottom: 4px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-xl);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: -0.02em;\n  line-height: 1.32;\n  text-wrap: balance;\n}\n\n.atv-review-modal-title:focus {\n  outline: none;\n}\n\n.atv-review-modal-header-meta {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  gap: 16px;\n}\n\n.atv-review-modal-byline {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atv-review-modal-avatar {\n  display: flex;\n  width: 28px;\n  height: 28px;\n  flex-shrink: 0;\n  align-items: center;\n  justify-content: center;\n  border: 1.5px solid var(--atv-border-subtle);\n  border-radius: 50%;\n  background: var(--atv-accent);\n  background-position: center;\n  background-size: cover;\n  color: var(--atv-text-on-accent);\n  font-size: var(--atv-type-caption-sm);\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-modal-byline-text {\n  display: flex;\n  align-items: center;\n  font-size: var(--atv-type-caption);\n  gap: 4px;\n  line-height: 1;\n}\n\n.atv-review-modal-byline-name {\n  color: var(--atv-text-secondary);\n}\n\n.atv-review-modal-byline-time {\n  color: var(--atv-text-tertiary);\n}\n\n.atv-review-modal-body {\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body-lg);\n  line-height: var(--atv-line-height-body-loose);\n}\n\n.atv-review-modal-body h2 {\n  margin-bottom: 16px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-lg);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h2 a {\n  background: transparent;\n  color: inherit;\n  text-decoration: none;\n}\n\n.atv-review-modal-body h2 a:hover {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-body p {\n  margin-bottom: 16px;\n}\n\n.atv-review-modal-body blockquote {\n  padding: 16px 20px;\n  border-radius: 0 var(--atv-radius-sm) var(--atv-radius-sm) 0;\n  border-left: 3px solid var(--atv-accent);\n  margin: 20px 0;\n  background: var(--atv-bg-hover);\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body blockquote p {\n  margin-bottom: 8px;\n}\n\n.atv-review-modal-body blockquote p:last-child {\n  margin-bottom: 0;\n}\n\n.atv-review-modal-body blockquote cite,\n.atv-review-modal-body blockquote footer {\n  display: block;\n  margin-top: 8px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-style: normal;\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-review-modal-body blockquote cite::before,\n.atv-review-modal-body blockquote footer::before {\n  content: \"\\2014\\00a0\";\n}\n\n.atv-review-modal-body blockquote blockquote {\n  border-left-color: var(--atv-border-strong);\n  margin-left: 0;\n  background: var(--atv-bg-elevated);\n}\n\n/* ---------- Group discussions ---------- */\n.atv-discussion-board {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n\n.atv-discussion-row {\n  position: relative;\n  display: flex;\n  overflow: hidden;\n  flex-direction: column;\n  padding: 18px 20px;\n  border: none;\n  border-radius: var(--atv-radius-sm);\n  background: var(--atv-bg-card);\n  gap: 6px;\n  isolation: isolate;\n  transition:\n    transform var(--atv-duration-press) var(--atv-ease-out),\n    background var(--atv-duration-hover) ease;\n}\n\n/* Accent bar — reveals on hover/focus */\n.atv-discussion-row::before {\n  position: absolute;\n  top: 14px;\n  bottom: 14px;\n  left: 0;\n  width: 3px;\n  border-radius: 0 3px 3px 0;\n  background: var(--atv-accent);\n  content: \"\";\n  opacity: 0;\n  transform: scaleY(0);\n  transform-origin: top;\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Entire row is clickable */\n.atv-discussion-topic-link {\n  position: absolute;\n  z-index: 1;\n  border-radius: inherit;\n  inset: 0;\n}\n\n.atv-discussion-topic-link:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: -3px;\n}\n\n/* ---------- Copy (title + metadata) ---------- */\n.atv-discussion-copy {\n  position: relative;\n  z-index: 2;\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  gap: 6px;\n  pointer-events: none;\n}\n\n/* Title + arrow in one row */\n.atv-discussion-title-row {\n  display: flex;\n  align-items: flex-start;\n  gap: 12px;\n}\n\n.atv-discussion-title {\n  display: -webkit-box;\n  overflow: hidden;\n  min-width: 0;\n  flex: 1;\n  margin: 0;\n  -webkit-box-orient: vertical;\n  color: var(--atv-text-emphasis);\n  font-size: var(--atv-type-body);\n  font-weight: var(--atv-font-weight-medium);\n  letter-spacing: -0.015em;\n  -webkit-line-clamp: 2;\n  line-height: 1.5;\n  overflow-wrap: break-word;\n  transition: color var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* Arrow — always in flow, hidden until hover */\n.atv-discussion-arrow {\n  flex-shrink: 0;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-body);\n  line-height: 1.5;\n  opacity: 0;\n  transform: translateX(-6px);\n  transition:\n    opacity var(--atv-duration-hover) var(--atv-ease-out),\n    transform var(--atv-duration-hover) var(--atv-ease-out);\n}\n\n/* ---------- Metadata row ---------- */\n.atv-discussion-meta {\n  display: flex;\n  flex-wrap: wrap;\n  align-items: center;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  gap: 0;\n  line-height: 1.35;\n}\n\n.atv-discussion-author {\n  display: block;\n  overflow: hidden;\n  width: fit-content;\n  max-width: 100%;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: auto;\n  text-decoration: none;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n\na.atv-discussion-author:hover {\n  text-decoration: underline;\n}\n\na.atv-discussion-author:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 2px;\n  text-decoration: underline;\n}\n\n/* Activity wraps replies + time inline */\n.atv-discussion-activity {\n  display: inline;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n  pointer-events: none;\n}\n\n/* Replies — plain text, no pill */\n.atv-discussion-replies {\n  font-variant-numeric: tabular-nums;\n  letter-spacing: 0.01em;\n  white-space: nowrap;\n}\n\n/* Time — date + time on one line */\n.atv-discussion-time {\n  display: inline-flex;\n  align-items: center;\n  font-variant-numeric: tabular-nums;\n  gap: 3px;\n  white-space: nowrap;\n}\n\n/* ---------- Dot separators ---------- */\n.atv-discussion-author + .atv-discussion-activity::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n.atv-discussion-replies + .atv-discussion-time::before {\n  margin: 0 7px;\n  color: rgb(255 255 255 / 20%);\n  content: \"·\";\n}\n\n/* ---------- Interactive states ---------- */\n\n/* Row hover → accent bar reveals, bg lifts */\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n  opacity: 1;\n  transform: scaleY(1);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-title,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-title {\n  color: var(--atv-text-primary);\n}\n\n.atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)\n  .atv-discussion-arrow,\n.atv-discussion-row:has(.atv-discussion-author:focus-visible)\n  .atv-discussion-arrow {\n  opacity: 1;\n  transform: translateX(0);\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-discussion-row:hover .atv-discussion-title {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n/* ---------- Mobile (<=768px) ---------- */\n@media (width <= 768px) {\n  .atv-discussion-board {\n    gap: 6px;\n  }\n\n  .atv-discussion-row {\n    padding: 14px 16px;\n    gap: 5px;\n  }\n\n  .atv-discussion-copy {\n    gap: 5px;\n  }\n\n  .atv-discussion-title-row {\n    gap: 8px;\n  }\n\n  .atv-discussion-title {\n    overflow-wrap: anywhere;\n  }\n\n  .atv-discussion-arrow {\n    font-size: var(--atv-type-body-sm);\n    line-height: 1.45;\n  }\n\n  .atv-discussion-meta {\n    flex-wrap: wrap;\n    row-gap: 2px;\n  }\n}\n\n/* ---------- Reduced motion ---------- */\n@media (prefers-reduced-motion: reduce) {\n  .atv-discussion-row::before,\n  .atv-discussion-title,\n  .atv-discussion-arrow,\n  .atv-discussion-row {\n    transition: none;\n  }\n\n  .atv-discussion-row::before {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before {\n    opacity: 1;\n  }\n\n  .atv-discussion-arrow {\n    opacity: 0;\n    transform: none;\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n  }\n\n  .atv-discussion-row:active {\n    transform: none;\n  }\n}\n/* ── Review content images (Douban image-container) ── */\n.atv-review-modal-body .image-container {\n  margin: 24px 0;\n  clear: both;\n}\n\n.atv-review-modal-body .image-container.image-float-left {\n  max-width: 50%;\n  margin: 8px 24px 8px 0;\n  float: left;\n}\n\n.atv-review-modal-body .image-container.image-float-right {\n  max-width: 50%;\n  margin: 8px 0 8px 24px;\n  float: right;\n}\n\n.atv-review-modal-body .image-wrapper {\n  overflow: hidden;\n  border-radius: var(--atv-radius-sm);\n  line-height: 0;\n}\n\n.atv-review-modal-body .image-wrapper img {\n  display: block;\n  width: auto;\n  max-width: 100%;\n  height: auto;\n  margin: 0 auto;\n}\n\n.atv-review-modal-body .image-caption-wrapper {\n  margin-top: 8px;\n  text-align: center;\n}\n\n.atv-review-modal-body .image-caption {\n  display: inline-block;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-style: italic;\n  font-weight: var(--atv-font-weight-regular);\n  letter-spacing: 0.02em;\n  line-height: 1.6;\n}\n\n/* ── Review content subject reference (Douban subject-container) ── */\n.atv-review-modal-body .subject-container {\n  overflow: hidden;\n  padding-left: 2px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-md);\n  border-left: 2px solid var(--atv-accent);\n  margin: 24px 0;\n  background: linear-gradient(\n    105deg,\n    var(--atv-accent-hover),\n    color-mix(in srgb, var(--atv-bg-card) 94%, transparent) 42%\n  );\n}\n\n.atv-review-modal-body .subject-wrapper > a,\n.atv-review-modal-body .subject-wrapper > a:link,\n.atv-review-modal-body .subject-wrapper > a:visited {\n  display: grid;\n  padding: 12px;\n  border-bottom: 0;\n  background: transparent;\n  color: inherit;\n  gap: 12px;\n  grid-template-columns: 56px minmax(0, 1fr);\n  text-decoration: none;\n  transition: none;\n}\n\n.atv-review-modal-body .subject-wrapper > a:hover,\n.atv-review-modal-body .subject-wrapper > a:active {\n  border-bottom: 0;\n  background: var(--atv-bg-hover);\n  color: inherit;\n}\n\n.atv-review-modal-body .subject-wrapper > a:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: -2px;\n}\n\n.atv-review-modal-body .subject-cover {\n  overflow: hidden;\n  width: 56px;\n  height: 84px;\n  border-radius: 5px;\n  background: var(--atv-bg-tertiary);\n  box-shadow: 0 8px 20px rgb(0 0 0 / 30%);\n}\n\n.atv-review-modal-body .subject-cover img {\n  display: block;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.atv-review-modal-body .subject-info {\n  display: flex;\n  min-width: 0;\n  flex-direction: column;\n  justify-content: center;\n}\n\n.atv-review-modal-body .subject-title {\n  display: flex;\n  min-width: 0;\n  flex-wrap: wrap;\n  align-items: baseline;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  gap: 4px;\n  letter-spacing: 0.01em;\n  line-height: 1.35;\n}\n\n.atv-review-modal-body .title-tail {\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-medium);\n}\n\n.atv-review-modal-body .subject-rating {\n  display: flex;\n  align-items: center;\n  margin-top: 7px;\n  gap: 1px;\n  line-height: 1;\n}\n\n.atv-review-modal-body .rating-star1::before,\n.atv-review-modal-body .rating-star2::before,\n.atv-review-modal-body .rating-star0::before {\n  content: \"★\";\n  font-size: var(--atv-type-caption);\n}\n\n.atv-review-modal-body .rating-star1::before {\n  color: var(--atv-rating-gold);\n}\n\n.atv-review-modal-body .rating-star2::before {\n  background: linear-gradient(\n    90deg,\n    var(--atv-rating-gold) 50%,\n    var(--atv-rating-empty) 50%\n  );\n  -webkit-background-clip: text;\n  background-clip: text;\n  color: transparent;\n}\n\n.atv-review-modal-body .rating-star0::before {\n  color: var(--atv-rating-empty);\n}\n\n.atv-review-modal-body .rating-score {\n  margin-left: 6px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-variant-numeric: tabular-nums;\n  font-weight: var(--atv-font-weight-semibold);\n}\n\n.atv-review-modal-body .subject-summary {\n  margin-top: 7px;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption-sm);\n  line-height: 1.55;\n}\n\n.atv-review-modal-body .subject-caption-wrapper {\n  padding: 0 12px 12px 80px;\n}\n\n.atv-review-modal-body .subject-caption {\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-caption-sm);\n  font-style: italic;\n  line-height: 1.55;\n}\n\n/* ── Review content links (Douban a.link / generic) ── */\n.atv-review-modal-body a:link,\n.atv-review-modal-body a:visited {\n  border-bottom: 1px solid var(--atv-accent-border);\n  background: transparent;\n  color: var(--atv-accent);\n  overflow-wrap: break-word;\n  text-decoration: none;\n  transition:\n    border-color var(--atv-duration-feedback) ease,\n    color var(--atv-duration-feedback) ease;\n}\n\n.atv-review-modal-body a:hover,\n.atv-review-modal-body a:active {\n  border-bottom-color: var(--atv-accent-bright);\n  background: transparent;\n  color: var(--atv-accent-bright);\n}\n\n/* ============================================\n   7. Review Content Typography — All Elements\n      Target ALL HTML tags that may appear inside\n      Douban review rich-text content.\n   ============================================ */\n\n/* --- Headings --- */\n.atv-review-modal-body h3 {\n  margin: 28px 0 12px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title-md);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h4 {\n  margin: 24px 0 10px;\n  color: var(--atv-text-primary);\n  font-size: var(--atv-type-title);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n.atv-review-modal-body h5,\n.atv-review-modal-body h6 {\n  margin: 20px 0 8px;\n  color: var(--atv-text-secondary);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-semibold);\n  line-height: 1.4;\n}\n\n/* --- Horizontal Rule --- */\n.atv-review-modal-body hr {\n  height: 0;\n  border: none;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin: 28px 0;\n}\n\n/* --- Lists --- */\n.atv-review-modal-body ul,\n.atv-review-modal-body ol {\n  padding-left: 24px;\n  margin: 0 0 16px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body ul {\n  list-style: disc;\n}\n\n.atv-review-modal-body ol {\n  list-style: decimal;\n}\n\n.atv-review-modal-body li {\n  margin-bottom: 6px;\n  line-height: 1.7;\n}\n\n.atv-review-modal-body li:last-child {\n  margin-bottom: 0;\n}\n\n/* --- Inline Text Semantics --- */\n.atv-review-modal-body strong,\n.atv-review-modal-body b {\n  color: var(--atv-text-primary);\n  font-weight: var(--atv-font-weight-bold);\n}\n\n.atv-review-modal-body em,\n.atv-review-modal-body i {\n  font-style: italic;\n}\n\n.atv-review-modal-body small {\n  color: var(--atv-text-tertiary);\n  font-size: 0.85em;\n}\n\n.atv-review-modal-body q {\n  font-style: italic;\n}\n\n.atv-review-modal-body q::before {\n  content: \"\\201C\";\n}\n\n.atv-review-modal-body q::after {\n  content: \"\\201D\";\n}\n\n.atv-review-modal-body u {\n  text-decoration: underline;\n  text-decoration-thickness: 1px;\n  text-underline-offset: 2px;\n}\n\n.atv-review-modal-body s,\n.atv-review-modal-body del {\n  color: var(--atv-text-tertiary);\n  text-decoration: line-through;\n}\n\n.atv-review-modal-body sup {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: super;\n}\n\n.atv-review-modal-body sub {\n  font-size: 0.75em;\n  line-height: 1;\n  vertical-align: sub;\n}\n\n/* --- Code --- */\n.atv-review-modal-body code {\n  padding: 2px 6px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n  font-family: var(--atv-font-mono);\n  font-size: 0.9em;\n  overflow-wrap: break-word;\n}\n\n.atv-review-modal-body pre {\n  padding: 16px 20px;\n  border: 1px solid var(--atv-border-subtle);\n  border-radius: var(--atv-radius-sm);\n  margin: 0 0 20px;\n  background: var(--atv-bg-card);\n  line-height: 1.6;\n  -webkit-overflow-scrolling: touch;\n  overflow-x: auto;\n}\n\n.atv-review-modal-body pre code {\n  padding: 0;\n  background: none;\n  font-size: var(--atv-type-body-sm);\n  word-break: normal;\n}\n\n/* --- Tables --- */\n.atv-review-modal-body table {\n  width: 100%;\n  margin: 20px 0;\n  border-collapse: collapse;\n  line-height: 1.6;\n}\n\n.atv-review-modal-body thead {\n  border-bottom: 2px solid var(--atv-border-medium);\n}\n\n.atv-review-modal-body th {\n  padding: 10px 14px;\n  color: var(--atv-text-primary);\n  font-weight: var(--atv-font-weight-semibold);\n  text-align: left;\n  white-space: nowrap;\n}\n\n.atv-review-modal-body td {\n  padding: 10px 14px;\n  border-bottom: 1px solid var(--atv-border-subtle);\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body tbody tr:last-child td {\n  border-bottom: none;\n}\n\n.atv-review-modal-body .review-content,\n.atv-review-modal-body .review-content p,\n.atv-review-modal-body .review-content div,\n.atv-review-modal-body .review-content span {\n  color: var(--atv-text-emphasis);\n}\n\n.atv-review-modal-body .spoiler-tip {\n  margin-bottom: 12px;\n  color: var(--atv-content-caution);\n  font-size: var(--atv-type-caption);\n  font-weight: var(--atv-font-weight-semibold);\n  letter-spacing: 0.03em;\n}\n\n.atv-review-modal-body .main-hd {\n  display: flex;\n  align-items: center;\n  margin-bottom: 16px;\n  gap: 10px;\n}\n\n.atv-review-modal-body .main-hd a.name {\n  color: var(--atv-accent);\n  font-size: var(--atv-type-body-sm);\n  font-weight: var(--atv-font-weight-medium);\n  text-decoration: none;\n}\n\n.atv-review-modal-body .main-hd a.name:hover {\n  text-decoration: underline;\n}\n\n.atv-review-modal-footer {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding-top: 20px;\n  border-top: 1px solid var(--atv-border-subtle);\n  margin-top: 28px;\n}\n\n.atv-review-modal-votes {\n  display: flex;\n  gap: 14px;\n}\n\n#atv-douban-root .atv-review-modal-link-a {\n  background: transparent;\n  color: var(--atv-text-tertiary);\n  font-size: var(--atv-type-caption);\n  text-decoration: none;\n  transition: color var(--atv-duration-feedback) ease;\n}\n\n#atv-douban-root .atv-review-modal-link-a:link,\n#atv-douban-root .atv-review-modal-link-a:visited {\n  background: transparent;\n  color: var(--atv-text-tertiary);\n}\n\n#atv-douban-root .atv-review-modal-link-a:hover,\n#atv-douban-root .atv-review-modal-link-a:active {\n  background: transparent;\n  color: var(--atv-accent);\n}\n\n.atv-review-modal-stars {\n  display: inline-flex;\n  align-items: center;\n  color: var(--atv-rating-gold);\n  gap: 2px;\n}\n\n.atv-review-modal-stars svg {\n  display: block;\n  width: 14px;\n  height: 14px;\n}\n\n.atv-review-modal-body.is-loading {\n  position: relative;\n  min-height: 140px;\n  color: transparent;\n}\n\n.atv-review-modal-body.is-loading::before,\n.atv-review-modal-body.is-loading::after {\n  display: block;\n  height: 14px;\n  border-radius: 4px;\n  background: var(--atv-bg-elevated);\n  content: \"\";\n}\n\n.atv-review-modal-body.is-loading::before {\n  width: 92%;\n  margin-bottom: 14px;\n}\n\n.atv-review-modal-body.is-loading::after {\n  width: 68%;\n}\n\n.atv-review-modal-body.is-error {\n  display: flex;\n  min-height: 140px;\n  align-items: center;\n  justify-content: center;\n  color: var(--atv-text-tertiary);\n  text-align: center;\n}\n\n.atv-review-modal-error {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 14px;\n}\n\n.atv-review-modal-error p {\n  margin: 0;\n}\n\n.atv-review-modal .atv-modal-close:focus-visible,\n#atv-douban-root .atv-review-modal-link-a:focus-visible {\n  outline: 2px solid var(--atv-accent);\n  outline-offset: 3px;\n}\n\n/* ---------- Responsive ---------- */\n@media (width <= 1024px) {\n  .atv-hero {\n    min-height: 64vh;\n    padding: 104px 24px 48px;\n  }\n\n  .atv-hero-inner {\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 28px;\n  }\n\n  .atv-poster-card {\n    width: 220px;\n  }\n\n  .atv-section {\n    padding: 44px 24px;\n  }\n\n  /* Tablet two-column info grid — bounded to 769–1024px so the phone\n   single-column rule in details.css stays the sole source below 768px\n   (responsive.css is imported after details.css and would otherwise win). */\n  @media (width > 768px) and (width <= 1024px) {\n    .atv-info-grid {\n      column-gap: 24px;\n      grid-template-columns: 160px 1fr;\n    }\n  }\n}\n\n@media (width <= 768px) {\n  .atv-hero {\n    min-height: 56vh;\n    padding: 88px 20px 40px;\n  }\n\n  .atv-poster-card {\n    width: 180px;\n  }\n\n  .atv-section {\n    padding: 36px 20px;\n  }\n\n  .atv-recs {\n    gap: 18px;\n    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));\n  }\n\n  .atv-cast-card {\n    flex-basis: 120px;\n  }\n\n  .atv-cast-avatar {\n    width: 120px;\n    height: 120px;\n  }\n\n  .atv-series-card {\n    flex-basis: 120px;\n  }\n\n  .atv-photo-tile:not(.atv-trailer-tile),\n  .atv-photo-rail-reserve {\n    height: 157.5px;\n  }\n\n  .atv-comments {\n    grid-template-columns: 1fr;\n  }\n\n  .atv-comment-overlay-inner {\n    max-width: 95vw;\n    border-radius: 16px;\n  }\n\n  .atv-comment-overlay-top {\n    padding: 24px 20px 0;\n  }\n\n  .atv-comment-overlay-body {\n    padding: 16px 20px;\n    font-size: var(--atv-type-body-sm);\n  }\n\n  .atv-comment-overlay-foot {\n    padding: 0 20px 24px;\n  }\n\n  .atv-review-modal-scroll {\n    max-width: 100vw;\n    max-height: 92vh;\n    padding: 24px 18px 22px;\n    border-radius: 20px 20px 0 0;\n  }\n\n  .atv-review-modal {\n    align-items: flex-end;\n    padding: 0;\n    overscroll-behavior: contain;\n  }\n\n  .atv-review-modal .atv-modal-close {\n    top: 14px;\n    right: 14px;\n  }\n\n  .atv-review-modal-body blockquote {\n    padding: 12px 14px;\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body blockquote blockquote {\n    padding: 10px 12px;\n  }\n\n  .atv-review-modal-body .image-container {\n    margin: 16px 0;\n  }\n\n  .atv-review-modal-body .image-container.image-float-left,\n  .atv-review-modal-body .image-container.image-float-right {\n    max-width: 100%;\n    margin: 16px 0;\n    float: none;\n  }\n\n  .atv-review-modal-body .subject-wrapper > a {\n    padding: 10px;\n    gap: 10px;\n    grid-template-columns: 44px minmax(0, 1fr);\n  }\n\n  .atv-review-modal-body .subject-cover {\n    width: 44px;\n    height: 66px;\n  }\n\n  .atv-review-modal-body .subject-title {\n    font-size: var(--atv-type-body);\n  }\n\n  .atv-review-modal-body .subject-caption-wrapper {\n    padding: 0 10px 10px 66px;\n  }\n\n  /* Review content typography — responsive */\n  .atv-review-modal-body h3 {\n    margin-top: 22px;\n  }\n\n  .atv-review-modal-body h4 {\n    margin-top: 18px;\n  }\n\n  .atv-review-modal-body hr {\n    margin: 22px 0;\n  }\n\n  .atv-review-modal-body pre {\n    padding: 12px 16px;\n  }\n\n  .atv-review-modal-body th,\n  .atv-review-modal-body td {\n    padding: 8px 10px;\n  }\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-section {\n    animation: none;\n  }\n\n  .atv-trailer-tile,\n  .atv-trailer-tile:hover {\n    filter: none;\n    transform: none;\n  }\n\n  .atv-trailer-play-overlay {\n    transition: none;\n  }\n\n  .atv-trailer-play-btn {\n    transition: none;\n  }\n\n  .atv-trailer-tile:hover .atv-trailer-play-btn {\n    box-shadow: none;\n    transform: none;\n  }\n\n  .atv-modal-overlay.is-open .atv-modal-video {\n    transform: none;\n  }\n\n  .atv-review-card,\n  .atv-review-card:hover,\n  .atv-review-card:active {\n    box-shadow: none;\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal-scroll {\n    transform: none;\n    transition: none;\n  }\n\n  .atv-review-modal.is-open .atv-review-modal-scroll {\n    transform: none;\n  }\n\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    transition: none;\n  }\n\n  /* Modal overlay fades */\n  .atv-modal-overlay,\n  .atv-comment-overlay {\n    transition: none;\n  }\n\n  /* Accent edge glow */\n  .atv-modal-accent-bar {\n    transform: scaleX(1);\n    transition: none;\n  }\n\n  .atv-review-modal-scroll::before {\n    opacity: 1;\n  }\n}\n\n@media (width <= 768px) {\n  .atv-trailer-tile {\n    height: 157.5px;\n    flex-basis: 280px;\n  }\n}\n\n/* Cross-experience motion policy: pointer capability and motion preferences. */\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-btn-primary:hover {\n    background: var(--atv-accent-bright);\n    transform: translateY(-1px);\n  }\n\n  .atv-btn-secondary:hover {\n    background: var(--atv-bg-hover-strong);\n    transform: translateY(-1px);\n  }\n\n  .atv-comment-card:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-review-card:hover .atv-review-readmore {\n    opacity: 1;\n    transform: translateX(0);\n  }\n\n  .atv-stream-card:not(.atv-stream-card-combined):hover::after {\n    opacity: 0.18;\n  }\n\n  .atv-stream-card:hover {\n    border-color: var(--atv-border-strong);\n    background: var(--atv-bg-hover-strong);\n  }\n\n  .atv-discussion-row:hover {\n    background: var(--atv-bg-hover);\n  }\n\n  .atv-discussion-row:hover::before {\n    opacity: 1;\n    transform: scaleY(1);\n  }\n\n  .atv-discussion-row:hover .atv-discussion-arrow {\n    opacity: 1;\n    transform: translateX(0);\n  }\n}\n\n.atv-hero-teaser-content {\n  display: block;\n}\n\n/* Shared affordance for every control that opens the image-preview modal. */\n.atv-image-preview-trigger {\n  box-shadow: 0 16px 40px rgb(0 0 0 / 46%);\n  transition:\n    transform var(--atv-duration-hover) var(--atv-ease-out),\n    box-shadow var(--atv-duration-hover) var(--atv-ease-out);\n  will-change: transform;\n}\n\n.atv-image-preview-trigger:focus-visible {\n  outline: 2px solid var(--atv-accent-bright);\n  outline-offset: 4px;\n}\n\n@media (hover: hover) and (pointer: fine) {\n  .atv-image-preview-trigger:hover {\n    box-shadow: 0 24px 64px rgb(0 0 0 / 56%);\n    transform: translateY(-3px);\n  }\n}\n\n.atv-image-preview-trigger:active {\n  transform: scale(0.97);\n}\n\n@media (prefers-reduced-motion: reduce) {\n  .atv-image-preview-trigger {\n    transition: none;\n    will-change: auto;\n  }\n\n  .atv-carousel {\n    scroll-behavior: auto;\n  }\n\n  .atv-spinner {\n    animation: none;\n  }\n\n  .atv-modal-accent-bar {\n    opacity: 1;\n  }\n\n  .atv-review-modal-scroll::before {\n    opacity: 1;\n  }\n\n  .atv-btn-primary:hover,\n  .atv-btn-secondary:hover,\n  .atv-btn:active,\n  .atv-modal-close:active,\n  .atv-image-preview-trigger:hover,\n  .atv-image-preview-trigger:active,\n  .atv-comment-card:hover,\n  .atv-comment-votes:active,\n  .atv-comment-overlay-votes:active,\n  .atv-comment-expand:active,\n  .atv-review-card:hover,\n  .atv-review-card:hover .atv-review-readmore,\n  .atv-review-card:focus-visible .atv-review-readmore,\n  .atv-review-card:has(.atv-review-open-button:focus-visible)\n    .atv-review-readmore,\n  .atv-vote-btn:active,\n  .atv-stream-card:hover,\n  .atv-discussion-row:hover::before,\n  .atv-discussion-row:has(.atv-discussion-topic-link:focus-visible)::before,\n  .atv-discussion-row:has(.atv-discussion-author:focus-visible)::before,\n  .atv-discussion-row:active,\n  .atv-series-card:hover,\n  .atv-cast-card:hover,\n  .atv-rec-card:hover .atv-rec-poster,\n  .atv-trailer-tile:hover,\n  .atv-hero-more.is-open svg {\n    transform: none;\n  }\n\n  .atv-photo-tile {\n    animation: none;\n    opacity: 1;\n    transform: none;\n  }\n}\n\n/* ---------- Accessibility: reduced transparency ---------- */\n@media (prefers-reduced-transparency: reduce) {\n  .atv-stickynav.is-visible:not(.is-scrolling) {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-bg-primary);\n  }\n\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n\n  .atv-btn-secondary {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-chip {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n\n  .atv-series-badge {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay);\n  }\n\n  .atv-trailer-label {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay);\n  }\n\n  .atv-comment-expand {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n\n/* ---------- Accessibility: high contrast ---------- */\n@media (prefers-contrast: more) {\n  .atv-modal-overlay,\n  .atv-comment-overlay,\n  .atv-review-modal {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: var(--atv-scrim-overlay-solid);\n  }\n\n  .atv-comment-card,\n  .atv-review-card {\n    background: var(--atv-bg-card);\n  }\n\n  .atv-review-card,\n  .atv-stream-card,\n  .atv-chip,\n  .atv-comment-votes {\n    border-color: var(--atv-border-strong);\n  }\n\n  .atv-discussion-row {\n    border: 1px solid var(--atv-border-strong);\n    border-radius: var(--atv-radius-sm);\n    background: var(--atv-bg-card);\n  }\n\n  .atv-chip {\n    color: var(--atv-text-primary);\n  }\n\n  .atv-comment-expand {\n    border-color: var(--atv-border-strong);\n    background: rgb(0 0 0 / 50%);\n  }\n\n  .atv-btn-secondary {\n    border-color: var(--atv-border-emphasis);\n    background: var(--atv-bg-hover-strong);\n  }\n\n  .atv-series-badge {\n    background: rgb(0 0 0 / 85%);\n  }\n\n  .atv-trailer-label {\n    background: rgb(0 0 0 / 85%);\n  }\n}\n\n/* ---------- Card press states ---------- */\n.atv-poster-card:active {\n  transform: scale(0.97);\n}\n\n.atv-stream-card:active {\n  transform: scale(0.97);\n}\n\n.atv-photo-tile:active {\n  transform: scale(0.97);\n}\n\n.atv-cast-card:active {\n  transform: scale(0.97);\n}\n\n.atv-series-card:active {\n  transform: scale(0.97);\n}\n\n.atv-comment-card:active {\n  transform: scale(0.97);\n}\n\n.atv-discussion-row:active {\n  transform: scale(0.97);\n}\n";
 var n;
 var t$1;
 var u$2;
@@ -920,30 +922,6 @@ var IconExpand = (props) => /* @__PURE__ */ a("svg", {
 		"stroke-linecap": "round",
 		"stroke-linejoin": "round",
 		d: "M3 5.5l4 4 4-4"
-	})
-});
-var IconTomato = (props) => /* @__PURE__ */ a("svg", {
-	viewBox: "0 0 16 16",
-	width: "16",
-	height: "16",
-	"aria-hidden": "true",
-	...props,
-	children: /* @__PURE__ */ a("circle", {
-		cx: "8",
-		cy: "8",
-		r: "5.5",
-		fill: "currentColor"
-	})
-});
-var IconPopcorn = (props) => /* @__PURE__ */ a("svg", {
-	viewBox: "0 0 16 16",
-	width: "16",
-	height: "16",
-	"aria-hidden": "true",
-	...props,
-	children: /* @__PURE__ */ a("path", {
-		fill: "currentColor",
-		d: "M8 2l6 6-6 6-6-6z"
 	})
 });
 var IconClose = ({ size = 22, ...props }) => /* @__PURE__ */ a("svg", {
@@ -8338,7 +8316,7 @@ var PERSONAGE_SECTIONS = [
 	}
 ];
 var DEFAULT_MODE = "auto";
-var STORAGE_KEY$1 = "douban-plus.sticky-nav.visibility";
+var STORAGE_KEY$2 = "douban-plus.sticky-nav.visibility";
 var isStickyNavVisibilityMode = (value) => value === "always" || value === "auto";
 var getUserscriptApi = () => {
 	const gm = globalThis.GM;
@@ -8395,7 +8373,7 @@ var createStickyNavPreference = (api) => {
 		}
 		if (!api) return;
 		try {
-			await api.setValue(STORAGE_KEY$1, nextMode);
+			await api.setValue(STORAGE_KEY$2, nextMode);
 		} catch {}
 	};
 	const initialize = () => {
@@ -8403,7 +8381,7 @@ var createStickyNavPreference = (api) => {
 		initialization = (async () => {
 			if (api) {
 				try {
-					const storedMode = await api.getValue(STORAGE_KEY$1, DEFAULT_MODE);
+					const storedMode = await api.getValue(STORAGE_KEY$2, DEFAULT_MODE);
 					mode = isStickyNavVisibilityMode(storedMode) ? storedMode : DEFAULT_MODE;
 				} catch {
 					mode = DEFAULT_MODE;
@@ -9636,17 +9614,17 @@ var RETRY_DELAYS = [
 	800,
 	2e3
 ];
-var postAttempt = async (url, body, referer, extraHeaders, attempt) => {
+var postAttempt = async (url, body, referer, extraHeaders, attempt, options) => {
 	try {
-		return (await gmRequest("POST", url, referer, extraHeaders, body)).responseText;
+		return (await gmRequest("POST", url, referer, extraHeaders, body, options)).responseText;
 	} catch (error) {
 		const retryDelay = RETRY_DELAYS[attempt];
 		if (retryDelay === void 0) throw error;
 		await delay(retryDelay);
-		return postAttempt(url, body, referer, extraHeaders, attempt + 1);
+		return postAttempt(url, body, referer, extraHeaders, attempt + 1, options);
 	}
 };
-var gmPost = exports("a",(url, body, referer, extraHeaders) => postAttempt(url, body, referer, extraHeaders, 0));
+var gmPost = exports("a",(url, body, referer, extraHeaders, options) => postAttempt(url, body, referer, extraHeaders, 0, options));
 var gmGet = async (url, referer) => {
 	return (await gmRequest("GET", url, referer)).responseText;
 };
@@ -10585,7 +10563,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-B-UaRUH0-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-M4mucWx1-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -12269,18 +12247,48 @@ var useEntranceExitAnimation = (shouldRender, hasContent, springConfig) => {
 		setRef
 	};
 };
-var scoreClass = (score) => {
-	if (score >= 61) return "is-high";
-	if (score >= 40) return "is-medium";
-	return "is-low";
+var countLabel = (count) => count === null ? null : `评价 ${count.toLocaleString("en-US")}`;
+var ScoreSide = ({ className, label, score, scale }) => {
+	const count = countLabel(score.reviewCount);
+	return /* @__PURE__ */ a("div", {
+		class: `atv-rating-dual-side atv-mc-score-side ${className}`,
+		children: [
+			/* @__PURE__ */ a("div", {
+				class: "atv-rating-dual-reading atv-mc-score-reading",
+				children: [/* @__PURE__ */ a("span", {
+					class: "atv-rating-panel-score atv-mc-score-value",
+					children: score.displayScore
+				}), /* @__PURE__ */ a("span", {
+					class: "atv-mc-score-scale",
+					children: scale
+				})]
+			}),
+			/* @__PURE__ */ a("div", {
+				class: "atv-rating-dual-label atv-mc-score-label",
+				children: label
+			}),
+			/* @__PURE__ */ a("div", {
+				"aria-hidden": count === null,
+				class: `atv-rating-dual-count atv-mc-rating-count${count === null ? " is-empty" : ""}`,
+				children: count ?? ""
+			})
+		]
+	});
 };
-var mcWordRatingChinese = (score) => {
-	if (score >= 81) return "普遍赞誉";
-	if (score >= 61) return "大体好评";
-	if (score >= 40) return "褒贬不一";
-	if (score >= 20) return "大体差评";
-	return "普遍差评";
-};
+var MetacriticScore = ({ rating }) => /* @__PURE__ */ a("div", {
+	class: `atv-rating-dual-grid atv-mc-score-grid ${rating.critics && rating.audience ? "" : "is-single"}`,
+	children: [rating.critics ? /* @__PURE__ */ a(ScoreSide, {
+		className: "atv-mc-critics",
+		label: "影评人",
+		scale: "/100",
+		score: rating.critics
+	}) : null, rating.audience ? /* @__PURE__ */ a(ScoreSide, {
+		className: "atv-mc-audience",
+		label: "观众",
+		scale: "/10",
+		score: rating.audience
+	}) : null]
+});
 var isFresh = (score) => score >= 60;
 var ratingStateClass = (hasRating, resolved) => {
 	if (hasRating) return "is-loaded";
@@ -12308,88 +12316,58 @@ var renderImdbRating = (rating) => /* @__PURE__ */ a($$1, { children: [
 		children: rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"
 	})
 ] });
-var renderMetacriticRating = (rating) => /* @__PURE__ */ a($$1, { children: [
-	/* @__PURE__ */ a("div", {
-		class: `atv-rating-panel-score ${scoreClass(rating.score)}`,
-		children: String(rating.score)
-	}),
-	/* @__PURE__ */ a("div", {
-		class: "atv-mc-label-row",
-		children: [/* @__PURE__ */ a("span", {
-			class: "atv-mc-bar-track",
-			children: /* @__PURE__ */ a("span", {
-				class: `atv-mc-bar-fill ${scoreClass(rating.score)}`,
-				style: { width: `${Math.min(100, rating.score)}%` }
-			})
-		}), /* @__PURE__ */ a("span", {
-			class: "atv-mc-word-label",
-			children: mcWordRatingChinese(rating.score)
-		})]
-	}),
-	/* @__PURE__ */ a("div", {
-		class: "atv-rating-panel-count",
-		children: rating.reviewCount ? `评价 ${rating.reviewCount.toLocaleString("en-US")}` : "已评分"
-	})
-] });
-var RtLabel = ({ className, icon, score, text }) => /* @__PURE__ */ a("span", {
-	class: `atv-rt-label-item ${className} ${isFresh(score) ? "is-fresh" : "is-rotten"}`,
-	children: [/* @__PURE__ */ a("span", {
-		class: "atv-rt-score-icon",
-		children: icon
-	}), /* @__PURE__ */ a("span", {
-		class: "atv-rt-score-label",
-		children: text
-	})]
-});
 var formatRtCount = (count) => {
 	if (!count) return "";
 	if (count.kind === "range") return `${count.lowerBound.toLocaleString("en-US")}+`;
 	return count.value.toLocaleString("en-US");
 };
-var renderRottenTomatoesRating = (rating) => /* @__PURE__ */ a($$1, { children: [
-	/* @__PURE__ */ a("div", {
-		class: `atv-rt-score-row ${rating.criticsScore === null || rating.audienceScore === null ? "is-single" : ""}`,
+var RtSide = ({ count, side, score }) => {
+	const freshness = isFresh(score) ? "is-fresh" : "is-rotten";
+	const countText = count === null ? "" : `评价 ${formatRtCount(count)}`;
+	return /* @__PURE__ */ a("div", {
+		class: `atv-rating-dual-side atv-rt-score-side atv-rt-${side}`,
 		children: [
-			rating.criticsScore !== null && /* @__PURE__ */ a("div", {
-				class: `atv-rt-score-value ${isFresh(rating.criticsScore) ? "is-fresh" : "is-rotten"}`,
-				children: `${rating.criticsScore}%`
+			/* @__PURE__ */ a("div", {
+				class: "atv-rating-dual-reading atv-rt-score-reading",
+				children: /* @__PURE__ */ a("span", {
+					class: `atv-rating-panel-score atv-rt-score-value ${freshness}`,
+					children: [score, /* @__PURE__ */ a("span", {
+						class: "atv-rt-score-scale",
+						children: "%"
+					})]
+				})
 			}),
-			rating.criticsScore !== null && rating.audienceScore !== null ? /* @__PURE__ */ a("div", { class: "atv-rt-divider" }) : null,
-			rating.audienceScore !== null && /* @__PURE__ */ a("div", {
-				class: `atv-rt-score-value ${isFresh(rating.audienceScore) ? "is-fresh" : "is-rotten"}`,
-				children: `${rating.audienceScore}%`
+			/* @__PURE__ */ a("span", {
+				class: "atv-rating-dual-label",
+				children: /* @__PURE__ */ a("span", {
+					class: "atv-rt-score-label",
+					children: side === "critics" ? "影评人" : "观众"
+				})
+			}),
+			/* @__PURE__ */ a("div", {
+				"aria-hidden": count === null,
+				class: `atv-rating-dual-count atv-rt-count-value${count === null ? " is-empty" : ""}`,
+				children: countText
 			})
 		]
-	}),
-	/* @__PURE__ */ a("div", {
-		class: "atv-rt-label-row",
-		children: [rating.criticsScore !== null && /* @__PURE__ */ a(RtLabel, {
-			className: "is-critics",
-			icon: /* @__PURE__ */ a(IconTomato, {}),
-			score: rating.criticsScore,
-			text: "影评人"
-		}), rating.audienceScore !== null && /* @__PURE__ */ a(RtLabel, {
-			className: "is-audience",
-			icon: /* @__PURE__ */ a(IconPopcorn, {}),
-			score: rating.audienceScore,
-			text: "观众"
-		})]
-	}),
-	/* @__PURE__ */ a("div", {
-		class: "atv-rt-count-row",
-		children: [rating.criticsScore !== null && rating.criticsCount !== null ? /* @__PURE__ */ a("span", {
-			class: "atv-rt-count-value",
-			children: `评价 ${formatRtCount(rating.criticsCount)}`
-		}) : null, rating.audienceScore !== null && rating.audienceCount !== null ? /* @__PURE__ */ a("span", {
-			class: "atv-rt-count-value",
-			children: `评价 ${formatRtCount(rating.audienceCount)}`
-		}) : null]
-	})
-] });
+	});
+};
+var renderRottenTomatoesRating = (rating) => /* @__PURE__ */ a("div", {
+	class: `atv-rating-dual-grid atv-rt-score-grid ${rating.criticsScore === null || rating.audienceScore === null ? "is-single" : ""}`,
+	children: [rating.criticsScore !== null && /* @__PURE__ */ a(RtSide, {
+		count: rating.criticsCount,
+		side: "critics",
+		score: rating.criticsScore
+	}), rating.audienceScore !== null && /* @__PURE__ */ a(RtSide, {
+		count: rating.audienceCount,
+		side: "audience",
+		score: rating.audienceScore
+	})]
+});
 var renderLoadedRating = (props) => {
 	switch (props.source) {
 		case "imdb": return props.rating ? renderImdbRating(props.rating) : null;
-		case "metacritic": return props.rating ? renderMetacriticRating(props.rating) : null;
+		case "metacritic": return props.rating ? /* @__PURE__ */ a(MetacriticScore, { rating: props.rating }) : null;
 		case "rt": return props.rating ? renderRottenTomatoesRating(props.rating) : null;
 		default: return null;
 	}
@@ -12404,6 +12382,10 @@ var ExternalRating = (props) => {
 	const { rendered, setRef } = useEntranceExitAnimation(!props.resolved || Boolean(props.rating), Boolean(props.rating), springConfigs.ratingEntrance);
 	if (!rendered) return null;
 	const logo = /* @__PURE__ */ a(RatingLogo, { name: props.source });
+	const staleLabel = props.source === "metacritic" && props.rating?.stale ? /* @__PURE__ */ a("span", {
+		class: "atv-mc-stale",
+		children: "旧评分"
+	}) : null;
 	const sourceLogo = sourceUrl ? /* @__PURE__ */ a("a", {
 		"aria-label": SOURCE_LINK_LABEL[props.source],
 		class: `atv-rating-source atv-${props.source}-source${props.source === "rt" ? " atv-rt-source" : ""}`,
@@ -12412,29 +12394,34 @@ var ExternalRating = (props) => {
 		target: "_blank",
 		children: logo
 	}) : logo;
+	let logoGroup = sourceLogo;
+	if (props.source === "rt") logoGroup = /* @__PURE__ */ a("span", {
+		class: "atv-rt-logo-group",
+		children: [sourceLogo, props.rating?.stale ? /* @__PURE__ */ a("span", {
+			class: "atv-rt-stale",
+			children: "旧评分"
+		}) : null]
+	});
+	else if (props.source === "metacritic") logoGroup = /* @__PURE__ */ a("span", {
+		class: "atv-mc-logo-group",
+		children: [sourceLogo, staleLabel]
+	});
 	return /* @__PURE__ */ a("div", {
 		ref: setRef,
 		class: `${SOURCE_CLASS[props.source]} ${ratingStateClass(Boolean(props.rating), props.resolved)}`,
-		children: [props.source === "rt" ? /* @__PURE__ */ a("span", {
-			class: "atv-rt-logo-group",
-			children: [sourceLogo, props.rating?.stale ? /* @__PURE__ */ a("span", {
-				class: "atv-rt-stale",
-				children: "旧评分"
-			}) : null]
-		}) : sourceLogo, renderExternalRatingContent(props)]
+		children: [logoGroup, renderExternalRatingContent(props)]
 	});
 };
 var sourceUrlOf = (rating) => rating?.sourceUrl ?? null;
 var renderIdentifiedRatings = (externalRatings, imdbId) => {
-	if (!imdbId) return null;
 	const imdb = externalRatings?.imdb;
 	const metacritic = externalRatings?.mc;
-	return /* @__PURE__ */ a($$1, { children: [/* @__PURE__ */ a(ExternalRating, {
+	return /* @__PURE__ */ a($$1, { children: [imdbId ? /* @__PURE__ */ a(ExternalRating, {
 		rating: imdb?.rating?.rating ?? null,
 		resolved: imdb?.status === "resolved",
 		sourceUrl: sourceUrlOf(imdb?.rating),
 		source: "imdb"
-	}), /* @__PURE__ */ a(ExternalRating, {
+	}) : null, /* @__PURE__ */ a(ExternalRating, {
 		rating: metacritic?.rating ?? null,
 		resolved: metacritic?.status === "resolved",
 		sourceUrl: sourceUrlOf(metacritic?.rating),
@@ -12443,7 +12430,8 @@ var renderIdentifiedRatings = (externalRatings, imdbId) => {
 };
 var RatingPanel = ({ douban, externalRatings, imdbId }) => {
 	const rt = externalRatings?.rt;
-	if (!douban && !imdbId && rt?.status === "resolved" && !rt.rating) return null;
+	const metacritic = externalRatings?.mc;
+	if (!douban && !imdbId && rt?.status === "resolved" && !rt.rating && metacritic?.status === "resolved" && !metacritic.rating) return null;
 	return /* @__PURE__ */ a("div", {
 		class: "atv-rating-panel",
 		children: [
@@ -17278,18 +17266,29 @@ var SubjectPage = ({ data, onAuthenticated, runtime }) => {
 };
 var emptyRatingResults = () => ({
 	imdb: {
+		diagnostic: null,
 		rating: null,
 		status: "pending"
 	},
 	mc: {
+		diagnostic: null,
 		rating: null,
 		status: "pending"
 	},
 	rt: {
+		diagnostic: null,
 		rating: null,
 		status: "pending"
 	}
 });
+/** Strip season/variant info from a Douban h1 like
+*  "权力的游戏 第五季 Game of Thrones Season 5 (2015)"
+*  to extract just the English series name ("Game of Thrones"). */
+var extractEnglishSeriesName = (h1) => {
+	const m = h1.replace(/\s*\(\d{4}\)\s*$/u, "").trim().match(/[A-Za-z][\w\s'\-!&.,]*/u);
+	if (!m) return "";
+	return m[0].replace(/\s*(?<seasonLabel>Season|S|Vol)\s*\d+/iu, "").trim();
+};
 var chineseNumber = (value) => {
 	if (/^\d+$/u.test(value)) {
 		const number = Number(value);
@@ -17341,6 +17340,11 @@ var selectedSeasonNumbers = (value) => {
 	return number === null ? [] : [number];
 };
 var isEpisodeLabel = (value) => /(?:\b(?:episode|ep\.?|e)\s*\d+\b|第(?:\d+|[一二三四五六七八九十]+)集)/iu.test(value);
+var yearIn = (value) => value.match(/\b(?<year>(?:19|20)\d{2})\b/u)?.groups?.year ?? "";
+var namesFrom = (people) => people.flatMap(({ text }) => {
+	const name = text.trim();
+	return name ? [name] : [];
+});
 var buildContext = (data) => {
 	const titles = [
 		data.title.seasonLabel,
@@ -17354,7 +17358,15 @@ var buildContext = (data) => {
 	const unsupportedEpisode = data.isTV && titles.some(isEpisodeLabel);
 	let kind = "movie";
 	if (data.isTV) kind = season === null ? "series" : "season";
+	const releaseDate = data.isTV ? data.info.firstAired : data.info.releaseDate;
+	const originalTitle = data.isTV ? extractEnglishSeriesName(data.title.full) || data.title.original.trim() : data.title.original.trim();
 	return {
+		identityEvidence: {
+			creators: [...new Set(namesFrom(data.info.writers))],
+			directors: [...new Set(namesFrom(data.info.director))],
+			originalTitle,
+			releaseYear: yearIn(releaseDate)
+		},
 		imdbId: data.info.imdb || null,
 		kind,
 		season,
@@ -17362,6 +17374,21 @@ var buildContext = (data) => {
 		subjectId: data.subjectId,
 		subjectTitle: data.title.full,
 		unsupportedEpisode
+	};
+};
+var createExternalRatingDiagnostic = (input) => {
+	const acceptedEvidence = [...new Set(input.acceptedEvidence)].slice(0, 8);
+	const candidateTargets = [...new Set(input.candidateTargets)].slice(0, 4);
+	const missingEvidence = [...new Set(input.missingEvidence)].slice(0, 8);
+	const rejectedEvidence = [...new Set(input.rejectedEvidence)].slice(0, 8);
+	const unverifiedEvidence = [...new Set(input.unverifiedEvidence)].filter((category) => !acceptedEvidence.includes(category) && !missingEvidence.includes(category)).slice(0, 8);
+	return {
+		...input,
+		acceptedEvidence,
+		candidateTargets,
+		missingEvidence,
+		rejectedEvidence,
+		unverifiedEvidence
 	};
 };
 var readSeriesInfo = (title) => {
@@ -17414,8 +17441,6 @@ var parseSeasonRating = (json) => {
 		return null;
 	}
 };
-var imdbCache = createCache("dp:imdb-cache-v3", 2592e6);
-/** First query: get title info + parent series id (if episode). */
 var GRAPHQL_QUERY = `query GetRating($id: ID!) {
   title(id: $id) {
     id
@@ -17430,7 +17455,6 @@ var GRAPHQL_QUERY = `query GetRating($id: ID!) {
     }
   }
 }`;
-/** Second query: get all episode ratings for a specific season. */
 var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!) {
   title(id: $id) {
     episodes {
@@ -17447,125 +17471,222 @@ var SEASON_EPISODES_QUERY = `query GetSeasonEpisodes($id: ID!, $season: String!)
 var IMDB_GRAPHQL_URL = "https://graphql.imdb.com/";
 var IMDB_REFERER = "https://www.imdb.com/";
 var IMDB_HEADERS = { "Content-Type": "application/json" };
-/** Cache by requested title and season, e.g. "tt0944947-s05". */
+var failureReason = (error) => {
+	if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
+	if (error instanceof SyntaxError) return "parse-error";
+	return "request-error";
+};
+var postGraphQL = (query, variables, signal) => gmPost(IMDB_GRAPHQL_URL, JSON.stringify({
+	query,
+	variables
+}), IMDB_REFERER, IMDB_HEADERS, signal ? { signal } : void 0);
+var parsedResponseFailure = (json) => {
+	try {
+		if (JSON.parse(json).errors !== void 0) return {
+			errorCode: "imdb-api-error",
+			reason: "request-error"
+		};
+		return {
+			errorCode: "invalid-title-response",
+			reason: "parse-error"
+		};
+	} catch {
+		return {
+			errorCode: "invalid-json",
+			reason: "parse-error"
+		};
+	}
+};
+var fetchTitleInfo = async (imdbId, signal) => {
+	try {
+		const json = await postGraphQL(GRAPHQL_QUERY, { id: imdbId }, signal);
+		const parsed = parseResponse(json);
+		if ("error" in parsed) return parsedResponseFailure(json);
+		return { response: parsed };
+	} catch (error) {
+		const reason = failureReason(error);
+		return {
+			errorCode: reason === "cancelled" ? "aborted" : "imdb-request",
+			reason
+		};
+	}
+};
+var fetchSeasonRating = async (seriesId, season, signal) => {
+	let json;
+	try {
+		json = await postGraphQL(SEASON_EPISODES_QUERY, {
+			id: seriesId,
+			season: String(season)
+		}, signal);
+	} catch (error) {
+		const reason = failureReason(error);
+		return {
+			errorCode: reason === "cancelled" ? "aborted" : "imdb-season-request",
+			status: reason
+		};
+	}
+	let parsed;
+	try {
+		parsed = JSON.parse(json);
+	} catch {
+		return {
+			errorCode: "invalid-json",
+			status: "parse-error"
+		};
+	}
+	if (parsed.errors !== void 0) return {
+		errorCode: "imdb-api-error",
+		status: "request-error"
+	};
+	if (!Array.isArray(parsed.data?.title?.episodes?.episodes?.edges)) return {
+		errorCode: "invalid-season-response",
+		status: "parse-error"
+	};
+	const result = parseSeasonRating(json);
+	return result ? {
+		rating: result.rating,
+		status: "rating"
+	} : { status: "source-no-rating" };
+};
+var imdbCache = createCache("dp:imdb-cache-v4", 2592e6);
+var makeDiagnostic$3 = (reason, stage, target, cacheAgeMs = null, errorCode = null) => createExternalRatingDiagnostic({
+	cacheAgeMs,
+	errorCode,
+	reason,
+	stage,
+	target
+});
 var seasonCacheKey = (titleId, season) => `${titleId}-s${String(season).padStart(2, "0")}`;
 var imdbTitleUrl = (titleId) => `https://www.imdb.com/title/${encodeURIComponent(titleId)}/`;
 var imdbSeasonUrl = (seriesId, season) => `${imdbTitleUrl(seriesId)}episodes/?season=${season}`;
-var postGraphQL = (query, variables) => gmPost(IMDB_GRAPHQL_URL, JSON.stringify({
-	query,
-	variables
-}), IMDB_REFERER, IMDB_HEADERS);
-/** First pass: fetch title info + detect whether the tconst is an episode. */
-var fetchTitleInfo = async (imdbId) => {
-	try {
-		const parsed = parseResponse(await postGraphQL(GRAPHQL_QUERY, { id: imdbId }));
-		return "error" in parsed ? null : parsed;
-	} catch (error) {
-		console.warn("[IMDB] fetch FAILED for", imdbId, error);
-		return null;
-	}
-};
-/** Fetch episode ratings for a season and return their vote-weighted average. */
-var fetchSeasonRating = async (seriesId, season) => {
-	try {
-		return parseSeasonRating(await postGraphQL(SEASON_EPISODES_QUERY, {
-			id: seriesId,
-			season: String(season)
-		}));
-	} catch {
-		console.warn("[IMDB] season episodes query failed");
-		return null;
-	}
-};
-/**
-* Resolve an IMDb rating for a title (and optionally a specific season of a
-* series/episode). Season ratings are computed from that season's episodes;
-* when the season data is unavailable, no direct title rating is substituted.
-* Results are cached separately for direct titles and requested seasons.
-*/
-var fetchImdbRating = async (imdbId, season) => {
-	if (!imdbId) return {
-		rating: null,
-		sourceUrl: null,
-		title: null
+var cachedRating = (imdbId, entry, onOutcome) => {
+	if (!entry) return null;
+	onOutcome?.(makeDiagnostic$3("rating", "cache", imdbId, Number.isFinite(entry.fetchedAt) ? Math.max(0, Date.now() - entry.fetchedAt) : null));
+	return {
+		rating: entry.rating,
+		sourceUrl: entry.sourceUrl,
+		title: entry.title
 	};
-	if (season !== void 0) {
-		const cacheKey = seasonCacheKey(imdbId, season);
-		const cachedSeason = imdbCache.get(cacheKey);
-		if (cachedSeason) return {
-			rating: cachedSeason.rating,
-			sourceUrl: cachedSeason.sourceUrl,
-			title: cachedSeason.title
-		};
-		const titleInfo = await fetchTitleInfo(imdbId);
-		if (!titleInfo) return {
+};
+var diagnosticStage = (reason) => reason === "request-error" || reason === "cancelled" ? "request" : "parse";
+var publishTitleFailure = (target, failure, onOutcome) => {
+	onOutcome?.(makeDiagnostic$3(failure.reason, diagnosticStage(failure.reason), target, null, failure.errorCode));
+};
+var fetchSeasonTitleRating = async (imdbId, season, signal, onOutcome) => {
+	const cacheKey = seasonCacheKey(imdbId, season);
+	const cached = cachedRating(imdbId, imdbCache.get(cacheKey), onOutcome);
+	if (cached) return cached;
+	const titleInfoResult = await fetchTitleInfo(imdbId, signal);
+	if ("errorCode" in titleInfoResult) {
+		publishTitleFailure(imdbId, titleInfoResult, onOutcome);
+		return {
 			rating: null,
 			sourceUrl: null,
 			title: null
 		};
-		const { titleText, seriesInfo } = titleInfo;
-		const seriesId = seriesInfo?.id ?? (titleInfo.titleTypeId === "tvSeries" ? imdbId : null);
-		if (!seriesId) return {
+	}
+	const { titleText, seriesInfo, titleTypeId } = titleInfoResult.response;
+	const seriesId = seriesInfo?.id ?? (titleTypeId === "tvSeries" ? imdbId : null);
+	if (seriesId === null) {
+		onOutcome?.(makeDiagnostic$3("mapping-missing", "mapping", imdbId, null, "season-parent-missing"));
+		return {
 			rating: null,
 			sourceUrl: null,
 			title: titleText
 		};
-		const seasonResult = await fetchSeasonRating(seriesId, season);
-		const title = seriesInfo?.titleText ?? titleText;
-		const sourceUrl = imdbSeasonUrl(seriesId, season);
-		if (!seasonResult) return {
+	}
+	const seasonResult = await fetchSeasonRating(seriesId, season, signal);
+	const title = seriesInfo?.titleText ?? titleText;
+	const sourceUrl = imdbSeasonUrl(seriesId, season);
+	if (seasonResult.status === "source-no-rating") {
+		onOutcome?.(makeDiagnostic$3("source-no-rating", "rating", `${seriesId}-s${season}`));
+		return {
 			rating: null,
 			sourceUrl,
 			title
 		};
-		const cacheTitle = title ?? "";
-		imdbCache.set(cacheKey, {
-			rating: seasonResult.rating,
-			sourceUrl,
-			title: cacheTitle
-		});
-		return {
-			rating: seasonResult.rating,
-			sourceUrl,
-			title: cacheTitle
-		};
 	}
-	const cachedTitle = imdbCache.get(imdbId);
-	if (cachedTitle) return {
-		rating: cachedTitle.rating,
-		sourceUrl: cachedTitle.sourceUrl,
-		title: cachedTitle.title
-	};
-	const titleInfo = await fetchTitleInfo(imdbId);
-	if (!titleInfo) return {
-		rating: null,
-		sourceUrl: null,
-		title: null
-	};
-	const { aggregateRating, voteCount, titleText } = titleInfo;
-	if (typeof aggregateRating === "number" && typeof voteCount === "number") {
-		const rating = {
-			count: voteCount,
-			score: aggregateRating
-		};
-		const title = typeof titleText === "string" ? titleText : "";
-		const sourceUrl = imdbTitleUrl(imdbId);
-		imdbCache.set(imdbId, {
-			rating,
-			sourceUrl,
-			title
-		});
+	if (seasonResult.status !== "rating") {
+		onOutcome?.(makeDiagnostic$3(seasonResult.status, diagnosticStage(seasonResult.status), `${seriesId}-s${season}`, null, seasonResult.errorCode));
 		return {
-			rating,
+			rating: null,
 			sourceUrl,
 			title
 		};
 	}
+	const cacheTitle = title ?? "";
+	const fetchedAt = Date.now();
+	imdbCache.set(cacheKey, {
+		fetchedAt,
+		rating: seasonResult.rating,
+		sourceUrl,
+		title: cacheTitle
+	});
+	onOutcome?.(makeDiagnostic$3("rating", "rating", `${seriesId}-s${season}`, 0));
 	return {
-		rating: null,
-		sourceUrl: imdbTitleUrl(imdbId),
-		title: titleText
+		rating: seasonResult.rating,
+		sourceUrl,
+		title: cacheTitle
 	};
+};
+var fetchDirectTitleRating = async (imdbId, signal, onOutcome) => {
+	const cached = cachedRating(imdbId, imdbCache.get(imdbId), onOutcome);
+	if (cached) return cached;
+	const titleInfoResult = await fetchTitleInfo(imdbId, signal);
+	if ("errorCode" in titleInfoResult) {
+		publishTitleFailure(imdbId, titleInfoResult, onOutcome);
+		return {
+			rating: null,
+			sourceUrl: null,
+			title: null
+		};
+	}
+	const { aggregateRating, voteCount, titleText } = titleInfoResult.response;
+	if (typeof aggregateRating !== "number" || typeof voteCount !== "number") {
+		onOutcome?.(makeDiagnostic$3("source-no-rating", "rating", imdbId));
+		return {
+			rating: null,
+			sourceUrl: imdbTitleUrl(imdbId),
+			title: titleText
+		};
+	}
+	const rating = {
+		count: voteCount,
+		score: aggregateRating
+	};
+	const title = typeof titleText === "string" ? titleText : "";
+	const sourceUrl = imdbTitleUrl(imdbId);
+	imdbCache.set(imdbId, {
+		fetchedAt: Date.now(),
+		rating,
+		sourceUrl,
+		title
+	});
+	onOutcome?.(makeDiagnostic$3("rating", "rating", imdbId, 0));
+	return {
+		rating,
+		sourceUrl,
+		title
+	};
+};
+var fetchImdbRating = (imdbId, season, signal, onOutcome) => {
+	if (!imdbId) {
+		onOutcome?.(makeDiagnostic$3("mapping-missing", "mapping", null, null, "no-imdb-id"));
+		return Promise.resolve({
+			rating: null,
+			sourceUrl: null,
+			title: null
+		});
+	}
+	if (signal?.aborted) {
+		onOutcome?.(makeDiagnostic$3("cancelled", "request", imdbId, null, "aborted"));
+		return Promise.resolve({
+			rating: null,
+			sourceUrl: null,
+			title: null
+		});
+	}
+	return season === void 0 ? fetchDirectTitleRating(imdbId, signal, onOutcome) : fetchSeasonTitleRating(imdbId, season, signal, onOutcome);
 };
 var TARGET_CACHE_TTL = 2592e6;
 var TARGET_REVALIDATION_INTERVAL = 864e5;
@@ -17591,6 +17712,19 @@ var createVerifiedTargetCache = (storageKey) => {
 		}
 	};
 };
+var makeDiagnostic$2 = (reason, stage, target, fetchedAt = null, errorCode = null) => createExternalRatingDiagnostic({
+	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var failureReasonFromError$1 = (error) => {
+	if (error instanceof DOMException && error.name === "AbortError") return "cancelled";
+	if (error instanceof SyntaxError) return "parse-error";
+	return "request-error";
+};
+var failureDiagnostic = (error, stage, target, errorCode) => ({ ...makeDiagnostic$2(failureReasonFromError$1(error), stage, target, null, errorCode) });
 var readStructuredPage = (html) => {
 	const canonicalUrl = html.match(/<link\b(?=[^>]*\brel=["']canonical["'])(?=[^>]*\bhref=["'](?<href>[^"']+)["'])[^>]*>/iu)?.groups?.href;
 	const jsonLd = [];
@@ -17613,51 +17747,324 @@ var METACRITIC_ORIGIN$1 = "https://www.metacritic.com";
 var pagePath = (value) => {
 	try {
 		const url = new URL(value, METACRITIC_ORIGIN$1);
-		if (url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com") return null;
+		if (url.protocol !== "https:" || url.hostname !== "www.metacritic.com" && url.hostname !== "metacritic.com" || url.username || url.password || url.search || url.hash) return null;
 		return url.pathname.replaceAll(/\/+$/gu, "");
 	} catch {
 		return null;
 	}
 };
-var targetEntry = (page, target) => {
-	const expectedPath = `/${target.metacriticId}`;
-	if (!page.canonicalUrl || pagePath(page.canonicalUrl) !== expectedPath) return null;
-	const expectedSeriesPath = target.metacriticId.replace(/\/season-\d+$/u, "");
-	return page.jsonLd.find((entry) => {
+var normalizeIdentityText$1 = (value) => value.normalize("NFKC").toLocaleLowerCase("en-US").replaceAll(/[\p{P}\p{Z}\s]+/gu, "");
+var metadataYear = (value) => {
+	if (typeof value !== "string") return "";
+	return value.match(/\b(?<year>(?:19|20)\d{2})\b/u)?.groups?.year ?? "";
+};
+var namesIn = (value) => {
+	return (Array.isArray(value) ? value : [value]).flatMap((entry) => {
+		if (typeof entry === "string") return [entry];
+		if (!entry || typeof entry !== "object") return [];
+		const name = Reflect.get(entry, "name");
+		return typeof name === "string" ? [name] : [];
+	});
+};
+var hasMatchingPersonName = (identity, target, evidence, identityNames, identityNamesComplete) => {
+	const contextNames = target.kind === "movie" ? evidence.directors : evidence.creators;
+	const expectedNames = [.../* @__PURE__ */ new Set([...identityNames ?? [], ...contextNames])];
+	const actualNames = target.kind === "movie" ? namesIn(identity.director) : namesIn(identity.creator);
+	if (actualNames.length === 0) return "insufficient";
+	const normalizedNames = new Set(actualNames.map(normalizeIdentityText$1));
+	if (expectedNames.some((name) => normalizedNames.has(normalizeIdentityText$1(name)))) return "matched";
+	const mappedPeople = target.kind === "movie" ? target.identityReferences.directors : target.identityReferences.creators;
+	return expectedNames.length === 0 || mappedPeople.length > 0 && identityNamesComplete !== true ? "insufficient" : "conflict";
+};
+var hasExactIdentityEvidence = (entry, target, evidence, identityNames, identityNamesComplete) => {
+	if (!evidence?.originalTitle || !evidence.releaseYear) return "insufficient";
+	const identity = target.kind === "season" && entry.partOfSeries && typeof entry.partOfSeries === "object" ? entry.partOfSeries : entry;
+	const title = identity.name;
+	const releaseYear = metadataYear(identity.datePublished);
+	if (typeof title !== "string" || !releaseYear) return "insufficient";
+	if (normalizeIdentityText$1(title) !== normalizeIdentityText$1(evidence.originalTitle) || releaseYear !== evidence.releaseYear) return "conflict";
+	return hasMatchingPersonName(identity, target, evidence, identityNames, identityNamesComplete);
+};
+var findSeasonPageLink = (html, seriesPageUrl, season) => {
+	const seriesPath = pagePath(seriesPageUrl);
+	if (!seriesPath || !/^\/tv\/[^/]+$/u.test(seriesPath)) return null;
+	const matchingLinks = [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("a[href]")].map((anchor) => {
+		try {
+			return new URL(anchor.getAttribute("href") ?? "", seriesPageUrl);
+		} catch {
+			return null;
+		}
+	}).filter((url) => url !== null).filter((url) => {
+		const linkedPath = pagePath(url.href);
+		const match = linkedPath?.match(/^\/tv\/[^/]+\/season-(?<season>\d+)$/u);
+		return linkedPath?.startsWith(`${seriesPath}/season-`) === true && Number(match?.groups?.season) === season;
+	});
+	const uniquePaths = [...new Set(matchingLinks.map((url) => pagePath(url.href)))];
+	if (uniquePaths.length !== 1) return null;
+	const [path] = uniquePaths;
+	return path ? `https://www.metacritic.com${path}/` : null;
+};
+var countFromUserLink = (link) => {
+	const countText = link.textContent?.match(/(?<count>\d[\d,]*)\s+User Ratings?/iu)?.groups?.count;
+	if (!countText) return null;
+	const count = Number(countText.replaceAll(",", ""));
+	return Number.isSafeInteger(count) && count >= 0 ? count : null;
+};
+var isUserRatingsLink = (link, target, canonicalUrl) => {
+	try {
+		const url = new URL(link.getAttribute("href") ?? "", canonicalUrl);
+		const canonicalPath = pagePath(canonicalUrl);
+		let expectedPath = null;
+		if (target.kind === "season" && target.seriesMetacriticId) {
+			const seriesPath = pagePath(target.seriesMetacriticId);
+			if (seriesPath) expectedPath = `${seriesPath}/user-reviews`;
+		} else if (canonicalPath) expectedPath = `${canonicalPath}/user-reviews`;
+		const seasonValues = url.searchParams.getAll("season");
+		const seasonMatches = target.kind === "season" ? seasonValues.length === 1 && seasonValues[0] === `season-${target.season}` : seasonValues.length === 0;
+		return Boolean(url.protocol === "https:" && (url.hostname === "www.metacritic.com" || url.hostname === "metacritic.com") && !url.username && !url.password && !url.hash && url.pathname.replaceAll(/\/+$/gu, "") === expectedPath && seasonMatches);
+	} catch {
+		return false;
+	}
+};
+var readVisibleUserScore = (valueWrapper) => {
+	if (!valueWrapper) return {
+		reason: "unknown-user-score-state",
+		status: "invalid"
+	};
+	const tbd = valueWrapper.querySelector("[data-testid=\"global-score-tbd\"]");
+	const scoreValue = valueWrapper.querySelector("[data-testid=\"global-score-value\"]");
+	if (tbd && scoreValue) return {
+		reason: "conflicting-user-score-state",
+		status: "invalid"
+	};
+	if (tbd && tbd.textContent?.trim().toLowerCase() === "tbd") return { status: "no-rating" };
+	if (!scoreValue) return {
+		reason: "unknown-user-score-state",
+		status: "invalid"
+	};
+	const scoreText = scoreValue.textContent?.trim() ?? "";
+	const labels = [valueWrapper.getAttribute("aria-label"), valueWrapper.title].filter((label) => Boolean(label));
+	const score = Number(scoreText);
+	if (!/^\d+(?:\.\d+)?$/u.test(scoreText) || labels.length === 0 || labels.some((label) => {
+		const labelScore = label.match(/^User score (?<score>\d+(?:\.\d+)?) out of 10$/u)?.groups?.score;
+		return labelScore === void 0 || Number(labelScore) !== score;
+	}) || !Number.isFinite(score) || score < 0 || score > 10) return {
+		reason: "invalid-user-score",
+		status: "invalid"
+	};
+	return {
+		displayScore: scoreText,
+		score,
+		status: "matched"
+	};
+};
+var readUserScoreCard = (card, target, canonicalUrl) => {
+	const value = readVisibleUserScore(card.querySelector("[data-testid=\"global-score-value-wrapper\"]"));
+	if (value.status === "invalid") return value;
+	const link = card.querySelector("a[data-testid=\"global-score-review-count-link\"]");
+	if (value.status === "no-rating") {
+		if (link && (!link.getAttribute("href") || !isUserRatingsLink(link, target, canonicalUrl))) return {
+			reason: "user-score-identity",
+			status: "invalid"
+		};
+		return value;
+	}
+	if (!link?.getAttribute("href") || !isUserRatingsLink(link, target, canonicalUrl)) return {
+		reason: "user-score-identity",
+		status: "invalid"
+	};
+	return {
+		rating: {
+			displayScore: value.displayScore,
+			reviewCount: countFromUserLink(link),
+			score: value.score
+		},
+		status: "matched"
+	};
+};
+var readUserScore = (html, target, canonicalUrl) => {
+	const cards = [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("[data-testid=\"global-score-wrapper\"]")].filter((card) => card.querySelector("[data-testid=\"global-score-header\"]")?.textContent?.trim() === "User score");
+	if (cards.length === 0) return {
+		reason: "missing-user-score",
+		status: "invalid"
+	};
+	const results = cards.map((card) => readUserScoreCard(card, target, canonicalUrl));
+	if (results.some((result) => result.status === "invalid")) return results.find((result) => result.status === "invalid") ?? {
+		reason: "invalid-user-score",
+		status: "invalid"
+	};
+	if (new Set(results.map((result) => result.status === "matched" ? JSON.stringify([
+		result.rating.score,
+		result.rating.displayScore,
+		result.rating.reviewCount
+	]) : "no-rating")).size !== 1) return {
+		reason: "conflicting-user-score-regions",
+		status: "invalid"
+	};
+	return results[0] ?? {
+		reason: "missing-user-score",
+		status: "invalid"
+	};
+};
+var readCount = (value) => {
+	if (value === null || value === void 0 || value === "") return null;
+	const text = typeof value === "string" ? value.replaceAll(",", "").trim() : value;
+	const count = Number(text);
+	return Number.isSafeInteger(count) && count >= 0 ? count : false;
+};
+var readMetascore = (entry) => {
+	const aggregate = entry.aggregateRating;
+	if (aggregate === null || aggregate === void 0) return { status: "no-rating" };
+	if (typeof aggregate !== "object") return {
+		reason: "invalid-metascore",
+		status: "invalid"
+	};
+	const value = Reflect.get(aggregate, "ratingValue");
+	if (typeof value !== "number" && typeof value !== "string") return {
+		reason: "missing-metascore",
+		status: "invalid"
+	};
+	const displayScore = String(value).trim();
+	if (!/^\d+$/u.test(displayScore)) return {
+		reason: "invalid-metascore",
+		status: "invalid"
+	};
+	const score = Number(displayScore);
+	const reviewCount = readCount(Reflect.get(aggregate, "reviewCount"));
+	if (!Number.isInteger(score) || score < 0 || score > 100 || reviewCount === false) return {
+		reason: "invalid-metascore",
+		status: "invalid"
+	};
+	return {
+		rating: {
+			displayScore,
+			reviewCount,
+			score
+		},
+		status: "matched"
+	};
+};
+var readPageRating = (html, page, target, entry) => {
+	if (!page.canonicalUrl) return {
+		reason: "missing-canonical",
+		status: "invalid-page"
+	};
+	let audience;
+	try {
+		audience = readUserScore(html, target, page.canonicalUrl);
+	} catch {
+		audience = {
+			reason: "user-score-parser",
+			status: "invalid"
+		};
+	}
+	const critics = readMetascore(entry);
+	const sourceUrl = new URL(page.canonicalUrl, METACRITIC_ORIGIN$1).href;
+	const rating = {
+		audience: audience.status === "matched" ? audience.rating : null,
+		critics: critics.status === "matched" ? critics.rating : null,
+		sourceUrl
+	};
+	const validSides = Number(rating.critics !== null) + Number(rating.audience !== null);
+	const invalidSides = [critics, audience].filter((side) => side.status === "invalid");
+	if (validSides === 0) {
+		if (invalidSides.length > 0) return {
+			reason: invalidSides.map((side) => side.reason).join("+"),
+			status: "invalid-page"
+		};
+		return { status: "no-rating" };
+	}
+	if (invalidSides.length > 0) return {
+		rating,
+		reason: invalidSides.map((side) => side.reason).join("+"),
+		status: "partial-error"
+	};
+	return {
+		rating,
+		status: "matched"
+	};
+};
+var targetEntry = (page, target, expectedSeriesUrl = target.seriesMetacriticId) => {
+	const expectedSeriesPath = expectedSeriesUrl ? pagePath(expectedSeriesUrl) : null;
+	const targetPath = pagePath(`/${target.metacriticId}`);
+	const canonicalPath = page.canonicalUrl ? pagePath(page.canonicalUrl) : null;
+	const typedEntries = page.jsonLd.filter((entry) => {
 		const types = new Set(structuredTypes(entry));
 		if (target.kind === "movie") return types.has("Movie");
 		if (target.kind === "series") return types.has("TVSeries");
 		if (!types.has("TVSeason") || Number(entry.seasonNumber) !== target.season) return false;
 		const { partOfSeries } = entry;
 		const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
-		return typeof seriesUrl === "string" && pagePath(seriesUrl) === `/${expectedSeriesPath}`;
-	}) ?? null;
+		const seriesPath = typeof seriesUrl === "string" ? pagePath(seriesUrl) : null;
+		return Boolean(seriesPath && /^\/tv\/[^/]+$/u.test(seriesPath) && (expectedSeriesPath === null || seriesPath === expectedSeriesPath));
+	});
+	const expectedPaths = new Set([canonicalPath, targetPath].filter((value) => value !== null));
+	const linkedEntries = typedEntries.filter((entry) => {
+		const url = typeof entry.url === "string" ? entry.url : entry["@id"];
+		return typeof url === "string" && expectedPaths.has(pagePath(url) ?? "");
+	});
+	if (linkedEntries.length === 1) return linkedEntries[0] ?? null;
+	if (linkedEntries.length > 1) return null;
+	return typedEntries.length === 1 ? typedEntries[0] ?? null : null;
 };
-var parseRating = (page, matchedEntry) => {
-	if (!page.canonicalUrl) return null;
-	const { aggregateRating } = matchedEntry;
-	if (!aggregateRating || typeof aggregateRating !== "object") return null;
-	const ratingValue = Reflect.get(aggregateRating, "ratingValue");
-	const reviewCount = Reflect.get(aggregateRating, "reviewCount");
-	if (ratingValue === null || reviewCount === null) return null;
-	const score = Math.trunc(Number(String(ratingValue)));
-	const count = Math.trunc(Number(String(reviewCount)));
-	if (!Number.isFinite(score) || score < 0 || score > 100 || !Number.isSafeInteger(count) || count < 0) return null;
-	return {
-		reviewCount: count,
-		score,
-		sourceUrl: new URL(page.canonicalUrl, METACRITIC_ORIGIN$1).href
-	};
-};
-var readMcPage = (html, target) => {
+var aliasFailureReason = (result) => result === "conflict" ? "identity-conflict" : "invalid-page";
+var readMcPage = (html, target, options = {}) => {
 	const page = readStructuredPage(html);
-	const entry = targetEntry(page, target);
-	return entry ? {
-		matchesTarget: true,
-		rating: parseRating(page, entry)
-	} : {
+	if (!page.canonicalUrl || options.finalUrl && pagePath(page.canonicalUrl) !== pagePath(options.finalUrl)) return {
 		matchesTarget: false,
-		rating: null
+		rating: null,
+		reason: "invalid-page"
+	};
+	const entry = targetEntry(page, target, options.expectedSeriesUrl);
+	if (!entry) return {
+		matchesTarget: false,
+		rating: null,
+		reason: page.jsonLd.some((candidate) => structuredTypes(candidate).length > 0) ? "identity-conflict" : "invalid-page"
+	};
+	if (pagePath(page.canonicalUrl) !== `/${target.metacriticId}`) {
+		if (!(target.kind === "season" && options.allowVerifiedSeasonAlias === true)) {
+			const evidenceResult = hasExactIdentityEvidence(entry, target, options.identityEvidence, options.identityNames, options.identityNamesComplete);
+			if (evidenceResult !== "matched") return {
+				matchesTarget: false,
+				rating: null,
+				reason: aliasFailureReason(evidenceResult)
+			};
+		}
+	}
+	const partOfSeries = Reflect.get(entry, "partOfSeries");
+	const seriesUrl = partOfSeries && typeof partOfSeries === "object" ? Reflect.get(partOfSeries, "url") : null;
+	const parsedRating = readPageRating(html, page, target, entry);
+	const canonicalUrl = new URL(page.canonicalUrl, "https://www.metacritic.com").href;
+	const pageSeriesUrl = typeof seriesUrl === "string" ? seriesUrl : null;
+	if (parsedRating.status === "matched") return {
+		canonicalUrl,
+		matchesTarget: true,
+		rating: parsedRating.rating,
+		ratingStatus: parsedRating.status,
+		seriesUrl: pageSeriesUrl
+	};
+	if (parsedRating.status === "partial-error") return {
+		canonicalUrl,
+		matchesTarget: true,
+		rating: parsedRating.rating,
+		ratingError: parsedRating.reason,
+		ratingStatus: parsedRating.status,
+		seriesUrl: pageSeriesUrl
+	};
+	if (parsedRating.status === "no-rating") return {
+		canonicalUrl,
+		matchesTarget: true,
+		rating: null,
+		ratingStatus: parsedRating.status,
+		seriesUrl: pageSeriesUrl
+	};
+	return {
+		canonicalUrl,
+		matchesTarget: true,
+		rating: null,
+		ratingError: parsedRating.reason,
+		ratingStatus: parsedRating.status,
+		seriesUrl: pageSeriesUrl
 	};
 };
 var API_URL = "https://www.wikidata.org/w/api.php";
@@ -17666,6 +18073,9 @@ var entityReference = (value) => {
 	if (!value || typeof value !== "object") return null;
 	const id = Reflect.get(value, "id");
 	return typeof id === "string" ? id : null;
+};
+var throwApiError = (data) => {
+	if (data.error !== void 0) throw new Error("Wikidata API error");
 };
 var searchEntityIds = async (property, value, signal) => {
 	const url = new URL(API_URL);
@@ -17683,6 +18093,7 @@ var searchEntityIds = async (property, value, signal) => {
 		timeoutMs: REQUEST_TIMEOUT$2
 	});
 	const data = JSON.parse(response.responseText);
+	throwApiError(data);
 	if (data.continue) return { status: "ambiguous" };
 	const entityIds = [...new Set((data.query?.search ?? []).map((item) => item.title).filter((id) => /^Q\d+$/u.test(id ?? "")))];
 	return entityIds.length > 0 ? {
@@ -17704,7 +18115,28 @@ var fetchEntities$1 = async (entityIds, signal) => {
 		signal,
 		timeoutMs: REQUEST_TIMEOUT$2
 	});
-	return JSON.parse(response.responseText).entities ?? {};
+	const data = JSON.parse(response.responseText);
+	throwApiError(data);
+	return data.entities ?? {};
+};
+var fetchEntityNames = async (entityIds, signal) => {
+	const uniqueIds = [...new Set(entityIds.filter((id) => /^Q\d+$/u.test(id)))];
+	if (uniqueIds.length === 0) return {};
+	const url = new URL(API_URL);
+	url.search = new URLSearchParams({
+		action: "wbgetentities",
+		format: "json",
+		ids: uniqueIds.slice(0, 50).join("|"),
+		origin: "*",
+		props: "labels|aliases"
+	}).toString();
+	const response = await gmGetResponse(url.href, void 0, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$2
+	});
+	const data = JSON.parse(response.responseText);
+	throwApiError(data);
+	return Object.fromEntries(Object.entries(data.entities ?? {}).map(([id, entity]) => [id, [.../* @__PURE__ */ new Set([...Object.values(entity.labels ?? {}).flatMap((label) => typeof label.value === "string" ? [label.value] : []), ...Object.values(entity.aliases ?? {}).flatMap((aliases) => aliases.flatMap((alias) => typeof alias.value === "string" ? [alias.value] : []))])]]));
 };
 var findEntityCandidates = async (property, value, signal) => {
 	const search = await searchEntityIds(property, value, signal);
@@ -17716,13 +18148,279 @@ var findEntityCandidates = async (property, value, signal) => {
 		status: "matched"
 	} : { status: "missing" };
 };
+var METACRITIC_ORIGIN = "https://www.metacritic.com";
+var REQUEST_TIMEOUT$1 = 8e3;
+var identityFailureReason = (error, signal) => {
+	if (signal.aborted || error instanceof DOMException && error.name === "AbortError") return "cancelled";
+	return error instanceof SyntaxError ? "parse-error" : "request-error";
+};
+var requestMcPage = async (targetUrl, signal) => {
+	if (!pagePath(targetUrl)) throw new Error("Metacritic target URL is invalid");
+	const response = await gmGetResponse(targetUrl, `${METACRITIC_ORIGIN}/`, {
+		signal,
+		timeoutMs: REQUEST_TIMEOUT$1
+	});
+	if (response.status < 200 || response.status >= 400 || pagePath(response.finalUrl) === null) throw new Error("Metacritic response did not match its mapped page");
+	return response;
+};
+var identityNamesForAlias = async (html, target, signal) => {
+	const { canonicalUrl } = readStructuredPage(html);
+	if (!canonicalUrl || pagePath(canonicalUrl) === `/${target.metacriticId}`) return {
+		complete: true,
+		names: []
+	};
+	const ids = target.kind === "movie" ? target.identityReferences.directors : target.identityReferences.creators;
+	if (ids.length === 0) return {
+		complete: true,
+		names: []
+	};
+	try {
+		const namesById = await fetchEntityNames(ids, signal);
+		return {
+			complete: ids.every((id) => (namesById[id]?.length ?? 0) > 0),
+			names: [...new Set(Object.values(namesById).flat())]
+		};
+	} catch (error) {
+		return {
+			complete: false,
+			failure: identityFailureReason(error, signal),
+			names: []
+		};
+	}
+};
+var readVerifiedSeasonPage = async (context, response, target, identityNameResolution, signal) => {
+	const directPage = readMcPage(response.responseText, target, {
+		expectedSeriesUrl: target.seriesMetacriticId,
+		finalUrl: response.finalUrl,
+		identityNames: identityNameResolution.names,
+		identityNamesComplete: identityNameResolution.complete,
+		identityEvidence: context.identityEvidence
+	});
+	if (directPage.matchesTarget || target.kind !== "season") return directPage;
+	if (!target.seriesMetacriticId) return directPage;
+	const candidatePage = readMcPage(response.responseText, target, {
+		allowVerifiedSeasonAlias: true,
+		expectedSeriesUrl: null,
+		finalUrl: response.finalUrl,
+		identityEvidence: context.identityEvidence
+	});
+	if (!candidatePage.matchesTarget || !candidatePage.seriesUrl) return candidatePage;
+	const candidateSeriesPath = pagePath(candidatePage.seriesUrl);
+	const mappedSeriesPath = pagePath(target.seriesMetacriticId);
+	if (!candidateSeriesPath || !mappedSeriesPath) return {
+		matchesTarget: false,
+		rating: null,
+		reason: "invalid-page"
+	};
+	if (candidateSeriesPath === mappedSeriesPath) return readMcPage(response.responseText, target, {
+		allowVerifiedSeasonAlias: true,
+		expectedSeriesUrl: candidatePage.seriesUrl,
+		finalUrl: response.finalUrl,
+		identityNames: identityNameResolution.names,
+		identityNamesComplete: identityNameResolution.complete,
+		identityEvidence: context.identityEvidence
+	});
+	const seriesTarget = {
+		kind: "series",
+		identityReferences: target.identityReferences,
+		metacriticId: target.seriesMetacriticId,
+		season: null,
+		seriesId: target.seriesId,
+		seriesMetacriticId: target.seriesMetacriticId,
+		status: "matched"
+	};
+	let seriesResponse;
+	try {
+		seriesResponse = await requestMcPage(`${METACRITIC_ORIGIN}/${target.seriesMetacriticId}/`, signal);
+	} catch {
+		return {
+			matchesTarget: false,
+			rating: null,
+			reason: "request-error"
+		};
+	}
+	const seriesNames = await identityNamesForAlias(seriesResponse.responseText, seriesTarget, signal);
+	const seriesPage = readMcPage(seriesResponse.responseText, seriesTarget, {
+		finalUrl: seriesResponse.finalUrl,
+		identityNames: seriesNames.names,
+		identityNamesComplete: seriesNames.complete,
+		identityEvidence: context.identityEvidence
+	});
+	if (!seriesPage.matchesTarget || !seriesPage.canonicalUrl) return seriesPage.matchesTarget ? {
+		matchesTarget: false,
+		rating: null,
+		reason: "invalid-page"
+	} : seriesPage;
+	if (pagePath(seriesPage.canonicalUrl) !== candidateSeriesPath) return {
+		matchesTarget: false,
+		rating: null,
+		reason: "identity-conflict"
+	};
+	return readMcPage(response.responseText, target, {
+		allowVerifiedSeasonAlias: true,
+		expectedSeriesUrl: seriesPage.canonicalUrl,
+		finalUrl: response.finalUrl,
+		identityNames: identityNameResolution.names,
+		identityNamesComplete: identityNameResolution.complete,
+		identityEvidence: context.identityEvidence
+	});
+};
+var STORAGE_KEY$1 = "dp:metacritic-snapshots:v2";
+var FRESH_AGE$1 = 6048e5;
+var MAX_AGE$1 = 2592e6;
+var identityKey$1 = (object) => JSON.stringify([
+	object.subjectId,
+	object.kind,
+	object.season,
+	object.seriesId,
+	object.seriesMetacriticId,
+	object.metacriticId
+]);
+var readStore$1 = () => {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY$1) ?? "{}");
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+		return parsed;
+	} catch {
+		return {};
+	}
+};
+var writeStore$1 = (store) => {
+	try {
+		localStorage.setItem(STORAGE_KEY$1, JSON.stringify(store));
+	} catch {}
+};
+var withoutKey$1 = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
+var isMcScoreSide = (side, maximum, requireInteger) => {
+	if (!side || typeof side !== "object") return false;
+	const candidate = side;
+	return Boolean(typeof candidate.score === "number" && Number.isFinite(candidate.score) && candidate.score >= 0 && candidate.score <= maximum && (!requireInteger || Number.isInteger(candidate.score)) && typeof candidate.displayScore === "string" && /^\d+(?:\.\d+)?$/u.test(candidate.displayScore) && Number(candidate.displayScore) === candidate.score && (candidate.reviewCount === null || typeof candidate.reviewCount === "number" && Number.isSafeInteger(candidate.reviewCount) && candidate.reviewCount >= 0));
+};
+var isRating$1 = (value) => {
+	if (!value || typeof value !== "object") return false;
+	const rating = value;
+	return Boolean(rating.object && typeof rating.object.subjectId === "string" && typeof rating.object.metacriticId === "string" && typeof rating.object.kind === "string" && typeof rating.fetchedAt === "number" && Number.isFinite(rating.fetchedAt) && typeof rating.sourceUrl === "string" && (rating.critics === null || isMcScoreSide(rating.critics, 100, true)) && (rating.audience === null || isMcScoreSide(rating.audience, 10, false)) && (rating.critics !== null || rating.audience !== null));
+};
+var usableSnapshot$1 = (rating, now) => {
+	const age = now - rating.fetchedAt;
+	if (age < 0 || age > MAX_AGE$1) return null;
+	return {
+		...rating,
+		stale: age >= FRESH_AGE$1
+	};
+};
+var readSnapshot$1 = (object, now = Date.now()) => {
+	const store = readStore$1();
+	const key = identityKey$1(object);
+	const value = store[key];
+	if (!isRating$1(value) || identityKey$1(value.object) !== key) return null;
+	const snapshot = usableSnapshot$1(value, now);
+	if (!snapshot) writeStore$1(withoutKey$1(store, key));
+	return snapshot;
+};
+var readUniqueSnapshot$1 = (subjectId, kind, season, now = Date.now()) => {
+	const store = readStore$1();
+	const matches = Object.values(store).filter(isRating$1).filter((rating) => rating.object.subjectId === subjectId && rating.object.kind === kind && rating.object.season === season).map((rating) => usableSnapshot$1(rating, now)).filter((rating) => rating !== null);
+	return matches.length === 1 ? matches[0] ?? null : null;
+};
+var writeSnapshot$1 = (rating) => {
+	const store = readStore$1();
+	store[identityKey$1(rating.object)] = {
+		...rating,
+		stale: false
+	};
+	const entries = Object.entries(store).toSorted(([, left], [, right]) => right.fetchedAt - left.fetchedAt);
+	writeStore$1(Object.fromEntries(entries.slice(0, 200)));
+};
+var removeSnapshot$1 = (object) => {
+	writeStore$1(withoutKey$1(readStore$1(), identityKey$1(object)));
+};
+var removeSnapshotsForContext$1 = (subjectId, kind, season) => {
+	const store = readStore$1();
+	writeStore$1(Object.fromEntries(Object.entries(store).filter(([, rating]) => !isRating$1(rating) || rating.object.subjectId !== subjectId || rating.object.kind !== kind || rating.object.season !== season)));
+};
+var FILM_TYPE_ID = "Q11424";
+var MAX_TYPE_ANCESTRY_DEPTH = 4;
+var MAX_TYPE_ANCESTRY_IDS = 32;
+var typeParentCache = /* @__PURE__ */ new Map();
+var typeParentRequests = /* @__PURE__ */ new WeakMap();
+var parentsOf = (entity) => (entity?.claims?.P279 ?? []).filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => entityReference(claim.mainsnak?.datavalue?.value)).filter((id) => id !== null);
+var fetchTypeParents = async (typeIds, signal) => {
+	const uncached = typeIds.filter((id) => !typeParentCache.has(id));
+	if (uncached.length > 0) {
+		let requests = typeParentRequests.get(signal);
+		if (!requests) {
+			requests = /* @__PURE__ */ new Map();
+			typeParentRequests.set(signal, requests);
+		}
+		const key = uncached.toSorted().join("|");
+		let request = requests.get(key);
+		if (!request) {
+			request = fetchEntities$1(uncached, signal).then((entities) => {
+				const parentsById = {};
+				for (const id of uncached) {
+					const parents = parentsOf(entities[id]);
+					typeParentCache.set(id, parents);
+					parentsById[id] = parents;
+				}
+				return parentsById;
+			});
+			requests.set(key, request);
+			request.catch(() => {
+				if (requests?.get(key) === request) requests.delete(key);
+			});
+		}
+		await request;
+	}
+	return Object.fromEntries(typeIds.map((id) => [id, typeParentCache.get(id) ?? []]));
+};
+var isFilmInstance = (instanceTypeIds, signal) => {
+	const frontier = [...new Set(instanceTypeIds)].slice(0, MAX_TYPE_ANCESTRY_IDS);
+	const visited = new Set(frontier);
+	const hasFilmAncestor = async (currentFrontier, depth) => {
+		if (currentFrontier.length === 0 || depth >= MAX_TYPE_ANCESTRY_DEPTH) return false;
+		if (currentFrontier.includes(FILM_TYPE_ID)) return true;
+		const parents = /* @__PURE__ */ new Set();
+		const parentMap = await fetchTypeParents(currentFrontier, signal);
+		for (const id of currentFrontier) for (const parent of parentMap[id] ?? []) {
+			if (parent === FILM_TYPE_ID) return true;
+			if (!visited.has(parent) && visited.size < MAX_TYPE_ANCESTRY_IDS) {
+				visited.add(parent);
+				parents.add(parent);
+			}
+		}
+		return hasFilmAncestor([...parents], depth + 1);
+	};
+	return hasFilmAncestor(frontier, 0);
+};
+var parseRottenTomatoesPath = (value) => {
+	if (/^m\/[^/]+$/u.test(value)) return { kind: "movie" };
+	const match = value.match(/^tv\/(?<series>[^/]+)(?:\/s(?<season>\d{2,}))?$/u);
+	const series = match?.groups?.series;
+	if (!series) return null;
+	const rawSeason = match.groups?.season;
+	if (rawSeason === void 0) return {
+		kind: "series",
+		series
+	};
+	const season = Number(rawSeason);
+	return Number.isSafeInteger(season) && season > 0 ? {
+		kind: "season",
+		season,
+		series
+	} : null;
+};
 var ACTIVE_RANKS$1 = /* @__PURE__ */ new Set(["normal", "preferred"]);
 var TYPES = {
 	episode: /* @__PURE__ */ new Set(["Q21191270"]),
-	movie: /* @__PURE__ */ new Set(["Q11424"]),
 	season: /* @__PURE__ */ new Set(["Q3464665"]),
-	series: /* @__PURE__ */ new Set(["Q5398426", "Q15416"])
+	series: /* @__PURE__ */ new Set([
+		"Q5398426",
+		"Q15416",
+		"Q1259759"
+	])
 };
+var NON_MOVIE_TYPE_IDS = new Set(Object.values(TYPES).flatMap((types) => [...types]));
 var activeClaimValues = (claims) => (claims ?? []).filter((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "")).filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
 var uniqueReference = (claims, property) => {
 	const values = activeClaimValues(claims?.[property]);
@@ -17736,6 +18434,13 @@ var uniqueReference = (claims, property) => {
 		status: "matched"
 	} : { status: "ambiguous" };
 };
+var identityReferences = (entity) => {
+	const idsFor = (property) => [...new Set(activeClaimValues(entity.claims?.[property]).map(entityReference).filter((id) => id !== null))];
+	return {
+		creators: idsFor("P170"),
+		directors: idsFor("P57")
+	};
+};
 var ordinalResult = (rawValues) => {
 	const values = rawValues.map(Number);
 	if (values.length === 0) return { status: "missing" };
@@ -17747,9 +18452,11 @@ var ordinalResult = (rawValues) => {
 };
 var readOrdinal = (claims) => ordinalResult(activeClaimValues(claims?.P1545));
 var readQualifierOrdinal = (snaks) => ordinalResult((snaks ?? []).filter((snak) => snak.snaktype === "value").map((snak) => snak.datavalue?.value));
-var entityKind$1 = (entity) => {
+var entityKind$1 = async (entity, signal) => {
 	const types = activeClaimValues(entity.claims?.P31).map(entityReference).filter((id) => id !== null);
-	const matches = Object.entries(TYPES).filter(([, ids]) => types.some((id) => ids.has(id))).map(([kind]) => kind);
+	const matches = [];
+	if (await isFilmInstance(types.filter((id) => !NON_MOVIE_TYPE_IDS.has(id)), signal)) matches.push("movie");
+	matches.push(...Object.entries(TYPES).filter(([, ids]) => types.some((id) => ids.has(id))).map(([kind]) => kind));
 	return matches.length === 1 ? matches[0] ?? null : null;
 };
 var normalizeMetacriticId = (value) => {
@@ -17780,223 +18487,792 @@ var readMetacriticId = (entity) => {
 var hasIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => ACTIVE_RANKS$1.has(claim.rank ?? "") && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
 var findEntity = async (property, value, signal) => {
 	const candidates = await findEntityCandidates(property, value, signal);
-	if (candidates.status !== "matched") return candidates;
+	if (candidates.status !== "matched") return {
+		...candidates,
+		candidateTargets: []
+	};
+	const candidateTargets = candidates.entities.map((entity) => entity.id).filter((id) => /^Q\d+$/u.test(id));
 	const matches = candidates.entities.filter((entity) => hasIdentity(entity, property, value));
-	if (matches.length > 1) return { status: "ambiguous" };
+	if (matches.length > 1) return {
+		candidateTargets,
+		status: "ambiguous"
+	};
 	const [entity] = matches;
 	return entity ? {
+		candidateTargets,
 		entity,
 		status: "matched"
-	} : { status: "missing" };
+	} : {
+		candidateTargets,
+		status: "missing"
+	};
 };
-var seasonTarget = (entity, season, expectedSeriesId) => {
-	if (entityKind$1(entity) !== "season") return { status: "ambiguous" };
+var metacriticSeriesTarget = (entity, fallbackMetacriticId) => {
+	const metacritic = readMetacriticId(entity);
+	if (metacritic.status === "ambiguous") return { status: "ambiguous" };
+	const metacriticId = metacritic.status === "matched" ? metacritic.metacriticId : fallbackMetacriticId;
+	if (!metacriticId) return { status: "missing" };
+	if (!metacriticId.startsWith("tv/") || metacriticId.includes("/season-")) return { status: "ambiguous" };
+	return {
+		kind: "series",
+		identityReferences: identityReferences(entity),
+		metacriticId,
+		season: null,
+		seriesId: entity.id,
+		seriesMetacriticId: metacriticId,
+		status: "matched"
+	};
+};
+var needsSeasonLink = (seriesTarget, season) => ({
+	season,
+	seriesTarget,
+	status: "season-link-needed"
+});
+var seasonTarget = async (entity, season, expectedSeriesId, seriesMetacriticId, seriesIdentityReferences, signal) => {
+	const kind = await entityKind$1(entity, signal);
+	if (kind === "episode") return { status: "missing" };
+	if (kind !== "season") return { status: "ambiguous" };
 	const ordinal = readOrdinal(entity.claims);
 	const series = uniqueReference(entity.claims, "P179");
 	const metacritic = readMetacriticId(entity);
 	const idSeason = metacritic.status === "matched" ? Number(metacritic.metacriticId.match(/\/season-(?<season>\d+)$/u)?.groups?.season) : null;
-	if (ordinal.status === "ambiguous" || ordinal.status === "matched" && ordinal.value !== season || !Number.isSafeInteger(idSeason) || idSeason !== season || series.status !== "matched" || expectedSeriesId !== null && series.id !== expectedSeriesId || metacritic.status !== "matched") return { status: "ambiguous" };
+	const idSeries = metacritic.status === "matched" ? metacritic.metacriticId.replace(/\/season-\d+$/u, "") : null;
+	if (ordinal.status === "ambiguous" || ordinal.status === "matched" && ordinal.value !== season || series.status === "matched" && series.id !== expectedSeriesId || series.status === "ambiguous" || metacritic.status === "matched" && (!Number.isSafeInteger(idSeason) || idSeason !== season || idSeries !== seriesMetacriticId) || metacritic.status === "ambiguous") return { status: "ambiguous" };
+	if (series.status === "missing" || metacritic.status === "missing") return { status: "missing" };
 	return {
 		kind: "season",
+		identityReferences: seriesIdentityReferences,
 		metacriticId: metacritic.metacriticId,
 		season,
-		seriesId: series.id,
+		seriesId: expectedSeriesId,
+		seriesMetacriticId,
 		status: "matched"
 	};
 };
+var seriesAndSeason = async (seriesId, signal, fallbackMetacriticId) => {
+	const series = (await fetchEntities$1([seriesId], signal))[seriesId];
+	if (!series) return { status: "missing" };
+	if (await entityKind$1(series, signal) !== "series") return { status: "ambiguous" };
+	const result = metacriticSeriesTarget(series, fallbackMetacriticId);
+	if (result.status === "matched") return {
+		series,
+		target: result,
+		status: "matched"
+	};
+	return result.status === "ambiguous" ? { status: "ambiguous" } : { status: "missing" };
+};
 var seasonForEpisode = async (episode, season, signal) => {
 	const seasonRef = uniqueReference(episode.claims, "P4908");
-	if (seasonRef.status !== "matched") return { status: seasonRef.status };
-	const expectedSeries = uniqueReference(episode.claims, "P179");
-	if (expectedSeries.status === "ambiguous") return expectedSeries;
+	if (seasonRef.status === "ambiguous") return seasonRef;
+	if (seasonRef.status === "missing") {
+		const series = uniqueReference(episode.claims, "P179");
+		if (series.status !== "matched") return series;
+		const resolvedSeries = await seriesAndSeason(series.id, signal);
+		if (resolvedSeries.status !== "matched") return resolvedSeries;
+		return needsSeasonLink(resolvedSeries.target, season);
+	}
 	const entity = (await fetchEntities$1([seasonRef.id], signal))[seasonRef.id];
-	return entity ? seasonTarget(entity, season, expectedSeries.status === "matched" ? expectedSeries.id : null) : { status: "missing" };
+	if (!entity) {
+		const series = uniqueReference(episode.claims, "P179");
+		if (series.status !== "matched") return series;
+		const resolvedSeries = await seriesAndSeason(series.id, signal);
+		return resolvedSeries.status === "matched" ? needsSeasonLink(resolvedSeries.target, season) : resolvedSeries;
+	}
+	const result = await seasonForSeason(entity, season, signal);
+	if (result.status !== "missing") return result;
+	const series = uniqueReference(episode.claims, "P179");
+	if (series.status !== "matched") return result;
+	const resolvedSeries = await seriesAndSeason(series.id, signal);
+	return resolvedSeries.status === "matched" ? needsSeasonLink(resolvedSeries.target, season) : resolvedSeries;
 };
 var seasonForSeries = async (series, season, signal) => {
-	const seriesMetacriticId = readMetacriticId(series);
-	if (seriesMetacriticId.status !== "matched" || !seriesMetacriticId.metacriticId.startsWith("tv/") || seriesMetacriticId.metacriticId.includes("/season-")) return { status: "ambiguous" };
+	const mappedSeries = readMetacriticId(series);
+	if (mappedSeries.status === "ambiguous") return mappedSeries;
+	const seriesTarget = mappedSeries.status === "matched" ? metacriticSeriesTarget(series) : null;
+	if (seriesTarget && seriesTarget.status !== "matched") return seriesTarget;
 	const seasonIds = (series.claims?.P527 ?? []).filter((claim) => claim.rank === "normal" || claim.rank === "preferred").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => ({
 		id: entityReference(claim.mainsnak?.datavalue?.value),
 		ordinal: readQualifierOrdinal(claim.qualifiers?.P1545)
 	})).filter(({ ordinal }) => ordinal.status === "matched" && ordinal.value === season).map(({ id }) => id).filter((id) => id !== null);
 	const uniqueSeasonIds = [...new Set(seasonIds)];
 	const [seasonId] = uniqueSeasonIds;
-	if (uniqueSeasonIds.length !== 1 || !seasonId) return { status: uniqueSeasonIds.length > 1 ? "ambiguous" : "missing" };
+	if (uniqueSeasonIds.length > 1) return { status: "ambiguous" };
+	if (!seasonId) return seriesTarget ? needsSeasonLink(seriesTarget, season) : { status: "missing" };
 	const entity = (await fetchEntities$1([seasonId], signal))[seasonId];
-	return entity ? seasonTarget(entity, season, series.id) : { status: "missing" };
+	if (!entity) return seriesTarget ? needsSeasonLink(seriesTarget, season) : { status: "missing" };
+	const seasonMetacriticId = readMetacriticId(entity);
+	const fallbackSeriesId = seasonMetacriticId.status === "matched" ? seasonMetacriticId.metacriticId.replace(/\/season-\d+$/u, "") : void 0;
+	const confirmedSeriesTarget = seriesTarget ?? (fallbackSeriesId ? metacriticSeriesTarget(series, fallbackSeriesId) : null);
+	if (!confirmedSeriesTarget) return { status: "missing" };
+	if (confirmedSeriesTarget.status !== "matched") return confirmedSeriesTarget;
+	const result = await seasonTarget(entity, season, series.id, confirmedSeriesTarget.metacriticId, confirmedSeriesTarget.identityReferences, signal);
+	return result.status === "missing" ? needsSeasonLink(confirmedSeriesTarget, season) : result;
+};
+var seasonForSeason = async (entity, season, signal) => {
+	const series = uniqueReference(entity.claims, "P179");
+	if (series.status !== "matched") return series;
+	const seasonMetacriticId = readMetacriticId(entity);
+	const fallbackSeriesId = seasonMetacriticId.status === "matched" ? seasonMetacriticId.metacriticId.replace(/\/season-\d+$/u, "") : void 0;
+	const resolvedSeries = await seriesAndSeason(series.id, signal, fallbackSeriesId);
+	if (resolvedSeries.status !== "matched") return resolvedSeries;
+	return seasonTarget(entity, season, resolvedSeries.series.id, resolvedSeries.target.metacriticId, resolvedSeries.target.identityReferences, signal);
 };
 var resolveSeasonTarget = (entity, kind, season, signal) => {
-	if (kind === "season") return seasonTarget(entity, season, null);
+	if (kind === "season") return seasonForSeason(entity, season, signal);
 	if (kind === "episode") return seasonForEpisode(entity, season, signal);
-	if (kind === "series" || kind === null) return seasonForSeries(entity, season, signal);
+	if (kind === "series") return seasonForSeries(entity, season, signal);
 	return { status: "ambiguous" };
 };
-var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v1");
-var resolveEntity = (entity, context, signal) => {
-	const kind = entityKind$1(entity);
+var resolveEntity = async (entity, context, signal) => {
+	const kind = await entityKind$1(entity, signal);
 	if (context.kind === "movie") {
 		if (kind !== "movie") return { status: "ambiguous" };
 		const metacritic = readMetacriticId(entity);
 		if (metacritic.status !== "matched") return metacritic;
 		return metacritic.metacriticId.startsWith("movie/") ? {
 			kind: "movie",
+			identityReferences: identityReferences(entity),
 			metacriticId: metacritic.metacriticId,
 			season: null,
 			seriesId: null,
+			seriesMetacriticId: null,
 			status: "matched"
 		} : { status: "ambiguous" };
 	}
 	if (context.kind === "series") {
-		if (kind !== null && kind !== "series") return { status: "ambiguous" };
+		if (kind !== "series") return { status: "ambiguous" };
 		const metacritic = readMetacriticId(entity);
 		if (metacritic.status !== "matched") return metacritic;
 		return metacritic.metacriticId.startsWith("tv/") && !metacritic.metacriticId.includes("/season-") ? {
 			kind: "series",
+			identityReferences: identityReferences(entity),
 			metacriticId: metacritic.metacriticId,
 			season: null,
 			seriesId: entity.id,
+			seriesMetacriticId: metacritic.metacriticId,
 			status: "matched"
 		} : { status: "ambiguous" };
 	}
-	if (context.season === null) return { status: "ambiguous" };
+	if (context.season === null || kind === null) return { status: "ambiguous" };
 	return resolveSeasonTarget(entity, kind, context.season, signal);
 };
 var resolveIdentifier = async (property, value, context, signal) => {
 	const lookup = await findEntity(property, value, signal);
-	if (lookup.status !== "matched") return lookup;
-	return resolveEntity(lookup.entity, context, signal);
+	const evidence = {
+		acceptedEvidence: [],
+		candidateTargets: lookup.candidateTargets,
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: []
+	};
+	if (lookup.status !== "matched") return {
+		evidence: {
+			...evidence,
+			missingEvidence: ["exact-id"],
+			unverifiedEvidence: [
+				"type",
+				"canonical",
+				"aggregate-rating"
+			]
+		},
+		target: lookup
+	};
+	const target = await resolveEntity(lookup.entity, context, signal);
+	const acceptedEvidence = ["exact-id", ...target.status === "matched" || target.status === "missing" || target.status === "season-link-needed" ? ["type"] : []];
+	if (target.status === "missing") return {
+		evidence: {
+			...evidence,
+			acceptedEvidence,
+			missingEvidence: ["exact-id"],
+			unverifiedEvidence: ["canonical", "aggregate-rating"]
+		},
+		target
+	};
+	if (target.status === "ambiguous") return {
+		evidence: {
+			...evidence,
+			acceptedEvidence,
+			rejectedEvidence: ["type"]
+		},
+		target
+	};
+	return {
+		evidence: {
+			...evidence,
+			acceptedEvidence
+		},
+		target
+	};
 };
+var resolveTargetResults = (targets, evidence, hasRejectedLookup, failure) => {
+	const matches = targets.filter((target) => target.status === "matched");
+	const seasonLinks = targets.filter((target) => target.status === "season-link-needed");
+	const uniqueTargets = new Map(matches.map((target) => [`${target.kind}:${target.metacriticId}:${target.seriesId ?? ""}:${target.seriesMetacriticId ?? ""}`, target]));
+	const uniqueSeasonLinks = new Map(seasonLinks.map((result) => [`${result.season}:${result.seriesTarget.seriesId ?? ""}:${result.seriesTarget.metacriticId}`, result]));
+	if (uniqueTargets.size > 1 || uniqueSeasonLinks.size > 1) return {
+		complete: true,
+		status: "identity-conflict",
+		...evidence
+	};
+	const [matchedTarget] = uniqueTargets.values();
+	const [seasonLink] = uniqueSeasonLinks.values();
+	if (matchedTarget && seasonLink) {
+		if (matchedTarget.kind !== "season" || matchedTarget.season !== seasonLink.season || matchedTarget.seriesId !== seasonLink.seriesTarget.seriesId) return {
+			complete: true,
+			status: "identity-conflict",
+			...evidence
+		};
+		return {
+			complete: !hasRejectedLookup,
+			...hasRejectedLookup ? { failure } : {},
+			status: "matched",
+			target: matchedTarget,
+			...evidence
+		};
+	}
+	if (seasonLink) return {
+		complete: !hasRejectedLookup,
+		...hasRejectedLookup ? { failure } : {},
+		...seasonLink,
+		...evidence
+	};
+	if (matchedTarget) return {
+		complete: !hasRejectedLookup,
+		...hasRejectedLookup ? { failure } : {},
+		status: "matched",
+		target: matchedTarget,
+		...evidence
+	};
+	return {
+		complete: !hasRejectedLookup,
+		...hasRejectedLookup ? { failure } : {},
+		status: hasRejectedLookup ? "error" : "missing",
+		...evidence
+	};
+};
+var resolveIdentifierResults = (results) => {
+	const hasRejectedLookup = results.some((result) => result.status === "rejected");
+	const failure = results.find((result) => result.status === "rejected")?.reason instanceof SyntaxError ? "parse-error" : "request-error";
+	const completed = results.flatMap((result) => result.status === "fulfilled" ? [result.value] : []);
+	const targets = completed.map(({ target }) => target);
+	if (targets.some((target) => target.status === "ambiguous")) return {
+		complete: true,
+		status: "ambiguous",
+		...aggregateEvidence(completed)
+	};
+	return resolveTargetResults(targets, aggregateEvidence(completed, !hasRejectedLookup && targets.some((target) => target.status === "matched" || target.status === "season-link-needed")), hasRejectedLookup, failure);
+};
+var aggregateEvidence = (completed, hasResolvedTarget = false) => ({
+	acceptedEvidence: completed.flatMap(({ evidence: item }) => item.acceptedEvidence),
+	candidateTargets: [...new Set(completed.flatMap(({ evidence: item }) => item.candidateTargets))],
+	missingEvidence: hasResolvedTarget ? [] : completed.flatMap(({ evidence: item }) => item.missingEvidence),
+	rejectedEvidence: completed.flatMap(({ evidence: item }) => item.rejectedEvidence),
+	unverifiedEvidence: hasResolvedTarget ? [] : completed.flatMap(({ evidence: item }) => item.unverifiedEvidence)
+});
+var missingIdentifierResult = () => ({
+	evidence: {
+		acceptedEvidence: [],
+		candidateTargets: [],
+		missingEvidence: ["exact-id"],
+		rejectedEvidence: [],
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
+	},
+	target: { status: "missing" }
+});
+var targetCache = createVerifiedTargetCache("dp:metacritic-targets:v4");
 var resolveMetacriticTargetFresh = async (context, signal) => {
 	if (context.seasonConflict || context.unsupportedEpisode) return {
 		complete: true,
-		status: "ambiguous"
+		status: "identity-conflict"
 	};
 	if (context.kind === "season" && context.season === null) return {
 		complete: true,
 		status: "missing"
 	};
-	const results = await Promise.allSettled([context.imdbId ? resolveIdentifier("P345", context.imdbId, context, signal) : Promise.resolve({ status: "missing" }), context.subjectId ? resolveIdentifier("P4529", context.subjectId, context, signal) : Promise.resolve({ status: "missing" })]);
-	const hasRejectedLookup = results.some((result) => result.status === "rejected");
-	const targets = results.filter((result) => result.status === "fulfilled").map((result) => result.value);
-	if (targets.some((target) => target.status === "ambiguous")) return {
-		complete: true,
-		status: "ambiguous"
-	};
-	const matches = targets.filter((target) => target.status === "matched");
-	const uniqueTargets = new Map(matches.map((target) => [`${target.kind}:${target.metacriticId}:${target.seriesId ?? ""}`, target]));
-	if (uniqueTargets.size > 1) return {
-		complete: true,
-		status: "ambiguous"
-	};
-	if (uniqueTargets.size === 0) return {
-		complete: !hasRejectedLookup,
-		status: hasRejectedLookup ? "error" : "missing"
-	};
-	const [target] = uniqueTargets.values();
-	return target ? {
-		complete: !hasRejectedLookup,
-		status: "matched",
-		target
-	} : {
-		complete: !hasRejectedLookup,
-		status: "missing"
-	};
+	return resolveIdentifierResults(await Promise.allSettled([context.imdbId ? resolveIdentifier("P345", context.imdbId, context, signal) : Promise.resolve(missingIdentifierResult()), context.subjectId ? resolveIdentifier("P4529", context.subjectId, context, signal) : Promise.resolve(missingIdentifierResult())]));
 };
-var resolveMetacriticTarget = async (context, signal) => {
+var resolveMetacriticTarget = (context, signal) => {
 	const cached = targetCache.get(context);
-	if (cached?.status === "resolved") return cached.target;
-	const result = await resolveMetacriticTargetFresh(context, signal);
-	return result.status === "matched" ? result.target : null;
+	if (cached?.status === "resolved") return Promise.resolve({
+		complete: true,
+		status: "matched",
+		target: cached.target
+	});
+	return resolveMetacriticTargetFresh(context, signal);
 };
 var getCachedMetacriticTarget = targetCache.get;
 var cacheMetacriticTarget = targetCache.set;
 var invalidateMetacriticTarget = targetCache.invalidate;
-var METACRITIC_ORIGIN = "https://www.metacritic.com";
-var REQUEST_TIMEOUT$1 = 8e3;
-var mcCache = createCache("dp:metacritic-cache-v3", 6048e5);
-var cacheKey = (context, target) => [
+var ratingGenerations = /* @__PURE__ */ new Map();
+var contextKey = (context) => JSON.stringify([
 	context.subjectId,
-	target.kind,
-	target.season === null ? "" : String(target.season),
-	target.metacriticId
-].join(":");
-var sameTarget = (left, right) => left.kind === right.kind && left.metacriticId === right.metacriticId && left.season === right.season && left.seriesId === right.seriesId;
-var fetchRatingForTarget = async (context, target, signal, cacheVerifiedTarget = false) => {
-	const key = cacheKey(context, target);
-	const cached = mcCache.get(key);
-	if (cached) {
-		if (cacheVerifiedTarget) cacheMetacriticTarget(context, target);
-		return cached;
-	}
-	const response = await gmGetResponse(`${METACRITIC_ORIGIN}/${target.metacriticId}/`, `${METACRITIC_ORIGIN}/`, {
-		signal,
-		timeoutMs: REQUEST_TIMEOUT$1
-	});
-	if (pagePath(response.finalUrl) !== `/${target.metacriticId}`) {
-		invalidateMetacriticTarget(context);
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var generationOf = (context) => ratingGenerations.get(contextKey(context)) ?? 0;
+var invalidateRatingTarget = (context, object) => {
+	invalidateMetacriticTarget(context);
+	ratingGenerations.set(contextKey(context), generationOf(context) + 1);
+	if (object) removeSnapshot$1(object);
+	else removeSnapshotsForContext$1(context.subjectId, context.kind, context.season);
+};
+var removeRatingSnapshot = (context, object) => {
+	ratingGenerations.set(contextKey(context), generationOf(context) + 1);
+	removeSnapshot$1(object);
+};
+var targetObject = (context, target) => ({
+	kind: target.kind,
+	metacriticId: target.metacriticId,
+	season: target.season,
+	seriesId: target.seriesId,
+	seriesMetacriticId: target.seriesMetacriticId,
+	subjectId: context.subjectId
+});
+var sameTarget = (left, right) => left.kind === right.kind && left.metacriticId === right.metacriticId && left.season === right.season && left.seriesId === right.seriesId && left.seriesMetacriticId === right.seriesMetacriticId && JSON.stringify(left.identityReferences) === JSON.stringify(right.identityReferences);
+var loadPageForTarget = async (context, target, signal, generation, onOutcome) => {
+	let response;
+	try {
+		response = await requestMcPage(`${METACRITIC_ORIGIN}/${target.metacriticId}/`, signal);
+	} catch (error) {
+		onOutcome?.(failureDiagnostic(error, "request", target.metacriticId, "mc-page-request"));
 		return null;
 	}
-	const page = readMcPage(response.responseText, target);
-	if (!page.matchesTarget) {
-		invalidateMetacriticTarget(context);
+	if (signal.aborted || generationOf(context) !== generation) {
+		const reason = signal.aborted ? "cancelled" : "identity-conflict";
+		const stage = signal.aborted ? "request" : "identity";
+		const errorCode = signal.aborted ? "aborted" : "stale-request";
+		onOutcome?.(makeDiagnostic$2(reason, stage, target.metacriticId, null, errorCode));
 		return null;
 	}
-	if (cacheVerifiedTarget) cacheMetacriticTarget(context, target);
-	const { rating } = page;
-	if (!rating) return null;
-	mcCache.set(key, rating);
+	const identityNames = await identityNamesForAlias(response.responseText, target, signal);
+	if (signal.aborted || generationOf(context) !== generation) {
+		const reason = signal.aborted ? "cancelled" : "identity-conflict";
+		const stage = signal.aborted ? "request" : "identity";
+		const errorCode = signal.aborted ? "aborted" : "stale-request";
+		onOutcome?.(makeDiagnostic$2(reason, stage, target.metacriticId, null, errorCode));
+		return null;
+	}
+	return {
+		identityNames,
+		page: target.kind === "season" ? await readVerifiedSeasonPage(context, response, target, identityNames, signal) : readMcPage(response.responseText, target, {
+			...target.seriesMetacriticId ? { expectedSeriesUrl: target.seriesMetacriticId } : {},
+			finalUrl: response.finalUrl,
+			identityNames: identityNames.names,
+			identityNamesComplete: identityNames.complete,
+			identityEvidence: context.identityEvidence
+		})
+	};
+};
+var handlePageMismatch = (context, target, object, prior, reason, identityFailure, onOutcome) => {
+	let failureReason;
+	if (reason === "identity-conflict") failureReason = "identity-conflict";
+	else if (identityFailure) failureReason = identityFailure;
+	else if (reason === "request-error") failureReason = "request-error";
+	else failureReason = "parse-error";
+	let stage;
+	let errorCode;
+	if (failureReason === "identity-conflict") {
+		stage = "identity";
+		errorCode = "mc-conflict";
+	} else if (failureReason === "parse-error") {
+		stage = "parse";
+		errorCode = "invalid-page";
+	} else {
+		stage = "request";
+		errorCode = "mc-alias-evidence";
+	}
+	onOutcome?.(makeDiagnostic$2(failureReason, stage, target.metacriticId, null, errorCode));
+	if (failureReason === "identity-conflict") {
+		invalidateRatingTarget(context, object);
+		return null;
+	}
+	return prior;
+};
+var finishParsedPage = (context, target, object, prior, page, generation, onOutcome) => {
+	if (page.ratingStatus === "partial-error") {
+		if (generationOf(context) !== generation) return readSnapshot$1(object);
+		const rating = {
+			...page.rating,
+			fetchedAt: Date.now(),
+			object,
+			stale: false
+		};
+		onOutcome?.(makeDiagnostic$2("parse-error", "parse", target.metacriticId, null, page.ratingError ?? "partial-rating-parse"));
+		return rating;
+	}
+	if (page.ratingStatus === "invalid-page") {
+		onOutcome?.(makeDiagnostic$2("parse-error", "parse", target.metacriticId, null, page.ratingError ?? "invalid-rating"));
+		return prior;
+	}
+	if (page.ratingStatus === "no-rating") {
+		removeRatingSnapshot(context, object);
+		onOutcome?.(makeDiagnostic$2("source-no-rating", "parse", target.metacriticId));
+		return null;
+	}
+	const rating = {
+		...page.rating,
+		fetchedAt: Date.now(),
+		object,
+		stale: false
+	};
+	if (generationOf(context) !== generation) return readSnapshot$1(object);
+	writeSnapshot$1(rating);
+	onOutcome?.(makeDiagnostic$2("rating", "rating", target.metacriticId, Date.now()));
 	return rating;
 };
-var revalidateCachedTarget = async (context, cachedTarget, signal) => {
+var fetchRatingForTarget = async (context, target, signal, onOutcome) => {
+	const object = targetObject(context, target);
+	const prior = readSnapshot$1(object);
+	if (prior && !prior.stale) {
+		cacheMetacriticTarget(context, target);
+		onOutcome?.(makeDiagnostic$2("rating", "cache", target.metacriticId, prior.fetchedAt));
+		return prior;
+	}
+	const generation = generationOf(context);
+	const loadedPage = await loadPageForTarget(context, target, signal, generation, onOutcome);
+	if (!loadedPage) return signal.aborted ? readSnapshot$1(object) : prior;
+	const { identityNames, page } = loadedPage;
+	if (page.matchesTarget === false) return handlePageMismatch(context, target, object, prior, page.reason, identityNames.failure, onOutcome);
+	cacheMetacriticTarget(context, target);
+	return finishParsedPage(context, target, object, prior, page, generation, onOutcome);
+};
+var finishSeasonLinkResolution = async (context, resolution, signal) => {
+	if (resolution.status !== "season-link-needed" || !resolution.complete) return resolution;
+	try {
+		const seriesResponse = await requestMcPage(`${METACRITIC_ORIGIN}/${resolution.seriesTarget.metacriticId}/`, signal);
+		const identityNames = await identityNamesForAlias(seriesResponse.responseText, resolution.seriesTarget, signal);
+		const seriesPage = readMcPage(seriesResponse.responseText, resolution.seriesTarget, {
+			finalUrl: seriesResponse.finalUrl,
+			identityNames: identityNames.names,
+			identityNamesComplete: identityNames.complete,
+			identityEvidence: context.identityEvidence
+		});
+		if (seriesPage.matchesTarget === false) return seriesPage.reason === "identity-conflict" ? {
+			complete: true,
+			status: "identity-conflict"
+		} : {
+			complete: false,
+			failure: seriesPage.reason === "request-error" ? "request-error" : "parse-error",
+			status: "error"
+		};
+		if (!seriesPage.canonicalUrl) return {
+			complete: false,
+			failure: "parse-error",
+			status: "error"
+		};
+		const seasonUrl = findSeasonPageLink(seriesResponse.responseText, seriesPage.canonicalUrl, resolution.season);
+		if (!seasonUrl) return {
+			complete: true,
+			status: "missing"
+		};
+		const seasonResponse = await requestMcPage(seasonUrl, signal);
+		const seasonPath = pagePath(seasonResponse.finalUrl);
+		const seriesPath = pagePath(seriesPage.canonicalUrl);
+		if (!seasonPath || !seriesPath) return {
+			complete: false,
+			failure: "parse-error",
+			status: "error"
+		};
+		const seasonMatch = seasonPath.match(/^\/tv\/[^/]+\/season-(?<season>\d+)$/u);
+		if (Number(seasonMatch?.groups?.season) !== resolution.season) return {
+			complete: true,
+			status: "identity-conflict"
+		};
+		const target = {
+			kind: "season",
+			identityReferences: resolution.seriesTarget.identityReferences,
+			metacriticId: seasonPath.replaceAll(/^\/+|\/+$/gu, ""),
+			season: resolution.season,
+			seriesId: resolution.seriesTarget.seriesId,
+			seriesMetacriticId: seriesPath.replaceAll(/^\/+|\/+$/gu, ""),
+			status: "matched"
+		};
+		const seasonIdentityNames = await identityNamesForAlias(seasonResponse.responseText, target, signal);
+		const seasonPage = readMcPage(seasonResponse.responseText, target, {
+			expectedSeriesUrl: seriesPage.canonicalUrl,
+			finalUrl: seasonResponse.finalUrl,
+			allowVerifiedSeasonAlias: true,
+			identityNames: seasonIdentityNames.names,
+			identityNamesComplete: seasonIdentityNames.complete,
+			identityEvidence: context.identityEvidence
+		});
+		if (seasonPage.matchesTarget === false) return seasonPage.reason === "identity-conflict" ? {
+			complete: true,
+			status: "identity-conflict"
+		} : {
+			complete: false,
+			failure: seasonPage.reason === "request-error" ? "request-error" : "parse-error",
+			status: "error"
+		};
+		return {
+			complete: true,
+			status: "matched",
+			target
+		};
+	} catch (error) {
+		return {
+			complete: false,
+			failure: error instanceof SyntaxError ? "parse-error" : "request-error",
+			status: "error"
+		};
+	}
+};
+var cachedTargetFailureDiagnostic = (resolution, signal, target) => {
+	if (signal.aborted) return makeDiagnostic$2("cancelled", "mapping", target, null, "aborted");
+	if (resolution.status === "ambiguous" || resolution.status === "missing") return makeDiagnostic$2("mapping-missing", "mapping", target, null, "mc-mapping-missing");
+	return makeDiagnostic$2(resolution.failure ?? "request-error", "mapping", target, null, "mc-revalidate");
+};
+var revalidateCachedTarget = async (context, cachedTarget, signal, onOutcome) => {
 	let resolution;
 	try {
-		resolution = await resolveMetacriticTargetFresh(context, signal);
-	} catch {
+		resolution = await finishSeasonLinkResolution(context, await resolveMetacriticTargetFresh(context, signal), signal);
+	} catch (error) {
+		onOutcome?.(failureDiagnostic(error, "mapping", cachedTarget.metacriticId, "mc-revalidate"));
 		return cachedTarget;
 	}
-	if (!resolution.complete || signal.aborted) return cachedTarget;
+	if (!resolution.complete || signal.aborted || resolution.status === "error" || resolution.status === "ambiguous" || resolution.status === "missing") {
+		onOutcome?.(cachedTargetFailureDiagnostic(resolution, signal, cachedTarget.metacriticId));
+		return cachedTarget;
+	}
 	if (resolution.status === "matched" && sameTarget(resolution.target, cachedTarget)) {
 		cacheMetacriticTarget(context, cachedTarget);
 		return cachedTarget;
 	}
-	invalidateMetacriticTarget(context);
-	return resolution.status === "matched" ? resolution.target : null;
-};
-var refreshCachedTarget$1 = async (context, cachedTarget, signal, onUpdate) => {
-	const freshTarget = await revalidateCachedTarget(context, cachedTarget, signal);
-	if (signal.aborted) return;
-	if (!freshTarget) {
-		onUpdate?.(null);
-		return;
-	}
-	if (sameTarget(freshTarget, cachedTarget)) return;
-	onUpdate?.(null);
-	const rating = await fetchRatingForTarget(context, freshTarget, signal, true).catch(() => null);
-	if (!signal.aborted) onUpdate?.(rating);
-};
-var fetchMcRating = async (context, signal, onCachedUpdate) => {
-	if (context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null) return null;
-	try {
-		const targetCacheEntry = getCachedMetacriticTarget(context);
-		if (targetCacheEntry?.status === "resolved") {
-			const { target } = targetCacheEntry;
-			const shouldRevalidate = Date.now() - targetCacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL;
-			const cachedRating = mcCache.get(cacheKey(context, target));
-			if (cachedRating) {
-				onCachedUpdate?.(cachedRating);
-				if (shouldRevalidate) refreshCachedTarget$1(context, target, signal, onCachedUpdate);
-				return cachedRating;
-			}
-			const currentTarget = shouldRevalidate ? await revalidateCachedTarget(context, target, signal) : target;
-			if (!currentTarget || signal.aborted) return null;
-			return fetchRatingForTarget(context, currentTarget, signal, true);
-		}
-		const target = await resolveMetacriticTarget(context, signal);
-		if (!target || signal.aborted) return null;
-		return await fetchRatingForTarget(context, target, signal, true);
-	} catch {
+	const priorObject = targetObject(context, cachedTarget);
+	if (resolution.status === "identity-conflict") {
+		onOutcome?.(makeDiagnostic$2("identity-conflict", "identity", cachedTarget.metacriticId, null, "mc-conflict"));
+		invalidateRatingTarget(context, priorObject);
 		return null;
 	}
+	invalidateRatingTarget(context, priorObject);
+	onOutcome?.(makeDiagnostic$2("mapping-missing", "mapping", cachedTarget.metacriticId, null, "mc-target-changed"));
+	return resolution.status === "matched" ? resolution.target : null;
+};
+var failureReasonFromError = (error, signal) => {
+	if (signal.aborted) return "cancelled";
+	return error instanceof SyntaxError ? "parse-error" : "request-error";
+};
+var report = (onOutcome, reason, stage, target, errorCode = null, fetchedAt = null) => {
+	onOutcome?.(createExternalRatingDiagnostic({
+		cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+		errorCode,
+		reason,
+		stage,
+		target
+	}));
+};
+var withResolutionEvidence = (diagnostic, resolution) => createExternalRatingDiagnostic({
+	...diagnostic,
+	acceptedEvidence: [...resolution.acceptedEvidence ?? [], ...diagnostic.acceptedEvidence],
+	candidateTargets: [...resolution.candidateTargets ?? [], ...diagnostic.candidateTargets],
+	missingEvidence: [...resolution.missingEvidence ?? [], ...diagnostic.missingEvidence],
+	rejectedEvidence: [...resolution.rejectedEvidence ?? [], ...diagnostic.rejectedEvidence],
+	unverifiedEvidence: [...resolution.unverifiedEvidence ?? [], ...diagnostic.unverifiedEvidence]
+});
+var refreshCachedTarget$1 = async (context, cachedTarget, prior, signal, onUpdate, onOutcome) => {
+	const freshTarget = await revalidateCachedTarget(context, cachedTarget, signal, onOutcome);
+	if (signal.aborted) {
+		report(onOutcome, "cancelled", "mapping", cachedTarget.metacriticId, "aborted");
+		return prior;
+	}
+	if (!freshTarget) {
+		report(onOutcome, "mapping-missing", "mapping", cachedTarget.metacriticId, "mc-target-missing");
+		onUpdate?.(null);
+		return null;
+	}
+	if (!sameTarget(freshTarget, cachedTarget)) onUpdate?.(null);
+	else if (prior && !prior.stale) {
+		report(onOutcome, "rating", "cache", freshTarget.metacriticId, null, prior.fetchedAt);
+		return prior;
+	}
+	const rating = await fetchRatingForTarget(context, freshTarget, signal, onOutcome);
+	if (!signal.aborted) onUpdate?.(rating);
+	return rating;
+};
+var fallbackSnapshot$1 = (context, onUpdate) => {
+	const snapshot = readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
+	if (snapshot) onUpdate?.(snapshot);
+	return snapshot;
+};
+var fetchCachedTargetRating = async (context, target, verifiedAt, signal, onUpdate, onOutcome) => {
+	const prior = readSnapshot$1(targetObject(context, target));
+	const shouldRevalidate = Date.now() - verifiedAt >= TARGET_REVALIDATION_INTERVAL;
+	if (prior) {
+		onUpdate?.(prior);
+		if (prior.stale || shouldRevalidate) return refreshCachedTarget$1(context, target, prior, signal, onUpdate, onOutcome);
+		report(onOutcome, "rating", "cache", target.metacriticId, null, prior.fetchedAt);
+		return prior;
+	}
+	const currentTarget = shouldRevalidate ? await revalidateCachedTarget(context, target, signal, onOutcome) : target;
+	if (!currentTarget || signal.aborted) {
+		if (signal.aborted) report(onOutcome, "cancelled", "mapping", target.metacriticId, "aborted");
+		return null;
+	}
+	const generation = generationOf(context);
+	const rating = await fetchRatingForTarget(context, currentTarget, signal, onOutcome);
+	return generationOf(context) === generation ? rating : readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
+};
+var fetchFreshMappedRating = async (context, signal, onUpdate, onOutcome) => {
+	const resolution = await finishSeasonLinkResolution(context, await resolveMetacriticTarget(context, signal), signal);
+	const reportOutcome = onOutcome ? (diagnostic) => onOutcome(withResolutionEvidence(diagnostic, resolution)) : void 0;
+	if (signal.aborted) {
+		report(reportOutcome, "cancelled", "mapping", null, "aborted");
+		return null;
+	}
+	if (!resolution.complete || resolution.status === "error") {
+		report(reportOutcome, resolution.failure ?? "request-error", "mapping", null, resolution.failure ?? "mc-target-resolution");
+		return fallbackSnapshot$1(context, onUpdate);
+	}
+	if (resolution.status === "identity-conflict") {
+		invalidateRatingTarget(context);
+		report(reportOutcome, "identity-conflict", "identity", null, "mc-identity-conflict");
+		return null;
+	}
+	if (resolution.status === "missing" || resolution.status === "ambiguous") {
+		report(reportOutcome, "mapping-missing", "mapping", null, "mc-mapping-missing");
+		return fallbackSnapshot$1(context, onUpdate);
+	}
+	if (resolution.status !== "matched") {
+		report(reportOutcome, "mapping-missing", "mapping", null, "mc-season-unresolved");
+		return null;
+	}
+	const { target } = resolution;
+	const prior = readSnapshot$1(targetObject(context, target));
+	if (prior) {
+		cacheMetacriticTarget(context, target);
+		onUpdate?.(prior);
+		if (!prior.stale) {
+			report(reportOutcome, "rating", "cache", target.metacriticId, null, prior.fetchedAt);
+			return prior;
+		}
+		const generation = generationOf(context);
+		const refreshed = await fetchRatingForTarget(context, target, signal, reportOutcome);
+		const result = generationOf(context) === generation ? refreshed : readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
+		onUpdate?.(result);
+		return result;
+	}
+	const generation = generationOf(context);
+	const rating = await fetchRatingForTarget(context, target, signal, reportOutcome);
+	return generationOf(context) === generation ? rating : readUniqueSnapshot$1(context.subjectId, context.kind, context.season);
+};
+var fetchMcRating = async (context, signal, onCachedUpdate, onOutcome) => {
+	if (context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null) {
+		report(onOutcome, "mapping-missing", "mapping", null, "unsupported-identity");
+		return null;
+	}
+	try {
+		const targetCacheEntry = getCachedMetacriticTarget(context);
+		if (targetCacheEntry?.status === "resolved") return await fetchCachedTargetRating(context, targetCacheEntry.target, targetCacheEntry.verifiedAt, signal, onCachedUpdate, onOutcome);
+		return await fetchFreshMappedRating(context, signal, onCachedUpdate, onOutcome);
+	} catch (error) {
+		report(onOutcome, failureReasonFromError(error, signal), "mapping", null, signal.aborted ? "aborted" : "mc-resolution");
+		return signal.aborted ? null : fallbackSnapshot$1(context, onCachedUpdate);
+	}
+};
+var normalizeIdentityText = (value) => value.normalize("NFKC").toLowerCase().replaceAll(/[\p{P}\p{Z}\s]/gu, "");
+var readPeople = (value) => {
+	if (Array.isArray(value)) return value.flatMap(readPeople);
+	if (typeof value === "string") return [value];
+	if (value && typeof value === "object") {
+		const name = Reflect.get(value, "name");
+		return typeof name === "string" ? [name] : [];
+	}
+	return [];
+};
+var readImdbId = (value) => {
+	if (typeof value === "string") {
+		const id = value.trim().match(/^tt\d{7,}$/iu)?.[0];
+		if (id) return id.toLowerCase();
+		try {
+			const url = new URL(value);
+			const match = url.pathname.match(/^\/title\/(?<id>tt\d{7,})\/?$/iu);
+			return /(?:^|\.)imdb\.com$/iu.test(url.hostname) ? match?.groups?.id?.toLowerCase() ?? null : null;
+		} catch {
+			return null;
+		}
+	}
+	if (value && typeof value === "object") {
+		const propertyId = Reflect.get(value, "propertyID");
+		if (typeof propertyId === "string" && !/imdb/iu.test(propertyId)) return null;
+		return readImdbId(Reflect.get(value, "value"));
+	}
+	return null;
+};
+var readImdbIds = (value) => (Array.isArray(value) ? value : [value]).map(readImdbId).filter((id) => id !== null);
+var readSemanticValue = (html, label) => {
+	return [...new DOMParser().parseFromString(html, "text/html").querySelectorAll("dt")].find((candidate) => candidate.textContent?.trim() === label)?.nextElementSibling?.textContent?.trim() || null;
+};
+var readYear = (value) => value?.match(/\b(?<year>\d{4})\b/u)?.groups?.year ?? null;
+var readPageIdentity = (html, kind) => {
+	const page = readStructuredPage(html);
+	const expectedType = kind === "movie" ? "Movie" : "TVSeries";
+	const work = page.jsonLd.find((entry) => structuredTypes(entry).includes(expectedType));
+	if (!work) return null;
+	const title = typeof work.name === "string" ? work.name : null;
+	const semanticDate = readSemanticValue(html, kind === "movie" ? "Release Date (Theaters)" : "Release Date");
+	const schemaDate = kind === "series" && typeof work.startDate === "string" ? work.startDate : void 0;
+	const releaseYear = readYear(semanticDate) ?? readYear(schemaDate);
+	const creatorDetails = readSemanticValue(html, "Creator");
+	const directors = [...readPeople(work.director), ...readPeople(readSemanticValue(html, "Director"))];
+	const creators = [
+		...readPeople(work.creator),
+		...readPeople(work.author),
+		...creatorDetails?.split(/\s*,\s*/u).filter(Boolean) ?? []
+	];
+	const imdbIds = [...readImdbIds(work.sameAs), ...readImdbIds(work.identifier)];
+	return {
+		creators,
+		directors,
+		imdbIds: [...new Set(imdbIds)],
+		releaseYear,
+		title
+	};
+};
+var hasMatchingName = (expected, actual) => expected.some((expectedName) => {
+	const normalizedExpected = normalizeIdentityText(expectedName);
+	return normalizedExpected.length > 0 && actual.some((actualName) => normalizeIdentityText(actualName) === normalizedExpected);
+});
+var stableIdentityMatch = (input) => {
+	const page = readPageIdentity(input.html, input.kind);
+	if (!page) return "unavailable";
+	const stableIds = [...new Set([...input.expectedStableIds, ...input.imdbId ? [input.imdbId] : []].map((id) => id.toLowerCase()))];
+	if (stableIds.length > 0 && page.imdbIds.length > 0) return page.imdbIds.length === 1 && stableIds.length === 1 && page.imdbIds[0] === stableIds[0] ? "matched" : "conflict";
+	return null;
+};
+var provesRtAlias = (input) => {
+	const stableMatch = stableIdentityMatch(input);
+	if (stableMatch !== null) return stableMatch;
+	const page = readPageIdentity(input.html, input.kind);
+	if (!page) return "unavailable";
+	const actualNames = input.kind === "movie" ? page.directors : page.creators;
+	if (!input.evidence.originalTitle || !input.evidence.releaseYear || !page.title || !page.releaseYear || input.verifiedNames.length === 0 || actualNames.length === 0) return "unavailable";
+	if (page.releaseYear !== input.evidence.releaseYear || normalizeIdentityText(page.title) !== normalizeIdentityText(input.evidence.originalTitle)) return "conflict";
+	return hasMatchingName(input.verifiedNames, actualNames) ? "matched" : "conflict";
+};
+var identityNamesFor = async (personIds, signal) => {
+	const ids = [...new Set(personIds)];
+	if (ids.length === 0) return [];
+	const namesById = await fetchEntityNames(ids, signal);
+	return [...new Set(ids.flatMap((id) => namesById[id] ?? []))];
+};
+var verifiesRtAlias = async (input, signal) => {
+	const stableMatch = stableIdentityMatch(input);
+	if (stableMatch !== null) return stableMatch;
+	if (input.personIds.length === 0) return "unavailable";
+	const verifiedNames = await identityNamesFor(input.personIds, signal);
+	return provesRtAlias({
+		...input,
+		verifiedNames
+	});
+};
+var contextIdentityEvidence = (context) => {
+	const value = Reflect.get(context, "identityEvidence");
+	return value && typeof value === "object" ? value : null;
 };
 var RT_ORIGIN = "https://www.rottentomatoes.com";
 var REQUEST_TIMEOUT = 8e3;
@@ -18034,6 +19310,14 @@ var isRtSeriesPage = (html, url) => {
 	return Boolean(page.canonicalUrl && pathMatches(page.canonicalUrl, url) && structuredPageTypes(page).has("TVSeries"));
 };
 var normalizedPath = (pathname) => pathname.replaceAll(/\/+$/gu, "") || "/";
+var seasonPathFromUrl = (value, expected) => {
+	if (typeof value !== "string") return null;
+	try {
+		const link = new URL(value, "https://www.rottentomatoes.com");
+		if (link.protocol === "https:" && link.hostname === "www.rottentomatoes.com" && !link.username && !link.password && !link.search && !link.hash && link.pathname === expected) return link.pathname.slice(1);
+	} catch {}
+	return null;
+};
 var matchesRtPageIdentity = (canonicalUrl, pageUrl, pageRtId) => {
 	let canonical;
 	let request;
@@ -18043,7 +19327,7 @@ var matchesRtPageIdentity = (canonicalUrl, pageUrl, pageRtId) => {
 	} catch {
 		return false;
 	}
-	if (canonical.protocol !== "https:" || canonical.hostname !== "www.rottentomatoes.com" || canonical.search || request.protocol !== "https:" || request.hostname !== "www.rottentomatoes.com" || request.search) return false;
+	if (canonical.protocol !== "https:" || canonical.hostname !== "www.rottentomatoes.com" || canonical.username || canonical.password || canonical.search || canonical.hash || request.protocol !== "https:" || request.hostname !== "www.rottentomatoes.com" || request.username || request.password || request.search || request.hash) return false;
 	const expectedPath = normalizedPath(`/${pageRtId}`);
 	return normalizedPath(canonical.pathname) === expectedPath && normalizedPath(request.pathname) === expectedPath;
 };
@@ -18056,21 +19340,24 @@ var readSeriesRtId = (page) => {
 	const urlValue = Reflect.get(partOfSeries, "url");
 	if (typeof urlValue !== "string") return null;
 	try {
-		const url = new URL(urlValue);
+		const url = new URL(urlValue, "https://www.rottentomatoes.com");
 		const match = url.pathname.match(/^\/tv\/(?<series>[^/]+)\/?$/u);
-		if (url.hostname !== "www.rottentomatoes.com" || !match?.groups?.series) return null;
+		if (url.protocol !== "https:" || url.hostname !== "www.rottentomatoes.com" || url.username || url.password || url.search || url.hash || !match?.groups?.series) return null;
 		return `tv/${match.groups.series}`;
 	} catch {
 		return null;
 	}
 };
-var readSeasonNumber = (page, html) => {
+var readSeasonNumber = (page, html, pageRtId) => {
 	const value = page.jsonLd.find((entry) => entry.seasonNumber !== void 0)?.seasonNumber;
 	const fromStructuredData = Number(value);
 	if (Number.isSafeInteger(fromStructuredData) && fromStructuredData > 0) return fromStructuredData;
 	const heading = html.match(/<h1\b[^>]*>[\s\S]*?season\s+(?<season>\d+)[\s\S]*?<\/h1>/iu)?.groups?.season;
 	const fromHeading = Number(heading);
-	return Number.isSafeInteger(fromHeading) && fromHeading > 0 ? fromHeading : null;
+	if (Number.isSafeInteger(fromHeading) && fromHeading > 0) return fromHeading;
+	const path = pageRtId.match(/^tv\/[^/]+\/s(?<season>\d{2,})$/u);
+	const fromPath = Number(path?.groups?.season);
+	return Number.isSafeInteger(fromPath) && fromPath > 0 ? fromPath : null;
 };
 var scorecardIdentityStatus = (page, html, input) => {
 	if (!page.canonicalUrl) return "invalid-page";
@@ -18080,20 +19367,215 @@ var scorecardIdentityStatus = (page, html, input) => {
 	if (input.kind === "movie") return types.has("Movie") ? "matched" : "identity-conflict";
 	if (input.kind === "series") return types.has("TVSeries") ? "matched" : "identity-conflict";
 	if (!types.has("TVSeason")) return "identity-conflict";
-	const pageSeason = readSeasonNumber(page, html);
+	const pageSeason = readSeasonNumber(page, html, input.pageRtId);
 	const pageSeries = readSeriesRtId(page);
 	if (pageSeason === null || pageSeries === null || input.season === null || input.seriesRtId === null) return "invalid-page";
 	return pageSeason === input.season && pageSeries === input.seriesRtId ? "matched" : "identity-conflict";
 };
 var findSeasonPath = (html, seriesRtId, season) => {
-	if (!structuredPageTypes(readStructuredPage(html)).has("TVSeries")) return null;
-	const prefix = `/${seriesRtId}/s`;
-	for (const match of html.matchAll(/\bhref=["'](?<href>[^"']+)["']/giu)) try {
-		const link = new URL(match.groups?.href ?? "", "https://www.rottentomatoes.com");
-		const expected = `${prefix}${String(season).padStart(2, "0")}`;
-		if (link.hostname === "www.rottentomatoes.com" && link.pathname === expected) return link.pathname.slice(1);
-	} catch {}
+	const page = readStructuredPage(html);
+	if (!structuredPageTypes(page).has("TVSeries")) return null;
+	const expected = `${`/${seriesRtId}/s`}${String(season).padStart(2, "0")}`;
+	const seasons = page.jsonLd.find((entry) => structuredTypes(entry).includes("TVSeries"))?.containsSeason;
+	let linkedSeasons;
+	if (Array.isArray(seasons)) linkedSeasons = seasons;
+	else if (seasons && typeof seasons === "object") linkedSeasons = [seasons];
+	else linkedSeasons = [];
+	for (const linkedSeason of linkedSeasons) {
+		if (!linkedSeason || typeof linkedSeason !== "object") continue;
+		const path = seasonPathFromUrl(Reflect.get(linkedSeason, "url"), expected);
+		if (path) return path;
+	}
+	const sourcePage = new DOMParser().parseFromString(html, "text/html");
+	for (const seasonLink of sourcePage.querySelectorAll("tile-season[href]")) {
+		const path = seasonPathFromUrl(seasonLink.getAttribute("href"), expected);
+		if (path) return path;
+	}
 	return null;
+};
+var verifyWorkAlias = async (context, target, page, kind, signal) => {
+	const evidence = contextIdentityEvidence(context);
+	if (!evidence) return { status: "identity-conflict" };
+	let proof;
+	try {
+		proof = await verifiesRtAlias({
+			evidence,
+			expectedStableIds: target.identityImdbIds,
+			html: page.html,
+			imdbId: context.imdbId,
+			kind,
+			personIds: target.identityPersonIds
+		}, signal);
+	} catch {
+		return signal.aborted ? { status: "aborted" } : { status: "identity-unavailable" };
+	}
+	if (signal.aborted) return { status: "aborted" };
+	if (proof === "matched") return {
+		seriesRtId: null,
+		status: "matched"
+	};
+	return { status: proof === "unavailable" ? "identity-unavailable" : "identity-conflict" };
+};
+var seasonPageIdentity = (context, target, page) => {
+	const requestedPath = parseRottenTomatoesPath(target.rtId);
+	const finalPath = parseRottenTomatoesPath(page.rtId);
+	const structuredPage = readStructuredPage(page.html);
+	const pageSeason = readSeasonNumber(structuredPage, page.html, page.rtId);
+	const pageSeries = readSeriesRtId(structuredPage);
+	if (requestedPath?.kind !== "season" || finalPath?.kind !== "season" || requestedPath.season !== context.season || finalPath.season !== context.season || pageSeason !== context.season) return { status: "identity-conflict" };
+	if (pageSeries === null || target.seriesRtId === null) return { status: "identity-unavailable" };
+	return {
+		seriesRtId: pageSeries,
+		status: "matched"
+	};
+};
+var verifySeasonParent = async (context, target, page, expectedSeriesRtId, signal) => {
+	if (target.seriesRtId === null) return { status: "identity-unavailable" };
+	let parentPage;
+	try {
+		parentPage = await requestRtPage(target.seriesRtId, signal);
+	} catch {
+		return signal.aborted ? { status: "aborted" } : { status: "identity-unavailable" };
+	}
+	if (signal.aborted) return { status: "aborted" };
+	const structuredPage = readStructuredPage(parentPage.html);
+	if (!structuredPage.canonicalUrl || structuredPage.jsonLd.length === 0) return { status: "identity-unavailable" };
+	if (!structuredPageTypes(structuredPage).has("TVSeries")) return { status: "identity-conflict" };
+	if (!isRtSeriesPage(parentPage.html, parentPage.url)) return { status: "identity-unavailable" };
+	if (parentPage.rtId !== expectedSeriesRtId) return { status: "identity-conflict" };
+	if (parentPage.rtId !== target.seriesRtId) return verifyWorkAlias(context, target, parentPage, "series", signal);
+	const linkedSeason = findSeasonPath(parentPage.html, parentPage.rtId, context.season ?? 0);
+	if (linkedSeason === null) return { status: "identity-unavailable" };
+	return linkedSeason === page.rtId ? {
+		seriesRtId: parentPage.rtId,
+		status: "matched"
+	} : { status: "identity-conflict" };
+};
+var verifySeasonAlias = (context, target, page, signal) => {
+	const identity = seasonPageIdentity(context, target, page);
+	if (identity.status !== "matched") return Promise.resolve({ status: identity.status === "identity-unavailable" ? "identity-unavailable" : "identity-conflict" });
+	if (page.rtId === target.rtId && identity.seriesRtId === target.seriesRtId) return Promise.resolve({
+		seriesRtId: identity.seriesRtId,
+		status: "matched"
+	});
+	return verifySeasonParent(context, target, page, identity.seriesRtId, signal);
+};
+var validateRtPage = (input, signal) => {
+	if (signal.aborted) return Promise.resolve({ status: "aborted" });
+	if (input.context.kind === "season") return verifySeasonAlias(input.context, input.target, input.page, signal);
+	if (input.target.rtId === input.page.rtId) return Promise.resolve({
+		seriesRtId: null,
+		status: "matched"
+	});
+	return verifyWorkAlias(input.context, input.target, input.page, input.context.kind, signal);
+};
+var STORAGE_KEY = "dp:rotten-snapshots:v2";
+var FRESH_AGE = 6048e5;
+var MAX_AGE = 2592e6;
+var identityKey = (object) => JSON.stringify([
+	object.subjectId,
+	object.kind,
+	object.rtId
+]);
+var readStore = () => {
+	try {
+		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
+		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
+		return parsed;
+	} catch {
+		return {};
+	}
+};
+var writeStore = (store) => {
+	try {
+		localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+	} catch {}
+};
+var withoutKey = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
+var isRating = (value) => {
+	if (!value || typeof value !== "object") return false;
+	const rating = value;
+	return Boolean(rating.object && typeof rating.object.subjectId === "string" && typeof rating.object.rtId === "string" && typeof rating.object.kind === "string" && typeof rating.fetchedAt === "number" && typeof rating.sourceUrl === "string");
+};
+var usableSnapshot = (rating, now) => {
+	const age = now - rating.fetchedAt;
+	if (age < 0 || age > MAX_AGE) return null;
+	return {
+		...rating,
+		stale: age >= FRESH_AGE
+	};
+};
+var readSnapshot = (object, now = Date.now()) => {
+	const store = readStore();
+	const key = identityKey(object);
+	const value = store[key];
+	if (!isRating(value) || identityKey(value.object) !== key) return null;
+	const snapshot = usableSnapshot(value, now);
+	if (!snapshot) writeStore(withoutKey(store, key));
+	return snapshot;
+};
+var readUniqueSnapshot = (subjectId, kind, now = Date.now()) => {
+	const store = readStore();
+	const matches = Object.values(store).filter(isRating).filter((rating) => rating.object.subjectId === subjectId && rating.object.kind === kind).map((rating) => usableSnapshot(rating, now)).filter((rating) => rating !== null);
+	return matches.length === 1 ? matches[0] ?? null : null;
+};
+var writeSnapshot = (rating) => {
+	const store = readStore();
+	store[identityKey(rating.object)] = {
+		...rating,
+		stale: false
+	};
+	const entries = Object.entries(store).toSorted(([, left], [, right]) => right.fetchedAt - left.fetchedAt);
+	writeStore(Object.fromEntries(entries.slice(0, 200)));
+};
+var removeSnapshot = (object) => {
+	writeStore(withoutKey(readStore(), identityKey(object)));
+};
+var removeSnapshotsForContext = (subjectId, kind) => {
+	const store = readStore();
+	writeStore(Object.fromEntries(Object.entries(store).filter(([, value]) => !isRating(value) || value.object.subjectId !== subjectId || value.object.kind !== kind)));
+};
+var ratingFailure = (status, rating = null, diagnostic) => ({
+	...diagnostic ? { diagnostic } : {},
+	rating,
+	status
+});
+var makeDiagnostic$1 = (reason, stage, target, errorCode = null, fetchedAt = null) => createExternalRatingDiagnostic({
+	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var getSnapshotObject = (context, rtId) => ({
+	kind: context.kind,
+	rtId,
+	subjectId: context.subjectId
+});
+var fallbackSnapshot = (context, object, prior, onResult) => {
+	const rating = prior ?? (object === null ? readUniqueSnapshot(context.subjectId, context.kind) : readSnapshot(object));
+	if (!rating) return ratingFailure("error");
+	const result = {
+		rating,
+		status: "stale"
+	};
+	onResult?.(result);
+	return result;
+};
+var isConfirmedRatingStatus = (status) => status === "cached" || status === "no-rating" || status === "refreshed" || status === "stale";
+var revisions = /* @__PURE__ */ new Map();
+var requestKey = (context) => JSON.stringify([
+	context.subjectId,
+	context.imdbId,
+	context.kind,
+	context.season
+]);
+var currentRevision = (context) => revisions.get(requestKey(context)) ?? 0;
+var isCurrent = (context, revision) => currentRevision(context) === revision;
+var invalidateRequests = (context) => {
+	const revision = currentRevision(context) + 1;
+	revisions.set(requestKey(context), revision);
+	return revision;
 };
 var scoreValue = (value) => {
 	if (typeof value !== "string" && typeof value !== "number") return null;
@@ -18191,72 +19673,8 @@ var parseScorecard = (html, input) => {
 		status: "matched"
 	} : { status: "no-rating" };
 };
-var STORAGE_KEY = "dp:rotten-snapshots:v1";
-var FRESH_AGE = 6048e5;
-var MAX_AGE = 2592e6;
-var identityKey = (object) => JSON.stringify([
-	object.subjectId,
-	object.kind,
-	object.rtId
-]);
-var readStore = () => {
-	try {
-		const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "{}");
-		if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return {};
-		return parsed;
-	} catch {
-		return {};
-	}
-};
-var writeStore = (store) => {
-	try {
-		localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-	} catch {}
-};
-var withoutKey = (store, key) => Object.fromEntries(Object.entries(store).filter(([entryKey]) => entryKey !== key));
-var isRating = (value) => {
-	if (!value || typeof value !== "object") return false;
-	const rating = value;
-	return Boolean(rating.object && typeof rating.object.subjectId === "string" && typeof rating.object.rtId === "string" && typeof rating.object.kind === "string" && typeof rating.fetchedAt === "number" && typeof rating.sourceUrl === "string");
-};
-var usableSnapshot = (rating, now) => {
-	const age = now - rating.fetchedAt;
-	if (age < 0 || age > MAX_AGE) return null;
-	return {
-		...rating,
-		stale: age >= FRESH_AGE
-	};
-};
-var readSnapshot = (object, now = Date.now()) => {
-	const store = readStore();
-	const key = identityKey(object);
-	const value = store[key];
-	if (!isRating(value) || identityKey(value.object) !== key) return null;
-	const snapshot = usableSnapshot(value, now);
-	if (!snapshot) writeStore(withoutKey(store, key));
-	return snapshot;
-};
-var readUniqueSnapshot = (subjectId, kind, now = Date.now()) => {
-	const store = readStore();
-	const matches = Object.values(store).filter(isRating).filter((rating) => rating.object.subjectId === subjectId && rating.object.kind === kind).map((rating) => usableSnapshot(rating, now)).filter((rating) => rating !== null);
-	return matches.length === 1 ? matches[0] ?? null : null;
-};
-var writeSnapshot = (rating) => {
-	const store = readStore();
-	store[identityKey(rating.object)] = {
-		...rating,
-		stale: false
-	};
-	const entries = Object.entries(store).toSorted(([, left], [, right]) => right.fetchedAt - left.fetchedAt);
-	writeStore(Object.fromEntries(entries.slice(0, 200)));
-};
-var removeSnapshot = (object) => {
-	writeStore(withoutKey(readStore(), identityKey(object)));
-};
 var ACTIVE_RANKS = /* @__PURE__ */ new Set(["normal", "preferred"]);
-var FILM_TYPES = /* @__PURE__ */ new Set(["Q11424"]);
 var SERIES_TYPES = /* @__PURE__ */ new Set(["Q5398426", "Q1259759"]);
-var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
 var claimValues = (claims) => (claims ?? []).filter((claim) => claim.rank !== "deprecated").filter((claim) => claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).filter((value) => value !== void 0);
 var activeIdentityClaims = (entity, property, value) => (entity.claims?.[property] ?? []).filter((claim) => {
 	const claimValue = claim.mainsnak?.datavalue?.value;
@@ -18264,22 +19682,39 @@ var activeIdentityClaims = (entity, property, value) => (entity.claims?.[propert
 });
 var hasActiveIdentity = (entity, property, value) => activeIdentityClaims(entity, property, value).length > 0;
 var isDeprecatedIdentity = (entity, property, value) => (entity.claims?.[property] ?? []).some((claim) => claim.rank === "deprecated" && claim.mainsnak?.snaktype === "value" && String(claim.mainsnak.datavalue?.value) === value);
+var isSeriesEntity = (entity) => claimValues(entity.claims?.P31).map(entityReference).some((id) => id !== null && SERIES_TYPES.has(id));
+var readSeasonOrdinal = (claims, property) => {
+	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
+	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
+		const ordinal = typeof qualifierValue === "number" ? qualifierValue : Number(qualifierValue);
+		return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
+	}).filter((ordinal) => ordinal !== null);
+	const uniqueOrdinals = new Set(ordinals);
+	const [value] = uniqueOrdinals;
+	return {
+		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
+		value: value ?? null
+	};
+};
+var SEASON_TYPES = /* @__PURE__ */ new Set(["Q3464665"]);
 var normalizeRtId = (value) => {
 	if (typeof value !== "string" || !value.trim()) return null;
 	try {
 		const url = new URL(value, "https://www.rottentomatoes.com/");
 		if (url.hostname !== "www.rottentomatoes.com" && url.hostname !== "rottentomatoes.com") return null;
 		const path = url.pathname.replaceAll(/^\/+|\/+$/gu, "");
-		return /^(?:m\/[^/]+|tv\/[^/]+(?:\/s\d{2,})?)$/u.test(path) ? path : null;
+		return parseRottenTomatoesPath(path) ? path : null;
 	} catch {
 		return null;
 	}
 };
-var entityKind = (entity, rtId) => {
+var entityKind = async (entity, rtId, signal) => {
+	const path = parseRottenTomatoesPath(rtId);
+	if (!path) return null;
 	const types = claimValues(entity.claims?.P31).map(entityReference).filter((value) => value !== null);
-	if (rtId.startsWith("m/") && types.some((id) => FILM_TYPES.has(id))) return "movie";
-	if (rtId.includes("/s") && types.some((id) => SEASON_TYPES.has(id))) return "season";
-	if (rtId.startsWith("tv/") && !rtId.includes("/s") && types.some((id) => SERIES_TYPES.has(id))) return "series";
+	if (path.kind === "movie" && await isFilmInstance(types, signal)) return "movie";
+	if (path.kind === "season" && types.some((id) => SEASON_TYPES.has(id))) return "season";
+	if (path.kind === "series" && types.some((id) => SERIES_TYPES.has(id))) return "series";
 	return null;
 };
 var readRtTarget = (entity) => {
@@ -18319,37 +19754,25 @@ var readEpisodeRtTarget = (entity) => {
 		status: "matched"
 	};
 };
-var readSeasonOrdinal = (claims, property) => {
-	const qualifiers = property === "P4529" ? claims.flatMap((claim) => claim.qualifiers?.P1545 ?? []) : [];
-	const ordinals = qualifiers.filter((claim) => claim.rank !== "deprecated" && claim.mainsnak?.snaktype === "value").map((claim) => claim.mainsnak?.datavalue?.value).map((qualifierValue) => {
-		const ordinal = typeof qualifierValue === "number" ? qualifierValue : Number(qualifierValue);
-		return Number.isSafeInteger(ordinal) && ordinal > 0 ? ordinal : null;
-	}).filter((ordinal) => ordinal !== null);
-	const uniqueOrdinals = new Set(ordinals);
-	const [value] = uniqueOrdinals;
-	return {
-		conflict: ordinals.length !== qualifiers.length || uniqueOrdinals.size > 1,
-		value: value ?? null
-	};
-};
 var EPISODE_TYPES = /* @__PURE__ */ new Set(["Q21191270"]);
 var fetchEntity = async (id, signal) => {
 	return (await fetchEntities$1([id], signal))[id] ?? null;
 };
-var mapEntity = (entity, property, identifier) => {
+var mapEntity = async (entity, property, identifier, signal) => {
 	const identityClaims = activeIdentityClaims(entity, property, identifier);
 	const target = readRtTarget(entity);
 	if (target.status !== "matched") return {
 		mappings: [],
 		state: target.status
 	};
-	const kind = entityKind(entity, target.rtId);
+	const kind = await entityKind(entity, target.rtId, signal);
 	if (!kind) return {
 		mappings: [],
 		state: "missing"
 	};
 	const seasonOrdinal = readSeasonOrdinal(identityClaims, property);
-	const seriesSlug = target.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)?.groups?.series;
+	const parsedPath = parseRottenTomatoesPath(target.rtId);
+	const seriesSlug = parsedPath?.kind === "season" ? parsedPath.series : null;
 	return {
 		mappings: [{
 			entity,
@@ -18392,7 +19815,7 @@ var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
 		mappings: [],
 		state: target.status
 	};
-	if (entityKind(series, target.rtId) !== "series") return {
+	if (await entityKind(series, target.rtId, signal) !== "series") return {
 		mappings: [],
 		state: "missing"
 	};
@@ -18415,28 +19838,68 @@ var mapEpisodeToSeries = async (episode, signal, expectedSeason) => {
 var fetchEntities = async (property, value, signal, expectedSeason) => {
 	const candidates = await findEntityCandidates(property, value, signal);
 	if (candidates.status !== "matched") return {
+		candidateTargets: [],
 		mappings: [],
-		state: candidates.status
+		state: candidates.status,
+		unverifiedEvidence: [
+			"exact-id",
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
+	const candidateTargets = candidates.entities.map((entity) => entity.id).filter((id) => /^Q\d+$/u.test(id));
 	const entities = candidates.entities.filter((entity) => hasActiveIdentity(entity, property, value));
 	const deprecated = candidates.entities.some((entity) => isDeprecatedIdentity(entity, property, value));
 	if (entities.length > 1) return {
+		candidateTargets,
 		mappings: [],
-		state: "ambiguous"
+		rejectedEvidence: ["exact-id"],
+		state: "ambiguous",
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
 	const [entity] = entities;
 	if (!entity) return {
+		candidateTargets,
 		mappings: [],
-		state: deprecated ? "deprecated" : "missing"
+		rejectedEvidence: deprecated ? ["exact-id"] : [],
+		state: deprecated ? "deprecated" : "missing",
+		...deprecated ? {} : { missingEvidence: ["exact-id"] },
+		unverifiedEvidence: [
+			"type",
+			"canonical",
+			"aggregate-rating"
+		]
 	};
-	const mapping = mapEntity(entity, property, value);
-	if (property === "P345" && expectedSeason !== void 0 && (mapping.state === "missing" || mapping.state === "ambiguous")) return mapEpisodeToSeries(entity, signal, expectedSeason);
-	return mapping;
+	const mapping = await mapEntity(entity, property, value, signal);
+	const mappingEvidence = {
+		acceptedEvidence: ["exact-id", ...mapping.state === "matched" || isSeriesEntity(entity) ? ["type"] : []],
+		candidateTargets,
+		...mapping.state === "matched" ? {} : { missingEvidence: ["exact-id"] },
+		unverifiedEvidence: mapping.state === "matched" ? [] : [
+			"canonical",
+			"aggregate-rating",
+			...expectedSeason === void 0 ? [] : ["season-link", "season-number"]
+		]
+	};
+	if (property === "P345" && expectedSeason !== void 0 && (mapping.state === "missing" || mapping.state === "ambiguous")) return {
+		...await mapEpisodeToSeries(entity, signal, expectedSeason),
+		...mappingEvidence
+	};
+	return {
+		...mapping,
+		...mappingEvidence
+	};
 };
 var seasonPath = (rtId, season) => {
 	return rtId.match(/^tv\/(?<series>[^/]+)\/s(?<season>\d{2,})$/u)?.groups?.season === String(season).padStart(2, "0") ? rtId : null;
 };
-var unavailable = (reason) => ({
+var unavailable = (reason, failure) => ({
+	...failure ? { failure } : {},
 	reason,
 	status: "unavailable"
 });
@@ -18449,7 +19912,10 @@ var unavailableLookup = (imdb, douban) => {
 	const states = /* @__PURE__ */ new Set([imdb?.state, douban?.state]);
 	if (states.has("ambiguous")) return unavailable("ambiguous");
 	if (states.has("deprecated")) return unavailable("deprecated");
-	if (states.has("error")) return unavailable("error");
+	if (states.has("error")) {
+		const errorLookup = [imdb, douban].find((lookup) => lookup?.state === "error");
+		return unavailable("error", errorLookup?.state === "error" ? errorLookup.failure ?? "request-error" : "request-error");
+	}
 	return unavailable("missing");
 };
 var matchMovie = (mappings) => {
@@ -18514,7 +19980,21 @@ var combineLookups = (imdb, douban, context) => {
 	if (context.season === null) return matchSeries(seasons, series);
 	return matchSeason(seasons, series, context.season);
 };
+var peopleFor = (mappings, kind, rtId) => mappings.filter((mapping) => mapping.kind === kind && mapping.rtId === rtId);
+var identityFor = (mappings, context, mapping) => {
+	const property = context.kind === "movie" ? "P57" : "P170";
+	let workMappings;
+	if (context.kind === "movie") workMappings = peopleFor(mappings, "movie", mapping.rtId);
+	else if (context.kind === "series") workMappings = peopleFor(mappings, "series", mapping.rtId);
+	else workMappings = peopleFor(mappings, "series", mapping.seriesRtId ?? mapping.rtId);
+	const identityPersonIds = [...new Set(workMappings.flatMap((work) => claimValues(work.entity.claims?.[property]).map(entityReference).filter((id) => id !== null && /^Q\d+$/u.test(id))))].toSorted();
+	return {
+		identityImdbIds: [...new Set(workMappings.flatMap((work) => claimValues(work.entity.claims?.P345)).map(String).filter((id) => /^tt\d{7,}$/u.test(id)))].toSorted(),
+		identityPersonIds
+	};
+};
 var fromSettledLookup = (result) => result.status === "fulfilled" ? result.value : {
+	failure: result.reason instanceof SyntaxError ? "parse-error" : "request-error",
 	mappings: [],
 	state: "error"
 };
@@ -18528,15 +20008,92 @@ var resolveRottenMapping = async (context, signal) => {
 		status: "unavailable"
 	};
 	const [imdbResult, doubanResult] = await Promise.allSettled([context.imdbId ? fetchEntities("P345", context.imdbId, signal, context.kind === "season" ? context.season ?? void 0 : void 0) : null, fetchEntities("P4529", context.subjectId, signal)]);
-	return combineLookups(fromSettledLookup(imdbResult), fromSettledLookup(doubanResult) ?? {
+	const imdb = fromSettledLookup(imdbResult);
+	const douban = fromSettledLookup(doubanResult) ?? {
+		failure: "request-error",
 		mappings: [],
 		state: "error"
-	}, context);
+	};
+	const evidenceLookups = [imdb, douban].filter((lookup) => lookup !== null);
+	const evidence = {
+		acceptedEvidence: evidenceLookups.flatMap((lookup) => lookup.acceptedEvidence ?? []),
+		candidateTargets: [...new Set(evidenceLookups.flatMap((lookup) => lookup.candidateTargets ?? []))],
+		missingEvidence: evidenceLookups.flatMap((lookup) => lookup.missingEvidence ?? []),
+		rejectedEvidence: evidenceLookups.flatMap((lookup) => lookup.rejectedEvidence ?? []),
+		unverifiedEvidence: evidenceLookups.flatMap((lookup) => lookup.unverifiedEvidence ?? [])
+	};
+	const result = combineLookups(imdb, douban, context);
+	if (result.status === "unavailable") return {
+		...result,
+		...evidence
+	};
+	const identity = identityFor([...imdb?.mappings ?? [], ...douban?.mappings ?? []], context, result);
+	return {
+		...result,
+		...identity,
+		...evidence
+	};
 };
-var rtTargetCache = createVerifiedTargetCache("dp:rotten-targets:v1");
+var rtTargetCache = createVerifiedTargetCache("dp:rotten-targets:v2");
 var getCachedRtTarget = rtTargetCache.get;
 var cacheRtTarget = rtTargetCache.set;
 var invalidateRtTarget = rtTargetCache.invalidate;
+var mapFailure = (mapping) => {
+	const { reason } = mapping;
+	if (reason === "conflict") return "identity-conflict";
+	if (reason === "season") return "season-unmatched";
+	if (reason === "error") return mapping.failure ?? "error";
+	return "missing-mapping";
+};
+var mappedTarget = (mapping) => ({
+	identityImdbIds: mapping.identityImdbIds ?? [],
+	identityPersonIds: mapping.identityPersonIds ?? [],
+	rtId: mapping.rtId,
+	seriesRtId: mapping.seriesRtId
+});
+var validateMappedSeriesPage = async (context, mapping, seriesPage, signal) => {
+	const page = readStructuredPage(seriesPage.html);
+	if (!page.canonicalUrl || page.jsonLd.length === 0) return "identity-unavailable";
+	if (!structuredPageTypes(page).has("TVSeries")) return "identity-conflict";
+	if (!isRtSeriesPage(seriesPage.html, seriesPage.url)) return "identity-unavailable";
+	if (seriesPage.rtId === mapping.rtId) return null;
+	const evidence = contextIdentityEvidence(context);
+	if (!evidence) return "identity-conflict";
+	let identityProof;
+	try {
+		identityProof = await verifiesRtAlias({
+			evidence,
+			expectedStableIds: mapping.identityImdbIds ?? [],
+			html: seriesPage.html,
+			imdbId: context.imdbId,
+			kind: "series",
+			personIds: mapping.identityPersonIds ?? []
+		}, signal);
+	} catch {
+		return signal.aborted ? "aborted" : "identity-unavailable";
+	}
+	if (signal.aborted) return "aborted";
+	if (identityProof === "matched") return null;
+	return identityProof === "unavailable" ? "identity-unavailable" : "identity-conflict";
+};
+var resolveSeasonLink = async (context, mapping, signal) => {
+	let seriesPage;
+	try {
+		seriesPage = await requestRtPage(mapping.rtId, signal);
+	} catch {
+		return signal.aborted ? { failure: "aborted" } : { failure: "identity-unavailable" };
+	}
+	if (signal.aborted) return { failure: "aborted" };
+	const failure = await validateMappedSeriesPage(context, mapping, seriesPage, signal);
+	if (failure) return { failure };
+	if (context.season === null) return { failure: "season-unmatched" };
+	const seasonPath = findSeasonPath(seriesPage.html, seriesPage.rtId, context.season);
+	return seasonPath ? {
+		...mappedTarget(mapping),
+		rtId: seasonPath,
+		seriesRtId: seriesPage.rtId
+	} : { failure: "season-unmatched" };
+};
 var resolveRtTarget = async (context, signal, refresh = false) => {
 	if (!context.subjectId) return { failure: "missing-mapping" };
 	if (context.seasonConflict || context.unsupportedEpisode) return { failure: "season-unmatched" };
@@ -18546,36 +20103,47 @@ var resolveRtTarget = async (context, signal, refresh = false) => {
 	}
 	const mapping = await resolveRottenMapping(context, signal);
 	if (signal.aborted) return { failure: "aborted" };
-	if (mapping.status === "unavailable") {
-		if (mapping.reason === "conflict") return { failure: "identity-conflict" };
-		if (mapping.reason === "season") return { failure: "season-unmatched" };
-		if (mapping.reason === "error") return { failure: "error" };
-		return { failure: "missing-mapping" };
-	}
-	if (!mapping.needsSeasonLink) return {
-		rtId: mapping.rtId,
-		seriesRtId: mapping.seriesRtId
+	if (mapping.status === "unavailable") return {
+		failure: mapFailure(mapping),
+		acceptedEvidence: mapping.acceptedEvidence ?? [],
+		candidateTargets: mapping.candidateTargets ?? [],
+		missingEvidence: mapping.missingEvidence ?? [],
+		rejectedEvidence: mapping.rejectedEvidence ?? [],
+		unverifiedEvidence: mapping.unverifiedEvidence ?? []
 	};
-	const seriesPage = await requestRtPage(mapping.rtId, signal);
-	if (signal.aborted) return { failure: "aborted" };
-	if (!isRtSeriesPage(seriesPage.html, seriesPage.url)) return { failure: "identity-conflict" };
-	if (context.season === null) return { failure: "season-unmatched" };
-	const seasonPath = findSeasonPath(seriesPage.html, seriesPage.rtId, context.season);
-	return seasonPath ? {
-		rtId: seasonPath,
-		seriesRtId: seriesPage.rtId
-	} : { failure: "season-unmatched" };
+	return mapping.needsSeasonLink ? resolveSeasonLink(context, mapping, signal) : mappedTarget(mapping);
 };
-var ratingFailure = (status, rating = null) => ({
-	rating,
-	status
-});
-var getSnapshotObject = (context, rtId) => ({
-	kind: context.kind,
-	rtId,
-	subjectId: context.subjectId
-});
-var loadRating = async (context, target, object, prior, signal, onResult) => {
+var currentFailure = (context, revision, signal) => {
+	if (signal.aborted) return ratingFailure("aborted");
+	return isCurrent(context, revision) ? null : ratingFailure("identity-conflict");
+};
+var confirmedIdentityConflict = (context, object, prior, onResult) => {
+	invalidateRequests(context);
+	invalidateRtTarget(context);
+	removeSnapshot(prior?.object ?? object);
+	const result = ratingFailure("identity-conflict");
+	onResult?.(result);
+	return result;
+};
+var identityResultFailure = (context, revision, object, prior, identity, signal, onResult) => {
+	const requestFailure = currentFailure(context, revision, signal);
+	if (requestFailure) return requestFailure;
+	if (identity.status === "matched") return null;
+	if (identity.status === "identity-unavailable") {
+		const result = prior ? {
+			diagnostic: makeDiagnostic$1("request-error", "identity", object.rtId, "identity-unavailable"),
+			rating: prior,
+			status: "stale"
+		} : ratingFailure("identity-unavailable", null, makeDiagnostic$1("request-error", "identity", object.rtId, "identity-unavailable"));
+		onResult?.(result);
+		return result;
+	}
+	if (identity.status === "identity-conflict") return confirmedIdentityConflict(context, object, prior, onResult);
+	return ratingFailure("aborted");
+};
+var loadRating = async (context, target, object, prior, signal, revision, onResult) => {
+	const startedFailure = currentFailure(context, revision, signal);
+	if (startedFailure) return startedFailure;
 	if (prior && !prior.stale) {
 		const result = {
 			rating: prior,
@@ -18589,97 +20157,354 @@ var loadRating = async (context, target, object, prior, signal, onResult) => {
 		status: "stale"
 	});
 	const page = await requestRtPage(target.rtId, signal);
-	if (signal.aborted) return ratingFailure("aborted");
-	const pageSeries = page.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)?.groups?.series;
+	const pageFailure = currentFailure(context, revision, signal);
+	if (pageFailure) return pageFailure;
+	const identity = await validateRtPage({
+		context,
+		page,
+		target
+	}, signal);
+	const identityFailure = identityResultFailure(context, revision, object, prior, identity, signal, onResult);
+	if (identityFailure) return identityFailure;
+	if (identity.status !== "matched") return ratingFailure("identity-conflict");
 	const parsed = parseScorecard(page.html, {
 		fetchedAt: Date.now(),
 		kind: context.kind,
 		pageRtId: page.rtId,
 		rtId: target.rtId,
 		season: context.season,
-		seriesRtId: pageSeries ? `tv/${pageSeries}` : target.seriesRtId,
+		seriesRtId: identity.seriesRtId ?? target.seriesRtId,
 		subjectId: context.subjectId,
 		url: page.url
 	});
 	if (parsed.status === "invalid-page") {
-		if (prior) return {
+		const diagnostic = makeDiagnostic$1("parse-error", "parse", target.rtId, "invalid-scorecard");
+		return prior ? {
+			diagnostic,
 			rating: prior,
 			status: "stale"
-		};
-		return ratingFailure("error");
+		} : ratingFailure("error", null, diagnostic);
 	}
-	if (parsed.status === "identity-conflict") return ratingFailure("identity-conflict");
+	if (parsed.status === "identity-conflict") return confirmedIdentityConflict(context, object, prior, onResult);
 	if (parsed.status === "no-rating") {
 		removeSnapshot(object);
-		return ratingFailure("no-rating");
+		return ratingFailure("no-rating", null, makeDiagnostic$1("source-no-rating", "parse", target.rtId));
 	}
+	if (!isCurrent(context, revision)) return ratingFailure("identity-conflict");
 	writeSnapshot(parsed.rating);
 	return {
 		rating: parsed.rating,
 		status: "refreshed"
 	};
 };
-var fallbackSnapshot = (context, object, prior, onResult) => {
-	const rating = prior ?? (object === null ? readUniqueSnapshot(context.subjectId, context.kind) : readSnapshot(object));
-	if (!rating) return ratingFailure("error");
-	const result = {
-		rating,
-		status: "stale"
+var targetFailureReason = (failure) => {
+	switch (failure) {
+		case "identity-conflict": return "identity-conflict";
+		case "aborted": return "cancelled";
+		case "parse-error": return "parse-error";
+		case "error":
+		case "identity-unavailable":
+		case "request-error": return "request-error";
+		default: return "mapping-missing";
+	}
+};
+var targetFailureStage = (failure) => {
+	switch (failure) {
+		case "identity-conflict":
+		case "identity-unavailable": return "identity";
+		case "aborted":
+		case "error":
+		case "request-error": return "request";
+		case "parse-error": return "parse";
+		default: return "mapping";
+	}
+};
+var targetFailureDiagnostic = (targetFailure) => {
+	const { failure } = targetFailure;
+	return createExternalRatingDiagnostic({
+		acceptedEvidence: targetFailure.acceptedEvidence ?? [],
+		cacheAgeMs: null,
+		candidateTargets: targetFailure.candidateTargets ?? [],
+		errorCode: failure === "error" ? "rt-mapping-request" : failure,
+		missingEvidence: targetFailure.missingEvidence ?? [],
+		reason: targetFailureReason(failure),
+		rejectedEvidence: targetFailure.rejectedEvidence ?? [],
+		stage: targetFailureStage(failure),
+		target: null,
+		unverifiedEvidence: targetFailure.unverifiedEvidence ?? []
+	});
+};
+var targetFailureResult = (context, targetFailure, onResult) => {
+	const { failure } = targetFailure;
+	const diagnostic = targetFailureDiagnostic(targetFailure);
+	if (failure === "error" || failure === "request-error" || failure === "parse-error") return {
+		...fallbackSnapshot(context, null, null, onResult),
+		diagnostic
 	};
+	if (failure === "identity-unavailable") {
+		const fallback = fallbackSnapshot(context, null, null, onResult);
+		const unavailable = fallback.rating ? {
+			...fallback,
+			diagnostic
+		} : ratingFailure("identity-unavailable", null, diagnostic);
+		onResult?.(unavailable);
+		return unavailable;
+	}
+	if (failure === "identity-conflict") {
+		invalidateRequests(context);
+		invalidateRtTarget(context);
+		removeSnapshotsForContext(context.subjectId, context.kind);
+	}
+	const result = ratingFailure(failure, null, diagnostic);
 	onResult?.(result);
 	return result;
 };
-var isConfirmedRatingStatus = (status) => status === "cached" || status === "no-rating" || status === "refreshed" || status === "stale";
-var refreshCachedTarget = async (context, priorTarget, signal, onResult) => {
+var handleTargetFailure = (context, priorObject, failure, onResult) => {
+	if (failure === "error" || failure === "request-error" || failure === "parse-error") {
+		const diagnostic = {
+			acceptedEvidence: [],
+			cacheAgeMs: null,
+			candidateTargets: [],
+			missingEvidence: [],
+			rejectedEvidence: [],
+			unverifiedEvidence: [],
+			errorCode: failure === "error" ? "rt-target-refresh" : failure,
+			reason: failure === "parse-error" ? "parse-error" : "request-error",
+			stage: failure === "parse-error" ? "parse" : "mapping",
+			target: priorObject.rtId
+		};
+		const prior = readSnapshot(priorObject);
+		onResult?.(prior ? {
+			diagnostic,
+			rating: prior,
+			status: "stale"
+		} : ratingFailure("error", null, diagnostic));
+		return;
+	}
+	if (failure === "identity-unavailable") {
+		const prior = readSnapshot(priorObject);
+		onResult?.(prior ? {
+			diagnostic: {
+				acceptedEvidence: [],
+				cacheAgeMs: null,
+				candidateTargets: [],
+				missingEvidence: [],
+				rejectedEvidence: [],
+				unverifiedEvidence: [],
+				errorCode: "identity-unavailable",
+				reason: "request-error",
+				stage: "identity",
+				target: priorObject.rtId
+			},
+			rating: prior,
+			status: "stale"
+		} : ratingFailure("identity-unavailable", null, {
+			acceptedEvidence: [],
+			cacheAgeMs: null,
+			candidateTargets: [],
+			missingEvidence: [],
+			rejectedEvidence: [],
+			unverifiedEvidence: [],
+			errorCode: "identity-unavailable",
+			reason: "request-error",
+			stage: "identity",
+			target: priorObject.rtId
+		}));
+		return;
+	}
+	invalidateRequests(context);
+	invalidateRtTarget(context);
+	removeSnapshot(priorObject);
+	onResult?.(ratingFailure(failure));
+};
+var refreshChangedTarget = async (context, target, priorObject, signal, onResult) => {
+	const revision = invalidateRequests(context);
+	invalidateRtTarget(context);
+	removeSnapshot(priorObject);
+	onResult?.(ratingFailure("identity-conflict"));
+	const object = getSnapshotObject(context, target.rtId);
+	const prior = readSnapshot(object);
+	let result;
+	try {
+		result = await loadRating(context, target, object, prior, signal, revision, onResult);
+	} catch {
+		result = ratingFailure(signal.aborted ? "aborted" : "error");
+	}
+	if (isCurrent(context, revision) && isConfirmedRatingStatus(result.status)) cacheRtTarget(context, target);
+	if (!signal.aborted && isCurrent(context, revision)) onResult?.(result);
+};
+var refreshCachedTarget = async (context, priorTarget, signal, revision, onResult) => {
 	let freshTarget;
 	try {
 		freshTarget = await resolveRtTarget(context, signal, true);
 	} catch {
 		return;
 	}
-	if (signal.aborted) return;
+	if (signal.aborted || !isCurrent(context, revision)) return;
 	const priorObject = getSnapshotObject(context, priorTarget.rtId);
 	if ("failure" in freshTarget) {
-		if (freshTarget.failure === "error") return;
-		invalidateRtTarget(context);
-		removeSnapshot(priorObject);
-		onResult?.(ratingFailure(freshTarget.failure));
+		handleTargetFailure(context, priorObject, freshTarget.failure, onResult);
 		return;
 	}
-	if (freshTarget.rtId === priorTarget.rtId && freshTarget.seriesRtId === priorTarget.seriesRtId) {
-		cacheRtTarget(context, freshTarget);
+	if (freshTarget.rtId === priorTarget.rtId && freshTarget.seriesRtId === priorTarget.seriesRtId && JSON.stringify(freshTarget.identityPersonIds) === JSON.stringify(priorTarget.identityPersonIds) && JSON.stringify(freshTarget.identityImdbIds) === JSON.stringify(priorTarget.identityImdbIds)) {
+		if (isCurrent(context, revision)) cacheRtTarget(context, freshTarget);
 		return;
 	}
-	invalidateRtTarget(context);
-	removeSnapshot(priorObject);
-	onResult?.(ratingFailure("identity-conflict"));
-	const object = getSnapshotObject(context, freshTarget.rtId);
-	const prior = readSnapshot(object);
-	const result = await loadRating(context, freshTarget, object, prior, signal);
-	if (isConfirmedRatingStatus(result.status)) cacheRtTarget(context, freshTarget);
-	if (!signal.aborted) onResult?.(result);
+	await refreshChangedTarget(context, freshTarget, priorObject, signal, onResult);
+};
+var resolveTargetForRequest = async (context, signal) => {
+	const cacheEntry = !context.subjectId || context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null ? null : getCachedRtTarget(context);
+	return {
+		cacheEntry,
+		target: cacheEntry?.status === "resolved" ? cacheEntry.target : await resolveRtTarget(context, signal)
+	};
+};
+var failedRtFetch = (context, revision, signal, object, prior, error, onResult) => {
+	if (signal.aborted) return ratingFailure("aborted", null, {
+		acceptedEvidence: [],
+		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
+		errorCode: "aborted",
+		reason: "cancelled",
+		stage: "request",
+		target: object?.rtId ?? null
+	});
+	if (!isCurrent(context, revision)) return ratingFailure("identity-conflict", null, {
+		acceptedEvidence: [],
+		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
+		errorCode: "stale-request",
+		reason: "identity-conflict",
+		stage: "identity",
+		target: object?.rtId ?? null
+	});
+	let reason;
+	if (error instanceof DOMException && error.name === "AbortError") reason = "cancelled";
+	else if (error instanceof SyntaxError) reason = "parse-error";
+	else reason = "request-error";
+	const diagnostic = {
+		acceptedEvidence: [],
+		cacheAgeMs: null,
+		candidateTargets: [],
+		missingEvidence: [],
+		rejectedEvidence: [],
+		unverifiedEvidence: [],
+		errorCode: reason === "cancelled" ? "aborted" : "rt-fetch",
+		reason,
+		stage: reason === "parse-error" ? "parse" : "request",
+		target: object?.rtId ?? null
+	};
+	return {
+		...fallbackSnapshot(context, object, prior, onResult),
+		diagnostic
+	};
 };
 var fetchRtRating = async (context, signal, onResult) => {
+	const revision = currentRevision(context);
 	let object = null;
 	let prior = null;
 	try {
-		const cacheEntry = !context.subjectId || context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null ? null : getCachedRtTarget(context);
-		const target = cacheEntry?.status === "resolved" ? cacheEntry.target : await resolveRtTarget(context, signal);
-		if ("failure" in target) {
-			if (target.failure === "error") return fallbackSnapshot(context, null, null, onResult);
-			return ratingFailure(target.failure);
-		}
+		const { cacheEntry, target } = await resolveTargetForRequest(context, signal);
+		if (signal.aborted || !isCurrent(context, revision)) return ratingFailure(signal.aborted ? "aborted" : "identity-conflict");
+		if ("failure" in target) return targetFailureResult(context, target, onResult);
 		object = getSnapshotObject(context, target.rtId);
 		prior = readSnapshot(object);
-		if (cacheEntry?.status === "resolved" && Date.now() - cacheEntry.verifiedAt >= 864e5) refreshCachedTarget(context, cacheEntry.target, signal, onResult);
-		const result = await loadRating(context, target, object, prior, signal, onResult);
-		if (cacheEntry?.status !== "resolved" && isConfirmedRatingStatus(result.status)) cacheRtTarget(context, target);
-		return result;
-	} catch {
-		if (signal.aborted) return ratingFailure("aborted");
-		return fallbackSnapshot(context, object, prior, onResult);
+		if (cacheEntry?.status === "resolved" && Date.now() - cacheEntry.verifiedAt >= 864e5) refreshCachedTarget(context, cacheEntry.target, signal, revision, onResult);
+		const result = await loadRating(context, target, object, prior, signal, revision, onResult);
+		if (isCurrent(context, revision) && cacheEntry?.status !== "resolved" && isConfirmedRatingStatus(result.status)) cacheRtTarget(context, target);
+		return isCurrent(context, revision) ? result : ratingFailure("identity-conflict");
+	} catch (error) {
+		return failedRtFetch(context, revision, signal, object, prior, error, onResult);
 	}
 };
+var makeDiagnostic = (reason, stage, target, fetchedAt = null, errorCode = null) => createExternalRatingDiagnostic({
+	cacheAgeMs: fetchedAt === null ? null : Math.max(0, Date.now() - fetchedAt),
+	errorCode,
+	reason,
+	stage,
+	target
+});
+var imdbDiagnostic = (result, context) => {
+	if (!context.imdbId) return makeDiagnostic("mapping-missing", "mapping", null, null, "no-imdb-id");
+	if (result?.rating) return makeDiagnostic("rating", "rating", context.imdbId);
+	return result?.sourceUrl ? makeDiagnostic("source-no-rating", "rating", context.imdbId) : makeDiagnostic("request-error", "request", context.imdbId, null, "imdb-fetch");
+};
+var metacriticDiagnostic = (rating, context) => {
+	if (rating) return makeDiagnostic("rating", rating.stale ? "cache" : "rating", rating.object.metacriticId, rating.fetchedAt);
+	if (!context.subjectId || context.seasonConflict || context.unsupportedEpisode || context.kind === "season" && context.season === null) return makeDiagnostic("mapping-missing", "mapping", null, null, "no-target");
+	return makeDiagnostic("request-error", "request", null, null, "mc-unresolved");
+};
+var rtDiagnostic = (result) => {
+	if (result.diagnostic) return result.diagnostic;
+	if (result.rating) return makeDiagnostic("rating", result.status === "cached" || result.status === "stale" ? "cache" : "rating", result.rating.object.rtId, result.rating.fetchedAt);
+	switch (result.status) {
+		case "aborted": return makeDiagnostic("cancelled", "request", null, null, "aborted");
+		case "identity-conflict": return makeDiagnostic("identity-conflict", "identity", null, null, "rt-conflict");
+		case "missing-mapping":
+		case "season-unmatched": return makeDiagnostic("mapping-missing", "mapping", null, null, result.status);
+		case "no-rating": return makeDiagnostic("source-no-rating", "parse", null, null, "no-rating");
+		case "error":
+		case "identity-unavailable": return makeDiagnostic("request-error", "request", null, null, result.status);
+		case "cached":
+		case "refreshed":
+		case "stale": return makeDiagnostic("source-no-rating", "parse", null, null, "missing-result");
+		default: return makeDiagnostic("request-error", "request", null, null, "rt-unresolved");
+	}
+};
+var contextCandidates = (context) => [context.imdbId, context.subjectId].filter((target) => target !== null);
+var addDiagnosticEvidence = (diagnostic, source, context) => {
+	const accepted = [...diagnostic.acceptedEvidence];
+	const rejected = [...diagnostic.rejectedEvidence];
+	const missing = [...diagnostic.missingEvidence];
+	const unverified = [...diagnostic.unverifiedEvidence];
+	if (diagnostic.reason === "rating") {
+		accepted.push("exact-id");
+		if (source !== "imdb") {
+			accepted.push("type", "canonical");
+			if (context.kind === "season") accepted.push("season-number");
+		}
+	} else if (diagnostic.reason === "source-no-rating") {
+		accepted.push("exact-id");
+		if (source !== "imdb") {
+			accepted.push("type", "canonical");
+			missing.push("aggregate-rating");
+			if (context.kind === "season") accepted.push("season-number");
+		}
+	} else if (diagnostic.reason === "mapping-missing") {
+		missing.push("exact-id");
+		unverified.push("type", "canonical", "aggregate-rating");
+		if (context.kind === "season") unverified.push("season-link", "season-number");
+	} else if (diagnostic.reason === "identity-conflict") {
+		rejected.push("exact-id");
+		unverified.push("aggregate-rating");
+	} else if (diagnostic.reason === "parse-error") {
+		accepted.push("exact-id", "type");
+		unverified.push("canonical", "aggregate-rating");
+	} else unverified.push("exact-id", "type", "canonical", "aggregate-rating");
+	return createExternalRatingDiagnostic({
+		...diagnostic,
+		acceptedEvidence: accepted,
+		candidateTargets: [
+			...diagnostic.target ? [diagnostic.target] : [],
+			...diagnostic.candidateTargets,
+			...contextCandidates(context)
+		],
+		missingEvidence: missing,
+		rejectedEvidence: rejected,
+		unverifiedEvidence: unverified
+	});
+};
+var sourceResult = (rating, diagnostic, status = "resolved") => ({
+	diagnostic,
+	rating,
+	status
+});
 var settle = async (request, signal, publish) => {
 	let rating = null;
 	try {
@@ -18690,40 +20515,33 @@ var settle = async (request, signal, publish) => {
 	if (!signal.aborted) publish(rating);
 };
 var resolveAll = (context, signal, onUpdate) => {
-	if (context.imdbId && !context.seasonConflict && !context.unsupportedEpisode) settle(fetchImdbRating(context.imdbId, context.season ?? void 0), signal, (rating) => onUpdate({
-		result: {
-			rating,
-			status: "resolved"
-		},
-		source: "imdb"
-	}));
-	else onUpdate({
-		result: {
-			rating: null,
-			status: "resolved"
-		},
+	if (context.imdbId && !context.seasonConflict && !context.unsupportedEpisode) {
+		let imdbOutcome = null;
+		settle(fetchImdbRating(context.imdbId, context.season ?? void 0, signal, (diagnostic) => {
+			imdbOutcome = diagnostic;
+		}), signal, (rating) => onUpdate({
+			result: sourceResult(rating, addDiagnosticEvidence(imdbOutcome ?? imdbDiagnostic(rating, context), "imdb", context)),
+			source: "imdb"
+		}));
+	} else onUpdate({
+		result: sourceResult(null, addDiagnosticEvidence(imdbDiagnostic(null, context), "imdb", context)),
 		source: "imdb"
 	});
-	if (context.imdbId || context.subjectId) settle(fetchMcRating(context, signal, (rating) => {
-		if (!signal.aborted) onUpdate({
-			result: {
-				rating,
-				status: "resolved"
-			},
+	if (context.imdbId || context.subjectId) {
+		let mcOutcome = null;
+		settle(fetchMcRating(context, signal, (rating) => {
+			if (!signal.aborted) onUpdate({
+				result: sourceResult(rating, addDiagnosticEvidence(mcOutcome ?? metacriticDiagnostic(rating, context), "mc", context)),
+				source: "mc"
+			});
+		}, (diagnostic) => {
+			mcOutcome = diagnostic;
+		}), signal, (rating) => onUpdate({
+			result: sourceResult(rating, addDiagnosticEvidence(mcOutcome ?? metacriticDiagnostic(rating, context), "mc", context)),
 			source: "mc"
-		});
-	}), signal, (rating) => onUpdate({
-		result: {
-			rating,
-			status: "resolved"
-		},
-		source: "mc"
-	}));
-	else onUpdate({
-		result: {
-			rating: null,
-			status: "resolved"
-		},
+		}));
+	} else onUpdate({
+		result: sourceResult(null, addDiagnosticEvidence(metacriticDiagnostic(null, context), "mc", context)),
 		source: "mc"
 	});
 	const resolveRottenTomatoes = async () => {
@@ -18731,10 +20549,7 @@ var resolveAll = (context, signal, onUpdate) => {
 		try {
 			result = await fetchRtRating(context, signal, (partial) => {
 				if (!signal.aborted) onUpdate({
-					result: {
-						rating: partial.rating,
-						status: partial.status === "stale" ? "pending" : "resolved"
-					},
+					result: sourceResult(partial.rating, addDiagnosticEvidence(rtDiagnostic(partial), "rt", context), partial.status === "stale" ? "pending" : "resolved"),
 					source: "rt"
 				});
 			});
@@ -18745,27 +20560,29 @@ var resolveAll = (context, signal, onUpdate) => {
 			};
 		}
 		if (!signal.aborted) onUpdate({
-			result: {
-				rating: result.rating,
-				status: "resolved"
-			},
+			result: sourceResult(result.rating, addDiagnosticEvidence(rtDiagnostic(result), "rt", context)),
 			source: "rt"
 		});
 	};
 	resolveRottenTomatoes();
 };
-var useExternalRatings = (data) => {
+var useExternalRatings = (data, onRatingUpdate) => {
 	const [state, setState] = d(() => ({
 		data,
 		ratings: emptyRatingResults()
 	}));
+	const onRatingUpdateRef = T(onRatingUpdate);
+	A(() => {
+		onRatingUpdateRef.current = onRatingUpdate;
+	}, [onRatingUpdate]);
 	A(() => {
 		const controller = new AbortController();
+		const context = buildContext(data);
 		setState((current) => current.data === data ? current : {
 			data,
 			ratings: emptyRatingResults()
 		});
-		resolveAll(buildContext(data), controller.signal, (update) => {
+		resolveAll(context, controller.signal, (update) => {
 			setState((current) => {
 				if (current.data !== data) return current;
 				switch (update.source) {
@@ -18793,6 +20610,7 @@ var useExternalRatings = (data) => {
 					default: return current;
 				}
 			});
+			onRatingUpdateRef.current?.(update);
 		});
 		return () => controller.abort();
 	}, [data]);
@@ -19087,7 +20905,7 @@ var useSeriesRuntime = (initial, doc) => {
 	}, [doc, initial]);
 	return result;
 };
-var SubjectPageRuntime = ({ data: initialData, doc }) => {
+var SubjectPageRuntime = ({ data: initialData, doc, onRatingUpdate }) => {
 	const [data, setData] = d(initialData);
 	const refreshAuthenticatedData = b(async () => {
 		const snapshot = await readSubjectData(data.subjectId);
@@ -19101,7 +20919,7 @@ var SubjectPageRuntime = ({ data: initialData, doc }) => {
 	const summary = useNativeSummary(data.summary, doc);
 	const resolvedComments = useResolvedComments(data.comments, doc);
 	const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
-	const externalRatings = useExternalRatings(data);
+	const externalRatings = useExternalRatings(data, onRatingUpdate);
 	const firstBroadcastPlatform = useFirstBroadcastPlatform(data.subjectId, data.interest.loggedIn);
 	const navigation = useStickyNavigation(doc, w(() => computeNavSections({
 		...data,
@@ -21117,7 +22935,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-B-UaRUH0-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-M4mucWx1-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {

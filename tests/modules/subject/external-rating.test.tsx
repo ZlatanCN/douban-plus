@@ -1,41 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import type {
-  ImdbRating as ImdbRatingData,
-  McRating,
-  RtRating,
-} from "@/modules/subject/domain";
 import { ExternalRating } from "@/modules/subject/ratings/external-rating";
 
 import { renderIntoRoot, renderSingle } from "../../helpers/render";
-
-const makeImdbRating = (
-  overrides?: Partial<ImdbRatingData>
-): ImdbRatingData => ({
-  count: 1_200_000,
-  score: 8.5,
-  ...overrides,
-});
-
-const makeMcRating = (overrides?: Partial<McRating>): McRating => ({
-  reviewCount: 1500,
-  score: 82,
-  sourceUrl: "https://www.metacritic.com/movie/test/",
-  ...overrides,
-});
-
-const makeRtRating = (overrides?: Partial<RtRating>): RtRating => ({
-  audienceCount: { kind: "exact", value: 50_000 },
-  audienceGroup: "all",
-  audienceScore: 76,
-  criticsCount: { kind: "exact", value: 300 },
-  criticsScore: 94,
-  fetchedAt: 1_700_000_000_000,
-  object: { kind: "movie", rtId: "m/test", subjectId: "1" },
-  sourceUrl: "https://www.rottentomatoes.com/m/test",
-  stale: false,
-  ...overrides,
-});
+import {
+  makeImdbRating,
+  makeMcRating,
+  makeRtRating,
+} from "./external-rating-test-support";
 
 describe(ExternalRating, () => {
   it("renders shared loading state for external sources", () => {
@@ -106,7 +78,7 @@ describe(ExternalRating, () => {
     );
   });
 
-  it("renders Metacritic score, count and logo when loaded", () => {
+  it("renders native Metascore and User score scales with their own counts", () => {
     const el = renderSingle(
       <ExternalRating
         rating={makeMcRating()}
@@ -116,13 +88,35 @@ describe(ExternalRating, () => {
       />
     );
 
-    expect(el.classList.contains("atv-rating-panel-mc")).toBeTruthy();
-    expect(el.classList.contains("is-loaded")).toBeTruthy();
-    expect(el.querySelector(".atv-rating-panel-score")?.textContent).toBe("82");
-    expect(el.querySelector(".atv-rating-panel-count")?.textContent).toContain(
-      "1,500"
-    );
-    expect(el.querySelector('[aria-label="Metacritic"]')).not.toBeNull();
+    expect({
+      loaded:
+        el.classList.contains("atv-rating-panel-mc") &&
+        el.classList.contains("is-loaded"),
+      critics: {
+        score: el.querySelector(".atv-mc-critics .atv-mc-score-value")
+          ?.textContent,
+        scale: el.querySelector(".atv-mc-critics .atv-mc-score-scale")
+          ?.textContent,
+        count: el.querySelector(".atv-mc-critics .atv-mc-rating-count")
+          ?.textContent,
+      },
+      audience: {
+        score: el.querySelector(".atv-mc-audience .atv-mc-score-value")
+          ?.textContent,
+        scale: el.querySelector(".atv-mc-audience .atv-mc-score-scale")
+          ?.textContent,
+        count: el.querySelector(".atv-mc-audience .atv-mc-rating-count")
+          ?.textContent,
+      },
+      oldLabel: el.querySelector(".atv-mc-label-row"),
+      logo: el.querySelector('[aria-label="Metacritic"]') !== null,
+    }).toMatchObject({
+      loaded: true,
+      critics: { score: "82", scale: "/100", count: "评价 1,500" },
+      audience: { score: "9.1", scale: "/10", count: "评价 1,269" },
+      oldLabel: null,
+      logo: true,
+    });
   });
 
   it("links the Metacritic logo to its rating page", () => {
@@ -141,52 +135,44 @@ describe(ExternalRating, () => {
     ).toBe("https://www.metacritic.com/movie/test/");
   });
 
-  it("renders Metacritic bar, Chinese label and no rating stars when loaded", () => {
+  it("renders only the available side without inventing the missing side", () => {
     const el = renderSingle(
-      <ExternalRating rating={makeMcRating()} resolved source="metacritic" />
+      <ExternalRating
+        rating={makeMcRating({ audience: null })}
+        resolved
+        source="metacritic"
+      />
     );
 
-    expect(el.querySelector(".atv-mc-bar-fill")?.getAttribute("style")).toBe(
-      "width: 82%;"
-    );
-    expect(el.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "普遍赞誉"
-    );
+    expect(el.querySelectorAll(".atv-mc-score-side")).toHaveLength(1);
+    expect(
+      el.querySelector(".atv-mc-critics .atv-mc-score-scale")?.textContent
+    ).toBe("/100");
+    expect(el.querySelector(".atv-mc-audience")).toBeNull();
     expect(el.querySelector(".atv-rating-stars")).toBeNull();
   });
 
-  it("classifies Metacritic score bands consistently", () => {
+  it("hides a missing count while keeping the valid audience score", () => {
     const high = renderSingle(
       <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 81 })}
-        resolved
-        source="metacritic"
-      />
-    );
-    const mixed = renderSingle(
-      <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 40 })}
-        resolved
-        source="metacritic"
-      />
-    );
-    const low = renderSingle(
-      <ExternalRating
-        rating={makeMcRating({ reviewCount: 0, score: 20 })}
+        rating={makeMcRating({
+          critics: null,
+          audience: { displayScore: "0", score: 0, reviewCount: null },
+        })}
         resolved
         source="metacritic"
       />
     );
 
-    expect(high.querySelector(".atv-mc-bar-fill")?.classList).toContain(
-      "is-high"
-    );
-    expect(mixed.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "褒贬不一"
-    );
-    expect(low.querySelector(".atv-mc-word-label")?.textContent).toBe(
-      "大体差评"
-    );
+    expect(
+      high.querySelector(".atv-mc-audience .atv-mc-score-value")?.textContent
+    ).toBe("0");
+    expect(
+      high.querySelector(".atv-mc-audience .atv-mc-score-scale")?.textContent
+    ).toBe("/10");
+    expect(
+      high.querySelector(".atv-mc-rating-count")?.getAttribute("aria-hidden")
+    ).toBe("true");
   });
 
   it("renders Rotten Tomatoes critics and audience scores", () => {
@@ -206,13 +192,14 @@ describe(ExternalRating, () => {
       <ExternalRating rating={makeRtRating()} resolved source="rt" />
     );
 
-    expect(el.querySelectorAll(".atv-rt-label-item")).toHaveLength(2);
+    expect(el.querySelectorAll(".atv-rating-dual-label")).toHaveLength(2);
     expect(
-      el.querySelector(".is-critics .atv-rt-score-label")?.textContent
+      el.querySelector(".atv-rt-critics .atv-rt-score-label")?.textContent
     ).toBe("影评人");
     expect(
-      el.querySelector(".is-audience .atv-rt-score-label")?.textContent
+      el.querySelector(".atv-rt-audience .atv-rt-score-label")?.textContent
     ).toBe("观众");
+    expect(el.querySelectorAll(".atv-rt-score-icon")).toHaveLength(0);
   });
 
   it("renders Rotten Tomatoes logo, count row and no rating stars", () => {
@@ -222,21 +209,35 @@ describe(ExternalRating, () => {
 
     expect(el.querySelector('[aria-label="Rotten Tomatoes"]')).not.toBeNull();
     expect(el.querySelector(".atv-rating-stars")).toBeNull();
-    expect(el.querySelector(".atv-rt-count-row")?.textContent).toContain(
-      "50,000"
-    );
+    expect(el.querySelectorAll(".atv-rt-count-value")).toHaveLength(2);
+    expect(
+      el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
+    ).toContain("50,000");
   });
 
-  it("applies Rotten Tomatoes fresh and rotten classes independently", () => {
-    const el = renderSingle(
-      <ExternalRating
-        rating={makeRtRating({ audienceScore: 88, criticsScore: 45 })}
-        resolved
-        source="rt"
-      />
-    );
+  it.each([
+    { lowerBound: 250_000, expectedAudienceText: "评价 250,000+" },
+    { lowerBound: 2_500_000, expectedAudienceText: "评价 2,500,000+" },
+  ])(
+    "keeps Rotten Tomatoes range count $expectedAudienceText on the audience side",
+    ({ lowerBound, expectedAudienceText }) => {
+      const el = renderSingle(
+        <ExternalRating
+          rating={makeRtRating({
+            audienceCount: { kind: "range", lowerBound },
+            criticsCount: { kind: "exact", value: 147 },
+          })}
+          resolved
+          source="rt"
+        />
+      );
 
-    expect(el.querySelector(".is-critics")?.classList).toContain("is-rotten");
-    expect(el.querySelector(".is-audience")?.classList).toContain("is-fresh");
-  });
+      expect(
+        el.querySelector(".atv-rt-critics .atv-rt-count-value")?.textContent
+      ).toBe("评价 147");
+      expect(
+        el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
+      ).toBe(expectedAudienceText);
+    }
+  );
 });

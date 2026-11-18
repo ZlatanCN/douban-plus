@@ -25,7 +25,7 @@ describe("subject runtime rt snapshot refresh", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const stale = makeRtSnapshot({}, now - 30 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -44,12 +44,19 @@ describe("subject runtime rt snapshot refresh", () => {
     );
     expect(root.querySelector(".atv-rt-score-value")?.textContent).toBe("89%");
     expect(requests.every((url) => url.includes("wikidata.org"))).toBeTruthy();
+    const snapshots = JSON.parse(
+      localStorage.getItem("dp:rotten-snapshots:v2") ?? "{}"
+    ) as Record<string, { fetchedAt: number }>;
+    expect(
+      snapshots[JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]
+        ?.fetchedAt
+    ).toBe(now - 30 * 24 * 60 * 60 * 1000);
   });
 
   it("keeps the default audience score when RT omits overlay metadata", async () => {
     const stale = makeRtSnapshot({}, Date.now() - 10 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: stale,
       })
@@ -96,7 +103,7 @@ describe("subject runtime rt snapshot refresh", () => {
       ).toStrictEqual(["76%"])
     );
     expect(
-      root.querySelector(".is-audience .atv-rt-score-label")?.textContent
+      root.querySelector(".atv-rt-audience .atv-rt-score-label")?.textContent
     ).toBe("观众");
     expect(root.querySelector(".atv-rt-stale")).toBeNull();
   });
@@ -106,7 +113,7 @@ describe("subject runtime rt snapshot refresh", () => {
     vi.spyOn(Date, "now").mockReturnValue(now);
     const fresh = makeRtSnapshot({}, now - 7 * 24 * 60 * 60 * 1000);
     localStorage.setItem(
-      "dp:rotten-snapshots:v1",
+      "dp:rotten-snapshots:v2",
       JSON.stringify({
         [JSON.stringify(["1292052", "movie", "m/shawshank_redemption"])]: fresh,
       })

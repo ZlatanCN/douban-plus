@@ -52,7 +52,29 @@ Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metac
 
 **烂番茄观众口径**: 烂番茄页面默认展示的“已验证观众”或“全部观众”评分群体，随观众百分比保留并可在来源详情中辨认。_Avoid_: 混用两种观众百分比、不注明口径的观众评分
 
+**Metascore**: Metacritic 对专业影评汇总得到的 0–100 分评分，与观众投票形成的 User score 分开。_Avoid_: 观众评分、好评百分比、与 User score 混合的总分
+
+**Meta 观众评分（User score）**: Metacritic 根据观众评分形成的 0–10 分评分；其评分票数与带文字的用户评论数是不同统计。_Avoid_: Metascore、好评百分比、用户文字评论数
+
+**Meta 双侧评分**: 同一已确认电影、整剧或单季的 Metascore 与 User score，两侧保留各自量表并独立存在；任一有效侧可展示，缺分或缺人数不表示零。_Avoid_: 两侧齐全才有评分、统一换算后的混合分数、整剧观众分补单季
+
 **烂番茄评分快照**: 在明确获取日期记录的、已确认评分对象的烂番茄评分及其观众口径；刷新失败时可以带日期继续呈现仍在保留期内的旧快照。_Avoid_: 把获取日期当作上游更新日期、把旧评分当作实时评分、复用未确认对象的旧分数
+
+**外部评分获取结果**: 对某个已知豆瓣作品从指定评分来源获取评分的结论，区分取得评分、来源无评分、作品映射不足、评分对象冲突、请求失败与页面无法解析。_Avoid_: 把所有空值称为无评分、把请求失败称为作品不存在
+
+**来源无评分**: 已确认评分页面属于当前评分对象，但该来源尚未给出有效分数。_Avoid_: 映射缺失、网络失败、解析失败
+
+**评分获取诊断**: 用于解释一次外部评分获取结果的作品标识、评分来源、处理阶段及结论记录。_Avoid_: 作品评分本身、用户行为记录、源站无评分的证明
+
+**来源季链接**: 已确认整剧的评分来源页面明确关联到具体季的链接；它表达该来源中的整剧与季对应关系，仍需与当前作品的季身份核对。_Avoid_: 按季号拼出的地址、整剧评分替代季评分、唯一一季必然等于整剧
+
+**评分页面别名**: 指向同一评分对象的不同来源地址，地址变化不改变其作品及电影／整剧／季粒度。_Avoid_: 同站重定向必然同作品、canonical 自洽即证明原作品相同
+
+**已核验评分快照**: 在明确获取日期保存的、已确认属于当前作品及评分对象的外部评分；评分对象身份的确认与该分数的新旧程度是两个不同判断。_Avoid_: 任意旧缓存、未确认对象的旧分数、获取日期等于源站更新日期
+
+**固定评分样本**: 在明确采集时间保存的真实作品身份资料和评分页面片段，以及应当得到的评分获取结果；它用于核对同一种上游数据形态的处理是否正确。_Avoid_: 当前实时评分、总体覆盖率、仅凭片名编造的评分样例
+
+**联网评分抽查**: 在检查当时读取指定作品的真实来源，核对评分获取链路是否仍然可用；因网络或源站访问限制未能完成的检查属于未验证。_Avoid_: 固定样本回归、未验证等于通过、未验证等于源站无评分
 
 **影像**: 当前作品的视觉媒体集合，包括动态预告片和静态剧照。 _Avoid_: 用“剧照”指代同时包含预告片的分区
 
@@ -254,13 +276,13 @@ src/
 `resolveAll` in `orchestrate.ts` starts each external rating source independently and publishes that source's result as soon as it settles:
 
 1. IMDb requires a valid IMDb ID. Its season ratings are computed from that season's episode ratings and cached separately from direct title ratings. If season data cannot be read, the series or episode rating is not substituted.
-2. Metacritic resolves IMDb IDs and Douban subject IDs through Wikidata's Metacritic identifier (P1712). It checks movie, series, season, canonical page, season number and parent series before reading the Metascore and critic review count. Episode IMDb IDs resolve through their linked season; series mappings resolve a season through Wikidata's ordered season claims.
+2. Metacritic resolves IMDb IDs and Douban subject IDs through Wikidata's Metacritic identifier (P1712). It checks movie, series, season, canonical page, season number and parent series before parsing both scores from the same response: Metascore (0–100) from the matching JSON-LD object and User score (0–10) from the visible page. The User Ratings link must identify the verified object, including its exact season; its count is rating votes, not written comments. Explicit TBD is a valid missing audience side. If either side is malformed or its identity is uncertain, the other valid side can display, but the partial result does not replace or renew a snapshot. Episode IMDb IDs resolve through their linked season; series mappings resolve a season through Wikidata's ordered season claims.
 3. RT uses the same IMDb and Douban identity inputs to find an active RT identifier (P1258), then verifies film, series, or season identity. Episode IMDb IDs resolve through the parent series and its season page. The RT adapter verifies the canonical page and media type before reading the current `mediaScorecard` fields. Critics and audience scores can be absent independently, and audience scores retain the page's default audience group.
 4. Each result carries an independent pending/resolved state. Unmounting aborts requests and prevents late results from updating the page.
 
 `resolveAll` accepts the already-extracted `ResolutionContext` and none of the resolution implementation reads the DOM. `SubjectPageRuntime` owns the asynchronous lifecycle; `ExternalRating({ source, rating, resolved })` owns the shared logo and loading/empty/loaded display state. RT ratings are cached locally with the verified subject, RT target, audience group and retrieval time.
 
-RT snapshots are fresh for 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days. RT and Metacritic verified target mappings are cached for 30 days and rechecked in the background every 24 hours. Metacritic scores are cached for 7 days.
+Metacritic snapshots use the v2 namespace and store both sides as one object from the same response. A complete dual-score response or an explicitly TBD single side replaces the prior snapshot atomically; partial parse failures never write or renew it. RT and Metacritic snapshots are fresh below 7 days, shown as stale while refresh is attempted from day 7 through day 30, and hidden after 30 days or for future-dated timestamps. Verified target mappings are cached separately for 30 days and rechecked after 24 hours.
 
 ### External rating integration tests
 

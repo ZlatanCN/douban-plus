@@ -1,10 +1,16 @@
 import { fetchImdbRating } from "@/modules/subject/api/external-ratings/imdb";
 import type { FetchImdbResult } from "@/modules/subject/api/external-ratings/imdb";
 import { fetchMcRating } from "@/modules/subject/api/external-ratings/metacritic";
+import type { ExternalRatingDiagnostic } from "@/modules/subject/api/external-ratings/outcome";
 import { fetchRtRating } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
-import type { RtResolution } from "@/modules/subject/api/external-ratings/rotten-tomatoes";
 import type { McRating, RtRating } from "@/modules/subject/domain";
 
+import {
+  addDiagnosticEvidence,
+  imdbDiagnostic,
+  metacriticDiagnostic,
+  rtDiagnostic,
+} from "./diagnostics";
 import type { ResolutionContext, SourceResult } from "./types";
 
 type RatingUpdate =
@@ -12,6 +18,12 @@ type RatingUpdate =
   | { result: SourceResult<McRating>; source: "mc" }
   | { result: SourceResult<RtRating>; source: "rt" };
 type OnRatingUpdate = (update: RatingUpdate) => void;
+
+const sourceResult = <TRating>(
+  rating: TRating | null,
+  diagnostic: ExternalRatingDiagnostic,
+  status: SourceResult<TRating>["status"] = "resolved"
+): SourceResult<TRating> => ({ diagnostic, rating, status });
 
 const settle = async <TRating>(
   request: Promise<TRating | null>,
@@ -39,44 +51,104 @@ const resolveAll = (
     !context.seasonConflict &&
     !context.unsupportedEpisode
   ) {
+    let imdbOutcome: ExternalRatingDiagnostic | null = null;
     void settle(
-      fetchImdbRating(context.imdbId, context.season ?? undefined),
+      fetchImdbRating(
+        context.imdbId,
+        context.season ?? undefined,
+        signal,
+        (diagnostic) => {
+          imdbOutcome = diagnostic;
+        }
+      ),
       signal,
       (rating) =>
-        onUpdate({ result: { rating, status: "resolved" }, source: "imdb" })
+        onUpdate({
+          result: sourceResult(
+            rating,
+            addDiagnosticEvidence(
+              imdbOutcome ?? imdbDiagnostic(rating, context),
+              "imdb",
+              context
+            )
+          ),
+          source: "imdb",
+        })
     );
   } else {
-    onUpdate({ result: { rating: null, status: "resolved" }, source: "imdb" });
+    onUpdate({
+      result: sourceResult<FetchImdbResult>(
+        null,
+        addDiagnosticEvidence(imdbDiagnostic(null, context), "imdb", context)
+      ),
+      source: "imdb",
+    });
   }
 
   if (context.imdbId || context.subjectId) {
+    let mcOutcome: ExternalRatingDiagnostic | null = null;
     void settle(
-      fetchMcRating(context, signal, (rating) => {
-        if (!signal.aborted) {
-          onUpdate({
-            result: { rating, status: "resolved" },
-            source: "mc",
-          });
+      fetchMcRating(
+        context,
+        signal,
+        (rating) => {
+          if (!signal.aborted) {
+            onUpdate({
+              result: sourceResult(
+                rating,
+                addDiagnosticEvidence(
+                  mcOutcome ?? metacriticDiagnostic(rating, context),
+                  "mc",
+                  context
+                )
+              ),
+              source: "mc",
+            });
+          }
+        },
+        (diagnostic) => {
+          mcOutcome = diagnostic;
         }
-      }),
+      ),
       signal,
       (rating) =>
-        onUpdate({ result: { rating, status: "resolved" }, source: "mc" })
+        onUpdate({
+          result: sourceResult(
+            rating,
+            addDiagnosticEvidence(
+              mcOutcome ?? metacriticDiagnostic(rating, context),
+              "mc",
+              context
+            )
+          ),
+          source: "mc",
+        })
     );
   } else {
-    onUpdate({ result: { rating: null, status: "resolved" }, source: "mc" });
+    onUpdate({
+      result: sourceResult<McRating>(
+        null,
+        addDiagnosticEvidence(
+          metacriticDiagnostic(null, context),
+          "mc",
+          context
+        )
+      ),
+      source: "mc",
+    });
   }
 
   const resolveRottenTomatoes = async (): Promise<void> => {
-    let result: RtResolution;
+    let result: Awaited<ReturnType<typeof fetchRtRating>>;
     try {
       result = await fetchRtRating(context, signal, (partial) => {
         if (!signal.aborted) {
           onUpdate({
-            result: {
-              rating: partial.rating,
-              status: partial.status === "stale" ? "pending" : "resolved",
-            },
+            result: sourceResult(
+              partial.rating,
+              addDiagnosticEvidence(rtDiagnostic(partial), "rt", context),
+              partial.status === "stale" ? "pending" : "resolved"
+            ),
             source: "rt",
           });
         }
@@ -86,7 +158,10 @@ const resolveAll = (
     }
     if (!signal.aborted) {
       onUpdate({
-        result: { rating: result.rating, status: "resolved" },
+        result: sourceResult(
+          result.rating,
+          addDiagnosticEvidence(rtDiagnostic(result), "rt", context)
+        ),
         source: "rt",
       });
     }
@@ -95,3 +170,4 @@ const resolveAll = (
 };
 
 export { resolveAll };
+export type { OnRatingUpdate, RatingUpdate };

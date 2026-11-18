@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "Q172241": {
+      "type": "item",
+      "id": "Q172241",
+      "claims": {
+        "P31": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": {
+                  "entity-type": "item",
+                  "numeric-id": 11424,
+                  "id": "Q11424"
+                },
+                "type": "wikibase-entityid"
+              }
+            },
+            "rank": "normal"
+          }
+        ],
+        "P1258": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": "m/shawshank_redemption",
+                "type": "string"
+              }
+            },
+            "rank": "normal"
+          }
+        ],
+        "P1712": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": {
+                "value": "movie/the-shawshank-redemption",
+                "type": "string"
+              }
+            },
+            "rank": "normal"
+          }
+        ],
+        "P345": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": { "value": "tt0111161", "type": "string" }
+            },
+            "rank": "normal"
+          }
+        ],
+        "P4529": [
+          {
+            "mainsnak": {
+              "snaktype": "value",
+              "datavalue": { "value": "1292052", "type": "string" }
+            },
+            "rank": "normal"
+          }
+        ]
+      }
+    }
+  }
+}

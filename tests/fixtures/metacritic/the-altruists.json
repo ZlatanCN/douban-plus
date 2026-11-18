@@ -1,0 +1,13 @@
+{
+  "capturedAt": "2026-11-16",
+  "canonicalUrl": "https://www.metacritic.com/tv/the-altruists/",
+  "criticReviewsMessage": "Critic reviews are not available yet",
+  "jsonLd": {
+    "@context": "https://schema.org",
+    "@type": "TVSeries",
+    "datePublished": "2026-11-19",
+    "name": "The Altruists",
+    "url": "https://www.metacritic.com/tv/the-altruists/"
+  },
+  "sourceUrl": "https://www.metacritic.com/tv/the-altruists/"
+}

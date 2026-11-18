@@ -3,6 +3,7 @@ import type { RtObjectKind } from "@/modules/subject/domain";
 import {
   readStructuredPage,
   structuredPageTypes,
+  structuredTypes,
 } from "../shared/structured-page";
 import type { StructuredPage } from "../shared/structured-page";
 
@@ -20,6 +21,29 @@ type ScorecardInput = {
 const normalizedPath = (pathname: string): string =>
   pathname.replaceAll(/\/+$/gu, "") || "/";
 
+const seasonPathFromUrl = (value: unknown, expected: string): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+  try {
+    const link = new URL(value, "https://www.rottentomatoes.com");
+    if (
+      link.protocol === "https:" &&
+      link.hostname === "www.rottentomatoes.com" &&
+      !link.username &&
+      !link.password &&
+      !link.search &&
+      !link.hash &&
+      link.pathname === expected
+    ) {
+      return link.pathname.slice(1);
+    }
+  } catch {
+    // Ignore malformed source season links.
+  }
+  return null;
+};
+
 const matchesRtPageIdentity = (
   canonicalUrl: string,
   pageUrl: string,
@@ -36,10 +60,16 @@ const matchesRtPageIdentity = (
   if (
     canonical.protocol !== "https:" ||
     canonical.hostname !== "www.rottentomatoes.com" ||
+    canonical.username ||
+    canonical.password ||
     canonical.search ||
+    canonical.hash ||
     request.protocol !== "https:" ||
     request.hostname !== "www.rottentomatoes.com" ||
-    request.search
+    request.username ||
+    request.password ||
+    request.search ||
+    request.hash
   ) {
     return false;
   }
@@ -66,9 +96,17 @@ const readSeriesRtId = (page: StructuredPage): string | null => {
     return null;
   }
   try {
-    const url = new URL(urlValue);
+    const url = new URL(urlValue, "https://www.rottentomatoes.com");
     const match = url.pathname.match(/^\/tv\/(?<series>[^/]+)\/?$/u);
-    if (url.hostname !== "www.rottentomatoes.com" || !match?.groups?.series) {
+    if (
+      url.protocol !== "https:" ||
+      url.hostname !== "www.rottentomatoes.com" ||
+      url.username ||
+      url.password ||
+      url.search ||
+      url.hash ||
+      !match?.groups?.series
+    ) {
       return null;
     }
     return `tv/${match.groups.series}`;
@@ -79,7 +117,8 @@ const readSeriesRtId = (page: StructuredPage): string | null => {
 
 const readSeasonNumber = (
   page: StructuredPage,
-  html: string
+  html: string,
+  pageRtId: string
 ): number | null => {
   const value = page.jsonLd.find(
     (entry) => entry.seasonNumber !== undefined
@@ -92,9 +131,12 @@ const readSeasonNumber = (
     /<h1\b[^>]*>[\s\S]*?season\s+(?<season>\d+)[\s\S]*?<\/h1>/iu
   )?.groups?.season;
   const fromHeading = Number(heading);
-  return Number.isSafeInteger(fromHeading) && fromHeading > 0
-    ? fromHeading
-    : null;
+  if (Number.isSafeInteger(fromHeading) && fromHeading > 0) {
+    return fromHeading;
+  }
+  const path = pageRtId.match(/^tv\/[^/]+\/s(?<season>\d{2,})$/u);
+  const fromPath = Number(path?.groups?.season);
+  return Number.isSafeInteger(fromPath) && fromPath > 0 ? fromPath : null;
 };
 
 const scorecardIdentityStatus = (
@@ -121,7 +163,7 @@ const scorecardIdentityStatus = (
   if (!types.has("TVSeason")) {
     return "identity-conflict";
   }
-  const pageSeason = readSeasonNumber(page, html);
+  const pageSeason = readSeasonNumber(page, html, input.pageRtId);
   const pageSeries = readSeriesRtId(page);
   if (
     pageSeason === null ||
@@ -146,21 +188,33 @@ const findSeasonPath = (
     return null;
   }
   const prefix = `/${seriesRtId}/s`;
-  for (const match of html.matchAll(/\bhref=["'](?<href>[^"']+)["']/giu)) {
-    try {
-      const link = new URL(
-        match.groups?.href ?? "",
-        "https://www.rottentomatoes.com"
-      );
-      const expected = `${prefix}${String(season).padStart(2, "0")}`;
-      if (
-        link.hostname === "www.rottentomatoes.com" &&
-        link.pathname === expected
-      ) {
-        return link.pathname.slice(1);
-      }
-    } catch {
-      // Ignore malformed links.
+  const expected = `${prefix}${String(season).padStart(2, "0")}`;
+  const series = page.jsonLd.find((entry) =>
+    structuredTypes(entry).includes("TVSeries")
+  );
+  const seasons = series?.containsSeason;
+  let linkedSeasons: unknown[];
+  if (Array.isArray(seasons)) {
+    linkedSeasons = seasons;
+  } else if (seasons && typeof seasons === "object") {
+    linkedSeasons = [seasons];
+  } else {
+    linkedSeasons = [];
+  }
+  for (const linkedSeason of linkedSeasons) {
+    if (!linkedSeason || typeof linkedSeason !== "object") {
+      continue;
+    }
+    const path = seasonPathFromUrl(Reflect.get(linkedSeason, "url"), expected);
+    if (path) {
+      return path;
+    }
+  }
+  const sourcePage = new DOMParser().parseFromString(html, "text/html");
+  for (const seasonLink of sourcePage.querySelectorAll("tile-season[href]")) {
+    const path = seasonPathFromUrl(seasonLink.getAttribute("href"), expected);
+    if (path) {
+      return path;
     }
   }
   return null;
@@ -169,6 +223,7 @@ const findSeasonPath = (
 export {
   findSeasonPath,
   readSeriesRtId,
+  readSeasonNumber,
   scorecardIdentityStatus,
   type ScorecardInput,
 };

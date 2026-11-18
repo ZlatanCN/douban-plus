@@ -4,6 +4,7 @@ import { postVote } from "@/modules/subject/api/comment";
 import { postReviewVote } from "@/modules/subject/api/review";
 import type { DoubanData } from "@/modules/subject/domain";
 import { computeNavSections } from "@/modules/subject/navigation/sections";
+import type { OnRatingUpdate } from "@/modules/subject/resolve/orchestrate";
 import type { SubjectPageRuntime as SubjectPageRuntimeState } from "@/modules/subject/runtime/types";
 import { doubanInterestActions } from "@/shared/components/interest-form/douban-interest";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
@@ -20,11 +21,13 @@ import { useSeriesRuntime } from "./use-series-runtime";
 type SubjectPageRuntimeProps = {
   data: DoubanData;
   doc: Document;
+  onRatingUpdate?: OnRatingUpdate;
 };
 
 const SubjectPageRuntime = ({
   data: initialData,
   doc,
+  onRatingUpdate,
 }: SubjectPageRuntimeProps) => {
   const [data, setData] = useState(initialData);
   const refreshAuthenticatedData =
@@ -42,7 +45,7 @@ const SubjectPageRuntime = ({
   const summary = useNativeSummary(data.summary, doc);
   const resolvedComments = useResolvedComments(data.comments, doc);
   const photoResolution = useResolvedPhotoGeometry(data.photos, doc);
-  const externalRatings = useExternalRatings(data);
+  const externalRatings = useExternalRatings(data, onRatingUpdate);
   const firstBroadcastPlatform = useFirstBroadcastPlatform(
     data.subjectId,
     data.interest.loggedIn

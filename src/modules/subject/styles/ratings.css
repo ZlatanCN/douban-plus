@@ -1,16 +1,21 @@
 /* ── Ratings Panel ──────────────────────────────── */
 
-/* Unified card presenting Douban + IMDb + RT side by side */
+/* Unified card for Douban, IMDb, Metacritic and Rotten Tomatoes */
 
 .atv-rating-panel {
+  --atv-rating-logo-row-height: 28px;
+  --atv-rating-score-row-height: 44px;
+  --atv-rating-label-row-height: 20px;
+
   display: flex;
-  width: fit-content;
+  width: 100%;
   min-width: 320px;
   flex-wrap: wrap;
   align-items: stretch;
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   margin-bottom: 28px;
+  container-type: inline-size;
   gap: 0;
 }
 
@@ -19,9 +24,14 @@
 .atv-rating-panel-rt,
 .atv-rating-panel-mc {
   display: grid;
-  flex: 1;
-  padding: 16px 24px 14px;
-  grid-template-rows: 28px 44px 20px 1fr;
+  min-width: 0;
+  flex: 1 1 0;
+  padding: 16px 11px;
+  grid-template-rows:
+    var(--atv-rating-logo-row-height)
+    var(--atv-rating-score-row-height)
+    var(--atv-rating-label-row-height)
+    minmax(14px, 1fr);
   place-items: center center;
   text-align: center;
   transition: background var(--atv-duration-feedback) ease;
@@ -44,6 +54,11 @@
 
 .atv-rating-panel-mc {
   border-right: 1px solid var(--atv-border-subtle);
+}
+
+.atv-rating-panel-rt > .atv-rating-dual-grid,
+.atv-rating-panel-mc > .atv-rating-dual-grid {
+  grid-row: 2 / 5;
 }
 
 .atv-rating-panel-logo {
@@ -71,67 +86,93 @@
   line-height: 1;
 }
 
-/* ── MC Score color by range ────────────────────── */
+/* ── Shared Metacritic and RT dual-score rhythm ──── */
 
-.atv-rating-panel-score.is-high {
-  color: var(--atv-score-high);
+.atv-rating-dual-grid {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.atv-rating-panel-score.is-medium {
-  color: var(--atv-rating-gold);
+.atv-rating-dual-grid.is-single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.atv-rating-panel-score.is-low {
-  color: var(--atv-score-low);
+.atv-rt-score-grid:not(.is-single) {
+  justify-content: center;
+  grid-template-columns: max-content max-content;
 }
 
-/* ── MC label row (score bar + Chinese word label) ── */
+.atv-rating-dual-side {
+  display: grid;
+  min-width: 0;
+  grid-template-rows: 44px 20px minmax(14px, 1fr);
+  justify-items: center;
+  text-align: center;
+}
 
-.atv-mc-label-row {
-  display: inline-flex;
+.atv-rt-score-side {
+  min-width: max-content;
+}
+
+.atv-rating-dual-reading {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  align-self: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.atv-rating-dual-label {
+  display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 6px;
+  align-self: start;
+  justify-content: center;
 }
 
-.atv-mc-bar-track {
-  display: inline-block;
-  overflow: hidden;
-  width: 40px;
-  height: 4px;
-  flex-shrink: 0;
-  border-radius: 2px;
-  background: var(--atv-bg-elevated);
+.atv-rating-dual-count {
+  min-height: 14px;
+  align-self: start;
 }
 
-.atv-mc-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
-}
-
-.atv-mc-bar-fill.is-high {
-  background: var(--atv-score-high);
-}
-
-.atv-mc-bar-fill.is-medium {
-  background: var(--atv-rating-gold);
-}
-
-.atv-mc-bar-fill.is-low {
-  background: var(--atv-score-low);
-}
-
-.atv-mc-word-label {
+.atv-mc-score-label,
+.atv-rt-score-label {
   color: var(--atv-text-tertiary);
-  font-size: var(--atv-type-micro);
+  font-size: var(--atv-type-caption-sm);
+  font-weight: var(--atv-font-weight-medium);
+  white-space: nowrap;
+}
+
+.atv-mc-score-scale,
+.atv-rt-score-scale {
+  color: var(--atv-text-secondary);
+  font-size: 10px;
+  line-height: 1;
+}
+
+.atv-mc-rating-count,
+.atv-rt-count-value {
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
-  line-height: 1;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.atv-rt-count-value {
+  overflow-wrap: normal;
   white-space: nowrap;
 }
 
 .atv-rating-stars {
   display: inline-flex;
+  align-self: start;
   color: var(--atv-rating-gold);
   gap: 2px;
 }
@@ -140,113 +181,16 @@
   display: block;
 }
 
-/* ── RT Score Row (values side by side) ─────────── */
-
-.atv-rt-score-row,
-.atv-rt-label-row,
-.atv-rt-count-row {
-  display: grid;
-  width: 100%;
-  align-items: center;
-  gap: 8px;
-  grid-template-columns: 1fr auto 1fr;
-}
-
-.atv-rt-score-value {
-  font-family: var(--atv-font-display);
-  font-size: var(--atv-type-stat-sm);
-  font-weight: var(--atv-font-weight-bold);
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.atv-rt-score-row.is-single {
-  grid-template-columns: 1fr;
-}
-
 .atv-rt-score-value.is-fresh {
   color: var(--atv-text-primary);
 }
 
-.atv-rt-score-row > .atv-rt-score-value.is-rotten:first-child {
+.atv-rt-critics .atv-rt-score-value.is-rotten {
   color: rgb(255 107 91 / 85%);
 }
 
-.atv-rt-score-row > .atv-rt-score-value.is-rotten:last-child {
+.atv-rt-audience .atv-rt-score-value.is-rotten {
   color: rgb(255 167 38 / 85%);
-}
-
-.atv-rt-score-row > .atv-rt-score-value:first-child {
-  justify-self: center;
-  text-align: right;
-}
-
-.atv-rt-score-row > .atv-rt-score-value:last-child {
-  justify-self: center;
-  text-align: left;
-}
-
-/* ── RT Label Row (icons + text) ────────────────── */
-
-.atv-rt-label-row {
-  gap: 8px;
-  grid-template-columns: 1fr 1fr;
-}
-
-.atv-rt-label-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.atv-rt-label-row > .atv-rt-label-item:first-child {
-  justify-self: center;
-}
-
-.atv-rt-label-row > .atv-rt-label-item:last-child {
-  justify-self: center;
-}
-
-.atv-rt-score-icon {
-  display: inline-flex;
-  width: 16px;
-  height: 16px;
-  color: var(--atv-text-tertiary);
-  opacity: 0.7;
-}
-
-.atv-rt-score-icon svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.atv-rt-label-item.is-critics.is-fresh .atv-rt-score-icon {
-  color: #ff6b5b;
-  opacity: 1;
-}
-
-.atv-rt-label-item.is-critics.is-rotten .atv-rt-score-icon {
-  color: #50b85e;
-  opacity: 0.6;
-}
-
-.atv-rt-label-item.is-audience.is-fresh .atv-rt-score-icon {
-  color: var(--atv-rating-gold);
-  opacity: 1;
-}
-
-.atv-rt-label-item.is-audience.is-rotten .atv-rt-score-icon {
-  color: #888;
-  opacity: 0.6;
-}
-
-.atv-rt-score-label {
-  color: var(--atv-text-tertiary);
-  font-size: var(--atv-type-micro);
-  font-weight: var(--atv-font-weight-medium);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
 }
 
 /* ── Shared count text (Douban / IMDb) ──────────── */
@@ -256,33 +200,25 @@
   font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-medium);
   letter-spacing: 0.02em;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
-/* ── RT Count Row (e.g. 评价 300 | 50,000) ──────── */
-
-.atv-rt-count-row {
-  gap: 8px;
-  grid-template-columns: 1fr 1fr;
-}
-
-.atv-rt-count-value {
-  color: var(--atv-text-tertiary);
-  font-size: var(--atv-type-caption-sm);
-  font-weight: var(--atv-font-weight-medium);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-}
-
-.atv-rt-count-row > .atv-rt-count-value:first-child {
-  justify-self: center;
-}
-
-.atv-rt-count-row > .atv-rt-count-value:last-child {
-  justify-self: center;
+@media (width <= 768px) {
+  .atv-rating-panel {
+    --atv-rating-logo-row-height: 24px;
+    --atv-rating-score-row-height: 38px;
+    --atv-rating-label-row-height: 18px;
+  }
 }
 
 .atv-rt-logo-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.atv-mc-logo-group {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -302,52 +238,43 @@
   color: var(--atv-text-secondary);
 }
 
-/* ── RT Divider ─────────────────────────────────── */
-
-.atv-rt-divider {
-  width: 1px;
-  flex-shrink: 0;
-  align-self: stretch;
-  margin: 2px 0;
-  background: var(--atv-border-medium);
+.atv-mc-stale {
+  color: var(--atv-text-secondary);
 }
 
 @media (width <= 768px) {
-  .atv-rating-panel .atv-rating-panel-score {
-    font-size: 32px;
-  }
-
   .atv-rating-panel-douban,
   .atv-rating-panel-imdb,
   .atv-rating-panel-rt,
   .atv-rating-panel-mc {
     padding: 12px 14px 10px;
-    grid-template-rows: 24px 38px 18px 1fr;
   }
 
-  .atv-rt-score-value {
-    font-size: 26px;
-  }
-
-  .atv-rt-score-icon {
-    width: 14px;
-    height: 14px;
-  }
-
-  .atv-rt-score-label {
-    font-size: var(--atv-type-micro);
-  }
-
-  .atv-mc-bar-track {
-    width: 32px;
-  }
-
-  .atv-mc-word-label {
-    font-size: var(--atv-type-micro);
+  .atv-rating-dual-side {
+    grid-template-rows:
+      var(--atv-rating-score-row-height)
+      var(--atv-rating-label-row-height)
+      minmax(14px, 1fr);
   }
 
   .atv-rating-panel {
+    width: 100%;
     min-width: 0;
+    max-width: 100%;
+  }
+}
+
+@container (width <= 640px) {
+  .atv-rating-panel-douban,
+  .atv-rating-panel-imdb {
+    flex-basis: 50%;
+  }
+
+  .atv-rating-panel-mc,
+  .atv-rating-panel-rt {
+    flex-basis: 100%;
+    border-top: 1px solid var(--atv-border-subtle);
+    border-right: 0;
   }
 }
 

@@ -18,19 +18,18 @@ const renderIdentifiedRatings = (
   externalRatings: RatingResultMap | null,
   imdbId: string | null
 ) => {
-  if (!imdbId) {
-    return null;
-  }
   const imdb = externalRatings?.imdb;
   const metacritic = externalRatings?.mc;
   return (
     <>
-      <ExternalRating
-        rating={imdb?.rating?.rating ?? null}
-        resolved={imdb?.status === "resolved"}
-        sourceUrl={sourceUrlOf(imdb?.rating)}
-        source="imdb"
-      />
+      {imdbId ? (
+        <ExternalRating
+          rating={imdb?.rating?.rating ?? null}
+          resolved={imdb?.status === "resolved"}
+          sourceUrl={sourceUrlOf(imdb?.rating)}
+          source="imdb"
+        />
+      ) : null}
       <ExternalRating
         rating={metacritic?.rating ?? null}
         resolved={metacritic?.status === "resolved"}
@@ -43,7 +42,15 @@ const renderIdentifiedRatings = (
 
 const RatingPanel = ({ douban, externalRatings, imdbId }: RatingPanelProps) => {
   const rt = externalRatings?.rt;
-  if (!douban && !imdbId && rt?.status === "resolved" && !rt.rating) {
+  const metacritic = externalRatings?.mc;
+  if (
+    !douban &&
+    !imdbId &&
+    rt?.status === "resolved" &&
+    !rt.rating &&
+    metacritic?.status === "resolved" &&
+    !metacritic.rating
+  ) {
     return null;
   }
 

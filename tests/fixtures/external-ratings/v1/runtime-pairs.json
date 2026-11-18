@@ -1,0 +1,584 @@
+{
+  "version": 1,
+  "pairs": [
+    {
+      "id": "spirited-away-animated-film-type",
+      "mechanism": "P31 ancestry identifies an animated film",
+      "work": {
+        "doubanSubjectId": "1291561",
+        "imdbId": "tt0245429",
+        "wikidataId": "Q155653",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/m/spirited_away",
+        "https://www.metacritic.com/movie/spirited-away/"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "fullCase": "resolves an animated film whose P31 is anime film through its film ancestry",
+      "ablatedCase": "ablation: an unsupported P31 value does not inherit the animated-film mapping",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "resolves an animated film whose P31 is anime film through its film ancestry",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "ablation: an unsupported P31 value does not inherit the animated-film mapping",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT and Meta ratings",
+        "ablated": "no ratings"
+      }
+    },
+    {
+      "id": "severance-s-leading-series-path",
+      "mechanism": "a series slug beginning with s is not a season path",
+      "work": {
+        "doubanSubjectId": "34885342",
+        "imdbId": "tt11280740",
+        "wikidataId": "Q101096725",
+        "granularity": "series"
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/tv/severance",
+        "https://www.metacritic.com/tv/severance/"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+      "fullCase": "recognizes an s-leading RT slug as a series because it has no season path segment",
+      "ablatedCase": "ablation: an exact season path segment is not accepted as the same series",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "recognizes an s-leading RT slug as a series because it has no season path segment",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-evidence.test.tsx",
+          "case": "ablation: an exact season path segment is not accepted as the same series",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT 95%/88% and Meta 85",
+        "ablated": "no ratings"
+      }
+    },
+    {
+      "id": "game-of-thrones-s02-first-episode-parent",
+      "mechanism": "the first episode IMDb match needs its P179 series relationship",
+      "work": {
+        "doubanSubjectId": "6558062",
+        "imdbId": "tt1971833",
+        "wikidataId": "Q7754352",
+        "granularity": "season",
+        "season": 2
+      },
+      "inputKind": "controlled-runtime-responses-and-DoubanData",
+      "sourceUrls": [
+        "https://movie.douban.com/subject/6558062/",
+        "https://www.wikidata.org/wiki/Q7754352",
+        "https://www.rottentomatoes.com/tv/game_of_thrones"
+      ],
+      "testFile": "tests/runtime/subject-runtime-episode-season-pairing.test.tsx",
+      "fullCase": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
+      "ablatedCase": "same subject, IMDb ID, episode mapping and source pages with only P179 omitted",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-episode-season-pairing.test.tsx",
+          "case": "pairs the Game of Thrones season two first-episode mapping with a P179-only ablation",
+          "role": "paired"
+        }
+      ],
+      "expected": {
+        "full": "season 2 RT 97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "game-of-thrones-s02-first-episode-metacritic-user-score",
+      "mechanism": "the first episode IMDb mapping and current season link must resolve to the same Metacritic season",
+      "work": {
+        "doubanSubjectId": "6558062",
+        "imdbId": "tt1971833",
+        "wikidataId": "Q7754352",
+        "granularity": "season",
+        "season": 2
+      },
+      "inputKind": "captured Metacritic season page with runtime-controlled Wikidata and Douban identity responses",
+      "sourceUrls": ["https://www.metacritic.com/tv/game-of-thrones/season-2/"],
+      "controlledEvidence": "The Q7754352 first-episode identity and parent-season claims are represented in the existing runtime fixture. The canonical page, season JSON-LD, Metascore, and both User score cards come from the captured source fragment.",
+      "testFile": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
+      "fullCase": "uses the mapped season ID and binds the captured User score cards to season two",
+      "ablatedScenarios": [
+        "Change only the controlled User score review-link query from season-2 to season-3; retain the same IMDb ID, Wikidata claims, canonical season page, and Metascore."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-season-mapping.test.tsx",
+          "case": "uses the mapped season ID and binds the captured User score cards to season two",
+          "role": "full-and-wrong-user-season-pair"
+        }
+      ],
+      "expected": {
+        "full": "season 2 Meta 90/100 plus captured User score 9.1/10 with 2,447 ratings",
+        "ablated": "season 2 Meta remains; User side is rejected with parse-error and is not cached"
+      }
+    },
+    {
+      "id": "lucky-2026-metacritic-dual-score-scale",
+      "mechanism": "the standalone series response carries Metascore and User score on distinct native scales",
+      "work": {
+        "doubanSubjectId": "37139034",
+        "imdbId": "tt34866681",
+        "wikidataId": "Q131378846",
+        "granularity": "series"
+      },
+      "inputKind": "local raw Metacritic response fragments with runtime-controlled identity responses",
+      "sourceUrls": ["https://www.metacritic.com/tv/lucky-2026/"],
+      "captureTimeBasis": "local raw file mtime; capture-time evidence, not an HTTP Date or independently recorded retrieval timestamp",
+      "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
+      "httpStatus": "unknown (not recorded)",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error https://www.metacritic.com/tv/lucky-2026/ -o /tmp/metacritic-lucky-2026.html",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/lucky-2026-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-meta-series.test.tsx",
+      "fullCase": "resolves Lucky from IMDb and follows its Metacritic ID",
+      "ablatedScenarios": [
+        "Collapse both displayed scales to /100 or truncate the User score to an integer; the paired runtime assertion for 5.0/10 and 68/100 must fail."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-series.test.tsx",
+          "case": "resolves Lucky from IMDb and follows its Metacritic ID",
+          "role": "full captured source sample"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
+        "ablated": "at least one native score string or scale assertion fails"
+      },
+      "provenanceLimit": "HTTP status is unknown (not recorded). The local file mtime records capture-time evidence, not an HTTP Date or more precise retrieval timestamp."
+    },
+    {
+      "id": "chernobyl-rt-season-source-link",
+      "mechanism": "an explicit RT Miniseries season link completes missing season mapping",
+      "work": {
+        "doubanSubjectId": "30140083",
+        "granularity": "season",
+        "season": 1
+      },
+      "controlledEntityId": "Q501",
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/tv/chernobyl",
+        "https://www.rottentomatoes.com/tv/chernobyl/s01"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/chernobyl-series.html",
+        "tests/fixtures/rotten-tomatoes/chernobyl-miniseries.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+      "fullCase": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+      "ablatedCase": "does not resolve a season after its explicit source link is removed",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "does not resolve a season after its explicit source link is removed",
+          "role": "ablated"
+        }
+      ],
+      "expected": {
+        "full": "RT 95%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "chernobyl-metacritic-season-link-identity",
+      "mechanism": "a series page season link must match the requested season and parent",
+      "work": {
+        "doubanSubjectId": "35286229",
+        "imdbId": "tt7366338",
+        "wikidataId": "Q48741246",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "rendered-Meta-series-fragment-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.metacritic.com/tv/chernobyl/",
+        "https://www.metacritic.com/tv/chernobyl/season-1/"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": ["tests/fixtures/metacritic/chernobyl-series.html"],
+      "testFile": "tests/runtime/subject-runtime-metacritic-season-link.test.tsx",
+      "fullCase": "follows an explicit Chernobyl season link when Wikidata only lists episodes",
+      "ablatedScenarios": [
+        "remove the explicit season link",
+        "redirect to a different series parent",
+        "return season 2 for a season 1 request"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-season-link.test.tsx",
+          "case": "follows an explicit Chernobyl season link when Wikidata only lists episodes",
+          "role": "full-and-ablated-scenarios"
+        }
+      ],
+      "expected": {
+        "full": "Meta season score 82",
+        "ablated": "no Meta rating"
+      }
+    },
+    {
+      "id": "godfather-part-ii-rt-alias-identity",
+      "mechanism": "RT alias acceptance needs independent work identity evidence",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceUrls": [
+        "https://www.rottentomatoes.com/m/godfather_part_ii",
+        "https://www.rottentomatoes.com/m/the_godfather_part_ii",
+        "https://www.rottentomatoes.com/m/the_godfather"
+      ],
+      "retrievedAt": "2026-11-16",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/godfather-part-ii.html",
+        "tests/fixtures/rotten-tomatoes/godfather.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+      "fullCase": "accepts the Godfather II alias using its original title, theatrical year, and director",
+      "ablatedCases": [
+        "rejects an alias when its Wikidata work has no director identity evidence",
+        "rejects a redirect to The Godfather even when its canonical page is self-consistent"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "accepts the Godfather II alias using its original title, theatrical year, and director",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "rejects an alias when its Wikidata work has no director identity evidence",
+          "role": "ablated"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-redirect-identity.test.tsx",
+          "case": "rejects a redirect to The Godfather even when its canonical page is self-consistent",
+          "role": "wrong-title-negative"
+        }
+      ],
+      "expected": {
+        "full": "RT 96%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "chernobyl-season-redirect-parent-and-number",
+      "mechanism": "a season redirect must retain the requested parent and season number",
+      "work": {
+        "doubanSubjectId": "30140083",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured-RT-pages-with-controlled-Wikidata-and-DoubanData",
+      "sourceFragments": [
+        "tests/fixtures/rotten-tomatoes/chernobyl-series.html",
+        "tests/fixtures/rotten-tomatoes/chernobyl-miniseries.html",
+        "tests/fixtures/rotten-tomatoes/queens-gambit-miniseries.html"
+      ],
+      "testFiles": [
+        "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+        "tests/runtime/subject-runtime-rt-season-aliases.test.tsx"
+      ],
+      "fullCase": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+      "ablatedCases": [
+        "rejects a Severance season 1 redirect to its season 2 page",
+        "rejects a season alias whose confirmed parent is another series"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-source-season-links.test.tsx",
+          "case": "uses a confirmed series page's Miniseries season link when Wikidata has no season mapping",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-season-aliases.test.tsx",
+          "case": "rejects a Severance season 1 redirect to its season 2 page",
+          "role": "wrong-season-negative"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-season-aliases.test.tsx",
+          "case": "rejects a season alias whose confirmed parent is another series",
+          "role": "wrong-parent-negative"
+        }
+      ],
+      "expected": {
+        "full": "Chernobyl season 1 RT 95%/97%",
+        "ablated": "no RT rating"
+      }
+    },
+    {
+      "id": "spirited-away-http-200-api-error-vs-empty-search",
+      "mechanism": "HTTP-200 Wikidata API errors are not valid missing mappings",
+      "work": {
+        "doubanSubjectId": "1291561",
+        "imdbId": "tt0245429",
+        "wikidataId": "Q155653",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-responses-and-cached-snapshot",
+      "sourceUrls": [
+        "https://www.wikidata.org/w/api.php",
+        "https://www.rottentomatoes.com/m/spirited_away"
+      ],
+      "testFile": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
+      "fullCase": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
+      "ablatedCase": "ablation: a valid empty search does not preserve a snapshot",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
+          "case": "keeps a verified snapshot when Wikidata returns an API error with HTTP 200",
+          "role": "HTTP-200-error"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-identity-snapshots.test.tsx",
+          "case": "ablation: a valid empty search does not preserve a snapshot",
+          "role": "empty-result-control"
+        }
+      ],
+      "expected": {
+        "full": "retained stale score",
+        "ablated": "snapshot removed"
+      }
+    },
+    {
+      "id": "shawshank-conflict-late-response-orderings",
+      "mechanism": "a changed identity invalidates the old snapshot regardless of response order",
+      "work": {
+        "doubanSubjectId": "1292052",
+        "imdbId": "tt0111161",
+        "wikidataId": "Q172241",
+        "granularity": "movie"
+      },
+      "inputKind": "controlled-runtime-race-responses-with-captured-RT-page",
+      "sourceFragments": ["tests/fixtures/rotten-tomatoes/shawshank.html"],
+      "testFiles": [
+        "tests/runtime/subject-runtime-rt-late-request-invalidation.test.tsx",
+        "tests/runtime/subject-runtime-rt-identity-ordering.test.tsx"
+      ],
+      "fullCases": [
+        "does not restore an old snapshot, target, or score when its request finishes after identity changes",
+        "removes a refreshed old rating when the conflicting mapping resolves second"
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-rt-late-request-invalidation.test.tsx",
+          "case": "does not restore an old snapshot, target, or score when its request finishes after identity changes",
+          "role": "conflict-first"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-rt-identity-ordering.test.tsx",
+          "case": "removes a refreshed old rating when the conflicting mapping resolves second",
+          "role": "old-rating-first"
+        }
+      ],
+      "expected": {
+        "conflictFirst": "old response cannot restore rating or snapshot",
+        "ratingFirst": "later conflict removes the old rating and snapshot"
+      }
+    },
+    {
+      "id": "metacritic-user-score-season-link-identity",
+      "mechanism": "the User score review link must bind to the mapped current season",
+      "work": {
+        "doubanSubjectId": "35286229",
+        "imdbId": "tt7366338",
+        "wikidataId": "Q48741246",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured Chernobyl season page plus same-response controlled link ablation",
+      "sourceUrls": ["https://www.metacritic.com/tv/chernobyl/season-1/"],
+      "retrievedAt": "2026-11-17T03:54:36.054Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/chernobyl-season-1-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+      "fullCase": "binds both scores and counts to the current season response",
+      "ablatedCase": "keeps the verified Metascore but rejects a User score linked to another season",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+          "case": "binds both scores and counts to the current season response",
+          "role": "full"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-season.test.tsx",
+          "case": "keeps the verified Metascore but rejects a User score linked to another season",
+          "role": "single link-season mutation"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 82/100 and User score 9.2/10 with 409 ratings",
+        "ablated": "Metascore 82 remains; User score rejected; no success snapshot"
+      }
+    },
+    {
+      "id": "metacritic-user-score-tbd-visible-state",
+      "mechanism": "a visible TBD card without a User Ratings link is accepted as explicit no-rating after season-page identity verification",
+      "work": {
+        "doubanSubjectId": "37516033",
+        "imdbId": "tt38218082",
+        "wikidataId": "Q141155312",
+        "granularity": "season",
+        "season": 1
+      },
+      "inputKind": "captured Crew Girl TBD HTML with a clearly marked test-only target seed",
+      "sourceUrls": ["https://www.metacritic.com/tv/crew-girl/season-1/"],
+      "retrievedAt": "2026-11-17T03:54:35.374Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/crew-girl-season-1-tbd.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
+      "fullCase": "accepts the captured no-link TBD card after verifying its season page",
+      "ablatedScenarios": [
+        "Add a season-2 User review link to the season-1 TBD cards; preserve the verified Metascore but reject the User side and do not cache the partial result."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-tbd.test.tsx",
+          "case": "accepts the captured no-link TBD card after verifying its season page",
+          "role": "full; controlled target is not a real mapping"
+        }
+      ],
+      "expected": {
+        "realMapping": "mapping-missing with no Meta request",
+        "controlledTarget": "Metascore 60; no audience score; successful one-sided snapshot",
+        "wrongSeasonLink": "Metascore 60 remains; User side is rejected with parse-error and no snapshot is written"
+      },
+      "provenanceLimit": "The synthetic cached target is only a parser test seam; real Crew Girl mapping remains missing and is tested separately without a Meta request."
+    },
+    {
+      "id": "metacritic-user-score-tbd-conflicting-zero",
+      "mechanism": "a visible native TBD marker rejects a conflicting numeric zero and prevents caching",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured Godfather II page with only the visible User score card changed to show a labeled 0.0 alongside TBD",
+      "sourceUrls": ["https://www.metacritic.com/movie/the-godfather-part-ii/"],
+      "sourceFragments": [
+        "tests/fixtures/metacritic/godfather-part-ii-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score.test.tsx",
+      "fullCase": "rejects a visible TBD marker paired with a labeled numeric zero",
+      "ablatedScenarios": [
+        "Remove only the native TBD/conflict handling from readVisibleUserScore in page-user-score.ts; the same visible numeric 0.0 is accepted and cached."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score.test.tsx",
+          "case": "rejects a visible TBD marker paired with a labeled numeric zero",
+          "role": "full-and-native-state-ablation-pair"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 90 remains; User side is rejected and no snapshot is written",
+        "ablated": "User score 0.0/10 appears and snapshot stores score 0"
+      }
+    },
+    {
+      "id": "metacritic-user-score-native-scales",
+      "mechanism": "Metascore and User score preserve their distinct native scales and visible decimal",
+      "work": {
+        "doubanSubjectId": "37139034",
+        "imdbId": "tt34866681",
+        "wikidataId": "Q131378846",
+        "granularity": "series"
+      },
+      "inputKind": "local raw Lucky (2026) series response with runtime-controlled identity responses",
+      "sourceUrls": ["https://www.metacritic.com/tv/lucky-2026/"],
+      "sourceFragments": [
+        "tests/fixtures/metacritic/lucky-2026-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-meta-series.test.tsx",
+      "fullCase": "resolves Lucky from IMDb and follows its Metacritic ID",
+      "ablatedScenarios": [
+        "Replace `/10` with `/100` or truncate the visible User score; exact `5.0/10` and `68/100` runtime assertions must fail."
+      ],
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-meta-series.test.tsx",
+          "case": "resolves Lucky from IMDb and follows its Metacritic ID",
+          "role": "full raw source sample"
+        }
+      ],
+      "expected": {
+        "full": "Metascore 68/100 with 29 critic reviews; User score 5.0/10 with 67 user ratings",
+        "ablated": "native scale or decimal assertion fails"
+      },
+      "captureTimeBasis": "local raw file mtime; capture-time evidence, not an HTTP Date or independently recorded retrieval timestamp",
+      "sourceFileMtime": "2026-11-14T18:18:29.355258+08:00",
+      "httpStatus": "unknown (not recorded)",
+      "captureMethod": "curl -L --fail --max-time 25 --silent --show-error https://www.metacritic.com/tv/lucky-2026/ -o /tmp/metacritic-lucky-2026.html",
+      "provenanceLimit": "HTTP status is unknown (not recorded). The local file mtime records capture-time evidence, not an HTTP Date or more precise retrieval timestamp."
+    },
+    {
+      "id": "metacritic-user-score-partial-snapshot-write-protection",
+      "mechanism": "a partial parse can show the current valid side but cannot replace or renew a successful snapshot",
+      "work": {
+        "doubanSubjectId": "1299131",
+        "imdbId": "tt0071562",
+        "wikidataId": "Q184768",
+        "granularity": "movie"
+      },
+      "inputKind": "captured Godfather II response followed by same-response current User link identity mutation",
+      "sourceUrls": ["https://www.metacritic.com/movie/the-godfather-part-ii/"],
+      "retrievedAt": "2026-11-17T03:54:35.201Z",
+      "sourceFragments": [
+        "tests/fixtures/metacritic/godfather-part-ii-user-score.html"
+      ],
+      "testFile": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+      "fullCase": "shows a confirmed critic side after partial failure without replacing or renewing the snapshot",
+      "pairedCase": "replaces a dual snapshot with the current single-side TBD response",
+      "testRefs": [
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+          "case": "shows a confirmed critic side after partial failure without replacing or renewing the snapshot",
+          "role": "full response then one-link failure mutation"
+        },
+        {
+          "file": "tests/runtime/subject-runtime-metacritic-user-score-snapshots.test.tsx",
+          "case": "replaces a dual snapshot with the current single-side TBD response",
+          "role": "complete single-side response replacement"
+        }
+      ],
+      "ablatedScenarios": [
+        "Write the valid critic side from the partial response to the snapshot namespace; the previous dual snapshot and fetchedAt assertions must fail."
+      ],
+      "expected": {
+        "full": "current response shows critics only; prior dual snapshot and fetchedAt remain unchanged",
+        "ablated": "snapshot is replaced/renewed and the guard test fails"
+      }
+    }
+  ]
+}

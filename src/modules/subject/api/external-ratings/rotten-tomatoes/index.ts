@@ -1,202 +1,130 @@
+import type {
+  ExternalRatingDiagnostic,
+  ExternalRatingReason,
+} from "@/modules/subject/api/external-ratings/outcome";
 import type { RtRating } from "@/modules/subject/domain";
 import type { ResolutionContext } from "@/modules/subject/resolve/types";
 
 import { TARGET_REVALIDATION_INTERVAL } from "../shared/verified-target-cache";
-import { requestRtPage } from "./page";
-import { parseScorecard } from "./scorecard";
+import { loadRating } from "./rating";
 import {
-  readSnapshot,
-  readUniqueSnapshot,
-  removeSnapshot,
-  writeSnapshot,
-} from "./snapshot";
-import {
-  cacheRtTarget,
-  getCachedRtTarget,
-  invalidateRtTarget,
-  resolveRtTarget,
-} from "./target";
-import type { ResolvedRtTarget, RtTargetResult } from "./target";
+  fallbackSnapshot,
+  getSnapshotObject,
+  isConfirmedRatingStatus,
+  ratingFailure,
+} from "./rating-outcome";
+import type { RtResolution } from "./rating-outcome";
+import { currentRevision, isCurrent } from "./request-revision";
+import { readSnapshot } from "./snapshot";
+import type { RtTargetResult } from "./target";
+import { cacheRtTarget, getCachedRtTarget, resolveRtTarget } from "./target";
+import { targetFailureResult } from "./target-failure";
+import { refreshCachedTarget } from "./target-refresh";
 
-type RtResolution = {
-  rating: RtRating | null;
-  status:
-    | "aborted"
-    | "cached"
-    | "error"
-    | "identity-conflict"
-    | "missing-mapping"
-    | "no-rating"
-    | "refreshed"
-    | "season-unmatched"
-    | "stale";
+type TargetLookup = {
+  cacheEntry: ReturnType<typeof getCachedRtTarget>;
+  target: RtTargetResult;
 };
 
-type OnRtResolution = (result: RtResolution) => void;
-
-const ratingFailure = (
-  status: RtResolution["status"],
-  rating: RtRating | null = null
-): RtResolution => ({ rating, status });
-
-const getSnapshotObject = (
+const resolveTargetForRequest = async (
   context: ResolutionContext,
-  rtId: string
-): RtRating["object"] => ({
-  kind: context.kind,
-  rtId,
-  subjectId: context.subjectId,
-});
+  signal: AbortSignal
+): Promise<TargetLookup> => {
+  const cacheEntry =
+    !context.subjectId ||
+    context.seasonConflict ||
+    context.unsupportedEpisode ||
+    (context.kind === "season" && context.season === null)
+      ? null
+      : getCachedRtTarget(context);
+  const target =
+    cacheEntry?.status === "resolved"
+      ? cacheEntry.target
+      : await resolveRtTarget(context, signal);
+  return { cacheEntry, target };
+};
 
-const loadRating = async (
+const failedRtFetch = (
   context: ResolutionContext,
-  target: ResolvedRtTarget,
-  object: RtRating["object"],
-  prior: RtRating | null,
+  revision: number,
   signal: AbortSignal,
-  onResult?: OnRtResolution
-): Promise<RtResolution> => {
-  if (prior && !prior.stale) {
-    const result = { rating: prior, status: "cached" } satisfies RtResolution;
-    onResult?.(result);
-    return result;
-  }
-  if (prior) {
-    onResult?.({ rating: prior, status: "stale" });
-  }
-
-  const page = await requestRtPage(target.rtId, signal);
-  if (signal.aborted) {
-    return ratingFailure("aborted");
-  }
-  const pageSeries = page.rtId.match(/^tv\/(?<series>[^/]+)\/s\d{2,}$/u)?.groups
-    ?.series;
-  const parsed = parseScorecard(page.html, {
-    fetchedAt: Date.now(),
-    kind: context.kind,
-    pageRtId: page.rtId,
-    rtId: target.rtId,
-    season: context.season,
-    seriesRtId: pageSeries ? `tv/${pageSeries}` : target.seriesRtId,
-    subjectId: context.subjectId,
-    url: page.url,
-  });
-  if (parsed.status === "invalid-page") {
-    if (prior) {
-      return { rating: prior, status: "stale" };
-    }
-    return ratingFailure("error");
-  }
-  if (parsed.status === "identity-conflict") {
-    return ratingFailure("identity-conflict");
-  }
-  if (parsed.status === "no-rating") {
-    removeSnapshot(object);
-    return ratingFailure("no-rating");
-  }
-  writeSnapshot(parsed.rating);
-  return { rating: parsed.rating, status: "refreshed" };
-};
-
-const fallbackSnapshot = (
-  context: ResolutionContext,
   object: RtRating["object"] | null,
   prior: RtRating | null,
-  onResult?: OnRtResolution
+  error: unknown,
+  onResult?: (result: RtResolution) => void
 ): RtResolution => {
-  const rating =
-    prior ??
-    (object === null
-      ? readUniqueSnapshot(context.subjectId, context.kind)
-      : readSnapshot(object));
-  if (!rating) {
-    return ratingFailure("error");
-  }
-  const result = { rating, status: "stale" } satisfies RtResolution;
-  onResult?.(result);
-  return result;
-};
-
-const isConfirmedRatingStatus = (status: RtResolution["status"]): boolean =>
-  status === "cached" ||
-  status === "no-rating" ||
-  status === "refreshed" ||
-  status === "stale";
-
-const refreshCachedTarget = async (
-  context: ResolutionContext,
-  priorTarget: ResolvedRtTarget,
-  signal: AbortSignal,
-  onResult?: OnRtResolution
-): Promise<void> => {
-  let freshTarget: RtTargetResult;
-  try {
-    freshTarget = await resolveRtTarget(context, signal, true);
-  } catch {
-    return;
-  }
   if (signal.aborted) {
-    return;
+    return ratingFailure("aborted", null, {
+      acceptedEvidence: [],
+      cacheAgeMs: null,
+      candidateTargets: [],
+      missingEvidence: [],
+      rejectedEvidence: [],
+      unverifiedEvidence: [],
+      errorCode: "aborted",
+      reason: "cancelled",
+      stage: "request",
+      target: object?.rtId ?? null,
+    });
   }
-
-  const priorObject = getSnapshotObject(context, priorTarget.rtId);
-  if ("failure" in freshTarget) {
-    if (freshTarget.failure === "error") {
-      return;
-    }
-    invalidateRtTarget(context);
-    removeSnapshot(priorObject);
-    onResult?.(ratingFailure(freshTarget.failure));
-    return;
+  if (!isCurrent(context, revision)) {
+    return ratingFailure("identity-conflict", null, {
+      acceptedEvidence: [],
+      cacheAgeMs: null,
+      candidateTargets: [],
+      missingEvidence: [],
+      rejectedEvidence: [],
+      unverifiedEvidence: [],
+      errorCode: "stale-request",
+      reason: "identity-conflict",
+      stage: "identity",
+      target: object?.rtId ?? null,
+    });
   }
-
-  if (
-    freshTarget.rtId === priorTarget.rtId &&
-    freshTarget.seriesRtId === priorTarget.seriesRtId
-  ) {
-    cacheRtTarget(context, freshTarget);
-    return;
+  let reason: ExternalRatingReason;
+  if (error instanceof DOMException && error.name === "AbortError") {
+    reason = "cancelled";
+  } else if (error instanceof SyntaxError) {
+    reason = "parse-error";
+  } else {
+    reason = "request-error";
   }
-
-  invalidateRtTarget(context);
-  removeSnapshot(priorObject);
-  onResult?.(ratingFailure("identity-conflict"));
-
-  const object = getSnapshotObject(context, freshTarget.rtId);
-  const prior = readSnapshot(object);
-  const result = await loadRating(context, freshTarget, object, prior, signal);
-  if (isConfirmedRatingStatus(result.status)) {
-    cacheRtTarget(context, freshTarget);
-  }
-  if (!signal.aborted) {
-    onResult?.(result);
-  }
+  const diagnostic: ExternalRatingDiagnostic = {
+    acceptedEvidence: [],
+    cacheAgeMs: null,
+    candidateTargets: [],
+    missingEvidence: [],
+    rejectedEvidence: [],
+    unverifiedEvidence: [],
+    errorCode: reason === "cancelled" ? "aborted" : "rt-fetch",
+    reason,
+    stage: reason === "parse-error" ? "parse" : "request",
+    target: object?.rtId ?? null,
+  };
+  return {
+    ...fallbackSnapshot(context, object, prior, onResult),
+    diagnostic,
+  };
 };
 
 const fetchRtRating = async (
   context: ResolutionContext,
   signal: AbortSignal,
-  onResult?: OnRtResolution
+  onResult?: (result: RtResolution) => void
 ): Promise<RtResolution> => {
+  const revision = currentRevision(context);
   let object: RtRating["object"] | null = null;
   let prior: RtRating | null = null;
   try {
-    const cacheEntry =
-      !context.subjectId ||
-      context.seasonConflict ||
-      context.unsupportedEpisode ||
-      (context.kind === "season" && context.season === null)
-        ? null
-        : getCachedRtTarget(context);
-    const target =
-      cacheEntry?.status === "resolved"
-        ? cacheEntry.target
-        : await resolveRtTarget(context, signal);
+    const { cacheEntry, target } = await resolveTargetForRequest(
+      context,
+      signal
+    );
+    if (signal.aborted || !isCurrent(context, revision)) {
+      return ratingFailure(signal.aborted ? "aborted" : "identity-conflict");
+    }
     if ("failure" in target) {
-      if (target.failure === "error") {
-        return fallbackSnapshot(context, null, null, onResult);
-      }
-      return ratingFailure(target.failure);
+      return targetFailureResult(context, target, onResult);
     }
     object = getSnapshotObject(context, target.rtId);
     prior = readSnapshot(object);
@@ -204,7 +132,13 @@ const fetchRtRating = async (
       cacheEntry?.status === "resolved" &&
       Date.now() - cacheEntry.verifiedAt >= TARGET_REVALIDATION_INTERVAL
     ) {
-      void refreshCachedTarget(context, cacheEntry.target, signal, onResult);
+      void refreshCachedTarget(
+        context,
+        cacheEntry.target,
+        signal,
+        revision,
+        onResult
+      );
     }
     const result = await loadRating(
       context,
@@ -212,20 +146,29 @@ const fetchRtRating = async (
       object,
       prior,
       signal,
+      revision,
       onResult
     );
     if (
+      isCurrent(context, revision) &&
       cacheEntry?.status !== "resolved" &&
       isConfirmedRatingStatus(result.status)
     ) {
       cacheRtTarget(context, target);
     }
-    return result;
-  } catch {
-    if (signal.aborted) {
-      return ratingFailure("aborted");
-    }
-    return fallbackSnapshot(context, object, prior, onResult);
+    return isCurrent(context, revision)
+      ? result
+      : ratingFailure("identity-conflict");
+  } catch (error) {
+    return failedRtFetch(
+      context,
+      revision,
+      signal,
+      object,
+      prior,
+      error,
+      onResult
+    );
   }
 };
 

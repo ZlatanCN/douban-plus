@@ -1,0 +1,132 @@
+{
+  "version": 1,
+  "evidenceGaps": [
+    {
+      "id": "source-verified-no-rating",
+      "status": "unverified",
+      "note": "The checked-in empty RT scorecard is a controlled parser probe. No source-captured page proving that a real mapped work currently has no RT score was available, so the controlled probe is not treated as that evidence."
+    }
+  ],
+  "samples": [
+    {
+      "id": "shawshank-movie",
+      "work": {
+        "doubanSubjectId": "1292052",
+        "imdbId": "tt0111161",
+        "wikidataId": "Q172241",
+        "granularity": "movie"
+      },
+      "sources": {
+        "imdb": {
+          "url": "https://www.imdb.com/title/tt0111161/",
+          "runtimeEndpoint": "https://graphql.imdb.com/",
+          "retrievedAt": null,
+          "fragment": null,
+          "captureKind": "not-captured"
+        },
+        "douban": {
+          "url": "https://movie.douban.com/subject/1292052/",
+          "retrievedAt": "2026-11-16",
+          "fragment": "tests/fixtures/douban-ratings/shawshank-identity.html",
+          "captureKind": "rendered-dom-identity-fragment",
+          "rawResponse": false
+        },
+        "wikidata": {
+          "url": "https://www.wikidata.org/w/api.php?action=wbgetentities&format=json&ids=Q172241&origin=*&props=claims",
+          "retrievedAt": "2026-11-16",
+          "fragment": "tests/fixtures/external-ratings/v1/wikidata/entity-q172241.json",
+          "captureKind": "cropped-source-api-response",
+          "rawResponse": false,
+          "searchFragment": "tests/fixtures/external-ratings/v1/wikidata/search-by-douban-id.json",
+          "searchUrl": "https://www.wikidata.org/w/api.php?action=query&format=json&list=search&origin=*&srlimit=50&srnamespace=0&srsearch=haswbstatement%3AP4529%3D1292052"
+        },
+        "rottenTomatoes": {
+          "url": "https://www.rottentomatoes.com/m/shawshank_redemption",
+          "retrievedAt": "2026-11-16",
+          "fragment": "tests/fixtures/rotten-tomatoes/shawshank.html",
+          "captureKind": "captured-source-html-fragment",
+          "rawResponse": false
+        },
+        "metacritic": {
+          "url": "https://www.metacritic.com/movie/the-shawshank-redemption/",
+          "retrievedAt": "2026-11-16",
+          "fragment": "tests/fixtures/metacritic/shawshank.html",
+          "captureKind": "rendered-dom-jsonld-fragment",
+          "rawResponse": false
+        }
+      },
+      "expected": {
+        "granularity": "movie",
+        "rottenTomatoes": {
+          "outcome": "rating",
+          "criticsScore": 89,
+          "audienceScore": 98,
+          "sourceUrl": "https://www.rottentomatoes.com/m/shawshank_redemption"
+        },
+        "metacritic": {
+          "outcome": "rating",
+          "score": 82,
+          "reviewCount": 22,
+          "sourceUrl": "https://www.metacritic.com/movie/the-shawshank-redemption/"
+        }
+      },
+      "controlledVariants": [
+        {
+          "id": "without-wikidata-instance-of",
+          "label": "Controlled causal ablation: remove only P31 from the Wikidata entity.",
+          "change": "remove claims.P31; retain all other claims and the captured page fragments",
+          "expected": {
+            "rottenTomatoes": "unavailable",
+            "metacritic": "unavailable"
+          }
+        },
+        {
+          "id": "without-rotten-tomatoes-id",
+          "label": "Controlled causal ablation: remove only the Wikidata P1258 claim.",
+          "change": "remove claims.P1258; retain P31, P1712, P345, P4529, and both captured page fragments",
+          "expected": {
+            "rottenTomatoes": "unavailable",
+            "metacritic": "rating"
+          }
+        },
+        {
+          "id": "without-metacritic-id",
+          "label": "Controlled causal ablation: remove only the Wikidata P1712 claim.",
+          "change": "remove claims.P1712; retain P31, P1258, P345, P4529, and both captured page fragments",
+          "expected": {
+            "rottenTomatoes": "rating",
+            "metacritic": "unavailable"
+          }
+        },
+        {
+          "id": "without-metacritic-canonical",
+          "label": "Controlled causal ablation: remove only the Metacritic canonical link.",
+          "change": "remove the canonical link from the same rendered JSON-LD fragment",
+          "expected": {
+            "rottenTomatoes": "rating",
+            "metacritic": "page-unavailable"
+          }
+        },
+        {
+          "id": "controlled-rotten-tomatoes-no-rating",
+          "label": "Controlled no-rating probe: replace both RT scorecard values with null.",
+          "change": "replace the scorecard in the captured RT fragment with an explicit empty scorecard; this is not a claim that the live source has no rating",
+          "expected": {
+            "rottenTomatoes": "source-no-rating",
+            "metacritic": "rating"
+          }
+        },
+        {
+          "id": "controlled-metacritic-invalid-score",
+          "label": "Controlled parser probe: replace only the Metacritic ratingValue with an empty string.",
+          "change": "replace aggregateRating.ratingValue in the rendered JSON-LD fragment with an empty string",
+          "expected": {
+            "rottenTomatoes": "rating",
+            "metacritic": "page-unavailable"
+          }
+        }
+      ]
+    }
+  ],
+  "pairedRuntimeCoverage": "tests/fixtures/external-ratings/v1/runtime-pairs.json"
+}
