@@ -13,17 +13,20 @@ const motionCss = readStyle("src/modules/subject/styles/motion.css");
 describe("review reader scroll styles", () => {
   it("pins the green accent to the panel edge without shifting the reader content", () => {
     const desktopPanelRule = reviewsCss.match(
-      /\.atv-review-modal-scroll\s*\{([^}]+)\}/u
-    )?.[1];
+      /\.atv-review-modal-scroll\s*\{(?<rule>[^}]+)\}/u
+    )?.groups?.rule;
     const accentRule = reviewsCss.match(
-      /\.atv-review-modal-scroll::before\s*\{([^}]+)\}/u
-    )?.[1];
+      /\.atv-review-modal-scroll::before\s*\{(?<rule>[^}]+)\}/u
+    )?.groups?.rule;
 
     expect(desktopPanelRule).toMatch(/padding:\s*0 56px 32px;/u);
     expect(accentRule).toMatch(/position:\s*sticky;/u);
     expect(accentRule).toMatch(/top:\s*0;/u);
     expect(accentRule).toMatch(/height:\s*3px;/u);
     expect(accentRule).toMatch(/margin:\s*0 -56px 45px;/u);
+  });
+
+  it("keeps mobile spacing and the reduced-motion accent visible", () => {
     expect(responsiveCss).toMatch(/padding:\s*0 18px 22px;/u);
     expect(responsiveCss).toMatch(/margin:\s*0 -18px 21px;/u);
     expect(motionCss).toMatch(

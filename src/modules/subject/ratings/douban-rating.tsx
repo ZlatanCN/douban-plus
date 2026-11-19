@@ -15,9 +15,7 @@ const DoubanRating = ({ rating }: DoubanRatingProps) => (
         <div class="atv-rating-panel-score">{rating.score.toFixed(1)}</div>
         <Stars score={rating.score} />
         <div class="atv-rating-panel-count">
-          {rating.count
-            ? rating.count.toLocaleString("en-US")
-            : ""}
+          {rating.count ? rating.count.toLocaleString("en-US") : ""}
         </div>
       </>
     ) : (
