@@ -701,6 +701,11 @@ function E(n, t) {
 function G(n, t) {
 	return "function" == typeof t ? t(n) : t;
 }
+var handleLayoutNavigationClick = (event, sectionId, onJump) => {
+	if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+	event.preventDefault();
+	onJump(sectionId);
+};
 var f = Symbol.for("pv");
 var o = 0;
 function a(t, e, n$1, u, a, i) {
@@ -772,11 +777,7 @@ var StickyNav = ({ activeSectionId = "", accessory, className = "", navRef, onJu
 					class: activeSectionId === section.id ? "is-active" : void 0,
 					"data-section-id": section.id,
 					href: `#${section.id}`,
-					onClick: (event) => {
-						if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-						event.preventDefault();
-						onJump(section.id);
-					},
+					onClick: (event) => handleLayoutNavigationClick(event, section.id, onJump),
 					children: section.label
 				}, section.id)), /* @__PURE__ */ a("div", {
 					"aria-hidden": "true",
@@ -10563,7 +10564,7 @@ var resumeReviewVote = async (review, direction, onVote, owner) => {
 	}, direction);
 };
 var postReviewVote = async (subjectId, rid, type) => {
-	const { postReviewVote: post } = await module.import('./review-vote-kXKTBG2J-DQdqxyTW.js');
+	const { postReviewVote: post } = await module.import('./review-vote-DoTu6PJ1-DQdqxyTW.js');
 	return post(subjectId, rid, type);
 };
 var StarRatingInput = ({ disabled = false, onChange, rating }) => /* @__PURE__ */ a("fieldset", {
@@ -21120,11 +21121,7 @@ var SubjectAllPhotosPage = ({ data, doc }) => {
 						class: "atv-photo-archive-index",
 						children: data.groups.map((group, index) => /* @__PURE__ */ a("a", {
 							href: `#${photoGroupId(index)}`,
-							onClick: (event) => {
-								if (event.button !== 0 || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-								event.preventDefault();
-								navigation.onJump(photoGroupId(index));
-							},
+							onClick: (event) => handleLayoutNavigationClick(event, photoGroupId(index), navigation.onJump),
 							children: [/* @__PURE__ */ a("span", {
 								class: "atv-photo-archive-index-label",
 								children: group.label
@@ -22951,7 +22948,7 @@ var mountPageWhenReady = async () => {
 };
 if (isDoubanLoginFrame()) installLoginFrameTheme();
 else mountPageWhenReady();})}}));
-System.register("./review-vote-kXKTBG2J-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
+System.register("./review-vote-DoTu6PJ1-DQdqxyTW.js", ['./___monkey.entry.js'],(function(exports){'use strict';var getCk,gmPost;return{setters:[function(module){getCk=module.g;gmPost=module.a;}],execute:(function(){var postReviewVote = exports("postReviewVote",async (subjectId, rid, type) => {
 	const ck = getCk();
 	if (!ck) return { ok: false };
 	try {
