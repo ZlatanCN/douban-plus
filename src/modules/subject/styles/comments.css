@@ -1,8 +1,9 @@
 /* ---------- Comments ---------- */
 .atv-comments {
   display: grid;
+  align-items: start;
   gap: 16px;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .atv-comment-card {
@@ -81,7 +82,6 @@ a.atv-comment-author:hover {
   position: relative;
   display: flex;
   width: 100%;
-  flex: 1 1 auto;
   flex-direction: column;
   padding: 0;
   border: none;
