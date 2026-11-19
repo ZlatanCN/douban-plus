@@ -46,7 +46,13 @@ const CommentsPageHeader = ({
     </div>
     <p class="atv-subject-comments-kicker">全部短评</p>
     <h1>{title}</h1>
-    <nav aria-label="短评状态索引" class="atv-subject-comments-status-index">
+    <nav
+      aria-label="短评状态索引"
+      class="atv-subject-comments-status-index"
+      style={{
+        "--atv-subject-comments-status-count": String(statuses.length),
+      }}
+    >
       {statuses.map((status) => (
         <a
           aria-current={isBrowseSelected(status) ? "page" : undefined}
