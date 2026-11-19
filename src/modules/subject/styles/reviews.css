@@ -327,7 +327,7 @@
   width: 100%;
   max-width: 800px;
   max-height: 85vh;
-  padding: 48px 56px 32px;
+  padding: 0 56px 32px;
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-lg);
   background: var(--atv-bg-secondary);
@@ -338,12 +338,12 @@
 }
 
 .atv-review-modal-scroll::before {
-  position: absolute;
+  position: sticky;
   z-index: 1;
   top: 0;
-  right: 0;
-  left: 0;
+  display: block;
   height: 3px;
+  margin: 0 -56px 45px;
   background: linear-gradient(
     to right,
     transparent,
