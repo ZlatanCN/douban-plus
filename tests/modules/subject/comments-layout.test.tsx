@@ -41,7 +41,10 @@ const declarationsOf = (rule: Rule | undefined) =>
 const makeComment = (index: number): Comment => ({
   avatar: "",
   cid: `comment-${index}`,
-  content: `Preview ${index}`,
+  content:
+    index === 2
+      ? "A longer preview shares its row with the short first card. ".repeat(8)
+      : `Preview ${index}`,
   link: "",
   name: `Viewer ${index}`,
   ratingWord: "",
@@ -52,7 +55,7 @@ const makeComment = (index: number): Comment => ({
 });
 
 describe("CommentsSection layout", () => {
-  it("keeps five previews in order in equal desktop columns with natural card heights", () => {
+  it("keeps desktop comment rows uniform and their footers aligned", () => {
     const root = renderIntoRoot(
       <CommentsSection
         comments={[1, 2, 3, 4, 5].map(makeComment)}
@@ -80,6 +83,12 @@ describe("CommentsSection layout", () => {
     const previewStyle = declarationsOf(
       findRule(commentsCss.nodes, ".atv-comment-body-text")
     );
+    const cardStyle = declarationsOf(
+      findRule(commentsCss.nodes, ".atv-comment-card")
+    );
+    const bodyStyle = declarationsOf(
+      findRule(commentsCss.nodes, ".atv-comment-body")
+    );
 
     expect(cards.map((card) => card.dataset.cid)).toStrictEqual([
       "comment-1",
@@ -92,12 +101,16 @@ describe("CommentsSection layout", () => {
       display: desktopLayout.display,
       columns: desktopLayout["grid-template-columns"],
       alignment: desktopLayout["align-items"],
+      cardDirection: cardStyle["flex-direction"],
+      bodyFlex: bodyStyle.flex,
       narrowColumns: mobileLayout["grid-template-columns"],
       previewLines: previewStyle["-webkit-line-clamp"],
     }).toStrictEqual({
       display: "grid",
       columns: "repeat(2, minmax(0, 1fr))",
-      alignment: "start",
+      alignment: "stretch",
+      cardDirection: "column",
+      bodyFlex: "1 1 auto",
       narrowColumns: "1fr",
       previewLines: "4",
     });
