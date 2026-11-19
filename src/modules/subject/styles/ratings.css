@@ -15,6 +15,7 @@
   border: 1px solid var(--atv-border-subtle);
   border-radius: var(--atv-radius-md);
   margin-bottom: 28px;
+  background: var(--atv-bg-primary);
   container-type: inline-size;
   gap: 0;
 }
