@@ -27,7 +27,7 @@
   width: min(100%, 1120px);
   align-items: start;
   margin: 0 auto;
-  gap: clamp(32px, 5vw, 72px);
+  gap: 36px clamp(32px, 5vw, 72px);
   grid-template-columns: minmax(160px, 240px) minmax(0, 1fr);
 }
 
@@ -114,8 +114,9 @@
 }
 
 .atv-personage-biography {
+  position: relative;
   max-width: 680px;
-  margin-top: 36px;
+  grid-column: 2;
 }
 
 .atv-personage-biography-content {
@@ -123,6 +124,13 @@
   font-size: var(--atv-type-body-lg);
   letter-spacing: 0.01em;
   line-height: var(--atv-line-height-body-loose);
+}
+
+.atv-personage-biography-measurement {
+  position: absolute;
+  width: 100%;
+  inset: 0 auto auto 0;
+  visibility: hidden;
 }
 
 .atv-personage-biography-content p {

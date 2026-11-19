@@ -35,19 +35,14 @@ const SubjectCelebritiesPage = ({ data, doc }: SubjectCelebritiesPageProps) => {
       />
       <main class="atv-celebrities">
         <header class="atv-celebrities-hero">
-          <p class="atv-celebrities-kicker">全部演职员</p>
-          <h1>{data.title}</h1>
-          <div class="atv-celebrities-context">
-            <p>{totalCredits} 位演职员</p>
-            <a
-              class="atv-credit-back"
-              href={data.subjectHref}
-              rel="noreferrer"
-              target="_blank"
-            >
-              查看作品详情 <span aria-hidden="true">↗</span>
+          <div class="atv-celebrities-toolbar">
+            <a class="atv-credit-back" href={data.subjectHref}>
+              <span aria-hidden="true">←</span> 返回作品
             </a>
           </div>
+          <p class="atv-celebrities-kicker">全部演职员</p>
+          <h1>{data.title}</h1>
+          <p class="atv-celebrities-count">{totalCredits} 位演职员</p>
         </header>
         <div class="atv-credit-groups">
           {data.groups.map((group, index) => (

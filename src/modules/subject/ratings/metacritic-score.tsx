@@ -1,7 +1,7 @@
 import type { McRating, McScoreSide } from "@/modules/subject/domain";
 
 const countLabel = (count: number | null): string | null =>
-  count === null ? null : `评价 ${count.toLocaleString("en-US")}`;
+  count === null ? null : count.toLocaleString("en-US");
 
 const ScoreSide = ({
   className,

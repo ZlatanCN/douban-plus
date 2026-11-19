@@ -86,6 +86,22 @@ describe(SubjectCelebritiesPage, () => {
     );
   });
 
+  it("puts the same-tab return to the work at the top of the page header", () => {
+    render(<SubjectCelebritiesPage data={data} doc={document} />, root);
+
+    const toolbar = root.querySelector(
+      ".atv-celebrities-hero > .atv-celebrities-toolbar"
+    );
+    const back = toolbar?.querySelector<HTMLAnchorElement>(".atv-credit-back");
+
+    expect(root.querySelector(".atv-celebrities-hero")?.firstElementChild).toBe(
+      toolbar
+    );
+    expect(back?.textContent).toContain("返回作品");
+    expect(back?.href).toBe(data.subjectHref);
+    expect(back?.hasAttribute("target")).toBeFalsy();
+  });
+
   it("keeps character credits while demoting their original names", () => {
     const actorData: SubjectCelebritiesPageData = {
       ...data,
@@ -125,7 +141,9 @@ describe(SubjectCelebritiesPage, () => {
       root.querySelector<HTMLAnchorElement>(".atv-credit-work")?.target
     ).toBe("_blank");
     expect(
-      root.querySelector<HTMLAnchorElement>(".atv-credit-back")?.target
-    ).toBe("_blank");
+      root
+        .querySelector<HTMLAnchorElement>(".atv-credit-back")
+        ?.hasAttribute("target")
+    ).toBeFalsy();
   });
 });

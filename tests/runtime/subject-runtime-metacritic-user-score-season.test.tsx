@@ -126,8 +126,8 @@ describe("SubjectPageRuntime Metacritic season User score", () => {
       rating: latestMetaUpdate(updates)?.result,
     }).toMatchObject({
       criticsScore: "82",
-      criticsCount: "评价 27",
-      audienceCount: "评价 409",
+      criticsCount: "27",
+      audienceCount: "409",
       requested: true,
       source: seasonUrl,
       rating: {

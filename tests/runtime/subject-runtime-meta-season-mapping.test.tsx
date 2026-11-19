@@ -91,7 +91,7 @@ describe("subject runtime meta season mapping", () => {
       requestedNoGuessedSeason: true,
       requestedNoGuessedSeries: true,
       source: canonicalSeasonUrl,
-      audience: { score: "9.1", scale: "/10", count: "评价 2,447" },
+      audience: { score: "9.1", scale: "/10", count: "2,447" },
       rating: {
         audience: { displayScore: "9.1", reviewCount: 2447, score: 9.1 },
         object: { kind: "season", season: 2, subjectId: "6558062" },

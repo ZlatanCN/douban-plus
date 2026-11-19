@@ -1,6 +1,9 @@
 import { useMemo } from "preact/hooks";
 
-import { StickyNav } from "@/shared/components/layout";
+import {
+  handleLayoutNavigationClick,
+  StickyNav,
+} from "@/shared/components/layout";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
 import type {
@@ -102,14 +105,28 @@ const SubjectAllPhotosPage = ({ data, doc }: SubjectAllPhotosPageProps) => {
           <div class="atv-photo-archive-intro">
             <p>影像档案</p>
             <h1>{data.title}</h1>
-            <dl aria-label="图集分类总览" class="atv-photo-archive-index">
-              {data.groups.map((group) => (
-                <div key={group.allHref}>
-                  <dt>{group.label}</dt>
-                  <dd>{numberFormatter.format(group.count)}</dd>
-                </div>
+            <nav aria-label="图集分类索引" class="atv-photo-archive-index">
+              {data.groups.map((group, index) => (
+                <a
+                  href={`#${photoGroupId(index)}`}
+                  key={group.allHref}
+                  onClick={(event) =>
+                    handleLayoutNavigationClick(
+                      event,
+                      photoGroupId(index),
+                      navigation.onJump
+                    )
+                  }
+                >
+                  <span class="atv-photo-archive-index-label">
+                    {group.label}
+                  </span>
+                  <span class="atv-photo-archive-index-count">
+                    {numberFormatter.format(group.count)} 张
+                  </span>
+                </a>
               ))}
-            </dl>
+            </nav>
           </div>
         </header>
         <div class="atv-photo-archive-groups">

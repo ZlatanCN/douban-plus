@@ -69,7 +69,9 @@ const data: SubjectReviewsPageData = {
   writeHref: "https://movie.douban.com/subject/3016187/new_review",
 };
 
-const navigation = (): SubjectReviewsNavigationState => ({
+const navigation = (
+  overrides: Partial<SubjectReviewsNavigationState> = {}
+): SubjectReviewsNavigationState => ({
   data,
   dismissFailure: () => null,
   failure: null,
@@ -78,6 +80,7 @@ const navigation = (): SubjectReviewsNavigationState => ({
   refresh: () => Promise.resolve(false),
   retry: () => null,
   version: 0,
+  ...overrides,
 });
 
 describe(SubjectReviewsPage, () => {
@@ -88,6 +91,79 @@ describe(SubjectReviewsPage, () => {
       render(null, root);
       root = null;
     }
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps review reading and action exits independent in the page", async () => {
+    const reviewData: SubjectReviewsPageData = {
+      ...data,
+      reviews: [
+        {
+          ...data.reviews[0],
+          reply: {
+            href: "https://movie.douban.com/review/4931491/#comments",
+            label: "4回应",
+          },
+        },
+      ],
+    };
+    const { cleanup, doc } = createTestDoc(
+      "<title>权力的游戏 第一季的剧评 (677)</title>",
+      "/subject/3016187/reviews"
+    );
+    root = document.createElement("div");
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn<typeof globalThis.fetch>()
+        .mockRejectedValue(new Error("network down"))
+    );
+
+    render(
+      <SubjectReviewsPage
+        doc={doc}
+        navigation={navigation({ data: reviewData })}
+      />,
+      root
+    );
+
+    expect({
+      authorHref: root
+        .querySelector(".atv-review-author")
+        ?.getAttribute("href"),
+      backHref: root
+        .querySelector(".atv-subject-reviews-back")
+        ?.getAttribute("href"),
+      openLabel: root
+        .querySelector(".atv-review-open-button")
+        ?.getAttribute("aria-label"),
+      replyHref: root.querySelector(".atv-review-reply")?.getAttribute("href"),
+      voteButtons: root.querySelectorAll(".atv-review-actions button").length,
+      writeHref: root
+        .querySelector(".atv-subject-reviews-write")
+        ?.getAttribute("href"),
+    }).toStrictEqual({
+      authorHref: data.reviews[0].author.href,
+      backHref: data.subjectHref,
+      openLabel: "展开阅读：影评标题",
+      replyHref: reviewData.reviews[0].reply?.href,
+      voteButtons: 2,
+      writeHref: data.writeHref,
+    });
+
+    root.querySelector<HTMLButtonElement>(".atv-review-open-button")?.click();
+    await vi.waitFor(() =>
+      expect(root?.querySelector(".atv-review-modal-link-a")?.textContent).toBe(
+        "查看豆瓣原文 →"
+      )
+    );
+    expect(
+      root
+        .querySelector<HTMLAnchorElement>(".atv-review-modal-link-a")
+        ?.getAttribute("href")
+    ).toBe("https://movie.douban.com/review/4931491/");
+
+    cleanup();
   });
 
   it.each([

@@ -133,10 +133,10 @@ describe("subject runtime meta series", () => {
       },
     }).toMatchObject({
       criticScale: "/100",
-      criticCount: "评价 29",
+      criticCount: "29",
       audienceScore: "5.0",
       audienceScale: "/10",
-      audienceCount: "评价 67",
+      audienceCount: "67",
       rating: {
         diagnostic: { reason: "rating" },
         rating: {

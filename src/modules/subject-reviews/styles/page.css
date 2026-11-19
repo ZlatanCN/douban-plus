@@ -41,7 +41,7 @@
 }
 
 .atv-subject-reviews-hero {
-  padding: clamp(112px, 15vw, 176px) 0 clamp(48px, 7vw, 84px);
+  padding: clamp(104px, 9vw, 132px) 0 clamp(32px, 4vw, 56px);
 }
 
 .atv-subject-reviews-toolbar {
@@ -93,7 +93,7 @@
 }
 
 .atv-subject-reviews-kicker {
-  margin-top: clamp(42px, 6vw, 72px);
+  margin-top: clamp(34px, 4vw, 56px);
 }
 
 .atv-subject-reviews-hero h1 {
@@ -104,6 +104,7 @@
   font-weight: var(--atv-font-weight-bold);
   letter-spacing: -0.055em;
   line-height: var(--atv-line-height-display);
+  overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
@@ -424,6 +425,7 @@
   letter-spacing: -0.018em;
   -webkit-line-clamp: 2;
   line-height: 1.28;
+  overflow-wrap: anywhere;
 }
 
 .atv-review-card.is-directory .atv-review-excerpt {
@@ -449,13 +451,13 @@
   font-size: var(--atv-type-caption-sm);
   font-weight: var(--atv-font-weight-semibold);
   letter-spacing: 0.03em;
-  opacity: 0.5;
+  opacity: 0.9;
   transform: none;
 }
 
 .atv-review-card.is-directory:has(.atv-review-open-button:focus-visible)
   .atv-review-readmore {
-  opacity: 0.8;
+  opacity: 1;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -471,7 +473,7 @@
   }
 
   .atv-review-card.is-directory:hover .atv-review-readmore {
-    opacity: 0.8;
+    opacity: 1;
   }
 }
 
@@ -551,12 +553,23 @@
     padding: 22px 0;
     border-bottom: 1px solid var(--atv-border-subtle);
     gap: 18px;
-    grid-template-columns: repeat(2, max-content);
-    overflow-x: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .atv-subject-reviews-controls section {
+    min-width: 0;
   }
 
   .atv-subject-reviews-controls section > div {
     display: flex;
+    flex-wrap: wrap;
+  }
+
+  .atv-subject-reviews-option {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    text-align: left;
+    white-space: normal;
   }
 
   .atv-subject-reviews-stream {

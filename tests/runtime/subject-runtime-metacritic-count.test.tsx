@@ -148,7 +148,7 @@ describe("SubjectPageRuntime Metacritic", () => {
       expect(
         zeroCount.querySelector(".atv-mc-critics .atv-mc-rating-count")
           ?.textContent
-      ).toBe("评价 0")
+      ).toBe("0")
     );
     render(null, zeroCount);
     localStorage.clear();
