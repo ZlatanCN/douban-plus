@@ -192,6 +192,7 @@ describe(SubjectAllPhotosPage, () => {
 
   afterEach(() => {
     render(null, root);
+    root.remove();
   });
 
   it("renders the archive, native exits, and functional image labels", () => {
@@ -213,6 +214,109 @@ describe(SubjectAllPhotosPage, () => {
         .querySelector<HTMLAnchorElement>(".atv-photo-archive-tile")
         ?.getAttribute("aria-label")
     ).toBe("查看《权力的游戏 第一季》剧照第 1 张");
+  });
+
+  it("links the single counted category to its preview group", () => {
+    render(
+      <SubjectAllPhotosPage data={resolvedPageData} doc={document} />,
+      root
+    );
+
+    const category = root.querySelector<HTMLAnchorElement>(
+      ".atv-photo-archive-index a"
+    );
+
+    expect(category?.getAttribute("href")).toBe("#atv-photo-archive-section-1");
+    expect(category?.textContent).toContain("剧照");
+    expect(category?.textContent).toContain("2,610");
+    expect(
+      root.querySelector(category?.getAttribute("href") ?? "")
+    ).not.toBeNull();
+  });
+
+  it("links every native category to its existing preview group", () => {
+    const multiCategoryData = {
+      ...resolvedPageData,
+      groups: [
+        ...resolvedPageData.groups,
+        {
+          allHref: "https://movie.douban.com/subject/3016187/photos?type=P",
+          count: 98,
+          label: "海报",
+          photos: [],
+        },
+      ],
+    };
+
+    render(
+      <SubjectAllPhotosPage data={multiCategoryData} doc={document} />,
+      root
+    );
+
+    const categories = [
+      ...root.querySelectorAll<HTMLAnchorElement>(".atv-photo-archive-index a"),
+    ];
+
+    expect(
+      categories.map((category) => {
+        const href = category.getAttribute("href");
+        return {
+          count: category.querySelector(".atv-photo-archive-index-count")
+            ?.textContent,
+          href,
+          label: category.querySelector(".atv-photo-archive-index-label")
+            ?.textContent,
+          targetExists: Boolean(root.querySelector(href ?? "")),
+        };
+      })
+    ).toStrictEqual([
+      {
+        count: "2,610 张",
+        href: "#atv-photo-archive-section-1",
+        label: "剧照",
+        targetExists: true,
+      },
+      {
+        count: "98 张",
+        href: "#atv-photo-archive-section-2",
+        label: "海报",
+        targetExists: true,
+      },
+    ]);
+  });
+
+  it("uses sticky navigation behavior when a category link is activated", () => {
+    document.body.append(root);
+    render(
+      <SubjectAllPhotosPage data={resolvedPageData} doc={document} />,
+      root
+    );
+
+    const category = root.querySelector<HTMLAnchorElement>(
+      ".atv-photo-archive-index a"
+    );
+    const group = root.querySelector<HTMLElement>(
+      "#atv-photo-archive-section-1"
+    );
+    const scrollIntoView = vi.fn<HTMLElement["scrollIntoView"]>();
+
+    if (!category || !group) {
+      throw new Error("Expected the category link and its preview group");
+    }
+    group.scrollIntoView = scrollIntoView;
+
+    const defaultWasNotPrevented = category.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 })
+    );
+
+    expect(defaultWasNotPrevented).toBeFalsy();
+    expect(window.location.hash).toBe("#atv-photo-archive-section-1");
+    expect(group.tabIndex).toBe(-1);
+    expect(document.activeElement).toBe(group);
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      behavior: "smooth",
+      block: "start",
+    });
   });
 
   it("renders archive images as responsive proportion-preserving sources", () => {
