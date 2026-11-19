@@ -103,7 +103,7 @@ a.atv-comment-author:hover {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 3;
   overflow-wrap: break-word;
 }
 

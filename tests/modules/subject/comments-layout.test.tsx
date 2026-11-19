@@ -116,7 +116,7 @@ describe("CommentsSection layout", () => {
       bodyFlex: "1 1 auto",
       narrowColumns: "1fr",
       narrowAutoRows: "auto",
-      previewLines: "4",
+      previewLines: "3",
     });
   });
 });
