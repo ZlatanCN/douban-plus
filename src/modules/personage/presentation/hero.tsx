@@ -41,15 +41,18 @@ const useBiographyDisclosure = (biography: string[] | null) => {
       return;
     }
 
-    if (canExpand) {
-      return;
-    }
-
     const measureOverflow = () => {
       const lineHeight = Number(
         window.getComputedStyle(content).lineHeight.replace("px", "")
       );
+      const wasClamped = content.classList.contains("is-clamped");
+      if (wasClamped) {
+        content.classList.remove("is-clamped");
+      }
       const fullHeight = content.scrollHeight;
+      if (wasClamped) {
+        content.classList.add("is-clamped");
+      }
       const hasHiddenContent =
         Number.isFinite(lineHeight) &&
         fullHeight > lineHeight * biographyPreviewLineCount + 1;
@@ -72,7 +75,7 @@ const useBiographyDisclosure = (biography: string[] | null) => {
       window.cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [biographyKey, canExpand]);
+  }, [biographyKey]);
 
   return { canExpand, contentRef, isExpanded, setIsExpanded };
 };
@@ -226,17 +229,17 @@ const PersonageHero = ({ profile, onOpenPortrait }: PersonageHeroProps) => {
               ))}
             </dl>
           ) : null}
-
-          {profile.biography?.length ? (
-            <PersonageBiography
-              biography={profile.biography}
-              canExpand={canExpand}
-              contentRef={contentRef}
-              isExpanded={isExpanded}
-              setIsExpanded={setIsExpanded}
-            />
-          ) : null}
         </div>
+
+        {profile.biography?.length ? (
+          <PersonageBiography
+            biography={profile.biography}
+            canExpand={canExpand}
+            contentRef={contentRef}
+            isExpanded={isExpanded}
+            setIsExpanded={setIsExpanded}
+          />
+        ) : null}
       </div>
     </section>
   );

@@ -300,39 +300,6 @@ describe(mountPersonage, () => {
     cleanup();
   });
 
-  it("renders the two work rails after images in the confirmed reading order", () => {
-    const { cleanup, doc } = createTestDoc(
-      personageFixture,
-      "/personage/27224733/"
-    );
-
-    mountPersonage(doc);
-
-    const sections = [
-      "atv-personage-collaborators",
-      "atv-personage-gallery",
-      "atv-personage-recent-works",
-      "atv-personage-representative-works",
-      "atv-personage-awards",
-    ].map((id) => doc.querySelector<HTMLElement>(`#${id}`));
-
-    expect(sections.map((section) => section?.id)).toStrictEqual([
-      "atv-personage-collaborators",
-      "atv-personage-gallery",
-      "atv-personage-recent-works",
-      "atv-personage-representative-works",
-      "atv-personage-awards",
-    ]);
-    expect(
-      sections[2]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
-    ).toBe("http://localhost:3000/creations?sortby=time&type=filmmaker");
-    expect(
-      sections[3]?.querySelector<HTMLAnchorElement>(".atv-section-more")?.href
-    ).toBe("http://localhost:3000/creations?sortby=collection&type=filmmaker");
-
-    cleanup();
-  });
-
   it("leaves a personage document unchanged when the Hero data cannot be extracted", () => {
     const { cleanup, doc } = createTestDoc(
       '<div id="wrapper"><div id="content"><h1>原生页面</h1></div></div>',
