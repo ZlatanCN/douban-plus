@@ -68,6 +68,7 @@
   }
 
   .atv-comments {
+    grid-auto-rows: auto;
     grid-template-columns: 1fr;
   }
 

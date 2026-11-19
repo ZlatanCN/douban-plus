@@ -55,7 +55,7 @@ const makeComment = (index: number): Comment => ({
 });
 
 describe("CommentsSection layout", () => {
-  it("keeps desktop comment rows uniform and their footers aligned", () => {
+  it("keeps all desktop comment cards the same height and resets mobile rows", () => {
     const root = renderIntoRoot(
       <CommentsSection
         comments={[1, 2, 3, 4, 5].map(makeComment)}
@@ -100,18 +100,22 @@ describe("CommentsSection layout", () => {
     expect({
       display: desktopLayout.display,
       columns: desktopLayout["grid-template-columns"],
+      autoRows: desktopLayout["grid-auto-rows"],
       alignment: desktopLayout["align-items"],
       cardDirection: cardStyle["flex-direction"],
       bodyFlex: bodyStyle.flex,
       narrowColumns: mobileLayout["grid-template-columns"],
+      narrowAutoRows: mobileLayout["grid-auto-rows"],
       previewLines: previewStyle["-webkit-line-clamp"],
     }).toStrictEqual({
       display: "grid",
       columns: "repeat(2, minmax(0, 1fr))",
+      autoRows: "1fr",
       alignment: "stretch",
       cardDirection: "column",
       bodyFlex: "1 1 auto",
       narrowColumns: "1fr",
+      narrowAutoRows: "auto",
       previewLines: "4",
     });
   });
