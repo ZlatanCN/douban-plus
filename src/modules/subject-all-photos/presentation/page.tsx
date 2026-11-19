@@ -102,14 +102,34 @@ const SubjectAllPhotosPage = ({ data, doc }: SubjectAllPhotosPageProps) => {
           <div class="atv-photo-archive-intro">
             <p>影像档案</p>
             <h1>{data.title}</h1>
-            <dl aria-label="图集分类总览" class="atv-photo-archive-index">
-              {data.groups.map((group) => (
-                <div key={group.allHref}>
-                  <dt>{group.label}</dt>
-                  <dd>{numberFormatter.format(group.count)}</dd>
-                </div>
+            <nav aria-label="图集分类索引" class="atv-photo-archive-index">
+              {data.groups.map((group, index) => (
+                <a
+                  href={`#${photoGroupId(index)}`}
+                  key={group.allHref}
+                  onClick={(event) => {
+                    if (
+                      event.button !== 0 ||
+                      event.altKey ||
+                      event.ctrlKey ||
+                      event.metaKey ||
+                      event.shiftKey
+                    ) {
+                      return;
+                    }
+                    event.preventDefault();
+                    navigation.onJump(photoGroupId(index));
+                  }}
+                >
+                  <span class="atv-photo-archive-index-label">
+                    {group.label}
+                  </span>
+                  <span class="atv-photo-archive-index-count">
+                    {numberFormatter.format(group.count)} 张
+                  </span>
+                </a>
               ))}
-            </dl>
+            </nav>
           </div>
         </header>
         <div class="atv-photo-archive-groups">
