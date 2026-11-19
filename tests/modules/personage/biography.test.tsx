@@ -72,9 +72,7 @@ describe(mountPersonage, () => {
     vi.stubGlobal("ResizeObserver", TestResizeObserver);
     let naturalHeight = 112;
     vi.spyOn(HTMLElement.prototype, "scrollHeight", "get").mockImplementation(
-      function biographyScrollHeight(this: HTMLElement) {
-        return this.classList.contains("is-clamped") ? 84 : naturalHeight;
-      }
+      () => naturalHeight
     );
     vi.spyOn(window, "getComputedStyle").mockReturnValue({
       lineHeight: "28px",
@@ -91,13 +89,27 @@ describe(mountPersonage, () => {
       ).not.toBeNull()
     );
 
+    const content = doc.querySelector<HTMLElement>(
+      ".atv-personage-biography-content"
+    );
+    const classMutations: MutationRecord[] = [];
+    const mutationObserver = new MutationObserver((mutations) => {
+      classMutations.push(...mutations);
+    });
+    mutationObserver.observe(content as HTMLElement, {
+      attributeFilter: ["class"],
+      attributes: true,
+    });
+
     const observer = TestResizeObserver.instances.find(
       (instance) => !instance.disconnected && instance.isObserving
     );
     expect(observer).toBeDefined();
 
     observer?.trigger();
+    await Promise.resolve();
     expect(doc.querySelector(".atv-personage-biography button")).not.toBeNull();
+    expect(classMutations).toHaveLength(0);
 
     naturalHeight = 84;
     observer?.trigger();
@@ -113,6 +125,7 @@ describe(mountPersonage, () => {
       ).not.toBeNull()
     );
 
+    mutationObserver.disconnect();
     cleanup();
   });
 

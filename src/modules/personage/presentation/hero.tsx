@@ -19,7 +19,7 @@ const splitPersonageName = (name: string) => {
 const biographyPreviewLineCount = 3;
 
 const useBiographyDisclosure = (biography: string[] | null) => {
-  const contentRef = useRef<HTMLDivElement>(null);
+  const measurementRef = useRef<HTMLDivElement>(null);
   const biographyKey = biography?.join("\n") ?? "";
   const previousBiographyKeyRef = useRef(biographyKey);
   const [canExpand, setCanExpand] = useState(false);
@@ -34,8 +34,8 @@ const useBiographyDisclosure = (biography: string[] | null) => {
   }, [biographyKey]);
 
   useLayoutEffect(() => {
-    const content = contentRef.current;
-    if (!content || !biographyKey) {
+    const measurement = measurementRef.current;
+    if (!measurement || !biographyKey) {
       setCanExpand(false);
       setIsExpanded(false);
       return;
@@ -43,16 +43,9 @@ const useBiographyDisclosure = (biography: string[] | null) => {
 
     const measureOverflow = () => {
       const lineHeight = Number(
-        window.getComputedStyle(content).lineHeight.replace("px", "")
+        window.getComputedStyle(measurement).lineHeight.replace("px", "")
       );
-      const wasClamped = content.classList.contains("is-clamped");
-      if (wasClamped) {
-        content.classList.remove("is-clamped");
-      }
-      const fullHeight = content.scrollHeight;
-      if (wasClamped) {
-        content.classList.add("is-clamped");
-      }
+      const fullHeight = measurement.scrollHeight;
       const hasHiddenContent =
         Number.isFinite(lineHeight) &&
         fullHeight > lineHeight * biographyPreviewLineCount + 1;
@@ -69,7 +62,7 @@ const useBiographyDisclosure = (biography: string[] | null) => {
       typeof ResizeObserver === "undefined"
         ? null
         : new ResizeObserver(measureOverflow);
-    observer?.observe(content);
+    observer?.observe(measurement);
 
     return () => {
       window.cancelAnimationFrame(frame);
@@ -77,7 +70,7 @@ const useBiographyDisclosure = (biography: string[] | null) => {
     };
   }, [biographyKey]);
 
-  return { canExpand, contentRef, isExpanded, setIsExpanded };
+  return { canExpand, isExpanded, measurementRef, setIsExpanded };
 };
 
 const computeStatsKicker = (profile: PersonageProfile): string | null => {
@@ -146,16 +139,16 @@ const PersonageHeroPortrait = ({
 type PersonageBiographyProps = {
   biography: string[];
   canExpand: boolean;
-  contentRef: { current: HTMLDivElement | null };
   isExpanded: boolean;
+  measurementRef: { current: HTMLDivElement | null };
   setIsExpanded: (value: boolean | ((prev: boolean) => boolean)) => void;
 };
 
 const PersonageBiography = ({
   biography,
   canExpand,
-  contentRef,
   isExpanded,
+  measurementRef,
   setIsExpanded,
 }: PersonageBiographyProps) => (
   <div class="atv-personage-biography">
@@ -163,7 +156,15 @@ const PersonageBiography = ({
       class={`atv-personage-biography-content ${
         canExpand && !isExpanded ? "is-clamped" : "is-expanded"
       }`}
-      ref={contentRef}
+    >
+      {biography.map((paragraph, index) => (
+        <p key={`${index}-${paragraph}`}>{paragraph}</p>
+      ))}
+    </div>
+    <div
+      aria-hidden="true"
+      class="atv-personage-biography-content atv-personage-biography-measurement"
+      ref={measurementRef}
     >
       {biography.map((paragraph, index) => (
         <p key={`${index}-${paragraph}`}>{paragraph}</p>
@@ -182,7 +183,7 @@ const PersonageBiography = ({
 );
 
 const PersonageHero = ({ profile, onOpenPortrait }: PersonageHeroProps) => {
-  const { canExpand, contentRef, isExpanded, setIsExpanded } =
+  const { canExpand, isExpanded, measurementRef, setIsExpanded } =
     useBiographyDisclosure(profile.biography);
   const { originalName, primaryName } = splitPersonageName(profile.name);
 
@@ -235,8 +236,8 @@ const PersonageHero = ({ profile, onOpenPortrait }: PersonageHeroProps) => {
           <PersonageBiography
             biography={profile.biography}
             canExpand={canExpand}
-            contentRef={contentRef}
             isExpanded={isExpanded}
+            measurementRef={measurementRef}
             setIsExpanded={setIsExpanded}
           />
         ) : null}
