@@ -518,6 +518,57 @@ describe(SubjectCommentsPage, () => {
     });
   });
 
+  it("sizes the status index to the native options and preserves their order and selection", () => {
+    const variants = [
+      pageData.statuses.slice(1, 2).map((status) => ({
+        ...status,
+        active: true,
+      })),
+      pageData.statuses
+        .filter((status) => status.value !== "N")
+        .map((status) => ({ ...status, active: status.value === "F" })),
+      pageData.statuses.map((status) => ({
+        ...status,
+        active: status.value === "F",
+      })),
+    ];
+
+    for (const statuses of variants) {
+      render(
+        <SubjectCommentsPage data={{ ...pageData, statuses }} doc={document} />,
+        root
+      );
+
+      const index = root.querySelector<HTMLElement>(
+        ".atv-subject-comments-status-index"
+      );
+      const links = [
+        ...root.querySelectorAll<HTMLAnchorElement>(
+          ".atv-subject-comments-status"
+        ),
+      ];
+
+      expect(
+        index?.style.getPropertyValue("--atv-subject-comments-status-count")
+      ).toBe(String(statuses.length));
+      expect(
+        links.map((link) => ({
+          active: link.getAttribute("aria-current") === "page",
+          count: link.querySelector("strong")?.textContent,
+          href: link.href,
+          label: link.querySelector("span")?.textContent,
+        }))
+      ).toStrictEqual(
+        statuses.map((status) => ({
+          active: status.active,
+          count: new Intl.NumberFormat("zh-CN").format(status.count),
+          href: status.href,
+          label: status.label,
+        }))
+      );
+    }
+  });
+
   it("keeps the reading stream in place while a selected browsing axis loads", () => {
     const navigate = vi.fn<(href: string, label: string) => void>();
     const navigation: SubjectCommentsNavigationState = {
