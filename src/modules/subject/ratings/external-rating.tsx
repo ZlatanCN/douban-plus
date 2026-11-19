@@ -51,7 +51,7 @@ const renderImdbRating = (rating: ImdbRating): JSX.Element => (
     <div class="atv-rating-panel-score">{rating.score.toFixed(1)}</div>
     <Stars score={rating.score} />
     <div class="atv-rating-panel-count">
-      {rating.count ? `评价 ${rating.count.toLocaleString("en-US")}` : "已评分"}
+      {rating.count ? rating.count.toLocaleString("en-US") : ""}
     </div>
   </>
 );
@@ -76,7 +76,7 @@ const RtSide = ({
   score: number;
 }) => {
   const freshness = isFresh(score) ? "is-fresh" : "is-rotten";
-  const countText = count === null ? "" : `评价 ${formatRtCount(count)}`;
+  const countText = count === null ? "" : formatRtCount(count);
 
   return (
     <div class={`atv-rating-dual-side atv-rt-score-side atv-rt-${side}`}>

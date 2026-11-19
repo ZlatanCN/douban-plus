@@ -113,7 +113,7 @@ describe("subject runtime rt single rating", () => {
         count: "",
         emptyCountHidden: "true",
       },
-      audience: { score: "98%", scale: "%", count: "评价 100+" },
+      audience: { score: "98%", scale: "%", count: "100+" },
     });
   });
 

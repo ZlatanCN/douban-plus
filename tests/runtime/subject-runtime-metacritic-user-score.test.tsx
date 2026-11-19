@@ -74,8 +74,8 @@ describe("SubjectPageRuntime Metacritic User score", () => {
       noLegacyDescription: root.querySelector(".atv-mc-label-row") === null,
       rating: metaUpdate?.result,
     }).toMatchObject({
-      critics: { score: "90", scale: "/100", count: "评价 18" },
-      audience: { score: "9.1", scale: "/10", count: "评价 1,269" },
+      critics: { score: "90", scale: "/100", count: "18" },
+      audience: { score: "9.1", scale: "/10", count: "1,269" },
       noLegacyDescription: true,
       rating: {
         diagnostic: { reason: "rating" },

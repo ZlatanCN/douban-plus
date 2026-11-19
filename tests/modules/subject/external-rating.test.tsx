@@ -42,7 +42,7 @@ describe(ExternalRating, () => {
     expect(el.querySelector(".atv-rating-panel-score")?.textContent).toBe(
       "8.5"
     );
-    expect(el.querySelector(".atv-rating-panel-count")?.textContent).toContain(
+    expect(el.querySelector(".atv-rating-panel-count")?.textContent).toBe(
       "1,200,000"
     );
     expect(el.querySelector('[aria-label="IMDb"]')).not.toBeNull();
@@ -112,8 +112,8 @@ describe(ExternalRating, () => {
       logo: el.querySelector('[aria-label="Metacritic"]') !== null,
     }).toMatchObject({
       loaded: true,
-      critics: { score: "82", scale: "/100", count: "评价 1,500" },
-      audience: { score: "9.1", scale: "/10", count: "评价 1,269" },
+      critics: { score: "82", scale: "/100", count: "1,500" },
+      audience: { score: "9.1", scale: "/10", count: "1,269" },
       oldLabel: null,
       logo: true,
     });
@@ -216,8 +216,8 @@ describe(ExternalRating, () => {
   });
 
   it.each([
-    { lowerBound: 250_000, expectedAudienceText: "评价 250,000+" },
-    { lowerBound: 2_500_000, expectedAudienceText: "评价 2,500,000+" },
+    { lowerBound: 250_000, expectedAudienceText: "250,000+" },
+    { lowerBound: 2_500_000, expectedAudienceText: "2,500,000+" },
   ])(
     "keeps Rotten Tomatoes range count $expectedAudienceText on the audience side",
     ({ lowerBound, expectedAudienceText }) => {
@@ -234,7 +234,7 @@ describe(ExternalRating, () => {
 
       expect(
         el.querySelector(".atv-rt-critics .atv-rt-count-value")?.textContent
-      ).toBe("评价 147");
+      ).toBe("147");
       expect(
         el.querySelector(".atv-rt-audience .atv-rt-count-value")?.textContent
       ).toBe(expectedAudienceText);

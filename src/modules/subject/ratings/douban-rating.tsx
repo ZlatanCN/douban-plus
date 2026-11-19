@@ -16,8 +16,8 @@ const DoubanRating = ({ rating }: DoubanRatingProps) => (
         <Stars score={rating.score} />
         <div class="atv-rating-panel-count">
           {rating.count
-            ? `评价 ${rating.count.toLocaleString("en-US")}`
-            : "已评分"}
+            ? rating.count.toLocaleString("en-US")
+            : ""}
         </div>
       </>
     ) : (
