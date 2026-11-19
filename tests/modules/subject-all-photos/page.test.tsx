@@ -319,6 +319,49 @@ describe(SubjectAllPhotosPage, () => {
     });
   });
 
+  it.each([
+    { name: "middle-button", button: 1 },
+    { name: "Alt-modified", altKey: true },
+    { name: "Control-modified", ctrlKey: true },
+    { name: "Command-modified", metaKey: true },
+    { name: "Shift-modified", shiftKey: true },
+  ])("keeps $name category clicks native", ({ name, ...options }) => {
+    document.body.append(root);
+    window.history.replaceState(null, "", window.location.pathname);
+    render(
+      <SubjectAllPhotosPage data={resolvedPageData} doc={document} />,
+      root
+    );
+
+    const category = root.querySelector<HTMLAnchorElement>(
+      ".atv-photo-archive-index a"
+    );
+    const group = root.querySelector<HTMLElement>(
+      "#atv-photo-archive-section-1"
+    );
+    const scrollIntoView = vi.fn<HTMLElement["scrollIntoView"]>();
+    const focus = vi.fn<HTMLElement["focus"]>();
+
+    if (!category || !group) {
+      throw new Error("Expected the category link and its preview group");
+    }
+    group.scrollIntoView = scrollIntoView;
+    group.focus = focus;
+
+    const event = new MouseEvent("click", {
+      bubbles: true,
+      cancelable: true,
+      ...options,
+    });
+    const defaultWasNotPrevented = category.dispatchEvent(event);
+
+    expect(defaultWasNotPrevented).toBeTruthy();
+    expect(category.getAttribute("href")).toBe("#atv-photo-archive-section-1");
+    expect(group.getAttribute("tabindex")).toBeNull();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(focus).not.toHaveBeenCalled();
+  });
+
   it("renders archive images as responsive proportion-preserving sources", () => {
     render(
       <SubjectAllPhotosPage data={resolvedPageData} doc={document} />,

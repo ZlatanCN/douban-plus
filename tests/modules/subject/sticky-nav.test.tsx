@@ -123,7 +123,13 @@ describe(StickyNav, () => {
     expect(onJump).toHaveBeenCalledWith("atv-cast");
   });
 
-  it("leaves modified jump clicks to the browser", () => {
+  it.each([
+    { name: "middle-button", button: 1 },
+    { name: "Alt-modified", altKey: true },
+    { name: "Control-modified", ctrlKey: true },
+    { name: "Command-modified", metaKey: true },
+    { name: "Shift-modified", shiftKey: true },
+  ])("leaves $name jump clicks to the browser", ({ name, ...options }) => {
     const onJump = vi.fn<(sectionId: string) => void>();
     const root = renderIntoRoot(<StickyNav {...makeProps()} onJump={onJump} />);
     const link = root.querySelector<HTMLAnchorElement>(
@@ -132,7 +138,7 @@ describe(StickyNav, () => {
     const event = new MouseEvent("click", {
       bubbles: true,
       cancelable: true,
-      ctrlKey: true,
+      ...options,
     });
     link?.dispatchEvent(event);
 

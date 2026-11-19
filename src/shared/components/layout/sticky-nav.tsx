@@ -1,6 +1,8 @@
 import type { ComponentChild } from "preact";
 import { useLayoutEffect, useRef } from "preact/hooks";
 
+import { handleLayoutNavigationClick } from "./navigation-click";
+
 type IndicatorMetrics = {
   left: number;
   width: number;
@@ -93,19 +95,9 @@ const StickyNav = ({
             data-section-id={section.id}
             href={`#${section.id}`}
             key={section.id}
-            onClick={(event) => {
-              if (
-                event.button !== 0 ||
-                event.altKey ||
-                event.ctrlKey ||
-                event.metaKey ||
-                event.shiftKey
-              ) {
-                return;
-              }
-              event.preventDefault();
-              onJump(section.id);
-            }}
+            onClick={(event) =>
+              handleLayoutNavigationClick(event, section.id, onJump)
+            }
           >
             {section.label}
           </a>

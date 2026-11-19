@@ -1,6 +1,9 @@
 import { useMemo } from "preact/hooks";
 
-import { StickyNav } from "@/shared/components/layout";
+import {
+  handleLayoutNavigationClick,
+  StickyNav,
+} from "@/shared/components/layout";
 import { useStickyNavigation } from "@/shared/hooks/use-sticky-navigation";
 
 import type {
@@ -107,19 +110,13 @@ const SubjectAllPhotosPage = ({ data, doc }: SubjectAllPhotosPageProps) => {
                 <a
                   href={`#${photoGroupId(index)}`}
                   key={group.allHref}
-                  onClick={(event) => {
-                    if (
-                      event.button !== 0 ||
-                      event.altKey ||
-                      event.ctrlKey ||
-                      event.metaKey ||
-                      event.shiftKey
-                    ) {
-                      return;
-                    }
-                    event.preventDefault();
-                    navigation.onJump(photoGroupId(index));
-                  }}
+                  onClick={(event) =>
+                    handleLayoutNavigationClick(
+                      event,
+                      photoGroupId(index),
+                      navigation.onJump
+                    )
+                  }
                 >
                   <span class="atv-photo-archive-index-label">
                     {group.label}
