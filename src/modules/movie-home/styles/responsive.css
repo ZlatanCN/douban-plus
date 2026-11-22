@@ -35,7 +35,7 @@
     padding-top: 0;
   }
 
-  .atv-section-h-row {
+  .atv-movie-home .atv-section-h-row {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
