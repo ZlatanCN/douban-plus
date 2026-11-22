@@ -1,0 +1,116 @@
+@media (width <= 900px) {
+  .atv-movie-home-header {
+    grid-template-areas:
+      "brand brand"
+      "search search"
+      "nav nav";
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .atv-movie-home-search {
+    width: 100%;
+    max-width: none;
+  }
+
+  .atv-movie-home-recommendations {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (width <= 700px) {
+  .atv-movie-home {
+    padding-bottom: 40px;
+  }
+
+  .atv-movie-home-header {
+    padding: 22px 20px 16px;
+    gap: 12px;
+  }
+
+  .atv-movie-home .atv-section {
+    padding: 36px 20px;
+  }
+
+  .atv-movie-home .atv-section + .atv-section {
+    padding-top: 0;
+  }
+
+  .atv-section-h-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .atv-movie-home-pagination {
+    gap: 7px;
+  }
+
+  .atv-movie-home-pagination button {
+    min-height: 36px;
+    padding: 6px 9px;
+  }
+
+  .atv-movie-home-grid {
+    gap: 26px 14px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .atv-movie-home-movie-title {
+    font-size: var(--atv-type-title);
+  }
+
+  .atv-movie-home-movie-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .atv-movie-home-ranking,
+  .atv-movie-home-reviews {
+    grid-template-columns: 1fr;
+  }
+
+  .atv-movie-home-recommendations > a {
+    gap: 16px;
+    grid-template-columns: 42% minmax(0, 1fr);
+  }
+
+  .atv-movie-home-review {
+    gap: 14px;
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+
+  .atv-movie-home-review > img {
+    width: 64px;
+  }
+}
+
+@media (width <= 380px) {
+  .atv-movie-home-header,
+  .atv-movie-home .atv-section {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .atv-movie-home-search-field button {
+    min-width: 58px;
+  }
+
+  .atv-movie-home-grid {
+    column-gap: 10px;
+  }
+
+  .atv-movie-home-recommendations > a {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .atv-movie-home-poster img,
+  .atv-movie-home-poster,
+  .atv-movie-home-search-field button,
+  .atv-movie-home-pagination button,
+  .atv-movie-home-nav a {
+    transition: none;
+  }
+}

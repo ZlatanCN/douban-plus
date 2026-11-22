@@ -1,0 +1,200 @@
+.atv-movie-home {
+  min-height: 100vh;
+  padding-bottom: 72px;
+}
+
+.atv-movie-home-header {
+  display: grid;
+  max-width: 1280px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28px max(28px, 5vw) 18px;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  margin: 0 auto;
+  gap: 14px 28px;
+  grid-template-areas:
+    "brand search"
+    "nav nav";
+  grid-template-columns: auto minmax(320px, 430px);
+}
+
+.atv-movie-home-brand {
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-title-xl);
+  font-weight: var(--atv-font-weight-bold);
+  grid-area: brand;
+  letter-spacing: -0.03em;
+}
+
+.atv-movie-home-header > search {
+  display: block;
+  min-width: 0;
+  grid-area: search;
+}
+
+.atv-movie-home-search {
+  width: 100%;
+}
+
+.atv-movie-home-search-label {
+  position: absolute;
+  overflow: hidden;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  margin: -1px;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.atv-movie-home-search-field {
+  display: grid;
+  padding: 4px;
+  border: 1px solid var(--atv-border-medium);
+  border-radius: var(--atv-radius-md);
+  background: var(--atv-bg-card);
+  gap: 4px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.atv-movie-home-search-field:focus-within {
+  border-color: var(--atv-accent-border-strong);
+  box-shadow: 0 0 0 3px var(--atv-accent-hover);
+}
+
+.atv-movie-home-search-field input[type="search"] {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--atv-text-primary);
+  font: inherit;
+  outline: 0;
+}
+
+.atv-movie-home-search-field input[type="search"]::placeholder {
+  color: var(--atv-text-tertiary);
+}
+
+.atv-movie-home-search-field button {
+  min-width: 72px;
+  border: 0;
+  border-radius: var(--atv-radius-sm);
+  background: var(--atv-accent);
+  color: var(--atv-text-on-accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: var(--atv-font-weight-semibold);
+  transition: transform var(--atv-duration-press) var(--atv-ease-out);
+}
+
+.atv-movie-home-search-field button:active {
+  transform: scale(0.97);
+}
+
+.atv-movie-home-search-field button:focus-visible {
+  outline: 2px solid var(--atv-text-primary);
+  outline-offset: 2px;
+}
+
+.atv-movie-home-nav {
+  min-width: 0;
+  grid-area: nav;
+}
+
+.atv-movie-home-nav ul {
+  display: flex;
+  padding: 0;
+  margin: 0;
+  gap: 6px 24px;
+  list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.atv-movie-home-nav ul::-webkit-scrollbar {
+  display: none;
+}
+
+.atv-movie-home-nav a {
+  display: inline-block;
+  padding: 7px 0;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
+  transition:
+    color var(--atv-duration-hover) ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
+  white-space: nowrap;
+}
+
+.atv-movie-home-nav a:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}
+
+.atv-movie-home-pagination {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  margin: 0;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-caption);
+  gap: 10px;
+}
+
+.atv-movie-home-pagination button {
+  padding: 6px 10px;
+  border: 1px solid var(--atv-border-medium);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--atv-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color var(--atv-duration-hover) ease,
+    color var(--atv-duration-hover) ease,
+    transform var(--atv-duration-press) var(--atv-ease-out);
+}
+
+.atv-movie-home-pagination button[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.42;
+}
+
+.atv-movie-home-pagination button:not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+}
+
+.atv-movie-home-pagination button:focus-visible {
+  border-color: var(--atv-accent-border-strong);
+  color: var(--atv-text-primary);
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 2px;
+}
+
+.atv-movie-home-page-count {
+  min-width: 44px;
+  color: var(--atv-text-primary);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-movie-home-nav a:hover {
+    color: var(--atv-accent-bright);
+  }
+
+  .atv-movie-home-search-field button:hover {
+    background: var(--atv-accent-bright);
+  }
+
+  .atv-movie-home-pagination button:not([aria-disabled="true"]):hover {
+    border-color: var(--atv-accent-border-strong);
+    color: var(--atv-text-primary);
+  }
+}

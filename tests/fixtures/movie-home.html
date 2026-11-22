@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <title>豆瓣电影</title>
+  </head>
+  <body>
+    <div id="db-nav-movie" class="nav">
+      <div class="nav-wrap">
+        <div class="nav-primary">
+          <div class="nav-logo">
+            <a href="https://movie.douban.com">豆瓣电影</a>
+          </div>
+          <div class="nav-search">
+            <form
+              action="https://search.douban.com/movie/subject_search"
+              method="get"
+            >
+              <fieldset>
+                <input
+                  id="inp-query"
+                  name="search_text"
+                  maxlength="60"
+                  placeholder="搜索电影、电视剧、综艺、影人"
+                  value=""
+                />
+                <input type="submit" value="搜索" />
+                <input type="hidden" name="cat" value="1002" />
+              </fieldset>
+            </form>
+          </div>
+        </div>
+      </div>
+      <div class="nav-secondary">
+        <div class="nav-items">
+          <ul>
+            <li>
+              <a href="https://movie.douban.com/cinema/nowplaying/"
+                >影讯&amp;购票</a
+              >
+            </li>
+            <li><a href="https://movie.douban.com/explore">选电影</a></li>
+            <li><a href="https://movie.douban.com/tv/">选剧集</a></li>
+            <li><a href="https://movie.douban.com/chart">排行榜</a></li>
+            <li><a href="https://movie.douban.com/review/best/">影评</a></li>
+            <li>
+              <a href="https://movie.douban.com/annual/2025/?fullscreen=1"
+                >2025年度榜单</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div id="wrapper">
+      <div id="content">
+        <div class="grid-16-8 clearfix">
+          <div class="article">
+            <div id="screening" class="s">
+              <div class="screening-hd">
+                <h2>
+                  正在热映
+                  <span
+                    ><a href="/cinema/nowplaying/">全部正在热映&raquo;</a></span
+                  >
+                  <span><a href="./later/">即将上映&raquo;</a></span>
+                </h2>
+              </div>
+              <div class="screening-bd">
+                <ul
+                  class="ui-slide-content"
+                  data-slide-index="1"
+                  data-index-max="2"
+                >
+                  <li
+                    class="ui-slide-item s"
+                    data-title="饥饿游戏：收获日出 The Hunger Games: Sunrise on the Reaping"
+                    data-release="2026"
+                    data-rate=""
+                    data-star="00"
+                    data-ticket="https://movie.douban.com/ticket/redirect/?movie_id=36915988"
+                  >
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/36915988/?from=showing"
+                        >
+                          <img
+                            src="https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2937429510.jpg"
+                            alt="饥饿游戏：收获日出"
+                          />
+                        </a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/36915988/?from=showing"
+                          title="饥饿游戏：收获日出"
+                          >饥饿游戏：收获日出</a
+                        >
+                      </li>
+                      <li><span class="text-tip">暂无评分</span></li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=36915988"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                  <li
+                    class="ui-slide-item"
+                    data-title="珠穆朗玛：云中彼岸 Everest: The Other Side"
+                    data-rate="8.5"
+                  >
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/37822528/?from=showing"
+                          ><img
+                            src="https://img2.doubanio.com/view/photo/s_ratio_poster/public/p2937280981.jpg"
+                            alt="珠穆朗玛：云中彼岸"
+                        /></a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/37822528/?from=showing"
+                          title="珠穆朗玛：云中彼岸"
+                          >珠穆朗玛：云中彼岸</a
+                        >
+                      </li>
+                      <li>
+                        <span class="rating-star allstar45"></span
+                        ><span class="subject-rate">8.5</span>
+                      </li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=37822528"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                  <li class="ui-slide-item" data-title="试探" data-rate="">
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/35068655/?from=showing"
+                          ><img
+                            src="https://img9.doubanio.com/view/photo/s_ratio_poster/public/p2937437804.jpg"
+                            alt="试探"
+                        /></a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/35068655/?from=showing"
+                          title="试探"
+                          >试探</a
+                        >
+                      </li>
+                      <li><span class="text-tip">暂无评分</span></li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=35068655"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                  <li
+                    class="ui-slide-item"
+                    data-title="没有海报的作品"
+                    data-rate="7.1"
+                  >
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/40000001/?from=showing"
+                        ></a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/40000001/?from=showing"
+                          >没有海报的作品</a
+                        >
+                      </li>
+                      <li>
+                        <span class="rating-star allstar35"></span
+                        ><span class="subject-rate">7.1</span>
+                      </li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=40000001"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                  <li
+                    class="ui-slide-item"
+                    data-title="一个很长很长很长很长很长很长很长很长很长很长的片名"
+                    data-rate="9.0"
+                  >
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/40000002/?from=showing"
+                          ><img
+                            src="https://img1.doubanio.com/view/photo/s_ratio_poster/public/p4000000001.jpg"
+                            alt="一个很长很长很长很长很长很长很长很长很长很长的片名"
+                        /></a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/40000002/?from=showing"
+                          >一个很长很长很长很长很长很长很长很长很长很长的片名</a
+                        >
+                      </li>
+                      <li>
+                        <span class="rating-star allstar45"></span
+                        ><span class="subject-rate">9.0</span>
+                      </li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=40000002"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                  <li
+                    class="ui-slide-item"
+                    data-title="末组作品"
+                    data-rate="6.6"
+                  >
+                    <ul>
+                      <li class="poster">
+                        <a
+                          href="https://movie.douban.com/subject/40000003/?from=showing"
+                          ><img
+                            src="https://img2.doubanio.com/view/photo/s_ratio_poster/public/p4000000002.jpg"
+                            alt="末组作品"
+                        /></a>
+                      </li>
+                      <li class="title">
+                        <a
+                          href="https://movie.douban.com/subject/40000003/?from=showing"
+                          >末组作品</a
+                        >
+                      </li>
+                      <li>
+                        <span class="rating-star allstar35"></span
+                        ><span class="subject-rate">6.6</span>
+                      </li>
+                      <li class="ticket_btn">
+                        <span
+                          ><a
+                            href="https://movie.douban.com/ticket/redirect/?movie_id=40000003"
+                            target="_blank"
+                            >选座购票</a
+                          ></span
+                        >
+                      </li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div id="gallery-frames">
+              <div class="gallery-hd"><h2>热门推荐</h2></div>
+              <div id="hot-gallery">
+                <ul class="ui-slide-content">
+                  <li class="ui-slide-item">
+                    <div class="gallery-frame">
+                      <a
+                        href="https://movie.douban.com/annual/2025/?fullscreen=1&amp;dt_from=doubanmovie"
+                        target="_blank"
+                      >
+                        <img
+                          src="https://img9.doubanio.com/view/movie_gallery_frame_hot_rec/m/public/445b148981b68d6.jpg"
+                          alt="「豆瓣2025年度电影榜单」正式上线！"
+                        />
+                      </a>
+                      <div class="gallery-detail">
+                        <div class="gallery-hd">
+                          <a
+                            href="https://movie.douban.com/annual/2025/?fullscreen=1&amp;dt_from=doubanmovie"
+                            target="_blank"
+                            ><h3>「豆瓣2025年度电影榜单」正式上线！</h3></a
+                          >
+                        </div>
+                        <div class="gallery-bd">
+                          <p>点击查看完整榜单，开启全年佳片好剧大赏。</p>
+                        </div>
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div id="reviews">
+              <div class="reviews-hd">
+                <h2>
+                  最受欢迎的影评
+                  <span><a href="/review/best/">更多热门影评&raquo;</a></span>
+                  <span><a href="/review/latest/">新片影评&raquo;</a></span>
+                </h2>
+              </div>
+              <div class="reviews-bd">
+                <div class="review">
+                  <div class="review-hd">
+                    <a
+                      href="https://movie.douban.com/subject/36847425/?from=reviews"
+                      ><img
+                        data-original="https://img3.doubanio.com/view/photo/s_ratio_poster/public/p2935488630.jpg"
+                        src="/grey.gif"
+                        alt="可能的爱"
+                    /></a>
+                  </div>
+                  <div class="review-bd">
+                    <h3>
+                      <a href="https://movie.douban.com/review/17914142/"
+                        >关于电影，关于我们</a
+                      >
+                    </h3>
+                    <div class="review-meta">
+                      <a href="https://www.douban.com/people/aiyuhaoduoyu/"
+                        >爱鱼好多鱼</a
+                      >
+                      评论
+                      <a
+                        href="https://movie.douban.com/subject/36847425/?from=reviews"
+                        >《可能的爱》</a
+                      >
+                    </div>
+                    <div class="review-content">
+                      我该如何写李沧东呢？时隔8年，世界早就不是我们所熟悉的样子。<a
+                        href="https://movie.douban.com/review/17914142/"
+                        >(全文)</a
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="review last">
+                  <div class="review-hd">
+                    <a
+                      href="https://movie.douban.com/subject/1292329/?from=reviews"
+                      ><img
+                        data-original="https://img9.doubanio.com/view/photo/s_ratio_poster/public/p848381236.jpg"
+                        src="/grey.gif"
+                        alt="牯岭街少年杀人事件"
+                    /></a>
+                  </div>
+                  <div class="review-bd">
+                    <h3>
+                      <a href="https://movie.douban.com/review/17905066/"
+                        >浊世长夏。</a
+                      >
+                    </h3>
+                    <div class="review-meta">
+                      <a href="https://www.douban.com/people/Olbers1005/"
+                        >Protostell_</a
+                      >
+                      评论
+                      <a
+                        href="https://movie.douban.com/subject/1292329/?from=reviews"
+                        >《牯岭街少年杀人事件》</a
+                      >
+                    </div>
+                    <div class="review-content">
+                      案件只是一个切口呀，这一整个时代的空气都混浊不堪。<a
+                        href="https://movie.douban.com/review/17905066/"
+                        >(全文)</a
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="aside">
+            <div class="rating_answer">
+              <ul>
+                <li>
+                  <a
+                    href="https://blog.douban.com/douban/2015/12/18/3060/"
+                    target="_blank"
+                    >豆瓣电影评分八问</a
+                  >
+                </li>
+              </ul>
+            </div>
+            <div id="billboard" class="s">
+              <div class="billboard-hd">
+                <h2>
+                  一周口碑榜<span><a href="/chart">更多榜单&raquo;</a></span>
+                </h2>
+              </div>
+              <div class="billboard-bd">
+                <table>
+                  <tr>
+                    <td class="order">1</td>
+                    <td class="title">
+                      <a href="https://movie.douban.com/subject/36847425/"
+                        >可能的爱</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="order">2</td>
+                    <td class="title">
+                      <a href="https://movie.douban.com/subject/37215318/"
+                        >黑球</a
+                      >
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="order">3</td>
+                    <td class="title">
+                      <a href="https://movie.douban.com/subject/37822528/"
+                        >珠穆朗玛：云中彼岸</a
+                      >
+                    </td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+            <div id="doulist">
+              <h2>热门片单</h2>
+              <ul>
+                <li>
+                  <span>25推荐</span>
+                  <div class="title">
+                    <a
+                      target="_blank"
+                      href="https://www.douban.com/doulist/145461/"
+                      >我爱欧洲古装剧</a
+                    >
+                  </div>
+                </li>
+                <li>
+                  <span>73推荐</span>
+                  <div class="title">
+                    <a
+                      target="_blank"
+                      href="https://www.douban.com/doulist/1211839/"
+                      >世界电影史（考研①号片单）</a
+                    >
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div id="contact-and-cooperation"><h2>合作联系</h2></div>
+            <div class="contact mod"><h2>关注我们</h2></div>
+          </div>
+        </div>
+      </div>
+      <div id="footer">豆瓣电影原生页脚</div>
+    </div>
+  </body>
+</html>

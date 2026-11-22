@@ -17,6 +17,10 @@
 @import "./modules/personage/styles/timeline.css";
 @import "./modules/personage/styles/awards.css";
 @import "./modules/personage/styles/responsive.css";
+@import "./modules/movie-home/styles/layout.css";
+@import "./modules/movie-home/styles/content.css";
+@import "./modules/movie-home/styles/editorial.css";
+@import "./modules/movie-home/styles/responsive.css";
 @import "./modules/subject-celebrities/styles/page.css";
 @import "./modules/subject-all-photos/styles/archive.css";
 @import "./modules/subject-all-photos/styles/groups.css";

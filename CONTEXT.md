@@ -1,6 +1,6 @@
 # douban-plus
 
-Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metacritic, Rotten Tomatoes), streaming availability, cast info, and a tight Apple TV-inspired layout. It ships six page modules — subject, personage, all-photos gallery, celebrities, short-comment overview, and review/critique overview — each with its own route mount.
+Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metacritic, Rotten Tomatoes), streaming availability, cast info, and a tight Apple TV-inspired layout. It ships seven page modules — movie home, subject, personage, all-photos gallery, celebrities, short-comment overview, and review/critique overview — each with its own route mount.
 
 ## Language
 
@@ -218,7 +218,7 @@ Userscript that enhances Douban pages with richer metadata, ratings (IMDb, Metac
 
 **Host integration boundary**: The narrow layer where douban-plus reads or interoperates with Douban's existing document and browser platform APIs. _Avoid_: imperative UI, DOM-builder
 
-**页面模块所有权**: `subject`、`subject-all-photos`、`subject-celebrities`、`subject-comments`、`subject-reviews` 与 `personage` 各自拥有页面组件、领域数据类型、DOM 提取、页面语义的外部数据读写适配、运行时补全和页面专属样式。跨 subject 路由的作品标记与登录分别由 `shared/components/interest-form/` 和 `shared/components/login-modal/` 拥有；跨路由的影评阅读由独立 `domains/review-reader` 深模块拥有。三者都经公开入口服务多个页面，且不得反向导入任何页面模块。其余共享层只承载不含页面语义的设计 token、基础布局、通用导航、模态、小型交互原语及通用 HTTP、缓存、DOM 工具和样式。顶层入口只根据 URL 选择并挂载页面运行时；它只能使用模块公开入口，并通过唯一的样式清单加载模块与共享样式。页面模块彼此不依赖，模块内部实现不得被模块外部生产代码深层导入，共享层也不得反向依赖页面模块；白盒单元测试可作为模块实现的一部分直接测试内部 seam。跨越模块边界的领域类型只能经公开契约传递；为迁移创建的兼容转发必须随所属模块迁移完成而删除。 _Avoid_: 让人物页复用 subject 的数据契约、把非复用的页面语义请求适配留在共享层、让共享组件导入页面分区文案、在入口层堆积页面数据判断、跨模块或跨层深层导入、永久共享页面领域模型、把页面样式伪装成共享样式
+**页面模块所有权**: `movie-home`、`subject`、`subject-all-photos`、`subject-celebrities`、`subject-comments`、`subject-reviews` 与 `personage` 各自拥有页面组件、领域数据类型、DOM 提取、页面语义的外部数据读写适配、运行时补全和页面专属样式。跨 subject 路由的作品标记与登录分别由 `shared/components/interest-form/` 和 `shared/components/login-modal/` 拥有；跨路由的影评阅读由独立 `domains/review-reader` 深模块拥有。三者都经公开入口服务多个页面，且不得反向导入任何页面模块。其余共享层只承载不含页面语义的设计 token、基础布局、通用导航、模态、小型交互原语及通用 HTTP、缓存、DOM 工具和样式。顶层入口只根据 URL 选择并挂载页面运行时；它只能使用模块公开入口，并通过唯一的样式清单加载模块与共享样式。页面模块彼此不依赖，模块内部实现不得被模块外部生产代码深层导入，共享层也不得反向依赖页面模块；白盒单元测试可作为模块实现的一部分直接测试内部 seam。跨越模块边界的领域类型只能经公开契约传递；为迁移创建的兼容转发必须随所属模块迁移完成而删除。 _Avoid_: 让人物页复用 subject 的数据契约、把非复用的页面语义请求适配留在共享层、让共享组件导入页面分区文案、在入口层堆积页面数据判断、跨模块或跨层深层导入、永久共享页面领域模型、把页面样式伪装成共享样式
 
 **影评阅读模块**: 为多个作品路由提供同一篇影评的目录卡片、完整阅读与可换边投票的独立深模块 (`domains/review-reader`)；它只通过公开契约接收影评呈现数据、账户守卫与原生互动适配，不拥有任一页面的路由、DOM 提取或目录构图。 _Avoid_: 把影评阅读塞进 shared、从一个 page module 深层导入到另一个、每个影评页面复制一套投票状态
 
@@ -236,6 +236,13 @@ External rating data flows through **extract → resolve → Preact render** wit
 src/
   main.ts              — route entry; imports page-module public APIs, the page-mount primitive, the login-frame theme, and the stylesheet manifest
   modules/
+    movie-home/        — movie-site homepage module
+      domain.ts        — homepage-owned extraction data contracts
+      extract/         — native homepage validation and extraction
+      index.ts         — public route mount
+      presentation/    — homepage composition, search form, and hot-movie paging
+      runtime/         — atomic mount and history-entry state
+      styles/          — homepage page styles
     subject/           — subject page module
       index.ts          — public route mount
       domain.ts         — subject-owned domain types and values
@@ -380,7 +387,7 @@ The 21 scenarios are designed to isolate different performance dimensions: slow 
    - `ModalSession` localizes same-instance reopen detection. `useModalRequest` creates a fresh request object per open; page composition wraps each active semantic modal in its local session, while `ModalShell` consumes the private session through context to reset a closing animation. Semantic modal interfaces carry only domain data and `onClose`, never animation request numbers.
    - Comment, review, interest, login, poster, and video modals all render through `ModalShell`
    - Poster/video no longer use the retired DOM `createOverlay` seam; their imperative openers render Preact content into a temporary host and restore trigger focus on close
-7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade: it imports each page module's public entry plus the login-frame theme, selects a mount by URL via `shared/runtime/page-mount`, and mounts one page:
+7. **Subject page runtime module (2026-07-08)** — `src/main.ts` is a thin startup facade: it imports each page module's public entry plus the login-frame theme, selects a mount by URL via `shared/runtime/page-mount`, and mounts one page; the movie-home module validates the current native homepage before replacing it and stores only its hot-movie group in the current history entry:
    - External runtime seam is `mountSubject(doc?)`: guard duplicate mounts, extract `DoubanData`, render Preact, insert DOM, and start post-render effects
    - Runtime effects are localized: avatars, late-series acquisition, sticky nav reveal, and active-section tracking each live behind a small internal module; review-content acquisition is owned by `domains/review-reader`
    - External rating resolution, first-broadcast lookup, native summary expansion, and sticky-nav browser lifecycle live in `SubjectPageRuntime` under `src/modules/subject/runtime/`; `useSeriesRuntime` owns the initial/late series result, current-series identity, more-link adoption, DOM observation, and cleanup

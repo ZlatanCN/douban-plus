@@ -1,0 +1,125 @@
+.atv-movie-home-hot-links,
+.atv-movie-home-review-links {
+  display: flex;
+  margin: -8px 0 20px;
+  gap: 18px;
+}
+
+.atv-movie-home-hot-links a,
+.atv-movie-home-review-links a,
+.atv-movie-home-explanation {
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
+  font-weight: var(--atv-font-weight-medium);
+}
+
+.atv-movie-home-hot-links a:focus-visible,
+.atv-movie-home-review-links a:focus-visible,
+.atv-movie-home-explanation:focus-visible,
+.atv-movie-home-movie-title a:focus-visible,
+.atv-movie-home-ticket:focus-visible,
+.atv-movie-home-ranking a:focus-visible,
+.atv-movie-home-lists a:focus-visible,
+.atv-movie-home-recommendations a:focus-visible,
+.atv-movie-home-review a:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--atv-accent-bright);
+  outline-offset: 3px;
+}
+
+.atv-movie-home-grid {
+  display: grid;
+  gap: 28px 22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.atv-movie-home-movie {
+  min-width: 0;
+}
+
+.atv-movie-home-poster {
+  display: grid;
+  overflow: hidden;
+  border-radius: var(--atv-radius-md);
+  aspect-ratio: 2 / 3;
+  background: var(--atv-bg-card);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  transition: transform var(--atv-duration-press) var(--atv-ease-out);
+}
+
+.atv-movie-home-poster img,
+.atv-movie-home-poster-fallback,
+.atv-movie-home-poster .atv-poster-placeholder {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+}
+
+.atv-movie-home-poster-fallback {
+  display: grid;
+  background: var(--atv-bg-secondary);
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption);
+  place-items: center;
+}
+
+.atv-movie-home-poster:active {
+  transform: scale(0.985);
+}
+
+.atv-movie-home-movie-body {
+  padding-top: 12px;
+}
+
+.atv-movie-home-movie-title {
+  margin: 0;
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.atv-movie-home-movie-title a {
+  color: var(--atv-text-primary);
+}
+
+.atv-movie-home-movie-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 9px;
+  gap: 12px;
+}
+
+.atv-movie-home-rating {
+  color: var(--atv-rating-gold);
+  font-size: var(--atv-type-caption);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--atv-font-weight-semibold);
+}
+
+.atv-movie-home-ticket {
+  color: var(--atv-accent-bright);
+  font-size: var(--atv-type-caption);
+  font-weight: var(--atv-font-weight-semibold);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-movie-home-poster:hover {
+    transform: translateY(-2px);
+  }
+
+  .atv-movie-home-poster:hover img {
+    transform: scale(1.025);
+  }
+
+  .atv-movie-home-movie-title a:hover,
+  .atv-movie-home-hot-links a:hover {
+    color: var(--atv-accent-bright);
+  }
+}
+
+.atv-movie-home-poster img {
+  transition: transform var(--atv-duration-content) var(--atv-ease-out);
+}

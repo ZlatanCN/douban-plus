@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const sourceRoot = path.join(process.cwd(), "src");
 const moduleNames = [
+  "movie-home",
   "personage",
   "subject",
   "subject-celebrities",
@@ -94,6 +95,7 @@ describe("page module boundaries", () => {
 
   it("exposes only the agreed public API for each page module", async () => {
     const [
+      movieHomeEntry,
       personageEntry,
       subjectEntry,
       subjectCelebritiesEntry,
@@ -110,6 +112,7 @@ describe("page module boundaries", () => {
     );
     expect(
       [
+        movieHomeEntry,
         personageEntry,
         subjectEntry,
         subjectCelebritiesEntry,
@@ -120,6 +123,7 @@ describe("page module boundaries", () => {
         .map(exportedNamesOf)
         .map((names) => names.toSorted())
     ).toStrictEqual([
+      ["isMovieHome", "mountMovieHome", "movieHomePage"],
       ["mountPersonage", "personagePage"],
       ["mountSubject", "subjectPage"],
       [
