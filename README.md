@@ -27,6 +27,7 @@ Douban Plus 以页面为单位工作。每条路由都有自己的提取、领�
 
 | 页面 | 观看方式 |
 | --- | --- |
+| `movie.douban.com/` | 正在热映、口碑榜、片单、专题与热门影评按阅读顺序重组；作品搜索、购票与原生导航继续交给豆瓣。 |
 | `movie.douban.com/subject/<id>/` | 作品 Hero、外部评分、影像、演职员、短评、影评、讨论、推荐与详细资料按阅读节奏排布。 |
 | `movie.douban.com/subject/<id>/comments` | 短评总览保留看过 / 在看 / 想看、排序、评分与分页；切换结果在当前页无刷新更新。 |
 | `movie.douban.com/subject/<id>/all_photos` | 已加载的剧照、海报与壁纸被重排成比例稳定的瀑布流，不枚举未打开的分类页。 |
@@ -49,7 +50,7 @@ Douban Plus 以页面为单位工作。每条路由都有自己的提取、领�
 
 1. 安装任一脚本管理器：Tampermonkey、Violentmonkey、Greasemonkey 或 ScriptCat。
 2. 从 [Greasy Fork](https://greasyfork.org/zh-CN/scripts/585771-douban-plus) 或 [ScriptCat](https://scriptcat.org/zh-CN/script-show-page/6712) 安装脚本。
-3. 打开一部电影、剧集、图集、演职员或人物主页；匹配的页面会自动增强。
+3. 打开豆瓣电影首页，或一部电影、剧集、图集、演职员或人物主页；匹配的页面会自动增强。
 
 也可以从源码构建：
 
@@ -87,6 +88,7 @@ pnpm dev
 src/
   main.ts                    # 根据 URL 选择页面模块
   modules/
+    movie-home/              # 豆瓣电影首页
     subject/                 # 作品详情页
     subject-comments/        # 作品短评总览页
     subject-reviews/         # 作品影评总览页

@@ -1,0 +1,165 @@
+.atv-movie-home-ranking {
+  display: grid;
+  padding: 0;
+  margin: 0;
+  gap: 0 40px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  list-style: none;
+}
+
+.atv-movie-home-ranking li {
+  display: grid;
+  align-items: baseline;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  gap: 18px;
+  grid-template-columns: 26px minmax(0, 1fr);
+}
+
+.atv-movie-home-ranking li > span {
+  color: var(--atv-rating-gold);
+  font-family: var(--atv-font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--atv-font-weight-bold);
+}
+
+.atv-movie-home-ranking a {
+  color: var(--atv-text-emphasis);
+  font-weight: var(--atv-font-weight-medium);
+}
+
+.atv-movie-home-explanation {
+  display: inline-block;
+  margin-top: 22px;
+}
+
+.atv-movie-home-lists {
+  max-width: 900px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.atv-movie-home-lists li {
+  display: grid;
+  align-items: baseline;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  gap: 20px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.atv-movie-home-lists a {
+  color: var(--atv-text-emphasis);
+  font-size: var(--atv-type-title-md);
+  font-weight: var(--atv-font-weight-semibold);
+}
+
+.atv-movie-home-lists span {
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption);
+  white-space: nowrap;
+}
+
+.atv-movie-home-recommendations {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.atv-movie-home-recommendations > a {
+  display: grid;
+  align-items: center;
+  gap: 22px;
+  grid-template-columns: minmax(150px, 2fr) minmax(0, 3fr);
+}
+
+.atv-movie-home-recommendations img {
+  width: 100%;
+  border-radius: var(--atv-radius-md);
+  aspect-ratio: 3 / 2;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  object-fit: cover;
+}
+
+.atv-movie-home-recommendations strong,
+.atv-movie-home-recommendations span > span {
+  display: block;
+}
+
+.atv-movie-home-recommendations strong {
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-title);
+}
+
+.atv-movie-home-recommendations span > span {
+  margin-top: 8px;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
+  line-height: var(--atv-line-height-body);
+}
+
+.atv-movie-home-reviews {
+  display: grid;
+  gap: 0 38px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.atv-movie-home-review {
+  display: grid;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--atv-border-subtle);
+  gap: 18px;
+  grid-template-columns: 76px minmax(0, 1fr);
+}
+
+.atv-movie-home-review > img {
+  width: 76px;
+  border-radius: var(--atv-radius-sm);
+  aspect-ratio: 2 / 3;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 12%);
+  object-fit: cover;
+}
+
+.atv-movie-home-review h3 {
+  margin: 0;
+  color: var(--atv-text-primary);
+  font-size: var(--atv-type-title-md);
+  line-height: 1.4;
+}
+
+.atv-movie-home-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 8px 0 12px;
+  color: var(--atv-text-tertiary);
+  font-size: var(--atv-type-caption);
+  gap: 5px 8px;
+}
+
+.atv-movie-home-review-meta a {
+  color: var(--atv-text-secondary);
+}
+
+.atv-movie-home-review > div > p:last-child {
+  margin: 0;
+  color: var(--atv-text-secondary);
+  font-size: var(--atv-type-body-sm);
+  line-height: var(--atv-line-height-body-loose);
+}
+
+.atv-movie-home-review > div > p:last-child a {
+  color: var(--atv-accent-bright);
+  white-space: nowrap;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .atv-movie-home-ranking a:hover,
+  .atv-movie-home-lists a:hover,
+  .atv-movie-home-recommendations a:hover strong,
+  .atv-movie-home-review h3 a:hover,
+  .atv-movie-home-review-links a:hover,
+  .atv-movie-home-explanation:hover {
+    color: var(--atv-accent-bright);
+  }
+}

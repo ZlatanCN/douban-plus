@@ -19,7 +19,11 @@ export default defineConfig({
       files: ["src/main.ts"],
       rules: {
         "no-restricted-imports": restrictImports(
-          ["@/modules/subject/**", "@/modules/personage/**"],
+          [
+            "@/modules/movie-home/**",
+            "@/modules/subject/**",
+            "@/modules/personage/**",
+          ],
           "Import page modules only through their public entry point."
         ),
       },
@@ -29,6 +33,8 @@ export default defineConfig({
       rules: {
         "no-restricted-imports": restrictImports(
           [
+            "@/modules/movie-home",
+            "@/modules/movie-home/**",
             "@/modules/subject",
             "@/modules/subject/**",
             "@/modules/personage",
@@ -42,7 +48,12 @@ export default defineConfig({
       files: ["src/modules/subject/**"],
       rules: {
         "no-restricted-imports": restrictImports(
-          ["@/modules/personage", "@/modules/personage/**"],
+          [
+            "@/modules/movie-home",
+            "@/modules/movie-home/**",
+            "@/modules/personage",
+            "@/modules/personage/**",
+          ],
           "Page modules must not depend on each other."
         ),
       },
@@ -51,7 +62,26 @@ export default defineConfig({
       files: ["src/modules/personage/**"],
       rules: {
         "no-restricted-imports": restrictImports(
-          ["@/modules/subject", "@/modules/subject/**"],
+          [
+            "@/modules/movie-home",
+            "@/modules/movie-home/**",
+            "@/modules/subject",
+            "@/modules/subject/**",
+          ],
+          "Page modules must not depend on each other."
+        ),
+      },
+    },
+    {
+      files: ["src/modules/movie-home/**"],
+      rules: {
+        "no-restricted-imports": restrictImports(
+          [
+            "@/modules/personage",
+            "@/modules/personage/**",
+            "@/modules/subject",
+            "@/modules/subject/**",
+          ],
           "Page modules must not depend on each other."
         ),
       },
@@ -60,6 +90,7 @@ export default defineConfig({
       excludeFiles: [
         "src/main.ts",
         "src/shared/**",
+        "src/modules/movie-home/**",
         "src/modules/subject/**",
         "src/modules/personage/**",
       ],
@@ -67,6 +98,8 @@ export default defineConfig({
       rules: {
         "no-restricted-imports": restrictImports(
           [
+            "@/modules/movie-home",
+            "@/modules/movie-home/**",
             "@/modules/subject",
             "@/modules/subject/**",
             "@/modules/personage",

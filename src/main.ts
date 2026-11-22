@@ -1,3 +1,4 @@
+import { movieHomePage } from "@/modules/movie-home";
 import { personagePage } from "@/modules/personage";
 import { subjectPage } from "@/modules/subject";
 import { subjectAllPhotosPage } from "@/modules/subject-all-photos";
@@ -16,6 +17,7 @@ import type { PageMount } from "@/shared/runtime/page-mount";
 import { stickyNavPreference } from "@/shared/runtime/sticky-nav-preference";
 
 const pageMounts: readonly PageMount[] = [
+  movieHomePage,
   subjectCelebritiesPage,
   subjectAllPhotosPage,
   subjectCommentsPage,
