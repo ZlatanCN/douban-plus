@@ -123,3 +123,23 @@
 .atv-movie-home-poster img {
   transition: transform var(--atv-duration-content) var(--atv-ease-out);
 }
+
+.atv-movie-home a:active {
+  opacity: 0.72;
+}
+
+.atv-movie-home-recommendations > a:active {
+  transform: scale(0.985);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .atv-movie-home a {
+    transition: opacity var(--atv-duration-press) var(--atv-ease-out);
+  }
+
+  .atv-movie-home-recommendations > a {
+    transition:
+      opacity var(--atv-duration-press) var(--atv-ease-out),
+      transform var(--atv-duration-press) var(--atv-ease-out);
+  }
+}

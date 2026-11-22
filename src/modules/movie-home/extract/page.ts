@@ -1,12 +1,11 @@
 import type {
   MovieHomeData,
   MovieHomeMovie,
-  WebLink,
 } from "@/modules/movie-home/domain";
 
 import { extractEditorialSections } from "./editorial";
 import {
-  MOVIE_HOME_URL,
+  completeItems,
   hrefOf,
   hrefValueOf,
   imageOf,
@@ -24,25 +23,28 @@ const extractHeader = (
     "input[name='search_text']"
   );
   const category = form?.querySelector<HTMLInputElement>("input[name='cat']");
-  const action = form?.getAttribute("action") ?? null;
-  const navigation = [
-    ...doc.querySelectorAll("#db-nav-movie .nav-items a"),
-  ].map(linkOf);
+  const action = hrefValueOf(form?.getAttribute("action"), "search");
+  const navigation = completeItems(
+    [...doc.querySelectorAll("#db-nav-movie .nav-items a")].map((link) =>
+      linkOf(link, "douban")
+    ),
+    "电影导航条目缺失"
+  );
 
   if (
     !action ||
     !query?.name ||
     !category?.name ||
-    navigation.length === 0 ||
-    navigation.some((item) => item === null)
+    !category.value ||
+    navigation.length === 0
   ) {
     return null;
   }
 
   return {
-    navigation: navigation.filter((item): item is WebLink => item !== null),
+    navigation,
     search: {
-      action: new URL(action, MOVIE_HOME_URL).href,
+      action,
       categoryName: category.name,
       categoryValue: category.value,
       queryName: query.name,
@@ -52,7 +54,7 @@ const extractHeader = (
 
 const extractHotMovie = (item: HTMLElement): MovieHomeMovie | null => {
   const subject = item.querySelector(".title a");
-  const subjectHref = hrefOf(subject);
+  const subjectHref = hrefOf(subject, "movie-subject");
   const title = item.dataset.title?.trim() || textOf(subject);
   if (!subjectHref || !title) {
     return null;
@@ -64,43 +66,61 @@ const extractHotMovie = (item: HTMLElement): MovieHomeMovie | null => {
     textOf(item.querySelector(".subject-rate")) ||
     null;
   const ticket = item.querySelector(".ticket_btn a");
+  const ticketElementHref = ticket ? hrefOf(ticket, "movie-ticket") : null;
+  if (ticket && !ticketElementHref) {
+    return null;
+  }
+  const ticketHref =
+    ticketElementHref ?? hrefValueOf(item.dataset.ticket, "movie-ticket");
+  if (!ticket && item.dataset.ticket?.trim() && !ticketHref) {
+    return null;
+  }
 
   return {
     poster: imageOf(poster?.parentElement ?? item),
     rating,
     subjectHref,
-    ticketHref: hrefOf(ticket) ?? hrefValueOf(item.dataset.ticket),
+    ticketHref,
     title,
   };
 };
 
+const hasMovieEntry = (item: HTMLElement): boolean =>
+  Boolean(
+    item.dataset.title?.trim() ||
+    item.dataset.ticket?.trim() ||
+    item.querySelector(".title a, .poster a, .ticket_btn a")
+  );
+
 const extractHotMovies = (doc: Document): MovieHomeData["hotMovies"] | null => {
   const section = doc.querySelector("#screening");
   const content = section?.querySelector(".screening-bd .ui-slide-content");
-  const links = [...(section?.querySelectorAll("h2 a") ?? [])].map(linkOf);
-  const nowPlaying = links.find((link) => link?.label.includes("全部正在热映"));
-  const upcoming = links.find((link) => link?.label.includes("即将上映"));
-  const movies = [...(content?.children ?? [])]
-    .filter((item): item is HTMLElement =>
-      item.matches(".ui-slide-item[data-title]")
-    )
-    .map(extractHotMovie);
+  const headingLinks = [...(section?.querySelectorAll("h2 a") ?? [])];
+  const nowPlaying = linkOf(
+    headingLinks.find((link) => textOf(link).includes("全部正在热映")) ?? null,
+    "movie"
+  );
+  const upcoming = linkOf(
+    headingLinks.find((link) => textOf(link).includes("即将上映")) ?? null,
+    "movie"
+  );
+  const movies = completeItems(
+    [...(content?.children ?? [])]
+      .filter(
+        (item): item is HTMLElement =>
+          item instanceof HTMLElement &&
+          item.matches(".ui-slide-item") &&
+          hasMovieEntry(item)
+      )
+      .map(extractHotMovie),
+    "热映作品条目缺失"
+  );
 
-  if (
-    !content ||
-    !nowPlaying ||
-    !upcoming ||
-    movies.length === 0 ||
-    movies.some((movie) => movie === null)
-  ) {
+  if (!content || !nowPlaying || !upcoming || movies.length === 0) {
     return null;
   }
 
-  return {
-    nowPlaying,
-    movies: movies.filter((movie): movie is MovieHomeMovie => movie !== null),
-    upcoming,
-  };
+  return { nowPlaying, movies, upcoming };
 };
 
 const extractMovieHome = (doc: Document): MovieHomeData | null => {
@@ -109,18 +129,23 @@ const extractMovieHome = (doc: Document): MovieHomeData | null => {
     return null;
   }
 
-  const header = extractHeader(doc);
-  const hotMovies = extractHotMovies(doc);
-  const editorial = extractEditorialSections(doc);
-  if (!header || !hotMovies || !editorial) {
+  try {
+    const header = extractHeader(doc);
+    const hotMovies = extractHotMovies(doc);
+    const editorial = extractEditorialSections(doc);
+    if (!header || !hotMovies || !editorial) {
+      return null;
+    }
+
+    return {
+      ...header,
+      hotMovies,
+      ...editorial,
+    };
+  } catch (error) {
+    console.warn("[ATV-Douban] 电影首页数据提取不完整", error);
     return null;
   }
-
-  return {
-    ...header,
-    hotMovies,
-    ...editorial,
-  };
 };
 
 export { extractMovieHome };

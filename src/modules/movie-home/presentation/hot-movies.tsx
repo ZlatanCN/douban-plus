@@ -1,32 +1,27 @@
 import { useState } from "preact/hooks";
 
 import type { MovieHomeData } from "@/modules/movie-home/domain";
+import { createMovieHomePaging } from "@/modules/movie-home/paging";
 import { Section } from "@/shared/components/layout/section";
 
 import { MovieGrid } from "./movie-grid";
 
-const PAGE_SIZE = 4;
-
 type HotMoviesProps = {
   data: MovieHomeData["hotMovies"];
   initialPage: number;
-  onPageChange: (page: number) => void;
 };
 
-const HotMovies = ({ data, initialPage, onPageChange }: HotMoviesProps) => {
-  const pageCount = Math.max(1, Math.ceil(data.movies.length / PAGE_SIZE));
-  const [page, setPage] = useState(Math.min(initialPage, pageCount));
-  const visibleMovies = data.movies.slice(
-    (page - 1) * PAGE_SIZE,
-    page * PAGE_SIZE
-  );
+const HotMovies = ({ data, initialPage }: HotMoviesProps) => {
+  const paging = createMovieHomePaging(data.movies.length);
+  const [page, setPage] = useState(paging.clampPage(initialPage));
+  const visibleMovies = paging.moviesOnPage(data.movies, page);
 
   const changePage = (nextPage: number): void => {
-    if (nextPage < 1 || nextPage > pageCount || nextPage === page) {
+    const visiblePage = paging.clampPage(nextPage);
+    if (visiblePage === page || nextPage < 1 || nextPage > paging.pageCount) {
       return;
     }
-    setPage(nextPage);
-    onPageChange(nextPage);
+    setPage(visiblePage);
   };
 
   return (
@@ -44,9 +39,9 @@ const HotMovies = ({ data, initialPage, onPageChange }: HotMoviesProps) => {
           <span
             aria-live="polite"
             class="atv-movie-home-page-count"
-          >{`${page} / ${pageCount}`}</span>
+          >{`${page} / ${paging.pageCount}`}</span>
           <button
-            aria-disabled={page === pageCount}
+            aria-disabled={page === paging.pageCount}
             class="atv-movie-home-next"
             onClick={() => changePage(page + 1)}
             type="button"

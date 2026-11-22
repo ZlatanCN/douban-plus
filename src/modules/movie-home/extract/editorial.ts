@@ -7,7 +7,14 @@ import type {
   WebLink,
 } from "@/modules/movie-home/domain";
 
-import { hrefOf, imageOf, invalidSection, linkOf, textOf } from "./native";
+import {
+  completeItems,
+  hrefOf,
+  imageOf,
+  linkOf,
+  textOf,
+  throwExtractionFailure,
+} from "./native";
 
 type EditorialSections = Pick<
   MovieHomeData,
@@ -25,29 +32,26 @@ const extractRanking = (
   const items = [
     ...section.querySelectorAll<HTMLTableRowElement>(".billboard-bd tr"),
   ].map((row): MovieHomeRank | null => {
-    const href = hrefOf(row.querySelector(".title a"));
+    const href = hrefOf(row.querySelector(".title a"), "movie-subject");
     const rank = textOf(row.querySelector(".order"));
     const title = textOf(row.querySelector(".title a"));
     return href && rank && title ? { href, rank, title } : null;
   });
   const moreLink = section.querySelector(".billboard-hd h2 > span a");
-  const more = linkOf(moreLink);
+  const more = linkOf(moreLink, "movie");
   if (!more) {
-    return invalidSection("口碑榜入口缺失");
-  }
-  if (items.some((item) => item === null)) {
-    return invalidSection("口碑榜单条目的名次或链接缺失");
+    return throwExtractionFailure("口碑榜入口缺失");
   }
 
   const explanationElement = doc.querySelector(".rating_answer a");
-  const explanation = linkOf(explanationElement);
+  const explanation = linkOf(explanationElement, "douban");
   if (explanationElement && !explanation) {
-    return invalidSection("评分说明入口无效");
+    return throwExtractionFailure("评分说明入口无效");
   }
 
   return {
     explanation,
-    items: items.filter((item): item is MovieHomeRank => item !== null),
+    items: completeItems(items, "口碑榜单条目的名次或链接缺失"),
     more,
   };
 };
@@ -60,7 +64,7 @@ const extractLists = (doc: Document): MovieHomeData["lists"] | undefined => {
 
   const items = [...section.querySelectorAll("ul > li")].map(
     (item): MovieHomeListItem | null => {
-      const href = hrefOf(item.querySelector(".title a"));
+      const href = hrefOf(item.querySelector(".title a"), "douban-doulist");
       const title = textOf(item.querySelector(".title a"));
       const recommendations = textOf(item.querySelector(":scope > span"));
       return href && title && recommendations
@@ -68,12 +72,8 @@ const extractLists = (doc: Document): MovieHomeData["lists"] | undefined => {
         : null;
     }
   );
-  if (items.some((item) => item === null)) {
-    return invalidSection("热门片单条目缺失");
-  }
-
   return {
-    items: items.filter((item): item is MovieHomeListItem => item !== null),
+    items: completeItems(items, "热门片单条目缺失"),
   };
 };
 
@@ -88,7 +88,7 @@ const extractRecommendations = (
   const items = [
     ...section.querySelectorAll("#hot-gallery .gallery-frame"),
   ].map((item): MovieHomeRecommendation | null => {
-    const href = hrefOf(item.querySelector("a"));
+    const href = hrefOf(item.querySelector("a"), "movie");
     const title = textOf(item.querySelector("h3"));
     const summary = textOf(item.querySelector(".gallery-bd p"));
     const image = imageOf(item);
@@ -96,14 +96,8 @@ const extractRecommendations = (
       ? { href, image, summary, title }
       : null;
   });
-  if (items.some((item) => item === null)) {
-    return invalidSection("热门推荐条目缺失");
-  }
-
   return {
-    items: items.filter(
-      (item): item is MovieHomeRecommendation => item !== null
-    ),
+    items: completeItems(items, "热门推荐条目缺失"),
   };
 };
 
@@ -116,25 +110,30 @@ const extractReviews = (
   }
 
   const headingLinks = [...section.querySelectorAll(".reviews-hd h2 a")]
-    .map(linkOf)
+    .map((link) => linkOf(link, "movie"))
     .filter((link): link is WebLink => link !== null);
   const more = headingLinks.find((link) => link.label.includes("更多热门影评"));
   const latest = headingLinks.find((link) => link.label.includes("新片影评"));
   if (!more || !latest) {
-    return invalidSection("影评列表入口缺失");
+    return throwExtractionFailure("影评列表入口缺失");
   }
 
   const items = [...section.querySelectorAll(".reviews-bd .review")].map(
     (item): MovieHomeReview | null => {
       const link = item.querySelector(".review-bd h3 a");
-      const href = hrefOf(link);
+      const href = hrefOf(link, "movie-review");
       const title = textOf(link);
-      const author = linkOf(item.querySelector(".review-meta > a"));
+      const author = linkOf(
+        item.querySelector(".review-meta > a"),
+        "douban-person"
+      );
       const subject = linkOf(
-        item.querySelector(".review-meta > a:nth-of-type(2)")
+        item.querySelector(".review-meta > a:nth-of-type(2)"),
+        "movie-subject"
       );
       const fullTextHref = hrefOf(
-        item.querySelector(".review-content a:last-of-type")
+        item.querySelector(".review-content a:last-of-type"),
+        "movie-review"
       );
       const summary =
         item
@@ -146,12 +145,8 @@ const extractReviews = (
         : null;
     }
   );
-  if (items.some((item) => item === null)) {
-    return invalidSection("影评条目的标题、作者、作品或全文入口缺失");
-  }
-
   return {
-    items: items.filter((item): item is MovieHomeReview => item !== null),
+    items: completeItems(items, "影评条目的标题、作者、作品或全文入口缺失"),
     latest,
     more,
   };

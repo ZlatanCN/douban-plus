@@ -92,6 +92,125 @@ describe(movieHomePage.mount, () => {
     cleanup();
   });
 
+  it("uses the visible hot-movie title when data-title is absent", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    const firstMovie = doc.querySelector<HTMLElement>(
+      ".screening-bd .ui-slide-item"
+    );
+    if (firstMovie) {
+      delete firstMovie.dataset.title;
+    }
+
+    movieHomePage.mount(doc);
+
+    expect(
+      [
+        ...doc.querySelectorAll(
+          "#atv-movie-home-now-playing .atv-movie-home-movie-title a"
+        ),
+      ].map((link) => link.textContent)
+    ).toContain("饥饿游戏：收获日出");
+
+    cleanup();
+  });
+
+  it("ignores empty carousel placeholder items without hiding real movies", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    const hotList = doc.querySelector(".screening-bd .ui-slide-content");
+    const placeholder = doc.createElement("li");
+    placeholder.className = "ui-slide-item";
+    hotList?.prepend(placeholder);
+
+    movieHomePage.mount(doc);
+
+    expect({
+      enhanced: doc.body.classList.contains("atv-enhanced"),
+      movieCount: doc.querySelectorAll(".atv-movie-home-movie").length,
+    }).toStrictEqual({ enhanced: true, movieCount: 4 });
+
+    cleanup();
+  });
+
+  it("leaves the native homepage active when an existing movie link is not a native subject target", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    doc
+      .querySelector<HTMLAnchorElement>(".screening-bd .title a")
+      ?.setAttribute("href", "https://example.com/subject/36915988/");
+
+    movieHomePage.mount(doc);
+
+    expect(doc.body.classList).not.toContain("atv-enhanced");
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+    expect(doc.querySelector("#screening")).not.toBeNull();
+
+    cleanup();
+  });
+
+  it("leaves the native homepage active when an existing ticket link is invalid", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    doc
+      .querySelector<HTMLAnchorElement>(".screening-bd .ticket_btn a")
+      ?.setAttribute("href", "https://movie.douban.com/ticket/not-a-redirect");
+
+    movieHomePage.mount(doc);
+
+    expect(doc.body.classList).not.toContain("atv-enhanced");
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+
+    cleanup();
+  });
+
+  it("leaves the native homepage active when a required editorial entry link is invalid", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    doc
+      .querySelector<HTMLAnchorElement>("#billboard .billboard-hd h2 a")
+      ?.setAttribute("href", "https://example.com/chart");
+
+    movieHomePage.mount(doc);
+
+    expect(doc.body.classList).not.toContain("atv-enhanced");
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+    expect(doc.querySelector("#billboard")).not.toBeNull();
+
+    cleanup();
+  });
+
+  it("leaves the native homepage active when an existing recommendation image link is invalid", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    const recommendationImage =
+      doc.querySelector<HTMLImageElement>("#hot-gallery img");
+    if (recommendationImage) {
+      recommendationImage.dataset.original =
+        "https://example.com/recommendation.jpg";
+    }
+    recommendationImage?.setAttribute(
+      "src",
+      "https://example.com/recommendation.jpg"
+    );
+
+    movieHomePage.mount(doc);
+
+    expect(doc.body.classList).not.toContain("atv-enhanced");
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+
+    cleanup();
+  });
+
+  it("leaves the native homepage active when an existing navigation target is invalid", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    doc
+      .querySelector<HTMLAnchorElement>("#db-nav-movie .nav-items a")
+      ?.setAttribute("href", "https://example.com/cinema/nowplaying/");
+
+    movieHomePage.mount(doc);
+
+    expect(doc.body.classList).not.toContain("atv-enhanced");
+    expect(doc.querySelector("#atv-douban-root")).toBeNull();
+    expect(doc.querySelector("#db-nav-movie")).not.toBeNull();
+
+    cleanup();
+  });
+
   it("omits a confirmed empty optional section without blocking the page", () => {
     const { cleanup, doc } = createTestDoc(
       movieHomeFixture.replace(
@@ -114,6 +233,34 @@ describe(movieHomePage.mount, () => {
       "热门推荐",
       "最受欢迎的影评",
     ]);
+
+    cleanup();
+  });
+
+  it("allows every existing optional section to be empty", () => {
+    const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    for (const row of doc.querySelectorAll("#billboard .billboard-bd tr")) {
+      row.remove();
+    }
+    for (const item of doc.querySelectorAll("#doulist ul > li")) {
+      item.remove();
+    }
+    for (const item of doc.querySelectorAll("#hot-gallery .gallery-frame")) {
+      item.remove();
+    }
+    for (const item of doc.querySelectorAll(".reviews-bd .review")) {
+      item.remove();
+    }
+
+    movieHomePage.mount(doc);
+
+    expect(
+      [
+        ...doc.querySelectorAll<HTMLElement>(
+          "#atv-douban-root main .atv-section h2"
+        ),
+      ].map((heading) => heading.textContent)
+    ).toStrictEqual(["正在热映"]);
 
     cleanup();
   });

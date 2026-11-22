@@ -26,18 +26,18 @@ describe("movie homepage interactions", () => {
     document.body.innerHTML = "";
   });
 
-  it("pages through every hot movie in groups of four and preserves focus", async () => {
+  it("pages through every hot movie in groups of four without writing page state to history", async () => {
     const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
+    window.history.replaceState({ atvMovieHomePage: 8, retained: true }, "");
     const replaceState = vi.spyOn(window.history, "replaceState");
-    window.history.replaceState({ retained: true }, "");
 
     movieHomePage.mount(doc);
 
     const next = doc.querySelector<HTMLButtonElement>(".atv-movie-home-next");
-    expect(movieTitles(doc)).toHaveLength(4);
-    expect(doc.querySelector(".atv-movie-home-page-count")?.textContent).toBe(
-      "1 / 2"
-    );
+    expect({
+      count: doc.querySelector(".atv-movie-home-page-count")?.textContent,
+      movieCount: movieTitles(doc).length,
+    }).toStrictEqual({ count: "1 / 2", movieCount: 4 });
 
     next?.focus();
     next?.click();
@@ -47,35 +47,38 @@ describe("movie homepage interactions", () => {
       )
     );
 
-    expect(movieTitles(doc)).toStrictEqual([
-      "一个很长很长很长很长很长很长很长很长很长很长的片名",
-      "末组作品",
-    ]);
-    expect(doc.activeElement).toBe(doc.querySelector(".atv-movie-home-next"));
-    expect(replaceState).toHaveBeenLastCalledWith(
-      { atvMovieHomePage: 2, retained: true },
-      ""
-    );
+    expect({
+      activeIsNext: doc.activeElement === next,
+      historyState: window.history.state,
+      historyWrites: replaceState.mock.calls.length,
+      movies: movieTitles(doc),
+    }).toStrictEqual({
+      activeIsNext: true,
+      historyState: { atvMovieHomePage: 8, retained: true },
+      historyWrites: 0,
+      movies: [
+        "一个很长很长很长很长很长很长很长很长很长很长的片名",
+        "末组作品",
+      ],
+    });
 
     cleanup();
   });
 
-  it("restores a saved group and clamps a shortened list to its last group", () => {
+  it("starts a newly mounted page at group one regardless of existing history state", () => {
     const { cleanup, doc } = createTestDoc(movieHomeFixture, "/");
-    const hotList = doc.querySelector(".screening-bd .ui-slide-content");
-    for (const item of [...(hotList?.children ?? [])].slice(2)) {
-      item.remove();
-    }
     window.history.replaceState({ atvMovieHomePage: 8 }, "");
 
     movieHomePage.mount(doc);
 
     expect(doc.querySelector(".atv-movie-home-page-count")?.textContent).toBe(
-      "1 / 1"
+      "1 / 2"
     );
     expect(movieTitles(doc)).toStrictEqual([
       "饥饿游戏：收获日出 The Hunger Games: Sunrise on the Reaping",
       "珠穆朗玛：云中彼岸 Everest: The Other Side",
+      "试探",
+      "没有海报的作品",
     ]);
 
     cleanup();

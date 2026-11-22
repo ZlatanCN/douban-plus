@@ -38,6 +38,12 @@ const movieHomeSectionHeaderSelectors = (): string[] => {
   return selectors;
 };
 
+const readMovieHomeStyle = (name: string): string =>
+  readFileSync(
+    path.resolve(process.cwd(), `src/modules/movie-home/styles/${name}`),
+    "utf-8"
+  );
+
 const declarationsFor = (selector: string): Record<string, string> => {
   const declarations = new Map<string, string>();
   responsiveStylesheet.walkRules((rule) => {
@@ -68,6 +74,40 @@ describe("movie homepage responsive sections", () => {
         "flex-direction": "column",
         gap: "12px",
       }
+    );
+  });
+});
+
+describe("movie homepage interaction feedback", () => {
+  it("gives every homepage link composited pressed feedback with reduced-motion handling", () => {
+    const layoutCss = readMovieHomeStyle("layout.css");
+    const contentCss = readMovieHomeStyle("content.css");
+    const editorialCss = readMovieHomeStyle("editorial.css");
+    const allCss = `${layoutCss}\n${contentCss}\n${editorialCss}`;
+
+    expect(allCss).toContain(".atv-movie-home a:active");
+    expect(allCss).toMatch(
+      /\.atv-movie-home a:active\s*\{[^}]*opacity:\s*0\.72;/su
+    );
+    expect(allCss).toMatch(
+      /@media \(prefers-reduced-motion: no-preference\)\s*\{/u
+    );
+    expect(allCss).toMatch(
+      /@media \(hover: hover\) and \(pointer: fine\)\s*\{/u
+    );
+  });
+
+  it("releases the native host desktop minimum only for the enhanced movie homepage", () => {
+    const layoutCss = readMovieHomeStyle("layout.css");
+
+    expect(layoutCss).toMatch(
+      /html:has\(body\.atv-enhanced \.atv-movie-home\)\s*\{[^}]*min-width:\s*0;/su
+    );
+    expect(layoutCss).toMatch(
+      /body\.atv-enhanced:has\(\.atv-movie-home\)\s*\{[^}]*min-width:\s*0;/su
+    );
+    expect(layoutCss).toMatch(
+      /body\.atv-enhanced:has\(\.atv-movie-home\)\s*\{[^}]*width:\s*100%;/su
     );
   });
 });
